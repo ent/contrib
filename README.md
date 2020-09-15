@@ -1,6 +1,6 @@
 # ent-contrib
 
-A collection of extensions and tools for [ent](github.com/facebook/ent).
+A collection of extensions and tools for [ent](https://github.com/facebook/ent).
 
 ## Docs
 The documentation for developing and using ent is available at: https://entgo.io
