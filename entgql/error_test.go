@@ -19,3 +19,9 @@ func TestDefaultErrorPresenter(t *testing.T) {
 	gqlerr := entgql.DefaultErrorPresenter(context.Background(), err)
 	assert.Equal(t, "gqlerr", gqlerr.Message)
 }
+
+func TestErrNodeNotFound(t *testing.T) {
+	err := entgql.ErrNodeNotFound(42)
+	assert.EqualError(t, err, "input: Could not resolve to a node with the global id of '42'")
+	assert.Equal(t, "NOT_FOUND", err.Extensions["code"])
+}

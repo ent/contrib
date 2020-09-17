@@ -200,11 +200,11 @@ func (c *TodoClient) Get(ctx context.Context, id int) (*Todo, error) {
 
 // GetX is like Get, but panics if an error occurs.
 func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
-	t, err := c.Get(ctx, id)
+	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
-	return t
+	return obj
 }
 
 // QueryParent queries the parent edge of a Todo.

@@ -46,6 +46,7 @@ type TodoMutation struct {
 	clearedparent   bool
 	children        map[int]struct{}
 	removedchildren map[int]struct{}
+	clearedchildren bool
 	done            bool
 	oldValue        func(context.Context) (*Todo, error)
 }
@@ -346,6 +347,16 @@ func (m *TodoMutation) AddChildIDs(ids ...int) {
 	}
 }
 
+// ClearChildren clears the children edge to Todo.
+func (m *TodoMutation) ClearChildren() {
+	m.clearedchildren = true
+}
+
+// ChildrenCleared returns if the edge children was cleared.
+func (m *TodoMutation) ChildrenCleared() bool {
+	return m.clearedchildren
+}
+
 // RemoveChildIDs removes the children edge to Todo by ids.
 func (m *TodoMutation) RemoveChildIDs(ids ...int) {
 	if m.removedchildren == nil {
@@ -375,6 +386,7 @@ func (m *TodoMutation) ChildrenIDs() (ids []int) {
 // ResetChildren reset all changes of the "children" edge.
 func (m *TodoMutation) ResetChildren() {
 	m.children = nil
+	m.clearedchildren = false
 	m.removedchildren = nil
 }
 
@@ -618,6 +630,9 @@ func (m *TodoMutation) ClearedEdges() []string {
 	if m.clearedparent {
 		edges = append(edges, todo.EdgeParent)
 	}
+	if m.clearedchildren {
+		edges = append(edges, todo.EdgeChildren)
+	}
 	return edges
 }
 
@@ -627,6 +642,8 @@ func (m *TodoMutation) EdgeCleared(name string) bool {
 	switch name {
 	case todo.EdgeParent:
 		return m.clearedparent
+	case todo.EdgeChildren:
+		return m.clearedchildren
 	}
 	return false
 }

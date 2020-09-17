@@ -5,8 +5,10 @@ go 1.15
 require (
 	github.com/99designs/gqlgen v0.12.2
 	github.com/AlekSi/pointer v1.1.0
+	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/alecthomas/kong v0.2.11
-	github.com/facebook/ent v0.4.2
+	github.com/facebook/ent v0.4.3-0.20200917090002-38e769465c01
+	github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368
 	github.com/google/addlicense v0.0.0-20200422172452-68a83edd47bc // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.3
