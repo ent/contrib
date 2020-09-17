@@ -68,8 +68,12 @@ func (tq *TodoQuery) QueryParent() *TodoQuery {
 		if err := tq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := tq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+			sqlgraph.From(todo.Table, todo.FieldID, selector),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
 		)
@@ -86,8 +90,12 @@ func (tq *TodoQuery) QueryChildren() *TodoQuery {
 		if err := tq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := tq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+			sqlgraph.From(todo.Table, todo.FieldID, selector),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
 		)
@@ -99,23 +107,23 @@ func (tq *TodoQuery) QueryChildren() *TodoQuery {
 
 // First returns the first Todo entity in the query. Returns *NotFoundError when no todo was found.
 func (tq *TodoQuery) First(ctx context.Context) (*Todo, error) {
-	ts, err := tq.Limit(1).All(ctx)
+	nodes, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(ts) == 0 {
+	if len(nodes) == 0 {
 		return nil, &NotFoundError{todo.Label}
 	}
-	return ts[0], nil
+	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
 func (tq *TodoQuery) FirstX(ctx context.Context) *Todo {
-	t, err := tq.First(ctx)
+	node, err := tq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
-	return t
+	return node
 }
 
 // FirstID returns the first Todo id in the query. Returns *NotFoundError when no id was found.
@@ -142,13 +150,13 @@ func (tq *TodoQuery) FirstXID(ctx context.Context) int {
 
 // Only returns the only Todo entity in the query, returns an error if not exactly one entity was returned.
 func (tq *TodoQuery) Only(ctx context.Context) (*Todo, error) {
-	ts, err := tq.Limit(2).All(ctx)
+	nodes, err := tq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	switch len(ts) {
+	switch len(nodes) {
 	case 1:
-		return ts[0], nil
+		return nodes[0], nil
 	case 0:
 		return nil, &NotFoundError{todo.Label}
 	default:
@@ -158,11 +166,11 @@ func (tq *TodoQuery) Only(ctx context.Context) (*Todo, error) {
 
 // OnlyX is like Only, but panics if an error occurs.
 func (tq *TodoQuery) OnlyX(ctx context.Context) *Todo {
-	t, err := tq.Only(ctx)
+	node, err := tq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return t
+	return node
 }
 
 // OnlyID returns the only Todo id in the query, returns an error if not exactly one id was returned.
@@ -201,11 +209,11 @@ func (tq *TodoQuery) All(ctx context.Context) ([]*Todo, error) {
 
 // AllX is like All, but panics if an error occurs.
 func (tq *TodoQuery) AllX(ctx context.Context) []*Todo {
-	ts, err := tq.All(ctx)
+	nodes, err := tq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return ts
+	return nodes
 }
 
 // IDs executes the query and returns a list of Todo ids.
@@ -498,7 +506,7 @@ func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := tq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector)
+				ps[i](selector, todo.ValidColumn)
 			}
 		}
 	}
@@ -517,7 +525,7 @@ func (tq *TodoQuery) sqlQuery() *sql.Selector {
 		p(selector)
 	}
 	for _, p := range tq.order {
-		p(selector)
+		p(selector, todo.ValidColumn)
 	}
 	if offset := tq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -752,8 +760,17 @@ func (tgb *TodoGroupBy) BoolX(ctx context.Context) bool {
 }
 
 func (tgb *TodoGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range tgb.fields {
+		if !todo.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
+		}
+	}
+	selector := tgb.sqlQuery()
+	if err := selector.Err(); err != nil {
+		return err
+	}
 	rows := &sql.Rows{}
-	query, args := tgb.sqlQuery().Query()
+	query, args := selector.Query()
 	if err := tgb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
@@ -766,7 +783,7 @@ func (tgb *TodoGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
 	columns = append(columns, tgb.fields...)
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn(selector))
+		columns = append(columns, fn(selector, todo.ValidColumn))
 	}
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }
@@ -986,6 +1003,11 @@ func (ts *TodoSelect) BoolX(ctx context.Context) bool {
 }
 
 func (ts *TodoSelect) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range ts.fields {
+		if !todo.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for selection", f)}
+		}
+	}
 	rows := &sql.Rows{}
 	query, args := ts.sqlQuery().Query()
 	if err := ts.driver.Query(ctx, query, args, rows); err != nil {

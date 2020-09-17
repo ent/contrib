@@ -105,20 +105,24 @@ func (tc *TodoCreate) Mutation() *TodoMutation {
 
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
-	if err := tc.preSave(); err != nil {
-		return nil, err
-	}
 	var (
 		err  error
 		node *Todo
 	)
+	tc.defaults()
 	if len(tc.hooks) == 0 {
+		if err = tc.check(); err != nil {
+			return nil, err
+		}
 		node, err = tc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*TodoMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = tc.check(); err != nil {
+				return nil, err
 			}
 			tc.mutation = mutation
 			node, err = tc.sqlSave(ctx)
@@ -144,10 +148,22 @@ func (tc *TodoCreate) SaveX(ctx context.Context) *Todo {
 	return v
 }
 
-func (tc *TodoCreate) preSave() error {
+// defaults sets the default values of the builder before save.
+func (tc *TodoCreate) defaults() {
 	if _, ok := tc.mutation.CreatedAt(); !ok {
 		v := todo.DefaultCreatedAt()
 		tc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := tc.mutation.Priority(); !ok {
+		v := todo.DefaultPriority
+		tc.mutation.SetPriority(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (tc *TodoCreate) check() error {
+	if _, ok := tc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New("ent: missing required field \"created_at\"")}
 	}
 	if _, ok := tc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
@@ -158,8 +174,7 @@ func (tc *TodoCreate) preSave() error {
 		}
 	}
 	if _, ok := tc.mutation.Priority(); !ok {
-		v := todo.DefaultPriority
-		tc.mutation.SetPriority(v)
+		return &ValidationError{Name: "priority", err: errors.New("ent: missing required field \"priority\"")}
 	}
 	if _, ok := tc.mutation.Text(); !ok {
 		return &ValidationError{Name: "text", err: errors.New("ent: missing required field \"text\"")}
@@ -173,7 +188,7 @@ func (tc *TodoCreate) preSave() error {
 }
 
 func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
-	t, _spec := tc.createSpec()
+	_node, _spec := tc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -181,13 +196,13 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	t.ID = int(id)
-	return t, nil
+	_node.ID = int(id)
+	return _node, nil
 }
 
 func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	var (
-		t     = &Todo{config: tc.config}
+		_node = &Todo{config: tc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: todo.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -202,7 +217,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: todo.FieldCreatedAt,
 		})
-		t.CreatedAt = value
+		_node.CreatedAt = value
 	}
 	if value, ok := tc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -210,7 +225,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: todo.FieldStatus,
 		})
-		t.Status = value
+		_node.Status = value
 	}
 	if value, ok := tc.mutation.Priority(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -218,7 +233,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: todo.FieldPriority,
 		})
-		t.Priority = value
+		_node.Priority = value
 	}
 	if value, ok := tc.mutation.Text(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -226,7 +241,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: todo.FieldText,
 		})
-		t.Text = value
+		_node.Text = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -266,7 +281,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return t, _spec
+	return _node, _spec
 }
 
 // TodoCreateBulk is the builder for creating a bulk of Todo entities.
@@ -283,13 +298,14 @@ func (tcb *TodoCreateBulk) Save(ctx context.Context) ([]*Todo, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				if err := builder.preSave(); err != nil {
-					return nil, err
-				}
 				mutation, ok := m.(*TodoMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				if err := builder.check(); err != nil {
+					return nil, err
 				}
 				builder.mutation = mutation
 				nodes[i], specs[i] = builder.createSpec()

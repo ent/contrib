@@ -4,5 +4,4 @@
 
 package ent
 
-//go:generate go run github.com/facebook/ent/cmd/entc generate --template ../../../template ./schema
-//go:generate go run github.com/google/addlicense -c Facebook -y 2004-present ./
+//go:generate go run entc.go

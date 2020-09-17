@@ -9,6 +9,7 @@ import (
 	"errors"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -29,4 +30,11 @@ func DefaultErrorPresenter(ctx context.Context, err error) (gqlerr *gqlerror.Err
 		gqlerr.Extensions = ee.Extensions()
 	}
 	return gqlerr
+}
+
+// ErrNodeNotFound creates a node not found graphql error.
+func ErrNodeNotFound(id interface{}) *gqlerror.Error {
+	err := gqlerror.Errorf("Could not resolve to a node with the global id of '%v'", id)
+	errcode.Set(err, "NOT_FOUND")
+	return err
 }
