@@ -1,4 +1,4 @@
-// Copyright 2004-present Facebook
+// Copyright 2019-present Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
 )
 
-func (mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
+func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
 	client := ent.FromContext(ctx)
 	return client.Todo.
 		Create().
@@ -34,7 +34,7 @@ func (mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.To
 		Save(ctx)
 }
 
-func (mutationResolver) ClearTodos(ctx context.Context) (int, error) {
+func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 	client := ent.FromContext(ctx)
 	return client.Todo.
 		Delete().
