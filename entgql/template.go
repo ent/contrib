@@ -20,11 +20,11 @@ var (
 	// NodeTemplate implements the Relay Node interface for all types.
 	NodeTemplate = parse("template/node.tmpl")
 
-	// PaginationTemplate adds pagination support according to the Relay Cursor Connections Spec.
+	// PaginationTemplate adds pagination support according to the GraphQL Cursor Connections Spec.
 	// More info can be found in the following link: https://relay.dev/graphql/connections.htm.
 	PaginationTemplate = parse("template/pagination.tmpl")
 
-	// TransactionTemplate adds support for ent.Client for openning transactions for the transaction
+	// TransactionTemplate adds support for ent.Client for opening transactions for the transaction
 	// middleware. See transaction.go for for information.
 	TransactionTemplate = parse("template/transaction.tmpl")
 

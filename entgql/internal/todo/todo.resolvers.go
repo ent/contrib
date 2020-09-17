@@ -23,8 +23,9 @@ import (
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
-	return r.client.Todo.
+func (mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
+	client := ent.FromContext(ctx)
+	return client.Todo.
 		Create().
 		SetStatus(todo.Status).
 		SetNillablePriority(todo.Priority).
@@ -33,8 +34,9 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent
 		Save(ctx)
 }
 
-func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
-	return r.client.Todo.
+func (mutationResolver) ClearTodos(ctx context.Context) (int, error) {
+	client := ent.FromContext(ctx)
+	return client.Todo.
 		Delete().
 		Exec(ctx)
 }
