@@ -23,6 +23,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/facebook/ent/dialect"
 	"github.com/facebook/ent/dialect/sql"
 	"github.com/facebook/ent/dialect/sql/schema"
 	"github.com/facebookincubator/ent-contrib/entgql"
@@ -173,13 +174,9 @@ type (
 		sem   *semaphore.Weighted
 		value atomic.Value
 	}
-
-	querier interface {
-		Query(ctx context.Context, query string, args, v interface{}) error
-	}
 )
 
-func (t *tables) Load(ctx context.Context, querier querier) ([]string, error) {
+func (t *tables) Load(ctx context.Context, drv dialect.Driver) ([]string, error) {
 	if tables := t.value.Load(); tables != nil {
 		return tables.([]string), nil
 	}
@@ -191,20 +188,21 @@ func (t *tables) Load(ctx context.Context, querier querier) ([]string, error) {
 	if tables := t.value.Load(); tables != nil {
 		return tables.([]string), nil
 	}
-	tables, err := t.load(ctx, querier)
+	tables, err := t.load(ctx, drv)
 	if err == nil {
 		t.value.Store(tables)
 	}
 	return tables, err
 }
 
-func (tables) load(ctx context.Context, querier querier) ([]string, error) {
+func (tables) load(ctx context.Context, drv dialect.Driver) ([]string, error) {
 	rows := &sql.Rows{}
-	query, args := sql.Select("type").
+	query, args := sql.Dialect(drv.Dialect()).
+		Select("type").
 		From(sql.Table(schema.TypeTable)).
 		OrderBy(sql.Asc("id")).
 		Query()
-	if err := querier.Query(ctx, query, args, rows); err != nil {
+	if err := drv.Query(ctx, query, args, rows); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
