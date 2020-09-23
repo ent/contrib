@@ -112,8 +112,8 @@ func TestTransaction(t *testing.T) {
 			srv.SetRecoverFunc(func(_ context.Context, err interface{}) error {
 				return err.(error)
 			})
-			srv.AroundResponses(func(context.Context, graphql.ResponseHandler) *graphql.Response {
-				panic(errors.New("oh no"))
+			srv.AroundResponses(func(ctx context.Context, _ graphql.ResponseHandler) *graphql.Response {
+				panic(graphql.ErrorOnPath(ctx, errors.New("oh no")))
 			})
 
 			c := client.New(srv)

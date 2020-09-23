@@ -15,23 +15,14 @@
 package entgql_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
 
 	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/stretchr/testify/assert"
-	"github.com/vektah/gqlparser/v2/gqlerror"
+	"github.com/stretchr/testify/require"
 )
-
-func TestDefaultErrorPresenter(t *testing.T) {
-	err := fmt.Errorf("wrapping gqlerr: %w", gqlerror.Errorf("gqlerr"))
-	gqlerr := entgql.DefaultErrorPresenter(context.Background(), err)
-	assert.Equal(t, "gqlerr", gqlerr.Message)
-}
 
 func TestErrNodeNotFound(t *testing.T) {
 	err := entgql.ErrNodeNotFound(42)
-	assert.EqualError(t, err, "input: Could not resolve to a node with the global id of '42'")
-	assert.Equal(t, "NOT_FOUND", err.Extensions["code"])
+	require.EqualError(t, err, "input: Could not resolve to a node with the global id of '42'")
+	require.Equal(t, "NOT_FOUND", err.Extensions["code"])
 }
