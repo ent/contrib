@@ -77,7 +77,6 @@ func (s *todoTestSuite) SetupTest() {
 
 	srv := handler.New(gen.NewSchema(ec))
 	srv.AddTransport(transport.POST{})
-	srv.SetErrorPresenter(entgql.DefaultErrorPresenter)
 	srv.Use(entgql.Transactioner{TxOpener: ec})
 	s.Client = client.New(srv)
 

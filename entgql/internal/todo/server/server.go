@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package main
 
 import (
@@ -56,7 +55,6 @@ func main() {
 
 	srv := handler.NewDefaultServer(todo.NewSchema(client))
 	srv.Use(entgql.Transactioner{TxOpener: client})
-	srv.SetErrorPresenter(entgql.DefaultErrorPresenter)
 	if cli.Debug {
 		srv.Use(&debug.Tracer{})
 	}
