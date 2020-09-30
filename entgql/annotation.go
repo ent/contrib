@@ -18,8 +18,8 @@ package entgql
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
 	OrderField string
-	// Bind implies the edge field name in graphql schema is
-	// equivalent to the name used in graphql schema.
+	// Bind implies the edge field name in graphql schema
+	// is equivalent to the name used in ent schema.
 	Bind bool
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string
