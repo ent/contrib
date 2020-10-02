@@ -164,7 +164,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		}
 		return n, nil
 	default:
-		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, errNodeInvalidID)
+		return nil, fmt.Errorf("cannot resolve Noder from table %q: %w", tbl, errNodeInvalidID)
 	}
 }
 

@@ -8,9 +8,15 @@ in the LICENSE file in the root directory of this source tree.
 {{ $pkg := base $.Config.Package }}
 {{ template "header" $ }}
 
-{{- if ne $.Storage.Name "sql" }}
+{{ if ne $.Storage.Name "sql" }}
 	{{ fail "node requires SQL storage" }}
-{{- end }}
+{{ end }}
+
+{{ range $n := $.Nodes }}
+	{{ if not (or $n.ID.Type.Numeric $n.ID.IsString) }}
+		{{ fail "node requires numeric-type ids" }}
+	{{ end }}
+{{ end }}
 
 import (
 	{{- range $n := $.Nodes }}
@@ -96,8 +102,7 @@ type Edge struct {
 	}
 {{ end }}
 
-{{/* add the node api to the client */}}
-
+{{/* Add the node api to the client */}}
 func (c *Client) Node(ctx context.Context, id {{ $.IDType }}) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
@@ -135,21 +140,21 @@ func (c *Client) Noder(ctx context.Context, id {{ $.IDType }}) (_ Noder, err err
 
 func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Noder, error) {
 	switch tbl {
-	{{- range $_, $n := $.Nodes }}
-	case {{ $n.Package }}.Table:
-		n, err := c.{{ $n.Name }}.Query().
-			Where({{ $n.Package }}.ID(id)).
-			{{- if hasTemplate "collection" }}
-			CollectFields(ctx, "{{ $n.Name }}").
-			{{- end }}
-			Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+	{{- range $n := $.Nodes }}
+		case {{ $n.Package }}.Table:
+			n, err := c.{{ $n.Name }}.Query().
+				Where({{ $n.Package }}.ID(id)).
+				{{- if hasTemplate "collection" }}
+					CollectFields(ctx, "{{ $n.Name }}").
+				{{- end }}
+				Only(ctx)
+			if err != nil {
+				return nil, err
+			}
+			return n, nil
 	{{- end }}
 	default:
-		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, errNodeInvalidID)
+		return nil, fmt.Errorf("cannot resolve Noder from table %q: %w", tbl, errNodeInvalidID)
 	}
 }
 
