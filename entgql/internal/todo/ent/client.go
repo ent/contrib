@@ -39,7 +39,7 @@ type Client struct {
 	Todo *TodoClient
 
 	// additional fields for node api
-	tables tables
+	typeResolver TypeResolver
 }
 
 // NewClient creates a new client configured with the given options.

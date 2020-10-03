@@ -141,15 +141,18 @@ func (c *Client) Noder(ctx context.Context, id int) (_ Noder, err error) {
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
 		}
 	}()
-	tables, err := c.tables.Load(ctx, c.driver)
+	if c.typeResolver == nil {
+		c.typeResolver = &tables{}
+	}
+	typ, err := c.typeResolver.ResolveType(ctx, c.driver, id)
 	if err != nil {
 		return nil, err
 	}
-	idx := id / (1<<32 - 1)
-	if idx < 0 || idx >= len(tables) {
-		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
-	}
-	return c.noder(ctx, tables[idx], id)
+	return c.noder(ctx, typ, id)
+}
+
+func (c *Client) SetTypeResolver(tr TypeResolver) {
+	c.typeResolver = tr
 }
 
 func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
@@ -169,12 +172,33 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 }
 
 type (
+	// TypeResolver is the interface that wraps the ResolveType method.
+	TypeResolver interface {
+		// ResolveType returns the NodeType from the given id.
+		// An error is returned if the type can't be determined.
+		ResolveType(context.Context, dialect.Driver, int) (string, error)
+	}
+
+	// tables is the default implementation for TypeResolver.
 	tables struct {
 		once  sync.Once
 		sem   *semaphore.Weighted
 		value atomic.Value
 	}
 )
+
+// ResolveType implements the TypeResolver.
+func (t *tables) ResolveType(ctx context.Context, drv dialect.Driver, id int) (string, error) {
+	tables, err := t.Load(ctx, drv)
+	if err != nil {
+		return "", err
+	}
+	idx := id / (1<<32 - 1)
+	if idx < 0 || idx >= len(tables) {
+		return "", fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
+	}
+	return tables[idx], nil
+}
 
 func (t *tables) Load(ctx context.Context, drv dialect.Driver) ([]string, error) {
 	if tables := t.value.Load(); tables != nil {
