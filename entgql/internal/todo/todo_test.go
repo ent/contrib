@@ -15,6 +15,7 @@
 package todo_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -31,6 +32,7 @@ import (
 	"github.com/facebook/ent/dialect"
 	"github.com/facebookincubator/ent-contrib/entgql"
 	gen "github.com/facebookincubator/ent-contrib/entgql/internal/todo"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/enttest"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/migrate"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo"
@@ -43,6 +45,7 @@ import (
 type todoTestSuite struct {
 	suite.Suite
 	*client.Client
+	ent *ent.Client
 }
 
 const (
@@ -68,16 +71,16 @@ const (
 )
 
 func (s *todoTestSuite) SetupTest() {
-	ec := enttest.Open(s.T(), dialect.SQLite,
+	s.ent = enttest.Open(s.T(), dialect.SQLite,
 		fmt.Sprintf("file:%s-%d?mode=memory&cache=shared&_fk=1",
 			s.T().Name(), time.Now().UnixNano(),
 		),
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
 
-	srv := handler.New(gen.NewSchema(ec))
+	srv := handler.New(gen.NewSchema(s.ent))
 	srv.AddTransport(transport.POST{})
-	srv.Use(entgql.Transactioner{TxOpener: ec})
+	srv.Use(entgql.Transactioner{TxOpener: s.ent})
 	s.Client = client.New(srv)
 
 	const mutation = `mutation($priority: Int, $text: String!, $parent: ID) {
@@ -678,4 +681,23 @@ func (s *todoTestSuite) TestEnumEncoding() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(want, got)
 	})
+}
+
+func (s *todoTestSuite) TestNodeOptions() {
+	ctx := context.Background()
+	td := s.ent.Todo.Create().SetText("text").SetStatus(todo.StatusInProgress).SaveX(ctx)
+
+	nr, err := s.ent.Noder(ctx, td.ID)
+	s.Require().NoError(err)
+	s.Require().IsType(nr, (*ent.Todo)(nil))
+	s.Require().Equal(td.ID, nr.(*ent.Todo).ID)
+
+	nr, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType(todo.Table))
+	s.Require().NoError(err)
+	s.Require().IsType(nr, (*ent.Todo)(nil))
+	s.Require().Equal(td.ID, nr.(*ent.Todo).ID)
+
+	nr, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType("invalid"))
+	s.Require().Error(err)
+	s.Require().Nil(nr)
 }
