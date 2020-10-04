@@ -135,21 +135,47 @@ func (c *Client) Node(ctx context.Context, id int) (*Node, error) {
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
-func (c *Client) Noder(ctx context.Context, id int) (_ Noder, err error) {
+// NodeOption allows configuring the Noder execution using functional options.
+type NodeOption func(*NodeOptions)
+
+// WithNodeType sets the Type of the node (i.e. the table to query).
+// If was not provided, the table will be derived from the universal-id
+// configuration as described in: https://entgo.io/docs/migrate/#universal-ids.
+func WithNodeType(t string) NodeOption {
+	return func(o *NodeOptions) {
+		o.Type = t
+	}
+}
+
+// NodeOptions holds the configuration for Noder execution.
+type NodeOptions struct {
+	// Type of the node (schema table).
+	Type string
+}
+
+// Noder returns a Node by its id. If the NodeType was not provided, it will
+// be derived from the id value according to the universal-id configuration.
+//
+//		c.Noder(ctx, id)
+//		c.Noder(ctx, id, ent.WithNodeType(pet.Table))
+//
+func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder, err error) {
 	defer func() {
 		if IsNotFound(err) {
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
 		}
 	}()
-	tables, err := c.tables.Load(ctx, c.driver)
-	if err != nil {
-		return nil, err
+	options := &NodeOptions{}
+	for _, opt := range opts {
+		opt(options)
 	}
-	idx := id / (1<<32 - 1)
-	if idx < 0 || idx >= len(tables) {
-		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
+	if options.Type == "" {
+		options.Type, err = c.tables.nodeType(ctx, c.driver, id)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return c.noder(ctx, tables[idx], id)
+	return c.noder(ctx, options.Type, id)
 }
 
 func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
@@ -168,13 +194,23 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 	}
 }
 
-type (
-	tables struct {
-		once  sync.Once
-		sem   *semaphore.Weighted
-		value atomic.Value
+type tables struct {
+	once  sync.Once
+	sem   *semaphore.Weighted
+	value atomic.Value
+}
+
+func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id int) (string, error) {
+	tables, err := t.Load(ctx, drv)
+	if err != nil {
+		return "", err
 	}
-)
+	idx := id / (1<<32 - 1)
+	if idx < 0 || idx >= len(tables) {
+		return "", fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
+	}
+	return tables[idx], nil
+}
 
 func (t *tables) Load(ctx context.Context, drv dialect.Driver) ([]string, error) {
 	if tables := t.value.Load(); tables != nil {
