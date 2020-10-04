@@ -12,6 +12,17 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "node requires SQL storage" }}
 {{ end }}
 
+{{/* Ensure all id types have the same type */}}
+{{ $idType := $.IDType }}
+{{ if gt (len $.Nodes) 0 }}
+	{{ $idType = (index $.Nodes 0).ID.Type }}
+	{{ range $n := (slice $.Nodes 1) }}
+		{{ if ne $idType.Type $n.ID.Type.Type }}
+			{{ fail "node does not support multiple id types" }}
+		{{ end }}
+	{{ end }}
+{{ end }}
+
 import (
 	{{- range $n := $.Nodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
@@ -33,7 +44,7 @@ type Noder interface {
 
 // Node in the graph.
 type Node struct {
-	ID 	   {{ $.IDType }} `json:"id,omitemty"` // node id.
+	ID 	   {{ $idType }} `json:"id,omitemty"` // node id.
 	Type   string   `json:"type,omitempty"`   // node type.
 	Fields []*Field `json:"fields,omitempty"` // node fields.
 	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
@@ -50,7 +61,7 @@ type Field struct {
 type Edge struct {
 	Type string   `json:"type,omitempty"` // edge type.
 	Name string   `json:"name,omitempty"` // edge name.
-	IDs  []{{ $.IDType }} `json:"ids,omitempty"`  // node ids (where this edge point to).
+	IDs  []{{ $idType }} `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
 {{/* loop over all types and add implement the Node interface. */}}
@@ -77,11 +88,11 @@ type Edge struct {
 			{{- end }}
 		{{- end }}
 		{{- with $n.Edges }}
-			var ids []{{ $.IDType }}
+			var ids []{{ $idType }}
 			{{- range $i, $e := $n.Edges }}
 				ids, err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
 					Select({{ $e.Type.Package }}.FieldID).
-					{{ pascal $.IDType.String }}s(ctx)
+					{{ pascal $idType.String }}s(ctx)
 				if err != nil {
 					return nil, err
 				}
@@ -97,7 +108,7 @@ type Edge struct {
 {{ end }}
 
 {{/* Add the node api to the client */}}
-func (c *Client) Node(ctx context.Context, id {{ $.IDType }}) (*Node, error) {
+func (c *Client) Node(ctx context.Context, id {{ $idType }}) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -131,7 +142,7 @@ type NodeOptions struct {
 //		c.Noder(ctx, id)
 //		c.Noder(ctx, id, ent.WithNodeType(pet.Table))
 //
-func (c *Client) Noder(ctx context.Context, id {{ $.IDType }}, opts ...NodeOption) (_ Noder, err error) {
+func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption) (_ Noder, err error) {
 	defer func() {
 		if IsNotFound(err) {
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
@@ -142,19 +153,19 @@ func (c *Client) Noder(ctx context.Context, id {{ $.IDType }}, opts ...NodeOptio
 		opt(options)
 	}
 	if options.Type == "" {
-		{{- if $.IDType.Numeric }}
+		{{- if $idType.Numeric }}
 			options.Type, err = c.tables.nodeType(ctx, c.driver, id)
 			if err != nil {
 				return nil, err
 			}
 		{{- else }}
-			return nil, fmt.Errorf("cannot resolve Noder (%v) without its type, id)
+			return nil, fmt.Errorf("cannot resolve Noder (%v) without its type", id)
 		{{- end }}
 	}
 	return c.noder(ctx, options.Type, id)
 }
 
-func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Noder, error) {
+func (c *Client) noder(ctx context.Context, tbl string, id {{ $idType }}) (Noder, error) {
 	switch tbl {
 	{{- range $n := $.Nodes }}
 		case {{ $n.Package }}.Table:
@@ -174,14 +185,14 @@ func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Node
 	}
 }
 
-{{ if $.IDType.Numeric }}
+{{ if $idType.Numeric }}
 	type tables struct {
 		once  sync.Once
 		sem   *semaphore.Weighted
 		value atomic.Value
 	}
 
-	func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id {{ $.IDType }}) (string, error) {
+	func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id {{ $idType }}) (string, error) {
 		tables, err := t.Load(ctx, drv)
 		if err != nil {
 			return "", err
@@ -230,7 +241,8 @@ func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Node
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- if $.IDType.Numeric }}
+	{{- $idType := $.IDType }}{{ if gt (len $.Nodes) 0 }}{{ $idType = (index $.Nodes 0).ID.Type }}{{ end -}}
+	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables
 	{{- end }}
