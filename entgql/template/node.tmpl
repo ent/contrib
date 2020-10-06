@@ -27,6 +27,9 @@ import (
 	{{- range $n := $.Nodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
+	{{- with $package := $idType.PkgPath }}
+		"{{ $package }}"
+	{{- end }}
 )
 
 import (
@@ -88,18 +91,22 @@ type Edge struct {
 			{{- end }}
 		{{- end }}
 		{{- with $n.Edges }}
-			var ids []{{ $idType }}
 			{{- range $i, $e := $n.Edges }}
-				ids, err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
-					Select({{ $e.Type.Package }}.FieldID).
-					{{ pascal $idType.String }}s(ctx)
-				if err != nil {
-					return nil, err
-				}
 				node.Edges[{{ $i }}] = &Edge{
-					IDs: ids,
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
+				}
+				{{- if $idType.Numeric }}
+					node.Edges[{{ $i }}].IDs, err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+						Select({{ $e.Type.Package }}.FieldID).
+						{{ pascal $idType.String }}s(ctx)
+				{{- else }}
+					err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+						Select({{ $e.Type.Package }}.FieldID).
+						Scan(ctx, &node.Edges[{{ $i }}].IDs)
+				{{- end }}
+				if err != nil {
+					return nil, err
 				}
 			{{- end }}
 		{{- end }}
@@ -241,8 +248,7 @@ func (c *Client) noder(ctx context.Context, tbl string, id {{ $idType }}) (Noder
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- $idType := $.IDType }}{{ if gt (len $.Nodes) 0 }}{{ $idType = (index $.Nodes 0).ID.Type }}{{ end -}}
-	{{- if $idType.Numeric }}
+	{{- if $.IDType.Numeric }}
 		// additional fields for node api
 		tables tables
 	{{- end }}
