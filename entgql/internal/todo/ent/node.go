@@ -99,28 +99,25 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	var ids []int
-	ids, err = t.QueryParent().
-		Select(todo.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
 	node.Edges[0] = &Edge{
-		IDs:  ids,
 		Type: "Todo",
 		Name: "parent",
 	}
-	ids, err = t.QueryChildren().
+	node.Edges[0].IDs, err = t.QueryParent().
 		Select(todo.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
-		IDs:  ids,
 		Type: "Todo",
 		Name: "children",
+	}
+	node.Edges[1].IDs, err = t.QueryChildren().
+		Select(todo.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
