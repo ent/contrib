@@ -62,10 +62,10 @@ func (o OrderDirection) MarshalGQL(w io.Writer) {
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (o *OrderDirection) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
+func (o *OrderDirection) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
 	if !ok {
-		return fmt.Errorf("order direction %T must be a string", v)
+		return fmt.Errorf("order direction %T must be a string", val)
 	}
 	*o = OrderDirection(str)
 	return o.Validate()

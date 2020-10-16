@@ -16,10 +16,10 @@ in the LICENSE file in the root directory of this source tree.
 		}
 
 		// UnmarshalGQL implements graphql.Unmarshaler interface.
-		func ({{ $receiver }} *{{ $enum }}) UnmarshalGQL(v interface{}) error {
-			str, ok := v.(string)
+		func ({{ $receiver }} *{{ $enum }}) UnmarshalGQL(val interface{}) error {
+			str, ok := val.(string)
 			if !ok {
-				return fmt.Errorf("enum %T must be a string", v)
+				return fmt.Errorf("enum %T must be a string", val)
 			}
 			*{{ $receiver }} = {{ $enum }}(str)
 			if err := {{ $f.Validator }}(*{{ $receiver }}); err != nil {
