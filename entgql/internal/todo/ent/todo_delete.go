@@ -30,14 +30,13 @@ import (
 // TodoDelete is the builder for deleting a Todo entity.
 type TodoDelete struct {
 	config
-	hooks      []Hook
-	mutation   *TodoMutation
-	predicates []predicate.Todo
+	hooks    []Hook
+	mutation *TodoMutation
 }
 
 // Where adds a new predicate to the delete builder.
 func (td *TodoDelete) Where(ps ...predicate.Todo) *TodoDelete {
-	td.predicates = append(td.predicates, ps...)
+	td.mutation.predicates = append(td.mutation.predicates, ps...)
 	return td
 }
 
@@ -89,7 +88,7 @@ func (td *TodoDelete) sqlExec(ctx context.Context) (int, error) {
 			},
 		},
 	}
-	if ps := td.predicates; len(ps) > 0 {
+	if ps := td.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
