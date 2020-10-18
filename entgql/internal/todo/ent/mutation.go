@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/predicate"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo"
 
 	"github.com/facebook/ent"
@@ -59,6 +60,7 @@ type TodoMutation struct {
 	clearedchildren bool
 	done            bool
 	oldValue        func(context.Context) (*Todo, error)
+	predicates      []predicate.Todo
 }
 
 var _ ent.Mutation = (*TodoMutation)(nil)

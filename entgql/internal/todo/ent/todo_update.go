@@ -30,14 +30,13 @@ import (
 // TodoUpdate is the builder for updating Todo entities.
 type TodoUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *TodoMutation
-	predicates []predicate.Todo
+	hooks    []Hook
+	mutation *TodoMutation
 }
 
 // Where adds a new predicate for the builder.
 func (tu *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
-	tu.predicates = append(tu.predicates, ps...)
+	tu.mutation.predicates = append(tu.mutation.predicates, ps...)
 	return tu
 }
 
@@ -223,7 +222,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		},
 	}
-	if ps := tu.predicates; len(ps) > 0 {
+	if ps := tu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)

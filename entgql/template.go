@@ -15,8 +15,6 @@
 package entgql
 
 import (
-	"text/template"
-
 	"github.com/facebookincubator/ent-contrib/entgql/internal"
 
 	"github.com/facebook/ent/entc/gen"
@@ -43,7 +41,7 @@ var (
 	TransactionTemplate = parse("template/transaction.tmpl")
 
 	// AllTemplates holds all templates for extending ent to support GraphQL.
-	AllTemplates = []*template.Template{
+	AllTemplates = []*gen.Template{
 		CollectionTemplate,
 		EnumTemplate,
 		NodeTemplate,
@@ -54,9 +52,9 @@ var (
 
 //go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
 
-func parse(path string) *template.Template {
+func parse(path string) *gen.Template {
 	text := string(internal.MustAsset(path))
-	return template.Must(template.New(path).
+	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(gen.Funcs).
 		Parse(text))
 }
