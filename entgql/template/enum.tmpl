@@ -12,7 +12,8 @@ in the LICENSE file in the root directory of this source tree.
 		{{ $receiver := receiver $f.BuilderField -}}
 		// MarshalGQL implements graphql.Marshaler interface.
 		func ({{ $receiver }} {{ $enum }}) MarshalGQL(w io.Writer) {
-			io.WriteString(w, strconv.Quote({{ $receiver }}.String()))
+			out := strings.ReplaceAll(strings.ToUpper(string({{ $receiver }})), "-", "_")
+			io.WriteString(w, strconv.Quote(out))
 		}
 
 		// UnmarshalGQL implements graphql.Unmarshaler interface.
@@ -23,7 +24,10 @@ in the LICENSE file in the root directory of this source tree.
 			}
 			*{{ $receiver }} = {{ $enum }}(str)
 			if err := {{ $f.Validator }}(*{{ $receiver }}); err != nil {
-				return fmt.Errorf("%s is not a valid {{ $enum }}", str)
+			    *{{ $receiver }} = {{ $enum }}(strings.ToLower(str))
+				if err := {{ $f.Validator }}(*{{ $receiver }}); err != nil {
+					return fmt.Errorf("%s is not a valid {{ $enum }}", str)
+				}
 			}
 			return nil
 		}

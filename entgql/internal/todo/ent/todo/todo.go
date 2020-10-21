@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -117,7 +118,8 @@ func StatusValidator(s Status) error {
 
 // MarshalGQL implements graphql.Marshaler interface.
 func (s Status) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(s.String()))
+	out := strings.ReplaceAll(strings.ToUpper(string(s)), "-", "_")
+	io.WriteString(w, strconv.Quote(out))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
@@ -128,7 +130,10 @@ func (s *Status) UnmarshalGQL(val interface{}) error {
 	}
 	*s = Status(str)
 	if err := StatusValidator(*s); err != nil {
-		return fmt.Errorf("%s is not a valid Status", str)
+		*s = Status(strings.ToLower(str))
+		if err := StatusValidator(*s); err != nil {
+			return fmt.Errorf("%s is not a valid Status", str)
+		}
 	}
 	return nil
 }
