@@ -202,7 +202,7 @@ func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id int) (stri
 	if err != nil {
 		return "", err
 	}
-	idx := id / (1<<32 - 1)
+	idx := int(id / (1<<32 - 1))
 	if idx < 0 || idx >= len(tables) {
 		return "", fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
 	}
