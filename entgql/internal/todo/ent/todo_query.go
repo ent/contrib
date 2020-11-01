@@ -281,13 +281,18 @@ func (tq *TodoQuery) ExistX(ctx context.Context) bool {
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
 func (tq *TodoQuery) Clone() *TodoQuery {
+	if tq == nil {
+		return nil
+	}
 	return &TodoQuery{
-		config:     tq.config,
-		limit:      tq.limit,
-		offset:     tq.offset,
-		order:      append([]OrderFunc{}, tq.order...),
-		unique:     append([]string{}, tq.unique...),
-		predicates: append([]predicate.Todo{}, tq.predicates...),
+		config:       tq.config,
+		limit:        tq.limit,
+		offset:       tq.offset,
+		order:        append([]OrderFunc{}, tq.order...),
+		unique:       append([]string{}, tq.unique...),
+		predicates:   append([]predicate.Todo{}, tq.predicates...),
+		withParent:   tq.withParent.Clone(),
+		withChildren: tq.withChildren.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
