@@ -337,7 +337,7 @@ func (p *todoPager) applyOrder(query *TodoQuery, reverse bool) *TodoQuery {
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
 	if p.order.Field != DefaultTodoOrder.Field {
-		query = query.Order(Asc(DefaultTodoOrder.Field.field))
+		query = query.Order(direction.orderFunc(DefaultTodoOrder.Field.field))
 	}
 	return query
 }

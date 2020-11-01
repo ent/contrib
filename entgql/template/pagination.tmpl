@@ -324,7 +324,7 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}, reverse bool) *{{ $query 
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
 	if p.order.Field != {{ $defaultOrder }}.Field {
-		query = query.Order(Asc({{ $defaultOrder }}.Field.field))
+		query = query.Order(direction.orderFunc({{ $defaultOrder }}.Field.field))
 	}
 	return query
 }
