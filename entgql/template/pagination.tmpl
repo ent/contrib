@@ -4,7 +4,15 @@ This source code is licensed under the Apache 2.0 license found
 in the LICENSE file in the root directory of this source tree.
 */}}
 
+{{/* 
+A template that can be overridden in order to add additional fields 
+to the pagination connection type.
+*/}}
+{{ define "pagination/connection/fields/additional" }} 
+{{ end }}
+
 {{ define "pagination" }}
+
 {{ template "header" $ }}
 
 {{- if ne $.Storage.Name "sql" }}
@@ -236,7 +244,7 @@ type {{ $conn }} struct {
 	PageInfo PageInfo    `json:"pageInfo"`
 	TotalCount int       `json:"totalCount"`
 	{{- /* Additional fields to add by the user. */}}
-	{{ template "pagination/connection/additional" $ }}
+	{{ template "pagination/connection/fields/additional" $ }}
 }
 
 {{ $pager := print (slice $name 0 1 | lower) (slice $name 1) "Pager" -}}
@@ -509,6 +517,3 @@ var {{ $defaultOrder }} = &{{ $order }}{
 
 {{- end }}
 {{ end }}
-
-{{/* A template that can be overridden in order to add additional fields to the pagination connection type.*/}}
-{{ define "pagination/connection/additional" }}{{end}}
