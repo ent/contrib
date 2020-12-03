@@ -235,6 +235,8 @@ type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
 	PageInfo PageInfo    `json:"pageInfo"`
 	TotalCount int       `json:"totalCount"`
+	{{- /* Additional fields to add by the user. */}}
+	{{ template "pagination/connection/additional" $ }}
 }
 
 {{ $pager := print (slice $name 0 1 | lower) (slice $name 1) "Pager" -}}
@@ -507,3 +509,6 @@ var {{ $defaultOrder }} = &{{ $order }}{
 
 {{- end }}
 {{ end }}
+
+{{/* A template that can be overridden in order to add additional fields to the pagination connection type.*/}}
+{{ define "pagination/connection/additional" }}{{end}}
