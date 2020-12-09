@@ -40,6 +40,9 @@ var (
 	// middleware. See transaction.go for for information.
 	TransactionTemplate = parse("template/transaction.tmpl")
 
+	// ResolveTemplate adds edge resolution using eager-loading with a query fallback.
+	ResolveTemplate = parse("template/resolve.tmpl")
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -47,6 +50,7 @@ var (
 		NodeTemplate,
 		PaginationTemplate,
 		TransactionTemplate,
+		ResolveTemplate,
 	}
 )
 

@@ -1,0 +1,25 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "resolve" }}
+{{ template "header" $ }}
+
+import "context"
+
+{{ range $n := $.Nodes }}
+	{{ $r := $n.Receiver }}
+	{{ range $e := $n.Edges }}
+		func ({{ $r }} *{{ $n.Name }}) Resolve{{ pascal $e.Name }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
+			{{ $e.Name }}, err := {{ $r }}.Edges.{{ pascal $e.Name }}OrErr()
+			if IsNotLoaded(err) {
+				{{ $e.Name }}, err = {{ $r }}.Query{{ pascal $e.Name }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
+			}
+			return {{ $e.Name }}, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+		}
+	{{ end }}
+{{ end }}
+
+{{ end }}
