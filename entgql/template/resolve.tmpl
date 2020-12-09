@@ -12,12 +12,12 @@ import "context"
 {{ range $n := $.Nodes }}
 	{{ $r := $n.Receiver }}
 	{{ range $e := $n.Edges }}
-		func ({{ $r }} *{{ $n.Name }}) Resolve{{ pascal $e.Name }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
-			{{ $e.Name }}, err := {{ $r }}.Edges.{{ pascal $e.Name }}OrErr()
+		func ({{ $r }} *{{ $n.Name }}) Resolve{{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
+			result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
 			if IsNotLoaded(err) {
-				{{ $e.Name }}, err = {{ $r }}.Query{{ pascal $e.Name }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
+				result, err = {{ $r }}.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
 			}
-			return {{ $e.Name }}, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+			return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
 		}
 	{{ end }}
 {{ end }}

@@ -19,17 +19,17 @@ package ent
 import "context"
 
 func (t *Todo) ResolveParent(ctx context.Context) (*Todo, error) {
-	parent, err := t.Edges.ParentOrErr()
+	result, err := t.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
-		parent, err = t.QueryParent().Only(ctx)
+		result, err = t.QueryParent().Only(ctx)
 	}
-	return parent, MaskNotFound(err)
+	return result, MaskNotFound(err)
 }
 
 func (t *Todo) ResolveChildren(ctx context.Context) ([]*Todo, error) {
-	children, err := t.Edges.ChildrenOrErr()
+	result, err := t.Edges.ChildrenOrErr()
 	if IsNotLoaded(err) {
-		children, err = t.QueryChildren().All(ctx)
+		result, err = t.QueryChildren().All(ctx)
 	}
-	return children, err
+	return result, err
 }
