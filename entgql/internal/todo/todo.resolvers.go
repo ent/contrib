@@ -54,11 +54,18 @@ func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int
 
 func (r *todoResolver) Parent(ctx context.Context, obj *ent.Todo) (*ent.Todo, error) {
 	parent, err := obj.Edges.ParentOrErr()
+	if ent.IsNotLoaded(err) {
+		parent, err = obj.QueryParent().Only(ctx)
+	}
 	return parent, ent.MaskNotFound(err)
 }
 
 func (r *todoResolver) Children(ctx context.Context, obj *ent.Todo) ([]*ent.Todo, error) {
-	return obj.Edges.ChildrenOrErr()
+	children, err := obj.Edges.ChildrenOrErr()
+	if ent.IsNotLoaded(err) {
+		children, err = obj.QueryChildren().All(ctx)
+	}
+	return children, err
 }
 
 // Mutation returns MutationResolver implementation.

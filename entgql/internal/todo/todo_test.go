@@ -701,3 +701,28 @@ func (s *todoTestSuite) TestNodeOptions() {
 	s.Require().Error(err)
 	s.Require().Nil(nr)
 }
+
+func (s *todoTestSuite) TestMutationFieldCollection() {
+	var rsp struct {
+		CreateTodo struct {
+			Text   string
+			Parent struct {
+				ID   string
+				Text string
+			}
+		}
+	}
+	err := s.Post(`mutation {
+		createTodo(todo: { text: "OKE", parent: 1 }) {
+			parent {
+				id
+				text
+			}
+			text
+		}
+	}`, &rsp, client.Var("text", s.T().Name()))
+	s.Require().NoError(err)
+	s.Require().Equal("OKE", rsp.CreateTodo.Text)
+	s.Require().Equal("1", rsp.CreateTodo.Parent.ID)
+	s.Require().Equal("1", rsp.CreateTodo.Parent.Text)
+}
