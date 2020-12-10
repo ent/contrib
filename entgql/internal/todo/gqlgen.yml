@@ -13,6 +13,12 @@ autobind:
   - github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent
 
 models:
+  Todo:
+    fields:
+      parent:
+        fieldName: ResolveParent
+      children:
+        fieldName: ResolveChildren
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.IntID
