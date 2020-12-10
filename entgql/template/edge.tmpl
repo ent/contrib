@@ -4,7 +4,7 @@ This source code is licensed under the Apache 2.0 license found
 in the LICENSE file in the root directory of this source tree.
 */}}
 
-{{ define "resolve" }}
+{{ define "edge" }}
 {{ template "header" $ }}
 
 import "context"
@@ -12,7 +12,7 @@ import "context"
 {{ range $n := $.Nodes }}
 	{{ $r := $n.Receiver }}
 	{{ range $e := $n.Edges }}
-		func ({{ $r }} *{{ $n.Name }}) Resolve{{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
+		func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
 			result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
 			if IsNotLoaded(err) {
 				result, err = {{ $r }}.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
