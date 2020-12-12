@@ -12,13 +12,17 @@ import "context"
 {{ range $n := $.Nodes }}
 	{{ $r := $n.Receiver }}
 	{{ range $e := $n.Edges }}
-		func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
-			result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
-			if IsNotLoaded(err) {
-				result, err = {{ $r }}.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
-			}
-			return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
-		}
+		{{ if $annotation := $e.Annotations.EntGQL }}
+			{{ if $annotation.Resolver }}
+				func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
+					result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
+					if IsNotLoaded(err) {
+						result, err = {{ $r }}.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
+					}
+					return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+				}
+			{{ end }}
+		{{ end }}
 	{{ end }}
 {{ end }}
 
