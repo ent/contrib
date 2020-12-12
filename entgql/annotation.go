@@ -23,8 +23,6 @@ type Annotation struct {
 	Bind bool
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string
-	// Resolver will generate resolver for edge
-	Resolver bool
 }
 
 // Name implements ent.Annotation interface.
@@ -45,9 +43,4 @@ func Bind() Annotation {
 // MapsTo returns a mapping annotation.
 func MapsTo(names ...string) Annotation {
 	return Annotation{Mapping: names}
-}
-
-// Resolver returns a resolver annotation.
-func Resolver() Annotation {
-	return Annotation{Resolver: true}
 }
