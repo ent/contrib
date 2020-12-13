@@ -505,7 +505,7 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	},
 }
 
-// ToEdge return new {{ $edge }}
+// ToEdge converts {{ $name }} into {{ $edge }}.
 func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if order == nil {
 		order = {{ $defaultOrder }}
