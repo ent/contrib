@@ -510,7 +510,6 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if order == nil {
 		order = {{ $defaultOrder }}
 	}
-
 	return &{{ $edge }}{
 		Node:   {{ $r }},
 		Cursor: order.Field.toCursor({{ $r }}),
