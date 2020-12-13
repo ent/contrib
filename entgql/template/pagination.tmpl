@@ -505,5 +505,17 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	},
 }
 
+// New{{ $edge }} return new {{ $edge }}
+func New{{ $edge }}(node *{{ $name }}, order *{{ $order }}) *{{ $edge }} {
+	if order == nil {
+		order = {{ $defaultOrder }}
+	}
+
+	return &{{ $edge }}{
+		Node:   node,
+		Cursor: order.Field.toCursor(node),
+	}
+}
+
 {{- end }}
 {{ end }}
