@@ -505,5 +505,16 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	},
 }
 
+// ToEdge converts {{ $name }} into {{ $edge }}.
+func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
+	if order == nil {
+		order = {{ $defaultOrder }}
+	}
+	return &{{ $edge }}{
+		Node:   {{ $r }},
+		Cursor: order.Field.toCursor({{ $r }}),
+	}
+}
+
 {{- end }}
 {{ end }}

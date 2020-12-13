@@ -36,7 +36,6 @@ type TodoQuery struct {
 	limit      *int
 	offset     *int
 	order      []OrderFunc
-	unique     []string
 	predicates []predicate.Todo
 	// eager-loading edges.
 	withParent   *TodoQuery
@@ -289,7 +288,6 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		limit:        tq.limit,
 		offset:       tq.offset,
 		order:        append([]OrderFunc{}, tq.order...),
-		unique:       append([]string{}, tq.unique...),
 		predicates:   append([]predicate.Todo{}, tq.predicates...),
 		withParent:   tq.withParent.Clone(),
 		withChildren: tq.withChildren.Clone(),

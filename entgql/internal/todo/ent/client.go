@@ -155,7 +155,7 @@ func (c *TodoClient) Create() *TodoCreate {
 	return &TodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// BulkCreate returns a builder for creating a bulk of Todo entities.
+// CreateBulk returns a builder for creating a bulk of Todo entities.
 func (c *TodoClient) CreateBulk(builders ...*TodoCreate) *TodoCreateBulk {
 	return &TodoCreateBulk{config: c.config, builders: builders}
 }

@@ -549,3 +549,14 @@ var DefaultTodoOrder = &TodoOrder{
 		},
 	},
 }
+
+// ToEdge converts Todo into TodoEdge.
+func (t *Todo) ToEdge(order *TodoOrder) *TodoEdge {
+	if order == nil {
+		order = DefaultTodoOrder
+	}
+	return &TodoEdge{
+		Node:   t,
+		Cursor: order.Field.toCursor(t),
+	}
+}

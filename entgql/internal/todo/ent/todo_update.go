@@ -139,7 +139,7 @@ func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 	return tu.RemoveChildIDs(ids...)
 }
 
-// Save executes the query and returns the number of rows/vertices matched by this operation.
+// Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
 	var (
 		err      error
