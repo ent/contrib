@@ -549,3 +549,15 @@ var DefaultTodoOrder = &TodoOrder{
 		},
 	},
 }
+
+// NewTodoEdge return new TodoEdge
+func NewTodoEdge(node *Todo, order *TodoOrder) *TodoEdge {
+	if order == nil {
+		order = DefaultTodoOrder
+	}
+
+	return &TodoEdge{
+		Node:   node,
+		Cursor: order.Field.toCursor(node),
+	}
+}
