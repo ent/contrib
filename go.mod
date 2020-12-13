@@ -7,7 +7,7 @@ require (
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/alecthomas/kong v0.2.11
-	github.com/facebook/ent v0.4.4-0.20201030185257-8139aca845b1
+	github.com/facebook/ent v0.5.2
 	github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -15,7 +15,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/mattn/go-sqlite3 v1.14.4
+	github.com/mattn/go-sqlite3 v1.14.5
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/vektah/gqlparser/v2 v2.1.0
