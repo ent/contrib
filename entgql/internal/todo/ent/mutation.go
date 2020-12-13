@@ -68,7 +68,7 @@ var _ ent.Mutation = (*TodoMutation)(nil)
 // todoOption allows to manage the mutation configuration using functional options.
 type todoOption func(*TodoMutation)
 
-// newTodoMutation creates new mutation for $n.Name.
+// newTodoMutation creates new mutation for Todo.
 func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
 	m := &TodoMutation{
 		config:        c,
