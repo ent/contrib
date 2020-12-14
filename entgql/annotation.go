@@ -23,6 +23,8 @@ type Annotation struct {
 	Bind bool
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string
+	// NoResolver will disable generate resolve for this edge
+	NoResolver bool
 }
 
 // Name implements ent.Annotation interface.
@@ -38,6 +40,11 @@ func OrderField(name string) Annotation {
 // Bind returns a binding annotation.
 func Bind() Annotation {
 	return Annotation{Bind: true}
+}
+
+// NoResolver returns a no-resolver annotation.
+func NoResolver() Annotation {
+	return Annotation{NoResolver: true}
 }
 
 // MapsTo returns a mapping annotation.

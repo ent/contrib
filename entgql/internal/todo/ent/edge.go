@@ -18,14 +18,6 @@ package ent
 
 import "context"
 
-func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
-	result, err := t.Edges.ParentOrErr()
-	if IsNotLoaded(err) {
-		result, err = t.QueryParent().Only(ctx)
-	}
-	return result, MaskNotFound(err)
-}
-
 func (t *Todo) Children(ctx context.Context) ([]*Todo, error) {
 	result, err := t.Edges.ChildrenOrErr()
 	if IsNotLoaded(err) {

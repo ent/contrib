@@ -64,7 +64,19 @@ func (Todo) Edges() []ent.Edge {
 		edge.To("children", Todo.Type).
 			Annotations(entgql.Bind()).
 			From("parent").
-			Annotations(entgql.Bind()).
+			// FIXME(giautm): Need to remove when multiple annotations
+			// with same type supported by ent/gen
+			//
+			// For now, I add this to generate the correct code.
+			Annotations(entgql.Annotation{
+				Bind:       true,
+				NoResolver: true,
+			}).
+			// Annotations(
+			// 	entgql.Bind(),
+			// 	// Resolve for this edge need to manually implement in todo.resolvers.go
+			// 	entgql.NoResolver(),
+			// ).
 			Unique(),
 	}
 }
