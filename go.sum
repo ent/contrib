@@ -62,6 +62,8 @@ github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48 h1:fRzb/w+pyskVMQ+
 github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48/go.mod h1:if7Fbed8SFyPtHLHbg49SI7NAdJiC5WIA09pe59rfAA=
 github.com/facebook/ent v0.5.2 h1:xImCaExB+bZtS6/pSCsjAJ4ShiS9PnQNtP4LedCZj64=
 github.com/facebook/ent v0.5.2/go.mod h1:tlWP+qCd3x2EeO7B/EqlJQ4dWu/2IeYFhP/szzDKAi8=
+github.com/facebook/ent v0.5.4-0.20201219064708-3b4b94b6bef9 h1:ercB39lIFgTxfGobS0FJqquZyjPLnwSBret1ikt3cFI=
+github.com/facebook/ent v0.5.4-0.20201219064708-3b4b94b6bef9/go.mod h1:tlWP+qCd3x2EeO7B/EqlJQ4dWu/2IeYFhP/szzDKAi8=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
