@@ -14,6 +14,8 @@
 
 package entgql
 
+import "github.com/facebook/ent/schema"
+
 // Annotation annotates fields and edges with metadata for templates.
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
@@ -44,3 +46,33 @@ func Bind() Annotation {
 func MapsTo(names ...string) Annotation {
 	return Annotation{Mapping: names}
 }
+
+// Merge implements the schema.Merger interface.
+func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
+	var ant Annotation
+	switch other := other.(type) {
+	case Annotation:
+		ant = other
+	case *Annotation:
+		if other != nil {
+			ant = *other
+		}
+	default:
+		return a
+	}
+	if ant.OrderField != "" {
+		a.OrderField = ant.OrderField
+	}
+	if ant.Bind {
+		a.Bind = true
+	}
+	if len(ant.Mapping) != 0 {
+		a.Mapping = ant.Mapping
+	}
+	return a
+}
+
+var (
+	_ schema.Annotation = (*Annotation)(nil)
+	_ schema.Merger     = (*Annotation)(nil)
+)
