@@ -698,7 +698,7 @@ func (s *todoTestSuite) TestNodeOptions() {
 	s.Require().IsType(nr, (*ent.Todo)(nil))
 	s.Require().Equal(td.ID, nr.(*ent.Todo).ID)
 
-	nr, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType(func(context.Context, int) (string, error) {
+	_, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType(func(context.Context, int) (string, error) {
 		return "", errors.New("bad node type")
 	}))
 	s.Require().EqualError(err, "bad node type")
