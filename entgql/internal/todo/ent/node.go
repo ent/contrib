@@ -133,21 +133,26 @@ func (c *Client) Node(ctx context.Context, id int) (*Node, error) {
 var errNodeInvalidID = &NotFoundError{"node"}
 
 // NodeOption allows configuring the Noder execution using functional options.
-type NodeOption func(*NodeOptions)
+type NodeOption func(*nodeOptions)
 
-// WithNodeType sets the Type of the node (i.e. the table to query).
+// WithNodeType sets the node Type resolver function (i.e. the table to query).
 // If was not provided, the table will be derived from the universal-id
 // configuration as described in: https://entgo.io/docs/migrate/#universal-ids.
-func WithNodeType(t string) NodeOption {
-	return func(o *NodeOptions) {
-		o.Type = t
+func WithNodeType(f func(context.Context, int) (string, error)) NodeOption {
+	return func(o *nodeOptions) {
+		o.nodeType = f
 	}
 }
 
-// NodeOptions holds the configuration for Noder execution.
-type NodeOptions struct {
-	// Type of the node (schema table).
-	Type string
+// WithFixedNodeType sets the Type of the node to a fixed value.
+func WithFixedNodeType(t string) NodeOption {
+	return WithNodeType(func(context.Context, int) (string, error) {
+		return t, nil
+	})
+}
+
+type nodeOptions struct {
+	nodeType func(context.Context, int) (string, error)
 }
 
 // Noder returns a Node by its id. If the NodeType was not provided, it will
@@ -162,17 +167,20 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
 		}
 	}()
-	options := &NodeOptions{}
+	var nopts nodeOptions
 	for _, opt := range opts {
-		opt(options)
+		opt(&nopts)
 	}
-	if options.Type == "" {
-		options.Type, err = c.tables.nodeType(ctx, c.driver, id)
-		if err != nil {
-			return nil, err
+	if nopts.nodeType == nil {
+		nopts.nodeType = func(ctx context.Context, id int) (string, error) {
+			return c.tables.nodeType(ctx, c.driver, id)
 		}
 	}
-	return c.noder(ctx, options.Type, id)
+	tbl, err := nopts.nodeType(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return c.noder(ctx, tbl, id)
 }
 
 func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {

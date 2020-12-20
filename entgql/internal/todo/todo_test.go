@@ -17,6 +17,7 @@ package todo_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -692,14 +693,15 @@ func (s *todoTestSuite) TestNodeOptions() {
 	s.Require().IsType(nr, (*ent.Todo)(nil))
 	s.Require().Equal(td.ID, nr.(*ent.Todo).ID)
 
-	nr, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType(todo.Table))
+	nr, err = s.ent.Noder(ctx, td.ID, ent.WithFixedNodeType(todo.Table))
 	s.Require().NoError(err)
 	s.Require().IsType(nr, (*ent.Todo)(nil))
 	s.Require().Equal(td.ID, nr.(*ent.Todo).ID)
 
-	nr, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType("invalid"))
-	s.Require().Error(err)
-	s.Require().Nil(nr)
+	nr, err = s.ent.Noder(ctx, td.ID, ent.WithNodeType(func(context.Context, int) (string, error) {
+		return "", errors.New("bad node type")
+	}))
+	s.Require().EqualError(err, "bad node type")
 }
 
 func (s *todoTestSuite) TestMutationFieldCollection() {
