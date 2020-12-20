@@ -17,14 +17,11 @@ package entgql_test
 import (
 	"testing"
 
-	"github.com/facebook/ent/schema"
 	"github.com/facebookincubator/ent-contrib/entgql"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAnnotation(t *testing.T) {
-	require.Implements(t, (*schema.Annotation)(nil), entgql.Annotation{})
-
 	annotation := entgql.OrderField("foo")
 	require.Equal(t, "foo", annotation.OrderField)
 
