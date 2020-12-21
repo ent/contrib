@@ -254,8 +254,6 @@ func (c *Client) Noders(ctx context.Context, ids []int, opts ...NodeOption) ([]N
 				continue
 			}
 			errors[i] = entgql.ErrNodeNotFound(id)
-		} else if IsNotLoaded(errors[i]) {
-			errors[i] = multierror.Append(errors[i], entgql.ErrNodeNotFound(id))
 		}
 		ctx := graphql.WithPathContext(ctx,
 			graphql.NewPathWithIndex(i),
