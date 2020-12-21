@@ -23,6 +23,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebook/ent/dialect"
 	"github.com/facebook/ent/dialect/sql"
 	"github.com/facebook/ent/dialect/sql/schema"
@@ -155,6 +156,19 @@ type nodeOptions struct {
 	nodeType func(context.Context, int) (string, error)
 }
 
+func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
+	nopts := &nodeOptions{}
+	for _, opt := range opts {
+		opt(nopts)
+	}
+	if nopts.nodeType == nil {
+		nopts.nodeType = func(ctx context.Context, id int) (string, error) {
+			return c.tables.nodeType(ctx, c.driver, id)
+		}
+	}
+	return nopts
+}
+
 // Noder returns a Node by its id. If the NodeType was not provided, it will
 // be derived from the id value according to the universal-id configuration.
 //
@@ -167,24 +181,15 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
 		}
 	}()
-	var nopts nodeOptions
-	for _, opt := range opts {
-		opt(&nopts)
-	}
-	if nopts.nodeType == nil {
-		nopts.nodeType = func(ctx context.Context, id int) (string, error) {
-			return c.tables.nodeType(ctx, c.driver, id)
-		}
-	}
-	tbl, err := nopts.nodeType(ctx, id)
+	table, err := c.newNodeOpts(opts).nodeType(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return c.noder(ctx, tbl, id)
+	return c.noder(ctx, table, id)
 }
 
-func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
-	switch tbl {
+func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
+	switch table {
 	case todo.Table:
 		n, err := c.Todo.Query().
 			Where(todo.ID(id)).
@@ -195,8 +200,95 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		}
 		return n, nil
 	default:
-		return nil, fmt.Errorf("cannot resolve Noder from table %q: %w", tbl, errNodeInvalidID)
+		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
 	}
+}
+
+func (c *Client) Noders(ctx context.Context, ids []int, opts ...NodeOption) ([]Noder, error) {
+	switch len(ids) {
+	case 1:
+		noder, err := c.Noder(ctx, ids[0], opts...)
+		if err != nil {
+			return nil, err
+		}
+		return []Noder{noder}, nil
+	case 0:
+		return []Noder{}, nil
+	}
+
+	noders := make([]Noder, len(ids))
+	errors := make([]error, len(ids))
+	tables := make(map[string][]int)
+	id2idx := make(map[int][]int, len(ids))
+	nopts := c.newNodeOpts(opts)
+	for i, id := range ids {
+		table, err := nopts.nodeType(ctx, id)
+		if err != nil {
+			errors[i] = err
+			continue
+		}
+		tables[table] = append(tables[table], id)
+		id2idx[id] = append(id2idx[id], i)
+	}
+
+	for table, ids := range tables {
+		nodes, err := c.noders(ctx, table, ids)
+		if err != nil {
+			for _, id := range ids {
+				for _, idx := range id2idx[id] {
+					errors[idx] = err
+				}
+			}
+		} else {
+			for i, id := range ids {
+				for _, idx := range id2idx[id] {
+					noders[idx] = nodes[i]
+				}
+			}
+		}
+	}
+
+	for i, id := range ids {
+		if errors[i] == nil {
+			if noders[i] != nil {
+				continue
+			}
+			errors[i] = entgql.ErrNodeNotFound(id)
+		} else if IsNotLoaded(errors[i]) {
+			errors[i] = multierror.Append(errors[i], entgql.ErrNodeNotFound(id))
+		}
+		ctx := graphql.WithPathContext(ctx,
+			graphql.NewPathWithIndex(i),
+		)
+		graphql.AddError(ctx, errors[i])
+	}
+	return noders, nil
+}
+
+func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, error) {
+	noders := make([]Noder, len(ids))
+	idmap := make(map[int][]*Noder, len(ids))
+	for i, id := range ids {
+		idmap[id] = append(idmap[id], &noders[i])
+	}
+	switch table {
+	case todo.Table:
+		nodes, err := c.Todo.Query().
+			Where(todo.IDIn(ids...)).
+			CollectFields(ctx, "Todo").
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	default:
+		return nil, fmt.Errorf("cannot resolve noders from table %q: %w", table, errNodeInvalidID)
+	}
+	return noders, nil
 }
 
 type tables struct {

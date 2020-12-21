@@ -41,6 +41,7 @@ func TestTransaction(t *testing.T) {
 	}
 
 	t.Run("Query", func(t *testing.T) {
+		t.Parallel()
 		var opener mocks.TxOpener
 		defer opener.AssertExpectations(t)
 		srv := newServer(&opener)
@@ -50,6 +51,7 @@ func TestTransaction(t *testing.T) {
 		require.NoError(t, err)
 	})
 	t.Run("Mutation", func(t *testing.T) {
+		t.Parallel()
 		t.Run("OK", func(t *testing.T) {
 			var tx mocks.Tx
 			tx.On("Commit").
@@ -73,6 +75,7 @@ func TestTransaction(t *testing.T) {
 			require.NoError(t, err)
 		})
 		t.Run("Err", func(t *testing.T) {
+			t.Parallel()
 			var tx mocks.Tx
 			tx.On("Rollback").
 				Return(nil).
@@ -96,6 +99,7 @@ func TestTransaction(t *testing.T) {
 			require.Contains(t, err.Error(), "bad mutation")
 		})
 		t.Run("Panic", func(t *testing.T) {
+			t.Parallel()
 			var tx mocks.Tx
 			tx.On("Rollback").
 				Return(nil).
@@ -122,6 +126,7 @@ func TestTransaction(t *testing.T) {
 			require.Contains(t, err.Error(), "oh no")
 		})
 		t.Run("NoTx", func(t *testing.T) {
+			t.Parallel()
 			var opener mocks.TxOpener
 			opener.On("OpenTx", mock.Anything).
 				Return(nil, nil, errors.New("bad tx")).

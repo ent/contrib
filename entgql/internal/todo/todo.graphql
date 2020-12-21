@@ -65,6 +65,7 @@ input TodoOrder {
 
 type Query {
   node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
   todos(
     after: Cursor
     first: Int

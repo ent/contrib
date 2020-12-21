@@ -22,6 +22,7 @@ import (
 )
 
 func TestErrNodeNotFound(t *testing.T) {
+	t.Parallel()
 	err := entgql.ErrNodeNotFound(42)
 	require.EqualError(t, err, "input: Could not resolve to a node with the global id of '42'")
 	require.Equal(t, "NOT_FOUND", err.Extensions["code"])

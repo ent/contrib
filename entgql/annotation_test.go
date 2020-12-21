@@ -22,6 +22,7 @@ import (
 )
 
 func TestAnnotation(t *testing.T) {
+	t.Parallel()
 	annotation := entgql.OrderField("foo")
 	require.Equal(t, "foo", annotation.OrderField)
 
