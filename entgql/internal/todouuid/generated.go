@@ -343,7 +343,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "todo.graphql", Input: `interface Node {
+	{Name: "../todo/todo.graphql", Input: `interface Node {
   id: ID!
 }
 
