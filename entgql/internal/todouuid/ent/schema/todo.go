@@ -19,7 +19,6 @@ import (
 	"github.com/facebook/ent/schema/field"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/schema"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
-	"github.com/google/uuid"
 )
 
 // Todo defines the todo type schema.
@@ -38,6 +37,6 @@ func (Todo) Mixin() []ent.Mixin {
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuidgql.UUID{}).
-			Default(func() uuidgql.UUID { return uuidgql.UUID(uuid.New()) }),
+			Default(uuidgql.New),
 	}
 }
