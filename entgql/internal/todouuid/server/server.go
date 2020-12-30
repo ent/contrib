@@ -22,12 +22,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/alecthomas/kong"
 	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/migrate"
+	todo "github.com/facebookincubator/ent-contrib/entgql/internal/todouuid"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/migrate"
 	"go.uber.org/zap"
 
-	_ "github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/runtime"
+	_ "github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/runtime"
 	_ "github.com/mattn/go-sqlite3"
 )
 

@@ -22,15 +22,15 @@ import (
 	"time"
 
 	"github.com/facebook/ent/dialect/sql"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
-	"github.com/google/uuid"
 )
 
 // Todo is the model entity for the Todo schema.
 type Todo struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID uuidgql.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Status holds the value of the "status" field.
@@ -42,7 +42,7 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
-	todo_children *uuid.UUID
+	todo_children *uuidgql.UUID
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -82,7 +82,7 @@ func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Todo) scanValues() []interface{} {
 	return []interface{}{
-		&uuid.UUID{},      // id
+		&uuidgql.UUID{},   // id
 		&sql.NullTime{},   // created_at
 		&sql.NullString{}, // status
 		&sql.NullInt64{},  // priority
@@ -93,7 +93,7 @@ func (*Todo) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Todo) fkValues() []interface{} {
 	return []interface{}{
-		&uuid.UUID{}, // todo_children
+		&uuidgql.UUID{}, // todo_children
 	}
 }
 
@@ -103,7 +103,7 @@ func (t *Todo) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(todo.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*uuid.UUID); !ok {
+	if value, ok := values[0].(*uuidgql.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		t.ID = *value
@@ -131,7 +131,7 @@ func (t *Todo) assignValues(values ...interface{}) error {
 	}
 	values = values[4:]
 	if len(values) == len(todo.ForeignKeys) {
-		if value, ok := values[0].(*uuid.UUID); !ok {
+		if value, ok := values[0].(*uuidgql.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field todo_children", values[0])
 		} else if value != nil {
 			t.todo_children = value

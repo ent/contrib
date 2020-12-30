@@ -12,32 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package schema
+package uuidgql
 
 import (
-	"github.com/facebook/ent"
-	"github.com/facebook/ent/schema/field"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/schema"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
+	"database/sql/driver"
+	"fmt"
+	"io"
+	"strconv"
+
 	"github.com/google/uuid"
 )
 
-// Todo defines the todo type schema.
-type Todo struct {
-	ent.Schema
+type UUID [16]byte
+
+func (u *UUID) UnmarshalGQL(v interface{}) (err error) {
+	s, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("invalid type %T, expect string", v)
+	}
+	id, err := uuid.Parse(s)
+	if err != nil {
+		return err
+	}
+	*u = UUID(id)
+	return nil
 }
 
-// Mixin returns todo mixed-in schema.
-func (Todo) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		schema.Todo{},
-	}
+func (u UUID) MarshalGQL(w io.Writer) {
+	_, _ = io.WriteString(w, strconv.Quote(uuid.UUID(u).String()))
 }
 
-// Fields returns todo fields.
-func (Todo) Fields() []ent.Field {
-	return []ent.Field{
-		field.UUID("id", uuidgql.UUID{}).
-			Default(func() uuidgql.UUID { return uuidgql.UUID(uuid.New()) }),
+func (u *UUID) Scan(src interface{}) error {
+	if err := (*uuid.UUID)(u).Scan(src); err != nil {
+		return err
 	}
+	return nil
+}
+
+func (u UUID) Value() (driver.Value, error) {
+	return uuid.UUID(u).Value()
 }

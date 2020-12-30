@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
-	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -48,5 +48,5 @@ func init() {
 	// todoDescID is the schema descriptor for id field.
 	todoDescID := todoFields[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
-	todo.DefaultID = todoDescID.Default.(func() uuid.UUID)
+	todo.DefaultID = todoDescID.Default.(func() uuidgql.UUID)
 }
