@@ -23,7 +23,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type UUID [16]byte
+type UUID uuid.UUID
+
+func New() UUID { return UUID(uuid.New()) }
 
 func (u *UUID) UnmarshalGQL(v interface{}) (err error) {
 	s, ok := v.(string)
