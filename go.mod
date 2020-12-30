@@ -9,6 +9,7 @@ require (
 	github.com/alecthomas/kong v0.2.11
 	github.com/facebook/ent v0.5.4-0.20201219064708-3b4b94b6bef9
 	github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368
+	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0

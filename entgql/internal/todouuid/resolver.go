@@ -16,7 +16,7 @@ package todo
 
 import (
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent"
 )
 
 // Resolver is the resolver root.
