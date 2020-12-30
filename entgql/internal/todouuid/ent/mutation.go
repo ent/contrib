@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/predicate"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/todo"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/predicate"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 
 	"github.com/facebook/ent"

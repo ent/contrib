@@ -16,7 +16,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo"
-	"github.com/google/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -41,7 +40,6 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
-	Todo() TodoResolver
 }
 
 type DirectiveRoot struct {
@@ -61,8 +59,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Node  func(childComplexity int, id uuid.UUID) int
-		Nodes func(childComplexity int, ids []uuid.UUID) int
+		Node  func(childComplexity int, id int) int
+		Nodes func(childComplexity int, ids []int) int
 		Todos func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) int
 	}
 
@@ -93,12 +91,9 @@ type MutationResolver interface {
 	ClearTodos(ctx context.Context) (int, error)
 }
 type QueryResolver interface {
-	Node(ctx context.Context, id uuid.UUID) (ent.Noder, error)
-	Nodes(ctx context.Context, ids []uuid.UUID) ([]ent.Noder, error)
+	Node(ctx context.Context, id int) (ent.Noder, error)
+	Nodes(ctx context.Context, ids []int) ([]ent.Noder, error)
 	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error)
-}
-type TodoResolver interface {
-	ID(ctx context.Context, obj *ent.Todo) (uuid.UUID, error)
 }
 
 type executableSchema struct {
@@ -173,7 +168,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Node(childComplexity, args["id"].(uuid.UUID)), true
+		return e.complexity.Query.Node(childComplexity, args["id"].(int)), true
 
 	case "Query.nodes":
 		if e.complexity.Query.Nodes == nil {
@@ -185,7 +180,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]uuid.UUID)), true
+		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]int)), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -442,7 +437,7 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	var arg0 TodoInput
 	if tmp, ok := rawArgs["todo"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todo"))
-		arg0, err = ec.unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋentᚑcontribᚋentgqlᚋinternalᚋtodoᚑuuidsᚐTodoInput(ctx, tmp)
+		arg0, err = ec.unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋentᚑcontribᚋentgqlᚋinternalᚋtodoᚐTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -469,10 +464,10 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 uuid.UUID
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -484,10 +479,10 @@ func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []uuid.UUID
+	var arg0 []int
 	if tmp, ok := rawArgs["ids"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
-		arg0, err = ec.unmarshalNID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -821,7 +816,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Node(rctx, args["id"].(uuid.UUID))
+		return ec.resolvers.Query().Node(rctx, args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -860,7 +855,7 @@ func (ec *executionContext) _Query_nodes(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Nodes(rctx, args["ids"].([]uuid.UUID))
+		return ec.resolvers.Query().Nodes(rctx, args["ids"].([]int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -998,14 +993,14 @@ func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.Collecte
 		Object:     "Todo",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Todo().ID(rctx, obj)
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1017,9 +1012,9 @@ func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(uuid.UUID)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Todo_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
@@ -2517,7 +2512,7 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
-			it.Parent, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.Parent, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2727,19 +2722,10 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Todo")
 		case "id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Todo_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Todo_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "createdAt":
 			out.Values[i] = ec._Todo_createdAt(ctx, field, obj)
 		case "status":
@@ -3123,16 +3109,22 @@ func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋen
 	return v
 }
 
-func (ec *executionContext) unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
-	res, err := ec.unmarshalInputID(ctx, v)
+func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
-	return ec._ID(ctx, sel, &v)
+func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
-func (ec *executionContext) unmarshalNID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {
+func (ec *executionContext) unmarshalNID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -3142,10 +3134,10 @@ func (ec *executionContext) unmarshalNID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUID�
 		}
 	}
 	var err error
-	res := make([]uuid.UUID, len(vSlice))
+	res := make([]int, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -3153,10 +3145,10 @@ func (ec *executionContext) unmarshalNID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUID�
 	return res, nil
 }
 
-func (ec *executionContext) marshalNID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []uuid.UUID) graphql.Marshaler {
+func (ec *executionContext) marshalNID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	for i := range v {
-		ret[i] = ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, v[i])
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
 	}
 
 	return ret
@@ -3267,7 +3259,7 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋe
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋentᚑcontribᚋentgqlᚋinternalᚋtodoᚑuuidsᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
+func (ec *executionContext) unmarshalNTodoInput2githubᚗcomᚋfacebookincubatorᚋentᚑcontribᚋentgqlᚋinternalᚋtodoᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
 	res, err := ec.unmarshalInputTodoInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3541,19 +3533,19 @@ func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋfacebookincubator�
 	return v
 }
 
-func (ec *executionContext) unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputID(ctx, v)
+	res, err := graphql.UnmarshalIntID(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._ID(ctx, sel, v)
+	return graphql.MarshalIntID(*v)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

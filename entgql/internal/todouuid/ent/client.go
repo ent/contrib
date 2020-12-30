@@ -21,10 +21,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/migrate"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/migrate"
 	"github.com/google/uuid"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/todo"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
 
 	"github.com/facebook/ent/dialect"
 	"github.com/facebook/ent/dialect/sql"

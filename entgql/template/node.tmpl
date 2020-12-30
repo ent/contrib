@@ -159,7 +159,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 			{{- if $idType.Numeric }}
 				return c.tables.nodeType(ctx, c.driver, id)
 			{{- else }}
-				return nil, fmt.Errorf("cannot resolve noder (%v) without its type", id)
+				return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
 			{{- end }}
 		}
 	}

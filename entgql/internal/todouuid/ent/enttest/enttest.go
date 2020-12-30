@@ -19,9 +19,9 @@ package enttest
 import (
 	"context"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent"
 	// required by schema hooks.
-	_ "github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/runtime"
+	_ "github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/runtime"
 
 	"github.com/facebook/ent/dialect/sql/schema"
 )

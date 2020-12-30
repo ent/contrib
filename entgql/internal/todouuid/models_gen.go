@@ -4,12 +4,11 @@ package todo
 
 import (
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo"
-	"github.com/google/uuid"
 )
 
 type TodoInput struct {
 	Status   todo.Status `json:"status"`
 	Priority *int        `json:"priority"`
 	Text     string      `json:"text"`
-	Parent   *uuid.UUID  `json:"parent"`
+	Parent   *int        `json:"parent"`
 }
