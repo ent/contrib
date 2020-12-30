@@ -3,7 +3,7 @@
 # license that can be found in the LICENSE file.
 
 schema:
-  - todo.graphql
+  - ../todo/todo.graphql
 
 resolver:
   layout: follow-schema
