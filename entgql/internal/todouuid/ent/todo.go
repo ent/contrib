@@ -80,61 +80,71 @@ func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Todo) scanValues() []interface{} {
-	return []interface{}{
-		&uuidgql.UUID{},   // id
-		&sql.NullTime{},   // created_at
-		&sql.NullString{}, // status
-		&sql.NullInt64{},  // priority
-		&sql.NullString{}, // text
+func (*Todo) scanValues(columns []string) ([]interface{}, error) {
+	values := make([]interface{}, len(columns))
+	for i := range columns {
+		switch columns[i] {
+		case todo.FieldPriority:
+			values[i] = &sql.NullInt64{}
+		case todo.FieldStatus, todo.FieldText:
+			values[i] = &sql.NullString{}
+		case todo.FieldCreatedAt:
+			values[i] = &sql.NullTime{}
+		case todo.FieldID:
+			values[i] = &uuidgql.UUID{}
+		case todo.ForeignKeys[0]: // todo_children
+			values[i] = &uuidgql.UUID{}
+		default:
+			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
+		}
 	}
-}
-
-// fkValues returns the types for scanning foreign-keys values from sql.Rows.
-func (*Todo) fkValues() []interface{} {
-	return []interface{}{
-		&uuidgql.UUID{}, // todo_children
-	}
+	return values, nil
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Todo fields.
-func (t *Todo) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(todo.Columns); m < n {
+func (t *Todo) assignValues(columns []string, values []interface{}) error {
+	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*uuidgql.UUID); !ok {
-		return fmt.Errorf("unexpected type %T for field id", values[0])
-	} else if value != nil {
-		t.ID = *value
-	}
-	values = values[1:]
-	if value, ok := values[0].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field created_at", values[0])
-	} else if value.Valid {
-		t.CreatedAt = value.Time
-	}
-	if value, ok := values[1].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field status", values[1])
-	} else if value.Valid {
-		t.Status = todo.Status(value.String)
-	}
-	if value, ok := values[2].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field priority", values[2])
-	} else if value.Valid {
-		t.Priority = int(value.Int64)
-	}
-	if value, ok := values[3].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field text", values[3])
-	} else if value.Valid {
-		t.Text = value.String
-	}
-	values = values[4:]
-	if len(values) == len(todo.ForeignKeys) {
-		if value, ok := values[0].(*uuidgql.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field todo_children", values[0])
-		} else if value != nil {
-			t.todo_children = value
+	for i := range columns {
+		switch columns[i] {
+		case todo.FieldID:
+			if value, ok := values[i].(*uuidgql.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				t.ID = *value
+			}
+		case todo.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				t.CreatedAt = value.Time
+			}
+		case todo.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				t.Status = todo.Status(value.String)
+			}
+		case todo.FieldPriority:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field priority", values[i])
+			} else if value.Valid {
+				t.Priority = int(value.Int64)
+			}
+		case todo.FieldText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field text", values[i])
+			} else if value.Valid {
+				t.Text = value.String
+			}
+		case todo.ForeignKeys[0]:
+			if value, ok := values[i].(*uuidgql.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
+			} else if value != nil {
+				t.todo_children = value
+			}
 		}
 	}
 	return nil
