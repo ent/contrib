@@ -23,7 +23,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/todo"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-multierror"
 )
@@ -158,7 +158,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 	}
 	if nopts.nodeType == nil {
 		nopts.nodeType = func(ctx context.Context, id uuid.UUID) (string, error) {
-			return nil, fmt.Errorf("cannot resolve noder (%v) without its type", id)
+			return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
 		}
 	}
 	return nopts

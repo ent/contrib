@@ -21,7 +21,7 @@ import (
 
 	"github.com/facebook/ent/dialect/sql"
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/predicate"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/predicate"
 	"github.com/google/uuid"
 )
 

@@ -15,7 +15,7 @@ autobind:
 models:
   ID:
     model:
-      - github.com/google/uuid.UUID
+      - github.com/99designs/gqlgen/graphql.IntID
   Node:
     model:
       - github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent.Noder

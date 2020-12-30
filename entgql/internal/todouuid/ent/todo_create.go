@@ -24,7 +24,7 @@ import (
 
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/todo"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 )
 

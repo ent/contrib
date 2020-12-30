@@ -16,7 +16,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/facebookincubator/ent-contrib/entgql/internal/todo-uuids/ent/runtime.go
+// The schema-stitching logic is generated in github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/runtime.go
 
 const (
 	Version = "(devel)" // Version of ent codegen.
