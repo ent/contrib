@@ -24,8 +24,8 @@ import (
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/predicate"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/google/uuid"
 )
 
 // TodoUpdate is the builder for updating Todo entities.
@@ -75,13 +75,13 @@ func (tu *TodoUpdate) SetText(s string) *TodoUpdate {
 }
 
 // SetParentID sets the parent edge to Todo by id.
-func (tu *TodoUpdate) SetParentID(id uuidgql.UUID) *TodoUpdate {
+func (tu *TodoUpdate) SetParentID(id uuid.UUID) *TodoUpdate {
 	tu.mutation.SetParentID(id)
 	return tu
 }
 
 // SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
-func (tu *TodoUpdate) SetNillableParentID(id *uuidgql.UUID) *TodoUpdate {
+func (tu *TodoUpdate) SetNillableParentID(id *uuid.UUID) *TodoUpdate {
 	if id != nil {
 		tu = tu.SetParentID(*id)
 	}
@@ -94,14 +94,14 @@ func (tu *TodoUpdate) SetParent(t *Todo) *TodoUpdate {
 }
 
 // AddChildIDs adds the children edge to Todo by ids.
-func (tu *TodoUpdate) AddChildIDs(ids ...uuidgql.UUID) *TodoUpdate {
+func (tu *TodoUpdate) AddChildIDs(ids ...uuid.UUID) *TodoUpdate {
 	tu.mutation.AddChildIDs(ids...)
 	return tu
 }
 
 // AddChildren adds the children edges to Todo.
 func (tu *TodoUpdate) AddChildren(t ...*Todo) *TodoUpdate {
-	ids := make([]uuidgql.UUID, len(t))
+	ids := make([]uuid.UUID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -126,14 +126,14 @@ func (tu *TodoUpdate) ClearChildren() *TodoUpdate {
 }
 
 // RemoveChildIDs removes the children edge to Todo by ids.
-func (tu *TodoUpdate) RemoveChildIDs(ids ...uuidgql.UUID) *TodoUpdate {
+func (tu *TodoUpdate) RemoveChildIDs(ids ...uuid.UUID) *TodoUpdate {
 	tu.mutation.RemoveChildIDs(ids...)
 	return tu
 }
 
 // RemoveChildren removes children edges to Todo.
 func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
-	ids := make([]uuidgql.UUID, len(t))
+	ids := make([]uuid.UUID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -399,13 +399,13 @@ func (tuo *TodoUpdateOne) SetText(s string) *TodoUpdateOne {
 }
 
 // SetParentID sets the parent edge to Todo by id.
-func (tuo *TodoUpdateOne) SetParentID(id uuidgql.UUID) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) SetParentID(id uuid.UUID) *TodoUpdateOne {
 	tuo.mutation.SetParentID(id)
 	return tuo
 }
 
 // SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
-func (tuo *TodoUpdateOne) SetNillableParentID(id *uuidgql.UUID) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) SetNillableParentID(id *uuid.UUID) *TodoUpdateOne {
 	if id != nil {
 		tuo = tuo.SetParentID(*id)
 	}
@@ -418,14 +418,14 @@ func (tuo *TodoUpdateOne) SetParent(t *Todo) *TodoUpdateOne {
 }
 
 // AddChildIDs adds the children edge to Todo by ids.
-func (tuo *TodoUpdateOne) AddChildIDs(ids ...uuidgql.UUID) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) AddChildIDs(ids ...uuid.UUID) *TodoUpdateOne {
 	tuo.mutation.AddChildIDs(ids...)
 	return tuo
 }
 
 // AddChildren adds the children edges to Todo.
 func (tuo *TodoUpdateOne) AddChildren(t ...*Todo) *TodoUpdateOne {
-	ids := make([]uuidgql.UUID, len(t))
+	ids := make([]uuid.UUID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
@@ -450,14 +450,14 @@ func (tuo *TodoUpdateOne) ClearChildren() *TodoUpdateOne {
 }
 
 // RemoveChildIDs removes the children edge to Todo by ids.
-func (tuo *TodoUpdateOne) RemoveChildIDs(ids ...uuidgql.UUID) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) RemoveChildIDs(ids ...uuid.UUID) *TodoUpdateOne {
 	tuo.mutation.RemoveChildIDs(ids...)
 	return tuo
 }
 
 // RemoveChildren removes children edges to Todo.
 func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
-	ids := make([]uuidgql.UUID, len(t))
+	ids := make([]uuid.UUID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}

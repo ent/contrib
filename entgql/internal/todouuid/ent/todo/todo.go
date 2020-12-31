@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -93,7 +93,7 @@ var (
 	// TextValidator is a validator for the "text" field. It is called by the builders before save.
 	TextValidator func(string) error
 	// DefaultID holds the default value on creation for the id field.
-	DefaultID func() uuidgql.UUID
+	DefaultID func() uuid.UUID
 )
 
 // Status defines the type for the status enum field.

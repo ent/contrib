@@ -15,42 +15,24 @@
 package uuidgql
 
 import (
-	"database/sql/driver"
 	"fmt"
 	"io"
 	"strconv"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/google/uuid"
 )
 
-type UUID uuid.UUID
+func MarshalUUID(u uuid.UUID) graphql.Marshaler {
+	return graphql.WriterFunc(func(w io.Writer) {
+		_, _ = io.WriteString(w, strconv.Quote(u.String()))
+	})
+}
 
-func New() UUID { return UUID(uuid.New()) }
-
-func (u *UUID) UnmarshalGQL(v interface{}) (err error) {
+func UnmarshalUUID(v interface{}) (u uuid.UUID, err error) {
 	s, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("invalid type %T, expect string", v)
+		return u, fmt.Errorf("invalid type %T, expect string", v)
 	}
-	id, err := uuid.Parse(s)
-	if err != nil {
-		return err
-	}
-	*u = UUID(id)
-	return nil
-}
-
-func (u UUID) MarshalGQL(w io.Writer) {
-	_, _ = io.WriteString(w, strconv.Quote(uuid.UUID(u).String()))
-}
-
-func (u *UUID) Scan(src interface{}) error {
-	if err := (*uuid.UUID)(u).Scan(src); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (u UUID) Value() (driver.Value, error) {
-	return uuid.UUID(u).Value()
+	return uuid.Parse(s)
 }
