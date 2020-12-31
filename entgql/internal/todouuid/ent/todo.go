@@ -22,15 +22,15 @@ import (
 	"time"
 
 	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/google/uuid"
 )
 
 // Todo is the model entity for the Todo schema.
 type Todo struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uuidgql.UUID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Status holds the value of the "status" field.
@@ -42,7 +42,7 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
-	todo_children *uuidgql.UUID
+	todo_children *uuid.UUID
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -91,9 +91,9 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 		case todo.FieldCreatedAt:
 			values[i] = &sql.NullTime{}
 		case todo.FieldID:
-			values[i] = &uuidgql.UUID{}
+			values[i] = &uuid.UUID{}
 		case todo.ForeignKeys[0]: // todo_children
-			values[i] = &uuidgql.UUID{}
+			values[i] = &uuid.UUID{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
 		}
@@ -110,7 +110,7 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case todo.FieldID:
-			if value, ok := values[i].(*uuidgql.UUID); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				t.ID = *value
@@ -140,7 +140,7 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				t.Text = value.String
 			}
 		case todo.ForeignKeys[0]:
-			if value, ok := values[i].(*uuidgql.UUID); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
 			} else if value != nil {
 				t.todo_children = value

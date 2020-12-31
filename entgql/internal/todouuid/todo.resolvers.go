@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
+	"github.com/google/uuid"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
@@ -42,11 +42,11 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
-func (r *queryResolver) Node(ctx context.Context, id uuidgql.UUID) (ent.Noder, error) {
+func (r *queryResolver) Node(ctx context.Context, id uuid.UUID) (ent.Noder, error) {
 	return r.client.Noder(ctx, id)
 }
 
-func (r *queryResolver) Nodes(ctx context.Context, ids []uuidgql.UUID) ([]ent.Noder, error) {
+func (r *queryResolver) Nodes(ctx context.Context, ids []uuid.UUID) ([]ent.Noder, error) {
 	return r.client.Noders(ctx, ids)
 }
 

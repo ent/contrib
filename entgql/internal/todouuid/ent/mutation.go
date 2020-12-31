@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/predicate"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/google/uuid"
 
 	"github.com/facebook/ent"
 )
@@ -47,17 +47,17 @@ type TodoMutation struct {
 	config
 	op              Op
 	typ             string
-	id              *uuidgql.UUID
+	id              *uuid.UUID
 	created_at      *time.Time
 	status          *todo.Status
 	priority        *int
 	addpriority     *int
 	text            *string
 	clearedFields   map[string]struct{}
-	parent          *uuidgql.UUID
+	parent          *uuid.UUID
 	clearedparent   bool
-	children        map[uuidgql.UUID]struct{}
-	removedchildren map[uuidgql.UUID]struct{}
+	children        map[uuid.UUID]struct{}
+	removedchildren map[uuid.UUID]struct{}
 	clearedchildren bool
 	done            bool
 	oldValue        func(context.Context) (*Todo, error)
@@ -84,7 +84,7 @@ func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
 }
 
 // withTodoID sets the id field of the mutation.
-func withTodoID(id uuidgql.UUID) todoOption {
+func withTodoID(id uuid.UUID) todoOption {
 	return func(m *TodoMutation) {
 		var (
 			err   error
@@ -136,13 +136,13 @@ func (m TodoMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that, this
 // operation is accepted only on Todo creation.
-func (m *TodoMutation) SetID(id uuidgql.UUID) {
+func (m *TodoMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the id value in the mutation. Note that, the id
 // is available only if it was provided to the builder.
-func (m *TodoMutation) ID() (id uuidgql.UUID, exists bool) {
+func (m *TodoMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -318,7 +318,7 @@ func (m *TodoMutation) ResetText() {
 }
 
 // SetParentID sets the parent edge to Todo by id.
-func (m *TodoMutation) SetParentID(id uuidgql.UUID) {
+func (m *TodoMutation) SetParentID(id uuid.UUID) {
 	m.parent = &id
 }
 
@@ -333,7 +333,7 @@ func (m *TodoMutation) ParentCleared() bool {
 }
 
 // ParentID returns the parent id in the mutation.
-func (m *TodoMutation) ParentID() (id uuidgql.UUID, exists bool) {
+func (m *TodoMutation) ParentID() (id uuid.UUID, exists bool) {
 	if m.parent != nil {
 		return *m.parent, true
 	}
@@ -343,7 +343,7 @@ func (m *TodoMutation) ParentID() (id uuidgql.UUID, exists bool) {
 // ParentIDs returns the parent ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
 // ParentID instead. It exists only for internal usage by the builders.
-func (m *TodoMutation) ParentIDs() (ids []uuidgql.UUID) {
+func (m *TodoMutation) ParentIDs() (ids []uuid.UUID) {
 	if id := m.parent; id != nil {
 		ids = append(ids, *id)
 	}
@@ -357,9 +357,9 @@ func (m *TodoMutation) ResetParent() {
 }
 
 // AddChildIDs adds the children edge to Todo by ids.
-func (m *TodoMutation) AddChildIDs(ids ...uuidgql.UUID) {
+func (m *TodoMutation) AddChildIDs(ids ...uuid.UUID) {
 	if m.children == nil {
-		m.children = make(map[uuidgql.UUID]struct{})
+		m.children = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.children[ids[i]] = struct{}{}
@@ -377,9 +377,9 @@ func (m *TodoMutation) ChildrenCleared() bool {
 }
 
 // RemoveChildIDs removes the children edge to Todo by ids.
-func (m *TodoMutation) RemoveChildIDs(ids ...uuidgql.UUID) {
+func (m *TodoMutation) RemoveChildIDs(ids ...uuid.UUID) {
 	if m.removedchildren == nil {
-		m.removedchildren = make(map[uuidgql.UUID]struct{})
+		m.removedchildren = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.removedchildren[ids[i]] = struct{}{}
@@ -387,7 +387,7 @@ func (m *TodoMutation) RemoveChildIDs(ids ...uuidgql.UUID) {
 }
 
 // RemovedChildren returns the removed ids of children.
-func (m *TodoMutation) RemovedChildrenIDs() (ids []uuidgql.UUID) {
+func (m *TodoMutation) RemovedChildrenIDs() (ids []uuid.UUID) {
 	for id := range m.removedchildren {
 		ids = append(ids, id)
 	}
@@ -395,7 +395,7 @@ func (m *TodoMutation) RemovedChildrenIDs() (ids []uuidgql.UUID) {
 }
 
 // ChildrenIDs returns the children ids in the mutation.
-func (m *TodoMutation) ChildrenIDs() (ids []uuidgql.UUID) {
+func (m *TodoMutation) ChildrenIDs() (ids []uuid.UUID) {
 	for id := range m.children {
 		ids = append(ids, id)
 	}

@@ -24,8 +24,8 @@ import (
 
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/google/uuid"
 )
 
 // TodoCreate is the builder for creating a Todo entity.
@@ -76,19 +76,19 @@ func (tc *TodoCreate) SetText(s string) *TodoCreate {
 }
 
 // SetID sets the id field.
-func (tc *TodoCreate) SetID(u uuidgql.UUID) *TodoCreate {
+func (tc *TodoCreate) SetID(u uuid.UUID) *TodoCreate {
 	tc.mutation.SetID(u)
 	return tc
 }
 
 // SetParentID sets the parent edge to Todo by id.
-func (tc *TodoCreate) SetParentID(id uuidgql.UUID) *TodoCreate {
+func (tc *TodoCreate) SetParentID(id uuid.UUID) *TodoCreate {
 	tc.mutation.SetParentID(id)
 	return tc
 }
 
 // SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
-func (tc *TodoCreate) SetNillableParentID(id *uuidgql.UUID) *TodoCreate {
+func (tc *TodoCreate) SetNillableParentID(id *uuid.UUID) *TodoCreate {
 	if id != nil {
 		tc = tc.SetParentID(*id)
 	}
@@ -101,14 +101,14 @@ func (tc *TodoCreate) SetParent(t *Todo) *TodoCreate {
 }
 
 // AddChildIDs adds the children edge to Todo by ids.
-func (tc *TodoCreate) AddChildIDs(ids ...uuidgql.UUID) *TodoCreate {
+func (tc *TodoCreate) AddChildIDs(ids ...uuid.UUID) *TodoCreate {
 	tc.mutation.AddChildIDs(ids...)
 	return tc
 }
 
 // AddChildren adds the children edges to Todo.
 func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
-	ids := make([]uuidgql.UUID, len(t))
+	ids := make([]uuid.UUID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}
