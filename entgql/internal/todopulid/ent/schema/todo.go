@@ -15,12 +15,10 @@
 package schema
 
 import (
-	"fmt"
-
 	"github.com/facebook/ent"
 	"github.com/facebook/ent/schema/field"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/schema"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulidgql"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
 // Todo defines the todo type schema.
@@ -35,16 +33,11 @@ func (Todo) Mixin() []ent.Mixin {
 	}
 }
 
-func newPULIDFn(prefix string) func() string {
-	return func() string {
-		return fmt.Sprint(pulidgql.New(prefix))
-	}
-}
-
 // Fields returns todo fields.
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").
-			DefaultFunc(newPULIDFn("TO")),
+			GoType(pulid.ID("")).
+			DefaultFunc(func() pulid.ID { return pulid.MustNew("TO") }),
 	}
 }

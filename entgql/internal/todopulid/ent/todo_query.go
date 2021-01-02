@@ -27,6 +27,7 @@ import (
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/predicate"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 )
 
@@ -137,8 +138,8 @@ func (tq *TodoQuery) FirstX(ctx context.Context) *Todo {
 }
 
 // FirstID returns the first Todo id in the query. Returns *NotFoundError when no id was found.
-func (tq *TodoQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TodoQuery) FirstID(ctx context.Context) (id pulid.ID, err error) {
+	var ids []pulid.ID
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -150,7 +151,7 @@ func (tq *TodoQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (tq *TodoQuery) FirstIDX(ctx context.Context) string {
+func (tq *TodoQuery) FirstIDX(ctx context.Context) pulid.ID {
 	id, err := tq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -184,8 +185,8 @@ func (tq *TodoQuery) OnlyX(ctx context.Context) *Todo {
 }
 
 // OnlyID returns the only Todo id in the query, returns an error if not exactly one id was returned.
-func (tq *TodoQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TodoQuery) OnlyID(ctx context.Context) (id pulid.ID, err error) {
+	var ids []pulid.ID
 	if ids, err = tq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -201,7 +202,7 @@ func (tq *TodoQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (tq *TodoQuery) OnlyIDX(ctx context.Context) string {
+func (tq *TodoQuery) OnlyIDX(ctx context.Context) pulid.ID {
 	id, err := tq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -227,8 +228,8 @@ func (tq *TodoQuery) AllX(ctx context.Context) []*Todo {
 }
 
 // IDs executes the query and returns a list of Todo ids.
-func (tq *TodoQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (tq *TodoQuery) IDs(ctx context.Context) ([]pulid.ID, error) {
+	var ids []pulid.ID
 	if err := tq.Select(todo.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -236,7 +237,7 @@ func (tq *TodoQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tq *TodoQuery) IDsX(ctx context.Context) []string {
+func (tq *TodoQuery) IDsX(ctx context.Context) []pulid.ID {
 	ids, err := tq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -417,8 +418,8 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 	}
 
 	if query := tq.withParent; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Todo)
+		ids := make([]pulid.ID, 0, len(nodes))
+		nodeids := make(map[pulid.ID][]*Todo)
 		for i := range nodes {
 			if fk := nodes[i].todo_children; fk != nil {
 				ids = append(ids, *fk)
@@ -443,7 +444,7 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 
 	if query := tq.withChildren; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Todo)
+		nodeids := make(map[pulid.ID]*Todo)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]

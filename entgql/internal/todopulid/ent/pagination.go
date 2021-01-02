@@ -28,6 +28,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/facebook/ent/dialect/sql"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
@@ -158,8 +159,8 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID    string `msgpack:"i"`
-	Value Value  `msgpack:"v,omitempty"`
+	ID    pulid.ID `msgpack:"i"`
+	Value Value    `msgpack:"v,omitempty"`
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

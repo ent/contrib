@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package todo
+package todopulid
 
 import (
 	"github.com/99designs/gqlgen/graphql"

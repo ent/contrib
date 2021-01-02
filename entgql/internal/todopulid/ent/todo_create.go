@@ -24,6 +24,7 @@ import (
 
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 	"github.com/facebook/ent/schema/field"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 )
 
@@ -75,27 +76,27 @@ func (tc *TodoCreate) SetText(s string) *TodoCreate {
 }
 
 // SetID sets the id field.
-func (tc *TodoCreate) SetID(s string) *TodoCreate {
-	tc.mutation.SetID(s)
+func (tc *TodoCreate) SetID(pu pulid.ID) *TodoCreate {
+	tc.mutation.SetID(pu)
 	return tc
 }
 
 // SetNillableID sets the id field if the given value is not nil.
-func (tc *TodoCreate) SetNillableID(s *string) *TodoCreate {
-	if s != nil {
-		tc.SetID(*s)
+func (tc *TodoCreate) SetNillableID(pu *pulid.ID) *TodoCreate {
+	if pu != nil {
+		tc.SetID(*pu)
 	}
 	return tc
 }
 
 // SetParentID sets the parent edge to Todo by id.
-func (tc *TodoCreate) SetParentID(id string) *TodoCreate {
+func (tc *TodoCreate) SetParentID(id pulid.ID) *TodoCreate {
 	tc.mutation.SetParentID(id)
 	return tc
 }
 
 // SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
-func (tc *TodoCreate) SetNillableParentID(id *string) *TodoCreate {
+func (tc *TodoCreate) SetNillableParentID(id *pulid.ID) *TodoCreate {
 	if id != nil {
 		tc = tc.SetParentID(*id)
 	}
@@ -108,14 +109,14 @@ func (tc *TodoCreate) SetParent(t *Todo) *TodoCreate {
 }
 
 // AddChildIDs adds the children edge to Todo by ids.
-func (tc *TodoCreate) AddChildIDs(ids ...string) *TodoCreate {
+func (tc *TodoCreate) AddChildIDs(ids ...pulid.ID) *TodoCreate {
 	tc.mutation.AddChildIDs(ids...)
 	return tc
 }
 
 // AddChildren adds the children edges to Todo.
 func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
-	ids := make([]string, len(t))
+	ids := make([]pulid.ID, len(t))
 	for i := range t {
 		ids[i] = t[i].ID
 	}

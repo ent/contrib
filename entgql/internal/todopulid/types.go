@@ -12,29 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package todo
+package todopulid
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 )
 
 // TypeMap maps PULID prefixes to database table names.
-var TypeMap = map[string]string{
+var TypeMap = map[pulid.ID]string{
 	"TO": todo.Table,
 }
 
 // IDToType returns the type name associated with a PULID id.
-func IDToType(ctx context.Context, id string) (string, error) {
-	fmt.Println("IDTOTYPE:", id)
+func IDToType(ctx context.Context, id pulid.ID) (string, error) {
 	if len(id) < 2 {
 		return "", fmt.Errorf("idtotype: id too short")
 	}
 	prefix := id[:2]
 	typ := TypeMap[prefix]
-	fmt.Println("  IDTOTYPE:", prefix, typ)
 	if typ == "" {
 		return "", fmt.Errorf("idtotype: could not map prefix '%s' to a type", prefix)
 	}

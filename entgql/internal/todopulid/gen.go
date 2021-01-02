@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package todo
+package todopulid
 
 //go:generate go run github.com/99designs/gqlgen
 //go:generate go run github.com/google/addlicense -c Facebook -y 2019-present ./

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/facebook/ent/dialect/sql"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 )
 
@@ -29,7 +30,7 @@ import (
 type Todo struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID pulid.ID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Status holds the value of the "status" field.
@@ -41,7 +42,7 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
-	todo_children *string
+	todo_children *pulid.ID
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -110,7 +111,7 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
-				t.ID = value.String
+				t.ID = pulid.ID(value.String)
 			}
 		case todo.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -140,8 +141,8 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
 			} else if value.Valid {
-				t.todo_children = new(string)
-				*t.todo_children = value.String
+				t.todo_children = new(pulid.ID)
+				*t.todo_children = pulid.ID(value.String)
 			}
 		}
 	}

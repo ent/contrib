@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 )
 
@@ -47,5 +48,5 @@ func init() {
 	// todoDescID is the schema descriptor for id field.
 	todoDescID := todoFields[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
-	todo.DefaultID = todoDescID.Default.(func() string)
+	todo.DefaultID = todoDescID.Default.(func() pulid.ID)
 }

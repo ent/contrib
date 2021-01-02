@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/predicate"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 
 	"github.com/facebook/ent"
@@ -46,17 +47,17 @@ type TodoMutation struct {
 	config
 	op              Op
 	typ             string
-	id              *string
+	id              *pulid.ID
 	created_at      *time.Time
 	status          *todo.Status
 	priority        *int
 	addpriority     *int
 	text            *string
 	clearedFields   map[string]struct{}
-	parent          *string
+	parent          *pulid.ID
 	clearedparent   bool
-	children        map[string]struct{}
-	removedchildren map[string]struct{}
+	children        map[pulid.ID]struct{}
+	removedchildren map[pulid.ID]struct{}
 	clearedchildren bool
 	done            bool
 	oldValue        func(context.Context) (*Todo, error)
@@ -83,7 +84,7 @@ func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
 }
 
 // withTodoID sets the id field of the mutation.
-func withTodoID(id string) todoOption {
+func withTodoID(id pulid.ID) todoOption {
 	return func(m *TodoMutation) {
 		var (
 			err   error
@@ -135,13 +136,13 @@ func (m TodoMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that, this
 // operation is accepted only on Todo creation.
-func (m *TodoMutation) SetID(id string) {
+func (m *TodoMutation) SetID(id pulid.ID) {
 	m.id = &id
 }
 
 // ID returns the id value in the mutation. Note that, the id
 // is available only if it was provided to the builder.
-func (m *TodoMutation) ID() (id string, exists bool) {
+func (m *TodoMutation) ID() (id pulid.ID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -317,7 +318,7 @@ func (m *TodoMutation) ResetText() {
 }
 
 // SetParentID sets the parent edge to Todo by id.
-func (m *TodoMutation) SetParentID(id string) {
+func (m *TodoMutation) SetParentID(id pulid.ID) {
 	m.parent = &id
 }
 
@@ -332,7 +333,7 @@ func (m *TodoMutation) ParentCleared() bool {
 }
 
 // ParentID returns the parent id in the mutation.
-func (m *TodoMutation) ParentID() (id string, exists bool) {
+func (m *TodoMutation) ParentID() (id pulid.ID, exists bool) {
 	if m.parent != nil {
 		return *m.parent, true
 	}
@@ -342,7 +343,7 @@ func (m *TodoMutation) ParentID() (id string, exists bool) {
 // ParentIDs returns the parent ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
 // ParentID instead. It exists only for internal usage by the builders.
-func (m *TodoMutation) ParentIDs() (ids []string) {
+func (m *TodoMutation) ParentIDs() (ids []pulid.ID) {
 	if id := m.parent; id != nil {
 		ids = append(ids, *id)
 	}
@@ -356,9 +357,9 @@ func (m *TodoMutation) ResetParent() {
 }
 
 // AddChildIDs adds the children edge to Todo by ids.
-func (m *TodoMutation) AddChildIDs(ids ...string) {
+func (m *TodoMutation) AddChildIDs(ids ...pulid.ID) {
 	if m.children == nil {
-		m.children = make(map[string]struct{})
+		m.children = make(map[pulid.ID]struct{})
 	}
 	for i := range ids {
 		m.children[ids[i]] = struct{}{}
@@ -376,9 +377,9 @@ func (m *TodoMutation) ChildrenCleared() bool {
 }
 
 // RemoveChildIDs removes the children edge to Todo by ids.
-func (m *TodoMutation) RemoveChildIDs(ids ...string) {
+func (m *TodoMutation) RemoveChildIDs(ids ...pulid.ID) {
 	if m.removedchildren == nil {
-		m.removedchildren = make(map[string]struct{})
+		m.removedchildren = make(map[pulid.ID]struct{})
 	}
 	for i := range ids {
 		m.removedchildren[ids[i]] = struct{}{}
@@ -386,7 +387,7 @@ func (m *TodoMutation) RemoveChildIDs(ids ...string) {
 }
 
 // RemovedChildren returns the removed ids of children.
-func (m *TodoMutation) RemovedChildrenIDs() (ids []string) {
+func (m *TodoMutation) RemovedChildrenIDs() (ids []pulid.ID) {
 	for id := range m.removedchildren {
 		ids = append(ids, id)
 	}
@@ -394,7 +395,7 @@ func (m *TodoMutation) RemovedChildrenIDs() (ids []string) {
 }
 
 // ChildrenIDs returns the children ids in the mutation.
-func (m *TodoMutation) ChildrenIDs() (ids []string) {
+func (m *TodoMutation) ChildrenIDs() (ids []pulid.ID) {
 	for id := range m.children {
 		ids = append(ids, id)
 	}

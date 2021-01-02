@@ -15,7 +15,7 @@ autobind:
 models:
   ID:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulidgql.ID
+      - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid.ID
   Node:
     model:
       - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent.Noder

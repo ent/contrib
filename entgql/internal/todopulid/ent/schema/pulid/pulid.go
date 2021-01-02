@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pulidgql implements the pulid type for gqlgen use.
+// Package pulid implements the pulid type.
 // A pulid is an identifier that is a two-byte prefixed ULIDs, with the first two bytes encoding the type of the entity.
-package pulidgql
+package pulid
 
 import (
 	"crypto/rand"
@@ -30,39 +30,47 @@ import (
 // ID implements a PULID - a prefixed ULID.
 type ID string
 
-var entropy *ulid.MonotonicEntropy
+// The default entropy source.
+var defaultEntropySource *ulid.MonotonicEntropy
 
 func init() {
-	// TODO: Real applications would likely seed entropy in different ways.
-	entropy = ulid.Monotonic(rand.Reader, 0)
+	// Seed the default entropy source.
+	// TODO: To improve testability, this package shoudl allow control of entropy sources and the time.Now implementation.
+	defaultEntropySource = ulid.Monotonic(rand.Reader, 0)
 }
 
+// newULID returns a new ULID for time.Now() using the default entropy source.
 func newULID() ulid.ULID {
-	// TODO: This is unrealistic as it fixes to a particular time. Real applications would have a different scheme here.
-	t := time.Unix(1000000, 0)
-	return ulid.MustNew(ulid.Timestamp(t), entropy)
+	return ulid.MustNew(ulid.Timestamp(time.Now()), defaultEntropySource)
 }
 
-func New(prefix string) ID { return ID(prefix + fmt.Sprint(newULID())) }
+// MustNew returns a new PULID for time.Now() given a prefix. This uses the default entropy source.
+func MustNew(prefix string) ID { return ID(prefix + fmt.Sprint(newULID())) }
 
-func (u *ID) UnmarshalGQL(v interface{}) (err error) {
-	s, _ := v.(string)
-	*u = ID(s)
-	return nil
+// UnmarshalGQL implements the graphql.Unmarshaler interface
+func (u *ID) UnmarshalGQL(v interface{}) error {
+	return u.Scan(v)
 }
 
+// MarshalGQL implements the graphql.Marshaler interface
 func (u ID) MarshalGQL(w io.Writer) {
 	_, _ = io.WriteString(w, strconv.Quote(string(u)))
 }
 
+// Scan implements the Scanner interface.
 func (u *ID) Scan(src interface{}) error {
-	if src != nil {
-		s, _ := src.(string)
-		*u = ID(s)
+	if src == nil {
+		return fmt.Errorf("pulid: expected a value")
 	}
+	s, ok := src.(string)
+	if !ok {
+		return fmt.Errorf("pulid: expected a string")
+	}
+	*u = ID(s)
 	return nil
 }
 
+// Value implements the driver Valuer interface.
 func (u ID) Value() (driver.Value, error) {
 	return string(u), nil
 }
