@@ -35,7 +35,7 @@ var defaultEntropySource *ulid.MonotonicEntropy
 
 func init() {
 	// Seed the default entropy source.
-	// TODO: To improve testability, this package shoudl allow control of entropy sources and the time.Now implementation.
+	// TODO: To improve testability, this package should allow control of entropy sources and the time.Now implementation.
 	defaultEntropySource = ulid.Monotonic(rand.Reader, 0)
 }
 
