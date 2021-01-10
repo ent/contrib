@@ -35,26 +35,26 @@ type TodoUpdate struct {
 	mutation *TodoMutation
 }
 
-// Where adds a new predicate for the builder.
+// Where adds a new predicate for the TodoUpdate builder.
 func (tu *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
 	tu.mutation.predicates = append(tu.mutation.predicates, ps...)
 	return tu
 }
 
-// SetStatus sets the status field.
+// SetStatus sets the "status" field.
 func (tu *TodoUpdate) SetStatus(t todo.Status) *TodoUpdate {
 	tu.mutation.SetStatus(t)
 	return tu
 }
 
-// SetPriority sets the priority field.
+// SetPriority sets the "priority" field.
 func (tu *TodoUpdate) SetPriority(i int) *TodoUpdate {
 	tu.mutation.ResetPriority()
 	tu.mutation.SetPriority(i)
 	return tu
 }
 
-// SetNillablePriority sets the priority field if the given value is not nil.
+// SetNillablePriority sets the "priority" field if the given value is not nil.
 func (tu *TodoUpdate) SetNillablePriority(i *int) *TodoUpdate {
 	if i != nil {
 		tu.SetPriority(*i)
@@ -62,25 +62,25 @@ func (tu *TodoUpdate) SetNillablePriority(i *int) *TodoUpdate {
 	return tu
 }
 
-// AddPriority adds i to priority.
+// AddPriority adds i to the "priority" field.
 func (tu *TodoUpdate) AddPriority(i int) *TodoUpdate {
 	tu.mutation.AddPriority(i)
 	return tu
 }
 
-// SetText sets the text field.
+// SetText sets the "text" field.
 func (tu *TodoUpdate) SetText(s string) *TodoUpdate {
 	tu.mutation.SetText(s)
 	return tu
 }
 
-// SetParentID sets the parent edge to Todo by id.
+// SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tu *TodoUpdate) SetParentID(id uuid.UUID) *TodoUpdate {
 	tu.mutation.SetParentID(id)
 	return tu
 }
 
-// SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
+// SetNillableParentID sets the "parent" edge to the Todo entity by ID if the given value is not nil.
 func (tu *TodoUpdate) SetNillableParentID(id *uuid.UUID) *TodoUpdate {
 	if id != nil {
 		tu = tu.SetParentID(*id)
@@ -88,18 +88,18 @@ func (tu *TodoUpdate) SetNillableParentID(id *uuid.UUID) *TodoUpdate {
 	return tu
 }
 
-// SetParent sets the parent edge to Todo.
+// SetParent sets the "parent" edge to the Todo entity.
 func (tu *TodoUpdate) SetParent(t *Todo) *TodoUpdate {
 	return tu.SetParentID(t.ID)
 }
 
-// AddChildIDs adds the children edge to Todo by ids.
+// AddChildIDs adds the "children" edge to the Todo entity by IDs.
 func (tu *TodoUpdate) AddChildIDs(ids ...uuid.UUID) *TodoUpdate {
 	tu.mutation.AddChildIDs(ids...)
 	return tu
 }
 
-// AddChildren adds the children edges to Todo.
+// AddChildren adds the "children" edges to the Todo entity.
 func (tu *TodoUpdate) AddChildren(t ...*Todo) *TodoUpdate {
 	ids := make([]uuid.UUID, len(t))
 	for i := range t {
@@ -113,25 +113,25 @@ func (tu *TodoUpdate) Mutation() *TodoMutation {
 	return tu.mutation
 }
 
-// ClearParent clears the "parent" edge to type Todo.
+// ClearParent clears the "parent" edge to the Todo entity.
 func (tu *TodoUpdate) ClearParent() *TodoUpdate {
 	tu.mutation.ClearParent()
 	return tu
 }
 
-// ClearChildren clears all "children" edges to type Todo.
+// ClearChildren clears all "children" edges to the Todo entity.
 func (tu *TodoUpdate) ClearChildren() *TodoUpdate {
 	tu.mutation.ClearChildren()
 	return tu
 }
 
-// RemoveChildIDs removes the children edge to Todo by ids.
+// RemoveChildIDs removes the "children" edge to Todo entities by IDs.
 func (tu *TodoUpdate) RemoveChildIDs(ids ...uuid.UUID) *TodoUpdate {
 	tu.mutation.RemoveChildIDs(ids...)
 	return tu
 }
 
-// RemoveChildren removes children edges to Todo.
+// RemoveChildren removes "children" edges to Todo entities.
 func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 	ids := make([]uuid.UUID, len(t))
 	for i := range t {
@@ -365,20 +365,20 @@ type TodoUpdateOne struct {
 	mutation *TodoMutation
 }
 
-// SetStatus sets the status field.
+// SetStatus sets the "status" field.
 func (tuo *TodoUpdateOne) SetStatus(t todo.Status) *TodoUpdateOne {
 	tuo.mutation.SetStatus(t)
 	return tuo
 }
 
-// SetPriority sets the priority field.
+// SetPriority sets the "priority" field.
 func (tuo *TodoUpdateOne) SetPriority(i int) *TodoUpdateOne {
 	tuo.mutation.ResetPriority()
 	tuo.mutation.SetPriority(i)
 	return tuo
 }
 
-// SetNillablePriority sets the priority field if the given value is not nil.
+// SetNillablePriority sets the "priority" field if the given value is not nil.
 func (tuo *TodoUpdateOne) SetNillablePriority(i *int) *TodoUpdateOne {
 	if i != nil {
 		tuo.SetPriority(*i)
@@ -386,25 +386,25 @@ func (tuo *TodoUpdateOne) SetNillablePriority(i *int) *TodoUpdateOne {
 	return tuo
 }
 
-// AddPriority adds i to priority.
+// AddPriority adds i to the "priority" field.
 func (tuo *TodoUpdateOne) AddPriority(i int) *TodoUpdateOne {
 	tuo.mutation.AddPriority(i)
 	return tuo
 }
 
-// SetText sets the text field.
+// SetText sets the "text" field.
 func (tuo *TodoUpdateOne) SetText(s string) *TodoUpdateOne {
 	tuo.mutation.SetText(s)
 	return tuo
 }
 
-// SetParentID sets the parent edge to Todo by id.
+// SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tuo *TodoUpdateOne) SetParentID(id uuid.UUID) *TodoUpdateOne {
 	tuo.mutation.SetParentID(id)
 	return tuo
 }
 
-// SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
+// SetNillableParentID sets the "parent" edge to the Todo entity by ID if the given value is not nil.
 func (tuo *TodoUpdateOne) SetNillableParentID(id *uuid.UUID) *TodoUpdateOne {
 	if id != nil {
 		tuo = tuo.SetParentID(*id)
@@ -412,18 +412,18 @@ func (tuo *TodoUpdateOne) SetNillableParentID(id *uuid.UUID) *TodoUpdateOne {
 	return tuo
 }
 
-// SetParent sets the parent edge to Todo.
+// SetParent sets the "parent" edge to the Todo entity.
 func (tuo *TodoUpdateOne) SetParent(t *Todo) *TodoUpdateOne {
 	return tuo.SetParentID(t.ID)
 }
 
-// AddChildIDs adds the children edge to Todo by ids.
+// AddChildIDs adds the "children" edge to the Todo entity by IDs.
 func (tuo *TodoUpdateOne) AddChildIDs(ids ...uuid.UUID) *TodoUpdateOne {
 	tuo.mutation.AddChildIDs(ids...)
 	return tuo
 }
 
-// AddChildren adds the children edges to Todo.
+// AddChildren adds the "children" edges to the Todo entity.
 func (tuo *TodoUpdateOne) AddChildren(t ...*Todo) *TodoUpdateOne {
 	ids := make([]uuid.UUID, len(t))
 	for i := range t {
@@ -437,25 +437,25 @@ func (tuo *TodoUpdateOne) Mutation() *TodoMutation {
 	return tuo.mutation
 }
 
-// ClearParent clears the "parent" edge to type Todo.
+// ClearParent clears the "parent" edge to the Todo entity.
 func (tuo *TodoUpdateOne) ClearParent() *TodoUpdateOne {
 	tuo.mutation.ClearParent()
 	return tuo
 }
 
-// ClearChildren clears all "children" edges to type Todo.
+// ClearChildren clears all "children" edges to the Todo entity.
 func (tuo *TodoUpdateOne) ClearChildren() *TodoUpdateOne {
 	tuo.mutation.ClearChildren()
 	return tuo
 }
 
-// RemoveChildIDs removes the children edge to Todo by ids.
+// RemoveChildIDs removes the "children" edge to Todo entities by IDs.
 func (tuo *TodoUpdateOne) RemoveChildIDs(ids ...uuid.UUID) *TodoUpdateOne {
 	tuo.mutation.RemoveChildIDs(ids...)
 	return tuo
 }
 
-// RemoveChildren removes children edges to Todo.
+// RemoveChildren removes "children" edges to Todo entities.
 func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 	ids := make([]uuid.UUID, len(t))
 	for i := range t {
@@ -464,7 +464,7 @@ func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 	return tuo.RemoveChildIDs(ids...)
 }
 
-// Save executes the query and returns the updated entity.
+// Save executes the query and returns the updated Todo entity.
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
 	var (
 		err  error

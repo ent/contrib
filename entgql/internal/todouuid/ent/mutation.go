@@ -41,8 +41,7 @@ const (
 	TypeTodo = "Todo"
 )
 
-// TodoMutation represents an operation that mutate the Todos
-// nodes in the graph.
+// TodoMutation represents an operation that mutates the Todo nodes in the graph.
 type TodoMutation struct {
 	config
 	op              Op
@@ -66,10 +65,10 @@ type TodoMutation struct {
 
 var _ ent.Mutation = (*TodoMutation)(nil)
 
-// todoOption allows to manage the mutation configuration using functional options.
+// todoOption allows management of the mutation configuration using functional options.
 type todoOption func(*TodoMutation)
 
-// newTodoMutation creates new mutation for Todo.
+// newTodoMutation creates new mutation for the Todo entity.
 func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
 	m := &TodoMutation{
 		config:        c,
@@ -83,7 +82,7 @@ func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
 	return m
 }
 
-// withTodoID sets the id field of the mutation.
+// withTodoID sets the ID field of the mutation.
 func withTodoID(id uuid.UUID) todoOption {
 	return func(m *TodoMutation) {
 		var (
@@ -134,14 +133,14 @@ func (m TodoMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that, this
-// operation is accepted only on Todo creation.
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Todo entities.
 func (m *TodoMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
-// ID returns the id value in the mutation. Note that, the id
-// is available only if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
 func (m *TodoMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
@@ -149,12 +148,12 @@ func (m *TodoMutation) ID() (id uuid.UUID, exists bool) {
 	return *m.id, true
 }
 
-// SetCreatedAt sets the created_at field.
+// SetCreatedAt sets the "created_at" field.
 func (m *TodoMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
-// CreatedAt returns the created_at value in the mutation.
+// CreatedAt returns the value of the "created_at" field in the mutation.
 func (m *TodoMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
@@ -163,13 +162,12 @@ func (m *TodoMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old created_at value of the Todo.
-// If the Todo object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+// OldCreatedAt returns the old "created_at" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TodoMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldCreatedAt is allowed only on UpdateOne operations")
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
 		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
@@ -181,17 +179,17 @@ func (m *TodoMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error
 	return oldValue.CreatedAt, nil
 }
 
-// ResetCreatedAt reset all changes of the "created_at" field.
+// ResetCreatedAt resets all changes to the "created_at" field.
 func (m *TodoMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
-// SetStatus sets the status field.
+// SetStatus sets the "status" field.
 func (m *TodoMutation) SetStatus(t todo.Status) {
 	m.status = &t
 }
 
-// Status returns the status value in the mutation.
+// Status returns the value of the "status" field in the mutation.
 func (m *TodoMutation) Status() (r todo.Status, exists bool) {
 	v := m.status
 	if v == nil {
@@ -200,13 +198,12 @@ func (m *TodoMutation) Status() (r todo.Status, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old status value of the Todo.
-// If the Todo object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+// OldStatus returns the old "status" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TodoMutation) OldStatus(ctx context.Context) (v todo.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldStatus is allowed only on UpdateOne operations")
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
 		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
@@ -218,18 +215,18 @@ func (m *TodoMutation) OldStatus(ctx context.Context) (v todo.Status, err error)
 	return oldValue.Status, nil
 }
 
-// ResetStatus reset all changes of the "status" field.
+// ResetStatus resets all changes to the "status" field.
 func (m *TodoMutation) ResetStatus() {
 	m.status = nil
 }
 
-// SetPriority sets the priority field.
+// SetPriority sets the "priority" field.
 func (m *TodoMutation) SetPriority(i int) {
 	m.priority = &i
 	m.addpriority = nil
 }
 
-// Priority returns the priority value in the mutation.
+// Priority returns the value of the "priority" field in the mutation.
 func (m *TodoMutation) Priority() (r int, exists bool) {
 	v := m.priority
 	if v == nil {
@@ -238,13 +235,12 @@ func (m *TodoMutation) Priority() (r int, exists bool) {
 	return *v, true
 }
 
-// OldPriority returns the old priority value of the Todo.
-// If the Todo object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+// OldPriority returns the old "priority" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TodoMutation) OldPriority(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldPriority is allowed only on UpdateOne operations")
+		return v, fmt.Errorf("OldPriority is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
 		return v, fmt.Errorf("OldPriority requires an ID field in the mutation")
@@ -256,7 +252,7 @@ func (m *TodoMutation) OldPriority(ctx context.Context) (v int, err error) {
 	return oldValue.Priority, nil
 }
 
-// AddPriority adds i to priority.
+// AddPriority adds i to the "priority" field.
 func (m *TodoMutation) AddPriority(i int) {
 	if m.addpriority != nil {
 		*m.addpriority += i
@@ -265,7 +261,7 @@ func (m *TodoMutation) AddPriority(i int) {
 	}
 }
 
-// AddedPriority returns the value that was added to the priority field in this mutation.
+// AddedPriority returns the value that was added to the "priority" field in this mutation.
 func (m *TodoMutation) AddedPriority() (r int, exists bool) {
 	v := m.addpriority
 	if v == nil {
@@ -274,18 +270,18 @@ func (m *TodoMutation) AddedPriority() (r int, exists bool) {
 	return *v, true
 }
 
-// ResetPriority reset all changes of the "priority" field.
+// ResetPriority resets all changes to the "priority" field.
 func (m *TodoMutation) ResetPriority() {
 	m.priority = nil
 	m.addpriority = nil
 }
 
-// SetText sets the text field.
+// SetText sets the "text" field.
 func (m *TodoMutation) SetText(s string) {
 	m.text = &s
 }
 
-// Text returns the text value in the mutation.
+// Text returns the value of the "text" field in the mutation.
 func (m *TodoMutation) Text() (r string, exists bool) {
 	v := m.text
 	if v == nil {
@@ -294,13 +290,12 @@ func (m *TodoMutation) Text() (r string, exists bool) {
 	return *v, true
 }
 
-// OldText returns the old text value of the Todo.
-// If the Todo object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+// OldText returns the old "text" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *TodoMutation) OldText(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldText is allowed only on UpdateOne operations")
+		return v, fmt.Errorf("OldText is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
 		return v, fmt.Errorf("OldText requires an ID field in the mutation")
@@ -312,27 +307,27 @@ func (m *TodoMutation) OldText(ctx context.Context) (v string, err error) {
 	return oldValue.Text, nil
 }
 
-// ResetText reset all changes of the "text" field.
+// ResetText resets all changes to the "text" field.
 func (m *TodoMutation) ResetText() {
 	m.text = nil
 }
 
-// SetParentID sets the parent edge to Todo by id.
+// SetParentID sets the "parent" edge to the Todo entity by id.
 func (m *TodoMutation) SetParentID(id uuid.UUID) {
 	m.parent = &id
 }
 
-// ClearParent clears the parent edge to Todo.
+// ClearParent clears the "parent" edge to the Todo entity.
 func (m *TodoMutation) ClearParent() {
 	m.clearedparent = true
 }
 
-// ParentCleared returns if the edge parent was cleared.
+// ParentCleared returns if the "parent" edge to the Todo entity was cleared.
 func (m *TodoMutation) ParentCleared() bool {
 	return m.clearedparent
 }
 
-// ParentID returns the parent id in the mutation.
+// ParentID returns the "parent" edge ID in the mutation.
 func (m *TodoMutation) ParentID() (id uuid.UUID, exists bool) {
 	if m.parent != nil {
 		return *m.parent, true
@@ -340,8 +335,8 @@ func (m *TodoMutation) ParentID() (id uuid.UUID, exists bool) {
 	return
 }
 
-// ParentIDs returns the parent ids in the mutation.
-// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ParentIDs returns the "parent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ParentID instead. It exists only for internal usage by the builders.
 func (m *TodoMutation) ParentIDs() (ids []uuid.UUID) {
 	if id := m.parent; id != nil {
@@ -350,13 +345,13 @@ func (m *TodoMutation) ParentIDs() (ids []uuid.UUID) {
 	return
 }
 
-// ResetParent reset all changes of the "parent" edge.
+// ResetParent resets all changes to the "parent" edge.
 func (m *TodoMutation) ResetParent() {
 	m.parent = nil
 	m.clearedparent = false
 }
 
-// AddChildIDs adds the children edge to Todo by ids.
+// AddChildIDs adds the "children" edge to the Todo entity by ids.
 func (m *TodoMutation) AddChildIDs(ids ...uuid.UUID) {
 	if m.children == nil {
 		m.children = make(map[uuid.UUID]struct{})
@@ -366,17 +361,17 @@ func (m *TodoMutation) AddChildIDs(ids ...uuid.UUID) {
 	}
 }
 
-// ClearChildren clears the children edge to Todo.
+// ClearChildren clears the "children" edge to the Todo entity.
 func (m *TodoMutation) ClearChildren() {
 	m.clearedchildren = true
 }
 
-// ChildrenCleared returns if the edge children was cleared.
+// ChildrenCleared returns if the "children" edge to the Todo entity was cleared.
 func (m *TodoMutation) ChildrenCleared() bool {
 	return m.clearedchildren
 }
 
-// RemoveChildIDs removes the children edge to Todo by ids.
+// RemoveChildIDs removes the "children" edge to the Todo entity by IDs.
 func (m *TodoMutation) RemoveChildIDs(ids ...uuid.UUID) {
 	if m.removedchildren == nil {
 		m.removedchildren = make(map[uuid.UUID]struct{})
@@ -386,7 +381,7 @@ func (m *TodoMutation) RemoveChildIDs(ids ...uuid.UUID) {
 	}
 }
 
-// RemovedChildren returns the removed ids of children.
+// RemovedChildren returns the removed IDs of the "children" edge to the Todo entity.
 func (m *TodoMutation) RemovedChildrenIDs() (ids []uuid.UUID) {
 	for id := range m.removedchildren {
 		ids = append(ids, id)
@@ -394,7 +389,7 @@ func (m *TodoMutation) RemovedChildrenIDs() (ids []uuid.UUID) {
 	return
 }
 
-// ChildrenIDs returns the children ids in the mutation.
+// ChildrenIDs returns the "children" edge IDs in the mutation.
 func (m *TodoMutation) ChildrenIDs() (ids []uuid.UUID) {
 	for id := range m.children {
 		ids = append(ids, id)
@@ -402,7 +397,7 @@ func (m *TodoMutation) ChildrenIDs() (ids []uuid.UUID) {
 	return
 }
 
-// ResetChildren reset all changes of the "children" edge.
+// ResetChildren resets all changes to the "children" edge.
 func (m *TodoMutation) ResetChildren() {
 	m.children = nil
 	m.clearedchildren = false
@@ -419,9 +414,9 @@ func (m *TodoMutation) Type() string {
 	return m.typ
 }
 
-// Fields returns all fields that were changed during
-// this mutation. Note that, in order to get all numeric
-// fields that were in/decremented, call AddedFields().
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
 func (m *TodoMutation) Fields() []string {
 	fields := make([]string, 0, 4)
 	if m.created_at != nil {
@@ -439,9 +434,9 @@ func (m *TodoMutation) Fields() []string {
 	return fields
 }
 
-// Field returns the value of a field with the given name.
-// The second boolean value indicates that this field was
-// not set, or was not define in the schema.
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
 func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case todo.FieldCreatedAt:
@@ -456,9 +451,9 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 	return nil, false
 }
 
-// OldField returns the old value of the field from the database.
-// An error is returned if the mutation operation is not UpdateOne,
-// or the query to the database was failed.
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
 func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
 	case todo.FieldCreatedAt:
@@ -473,9 +468,9 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
 
-// SetField sets the value for the given name. It returns an
-// error if the field is not defined in the schema, or if the
-// type mismatch the field type.
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
 func (m *TodoMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case todo.FieldCreatedAt:
@@ -510,8 +505,8 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 	return fmt.Errorf("unknown Todo field %s", name)
 }
 
-// AddedFields returns all numeric fields that were incremented
-// or decremented during this mutation.
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
 func (m *TodoMutation) AddedFields() []string {
 	var fields []string
 	if m.addpriority != nil {
@@ -520,9 +515,9 @@ func (m *TodoMutation) AddedFields() []string {
 	return fields
 }
 
-// AddedField returns the numeric value that was in/decremented
-// from a field with the given name. The second value indicates
-// that this field was not set, or was not define in the schema.
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
 func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case todo.FieldPriority:
@@ -531,9 +526,9 @@ func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
-// AddField adds the value for the given name. It returns an
-// error if the field is not defined in the schema, or if the
-// type mismatch the field type.
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
 func (m *TodoMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case todo.FieldPriority:
@@ -547,28 +542,27 @@ func (m *TodoMutation) AddField(name string, value ent.Value) error {
 	return fmt.Errorf("unknown Todo numeric field %s", name)
 }
 
-// ClearedFields returns all nullable fields that were cleared
-// during this mutation.
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
 func (m *TodoMutation) ClearedFields() []string {
 	return nil
 }
 
-// FieldCleared returns a boolean indicates if this field was
+// FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
 func (m *TodoMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
-// ClearField clears the value for the given name. It returns an
+// ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TodoMutation) ClearField(name string) error {
 	return fmt.Errorf("unknown Todo nullable field %s", name)
 }
 
-// ResetField resets all changes in the mutation regarding the
-// given field name. It returns an error if the field is not
-// defined in the schema.
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
 func (m *TodoMutation) ResetField(name string) error {
 	switch name {
 	case todo.FieldCreatedAt:
@@ -587,8 +581,7 @@ func (m *TodoMutation) ResetField(name string) error {
 	return fmt.Errorf("unknown Todo field %s", name)
 }
 
-// AddedEdges returns all edge names that were set/added in this
-// mutation.
+// AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TodoMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.parent != nil {
@@ -600,8 +593,8 @@ func (m *TodoMutation) AddedEdges() []string {
 	return edges
 }
 
-// AddedIDs returns all ids (to other nodes) that were added for
-// the given edge name.
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
 func (m *TodoMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case todo.EdgeParent:
@@ -618,8 +611,7 @@ func (m *TodoMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
-// RemovedEdges returns all edge names that were removed in this
-// mutation.
+// RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TodoMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.removedchildren != nil {
@@ -628,8 +620,8 @@ func (m *TodoMutation) RemovedEdges() []string {
 	return edges
 }
 
-// RemovedIDs returns all ids (to other nodes) that were removed for
-// the given edge name.
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
 func (m *TodoMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
 	case todo.EdgeChildren:
@@ -642,8 +634,7 @@ func (m *TodoMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
-// ClearedEdges returns all edge names that were cleared in this
-// mutation.
+// ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TodoMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.clearedparent {
@@ -655,8 +646,8 @@ func (m *TodoMutation) ClearedEdges() []string {
 	return edges
 }
 
-// EdgeCleared returns a boolean indicates if this edge was
-// cleared in this mutation.
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
 func (m *TodoMutation) EdgeCleared(name string) bool {
 	switch name {
 	case todo.EdgeParent:
@@ -667,8 +658,8 @@ func (m *TodoMutation) EdgeCleared(name string) bool {
 	return false
 }
 
-// ClearEdge clears the value for the given name. It returns an
-// error if the edge name is not defined in the schema.
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
 func (m *TodoMutation) ClearEdge(name string) error {
 	switch name {
 	case todo.EdgeParent:
@@ -678,9 +669,8 @@ func (m *TodoMutation) ClearEdge(name string) error {
 	return fmt.Errorf("unknown Todo unique edge %s", name)
 }
 
-// ResetEdge resets all changes in the mutation regarding the
-// given edge name. It returns an error if the edge is not
-// defined in the schema.
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
 func (m *TodoMutation) ResetEdge(name string) error {
 	switch name {
 	case todo.EdgeParent:

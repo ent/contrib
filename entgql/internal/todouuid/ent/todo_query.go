@@ -48,7 +48,7 @@ type TodoQuery struct {
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the builder.
+// Where adds a new predicate for the TodoQuery builder.
 func (tq *TodoQuery) Where(ps ...predicate.Todo) *TodoQuery {
 	tq.predicates = append(tq.predicates, ps...)
 	return tq
@@ -72,7 +72,7 @@ func (tq *TodoQuery) Order(o ...OrderFunc) *TodoQuery {
 	return tq
 }
 
-// QueryParent chains the current query on the parent edge.
+// QueryParent chains the current query on the "parent" edge.
 func (tq *TodoQuery) QueryParent() *TodoQuery {
 	query := &TodoQuery{config: tq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
@@ -94,7 +94,7 @@ func (tq *TodoQuery) QueryParent() *TodoQuery {
 	return query
 }
 
-// QueryChildren chains the current query on the children edge.
+// QueryChildren chains the current query on the "children" edge.
 func (tq *TodoQuery) QueryChildren() *TodoQuery {
 	query := &TodoQuery{config: tq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
@@ -116,7 +116,8 @@ func (tq *TodoQuery) QueryChildren() *TodoQuery {
 	return query
 }
 
-// First returns the first Todo entity in the query. Returns *NotFoundError when no todo was found.
+// First returns the first Todo entity from the query.
+// Returns a *NotFoundError when no Todo was found.
 func (tq *TodoQuery) First(ctx context.Context) (*Todo, error) {
 	nodes, err := tq.Limit(1).All(ctx)
 	if err != nil {
@@ -137,7 +138,8 @@ func (tq *TodoQuery) FirstX(ctx context.Context) *Todo {
 	return node
 }
 
-// FirstID returns the first Todo id in the query. Returns *NotFoundError when no id was found.
+// FirstID returns the first Todo ID from the query.
+// Returns a *NotFoundError when no Todo ID was found.
 func (tq *TodoQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
@@ -159,7 +161,9 @@ func (tq *TodoQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns the only Todo entity in the query, returns an error if not exactly one entity was returned.
+// Only returns a single Todo entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when exactly one Todo entity is not found.
+// Returns a *NotFoundError when no Todo entities are found.
 func (tq *TodoQuery) Only(ctx context.Context) (*Todo, error) {
 	nodes, err := tq.Limit(2).All(ctx)
 	if err != nil {
@@ -184,7 +188,9 @@ func (tq *TodoQuery) OnlyX(ctx context.Context) *Todo {
 	return node
 }
 
-// OnlyID returns the only Todo id in the query, returns an error if not exactly one id was returned.
+// OnlyID is like Only, but returns the only Todo ID in the query.
+// Returns a *NotSingularError when exactly one Todo ID is not found.
+// Returns a *NotFoundError when no entities are found.
 func (tq *TodoQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = tq.Limit(2).IDs(ctx); err != nil {
@@ -227,7 +233,7 @@ func (tq *TodoQuery) AllX(ctx context.Context) []*Todo {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Todo ids.
+// IDs executes the query and returns a list of Todo IDs.
 func (tq *TodoQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
 	if err := tq.Select(todo.FieldID).Scan(ctx, &ids); err != nil {
@@ -279,7 +285,7 @@ func (tq *TodoQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the query builder, including all associated steps. It can be
+// Clone returns a duplicate of the TodoQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
 func (tq *TodoQuery) Clone() *TodoQuery {
 	if tq == nil {
@@ -299,8 +305,8 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 	}
 }
 
-//  WithParent tells the query-builder to eager-loads the nodes that are connected to
-// the "parent" edge. The optional arguments used to configure the query builder of the edge.
+// WithParent tells the query-builder to eager-load the nodes that are connected to
+// the "parent" edge. The optional arguments are used to configure the query builder of the edge.
 func (tq *TodoQuery) WithParent(opts ...func(*TodoQuery)) *TodoQuery {
 	query := &TodoQuery{config: tq.config}
 	for _, opt := range opts {
@@ -310,8 +316,8 @@ func (tq *TodoQuery) WithParent(opts ...func(*TodoQuery)) *TodoQuery {
 	return tq
 }
 
-//  WithChildren tells the query-builder to eager-loads the nodes that are connected to
-// the "children" edge. The optional arguments used to configure the query builder of the edge.
+// WithChildren tells the query-builder to eager-load the nodes that are connected to
+// the "children" edge. The optional arguments are used to configure the query builder of the edge.
 func (tq *TodoQuery) WithChildren(opts ...func(*TodoQuery)) *TodoQuery {
 	query := &TodoQuery{config: tq.config}
 	for _, opt := range opts {
@@ -321,7 +327,7 @@ func (tq *TodoQuery) WithChildren(opts ...func(*TodoQuery)) *TodoQuery {
 	return tq
 }
 
-// GroupBy used to group vertices by one or more fields/columns.
+// GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
@@ -348,7 +354,8 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 	return group
 }
 
-// Select one or more fields from the given query.
+// Select allows the selection one or more fields/columns for the given query,
+// instead of selecting all fields in the entity.
 //
 // Example:
 //
@@ -557,7 +564,7 @@ func (tq *TodoQuery) sqlQuery() *sql.Selector {
 	return selector
 }
 
-// TodoGroupBy is the builder for group-by Todo entities.
+// TodoGroupBy is the group-by builder for Todo entities.
 type TodoGroupBy struct {
 	config
 	fields []string
@@ -573,7 +580,7 @@ func (tgb *TodoGroupBy) Aggregate(fns ...AggregateFunc) *TodoGroupBy {
 	return tgb
 }
 
-// Scan applies the group-by query and scan the result into the given value.
+// Scan applies the group-by query and scans the result into the given value.
 func (tgb *TodoGroupBy) Scan(ctx context.Context, v interface{}) error {
 	query, err := tgb.path(ctx)
 	if err != nil {
@@ -590,7 +597,8 @@ func (tgb *TodoGroupBy) ScanX(ctx context.Context, v interface{}) {
 	}
 }
 
-// Strings returns list of strings from group-by. It is only allowed when querying group-by with one field.
+// Strings returns list of strings from group-by.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Strings(ctx context.Context) ([]string, error) {
 	if len(tgb.fields) > 1 {
 		return nil, errors.New("ent: TodoGroupBy.Strings is not achievable when grouping more than 1 field")
@@ -611,7 +619,8 @@ func (tgb *TodoGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
-// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+// String returns a single string from a group-by query.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) String(ctx context.Context) (_ string, err error) {
 	var v []string
 	if v, err = tgb.Strings(ctx); err != nil {
@@ -637,7 +646,8 @@ func (tgb *TodoGroupBy) StringX(ctx context.Context) string {
 	return v
 }
 
-// Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
+// Ints returns list of ints from group-by.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(tgb.fields) > 1 {
 		return nil, errors.New("ent: TodoGroupBy.Ints is not achievable when grouping more than 1 field")
@@ -658,7 +668,8 @@ func (tgb *TodoGroupBy) IntsX(ctx context.Context) []int {
 	return v
 }
 
-// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+// Int returns a single int from a group-by query.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Int(ctx context.Context) (_ int, err error) {
 	var v []int
 	if v, err = tgb.Ints(ctx); err != nil {
@@ -684,7 +695,8 @@ func (tgb *TodoGroupBy) IntX(ctx context.Context) int {
 	return v
 }
 
-// Float64s returns list of float64s from group-by. It is only allowed when querying group-by with one field.
+// Float64s returns list of float64s from group-by.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Float64s(ctx context.Context) ([]float64, error) {
 	if len(tgb.fields) > 1 {
 		return nil, errors.New("ent: TodoGroupBy.Float64s is not achievable when grouping more than 1 field")
@@ -705,7 +717,8 @@ func (tgb *TodoGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
-// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+// Float64 returns a single float64 from a group-by query.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Float64(ctx context.Context) (_ float64, err error) {
 	var v []float64
 	if v, err = tgb.Float64s(ctx); err != nil {
@@ -731,7 +744,8 @@ func (tgb *TodoGroupBy) Float64X(ctx context.Context) float64 {
 	return v
 }
 
-// Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
+// Bools returns list of bools from group-by.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(tgb.fields) > 1 {
 		return nil, errors.New("ent: TodoGroupBy.Bools is not achievable when grouping more than 1 field")
@@ -752,7 +766,8 @@ func (tgb *TodoGroupBy) BoolsX(ctx context.Context) []bool {
 	return v
 }
 
-// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+// Bool returns a single bool from a group-by query.
+// It is only allowed when executing a group-by query with one field.
 func (tgb *TodoGroupBy) Bool(ctx context.Context) (_ bool, err error) {
 	var v []bool
 	if v, err = tgb.Bools(ctx); err != nil {
@@ -807,14 +822,14 @@ func (tgb *TodoGroupBy) sqlQuery() *sql.Selector {
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }
 
-// TodoSelect is the builder for select fields of Todo entities.
+// TodoSelect is the builder for selecting fields of Todo entities.
 type TodoSelect struct {
 	*TodoQuery
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
 
-// Scan applies the selector query and scan the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (ts *TodoSelect) Scan(ctx context.Context, v interface{}) error {
 	if err := ts.prepareQuery(ctx); err != nil {
 		return err
@@ -830,7 +845,7 @@ func (ts *TodoSelect) ScanX(ctx context.Context, v interface{}) {
 	}
 }
 
-// Strings returns list of strings from selector. It is only allowed when selecting one field.
+// Strings returns list of strings from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Strings(ctx context.Context) ([]string, error) {
 	if len(ts.fields) > 1 {
 		return nil, errors.New("ent: TodoSelect.Strings is not achievable when selecting more than 1 field")
@@ -851,7 +866,7 @@ func (ts *TodoSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
-// String returns a single string from selector. It is only allowed when selecting one field.
+// String returns a single string from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) String(ctx context.Context) (_ string, err error) {
 	var v []string
 	if v, err = ts.Strings(ctx); err != nil {
@@ -877,7 +892,7 @@ func (ts *TodoSelect) StringX(ctx context.Context) string {
 	return v
 }
 
-// Ints returns list of ints from selector. It is only allowed when selecting one field.
+// Ints returns list of ints from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ts.fields) > 1 {
 		return nil, errors.New("ent: TodoSelect.Ints is not achievable when selecting more than 1 field")
@@ -898,7 +913,7 @@ func (ts *TodoSelect) IntsX(ctx context.Context) []int {
 	return v
 }
 
-// Int returns a single int from selector. It is only allowed when selecting one field.
+// Int returns a single int from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Int(ctx context.Context) (_ int, err error) {
 	var v []int
 	if v, err = ts.Ints(ctx); err != nil {
@@ -924,7 +939,7 @@ func (ts *TodoSelect) IntX(ctx context.Context) int {
 	return v
 }
 
-// Float64s returns list of float64s from selector. It is only allowed when selecting one field.
+// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Float64s(ctx context.Context) ([]float64, error) {
 	if len(ts.fields) > 1 {
 		return nil, errors.New("ent: TodoSelect.Float64s is not achievable when selecting more than 1 field")
@@ -945,7 +960,7 @@ func (ts *TodoSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
-// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Float64(ctx context.Context) (_ float64, err error) {
 	var v []float64
 	if v, err = ts.Float64s(ctx); err != nil {
@@ -971,7 +986,7 @@ func (ts *TodoSelect) Float64X(ctx context.Context) float64 {
 	return v
 }
 
-// Bools returns list of bools from selector. It is only allowed when selecting one field.
+// Bools returns list of bools from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ts.fields) > 1 {
 		return nil, errors.New("ent: TodoSelect.Bools is not achievable when selecting more than 1 field")
@@ -992,7 +1007,7 @@ func (ts *TodoSelect) BoolsX(ctx context.Context) []bool {
 	return v
 }
 
-// Bool returns a single bool from selector. It is only allowed when selecting one field.
+// Bool returns a single bool from a selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Bool(ctx context.Context) (_ bool, err error) {
 	var v []bool
 	if v, err = ts.Bools(ctx); err != nil {
