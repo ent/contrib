@@ -86,17 +86,17 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultCreatedAt holds the default value on creation for the created_at field.
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
-	// DefaultPriority holds the default value on creation for the priority field.
+	// DefaultPriority holds the default value on creation for the "priority" field.
 	DefaultPriority int
 	// TextValidator is a validator for the "text" field. It is called by the builders before save.
 	TextValidator func(string) error
-	// DefaultID holds the default value on creation for the id field.
+	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() pulid.ID
 )
 
-// Status defines the type for the status enum field.
+// Status defines the type for the "status" enum field.
 type Status string
 
 // Status values.

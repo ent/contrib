@@ -15,9 +15,12 @@
 package schema
 
 import (
+	"time"
+
 	"github.com/facebook/ent"
+	"github.com/facebook/ent/schema/edge"
 	"github.com/facebook/ent/schema/field"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/schema"
+	"github.com/facebookincubator/ent-contrib/entgql"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
@@ -29,15 +32,47 @@ type Todo struct {
 // Mixin returns todo mixed-in schema.
 func (Todo) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		schema.Todo{},
+		pulid.MixinWithPrefix("TD"), // "TD" declared once.
 	}
 }
 
 // Fields returns todo fields.
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id").
-			GoType(pulid.ID("")).
-			DefaultFunc(func() pulid.ID { return pulid.MustNew("TO") }),
+		field.Time("created_at").
+			Default(time.Now).
+			Immutable().
+			Annotations(
+				entgql.OrderField("CREATED_AT"),
+			),
+		field.Enum("status").
+			NamedValues(
+				"InProgress", "IN_PROGRESS",
+				"Completed", "COMPLETED",
+			).
+			Annotations(
+				entgql.OrderField("STATUS"),
+			),
+		field.Int("priority").
+			Default(0).
+			Annotations(
+				entgql.OrderField("PRIORITY"),
+			),
+		field.Text("text").
+			NotEmpty().
+			Annotations(
+				entgql.OrderField("TEXT"),
+			),
+	}
+}
+
+// Edges returns todo edges.
+func (Todo) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("children", Todo.Type).
+			Annotations(entgql.Bind()).
+			From("parent").
+			Annotations(entgql.Bind()).
+			Unique(),
 	}
 }

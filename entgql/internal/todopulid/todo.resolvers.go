@@ -43,11 +43,11 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 }
 
 func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
-	return r.client.Noder(ctx, id, ent.WithNodeType(IDToType))
+	return r.client.Noder(ctx, id, ent.WithNodeType(ent.IDToType))
 }
 
 func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids, ent.WithNodeType(IDToType))
+	return r.client.Noders(ctx, ids, ent.WithNodeType(ent.IDToType))
 }
 
 func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error) {
