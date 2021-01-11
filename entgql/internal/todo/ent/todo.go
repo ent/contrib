@@ -148,25 +148,25 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 	return nil
 }
 
-// QueryParent queries the parent edge of the Todo.
+// QueryParent queries the "parent" edge of the Todo entity.
 func (t *Todo) QueryParent() *TodoQuery {
 	return (&TodoClient{config: t.config}).QueryParent(t)
 }
 
-// QueryChildren queries the children edge of the Todo.
+// QueryChildren queries the "children" edge of the Todo entity.
 func (t *Todo) QueryChildren() *TodoQuery {
 	return (&TodoClient{config: t.config}).QueryChildren(t)
 }
 
 // Update returns a builder for updating this Todo.
-// Note that, you need to call Todo.Unwrap() before calling this method, if this Todo
+// Note that you need to call Todo.Unwrap() before calling this method if this Todo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Todo) Update() *TodoUpdateOne {
 	return (&TodoClient{config: t.config}).UpdateOne(t)
 }
 
-// Unwrap unwraps the entity that was returned from a transaction after it was closed,
-// so that all next queries will be executed through the driver which created the transaction.
+// Unwrap unwraps the Todo entity that was returned from a transaction after it was closed,
+// so that all future queries will be executed through the driver which created the transaction.
 func (t *Todo) Unwrap() *Todo {
 	tx, ok := t.config.driver.(*txDriver)
 	if !ok {

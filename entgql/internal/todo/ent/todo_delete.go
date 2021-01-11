@@ -34,7 +34,7 @@ type TodoDelete struct {
 	mutation *TodoMutation
 }
 
-// Where adds a new predicate to the delete builder.
+// Where adds a new predicate to the TodoDelete builder.
 func (td *TodoDelete) Where(ps ...predicate.Todo) *TodoDelete {
 	td.mutation.predicates = append(td.mutation.predicates, ps...)
 	return td

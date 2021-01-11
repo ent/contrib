@@ -35,13 +35,13 @@ type TodoCreate struct {
 	hooks    []Hook
 }
 
-// SetCreatedAt sets the created_at field.
+// SetCreatedAt sets the "created_at" field.
 func (tc *TodoCreate) SetCreatedAt(t time.Time) *TodoCreate {
 	tc.mutation.SetCreatedAt(t)
 	return tc
 }
 
-// SetNillableCreatedAt sets the created_at field if the given value is not nil.
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
 func (tc *TodoCreate) SetNillableCreatedAt(t *time.Time) *TodoCreate {
 	if t != nil {
 		tc.SetCreatedAt(*t)
@@ -49,19 +49,19 @@ func (tc *TodoCreate) SetNillableCreatedAt(t *time.Time) *TodoCreate {
 	return tc
 }
 
-// SetStatus sets the status field.
+// SetStatus sets the "status" field.
 func (tc *TodoCreate) SetStatus(t todo.Status) *TodoCreate {
 	tc.mutation.SetStatus(t)
 	return tc
 }
 
-// SetPriority sets the priority field.
+// SetPriority sets the "priority" field.
 func (tc *TodoCreate) SetPriority(i int) *TodoCreate {
 	tc.mutation.SetPriority(i)
 	return tc
 }
 
-// SetNillablePriority sets the priority field if the given value is not nil.
+// SetNillablePriority sets the "priority" field if the given value is not nil.
 func (tc *TodoCreate) SetNillablePriority(i *int) *TodoCreate {
 	if i != nil {
 		tc.SetPriority(*i)
@@ -69,25 +69,25 @@ func (tc *TodoCreate) SetNillablePriority(i *int) *TodoCreate {
 	return tc
 }
 
-// SetText sets the text field.
+// SetText sets the "text" field.
 func (tc *TodoCreate) SetText(s string) *TodoCreate {
 	tc.mutation.SetText(s)
 	return tc
 }
 
-// SetID sets the id field.
+// SetID sets the "id" field.
 func (tc *TodoCreate) SetID(u uuid.UUID) *TodoCreate {
 	tc.mutation.SetID(u)
 	return tc
 }
 
-// SetParentID sets the parent edge to Todo by id.
+// SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tc *TodoCreate) SetParentID(id uuid.UUID) *TodoCreate {
 	tc.mutation.SetParentID(id)
 	return tc
 }
 
-// SetNillableParentID sets the parent edge to Todo by id if the given value is not nil.
+// SetNillableParentID sets the "parent" edge to the Todo entity by ID if the given value is not nil.
 func (tc *TodoCreate) SetNillableParentID(id *uuid.UUID) *TodoCreate {
 	if id != nil {
 		tc = tc.SetParentID(*id)
@@ -95,18 +95,18 @@ func (tc *TodoCreate) SetNillableParentID(id *uuid.UUID) *TodoCreate {
 	return tc
 }
 
-// SetParent sets the parent edge to Todo.
+// SetParent sets the "parent" edge to the Todo entity.
 func (tc *TodoCreate) SetParent(t *Todo) *TodoCreate {
 	return tc.SetParentID(t.ID)
 }
 
-// AddChildIDs adds the children edge to Todo by ids.
+// AddChildIDs adds the "children" edge to the Todo entity by IDs.
 func (tc *TodoCreate) AddChildIDs(ids ...uuid.UUID) *TodoCreate {
 	tc.mutation.AddChildIDs(ids...)
 	return tc
 }
 
-// AddChildren adds the children edges to Todo.
+// AddChildren adds the "children" edges to the Todo entity.
 func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
 	ids := make([]uuid.UUID, len(t))
 	for i := range t {
@@ -307,7 +307,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
-// TodoCreateBulk is the builder for creating a bulk of Todo entities.
+// TodoCreateBulk is the builder for creating many Todo entities in bulk.
 type TodoCreateBulk struct {
 	config
 	builders []*TodoCreate
@@ -363,7 +363,7 @@ func (tcb *TodoCreateBulk) Save(ctx context.Context) ([]*Todo, error) {
 	return nodes, nil
 }
 
-// SaveX calls Save and panics if Save returns an error.
+// SaveX is like Save, but panics if an error occurs.
 func (tcb *TodoCreateBulk) SaveX(ctx context.Context) []*Todo {
 	v, err := tcb.Save(ctx)
 	if err != nil {

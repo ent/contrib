@@ -27,7 +27,7 @@ import (
 	"github.com/facebook/ent/dialect/sql/sqlgraph"
 )
 
-// ent aliases to avoid import conflict in user's code.
+// ent aliases to avoid import conflicts in user's code.
 type (
 	Op         = ent.Op
 	Hook       = ent.Hook
@@ -272,7 +272,7 @@ func isSQLConstraintError(err error) (*ConstraintError, bool) {
 	return nil, false
 }
 
-// rollback calls to tx.Rollback and wraps the given error with the rollback error if occurred.
+// rollback calls tx.Rollback and wraps the given error with the rollback error if present.
 func rollback(tx dialect.Tx, err error) error {
 	if rerr := tx.Rollback(); rerr != nil {
 		err = fmt.Errorf("%s: %v", err.Error(), rerr)
