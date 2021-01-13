@@ -31,18 +31,20 @@ func init() {
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0
+	todoMixinFields1 := todoMixin[1].Fields()
+	_ = todoMixinFields1
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescCreatedAt is the schema descriptor for created_at field.
-	todoDescCreatedAt := todoFields[0].Descriptor()
+	todoDescCreatedAt := todoMixinFields1[0].Descriptor()
 	// todo.DefaultCreatedAt holds the default value on creation for the created_at field.
 	todo.DefaultCreatedAt = todoDescCreatedAt.Default.(func() time.Time)
 	// todoDescPriority is the schema descriptor for priority field.
-	todoDescPriority := todoFields[2].Descriptor()
+	todoDescPriority := todoMixinFields1[2].Descriptor()
 	// todo.DefaultPriority holds the default value on creation for the priority field.
 	todo.DefaultPriority = todoDescPriority.Default.(int)
 	// todoDescText is the schema descriptor for text field.
-	todoDescText := todoFields[3].Descriptor()
+	todoDescText := todoMixinFields1[3].Descriptor()
 	// todo.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	todo.TextValidator = todoDescText.Validators[0].(func(string) error)
 	// todoDescID is the schema descriptor for id field.
