@@ -24,6 +24,7 @@ import (
 	"github.com/facebookincubator/ent-contrib/entgql"
 	todopulid "github.com/facebookincubator/ent-contrib/entgql/internal/todopulid"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent"
+	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/migrate"
 	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 	"go.uber.org/zap"
 
@@ -50,7 +51,7 @@ func main() {
 	ctx := context.Background()
 	if err := client.Schema.Create(
 		ctx,
-		// migrate.WithGlobalUniqueID(true),
+		migrate.WithGlobalUniqueID(true),
 	); err != nil {
 		log.Fatal("running schema migration", zap.Error(err))
 	}
