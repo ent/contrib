@@ -48,23 +48,22 @@ func main() {
 		log.Fatal("opening ent client", zap.Error(err))
 	}
 	ctx := context.Background()
-	if err := client.Schema.Create(
-		ctx,
-		// migrate.WithGlobalUniqueID(true),
-	); err != nil {
+	if err := client.Schema.Create(ctx); err != nil {
 		log.Fatal("running schema migration", zap.Error(err))
 	}
 
-	if _, err := client.Todo.Create().SetStatus(todo.StatusInProgress).
+	if _, err := client.Todo.Create().
+		SetStatus(todo.StatusInProgress).
 		SetText("todo 1").
 		Save(ctx); err != nil {
-		log.Fatal("running schema migration", zap.Error(err))
+		log.Fatal("creating todo", zap.Error(err))
 	}
 
-	if _, err := client.Todo.Create().SetStatus(todo.StatusInProgress).
+	if _, err := client.Todo.Create().
+		SetStatus(todo.StatusInProgress).
 		SetText("todo 2").
 		Save(ctx); err != nil {
-		log.Fatal("running schema migration", zap.Error(err))
+		log.Fatal("creating todo", zap.Error(err))
 	}
 
 	srv := handler.NewDefaultServer(todopulid.NewSchema(client))
