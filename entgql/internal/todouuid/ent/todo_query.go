@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/predicate"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
 
@@ -79,7 +79,7 @@ func (tq *TodoQuery) QueryParent() *TodoQuery {
 		if err := tq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := tq.sqlQuery()
+		selector := tq.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -101,7 +101,7 @@ func (tq *TodoQuery) QueryChildren() *TodoQuery {
 		if err := tq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := tq.sqlQuery()
+		selector := tq.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -349,7 +349,7 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 		if err := tq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return tq.sqlQuery(), nil
+		return tq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -539,7 +539,7 @@ func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (tq *TodoQuery) sqlQuery() *sql.Selector {
+func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(tq.driver.Dialect())
 	t1 := builder.Table(todo.Table)
 	selector := builder.Select(t1.Columns(todo.Columns...)...).From(t1)
@@ -834,7 +834,7 @@ func (ts *TodoSelect) Scan(ctx context.Context, v interface{}) error {
 	if err := ts.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ts.sql = ts.TodoQuery.sqlQuery()
+	ts.sql = ts.TodoQuery.sqlQuery(ctx)
 	return ts.sqlScan(ctx, v)
 }
 

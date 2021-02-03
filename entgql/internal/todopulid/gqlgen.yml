@@ -10,15 +10,15 @@ resolver:
   dir: .
 
 autobind:
-  - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent
+  - entgo.io/contrib/entgql/internal/todopulid/ent
 
 models:
   ID:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid.ID
+      - entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid.ID
   Node:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent.Noder
+      - entgo.io/contrib/entgql/internal/todopulid/ent.Noder
   Status:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo.Status
+      - entgo.io/contrib/entgql/internal/todopulid/ent/todo.Status

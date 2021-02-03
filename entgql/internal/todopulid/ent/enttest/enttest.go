@@ -19,11 +19,11 @@ package enttest
 import (
 	"context"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent"
+	"entgo.io/contrib/entgql/internal/todopulid/ent"
 	// required by schema hooks.
-	_ "github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/runtime"
+	_ "entgo.io/contrib/entgql/internal/todopulid/ent/runtime"
 
-	"github.com/facebook/ent/dialect/sql/schema"
+	"entgo.io/ent/dialect/sql/schema"
 )
 
 type (

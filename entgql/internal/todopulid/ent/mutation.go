@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/predicate"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 
-	"github.com/facebook/ent"
+	"entgo.io/ent"
 )
 
 const (

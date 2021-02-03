@@ -3,7 +3,7 @@
 package todo
 
 import (
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 )
 

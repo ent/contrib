@@ -19,9 +19,9 @@ package ent
 import (
 	"time"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 )
 
 // The init function reads all schema descriptors with runtime code

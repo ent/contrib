@@ -23,12 +23,12 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/schema"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/facebook/ent/dialect"
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/schema"
-	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo"
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/sync/semaphore"
 )

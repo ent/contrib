@@ -14,7 +14,7 @@
 
 package entgql
 
-import "github.com/facebook/ent/schema"
+import "entgo.io/ent/schema"
 
 // Annotation annotates fields and edges with metadata for templates.
 type Annotation struct {

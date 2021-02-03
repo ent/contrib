@@ -20,8 +20,8 @@ package todopulid
 import (
 	"context"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todopulid/ent"
+	pulid1 "entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
@@ -42,11 +42,11 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
-func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
+func (r *queryResolver) Node(ctx context.Context, id pulid1.ID) (ent.Noder, error) {
 	return r.client.Noder(ctx, id, ent.WithNodeType(ent.IDToType))
 }
 
-func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error) {
+func (r *queryResolver) Nodes(ctx context.Context, ids []pulid1.ID) ([]ent.Noder, error) {
 	return r.client.Noders(ctx, ids, ent.WithNodeType(ent.IDToType))
 }
 

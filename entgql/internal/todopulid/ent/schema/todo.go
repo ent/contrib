@@ -15,9 +15,9 @@
 package schema
 
 import (
-	"github.com/facebook/ent"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/schema"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/ent"
 )
 
 // Todo defines the todo type schema.

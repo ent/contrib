@@ -17,7 +17,7 @@ package entgql_test
 import (
 	"testing"
 
-	"github.com/facebookincubator/ent-contrib/entgql"
+	"entgo.io/contrib/entgql"
 	"github.com/stretchr/testify/require"
 )
 

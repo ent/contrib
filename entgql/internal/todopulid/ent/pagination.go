@@ -25,11 +25,11 @@ import (
 	"strconv"
 	"strings"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
 )

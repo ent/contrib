@@ -21,10 +21,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
 	"github.com/hashicorp/go-multierror"
 )
 

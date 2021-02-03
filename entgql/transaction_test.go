@@ -19,12 +19,12 @@ import (
 	"errors"
 	"testing"
 
+	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/mocks"
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler/testserver"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/facebookincubator/ent-contrib/entgql/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
