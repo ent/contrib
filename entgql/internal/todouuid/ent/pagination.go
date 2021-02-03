@@ -25,10 +25,10 @@ import (
 	"strconv"
 	"strings"
 
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"

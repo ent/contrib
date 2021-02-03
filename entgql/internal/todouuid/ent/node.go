@@ -21,9 +21,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/facebookincubator/ent-contrib/entgql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-multierror"
 )

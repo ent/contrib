@@ -9,10 +9,10 @@ package main
 import (
 	"log"
 
-	"github.com/facebookincubator/ent-contrib/entgql"
+	"entgo.io/contrib/entgql"
 
-	"github.com/facebook/ent/entc"
-	"github.com/facebook/ent/entc/gen"
+	"entgo.io/ent/entc"
+	"entgo.io/ent/entc/gen"
 )
 
 func main() {

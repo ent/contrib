@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/predicate"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 
-	"github.com/facebook/ent"
+	"entgo.io/ent"
 )
 
 const (

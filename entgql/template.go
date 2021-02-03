@@ -15,9 +15,9 @@
 package entgql
 
 import (
-	"github.com/facebookincubator/ent-contrib/entgql/internal"
+	"entgo.io/contrib/entgql/internal"
 
-	"github.com/facebook/ent/entc/gen"
+	"entgo.io/ent/entc/gen"
 	_ "github.com/go-bindata/go-bindata"
 )
 

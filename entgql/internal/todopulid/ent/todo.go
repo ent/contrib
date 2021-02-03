@@ -21,9 +21,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/ent/dialect/sql"
 )
 
 // Todo is the model entity for the Todo schema.
@@ -48,9 +48,9 @@ type Todo struct {
 // TodoEdges holds the relations/edges for other nodes in the graph.
 type TodoEdges struct {
 	// Parent holds the value of the parent edge.
-	Parent *Todo
+	Parent *Todo `json:"parent,omitempty"`
 	// Children holds the value of the children edge.
-	Children []*Todo
+	Children []*Todo `json:"children,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool

@@ -19,8 +19,8 @@ package ent
 import (
 	"time"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema"
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/schema"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 )
 

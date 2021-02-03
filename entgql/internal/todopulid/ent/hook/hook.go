@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todopulid/ent"
+	"entgo.io/contrib/entgql/internal/todopulid/ent"
 )
 
 // The TodoFunc type is an adapter to allow the use of ordinary

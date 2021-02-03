@@ -10,15 +10,15 @@ resolver:
   dir: .
 
 autobind:
-  - github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent
+  - entgo.io/contrib/entgql/internal/todouuid/ent
 
 models:
   ID:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID
+      - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID
   Node:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent.Noder
+      - entgo.io/contrib/entgql/internal/todouuid/ent.Noder
   Status:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent/todo.Status
+      - entgo.io/contrib/entgql/internal/todouuid/ent/todo.Status

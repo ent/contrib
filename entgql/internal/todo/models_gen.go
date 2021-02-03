@@ -3,7 +3,7 @@
 package todo
 
 import (
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 )
 
 type TodoInput struct {

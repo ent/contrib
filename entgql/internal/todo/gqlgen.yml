@@ -10,7 +10,7 @@ resolver:
   dir: .
 
 autobind:
-  - github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent
+  - entgo.io/contrib/entgql/internal/todo/ent
 
 models:
   ID:
@@ -18,7 +18,7 @@ models:
       - github.com/99designs/gqlgen/graphql.IntID
   Node:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent.Noder
+      - entgo.io/contrib/entgql/internal/todo/ent.Noder
   Status:
     model:
-      - github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent/todo.Status
+      - entgo.io/contrib/entgql/internal/todo/ent/todo.Status

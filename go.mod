@@ -1,16 +1,16 @@
-module github.com/facebookincubator/ent-contrib
+module entgo.io/contrib
 
 go 1.15
 
 require (
+	entgo.io/ent v0.6.0
 	github.com/99designs/gqlgen v0.13.0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/alecthomas/kong v0.2.11
-	github.com/facebook/ent v0.5.4
 	github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76 // indirect
-	github.com/google/uuid v1.1.4
+	github.com/google/uuid v1.2.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -19,7 +19,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stretchr/objx v0.3.0 // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9

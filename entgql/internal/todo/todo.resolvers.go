@@ -20,7 +20,7 @@ package todo
 import (
 	"context"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todo/ent"
+	"entgo.io/contrib/entgql/internal/todo/ent"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {

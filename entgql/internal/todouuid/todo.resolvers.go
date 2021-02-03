@@ -20,7 +20,7 @@ package todo
 import (
 	"context"
 
-	"github.com/facebookincubator/ent-contrib/entgql/internal/todouuid/ent"
+	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"github.com/google/uuid"
 )
 
