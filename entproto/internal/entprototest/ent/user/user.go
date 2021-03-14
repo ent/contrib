@@ -9,10 +9,8 @@ const (
 	FieldID = "id"
 	// FieldUserName holds the string denoting the user_name field in the database.
 	FieldUserName = "user_name"
-
 	// EdgeBlogPosts holds the string denoting the blog_posts edge name in mutations.
 	EdgeBlogPosts = "blog_posts"
-
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// BlogPostsTable is the table the holds the blog_posts relation/edge.

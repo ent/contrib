@@ -1,9 +1,9 @@
 module entgo.io/contrib
 
-go 1.15
+go 1.16
 
 require (
-	entgo.io/ent v0.6.0
+	entgo.io/ent v0.7.0
 	github.com/99designs/gqlgen v0.13.0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
@@ -35,6 +35,5 @@ require (
 	google.golang.org/grpc v1.36.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )

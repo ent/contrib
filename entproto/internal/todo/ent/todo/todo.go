@@ -15,10 +15,8 @@ const (
 	FieldTask = "task"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
-
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
 	// UserTable is the table the holds the user relation/edge.
@@ -37,7 +35,8 @@ var Columns = []string{
 	FieldStatus,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the Todo type.
+// ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
+// table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"todo_user",
 }

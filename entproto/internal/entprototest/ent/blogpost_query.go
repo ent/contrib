@@ -415,7 +415,8 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*BlogPost)
 		for i := range nodes {
-			if fk := nodes[i].blog_post_author; fk != nil {
+			fk := nodes[i].blog_post_author
+			if fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -482,7 +483,7 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
 			},
 		}
 		if err := sqlgraph.QueryEdges(ctx, bpq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "categories": %v`, err)
+			return nil, fmt.Errorf(`query edges "categories": %w`, err)
 		}
 		query.Where(category.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
@@ -511,7 +512,7 @@ func (bpq *BlogPostQuery) sqlCount(ctx context.Context) (int, error) {
 func (bpq *BlogPostQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := bpq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }

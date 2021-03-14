@@ -22,9 +22,8 @@ var (
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "todos_users_user",
-				Columns: []*schema.Column{TodosColumns[3]},
-
+				Symbol:     "todos_users_user",
+				Columns:    []*schema.Column{TodosColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

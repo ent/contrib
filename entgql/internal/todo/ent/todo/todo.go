@@ -36,12 +36,10 @@ const (
 	FieldPriority = "priority"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
-
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
 	EdgeChildren = "children"
-
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
 	// ParentTable is the table the holds the parent relation/edge.
@@ -63,7 +61,8 @@ var Columns = []string{
 	FieldText,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the Todo type.
+// ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
+// table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"todo_children",
 }

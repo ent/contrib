@@ -7,7 +7,6 @@ const (
 	Label = "message_with_id"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-
 	// Table holds the table name of the messagewithid in the database.
 	Table = "message_with_ids"
 )

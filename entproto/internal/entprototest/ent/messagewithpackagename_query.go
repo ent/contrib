@@ -334,7 +334,7 @@ func (mwpnq *MessageWithPackageNameQuery) sqlCount(ctx context.Context) (int, er
 func (mwpnq *MessageWithPackageNameQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := mwpnq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }

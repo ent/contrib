@@ -11,10 +11,8 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-
 	// EdgeBlogPosts holds the string denoting the blog_posts edge name in mutations.
 	EdgeBlogPosts = "blog_posts"
-
 	// Table holds the table name of the category in the database.
 	Table = "categories"
 	// BlogPostsTable is the table the holds the blog_posts relation/edge. The primary key declared below.

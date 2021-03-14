@@ -427,7 +427,8 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Todo)
 		for i := range nodes {
-			if fk := nodes[i].todo_children; fk != nil {
+			fk := nodes[i].todo_children
+			if fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -488,7 +489,7 @@ func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
 func (tq *TodoQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := tq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
