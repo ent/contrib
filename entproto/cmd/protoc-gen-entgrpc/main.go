@@ -1,3 +1,17 @@
+// Copyright 2019-present Facebook
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -9,14 +23,12 @@ import (
 )
 
 var (
-	requireUnimplemented *bool
-	entSchemaPath        *string
-	snake                = gen.Funcs["snake"].(func(string) string)
+	entSchemaPath *string
+	snake         = gen.Funcs["snake"].(func(string) string)
 )
 
 func main() {
 	var flags flag.FlagSet
-	requireUnimplemented = flags.Bool("require_unimplemented_servers", true, "set to false to match legacy behavior")
 	entSchemaPath = flags.String("schema_path", "", "ent schema path")
 	protogen.Options{
 		ParamFunc: flags.Set,
@@ -67,12 +79,12 @@ func generateService(gen *protogen.Plugin, file *protogen.File, graph *gen.Graph
 	g.P("return &", s.GoName, "{client: client}")
 	g.P("}")
 
-	ctxtyp := protogen.GoImportPath("context").Ident("Context")
+	ctx := protogen.GoImportPath("context").Ident("Context")
 	statErr := protogen.GoImportPath("google.golang.org/grpc/status").Ident("Error")
 	codeNotImp := protogen.GoImportPath("google.golang.org/grpc/codes").Ident("Unimplemented")
 	for _, me := range s.Methods {
 		g.P("// ", me.GoName, " implements ", s.GoName, "Server.", me.GoName)
-		g.P("func (svc *", s.GoName, ") ", me.GoName, "(ctx ", ctxtyp, ", req *", me.Input.GoIdent, ") (*", me.Output.GoIdent, ", error) {")
+		g.P("func (svc *", s.GoName, ") ", me.GoName, "(ctx ", ctx, ", req *", me.Input.GoIdent, ") (*", me.Output.GoIdent, ", error) {")
 		g.P("return nil, ", statErr, "(", codeNotImp, ", \"error\")")
 		g.P("}")
 		g.P()
