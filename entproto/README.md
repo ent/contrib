@@ -12,6 +12,12 @@ Download the module:
 ```console
 go get -u entgo.io/contrib/entproto
 ```
+
+Install `protoc-gen-entgrpc` (ent's gRPC service implementation generator): 
+```console
+go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc
+```
+
 Annotate the schema with `entproto.Message()` and all fields with the desired proto field numbers (notice the field number 1 is reserved for the schema's `ID` field:
 ```go
 package schema
@@ -63,10 +69,32 @@ message User {
 }
 ```
 In addition, a file named `generate.go`, which contains a `//go:generate` directive to invoke `protoc` and create Go files for the protocol buffers and gRPC services is created adjecent to the `.proto` file. If a file by that name already exists, this step is skipped.
+The protoc invocation includes requests for codegen from 3 plugins: protoc-gen-go (standard Go codegen), protoc-gen-go-grpc (standard gRPC codegen)
+and protoc-gen-entgrpc (an ent-specific protoc plugin that generates service implementations using ent). 
 
 To generate the Go files from the `.proto` file run:
 ```console
 go generate ./ent/proto/...
+```
+
+### Note on `protoc-gen-entgrpc`:
+Currently, the generated service implementation is not very useful, but a fully working CRUD example is in the works. The current codegen produces something like:
+```go
+// UserService implements UserServiceServer
+type UserService struct {
+	client *ent.Client
+	UnimplementedUserServiceServer
+}
+
+func NewUserService(client *ent.Client) *UserService {
+	return &UserService{client: client}
+}
+
+// Create implements UserServiceServer.Create
+func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "error")
+}
+/// ... and so on 
 ```
 
 ## Programmatic code-generation
