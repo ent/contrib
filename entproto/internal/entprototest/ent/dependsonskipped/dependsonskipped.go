@@ -9,10 +9,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-
 	// EdgeSkipped holds the string denoting the skipped edge name in mutations.
 	EdgeSkipped = "skipped"
-
 	// Table holds the table name of the dependsonskipped in the database.
 	Table = "depends_on_skippeds"
 	// SkippedTable is the table the holds the skipped relation/edge.

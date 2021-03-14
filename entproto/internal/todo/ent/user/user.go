@@ -9,7 +9,6 @@ const (
 	FieldID = "id"
 	// FieldUserName holds the string denoting the user_name field in the database.
 	FieldUserName = "user_name"
-
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )

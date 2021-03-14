@@ -9,7 +9,6 @@ const (
 	FieldID = "id"
 	// FieldHello holds the string denoting the hello field in the database.
 	FieldHello = "hello"
-
 	// Table holds the table name of the invalidfieldmessage in the database.
 	Table = "invalid_field_messages"
 )

@@ -11,10 +11,8 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
-
 	// Table holds the table name of the portal in the database.
 	Table = "portals"
 	// CategoryTable is the table the holds the category relation/edge.
@@ -33,7 +31,8 @@ var Columns = []string{
 	FieldDescription,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the Portal type.
+// ForeignKeys holds the SQL foreign-keys that are owned by the "portals"
+// table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"portal_category",
 }

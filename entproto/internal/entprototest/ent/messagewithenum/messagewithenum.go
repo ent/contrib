@@ -15,7 +15,6 @@ const (
 	FieldEnumType = "enum_type"
 	// FieldEnumWithoutDefault holds the string denoting the enum_without_default field in the database.
 	FieldEnumWithoutDefault = "enum_without_default"
-
 	// Table holds the table name of the messagewithenum in the database.
 	Table = "message_with_enums"
 )

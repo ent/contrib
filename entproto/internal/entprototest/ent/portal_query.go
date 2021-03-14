@@ -377,7 +377,8 @@ func (pq *PortalQuery) sqlAll(ctx context.Context) ([]*Portal, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Portal)
 		for i := range nodes {
-			if fk := nodes[i].portal_category; fk != nil {
+			fk := nodes[i].portal_category
+			if fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -409,7 +410,7 @@ func (pq *PortalQuery) sqlCount(ctx context.Context) (int, error) {
 func (pq *PortalQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := pq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }

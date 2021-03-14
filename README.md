@@ -7,7 +7,7 @@ The documentation for developing and using ent is available at: https://entgo.io
 
 ## Report Issues / Proposals
 
-The issue tracker for the this repository is located at [ent/ent](https://github.com/ent/ent/issues).
+The issue tracker for this repository is located at [ent/ent](https://github.com/ent/ent/issues).
 
 ## Join the ent Community
 In order to contribute to `ent`, see the [CONTRIBUTING](https://github.com/ent/ent/blob/master/CONTRIBUTING.md) file for how to go get started.  

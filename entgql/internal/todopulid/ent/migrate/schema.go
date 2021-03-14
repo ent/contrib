@@ -27,7 +27,7 @@ var (
 		{Name: "id", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED"}},
-		{Name: "priority", Type: field.TypeInt},
+		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "todo_children", Type: field.TypeString, Nullable: true},
 	}
@@ -38,9 +38,8 @@ var (
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "todos_todos_children",
-				Columns: []*schema.Column{TodosColumns[5]},
-
+				Symbol:     "todos_todos_children",
+				Columns:    []*schema.Column{TodosColumns[5]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

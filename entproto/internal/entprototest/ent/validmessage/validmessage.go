@@ -11,7 +11,6 @@ const (
 	FieldName = "name"
 	// FieldTs holds the string denoting the ts field in the database.
 	FieldTs = "ts"
-
 	// Table holds the table name of the validmessage in the database.
 	Table = "valid_messages"
 )

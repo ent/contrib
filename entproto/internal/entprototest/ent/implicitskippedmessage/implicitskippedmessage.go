@@ -7,7 +7,6 @@ const (
 	Label = "implicit_skipped_message"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-
 	// Table holds the table name of the implicitskippedmessage in the database.
 	Table = "implicit_skipped_messages"
 )
@@ -17,7 +16,8 @@ var Columns = []string{
 	FieldID,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the ImplicitSkippedMessage type.
+// ForeignKeys holds the SQL foreign-keys that are owned by the "implicit_skipped_messages"
+// table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"depends_on_skipped_skipped",
 }

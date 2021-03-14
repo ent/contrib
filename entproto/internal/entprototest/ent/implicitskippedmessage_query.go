@@ -315,7 +315,7 @@ func (ismq *ImplicitSkippedMessageQuery) sqlCount(ctx context.Context) (int, err
 func (ismq *ImplicitSkippedMessageQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := ismq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }

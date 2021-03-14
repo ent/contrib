@@ -11,7 +11,6 @@ const (
 	FieldHello = "hello"
 	// FieldWorld holds the string denoting the world field in the database.
 	FieldWorld = "world"
-
 	// Table holds the table name of the duplicatenumbermessage in the database.
 	Table = "duplicate_number_messages"
 )

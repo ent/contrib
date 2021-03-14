@@ -412,7 +412,7 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 			},
 		}
 		if err := sqlgraph.QueryEdges(ctx, cq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "blog_posts": %v`, err)
+			return nil, fmt.Errorf(`query edges "blog_posts": %w`, err)
 		}
 		query.Where(blogpost.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
@@ -441,7 +441,7 @@ func (cq *CategoryQuery) sqlCount(ctx context.Context) (int, error) {
 func (cq *CategoryQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := cq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }

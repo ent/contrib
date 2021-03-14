@@ -7,7 +7,6 @@ const (
 	Label = "explicit_skipped_message"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-
 	// Table holds the table name of the explicitskippedmessage in the database.
 	Table = "explicit_skipped_messages"
 )

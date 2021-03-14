@@ -11,12 +11,10 @@ const (
 	FieldTitle = "title"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
-
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"
 	// EdgeCategories holds the string denoting the categories edge name in mutations.
 	EdgeCategories = "categories"
-
 	// Table holds the table name of the blogpost in the database.
 	Table = "blog_posts"
 	// AuthorTable is the table the holds the author relation/edge.
@@ -40,7 +38,8 @@ var Columns = []string{
 	FieldBody,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the BlogPost type.
+// ForeignKeys holds the SQL foreign-keys that are owned by the "blog_posts"
+// table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"blog_post_author",
 }

@@ -9,7 +9,6 @@ const (
 	FieldID = "id"
 	// FieldFieldOne holds the string denoting the field_one field in the database.
 	FieldFieldOne = "field_one"
-
 	// Table holds the table name of the messagewithfieldone in the database.
 	Table = "message_with_field_ones"
 )

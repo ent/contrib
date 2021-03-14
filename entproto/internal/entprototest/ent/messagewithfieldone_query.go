@@ -334,7 +334,7 @@ func (mwfoq *MessageWithFieldOneQuery) sqlCount(ctx context.Context) (int, error
 func (mwfoq *MessageWithFieldOneQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := mwfoq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }

@@ -22,9 +22,8 @@ var (
 		PrimaryKey: []*schema.Column{BlogPostsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "blog_posts_users_author",
-				Columns: []*schema.Column{BlogPostsColumns[3]},
-
+				Symbol:     "blog_posts_users_author",
+				Columns:    []*schema.Column{BlogPostsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -91,9 +90,8 @@ var (
 		PrimaryKey: []*schema.Column{ImplicitSkippedMessagesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "implicit_skipped_messages_depends_on_skippeds_skipped",
-				Columns: []*schema.Column{ImplicitSkippedMessagesColumns[1]},
-
+				Symbol:     "implicit_skipped_messages_depends_on_skippeds_skipped",
+				Columns:    []*schema.Column{ImplicitSkippedMessagesColumns[1]},
 				RefColumns: []*schema.Column{DependsOnSkippedsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -173,9 +171,8 @@ var (
 		PrimaryKey: []*schema.Column{PortalsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "portals_categories_category",
-				Columns: []*schema.Column{PortalsColumns[3]},
-
+				Symbol:     "portals_categories_category",
+				Columns:    []*schema.Column{PortalsColumns[3]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -218,16 +215,14 @@ var (
 		PrimaryKey: []*schema.Column{CategoryBlogPostsColumns[0], CategoryBlogPostsColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "category_blog_posts_category_id",
-				Columns: []*schema.Column{CategoryBlogPostsColumns[0]},
-
+				Symbol:     "category_blog_posts_category_id",
+				Columns:    []*schema.Column{CategoryBlogPostsColumns[0]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:  "category_blog_posts_blog_post_id",
-				Columns: []*schema.Column{CategoryBlogPostsColumns[1]},
-
+				Symbol:     "category_blog_posts_blog_post_id",
+				Columns:    []*schema.Column{CategoryBlogPostsColumns[1]},
 				RefColumns: []*schema.Column{BlogPostsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
