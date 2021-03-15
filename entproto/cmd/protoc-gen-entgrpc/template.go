@@ -39,7 +39,6 @@ var (
 //		"ctx": protogen.GoImportPath("context").Ident("Context"),
 //	})
 func printTemplate(g *protogen.GeneratedFile, tmpl string, values tmplValues) error {
-
 	var errors error
 	out := templateTokens.ReplaceAllStringFunc(tmpl, func(s string) string {
 		val, err := values.retrieve(s)
