@@ -19,29 +19,57 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
-func TestTemplate(t *testing.T) {
-	printer := &mockPrint{}
-	err := printTemplate(printer, "func hello(ctx %(ctx) bool {}", tmplValues{
-		"ctx": protogen.GoImportPath("context").Ident("Context"),
-	})
-	require.NoError(t, err)
-	require.Len(t, printer.memory, 3)
-	ctx := printer.memory[1]
-	require.IsType(t, ctx, protogen.GoIdent{})
+func TestPrintTemplate(t *testing.T) {
+	values := tmplValues{
+		"world": "world",
+		"ctx":   protogen.GoImportPath("context").Ident("Context"),
+	}
+	tests := []struct {
+		tmpl             string
+		expectedErr      string
+		expectedContents string
+	}{
+		{
+			tmpl:        "// %(missing key)",
+			expectedErr: "could not find token \"%(missing key)\" in map",
+		},
+		{
+			tmpl:             "// hello %(world)",
+			expectedContents: "// hello world",
+		},
+		{
+			tmpl:             "func c(ctx %(ctx)) {}",
+			expectedContents: "func c(ctx context.Context)",
+		},
+	}
 
-	err = printTemplate(printer, "hello %(c)", tmplValues{})
-	require.EqualError(t, err, "entproto: could not find token \"%(c)\" in map")
-
-	err = printTemplate(printer, "hello world %(not closing this", tmplValues{})
-	require.EqualError(t, err, "entproto: corrupt template, must close parenthesis")
+	for _, tt := range tests {
+		t.Run(tt.tmpl, func(t *testing.T) {
+			g, err := initGeneratedFile()
+			require.NoError(t, err)
+			err = printTemplate(g, tt.tmpl, values)
+			if tt.expectedErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.expectedErr)
+			}
+			if tt.expectedContents != "" {
+				bytes, err := g.Content()
+				require.NoError(t, err)
+				require.Contains(t, string(bytes), tt.expectedContents)
+			}
+		})
+	}
 }
 
-type mockPrint struct {
-	memory []interface{}
-}
-
-func (m *mockPrint) P(i ...interface{}) {
-	m.memory = append(m.memory, i...)
+func initGeneratedFile() (*protogen.GeneratedFile, error) {
+	gen, err := protogen.Options{}.New(&pluginpb.CodeGeneratorRequest{})
+	if err != nil {
+		return nil, err
+	}
+	g := gen.NewGeneratedFile("foo.go", "golang.org/x/foo")
+	g.P("package foo")
+	return g, err
 }

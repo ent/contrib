@@ -14,52 +14,44 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+
+	"github.com/hashicorp/go-multierror"
+	"google.golang.org/protobuf/compiler/protogen"
+)
 
 // printTemplate is a utility function to make working with protogen have a more declarative interface.
-// It receives a protogenPrinter (in practice a *protogen.GeneratedFile), a template string with placeholder
-// formatted like "%(variableName)" and a tmplValues map containing the values that should be replaced when
-// the template is rendered.
+// It receives a *protogen.GeneratedFile, a template string with placeholder formatted like "%(variableName)"
+// and a tmplValues map containing the values that should be replaced when the template is rendered.
 //
 // Instead of:
-//	g.P("func ", svcName, "(", paramName, " string)")
+//	g.P("func New", svcName, "(p string) *", protogen.GoImportPath("context").Ident("Context"))
 // We can use
-//	printTemplate(g, "func %(svcName)(%(paramName) string)
-func printTemplate(printer protogenPrinter, template string, values tmplValues) error {
-	var inToken bool
-	var buf string
-	var output []interface{}
-	for _, c := range template {
-		str := string(c)
-		if inToken {
-			if len(buf) == 1 && str != "(" {
-				return fmt.Errorf("entproto: corrupt template, percent must be followed by left parenthesis")
-			}
-			buf += str
-			if str == ")" {
-				inToken = false
-				val, err := values.retrieve(buf)
-				if err != nil {
-					return err
-				}
-				output = append(output, val)
-				buf = ""
-			}
-		} else {
-			if str == "%" {
-				inToken = true
-				output = append(output, buf)
-				buf = str
-			} else {
-				buf += str
-			}
+//	printTemplate(g, "func New%(svcName)(p string) *%(ctx)", tmplValues{
+//		"svcName": "UserService",
+//		"ctx": protogen.GoImportPath("context").Ident("Context"),
+//	})
+func printTemplate(g *protogen.GeneratedFile, tmpl string, values tmplValues) error {
+	re := regexp.MustCompile(`(%\(.+?\))`)
+	var errors error
+	out := re.ReplaceAllStringFunc(tmpl, func(s string) string {
+		val, err := values.retrieve(s)
+		if err != nil {
+			errors = multierror.Append(errors, err)
 		}
+		switch p := val.(type) {
+		case protogen.GoIdent:
+			return g.QualifiedGoIdent(p) // The P(..) magic for Go identifiers.
+		default:
+			return fmt.Sprint(p)
+		}
+	})
+	if errors != nil {
+		return errors
 	}
-	if inToken {
-		return fmt.Errorf("entproto: corrupt template, must close parenthesis")
-	}
-	output = append(output, buf)
-	printer.P(output...)
+	g.P(out)
 	return nil
 }
 
@@ -71,8 +63,4 @@ func (t tmplValues) retrieve(token string) (interface{}, error) {
 		return nil, fmt.Errorf("entproto: could not find token %q in map", token)
 	}
 	return k, nil
-}
-
-type protogenPrinter interface {
-	P(...interface{})
 }
