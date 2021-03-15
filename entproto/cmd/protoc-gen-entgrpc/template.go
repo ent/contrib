@@ -22,6 +22,11 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+var (
+	// match tokens like %(hello) in a string
+	templateTokens = regexp.MustCompile(`(%\(.+?\))`)
+)
+
 // printTemplate is a utility function to make working with protogen have a more declarative interface.
 // It receives a *protogen.GeneratedFile, a template string with placeholder formatted like "%(variableName)"
 // and a tmplValues map containing the values that should be replaced when the template is rendered.
@@ -34,9 +39,9 @@ import (
 //		"ctx": protogen.GoImportPath("context").Ident("Context"),
 //	})
 func printTemplate(g *protogen.GeneratedFile, tmpl string, values tmplValues) error {
-	re := regexp.MustCompile(`(%\(.+?\))`)
+
 	var errors error
-	out := re.ReplaceAllStringFunc(tmpl, func(s string) string {
+	out := templateTokens.ReplaceAllStringFunc(tmpl, func(s string) string {
 		val, err := values.retrieve(s)
 		if err != nil {
 			errors = multierror.Append(errors, err)
