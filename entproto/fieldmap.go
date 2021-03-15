@@ -77,7 +77,6 @@ func (m FieldMap) Edges() []*FieldMappingDescriptor {
 type FieldMappingDescriptor struct {
 	EntField          *gen.Field
 	PbFieldDescriptor *desc.FieldDescriptor
-	ToEntExpr         string
 	IsEdgeField       bool
 	IsIDField         bool
 }
@@ -116,19 +115,15 @@ func mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, err
 }
 
 func extractEntFieldByName(entType *gen.Type, name string) (*gen.Field, error) {
-	for _, fld := range allFields(entType) {
+	if name == entType.ID.Name {
+		return entType.ID, nil
+	}
+	for _, fld := range entType.Fields {
 		if fld.Name == name {
 			return fld, nil
 		}
 	}
 	return nil, fmt.Errorf("entproto: could not find find %q in %q", name, entType.Name)
-}
-
-func allFields(t *gen.Type) []*gen.Field {
-	var all []*gen.Field
-	all = append(all, t.ID)
-	all = append(all, t.Fields...)
-	return all
 }
 
 func ExtractTime(t *timestamppb.Timestamp) time.Time {

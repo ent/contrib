@@ -25,8 +25,6 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 	suite.Assert().False(userName.IsEdgeField)
 	suite.Assert().NotNil(userName.EntField)
 	suite.Assert().NotNil(userName.PbFieldDescriptor)
-	suite.Assert().NotNil(userName.PbFieldDescriptor)
-	suite.Assert().NoError(err)
 	suite.Assert().EqualValues("UserName", userName.PbStructField())
 
 	id, ok := mp["id"]
@@ -34,4 +32,10 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 	suite.Assert().True(id.IsIDField)
 	suite.Assert().False(id.IsEdgeField)
 	suite.Assert().EqualValues("Id", id.PbStructField())
+
+	blogPosts, ok := mp["blog_posts"]
+	suite.Require().True(ok)
+	suite.Assert().EqualValues("BlogPosts", blogPosts.PbStructField())
+	suite.Assert().False(blogPosts.IsIDField)
+	suite.Assert().True(blogPosts.IsEdgeField)
 }
