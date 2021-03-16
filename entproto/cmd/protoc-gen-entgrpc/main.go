@@ -27,7 +27,6 @@ import (
 var (
 	entSchemaPath *string
 	snake         = gen.Funcs["snake"].(func(string) string)
-	camel         = gen.Funcs["camel"].(func(string) string)
 	contextImp    = protogen.GoImportPath("context")
 	grpcStatImp   = protogen.GoImportPath("google.golang.org/grpc/status")
 	codesImp      = protogen.GoImportPath("google.golang.org/grpc/codes")
@@ -191,14 +190,12 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 		"outputIdent": me.Output.GoIdent,
 	})
 
-	switch me.GoName {
-	// TODO: specific method implementations
-	default:
-		g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
-			"grpcStatusError": grpcStatImp.Ident("Error"),
-			"notImplemented":  codesImp.Ident("Unimplemented"),
-		})
-	}
+	// TODO: switch on the method type
+	g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
+		"grpcStatusError": grpcStatImp.Ident("Error"),
+		"notImplemented":  codesImp.Ident("Unimplemented"),
+	})
+
 	g.P("}")
 	return nil
 }
