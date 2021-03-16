@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"path"
+	"strings"
 
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
@@ -226,7 +227,7 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 }
 
 func extractEntTypeName(s *protogen.Service, g *gen.Graph) (string, error) {
-	typeName := s.GoName[0 : len(s.GoName)-len("Service")] // Get the type name from "UserService" -> "User"
+	typeName := strings.TrimSuffix(s.GoName, "Service")
 	for _, gt := range g.Nodes {
 		if gt.Name == typeName {
 			return typeName, nil
