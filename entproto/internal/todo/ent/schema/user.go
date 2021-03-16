@@ -38,6 +38,12 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("user_name").
 			Annotations(entproto.Field(2)),
+		field.Time("joined").
+			Annotations(entproto.Field(3)),
+		field.Uint("points").
+			Annotations(entproto.Field(4)),
+		field.Uint64("exp").
+			Annotations(entproto.Field(5)),
 	}
 }
 

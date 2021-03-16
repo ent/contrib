@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
@@ -29,6 +30,38 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 // SetUserName sets the "user_name" field.
 func (uu *UserUpdate) SetUserName(s string) *UserUpdate {
 	uu.mutation.SetUserName(s)
+	return uu
+}
+
+// SetJoined sets the "joined" field.
+func (uu *UserUpdate) SetJoined(t time.Time) *UserUpdate {
+	uu.mutation.SetJoined(t)
+	return uu
+}
+
+// SetPoints sets the "points" field.
+func (uu *UserUpdate) SetPoints(u uint) *UserUpdate {
+	uu.mutation.ResetPoints()
+	uu.mutation.SetPoints(u)
+	return uu
+}
+
+// AddPoints adds u to the "points" field.
+func (uu *UserUpdate) AddPoints(u uint) *UserUpdate {
+	uu.mutation.AddPoints(u)
+	return uu
+}
+
+// SetExp sets the "exp" field.
+func (uu *UserUpdate) SetExp(u uint64) *UserUpdate {
+	uu.mutation.ResetExp()
+	uu.mutation.SetExp(u)
+	return uu
+}
+
+// AddExp adds u to the "exp" field.
+func (uu *UserUpdate) AddExp(u uint64) *UserUpdate {
+	uu.mutation.AddExp(u)
 	return uu
 }
 
@@ -113,6 +146,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldUserName,
 		})
 	}
+	if value, ok := uu.mutation.Joined(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldJoined,
+		})
+	}
+	if value, ok := uu.mutation.Points(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint,
+			Value:  value,
+			Column: user.FieldPoints,
+		})
+	}
+	if value, ok := uu.mutation.AddedPoints(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint,
+			Value:  value,
+			Column: user.FieldPoints,
+		})
+	}
+	if value, ok := uu.mutation.Exp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: user.FieldExp,
+		})
+	}
+	if value, ok := uu.mutation.AddedExp(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: user.FieldExp,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -134,6 +202,38 @@ type UserUpdateOne struct {
 // SetUserName sets the "user_name" field.
 func (uuo *UserUpdateOne) SetUserName(s string) *UserUpdateOne {
 	uuo.mutation.SetUserName(s)
+	return uuo
+}
+
+// SetJoined sets the "joined" field.
+func (uuo *UserUpdateOne) SetJoined(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetJoined(t)
+	return uuo
+}
+
+// SetPoints sets the "points" field.
+func (uuo *UserUpdateOne) SetPoints(u uint) *UserUpdateOne {
+	uuo.mutation.ResetPoints()
+	uuo.mutation.SetPoints(u)
+	return uuo
+}
+
+// AddPoints adds u to the "points" field.
+func (uuo *UserUpdateOne) AddPoints(u uint) *UserUpdateOne {
+	uuo.mutation.AddPoints(u)
+	return uuo
+}
+
+// SetExp sets the "exp" field.
+func (uuo *UserUpdateOne) SetExp(u uint64) *UserUpdateOne {
+	uuo.mutation.ResetExp()
+	uuo.mutation.SetExp(u)
+	return uuo
+}
+
+// AddExp adds u to the "exp" field.
+func (uuo *UserUpdateOne) AddExp(u uint64) *UserUpdateOne {
+	uuo.mutation.AddExp(u)
 	return uuo
 }
 
@@ -221,6 +321,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldUserName,
+		})
+	}
+	if value, ok := uuo.mutation.Joined(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldJoined,
+		})
+	}
+	if value, ok := uuo.mutation.Points(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint,
+			Value:  value,
+			Column: user.FieldPoints,
+		})
+	}
+	if value, ok := uuo.mutation.AddedPoints(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint,
+			Value:  value,
+			Column: user.FieldPoints,
+		})
+	}
+	if value, ok := uuo.mutation.Exp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: user.FieldExp,
+		})
+	}
+	if value, ok := uuo.mutation.AddedExp(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: user.FieldExp,
 		})
 	}
 	_node = &User{config: uuo.config}

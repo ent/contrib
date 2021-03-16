@@ -3,6 +3,8 @@
 package user
 
 import (
+	"time"
+
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 )
@@ -94,6 +96,27 @@ func IDLTE(id int) predicate.User {
 func UserName(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUserName), v))
+	})
+}
+
+// Joined applies equality check predicate on the "joined" field. It's identical to JoinedEQ.
+func Joined(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldJoined), v))
+	})
+}
+
+// Points applies equality check predicate on the "points" field. It's identical to PointsEQ.
+func Points(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPoints), v))
+	})
+}
+
+// Exp applies equality check predicate on the "exp" field. It's identical to ExpEQ.
+func Exp(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExp), v))
 	})
 }
 
@@ -205,6 +228,234 @@ func UserNameEqualFold(v string) predicate.User {
 func UserNameContainsFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldUserName), v))
+	})
+}
+
+// JoinedEQ applies the EQ predicate on the "joined" field.
+func JoinedEQ(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldJoined), v))
+	})
+}
+
+// JoinedNEQ applies the NEQ predicate on the "joined" field.
+func JoinedNEQ(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldJoined), v))
+	})
+}
+
+// JoinedIn applies the In predicate on the "joined" field.
+func JoinedIn(vs ...time.Time) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldJoined), v...))
+	})
+}
+
+// JoinedNotIn applies the NotIn predicate on the "joined" field.
+func JoinedNotIn(vs ...time.Time) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldJoined), v...))
+	})
+}
+
+// JoinedGT applies the GT predicate on the "joined" field.
+func JoinedGT(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldJoined), v))
+	})
+}
+
+// JoinedGTE applies the GTE predicate on the "joined" field.
+func JoinedGTE(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldJoined), v))
+	})
+}
+
+// JoinedLT applies the LT predicate on the "joined" field.
+func JoinedLT(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldJoined), v))
+	})
+}
+
+// JoinedLTE applies the LTE predicate on the "joined" field.
+func JoinedLTE(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldJoined), v))
+	})
+}
+
+// PointsEQ applies the EQ predicate on the "points" field.
+func PointsEQ(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPoints), v))
+	})
+}
+
+// PointsNEQ applies the NEQ predicate on the "points" field.
+func PointsNEQ(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldPoints), v))
+	})
+}
+
+// PointsIn applies the In predicate on the "points" field.
+func PointsIn(vs ...uint) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldPoints), v...))
+	})
+}
+
+// PointsNotIn applies the NotIn predicate on the "points" field.
+func PointsNotIn(vs ...uint) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldPoints), v...))
+	})
+}
+
+// PointsGT applies the GT predicate on the "points" field.
+func PointsGT(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldPoints), v))
+	})
+}
+
+// PointsGTE applies the GTE predicate on the "points" field.
+func PointsGTE(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldPoints), v))
+	})
+}
+
+// PointsLT applies the LT predicate on the "points" field.
+func PointsLT(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldPoints), v))
+	})
+}
+
+// PointsLTE applies the LTE predicate on the "points" field.
+func PointsLTE(v uint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldPoints), v))
+	})
+}
+
+// ExpEQ applies the EQ predicate on the "exp" field.
+func ExpEQ(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExp), v))
+	})
+}
+
+// ExpNEQ applies the NEQ predicate on the "exp" field.
+func ExpNEQ(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldExp), v))
+	})
+}
+
+// ExpIn applies the In predicate on the "exp" field.
+func ExpIn(vs ...uint64) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldExp), v...))
+	})
+}
+
+// ExpNotIn applies the NotIn predicate on the "exp" field.
+func ExpNotIn(vs ...uint64) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldExp), v...))
+	})
+}
+
+// ExpGT applies the GT predicate on the "exp" field.
+func ExpGT(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldExp), v))
+	})
+}
+
+// ExpGTE applies the GTE predicate on the "exp" field.
+func ExpGTE(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldExp), v))
+	})
+}
+
+// ExpLT applies the LT predicate on the "exp" field.
+func ExpLT(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldExp), v))
+	})
+}
+
+// ExpLTE applies the LTE predicate on the "exp" field.
+func ExpLTE(v uint64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldExp), v))
 	})
 }
 

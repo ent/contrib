@@ -5,6 +5,8 @@ package entpb;
 
 import "google/protobuf/empty.proto";
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "entgo.io/contrib/entproto/internal/todo/ent/proto/entpb";
 
 message Todo {
@@ -29,6 +31,12 @@ message User {
   int32 id = 1;
 
   string user_name = 2;
+
+  google.protobuf.Timestamp joined = 3;
+
+  uint32 points = 4;
+
+  uint64 exp = 5;
 }
 
 message CreateUserRequest {
