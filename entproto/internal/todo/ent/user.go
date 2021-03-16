@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
@@ -17,6 +18,12 @@ type User struct {
 	ID int `json:"id,omitempty"`
 	// UserName holds the value of the "user_name" field.
 	UserName string `json:"user_name,omitempty"`
+	// Joined holds the value of the "joined" field.
+	Joined time.Time `json:"joined,omitempty"`
+	// Points holds the value of the "points" field.
+	Points uint `json:"points,omitempty"`
+	// Exp holds the value of the "exp" field.
+	Exp uint64 `json:"exp,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -24,10 +31,12 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID:
+		case user.FieldID, user.FieldPoints, user.FieldExp:
 			values[i] = &sql.NullInt64{}
 		case user.FieldUserName:
 			values[i] = &sql.NullString{}
+		case user.FieldJoined:
+			values[i] = &sql.NullTime{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -54,6 +63,24 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field user_name", values[i])
 			} else if value.Valid {
 				u.UserName = value.String
+			}
+		case user.FieldJoined:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field joined", values[i])
+			} else if value.Valid {
+				u.Joined = value.Time
+			}
+		case user.FieldPoints:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field points", values[i])
+			} else if value.Valid {
+				u.Points = uint(value.Int64)
+			}
+		case user.FieldExp:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field exp", values[i])
+			} else if value.Valid {
+				u.Exp = uint64(value.Int64)
 			}
 		}
 	}
@@ -85,6 +112,12 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", u.ID))
 	builder.WriteString(", user_name=")
 	builder.WriteString(u.UserName)
+	builder.WriteString(", joined=")
+	builder.WriteString(u.Joined.Format(time.ANSIC))
+	builder.WriteString(", points=")
+	builder.WriteString(fmt.Sprintf("%v", u.Points))
+	builder.WriteString(", exp=")
+	builder.WriteString(fmt.Sprintf("%v", u.Exp))
 	builder.WriteByte(')')
 	return builder.String()
 }

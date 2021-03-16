@@ -9,6 +9,12 @@ const (
 	FieldID = "id"
 	// FieldUserName holds the string denoting the user_name field in the database.
 	FieldUserName = "user_name"
+	// FieldJoined holds the string denoting the joined field in the database.
+	FieldJoined = "joined"
+	// FieldPoints holds the string denoting the points field in the database.
+	FieldPoints = "points"
+	// FieldExp holds the string denoting the exp field in the database.
+	FieldExp = "exp"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -17,6 +23,9 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldUserName,
+	FieldJoined,
+	FieldPoints,
+	FieldExp,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

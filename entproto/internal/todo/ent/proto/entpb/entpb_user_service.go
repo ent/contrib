@@ -15,8 +15,22 @@ type UserService struct {
 	UnimplementedUserServiceServer
 }
 
+// NewUserService returns a new UserService
 func NewUserService(client *ent.Client) *UserService {
-	return &UserService{client: client}
+	return &UserService{
+		client: client,
+	}
+}
+
+// toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
+func toProtoUser(e *ent.User) *User {
+	return &User{
+		// Exp: placeholder(e.Exp)
+		// Id: placeholder(e.ID)
+		// Joined: placeholder(e.Joined)
+		// Points: placeholder(e.Points)
+		// UserName: placeholder(e.UserName)
+	}
 }
 
 // Create implements UserServiceServer.Create

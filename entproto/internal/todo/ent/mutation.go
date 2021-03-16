@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
@@ -444,6 +445,11 @@ type UserMutation struct {
 	typ           string
 	id            *int
 	user_name     *string
+	joined        *time.Time
+	points        *uint
+	addpoints     *uint
+	exp           *uint64
+	addexp        *uint64
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -565,6 +571,154 @@ func (m *UserMutation) ResetUserName() {
 	m.user_name = nil
 }
 
+// SetJoined sets the "joined" field.
+func (m *UserMutation) SetJoined(t time.Time) {
+	m.joined = &t
+}
+
+// Joined returns the value of the "joined" field in the mutation.
+func (m *UserMutation) Joined() (r time.Time, exists bool) {
+	v := m.joined
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJoined returns the old "joined" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldJoined(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldJoined is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldJoined requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJoined: %w", err)
+	}
+	return oldValue.Joined, nil
+}
+
+// ResetJoined resets all changes to the "joined" field.
+func (m *UserMutation) ResetJoined() {
+	m.joined = nil
+}
+
+// SetPoints sets the "points" field.
+func (m *UserMutation) SetPoints(u uint) {
+	m.points = &u
+	m.addpoints = nil
+}
+
+// Points returns the value of the "points" field in the mutation.
+func (m *UserMutation) Points() (r uint, exists bool) {
+	v := m.points
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPoints returns the old "points" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPoints(ctx context.Context) (v uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldPoints is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldPoints requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPoints: %w", err)
+	}
+	return oldValue.Points, nil
+}
+
+// AddPoints adds u to the "points" field.
+func (m *UserMutation) AddPoints(u uint) {
+	if m.addpoints != nil {
+		*m.addpoints += u
+	} else {
+		m.addpoints = &u
+	}
+}
+
+// AddedPoints returns the value that was added to the "points" field in this mutation.
+func (m *UserMutation) AddedPoints() (r uint, exists bool) {
+	v := m.addpoints
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPoints resets all changes to the "points" field.
+func (m *UserMutation) ResetPoints() {
+	m.points = nil
+	m.addpoints = nil
+}
+
+// SetExp sets the "exp" field.
+func (m *UserMutation) SetExp(u uint64) {
+	m.exp = &u
+	m.addexp = nil
+}
+
+// Exp returns the value of the "exp" field in the mutation.
+func (m *UserMutation) Exp() (r uint64, exists bool) {
+	v := m.exp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExp returns the old "exp" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldExp(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldExp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldExp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExp: %w", err)
+	}
+	return oldValue.Exp, nil
+}
+
+// AddExp adds u to the "exp" field.
+func (m *UserMutation) AddExp(u uint64) {
+	if m.addexp != nil {
+		*m.addexp += u
+	} else {
+		m.addexp = &u
+	}
+}
+
+// AddedExp returns the value that was added to the "exp" field in this mutation.
+func (m *UserMutation) AddedExp() (r uint64, exists bool) {
+	v := m.addexp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExp resets all changes to the "exp" field.
+func (m *UserMutation) ResetExp() {
+	m.exp = nil
+	m.addexp = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -579,9 +733,18 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 4)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
+	}
+	if m.joined != nil {
+		fields = append(fields, user.FieldJoined)
+	}
+	if m.points != nil {
+		fields = append(fields, user.FieldPoints)
+	}
+	if m.exp != nil {
+		fields = append(fields, user.FieldExp)
 	}
 	return fields
 }
@@ -593,6 +756,12 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case user.FieldUserName:
 		return m.UserName()
+	case user.FieldJoined:
+		return m.Joined()
+	case user.FieldPoints:
+		return m.Points()
+	case user.FieldExp:
+		return m.Exp()
 	}
 	return nil, false
 }
@@ -604,6 +773,12 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case user.FieldUserName:
 		return m.OldUserName(ctx)
+	case user.FieldJoined:
+		return m.OldJoined(ctx)
+	case user.FieldPoints:
+		return m.OldPoints(ctx)
+	case user.FieldExp:
+		return m.OldExp(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -620,6 +795,27 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUserName(v)
 		return nil
+	case user.FieldJoined:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJoined(v)
+		return nil
+	case user.FieldPoints:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPoints(v)
+		return nil
+	case user.FieldExp:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExp(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -627,13 +823,26 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addpoints != nil {
+		fields = append(fields, user.FieldPoints)
+	}
+	if m.addexp != nil {
+		fields = append(fields, user.FieldExp)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case user.FieldPoints:
+		return m.AddedPoints()
+	case user.FieldExp:
+		return m.AddedExp()
+	}
 	return nil, false
 }
 
@@ -642,6 +851,20 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldPoints:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPoints(v)
+		return nil
+	case user.FieldExp:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExp(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -671,6 +894,15 @@ func (m *UserMutation) ResetField(name string) error {
 	switch name {
 	case user.FieldUserName:
 		m.ResetUserName()
+		return nil
+	case user.FieldJoined:
+		m.ResetJoined()
+		return nil
+	case user.FieldPoints:
+		m.ResetPoints()
+		return nil
+	case user.FieldExp:
+		m.ResetExp()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

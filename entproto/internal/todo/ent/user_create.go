@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -22,6 +23,24 @@ type UserCreate struct {
 // SetUserName sets the "user_name" field.
 func (uc *UserCreate) SetUserName(s string) *UserCreate {
 	uc.mutation.SetUserName(s)
+	return uc
+}
+
+// SetJoined sets the "joined" field.
+func (uc *UserCreate) SetJoined(t time.Time) *UserCreate {
+	uc.mutation.SetJoined(t)
+	return uc
+}
+
+// SetPoints sets the "points" field.
+func (uc *UserCreate) SetPoints(u uint) *UserCreate {
+	uc.mutation.SetPoints(u)
+	return uc
+}
+
+// SetExp sets the "exp" field.
+func (uc *UserCreate) SetExp(u uint64) *UserCreate {
+	uc.mutation.SetExp(u)
 	return uc
 }
 
@@ -79,6 +98,15 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.UserName(); !ok {
 		return &ValidationError{Name: "user_name", err: errors.New("ent: missing required field \"user_name\"")}
 	}
+	if _, ok := uc.mutation.Joined(); !ok {
+		return &ValidationError{Name: "joined", err: errors.New("ent: missing required field \"joined\"")}
+	}
+	if _, ok := uc.mutation.Points(); !ok {
+		return &ValidationError{Name: "points", err: errors.New("ent: missing required field \"points\"")}
+	}
+	if _, ok := uc.mutation.Exp(); !ok {
+		return &ValidationError{Name: "exp", err: errors.New("ent: missing required field \"exp\"")}
+	}
 	return nil
 }
 
@@ -113,6 +141,30 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldUserName,
 		})
 		_node.UserName = value
+	}
+	if value, ok := uc.mutation.Joined(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldJoined,
+		})
+		_node.Joined = value
+	}
+	if value, ok := uc.mutation.Points(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint,
+			Value:  value,
+			Column: user.FieldPoints,
+		})
+		_node.Points = value
+	}
+	if value, ok := uc.mutation.Exp(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: user.FieldExp,
+		})
+		_node.Exp = value
 	}
 	return _node, _spec
 }
