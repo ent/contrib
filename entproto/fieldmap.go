@@ -91,8 +91,7 @@ func (m FieldMap) Enums() []*FieldMappingDescriptor {
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {
-		left, right := out[i], out[j]
-		return strings.Compare(left.EntField.Name, right.EntField.Name) < 0
+		return out[i].PbStructField() < out[j].PbStructField()
 	})
 	return out
 }
