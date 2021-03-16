@@ -37,6 +37,16 @@ message User {
   uint32 points = 4;
 
   uint64 exp = 5;
+
+  Status status = 6;
+
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+
+    PENDING = 1;
+
+    ACTIVE = 2;
+  }
 }
 
 message CreateUserRequest {
