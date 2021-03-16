@@ -36,6 +36,7 @@ var (
 		{Name: "joined", Type: field.TypeTime},
 		{Name: "points", Type: field.TypeUint},
 		{Name: "exp", Type: field.TypeUint64},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active"}},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

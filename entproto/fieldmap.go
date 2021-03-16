@@ -84,12 +84,27 @@ func (m FieldMap) Edges() []*FieldMappingDescriptor {
 	return out
 }
 
+func (m FieldMap) Enums() []*FieldMappingDescriptor {
+	var out []*FieldMappingDescriptor
+	for _, f := range m {
+		if f.IsEnumFIeld {
+			out = append(out, f)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		left, right := out[i], out[j]
+		return strings.Compare(left.EntField.Name, right.EntField.Name) < 0
+	})
+	return out
+}
+
 // FieldMappingDescriptor describes the mapping from a protobuf field descriptor to an ent Schema field
 type FieldMappingDescriptor struct {
 	EntField          *gen.Field
 	PbFieldDescriptor *desc.FieldDescriptor
 	IsEdgeField       bool
 	IsIDField         bool
+	IsEnumFIeld       bool
 }
 
 func (d *FieldMappingDescriptor) PbStructField() string {
@@ -119,6 +134,7 @@ func mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, err
 			PbFieldDescriptor: fld,
 			IsIDField:         isID,
 			IsEdgeField:       isEdge,
+			IsEnumFIeld:       fld.GetEnumType() != nil,
 			EntField:          ef,
 		}
 	}

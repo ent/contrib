@@ -30,6 +30,14 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("user_name").
 			Annotations(entproto.Field(2)),
+		field.Enum("status").
+			Values("pending", "active").
+			Annotations(
+				entproto.Field(4),
+				entproto.Enum(map[string]int32{
+					"pending": 1,
+					"active":  2,
+				})),
 	}
 }
 

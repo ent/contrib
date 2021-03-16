@@ -24,6 +24,8 @@ type User struct {
 	Points uint `json:"points,omitempty"`
 	// Exp holds the value of the "exp" field.
 	Exp uint64 `json:"exp,omitempty"`
+	// Status holds the value of the "status" field.
+	Status user.Status `json:"status,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,7 +35,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID, user.FieldPoints, user.FieldExp:
 			values[i] = &sql.NullInt64{}
-		case user.FieldUserName:
+		case user.FieldUserName, user.FieldStatus:
 			values[i] = &sql.NullString{}
 		case user.FieldJoined:
 			values[i] = &sql.NullTime{}
@@ -82,6 +84,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Exp = uint64(value.Int64)
 			}
+		case user.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				u.Status = user.Status(value.String)
+			}
 		}
 	}
 	return nil
@@ -118,6 +126,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Points))
 	builder.WriteString(", exp=")
 	builder.WriteString(fmt.Sprintf("%v", u.Exp))
+	builder.WriteString(", status=")
+	builder.WriteString(fmt.Sprintf("%v", u.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

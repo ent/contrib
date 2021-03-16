@@ -4,9 +4,12 @@ package entpb
 import (
 	context "context"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	strings "strings"
 )
 
 // UserService implements UserServiceServer
@@ -22,14 +25,22 @@ func NewUserService(client *ent.Client) *UserService {
 	}
 }
 
+func toProtoUser_Status(e user.Status) User_Status {
+	if v, ok := User_Status_value[strings.ToUpper(string(e))]; ok {
+		return User_Status(v)
+	}
+	return User_Status(0)
+}
+
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
-		// Exp: placeholder(e.Exp)
-		// Id: placeholder(e.ID)
-		// Joined: placeholder(e.Joined)
-		// Points: placeholder(e.Points)
-		// UserName: placeholder(e.UserName)
+		Exp:      uint64(e.Exp),
+		Id:       int32(e.ID),
+		Joined:   timestamppb.New(e.Joined),
+		Points:   uint32(e.Points),
+		Status:   toProtoUser_Status(e.Status),
+		UserName: string(e.UserName),
 	}
 }
 
