@@ -17,6 +17,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
@@ -102,7 +103,7 @@ func (g *serviceGenerator) generate() error {
 	g.P()
 	g.generateConstructor()
 	g.P()
-	if err := g.generateToProtoMapper(); err != nil {
+	if err := g.generateToProtoFunc(); err != nil {
 		return err
 	}
 	g.P()
@@ -134,7 +135,7 @@ func (g *serviceGenerator) generateConstructor() {
 	})
 }
 
-func (g *serviceGenerator) generateToProtoMapper() error {
+func (g *serviceGenerator) generateToProtoFunc() error {
 	// Mapper from the ent type to the proto type.
 	g.Tmpl(`
 	// toProto%(typeName) transforms the ent type to the pb type (TODO: complete implementation)
@@ -159,8 +160,8 @@ func (g *serviceGenerator) generateToProtoMapper() error {
 			"castFunc":       protoFunc,
 		})
 	}
-	g.Tmpl(`}
-	}`, nil)
+	g.P("	}")
+	g.P("}")
 	return nil
 }
 
@@ -201,7 +202,7 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 }
 
 func extractEntTypeName(s *protogen.Service, g *gen.Graph) (string, error) {
-	typeName := s.GoName[0 : len(s.GoName)-len("Service")] // Get the type name from "UserService" -> "User"
+	typeName := strings.TrimSuffix(s.GoName, "Service") // Get the type name from "UserService" -> "User"
 	for _, gt := range g.Nodes {
 		if gt.Name == typeName {
 			return typeName, nil
