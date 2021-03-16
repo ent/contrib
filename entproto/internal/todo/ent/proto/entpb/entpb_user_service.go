@@ -25,11 +25,11 @@ func NewUserService(client *ent.Client) *UserService {
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
+		// Exp: placeholder(e.Exp)
 		// Id: placeholder(e.ID)
-		// UserName: placeholder(e.UserName)
 		// Joined: placeholder(e.Joined)
 		// Points: placeholder(e.Points)
-		// Exp: placeholder(e.Exp)
+		// UserName: placeholder(e.UserName)
 	}
 }
 

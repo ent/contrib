@@ -16,6 +16,7 @@ package entproto
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -38,10 +39,11 @@ func (a *Adapter) FieldMap(schemaName string) (FieldMap, error) {
 	return mapFields(bt, md)
 }
 
-// FieldMap contains a mapping between the field's name in the ent schema and a FieldMappingDescriptor
+// FieldMap contains a mapping between the field's name in the ent schema and a FieldMappingDescriptor.
 type FieldMap map[string]*FieldMappingDescriptor
 
-// Fields returns the FieldMappingDescriptor for all of the fields of the schema.
+// Fields returns the FieldMappingDescriptor for all of the fields of the schema. Items are sorted alphabetically
+// on pb field name.
 func (m FieldMap) Fields() []*FieldMappingDescriptor {
 	var out []*FieldMappingDescriptor
 	for _, f := range m {
@@ -49,6 +51,10 @@ func (m FieldMap) Fields() []*FieldMappingDescriptor {
 			out = append(out, f)
 		}
 	}
+	sort.Slice(out, func(i, j int) bool {
+		left, right := out[i], out[j]
+		return strings.Compare(left.PbStructField(), right.PbStructField()) < 0
+	})
 	return out
 }
 
@@ -62,7 +68,8 @@ func (m FieldMap) ID() *FieldMappingDescriptor {
 	return nil
 }
 
-// Edges returns the FieldMappingDescriptor for all of the edge fields of the schema.
+// Edges returns the FieldMappingDescriptor for all of the edge fields of the schema. Items are sorted alphabetically
+// on pb field name.
 func (m FieldMap) Edges() []*FieldMappingDescriptor {
 	var out []*FieldMappingDescriptor
 	for _, f := range m {
@@ -70,6 +77,10 @@ func (m FieldMap) Edges() []*FieldMappingDescriptor {
 			out = append(out, f)
 		}
 	}
+	sort.Slice(out, func(i, j int) bool {
+		left, right := out[i], out[j]
+		return strings.Compare(left.EntField.Name, right.EntField.Name) < 0
+	})
 	return out
 }
 
