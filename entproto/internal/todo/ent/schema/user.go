@@ -37,6 +37,7 @@ func (User) Annotations() []schema.Annotation {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("user_name").
+			Unique().
 			Annotations(entproto.Field(2)),
 		field.Time("joined").
 			Annotations(entproto.Field(3)),

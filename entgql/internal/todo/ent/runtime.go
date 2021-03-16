@@ -1,3 +1,4 @@
+// +build tools
 // Copyright 2019-present Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

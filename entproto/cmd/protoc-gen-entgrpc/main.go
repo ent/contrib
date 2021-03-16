@@ -30,8 +30,8 @@ var (
 	entSchemaPath *string
 	snake         = gen.Funcs["snake"].(func(string) string)
 	contextImp    = protogen.GoImportPath("context")
-	grpcStatImp   = protogen.GoImportPath("google.golang.org/grpc/status")
-	codesImp      = protogen.GoImportPath("google.golang.org/grpc/codes")
+	status        = protogen.GoImportPath("google.golang.org/grpc/status")
+	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
 )
 
 func main() {
@@ -104,7 +104,7 @@ func (g *serviceGenerator) generate() error {
 	g.P()
 	g.generateConstructor()
 	g.P()
-	if err := g.generateToProtoEnumFuncs(); err != nil {
+	if err := g.generateEnumConvertFuncs(); err != nil {
 		return err
 	}
 	if err := g.generateToProtoFunc(); err != nil {
@@ -139,7 +139,7 @@ func (g *serviceGenerator) generateConstructor() {
 	})
 }
 
-func (g *serviceGenerator) generateToProtoEnumFuncs() error {
+func (g *serviceGenerator) generateEnumConvertFuncs() error {
 	for _, ef := range g.fieldMap.Enums() {
 		pbEnumIdent := g.pbEnumIdent(ef)
 		g.Tmpl(`
@@ -148,12 +148,21 @@ func (g *serviceGenerator) generateToProtoEnumFuncs() error {
 				return %(pbEnumIdent)(v)
 			}
 			return %(pbEnumIdent)(0)
-		}`, tmplValues{
+		}
+
+		func toEnt%(enumTypeName)(e %(pbEnumIdent)) %(entEnumIdent) {
+			if v, ok := %(enumTypeName)_name[int32(e)]; ok {
+				return %(entEnumIdent)(%(toLower)(v))
+			}
+			return ""
+		}
+`, tmplValues{
 			"typeName":     g.typeName,
 			"enumTypeName": pbEnumIdent.GoName,
 			"entEnumIdent": g.entSymbol(snake(g.typeName), ef.EntField.StructField()),
 			"pbEnumIdent":  g.pbEnumIdent(ef),
 			"toUpper":      protogen.GoImportPath("strings").Ident("ToUpper"),
+			"toLower":      protogen.GoImportPath("strings").Ident("ToLower"),
 		})
 	}
 	return nil
@@ -216,11 +225,17 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 		"outputIdent": me.Output.GoIdent,
 	})
 
-	// TODO: switch on the method type
-	g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
-		"grpcStatusError": grpcStatImp.Ident("Error"),
-		"notImplemented":  codesImp.Ident("Unimplemented"),
-	})
+	switch me.GoName {
+	case "Create":
+		if err := g.generateCreateMethod(); err != nil {
+			return err
+		}
+	default:
+		g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
+			"grpcStatusError": status.Ident("Error"),
+			"notImplemented":  codes.Ident("Unimplemented"),
+		})
+	}
 
 	g.P("}")
 	return nil
