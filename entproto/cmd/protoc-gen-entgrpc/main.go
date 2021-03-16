@@ -103,10 +103,10 @@ func (g *serviceGenerator) generate() error {
 	g.P()
 	g.generateConstructor()
 	g.P()
-	if err := g.generateEnumMapper(); err != nil {
+	if err := g.generateToProtoEnumFuncs(); err != nil {
 		return err
 	}
-	if err := g.generateToProtoMapper(); err != nil {
+	if err := g.generateToProtoFunc(); err != nil {
 		return err
 	}
 	g.P()
@@ -138,7 +138,7 @@ func (g *serviceGenerator) generateConstructor() {
 	})
 }
 
-func (g *serviceGenerator) generateEnumMapper() error {
+func (g *serviceGenerator) generateToProtoEnumFuncs() error {
 	for _, ef := range g.fieldMap.Enums() {
 		pbEnumIdent := g.pbEnumIdent(ef)
 		g.Tmpl(`
@@ -163,7 +163,7 @@ func (g *serviceGenerator) pbEnumIdent(fld *entproto.FieldMappingDescriptor) pro
 	return g.file.GoImportPath.Ident(g.typeName + "_" + enumTypeName)
 }
 
-func (g *serviceGenerator) generateToProtoMapper() error {
+func (g *serviceGenerator) generateToProtoFunc() error {
 	// Mapper from the ent type to the proto type.
 	g.Tmpl(`
 	// toProto%(typeName) transforms the ent type to the pb type (TODO: complete implementation)
