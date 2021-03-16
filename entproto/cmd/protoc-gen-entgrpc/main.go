@@ -173,7 +173,6 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 		"entTypeIdent": g.entPackage.Ident(g.typeName),
 	})
 
-	// TODO: impl in next PR
 	for _, fld := range g.fieldMap.Fields() {
 		protoFunc, err := g.castToProtoFunc(fld)
 		if err != nil {
@@ -185,8 +184,8 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 			"castFunc":       protoFunc,
 		})
 	}
-	g.Tmpl(`}
-	}`, nil)
+	g.P("	}")
+	g.P("}")
 	return nil
 }
 
