@@ -52,8 +52,7 @@ func (m FieldMap) Fields() []*FieldMappingDescriptor {
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {
-		left, right := out[i], out[j]
-		return strings.Compare(left.PbStructField(), right.PbStructField()) < 0
+		return out[i].PbStructField() < out[j].PbStructField()
 	})
 	return out
 }
@@ -78,9 +77,9 @@ func (m FieldMap) Edges() []*FieldMappingDescriptor {
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {
-		left, right := out[i], out[j]
-		return strings.Compare(left.EntField.Name, right.EntField.Name) < 0
+		return out[i].PbStructField() < out[j].PbStructField()
 	})
+
 	return out
 }
 
