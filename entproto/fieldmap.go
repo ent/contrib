@@ -126,6 +126,8 @@ func extractEntFieldByName(entType *gen.Type, name string) (*gen.Field, error) {
 	return nil, fmt.Errorf("entproto: could not find find %q in %q", name, entType.Name)
 }
 
+
+// ExtractTime returns the time.Time from a proto WKT Timestamp
 func ExtractTime(t *timestamppb.Timestamp) time.Time {
 	return t.AsTime()
 }
