@@ -42,12 +42,11 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 		methodName := "toProto" + ident.GoName
 		return methodName, nil
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
-		if pbd.GetMessageType().GetFullyQualifiedName() == "google.protobuf.Timestamp" {
-			newTS := protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
-			return newTS, nil
-		} else {
+		if name := pbd.GetMessageType().GetFullyQualifiedName(); name != "google.protobuf.Timestamp" {
 			return nil, fmt.Errorf("entproto: no mapping for pb message type %q", pbd.GetFullyQualifiedName())
 		}
+		newTS := protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
+		return newTS, nil
 	default:
 		return nil, fmt.Errorf("entproto: no mapping for pb field type %q", pbd.GetType())
 	}
