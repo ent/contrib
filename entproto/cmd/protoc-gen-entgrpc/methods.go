@@ -37,15 +37,10 @@ func (g *serviceGenerator) generateGetMethod() error {
 		return nil, %(statusErrf)(%(notFound), "not found: %s", err)
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
-	}`, tmplValues{
-		"typeName":   g.typeName,
-		"cast":       cast,
-		"pbIdField":  idField.PbStructField(),
-		"isNotFound": g.entPackage.Ident("IsNotFound"),
-		"statusErrf": status.Ident("Errorf"),
-		"notFound":   codes.Ident("NotFound"),
-		"internal":   codes.Ident("Internal"),
-	})
+	}`, g.withGlobals(tmplValues{
+		"cast":      cast,
+		"pbIdField": idField.PbStructField(),
+	}))
 	return nil
 }
 
@@ -63,26 +58,42 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 		return nil, %(statusErrf)(%(notFound), "not found: %s", err)
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
-	}`, tmplValues{
-		"typeName":   g.typeName,
-		"cast":       cast,
-		"pbIdField":  idField.PbStructField(),
-		"isNotFound": g.entPackage.Ident("IsNotFound"),
-		"statusErrf": status.Ident("Errorf"),
-		"notFound":   codes.Ident("NotFound"),
-		"internal":   codes.Ident("Internal"),
-		"empty":      protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb").Ident("Empty"),
-	})
+	}`, g.withGlobals(tmplValues{
+		"cast":      cast,
+		"pbIdField": idField.PbStructField(),
+		"empty":     protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb").Ident("Empty"),
+	}))
 	return nil
 }
 
+func (g *serviceGenerator) generateUpdateMethod() error {
+	return g.generateMutationMethod("update")
+}
+
 func (g *serviceGenerator) generateCreateMethod() error {
+	return g.generateMutationMethod("create")
+}
+
+func (g *serviceGenerator) generateMutationMethod(op string) error {
 	reqVar := camel(g.typeName)
-	g.Tmpl(`%(reqVar) := req.Get%(typeName)()
-	created, err := svc.client.%(typeName).Create().`, tmplValues{
-		"reqVar":   reqVar,
-		"typeName": g.typeName},
-	)
+	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
+		"reqVar": reqVar,
+	}))
+	switch op {
+	case "create":
+		g.Tmpl("res, err := svc.client.%(typeName).Create().", g.withGlobals())
+	case "update":
+		idField := g.fieldMap.ID()
+		cast, err := g.castToEntFunc(idField)
+		if err != nil {
+			return err
+		}
+		g.Tmpl(`res, err := svc.client.%(typeName).UpdateOneID(%(cast)(%(reqVar).Get%(pbIdField)())).`, g.withGlobals(tmplValues{
+			"pbIdField": idField.PbStructField(),
+			"cast":      cast,
+			"reqVar":    reqVar,
+		}))
+	}
 
 	for _, fld := range g.fieldMap.Fields() {
 		if fld.IsIDField {
@@ -120,22 +131,34 @@ func (g *serviceGenerator) generateCreateMethod() error {
 	g.Tmpl(`
 	switch {
 	case err == nil:
-		return toProto%(typeName)(created), nil
+		return toProto%(typeName)(res), nil
 	case %(uniqConstraintErr)(err):
-		return nil, %(grpcStatusErrorf)(%(alreadyExists), "already exists: %s", err)
+		return nil, %(statusErrf)(%(alreadyExists), "already exists: %s", err)
 	case %(constraintErr)(err):
-		return nil, %(grpcStatusErrorf)(%(invalidArgument), "invalid argument: %s", err)
+		return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
 	default:
-		return nil, %(grpcStatusErrorf)(%(internal), "internal: %s", err)
-	}`, tmplValues{
-		"uniqConstraintErr": protogen.GoImportPath("entgo.io/ent/dialect/sql/sqlgraph").Ident("IsUniqueConstraintError"),
-		"constraintErr":     g.entPackage.Ident("IsConstraintError"),
-		"grpcStatusErrorf":  status.Ident("Errorf"),
-		"alreadyExists":     codes.Ident("AlreadyExists"),
-		"invalidArgument":   codes.Ident("InvalidArgument"),
-		"internal":          codes.Ident("Internal"),
-		"typeName":          g.typeName,
-	})
+		return nil, %(statusErrf)(%(internal), "internal: %s", err)
+	}`, g.withGlobals())
 
 	return nil
+}
+
+func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
+	m := tmplValues{
+		"uniqConstraintErr": protogen.GoImportPath("entgo.io/ent/dialect/sql/sqlgraph").Ident("IsUniqueConstraintError"),
+		"constraintErr":     g.entPackage.Ident("IsConstraintError"),
+		"isNotFound":        g.entPackage.Ident("IsNotFound"),
+		"statusErrf":        status.Ident("Errorf"),
+		"alreadyExists":     codes.Ident("AlreadyExists"),
+		"invalidArgument":   codes.Ident("InvalidArgument"),
+		"notFound":          codes.Ident("NotFound"),
+		"internal":          codes.Ident("Internal"),
+		"typeName":          g.typeName,
+	}
+	for _, additional := range additionals {
+		for k, v := range additional {
+			m[k] = v
+		}
+	}
+	return m
 }

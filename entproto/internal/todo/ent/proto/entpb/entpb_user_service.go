@@ -56,7 +56,7 @@ func toProtoUser(e *ent.User) *User {
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	created, err := svc.client.User.Create().
+	res, err := svc.client.User.Create().
 		SetExp(uint64(user.GetExp())).
 		SetJoined(entproto.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
@@ -67,7 +67,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 
 	switch {
 	case err == nil:
-		return toProtoUser(created), nil
+		return toProtoUser(res), nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
 	case ent.IsConstraintError(err):
@@ -92,7 +92,26 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
-	return nil, status.Error(codes.Unimplemented, "error")
+	user := req.GetUser()
+	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
+		SetExp(uint64(user.GetExp())).
+		SetJoined(entproto.ExtractTime(user.GetJoined())).
+		SetPoints(uint(user.GetPoints())).
+		SetStatus(toEntUser_Status(user.GetStatus())).
+		SetUserName(string(user.GetUserName())).
+		SetGroupID(int(user.GetGroup().GetId())).
+		Save(ctx)
+
+	switch {
+	case err == nil:
+		return toProtoUser(res), nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal: %s", err)
+	}
 }
 
 // Delete implements UserServiceServer.Delete

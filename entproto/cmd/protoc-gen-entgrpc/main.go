@@ -238,6 +238,10 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 		if err := g.generateDeleteMethod(); err != nil {
 			return err
 		}
+	case "Update":
+		if err := g.generateUpdateMethod(); err != nil {
+			return err
+		}
 	default:
 		g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
 			"grpcStatusError": status.Ident("Error"),

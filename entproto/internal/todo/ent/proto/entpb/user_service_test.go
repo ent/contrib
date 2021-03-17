@@ -146,3 +146,38 @@ func TestUserService_Delete(t *testing.T) {
 	require.True(t, ok, "expected a gRPC status error")
 	require.EqualValues(t, respStatus.Code(), codes.NotFound)
 }
+
+func TestUserService_Update(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	defer client.Close()
+	svc := NewUserService(client)
+	ctx := context.Background()
+	created := client.User.Create().
+		SetUserName("rotemtam").
+		SetJoined(time.Now()).
+		SetPoints(10).
+		SetExp(1000).
+		SetStatus("pending").
+		SaveX(ctx)
+
+	group := client.Group.Create().SetName("managers").SaveX(ctx)
+	inputUser := &User{
+		Id:       int32(created.ID),
+		UserName: "rotemtam",
+		Joined:   timestamppb.Now(),
+		Exp:      999,
+		Points:   999,
+		Status:   User_ACTIVE,
+		Group: &Group{
+			Id: int32(group.ID),
+		},
+	}
+	updated, err := svc.Update(ctx, &UpdateUserRequest{
+		User: inputUser,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, inputUser.Exp, updated.Exp)
+
+	afterUpd := client.User.GetX(ctx, created.ID)
+	require.EqualValues(t, inputUser.Exp, afterUpd.Exp)
+}
