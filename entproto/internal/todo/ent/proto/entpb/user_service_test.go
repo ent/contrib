@@ -29,28 +29,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func TestMapping(t *testing.T) {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	defer client.Close()
-
-	ts := time.Now()
-	created := client.User.Create().
-		SetUserName("rotemtam").
-		SetExp(100).
-		SetPoints(1000).
-		SetStatus("active").
-		SetJoined(ts).
-		SaveX(context.Background())
-
-	pbUser := toProtoUser(created)
-	require.NotNil(t, pbUser)
-	require.EqualValues(t, "rotemtam", pbUser.UserName)
-	require.EqualValues(t, 100, pbUser.Exp)
-	require.EqualValues(t, 1000, pbUser.Points)
-	require.EqualValues(t, User_ACTIVE, pbUser.Status)
-	require.EqualValues(t, ts.Unix(), pbUser.Joined.AsTime().Unix())
-}
-
 func TestUserService_Create(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
