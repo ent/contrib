@@ -151,7 +151,7 @@ func (g *serviceGenerator) generateToProtoEnumFuncs() error {
 		}`, tmplValues{
 			"typeName":     g.typeName,
 			"enumTypeName": pbEnumIdent.GoName,
-			"entEnumIdent": g.entSymbol(snake(g.typeName), ef.EntField.StructField()),
+			"entEnumIdent": g.entIdent(snake(g.typeName), ef.EntField.StructField()),
 			"pbEnumIdent":  g.pbEnumIdent(ef),
 			"toUpper":      protogen.GoImportPath("strings").Ident("ToUpper"),
 		})
@@ -236,7 +236,7 @@ func extractEntTypeName(s *protogen.Service, g *gen.Graph) (string, error) {
 	return "", fmt.Errorf("entproto: type %q of service %q not found in graph", typeName, s.GoName)
 }
 
-func (g *serviceGenerator) entSymbol(subpath string, ident string) protogen.GoIdent {
+func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {
 	ip := path.Join(string(g.entPackage), subpath)
 	return protogen.GoImportPath(ip).Ident(ident)
 }
