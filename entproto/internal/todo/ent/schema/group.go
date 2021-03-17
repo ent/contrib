@@ -22,48 +22,31 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+type Group struct {
 	ent.Schema
 }
 
-func (User) Annotations() []schema.Annotation {
+func (Group) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name").
+			Annotations(
+				entproto.Field(2),
+			),
+	}
+}
+
+func (Group) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("users", User.Type).
+			Ref("group").
+			Annotations(
+				entproto.Field(3),
+			),
+	}
+}
+
+func (Group) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
-		entproto.Service(),
-	}
-}
-
-// Fields of the User.
-func (User) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("user_name").
-			Unique().
-			Annotations(entproto.Field(2)),
-		field.Time("joined").
-			Annotations(entproto.Field(3)),
-		field.Uint("points").
-			Annotations(entproto.Field(4)),
-		field.Uint64("exp").
-			Annotations(entproto.Field(5)),
-		field.Enum("status").
-			Values("pending", "active").
-			Annotations(
-				entproto.Field(6),
-				entproto.Enum(map[string]int32{
-					"pending": 1,
-					"active":  2,
-				}),
-			),
-	}
-}
-
-func (User) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.To("group", Group.Type).
-			Unique().
-			Annotations(
-				entproto.Field(7),
-			),
 	}
 }

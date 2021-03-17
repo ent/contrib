@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 )
@@ -26,6 +27,33 @@ type User struct {
 	Exp uint64 `json:"exp,omitempty"`
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges      UserEdges `json:"edges"`
+	user_group *int
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Group holds the value of the group edge.
+	Group *Group `json:"group,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// GroupOrErr returns the Group value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) GroupOrErr() (*Group, error) {
+	if e.loadedTypes[0] {
+		if e.Group == nil {
+			// The edge group was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: group.Label}
+		}
+		return e.Group, nil
+	}
+	return nil, &NotLoadedError{edge: "group"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -39,6 +67,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = &sql.NullString{}
 		case user.FieldJoined:
 			values[i] = &sql.NullTime{}
+		case user.ForeignKeys[0]: // user_group
+			values[i] = &sql.NullInt64{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -90,9 +120,21 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Status = user.Status(value.String)
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
+			} else if value.Valid {
+				u.user_group = new(int)
+				*u.user_group = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryGroup queries the "group" edge of the User entity.
+func (u *User) QueryGroup() *GroupQuery {
+	return (&UserClient{config: u.config}).QueryGroup(u)
 }
 
 // Update returns a builder for updating this User.

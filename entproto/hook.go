@@ -58,7 +58,7 @@ func Generate(g *gen.Graph) error {
 	entProtoDir := path.Join(g.Config.Target, "proto")
 	adapter, err := LoadAdapter(g)
 	if err != nil {
-		return fmt.Errorf("entproto: failed parsing ent graph")
+		return fmt.Errorf("entproto: failed parsing ent graph: %w", err)
 	}
 	var errs error
 	for _, schema := range g.Schemas {

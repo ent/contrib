@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -48,6 +49,25 @@ func (uc *UserCreate) SetExp(u uint64) *UserCreate {
 func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
 	uc.mutation.SetStatus(u)
 	return uc
+}
+
+// SetGroupID sets the "group" edge to the Group entity by ID.
+func (uc *UserCreate) SetGroupID(id int) *UserCreate {
+	uc.mutation.SetGroupID(id)
+	return uc
+}
+
+// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableGroupID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetGroupID(*id)
+	}
+	return uc
+}
+
+// SetGroup sets the "group" edge to the Group entity.
+func (uc *UserCreate) SetGroup(g *Group) *UserCreate {
+	return uc.SetGroupID(g.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -187,6 +207,26 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldStatus,
 		})
 		_node.Status = value
+	}
+	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.GroupTable,
+			Columns: []string{user.GroupColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_group = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

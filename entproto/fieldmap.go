@@ -36,7 +36,7 @@ func (a *Adapter) FieldMap(schemaName string) (FieldMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	return mapFields(bt, md)
+	return a.mapFields(bt, md)
 }
 
 // FieldMap contains a mapping between the field's name in the ent schema and a FieldMappingDescriptor.
@@ -99,42 +99,60 @@ func (m FieldMap) Enums() []*FieldMappingDescriptor {
 // FieldMappingDescriptor describes the mapping from a protobuf field descriptor to an ent Schema field
 type FieldMappingDescriptor struct {
 	EntField          *gen.Field
+	EntEdge           *gen.Edge
 	PbFieldDescriptor *desc.FieldDescriptor
 	IsEdgeField       bool
 	IsIDField         bool
 	IsEnumFIeld       bool
+	ReferencedPbType  *desc.MessageDescriptor
 }
 
 func (d *FieldMappingDescriptor) PbStructField() string {
 	return strings.Title(camel(d.PbFieldDescriptor.GetName()))
 }
 
-func mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, error) {
+func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
+	return strings.Title(camel(d.EntEdge.Ref.Type.ID.Name))
+}
+
+func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {
+	field := strings.Title(camel(d.EntEdge.Ref.Type.ID.Name))
+	return d.ReferencedPbType.FindFieldByName(snake(field))
+}
+
+func (a *Adapter) mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, error) {
 	m := make(map[string]*FieldMappingDescriptor)
 	for _, fld := range pbType.GetFields() {
-		isID := pascal(fld.GetName()) == pascal(entType.ID.Name)
-		var isEdge bool
+		fd := &FieldMappingDescriptor{
+			PbFieldDescriptor: fld,
+			IsIDField:         pascal(fld.GetName()) == pascal(entType.ID.Name),
+			IsEnumFIeld:       fld.GetEnumType() != nil,
+		}
 		for _, edg := range entType.Edges {
 			if fld.GetName() == edg.Name {
-				isEdge = true
+				fd.IsEdgeField = true
 				break
 			}
 		}
-		var ef *gen.Field
-		if !isEdge {
+		if fd.IsEdgeField {
+			edg, err := extractEntEdgeByName(entType, fld.GetName())
+			if err != nil {
+				return nil, err
+			}
+			fd.EntEdge = edg
+			referenced, err := a.GetMessageDescriptor(edg.Ref.Type.Name)
+			if err != nil {
+				return nil, err
+			}
+			fd.ReferencedPbType = referenced
+		} else {
 			enf, err := extractEntFieldByName(entType, fld.GetName())
 			if err != nil {
 				return nil, err
 			}
-			ef = enf
+			fd.EntField = enf
 		}
-		m[fld.GetName()] = &FieldMappingDescriptor{
-			PbFieldDescriptor: fld,
-			IsIDField:         isID,
-			IsEdgeField:       isEdge,
-			IsEnumFIeld:       fld.GetEnumType() != nil,
-			EntField:          ef,
-		}
+		m[fld.GetName()] = fd
 	}
 	return m, nil
 }
@@ -148,7 +166,16 @@ func extractEntFieldByName(entType *gen.Type, name string) (*gen.Field, error) {
 			return fld, nil
 		}
 	}
-	return nil, fmt.Errorf("entproto: could not find find %q in %q", name, entType.Name)
+	return nil, fmt.Errorf("entproto: could not find field %q in %q", name, entType.Name)
+}
+
+func extractEntEdgeByName(entType *gen.Type, name string) (*gen.Edge, error) {
+	for _, edg := range entType.Edges {
+		if edg.Name == name {
+			return edg, nil
+		}
+	}
+	return nil, fmt.Errorf("entproto: could not find find edge %q in %q", name, entType.Name)
 }
 
 // ExtractTime returns the time.Time from a proto WKT Timestamp

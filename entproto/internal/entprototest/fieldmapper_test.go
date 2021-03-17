@@ -41,6 +41,8 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 	assert.EqualValues("BlogPosts", blogPosts.PbStructField())
 	assert.False(blogPosts.IsIDField)
 	assert.True(blogPosts.IsEdgeField)
+	assert.EqualValues("Id", blogPosts.EdgeIDPbStructField())
+	assert.EqualValues("id", blogPosts.EdgeIDPbStructFieldDesc().GetName())
 
 	status, ok := mp["status"]
 	require.True(ok)
@@ -49,6 +51,7 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 
 	for _, en := range mp.Edges() {
 		assert.True(en.IsEdgeField, "expected .Edges() to return only Edge fields")
+		assert.NotNil(en.EntEdge)
 	}
 	for _, en := range mp.Enums() {
 		assert.True(en.IsEnumFIeld, "expected .Enums() to return only enum fields")

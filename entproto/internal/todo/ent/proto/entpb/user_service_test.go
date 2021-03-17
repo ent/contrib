@@ -16,12 +16,16 @@ package entpb
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestMapping(t *testing.T) {
@@ -44,4 +48,44 @@ func TestMapping(t *testing.T) {
 	require.EqualValues(t, 1000, pbUser.Points)
 	require.EqualValues(t, User_ACTIVE, pbUser.Status)
 	require.EqualValues(t, ts.Unix(), pbUser.Joined.AsTime().Unix())
+}
+
+func TestUserService_Create(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	defer client.Close()
+
+	svc := NewUserService(client)
+
+	ctx := context.Background()
+	group := client.Group.Create().SetName("managers").SaveX(ctx)
+	inputUser := &User{
+		UserName: "rotemtam",
+		Joined:   timestamppb.Now(),
+		Exp:      100,
+		Points:   1000,
+		Status:   User_ACTIVE,
+		Group: &Group{
+			Id: int32(group.ID),
+		},
+	}
+	created, err := svc.Create(ctx, &CreateUserRequest{
+		User: inputUser,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, created.Status, User_ACTIVE)
+
+	fromDB := client.User.GetX(ctx, int(created.Id))
+	require.EqualValues(t, inputUser.UserName, fromDB.UserName)
+	require.EqualValues(t, inputUser.Joined.AsTime().Unix(), fromDB.Joined.Unix())
+	require.EqualValues(t, inputUser.Exp, fromDB.Exp)
+	require.EqualValues(t, inputUser.Points, fromDB.Points)
+	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper(string(fromDB.Status)))
+
+	// preexisting user
+	_, err = svc.Create(ctx, &CreateUserRequest{
+		User: inputUser,
+	})
+	respStatus, ok := status.FromError(err)
+	require.True(t, ok, "expected a gRPC status error")
+	require.EqualValues(t, respStatus.Code(), codes.AlreadyExists)
 }

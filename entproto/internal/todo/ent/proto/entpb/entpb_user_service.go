@@ -3,8 +3,10 @@ package entpb
 
 import (
 	context "context"
+	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
+	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -32,6 +34,13 @@ func toProtoUser_Status(e user.Status) User_Status {
 	return User_Status(0)
 }
 
+func toEntUser_Status(e User_Status) user.Status {
+	if v, ok := User_Status_name[int32(e)]; ok {
+		return user.Status(strings.ToLower(v))
+	}
+	return ""
+}
+
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
@@ -46,7 +55,26 @@ func toProtoUser(e *ent.User) *User {
 
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
-	return nil, status.Error(codes.Unimplemented, "error")
+	user := req.GetUser()
+	created, err := svc.client.User.Create().
+		SetExp(uint64(user.GetExp())).
+		SetJoined(entproto.ExtractTime(user.GetJoined())).
+		SetPoints(uint(user.GetPoints())).
+		SetStatus(toEntUser_Status(user.GetStatus())).
+		SetUserName(string(user.GetUserName())).
+		SetGroupID(int(user.GetGroup().GetId())).
+		Save(ctx)
+
+	switch {
+	case err == nil:
+		return toProtoUser(created), nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal: %s", err)
+	}
 }
 
 // Get implements UserServiceServer.Get

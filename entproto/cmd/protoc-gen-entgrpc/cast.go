@@ -50,3 +50,25 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 		return nil, fmt.Errorf("entproto: no mapping for pb field type %q", pbd.GetType())
 	}
 }
+
+func (g *serviceGenerator) castToEntFunc(fd *entproto.FieldMappingDescriptor) (interface{}, error) {
+	fld := fd.EntField
+	if fd.IsEdgeField {
+		fld = fd.EntEdge.Type.ID
+	}
+	switch {
+	case fld.IsBool(), fld.IsBytes(), fld.IsString(), fld.Type.Numeric():
+		return fld.Type.String(), nil
+	case fld.IsTime():
+		return protogen.GoImportPath("entgo.io/contrib/entproto").Ident("ExtractTime"), nil
+	case fld.IsEnum():
+		ident := g.pbEnumIdent(fd)
+		methodName := "toEnt" + ident.GoName
+		return methodName, nil
+	// case field.TypeJSON:
+	// case field.TypeUUID:
+	// case field.TypeOther:
+	default:
+		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", fld.Type.ConstName())
+	}
+}

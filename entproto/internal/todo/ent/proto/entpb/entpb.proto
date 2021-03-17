@@ -9,6 +9,14 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "entgo.io/contrib/entproto/internal/todo/ent/proto/entpb";
 
+message Group {
+  int32 id = 1;
+
+  string name = 2;
+
+  repeated User users = 3;
+}
+
 message Todo {
   int32 id = 1;
 
@@ -39,6 +47,8 @@ message User {
   uint64 exp = 5;
 
   Status status = 6;
+
+  Group group = 7;
 
   enum Status {
     STATUS_UNSPECIFIED = 0;
