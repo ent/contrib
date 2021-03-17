@@ -77,8 +77,25 @@ To generate the Go files from the `.proto` file run:
 go generate ./ent/proto/...
 ```
 
-### Note on `protoc-gen-entgrpc`:
-Currently, the generated service implementation is not very useful, but a fully working CRUD example is in the works. The current codegen produces something like:
+### `protoc-gen-entgrpc`
+`protoc-gen-entgrpc` is a `protoc` plugin that generates server code that implements the gRPC interface that
+was generated from the ent schema. It must receive a path to the ent schema directory which is used to map
+the schema definitions with the proto definitions to produce correct code:
+
+```console
+protoc -I=.. --go_out=.. --go-grpc_out=.. --go_opt=paths=source_relative --entgrpc_out=.. --entgrpc_opt=paths=source_relative,schema_path=../../schema --go-grpc_opt=paths=source_relative entpb/entpb.proto
+```
+As mentioned in the section above, this command will be generated for you for each protobuf package 
+directory when you run the `entproto` command.
+
+The current version generates a full service implementation, an example can be found
+in [entpb/entpb_user_service.go](internal/todo/ent/proto/entpb/entpb_user_service.go).
+
+Some caveats with the current version:
+* Currently only "unique" edges are supported (O2O, O2M). Support for multi-relations will land soon. 
+* The generated "mutating" methods (Create/Update) currently set all fields, disregarding zero/null values and field nullability.
+* All fields are copied from the gRPC request to the ent client, support for making some fields not settable via the service by adding a field/edge annotation is also planned.
+
 ```go
 // UserService implements UserServiceServer
 type UserService struct {
