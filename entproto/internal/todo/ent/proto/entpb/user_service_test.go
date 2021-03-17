@@ -53,9 +53,7 @@ func TestMapping(t *testing.T) {
 func TestUserService_Create(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
-
 	svc := NewUserService(client)
-
 	ctx := context.Background()
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
 	inputUser := &User{
@@ -88,4 +86,33 @@ func TestUserService_Create(t *testing.T) {
 	respStatus, ok := status.FromError(err)
 	require.True(t, ok, "expected a gRPC status error")
 	require.EqualValues(t, respStatus.Code(), codes.AlreadyExists)
+}
+
+func TestUserService_Get(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	defer client.Close()
+	svc := NewUserService(client)
+	ctx := context.Background()
+	created := client.User.Create().
+		SetUserName("rotemtam").
+		SetJoined(time.Now()).
+		SetPoints(10).
+		SetExp(1000).
+		SetStatus("pending").
+		SaveX(ctx)
+	get, err := svc.Get(ctx, &GetUserRequest{
+		Id: int32(created.ID),
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, created.UserName, get.UserName)
+	require.EqualValues(t, created.Exp, get.Exp)
+	require.EqualValues(t, created.Joined.Unix(), get.Joined.AsTime().Unix())
+	require.EqualValues(t, created.Points, get.Points)
+	get, err = svc.Get(ctx, &GetUserRequest{
+		Id: 1000,
+	})
+	require.Nil(t, get)
+	respStatus, ok := status.FromError(err)
+	require.True(t, ok, "expected a gRPC status error")
+	require.EqualValues(t, respStatus.Code(), codes.NotFound)
 }

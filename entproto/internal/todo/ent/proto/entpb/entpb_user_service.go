@@ -79,7 +79,15 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 
 // Get implements UserServiceServer.Get
 func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, error) {
-	return nil, status.Error(codes.Unimplemented, "error")
+	get, err := svc.client.User.Get(ctx, int(req.GetId()))
+	switch {
+	case err == nil:
+		return toProtoUser(get), nil
+	case ent.IsNotFound(err):
+		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
 }
 
 // Update implements UserServiceServer.Update
