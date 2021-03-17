@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto"
-	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -53,11 +52,9 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 }
 
 func (g *serviceGenerator) castToEntFunc(fd *entproto.FieldMappingDescriptor) (interface{}, error) {
-	var fld *gen.Field
+	fld := fd.EntField
 	if fd.IsEdgeField {
 		fld = fd.EntEdge.Type.ID
-	} else {
-		fld = fd.EntField
 	}
 	switch {
 	case fld.IsBool(), fld.IsBytes(), fld.IsString(), fld.Type.Numeric():
