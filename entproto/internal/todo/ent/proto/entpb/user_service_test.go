@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -112,6 +113,35 @@ func TestUserService_Get(t *testing.T) {
 		Id: 1000,
 	})
 	require.Nil(t, get)
+	respStatus, ok := status.FromError(err)
+	require.True(t, ok, "expected a gRPC status error")
+	require.EqualValues(t, respStatus.Code(), codes.NotFound)
+}
+
+func TestUserService_Delete(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	defer client.Close()
+	svc := NewUserService(client)
+	ctx := context.Background()
+	created := client.User.Create().
+		SetUserName("rotemtam").
+		SetJoined(time.Now()).
+		SetPoints(10).
+		SetExp(1000).
+		SetStatus("pending").
+		SaveX(ctx)
+	d, err := svc.Delete(ctx, &DeleteUserRequest{
+		Id: int32(created.ID),
+	})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+	_, err = client.User.Get(ctx, created.ID)
+	require.True(t, ent.IsNotFound(err))
+
+	d, err = svc.Delete(ctx, &DeleteUserRequest{
+		Id: 1000,
+	})
+	require.Nil(t, d)
 	respStatus, ok := status.FromError(err)
 	require.True(t, ok, "expected a gRPC status error")
 	require.EqualValues(t, respStatus.Code(), codes.NotFound)

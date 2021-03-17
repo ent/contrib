@@ -49,6 +49,33 @@ func (g *serviceGenerator) generateGetMethod() error {
 	return nil
 }
 
+func (g *serviceGenerator) generateDeleteMethod() error {
+	idField := g.fieldMap.ID()
+	cast, err := g.castToEntFunc(idField)
+	if err != nil {
+		return err
+	}
+	g.Tmpl(`err := svc.client.%(typeName).DeleteOneID(%(cast)(req.Get%(pbIdField)())).Exec(ctx)
+	switch {
+	case err == nil:
+		return &%(empty){}, nil
+	case %(isNotFound)(err):
+		return nil, %(statusErrf)(%(notFound), "not found: %s", err)
+	default:
+		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
+	}`, tmplValues{
+		"typeName":   g.typeName,
+		"cast":       cast,
+		"pbIdField":  idField.PbStructField(),
+		"isNotFound": g.entPackage.Ident("IsNotFound"),
+		"statusErrf": status.Ident("Errorf"),
+		"notFound":   codes.Ident("NotFound"),
+		"internal":   codes.Ident("Internal"),
+		"empty":      protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb").Ident("Empty"),
+	})
+	return nil
+}
+
 func (g *serviceGenerator) generateCreateMethod() error {
 	reqVar := camel(g.typeName)
 	g.Tmpl(`%(reqVar) := req.Get%(typeName)()

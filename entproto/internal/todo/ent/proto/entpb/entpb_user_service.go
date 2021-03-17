@@ -97,5 +97,13 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 
 // Delete implements UserServiceServer.Delete
 func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "error")
+	err := svc.client.User.DeleteOneID(int(req.GetId())).Exec(ctx)
+	switch {
+	case err == nil:
+		return &emptypb.Empty{}, nil
+	case ent.IsNotFound(err):
+		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
 }
