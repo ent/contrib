@@ -26,6 +26,12 @@ func (uc *UserCreate) SetUserName(s string) *UserCreate {
 	return uc
 }
 
+// SetStatus sets the "status" field.
+func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
+	uc.mutation.SetStatus(u)
+	return uc
+}
+
 // AddBlogPostIDs adds the "blog_posts" edge to the BlogPost entity by IDs.
 func (uc *UserCreate) AddBlogPostIDs(ids ...int) *UserCreate {
 	uc.mutation.AddBlogPostIDs(ids...)
@@ -95,6 +101,14 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.UserName(); !ok {
 		return &ValidationError{Name: "user_name", err: errors.New("ent: missing required field \"user_name\"")}
 	}
+	if _, ok := uc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+	}
+	if v, ok := uc.mutation.Status(); ok {
+		if err := user.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -129,6 +143,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldUserName,
 		})
 		_node.UserName = value
+	}
+	if value, ok := uc.mutation.Status(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: user.FieldStatus,
+		})
+		_node.Status = value
 	}
 	if nodes := uc.mutation.BlogPostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

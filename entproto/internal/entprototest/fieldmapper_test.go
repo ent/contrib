@@ -15,27 +15,42 @@
 package entprototest
 
 func (suite *AdapterTestSuite) TestFieldMap() {
+	require := suite.Require()
+	assert := suite.Assert()
+
 	mp, err := suite.adapter.FieldMap("User")
-	suite.Require().NoError(err)
-	suite.Require().NotNil(mp)
+	require.NoError(err)
+	require.NotNil(mp)
 
 	userName, ok := mp["user_name"]
-	suite.Require().True(ok)
-	suite.Assert().False(userName.IsIDField)
-	suite.Assert().False(userName.IsEdgeField)
-	suite.Assert().NotNil(userName.EntField)
-	suite.Assert().NotNil(userName.PbFieldDescriptor)
-	suite.Assert().EqualValues("UserName", userName.PbStructField())
+	require.True(ok)
+	assert.False(userName.IsIDField)
+	assert.False(userName.IsEdgeField)
+	assert.NotNil(userName.EntField)
+	assert.NotNil(userName.PbFieldDescriptor)
+	assert.EqualValues("UserName", userName.PbStructField())
 
 	id, ok := mp["id"]
-	suite.Require().True(ok)
-	suite.Assert().True(id.IsIDField)
-	suite.Assert().False(id.IsEdgeField)
-	suite.Assert().EqualValues("Id", id.PbStructField())
+	require.True(ok)
+	assert.True(id.IsIDField)
+	assert.False(id.IsEdgeField)
+	assert.EqualValues("Id", id.PbStructField())
 
 	blogPosts, ok := mp["blog_posts"]
-	suite.Require().True(ok)
-	suite.Assert().EqualValues("BlogPosts", blogPosts.PbStructField())
-	suite.Assert().False(blogPosts.IsIDField)
-	suite.Assert().True(blogPosts.IsEdgeField)
+	require.True(ok)
+	assert.EqualValues("BlogPosts", blogPosts.PbStructField())
+	assert.False(blogPosts.IsIDField)
+	assert.True(blogPosts.IsEdgeField)
+
+	status, ok := mp["status"]
+	require.True(ok)
+	assert.EqualValues("Status", status.PbStructField())
+	assert.True(status.IsEnumFIeld)
+
+	for _, en := range mp.Edges() {
+		assert.True(en.IsEdgeField, "expected .Edges() to return only Edge fields")
+	}
+	for _, en := range mp.Enums() {
+		assert.True(en.IsEnumFIeld, "expected .Enums() to return only enum fields")
+	}
 }

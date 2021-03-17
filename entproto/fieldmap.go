@@ -79,6 +79,20 @@ func (m FieldMap) Edges() []*FieldMappingDescriptor {
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].PbStructField() < out[j].PbStructField()
 	})
+
+	return out
+}
+
+func (m FieldMap) Enums() []*FieldMappingDescriptor {
+	var out []*FieldMappingDescriptor
+	for _, f := range m {
+		if f.IsEnumFIeld {
+			out = append(out, f)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].PbStructField() < out[j].PbStructField()
+	})
 	return out
 }
 
@@ -88,6 +102,7 @@ type FieldMappingDescriptor struct {
 	PbFieldDescriptor *desc.FieldDescriptor
 	IsEdgeField       bool
 	IsIDField         bool
+	IsEnumFIeld       bool
 }
 
 func (d *FieldMappingDescriptor) PbStructField() string {
@@ -117,6 +132,7 @@ func mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, err
 			PbFieldDescriptor: fld,
 			IsIDField:         isID,
 			IsEdgeField:       isEdge,
+			IsEnumFIeld:       fld.GetEnumType() != nil,
 			EntField:          ef,
 		}
 	}

@@ -450,6 +450,7 @@ type UserMutation struct {
 	addpoints     *uint
 	exp           *uint64
 	addexp        *uint64
+	status        *user.Status
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -719,6 +720,42 @@ func (m *UserMutation) ResetExp() {
 	m.addexp = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *UserMutation) SetStatus(u user.Status) {
+	m.status = &u
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *UserMutation) Status() (r user.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStatus(ctx context.Context) (v user.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *UserMutation) ResetStatus() {
+	m.status = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -733,7 +770,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -745,6 +782,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.exp != nil {
 		fields = append(fields, user.FieldExp)
+	}
+	if m.status != nil {
+		fields = append(fields, user.FieldStatus)
 	}
 	return fields
 }
@@ -762,6 +802,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Points()
 	case user.FieldExp:
 		return m.Exp()
+	case user.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -779,6 +821,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPoints(ctx)
 	case user.FieldExp:
 		return m.OldExp(ctx)
+	case user.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -815,6 +859,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExp(v)
+		return nil
+	case user.FieldStatus:
+		v, ok := value.(user.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -903,6 +954,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldExp:
 		m.ResetExp()
+		return nil
+	case user.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

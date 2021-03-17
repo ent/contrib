@@ -17,6 +17,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"path"
 	"strings"
 
 	"entgo.io/contrib/entproto"
@@ -103,6 +104,9 @@ func (g *serviceGenerator) generate() error {
 	g.P()
 	g.generateConstructor()
 	g.P()
+	if err := g.generateToProtoEnumFuncs(); err != nil {
+		return err
+	}
 	if err := g.generateToProtoFunc(); err != nil {
 		return err
 	}
@@ -135,6 +139,31 @@ func (g *serviceGenerator) generateConstructor() {
 	})
 }
 
+func (g *serviceGenerator) generateToProtoEnumFuncs() error {
+	for _, ef := range g.fieldMap.Enums() {
+		pbEnumIdent := g.pbEnumIdent(ef)
+		g.Tmpl(`
+		func toProto%(enumTypeName) (e %(entEnumIdent)) %(pbEnumIdent) {
+			if v, ok := %(enumTypeName)_value[%(toUpper)(string(e))]; ok {
+				return %(pbEnumIdent)(v)
+			}
+			return %(pbEnumIdent)(0)
+		}`, tmplValues{
+			"typeName":     g.typeName,
+			"enumTypeName": pbEnumIdent.GoName,
+			"entEnumIdent": g.entIdent(snake(g.typeName), ef.EntField.StructField()),
+			"pbEnumIdent":  g.pbEnumIdent(ef),
+			"toUpper":      protogen.GoImportPath("strings").Ident("ToUpper"),
+		})
+	}
+	return nil
+}
+
+func (g *serviceGenerator) pbEnumIdent(fld *entproto.FieldMappingDescriptor) protogen.GoIdent {
+	enumTypeName := fld.PbFieldDescriptor.GetEnumType().GetName()
+	return g.file.GoImportPath.Ident(g.typeName + "_" + enumTypeName)
+}
+
 func (g *serviceGenerator) generateToProtoFunc() error {
 	// Mapper from the ent type to the proto type.
 	g.Tmpl(`
@@ -145,16 +174,12 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 		"entTypeIdent": g.entPackage.Ident(g.typeName),
 	})
 
-	// TODO: impl in next PR
-	castToProtoFunc := func(fld *entproto.FieldMappingDescriptor) (interface{}, error) {
-		return "placeholder", nil
-	}
 	for _, fld := range g.fieldMap.Fields() {
-		protoFunc, err := castToProtoFunc(fld)
+		protoFunc, err := g.castToProtoFunc(fld)
 		if err != nil {
 			return err
 		}
-		g.Tmpl("// %(pbStructField): %(castFunc)(e.%(entStructField))", tmplValues{
+		g.Tmpl("%(pbStructField): %(castFunc)(e.%(entStructField)),", tmplValues{
 			"pbStructField":  fld.PbStructField(),
 			"entStructField": fld.EntField.StructField(),
 			"castFunc":       protoFunc,
@@ -202,11 +227,16 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 }
 
 func extractEntTypeName(s *protogen.Service, g *gen.Graph) (string, error) {
-	typeName := strings.TrimSuffix(s.GoName, "Service") // Get the type name from "UserService" -> "User"
+	typeName := strings.TrimSuffix(s.GoName, "Service")
 	for _, gt := range g.Nodes {
 		if gt.Name == typeName {
 			return typeName, nil
 		}
 	}
 	return "", fmt.Errorf("entproto: type %q of service %q not found in graph", typeName, s.GoName)
+}
+
+func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {
+	ip := path.Join(string(g.entPackage), subpath)
+	return protogen.GoImportPath(ip).Ident(ident)
 }

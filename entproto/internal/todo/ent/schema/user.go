@@ -44,6 +44,15 @@ func (User) Fields() []ent.Field {
 			Annotations(entproto.Field(4)),
 		field.Uint64("exp").
 			Annotations(entproto.Field(5)),
+		field.Enum("status").
+			Values("pending", "active").
+			Annotations(
+				entproto.Field(6),
+				entproto.Enum(map[string]int32{
+					"pending": 1,
+					"active":  2,
+				}),
+			),
 	}
 }
 

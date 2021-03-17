@@ -2,6 +2,10 @@
 
 package user
 
+import (
+	"fmt"
+)
+
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -15,6 +19,8 @@ const (
 	FieldPoints = "points"
 	// FieldExp holds the string denoting the exp field in the database.
 	FieldExp = "exp"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -26,6 +32,7 @@ var Columns = []string{
 	FieldJoined,
 	FieldPoints,
 	FieldExp,
+	FieldStatus,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -36,4 +43,27 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// Status values.
+const (
+	StatusPending Status = "pending"
+	StatusActive  Status = "active"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusPending, StatusActive:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for status field: %q", s)
+	}
 }
