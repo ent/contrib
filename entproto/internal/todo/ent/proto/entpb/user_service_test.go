@@ -57,12 +57,16 @@ func TestUserService_Create(t *testing.T) {
 	svc := NewUserService(client)
 
 	ctx := context.Background()
+	group := client.Group.Create().SetName("managers").SaveX(ctx)
 	inputUser := &User{
 		UserName: "rotemtam",
 		Joined:   timestamppb.Now(),
 		Exp:      100,
 		Points:   1000,
 		Status:   User_ACTIVE,
+		Group: &Group{
+			Id: int32(group.ID),
+		},
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,

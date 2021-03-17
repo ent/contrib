@@ -33,7 +33,7 @@ func main() {
 	}
 	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
 	if err != nil {
-		log.Fatal("entproto: failed loading ent graph")
+		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}
 	if err := entproto.Generate(graph); err != nil {
 		log.Fatalf("entproto: failed generating protos: %s", err)

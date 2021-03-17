@@ -8,6 +8,18 @@ import (
 )
 
 var (
+	// GroupsColumns holds the columns for the "groups" table.
+	GroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// GroupsTable holds the schema information for the "groups" table.
+	GroupsTable = &schema.Table{
+		Name:        "groups",
+		Columns:     GroupsColumns,
+		PrimaryKey:  []*schema.Column{GroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -37,16 +49,25 @@ var (
 		{Name: "points", Type: field.TypeUint},
 		{Name: "exp", Type: field.TypeUint64},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active"}},
+		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:        "users",
-		Columns:     UsersColumns,
-		PrimaryKey:  []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_groups_group",
+				Columns:    []*schema.Column{UsersColumns[6]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		GroupsTable,
 		TodosTable,
 		UsersTable,
 	}
@@ -54,4 +75,5 @@ var (
 
 func init() {
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
+	UsersTable.ForeignKeys[0].RefTable = GroupsTable
 }

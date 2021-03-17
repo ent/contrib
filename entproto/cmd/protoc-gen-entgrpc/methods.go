@@ -25,8 +25,7 @@ var (
 
 func (g *serviceGenerator) generateCreateMethod() error {
 	reqVar := camel(g.typeName)
-	g.Tmpl(`
-	%(reqVar) := req.Get%(typeName)()
+	g.Tmpl(`%(reqVar) := req.Get%(typeName)()
 	created, err := svc.client.%(typeName).Create().`, tmplValues{
 		"reqVar":   reqVar,
 		"typeName": g.typeName},
@@ -47,6 +46,21 @@ func (g *serviceGenerator) generateCreateMethod() error {
 			"castFn":   castFn,
 			"pbField":  fld.PbStructField(),
 		})
+	}
+	for _, edg := range g.fieldMap.Edges() {
+		if edg.EntEdge.Unique {
+			cast, err := g.castToEntFunc(edg)
+			if err != nil {
+				return err
+			}
+			g.Tmpl("Set%(edgeName)ID(%(cast)(%(reqVar).Get%(pbField)().Get%(edgeIdField)())).", tmplValues{
+				"edgeName":    edg.EntEdge.StructField(),
+				"pbField":     edg.PbStructField(),
+				"reqVar":      reqVar,
+				"edgeIdField": edg.EdgeIDPbStructField(),
+				"cast":        cast,
+			})
+		}
 	}
 	g.P("Save(ctx)")
 

@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto"
+	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -52,21 +53,26 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 	}
 }
 
-func (g *serviceGenerator) castToEntFunc(fld *entproto.FieldMappingDescriptor) (interface{}, error) {
-	et := fld.EntField
+func (g *serviceGenerator) castToEntFunc(fd *entproto.FieldMappingDescriptor) (interface{}, error) {
+	var fld *gen.Field
+	if fd.IsEdgeField {
+		fld = fd.EntEdge.Type.ID
+	} else {
+		fld = fd.EntField
+	}
 	switch {
-	case et.IsBool(), et.IsBytes(), et.IsString(), et.Type.Numeric():
-		return et.Type.String(), nil
-	case et.IsTime():
+	case fld.IsBool(), fld.IsBytes(), fld.IsString(), fld.Type.Numeric():
+		return fld.Type.String(), nil
+	case fld.IsTime():
 		return protogen.GoImportPath("entgo.io/contrib/entproto").Ident("ExtractTime"), nil
-	case et.IsEnum():
-		ident := g.pbEnumIdent(fld)
+	case fld.IsEnum():
+		ident := g.pbEnumIdent(fd)
 		methodName := "toEnt" + ident.GoName
 		return methodName, nil
 	// case field.TypeJSON:
 	// case field.TypeUUID:
 	// case field.TypeOther:
 	default:
-		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", et.Type.Type.ConstName())
+		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", fld.Type.ConstName())
 	}
 }

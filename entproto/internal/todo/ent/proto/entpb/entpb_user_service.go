@@ -55,7 +55,6 @@ func toProtoUser(e *ent.User) *User {
 
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
-
 	user := req.GetUser()
 	created, err := svc.client.User.Create().
 		SetExp(uint64(user.GetExp())).
@@ -63,6 +62,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).
+		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
 
 	switch {
