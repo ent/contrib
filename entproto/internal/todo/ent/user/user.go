@@ -21,6 +21,8 @@ const (
 	FieldExp = "exp"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldExternalID holds the string denoting the external_id field in the database.
+	FieldExternalID = "external_id"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// Table holds the table name of the user in the database.
@@ -42,6 +44,7 @@ var Columns = []string{
 	FieldPoints,
 	FieldExp,
 	FieldStatus,
+	FieldExternalID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

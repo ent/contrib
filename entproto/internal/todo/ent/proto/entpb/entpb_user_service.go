@@ -44,12 +44,13 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
-		Exp:      uint64(e.Exp),
-		Id:       int32(e.ID),
-		Joined:   timestamppb.New(e.Joined),
-		Points:   uint32(e.Points),
-		Status:   toProtoUser_Status(e.Status),
-		UserName: string(e.UserName),
+		Exp:        uint64(e.Exp),
+		ExternalId: int32(e.ExternalID),
+		Id:         int32(e.ID),
+		Joined:     timestamppb.New(e.Joined),
+		Points:     uint32(e.Points),
+		Status:     toProtoUser_Status(e.Status),
+		UserName:   string(e.UserName),
 	}
 }
 
@@ -58,6 +59,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	user := req.GetUser()
 	res, err := svc.client.User.Create().
 		SetExp(uint64(user.GetExp())).
+		SetExternalID(int(user.GetExternalId())).
 		SetJoined(entproto.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
@@ -95,6 +97,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	user := req.GetUser()
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
 		SetExp(uint64(user.GetExp())).
+		SetExternalID(int(user.GetExternalId())).
 		SetJoined(entproto.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).

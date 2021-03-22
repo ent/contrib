@@ -36,11 +36,12 @@ func TestUserService_Create(t *testing.T) {
 	ctx := context.Background()
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
 	inputUser := &User{
-		UserName: "rotemtam",
-		Joined:   timestamppb.Now(),
-		Exp:      100,
-		Points:   1000,
-		Status:   User_ACTIVE,
+		UserName:   "rotemtam",
+		Joined:     timestamppb.Now(),
+		Exp:        100,
+		Points:     1000,
+		Status:     User_ACTIVE,
+		ExternalId: 1,
 		Group: &Group{
 			Id: int32(group.ID),
 		},
@@ -78,6 +79,7 @@ func TestUserService_Get(t *testing.T) {
 		SetPoints(10).
 		SetExp(1000).
 		SetStatus("pending").
+		SetExternalID(1).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: int32(created.ID),
@@ -107,6 +109,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetPoints(10).
 		SetExp(1000).
 		SetStatus("pending").
+		SetExternalID(1).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
 		Id: int32(created.ID),
@@ -136,16 +139,18 @@ func TestUserService_Update(t *testing.T) {
 		SetPoints(10).
 		SetExp(1000).
 		SetStatus("pending").
+		SetExternalID(1).
 		SaveX(ctx)
 
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
 	inputUser := &User{
-		Id:       int32(created.ID),
-		UserName: "rotemtam",
-		Joined:   timestamppb.Now(),
-		Exp:      999,
-		Points:   999,
-		Status:   User_ACTIVE,
+		Id:         int32(created.ID),
+		UserName:   "rotemtam",
+		Joined:     timestamppb.Now(),
+		Exp:        999,
+		Points:     999,
+		ExternalId: 1,
+		Status:     User_ACTIVE,
 		Group: &Group{
 			Id: int32(group.ID),
 		},

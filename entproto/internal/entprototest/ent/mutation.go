@@ -58,6 +58,8 @@ type BlogPostMutation struct {
 	id                *int
 	title             *string
 	body              *string
+	external_id       *int
+	addexternal_id    *int
 	clearedFields     map[string]struct{}
 	author            *int
 	clearedauthor     bool
@@ -220,6 +222,62 @@ func (m *BlogPostMutation) ResetBody() {
 	m.body = nil
 }
 
+// SetExternalID sets the "external_id" field.
+func (m *BlogPostMutation) SetExternalID(i int) {
+	m.external_id = &i
+	m.addexternal_id = nil
+}
+
+// ExternalID returns the value of the "external_id" field in the mutation.
+func (m *BlogPostMutation) ExternalID() (r int, exists bool) {
+	v := m.external_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExternalID returns the old "external_id" field's value of the BlogPost entity.
+// If the BlogPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlogPostMutation) OldExternalID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldExternalID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldExternalID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExternalID: %w", err)
+	}
+	return oldValue.ExternalID, nil
+}
+
+// AddExternalID adds i to the "external_id" field.
+func (m *BlogPostMutation) AddExternalID(i int) {
+	if m.addexternal_id != nil {
+		*m.addexternal_id += i
+	} else {
+		m.addexternal_id = &i
+	}
+}
+
+// AddedExternalID returns the value that was added to the "external_id" field in this mutation.
+func (m *BlogPostMutation) AddedExternalID() (r int, exists bool) {
+	v := m.addexternal_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExternalID resets all changes to the "external_id" field.
+func (m *BlogPostMutation) ResetExternalID() {
+	m.external_id = nil
+	m.addexternal_id = nil
+}
+
 // SetAuthorID sets the "author" edge to the User entity by id.
 func (m *BlogPostMutation) SetAuthorID(id int) {
 	m.author = &id
@@ -326,12 +384,15 @@ func (m *BlogPostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BlogPostMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.title != nil {
 		fields = append(fields, blogpost.FieldTitle)
 	}
 	if m.body != nil {
 		fields = append(fields, blogpost.FieldBody)
+	}
+	if m.external_id != nil {
+		fields = append(fields, blogpost.FieldExternalID)
 	}
 	return fields
 }
@@ -345,6 +406,8 @@ func (m *BlogPostMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case blogpost.FieldBody:
 		return m.Body()
+	case blogpost.FieldExternalID:
+		return m.ExternalID()
 	}
 	return nil, false
 }
@@ -358,6 +421,8 @@ func (m *BlogPostMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTitle(ctx)
 	case blogpost.FieldBody:
 		return m.OldBody(ctx)
+	case blogpost.FieldExternalID:
+		return m.OldExternalID(ctx)
 	}
 	return nil, fmt.Errorf("unknown BlogPost field %s", name)
 }
@@ -381,6 +446,13 @@ func (m *BlogPostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBody(v)
 		return nil
+	case blogpost.FieldExternalID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown BlogPost field %s", name)
 }
@@ -388,13 +460,21 @@ func (m *BlogPostMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *BlogPostMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addexternal_id != nil {
+		fields = append(fields, blogpost.FieldExternalID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *BlogPostMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case blogpost.FieldExternalID:
+		return m.AddedExternalID()
+	}
 	return nil, false
 }
 
@@ -403,6 +483,13 @@ func (m *BlogPostMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *BlogPostMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case blogpost.FieldExternalID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExternalID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown BlogPost numeric field %s", name)
 }
@@ -435,6 +522,9 @@ func (m *BlogPostMutation) ResetField(name string) error {
 		return nil
 	case blogpost.FieldBody:
 		m.ResetBody()
+		return nil
+	case blogpost.FieldExternalID:
+		m.ResetExternalID()
 		return nil
 	}
 	return fmt.Errorf("unknown BlogPost field %s", name)

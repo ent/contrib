@@ -55,6 +55,9 @@ func (User) Fields() []ent.Field {
 					"active":  2,
 				}),
 			),
+		field.Int("external_id").
+			Unique().
+			Annotations(entproto.Field(8)),
 	}
 }
 

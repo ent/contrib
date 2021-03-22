@@ -51,6 +51,12 @@ func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
 	return uc
 }
 
+// SetExternalID sets the "external_id" field.
+func (uc *UserCreate) SetExternalID(i int) *UserCreate {
+	uc.mutation.SetExternalID(i)
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -141,6 +147,9 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
+	if _, ok := uc.mutation.ExternalID(); !ok {
+		return &ValidationError{Name: "external_id", err: errors.New("ent: missing required field \"external_id\"")}
+	}
 	return nil
 }
 
@@ -207,6 +216,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldStatus,
 		})
 		_node.Status = value
+	}
+	if value, ok := uc.mutation.ExternalID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldExternalID,
+		})
+		_node.ExternalID = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

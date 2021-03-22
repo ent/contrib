@@ -20,6 +20,8 @@ type BlogPost struct {
 	Title string `json:"title,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
+	// ExternalID holds the value of the "external_id" field.
+	ExternalID int `json:"external_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BlogPostQuery when eager-loading is set.
 	Edges            BlogPostEdges `json:"edges"`
@@ -65,7 +67,7 @@ func (*BlogPost) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case blogpost.FieldID:
+		case blogpost.FieldID, blogpost.FieldExternalID:
 			values[i] = &sql.NullInt64{}
 		case blogpost.FieldTitle, blogpost.FieldBody:
 			values[i] = &sql.NullString{}
@@ -103,6 +105,12 @@ func (bp *BlogPost) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field body", values[i])
 			} else if value.Valid {
 				bp.Body = value.String
+			}
+		case blogpost.FieldExternalID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field external_id", values[i])
+			} else if value.Valid {
+				bp.ExternalID = int(value.Int64)
 			}
 		case blogpost.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -153,6 +161,8 @@ func (bp *BlogPost) String() string {
 	builder.WriteString(bp.Title)
 	builder.WriteString(", body=")
 	builder.WriteString(bp.Body)
+	builder.WriteString(", external_id=")
+	builder.WriteString(fmt.Sprintf("%v", bp.ExternalID))
 	builder.WriteByte(')')
 	return builder.String()
 }

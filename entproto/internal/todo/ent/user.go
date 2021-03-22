@@ -27,6 +27,8 @@ type User struct {
 	Exp uint64 `json:"exp,omitempty"`
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
+	// ExternalID holds the value of the "external_id" field.
+	ExternalID int `json:"external_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -61,7 +63,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldPoints, user.FieldExp:
+		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID:
 			values[i] = &sql.NullInt64{}
 		case user.FieldUserName, user.FieldStatus:
 			values[i] = &sql.NullString{}
@@ -120,6 +122,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Status = user.Status(value.String)
 			}
+		case user.FieldExternalID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field external_id", values[i])
+			} else if value.Valid {
+				u.ExternalID = int(value.Int64)
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -170,6 +178,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Exp))
 	builder.WriteString(", status=")
 	builder.WriteString(fmt.Sprintf("%v", u.Status))
+	builder.WriteString(", external_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.ExternalID))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -49,6 +49,7 @@ var (
 		{Name: "points", Type: field.TypeUint},
 		{Name: "exp", Type: field.TypeUint64},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active"}},
+		{Name: "external_id", Type: field.TypeInt, Unique: true},
 		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -59,7 +60,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[6]},
+				Columns:    []*schema.Column{UsersColumns[7]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

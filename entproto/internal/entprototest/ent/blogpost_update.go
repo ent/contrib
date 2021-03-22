@@ -40,6 +40,19 @@ func (bpu *BlogPostUpdate) SetBody(s string) *BlogPostUpdate {
 	return bpu
 }
 
+// SetExternalID sets the "external_id" field.
+func (bpu *BlogPostUpdate) SetExternalID(i int) *BlogPostUpdate {
+	bpu.mutation.ResetExternalID()
+	bpu.mutation.SetExternalID(i)
+	return bpu
+}
+
+// AddExternalID adds i to the "external_id" field.
+func (bpu *BlogPostUpdate) AddExternalID(i int) *BlogPostUpdate {
+	bpu.mutation.AddExternalID(i)
+	return bpu
+}
+
 // SetAuthorID sets the "author" edge to the User entity by ID.
 func (bpu *BlogPostUpdate) SetAuthorID(id int) *BlogPostUpdate {
 	bpu.mutation.SetAuthorID(id)
@@ -189,6 +202,20 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: blogpost.FieldBody,
 		})
 	}
+	if value, ok := bpu.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: blogpost.FieldExternalID,
+		})
+	}
+	if value, ok := bpu.mutation.AddedExternalID(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: blogpost.FieldExternalID,
+		})
+	}
 	if bpu.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -305,6 +332,19 @@ func (bpuo *BlogPostUpdateOne) SetTitle(s string) *BlogPostUpdateOne {
 // SetBody sets the "body" field.
 func (bpuo *BlogPostUpdateOne) SetBody(s string) *BlogPostUpdateOne {
 	bpuo.mutation.SetBody(s)
+	return bpuo
+}
+
+// SetExternalID sets the "external_id" field.
+func (bpuo *BlogPostUpdateOne) SetExternalID(i int) *BlogPostUpdateOne {
+	bpuo.mutation.ResetExternalID()
+	bpuo.mutation.SetExternalID(i)
+	return bpuo
+}
+
+// AddExternalID adds i to the "external_id" field.
+func (bpuo *BlogPostUpdateOne) AddExternalID(i int) *BlogPostUpdateOne {
+	bpuo.mutation.AddExternalID(i)
 	return bpuo
 }
 
@@ -460,6 +500,20 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Type:   field.TypeString,
 			Value:  value,
 			Column: blogpost.FieldBody,
+		})
+	}
+	if value, ok := bpuo.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: blogpost.FieldExternalID,
+		})
+	}
+	if value, ok := bpuo.mutation.AddedExternalID(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: blogpost.FieldExternalID,
 		})
 	}
 	if bpuo.mutation.AuthorCleared() {

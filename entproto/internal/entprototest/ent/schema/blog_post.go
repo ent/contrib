@@ -43,6 +43,9 @@ func (BlogPost) Fields() []ent.Field {
 			Annotations(entproto.Field(2)),
 		field.String("body").
 			Annotations(entproto.Field(3)),
+		field.Int("external_id").
+			Unique().
+			Annotations(entproto.Field(7)),
 	}
 }
 

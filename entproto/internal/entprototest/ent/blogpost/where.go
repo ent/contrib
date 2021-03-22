@@ -105,6 +105,13 @@ func Body(v string) predicate.BlogPost {
 	})
 }
 
+// ExternalID applies equality check predicate on the "external_id" field. It's identical to ExternalIDEQ.
+func ExternalID(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	})
+}
+
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.BlogPost {
 	return predicate.BlogPost(func(s *sql.Selector) {
@@ -324,6 +331,82 @@ func BodyEqualFold(v string) predicate.BlogPost {
 func BodyContainsFold(v string) predicate.BlogPost {
 	return predicate.BlogPost(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldBody), v))
+	})
+}
+
+// ExternalIDEQ applies the EQ predicate on the "external_id" field.
+func ExternalIDEQ(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDNEQ applies the NEQ predicate on the "external_id" field.
+func ExternalIDNEQ(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDIn applies the In predicate on the "external_id" field.
+func ExternalIDIn(vs ...int) predicate.BlogPost {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.BlogPost(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldExternalID), v...))
+	})
+}
+
+// ExternalIDNotIn applies the NotIn predicate on the "external_id" field.
+func ExternalIDNotIn(vs ...int) predicate.BlogPost {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.BlogPost(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldExternalID), v...))
+	})
+}
+
+// ExternalIDGT applies the GT predicate on the "external_id" field.
+func ExternalIDGT(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDGTE applies the GTE predicate on the "external_id" field.
+func ExternalIDGTE(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDLT applies the LT predicate on the "external_id" field.
+func ExternalIDLT(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldExternalID), v))
+	})
+}
+
+// ExternalIDLTE applies the LTE predicate on the "external_id" field.
+func ExternalIDLTE(v int) predicate.BlogPost {
+	return predicate.BlogPost(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldExternalID), v))
 	})
 }
 

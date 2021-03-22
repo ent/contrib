@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString},
 		{Name: "body", Type: field.TypeString},
+		{Name: "external_id", Type: field.TypeInt, Unique: true},
 		{Name: "blog_post_author", Type: field.TypeInt, Nullable: true},
 	}
 	// BlogPostsTable holds the schema information for the "blog_posts" table.
@@ -23,7 +24,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "blog_posts_users_author",
-				Columns:    []*schema.Column{BlogPostsColumns[3]},
+				Columns:    []*schema.Column{BlogPostsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
