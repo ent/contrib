@@ -57,3 +57,15 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 		assert.True(en.IsEnumFIeld, "expected .Enums() to return only enum fields")
 	}
 }
+
+func (suite *AdapterTestSuite) TestExternalId() {
+	require := suite.Require()
+	assert := suite.Assert()
+
+	mp, err := suite.adapter.FieldMap("BlogPost")
+	require.NoError(err)
+	require.NotNil(mp)
+	eid, ok := mp["external_id"]
+	require.True(ok)
+	assert.EqualValues("ExternalId", eid.PbStructField())
+}

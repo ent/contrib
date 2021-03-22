@@ -11,6 +11,8 @@ const (
 	FieldTitle = "title"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
+	// FieldExternalID holds the string denoting the external_id field in the database.
+	FieldExternalID = "external_id"
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"
 	// EdgeCategories holds the string denoting the categories edge name in mutations.
@@ -36,6 +38,7 @@ var Columns = []string{
 	FieldID,
 	FieldTitle,
 	FieldBody,
+	FieldExternalID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "blog_posts"

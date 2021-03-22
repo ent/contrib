@@ -48,6 +48,8 @@ message User {
 
   Status status = 6;
 
+  int32 external_id = 8;
+
   Group group = 7;
 
   enum Status {

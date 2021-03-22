@@ -822,22 +822,24 @@ func (m *TodoMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	user_name     *string
-	joined        *time.Time
-	points        *uint
-	addpoints     *uint
-	exp           *uint64
-	addexp        *uint64
-	status        *user.Status
-	clearedFields map[string]struct{}
-	group         *int
-	clearedgroup  bool
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op             Op
+	typ            string
+	id             *int
+	user_name      *string
+	joined         *time.Time
+	points         *uint
+	addpoints      *uint
+	exp            *uint64
+	addexp         *uint64
+	status         *user.Status
+	external_id    *int
+	addexternal_id *int
+	clearedFields  map[string]struct{}
+	group          *int
+	clearedgroup   bool
+	done           bool
+	oldValue       func(context.Context) (*User, error)
+	predicates     []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1139,6 +1141,62 @@ func (m *UserMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetExternalID sets the "external_id" field.
+func (m *UserMutation) SetExternalID(i int) {
+	m.external_id = &i
+	m.addexternal_id = nil
+}
+
+// ExternalID returns the value of the "external_id" field in the mutation.
+func (m *UserMutation) ExternalID() (r int, exists bool) {
+	v := m.external_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExternalID returns the old "external_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldExternalID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldExternalID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldExternalID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExternalID: %w", err)
+	}
+	return oldValue.ExternalID, nil
+}
+
+// AddExternalID adds i to the "external_id" field.
+func (m *UserMutation) AddExternalID(i int) {
+	if m.addexternal_id != nil {
+		*m.addexternal_id += i
+	} else {
+		m.addexternal_id = &i
+	}
+}
+
+// AddedExternalID returns the value that was added to the "external_id" field in this mutation.
+func (m *UserMutation) AddedExternalID() (r int, exists bool) {
+	v := m.addexternal_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExternalID resets all changes to the "external_id" field.
+func (m *UserMutation) ResetExternalID() {
+	m.external_id = nil
+	m.addexternal_id = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -1192,7 +1250,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -1207,6 +1265,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, user.FieldStatus)
+	}
+	if m.external_id != nil {
+		fields = append(fields, user.FieldExternalID)
 	}
 	return fields
 }
@@ -1226,6 +1287,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Exp()
 	case user.FieldStatus:
 		return m.Status()
+	case user.FieldExternalID:
+		return m.ExternalID()
 	}
 	return nil, false
 }
@@ -1245,6 +1308,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldExp(ctx)
 	case user.FieldStatus:
 		return m.OldStatus(ctx)
+	case user.FieldExternalID:
+		return m.OldExternalID(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1289,6 +1354,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case user.FieldExternalID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -1303,6 +1375,9 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addexp != nil {
 		fields = append(fields, user.FieldExp)
 	}
+	if m.addexternal_id != nil {
+		fields = append(fields, user.FieldExternalID)
+	}
 	return fields
 }
 
@@ -1315,6 +1390,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedPoints()
 	case user.FieldExp:
 		return m.AddedExp()
+	case user.FieldExternalID:
+		return m.AddedExternalID()
 	}
 	return nil, false
 }
@@ -1337,6 +1414,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddExp(v)
+		return nil
+	case user.FieldExternalID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExternalID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -1379,6 +1463,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case user.FieldExternalID:
+		m.ResetExternalID()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

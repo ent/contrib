@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"entgo.io/ent/entc/gen"
+	"github.com/go-openapi/inflect"
 	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -108,11 +109,11 @@ type FieldMappingDescriptor struct {
 }
 
 func (d *FieldMappingDescriptor) PbStructField() string {
-	return strings.Title(camel(d.PbFieldDescriptor.GetName()))
+	return inflect.Camelize(d.PbFieldDescriptor.GetName())
 }
 
 func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
-	return strings.Title(camel(d.EntEdge.Ref.Type.ID.Name))
+	return inflect.Camelize(d.EntEdge.Ref.Type.ID.Name)
 }
 
 func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {

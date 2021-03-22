@@ -72,6 +72,19 @@ func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
 	return uu
 }
 
+// SetExternalID sets the "external_id" field.
+func (uu *UserUpdate) SetExternalID(i int) *UserUpdate {
+	uu.mutation.ResetExternalID()
+	uu.mutation.SetExternalID(i)
+	return uu
+}
+
+// AddExternalID adds i to the "external_id" field.
+func (uu *UserUpdate) AddExternalID(i int) *UserUpdate {
+	uu.mutation.AddExternalID(i)
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -236,6 +249,20 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldStatus,
 		})
 	}
+	if value, ok := uu.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldExternalID,
+		})
+	}
+	if value, ok := uu.mutation.AddedExternalID(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldExternalID,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -330,6 +357,19 @@ func (uuo *UserUpdateOne) AddExp(u uint64) *UserUpdateOne {
 // SetStatus sets the "status" field.
 func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
 	uuo.mutation.SetStatus(u)
+	return uuo
+}
+
+// SetExternalID sets the "external_id" field.
+func (uuo *UserUpdateOne) SetExternalID(i int) *UserUpdateOne {
+	uuo.mutation.ResetExternalID()
+	uuo.mutation.SetExternalID(i)
+	return uuo
+}
+
+// AddExternalID adds i to the "external_id" field.
+func (uuo *UserUpdateOne) AddExternalID(i int) *UserUpdateOne {
+	uuo.mutation.AddExternalID(i)
 	return uuo
 }
 
@@ -500,6 +540,20 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeEnum,
 			Value:  value,
 			Column: user.FieldStatus,
+		})
+	}
+	if value, ok := uuo.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldExternalID,
+		})
+	}
+	if value, ok := uuo.mutation.AddedExternalID(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldExternalID,
 		})
 	}
 	if uuo.mutation.GroupCleared() {
