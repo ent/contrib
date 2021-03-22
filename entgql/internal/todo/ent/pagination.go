@@ -360,9 +360,7 @@ func (t *TodoQuery) Paginate(
 	}
 
 	conn := &TodoConnection{Edges: []*TodoEdge{}}
-	if !hasCollectedField(ctx, edgesField) ||
-		first != nil && *first == 0 ||
-		last != nil && *last == 0 {
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) ||
 			hasCollectedField(ctx, pageInfoField) {
 			count, err := t.Count(ctx)
@@ -376,8 +374,7 @@ func (t *TodoQuery) Paginate(
 		return conn, nil
 	}
 
-	if (after != nil || first != nil || before != nil || last != nil) &&
-		hasCollectedField(ctx, totalCountField) {
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
 		count, err := t.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
