@@ -485,7 +485,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	case field.TypeJSON:
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	case field.TypeUUID:
-		return fieldType{}, unsupportedTypeError{Type: f.Type}
+		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_BYTES}, nil
 	case field.TypeBytes:
 		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_BYTES}, nil
 	case field.TypeEnum:

@@ -19,6 +19,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // ValidMessage holds the schema definition for the ValidMessage entity.
@@ -33,6 +34,8 @@ func (ValidMessage) Fields() []ent.Field {
 			Annotations(entproto.Field(2)),
 		field.Time("ts").
 			Annotations(entproto.Field(3)),
+		field.UUID("uuid", uuid.New()).
+			Annotations(entproto.Field(4)),
 	}
 }
 

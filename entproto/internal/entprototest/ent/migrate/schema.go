@@ -101,7 +101,7 @@ var (
 	// InvalidFieldMessagesColumns holds the columns for the "invalid_field_messages" table.
 	InvalidFieldMessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "hello", Type: field.TypeUUID},
+		{Name: "json", Type: field.TypeJSON},
 	}
 	// InvalidFieldMessagesTable holds the schema information for the "invalid_field_messages" table.
 	InvalidFieldMessagesTable = &schema.Table{
@@ -197,6 +197,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "ts", Type: field.TypeTime},
+		{Name: "uuid", Type: field.TypeUUID},
 	}
 	// ValidMessagesTable holds the schema information for the "valid_messages" table.
 	ValidMessagesTable = &schema.Table{

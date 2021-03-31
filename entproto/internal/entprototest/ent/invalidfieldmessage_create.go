@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/schema"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // InvalidFieldMessageCreate is the builder for creating a InvalidFieldMessage entity.
@@ -20,9 +20,9 @@ type InvalidFieldMessageCreate struct {
 	hooks    []Hook
 }
 
-// SetHello sets the "hello" field.
-func (ifmc *InvalidFieldMessageCreate) SetHello(u uuid.UUID) *InvalidFieldMessageCreate {
-	ifmc.mutation.SetHello(u)
+// SetJSON sets the "json" field.
+func (ifmc *InvalidFieldMessageCreate) SetJSON(sj *schema.SomeJSON) *InvalidFieldMessageCreate {
+	ifmc.mutation.SetJSON(sj)
 	return ifmc
 }
 
@@ -77,8 +77,8 @@ func (ifmc *InvalidFieldMessageCreate) SaveX(ctx context.Context) *InvalidFieldM
 
 // check runs all checks and user-defined validators on the builder.
 func (ifmc *InvalidFieldMessageCreate) check() error {
-	if _, ok := ifmc.mutation.Hello(); !ok {
-		return &ValidationError{Name: "hello", err: errors.New("ent: missing required field \"hello\"")}
+	if _, ok := ifmc.mutation.JSON(); !ok {
+		return &ValidationError{Name: "json", err: errors.New("ent: missing required field \"json\"")}
 	}
 	return nil
 }
@@ -107,13 +107,13 @@ func (ifmc *InvalidFieldMessageCreate) createSpec() (*InvalidFieldMessage, *sqlg
 			},
 		}
 	)
-	if value, ok := ifmc.mutation.Hello(); ok {
+	if value, ok := ifmc.mutation.JSON(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: invalidfieldmessage.FieldHello,
+			Column: invalidfieldmessage.FieldJSON,
 		})
-		_node.Hello = value
+		_node.JSON = value
 	}
 	return _node, _spec
 }

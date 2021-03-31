@@ -19,7 +19,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 type SomeJSON struct{}
@@ -32,7 +31,7 @@ type InvalidFieldMessage struct {
 // Fields of the InvalidFieldMessage.
 func (InvalidFieldMessage) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("hello", uuid.New()).
+		field.JSON("json", &SomeJSON{}).
 			Annotations(entproto.Field(2)),
 	}
 }

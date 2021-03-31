@@ -5,7 +5,6 @@ package invalidfieldmessage
 import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
@@ -88,89 +87,6 @@ func IDLT(id int) predicate.InvalidFieldMessage {
 func IDLTE(id int) predicate.InvalidFieldMessage {
 	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
-	})
-}
-
-// Hello applies equality check predicate on the "hello" field. It's identical to HelloEQ.
-func Hello(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldHello), v))
-	})
-}
-
-// HelloEQ applies the EQ predicate on the "hello" field.
-func HelloEQ(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldHello), v))
-	})
-}
-
-// HelloNEQ applies the NEQ predicate on the "hello" field.
-func HelloNEQ(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldHello), v))
-	})
-}
-
-// HelloIn applies the In predicate on the "hello" field.
-func HelloIn(vs ...uuid.UUID) predicate.InvalidFieldMessage {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldHello), v...))
-	})
-}
-
-// HelloNotIn applies the NotIn predicate on the "hello" field.
-func HelloNotIn(vs ...uuid.UUID) predicate.InvalidFieldMessage {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldHello), v...))
-	})
-}
-
-// HelloGT applies the GT predicate on the "hello" field.
-func HelloGT(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldHello), v))
-	})
-}
-
-// HelloGTE applies the GTE predicate on the "hello" field.
-func HelloGTE(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldHello), v))
-	})
-}
-
-// HelloLT applies the LT predicate on the "hello" field.
-func HelloLT(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldHello), v))
-	})
-}
-
-// HelloLTE applies the LTE predicate on the "hello" field.
-func HelloLTE(v uuid.UUID) predicate.InvalidFieldMessage {
-	return predicate.InvalidFieldMessage(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldHello), v))
 	})
 }
 

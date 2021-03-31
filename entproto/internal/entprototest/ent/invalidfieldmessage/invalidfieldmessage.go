@@ -7,8 +7,8 @@ const (
 	Label = "invalid_field_message"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldHello holds the string denoting the hello field in the database.
-	FieldHello = "hello"
+	// FieldJSON holds the string denoting the json field in the database.
+	FieldJSON = "json"
 	// Table holds the table name of the invalidfieldmessage in the database.
 	Table = "invalid_field_messages"
 )
@@ -16,7 +16,7 @@ const (
 // Columns holds all SQL columns for invalidfieldmessage fields.
 var Columns = []string{
 	FieldID,
-	FieldHello,
+	FieldJSON,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

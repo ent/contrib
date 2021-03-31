@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // ValidMessage is the model entity for the ValidMessage schema.
@@ -20,6 +21,8 @@ type ValidMessage struct {
 	Name string `json:"name,omitempty"`
 	// Ts holds the value of the "ts" field.
 	Ts time.Time `json:"ts,omitempty"`
+	// UUID holds the value of the "uuid" field.
+	UUID uuid.UUID `json:"uuid,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,6 +36,8 @@ func (*ValidMessage) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = &sql.NullString{}
 		case validmessage.FieldTs:
 			values[i] = &sql.NullTime{}
+		case validmessage.FieldUUID:
+			values[i] = &uuid.UUID{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ValidMessage", columns[i])
 		}
@@ -66,6 +71,12 @@ func (vm *ValidMessage) assignValues(columns []string, values []interface{}) err
 			} else if value.Valid {
 				vm.Ts = value.Time
 			}
+		case validmessage.FieldUUID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field uuid", values[i])
+			} else if value != nil {
+				vm.UUID = *value
+			}
 		}
 	}
 	return nil
@@ -98,6 +109,8 @@ func (vm *ValidMessage) String() string {
 	builder.WriteString(vm.Name)
 	builder.WriteString(", ts=")
 	builder.WriteString(vm.Ts.Format(time.ANSIC))
+	builder.WriteString(", uuid=")
+	builder.WriteString(fmt.Sprintf("%v", vm.UUID))
 	builder.WriteByte(')')
 	return builder.String()
 }

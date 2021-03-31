@@ -11,6 +11,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // ValidMessageCreate is the builder for creating a ValidMessage entity.
@@ -29,6 +30,12 @@ func (vmc *ValidMessageCreate) SetName(s string) *ValidMessageCreate {
 // SetTs sets the "ts" field.
 func (vmc *ValidMessageCreate) SetTs(t time.Time) *ValidMessageCreate {
 	vmc.mutation.SetTs(t)
+	return vmc
+}
+
+// SetUUID sets the "uuid" field.
+func (vmc *ValidMessageCreate) SetUUID(u uuid.UUID) *ValidMessageCreate {
+	vmc.mutation.SetUUID(u)
 	return vmc
 }
 
@@ -89,6 +96,9 @@ func (vmc *ValidMessageCreate) check() error {
 	if _, ok := vmc.mutation.Ts(); !ok {
 		return &ValidationError{Name: "ts", err: errors.New("ent: missing required field \"ts\"")}
 	}
+	if _, ok := vmc.mutation.UUID(); !ok {
+		return &ValidationError{Name: "uuid", err: errors.New("ent: missing required field \"uuid\"")}
+	}
 	return nil
 }
 
@@ -131,6 +141,14 @@ func (vmc *ValidMessageCreate) createSpec() (*ValidMessage, *sqlgraph.CreateSpec
 			Column: validmessage.FieldTs,
 		})
 		_node.Ts = value
+	}
+	if value, ok := vmc.mutation.UUID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: validmessage.FieldUUID,
+		})
+		_node.UUID = value
 	}
 	return _node, _spec
 }
