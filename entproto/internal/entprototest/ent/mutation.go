@@ -18,6 +18,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/schema"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 	"github.com/google/uuid"
@@ -2241,7 +2242,7 @@ type InvalidFieldMessageMutation struct {
 	op            Op
 	typ           string
 	id            *int
-	hello         *uuid.UUID
+	json          **schema.SomeJSON
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*InvalidFieldMessage, error)
@@ -2327,40 +2328,40 @@ func (m *InvalidFieldMessageMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
-// SetHello sets the "hello" field.
-func (m *InvalidFieldMessageMutation) SetHello(u uuid.UUID) {
-	m.hello = &u
+// SetJSON sets the "json" field.
+func (m *InvalidFieldMessageMutation) SetJSON(sj *schema.SomeJSON) {
+	m.json = &sj
 }
 
-// Hello returns the value of the "hello" field in the mutation.
-func (m *InvalidFieldMessageMutation) Hello() (r uuid.UUID, exists bool) {
-	v := m.hello
+// JSON returns the value of the "json" field in the mutation.
+func (m *InvalidFieldMessageMutation) JSON() (r *schema.SomeJSON, exists bool) {
+	v := m.json
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldHello returns the old "hello" field's value of the InvalidFieldMessage entity.
+// OldJSON returns the old "json" field's value of the InvalidFieldMessage entity.
 // If the InvalidFieldMessage object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InvalidFieldMessageMutation) OldHello(ctx context.Context) (v uuid.UUID, err error) {
+func (m *InvalidFieldMessageMutation) OldJSON(ctx context.Context) (v *schema.SomeJSON, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldHello is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldJSON is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldHello requires an ID field in the mutation")
+		return v, fmt.Errorf("OldJSON requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHello: %w", err)
+		return v, fmt.Errorf("querying old value for OldJSON: %w", err)
 	}
-	return oldValue.Hello, nil
+	return oldValue.JSON, nil
 }
 
-// ResetHello resets all changes to the "hello" field.
-func (m *InvalidFieldMessageMutation) ResetHello() {
-	m.hello = nil
+// ResetJSON resets all changes to the "json" field.
+func (m *InvalidFieldMessageMutation) ResetJSON() {
+	m.json = nil
 }
 
 // Op returns the operation name.
@@ -2378,8 +2379,8 @@ func (m *InvalidFieldMessageMutation) Type() string {
 // AddedFields().
 func (m *InvalidFieldMessageMutation) Fields() []string {
 	fields := make([]string, 0, 1)
-	if m.hello != nil {
-		fields = append(fields, invalidfieldmessage.FieldHello)
+	if m.json != nil {
+		fields = append(fields, invalidfieldmessage.FieldJSON)
 	}
 	return fields
 }
@@ -2389,8 +2390,8 @@ func (m *InvalidFieldMessageMutation) Fields() []string {
 // schema.
 func (m *InvalidFieldMessageMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case invalidfieldmessage.FieldHello:
-		return m.Hello()
+	case invalidfieldmessage.FieldJSON:
+		return m.JSON()
 	}
 	return nil, false
 }
@@ -2400,8 +2401,8 @@ func (m *InvalidFieldMessageMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *InvalidFieldMessageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case invalidfieldmessage.FieldHello:
-		return m.OldHello(ctx)
+	case invalidfieldmessage.FieldJSON:
+		return m.OldJSON(ctx)
 	}
 	return nil, fmt.Errorf("unknown InvalidFieldMessage field %s", name)
 }
@@ -2411,12 +2412,12 @@ func (m *InvalidFieldMessageMutation) OldField(ctx context.Context, name string)
 // type.
 func (m *InvalidFieldMessageMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case invalidfieldmessage.FieldHello:
-		v, ok := value.(uuid.UUID)
+	case invalidfieldmessage.FieldJSON:
+		v, ok := value.(*schema.SomeJSON)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetHello(v)
+		m.SetJSON(v)
 		return nil
 	}
 	return fmt.Errorf("unknown InvalidFieldMessage field %s", name)
@@ -2467,8 +2468,8 @@ func (m *InvalidFieldMessageMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *InvalidFieldMessageMutation) ResetField(name string) error {
 	switch name {
-	case invalidfieldmessage.FieldHello:
-		m.ResetHello()
+	case invalidfieldmessage.FieldJSON:
+		m.ResetJSON()
 		return nil
 	}
 	return fmt.Errorf("unknown InvalidFieldMessage field %s", name)
@@ -4555,6 +4556,7 @@ type ValidMessageMutation struct {
 	id            *int
 	name          *string
 	ts            *time.Time
+	uuid          *uuid.UUID
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*ValidMessage, error)
@@ -4712,6 +4714,42 @@ func (m *ValidMessageMutation) ResetTs() {
 	m.ts = nil
 }
 
+// SetUUID sets the "uuid" field.
+func (m *ValidMessageMutation) SetUUID(u uuid.UUID) {
+	m.uuid = &u
+}
+
+// UUID returns the value of the "uuid" field in the mutation.
+func (m *ValidMessageMutation) UUID() (r uuid.UUID, exists bool) {
+	v := m.uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUUID returns the old "uuid" field's value of the ValidMessage entity.
+// If the ValidMessage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ValidMessageMutation) OldUUID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUUID: %w", err)
+	}
+	return oldValue.UUID, nil
+}
+
+// ResetUUID resets all changes to the "uuid" field.
+func (m *ValidMessageMutation) ResetUUID() {
+	m.uuid = nil
+}
+
 // Op returns the operation name.
 func (m *ValidMessageMutation) Op() Op {
 	return m.op
@@ -4726,12 +4764,15 @@ func (m *ValidMessageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ValidMessageMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.name != nil {
 		fields = append(fields, validmessage.FieldName)
 	}
 	if m.ts != nil {
 		fields = append(fields, validmessage.FieldTs)
+	}
+	if m.uuid != nil {
+		fields = append(fields, validmessage.FieldUUID)
 	}
 	return fields
 }
@@ -4745,6 +4786,8 @@ func (m *ValidMessageMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case validmessage.FieldTs:
 		return m.Ts()
+	case validmessage.FieldUUID:
+		return m.UUID()
 	}
 	return nil, false
 }
@@ -4758,6 +4801,8 @@ func (m *ValidMessageMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldName(ctx)
 	case validmessage.FieldTs:
 		return m.OldTs(ctx)
+	case validmessage.FieldUUID:
+		return m.OldUUID(ctx)
 	}
 	return nil, fmt.Errorf("unknown ValidMessage field %s", name)
 }
@@ -4780,6 +4825,13 @@ func (m *ValidMessageMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTs(v)
+		return nil
+	case validmessage.FieldUUID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUUID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ValidMessage field %s", name)
@@ -4835,6 +4887,9 @@ func (m *ValidMessageMutation) ResetField(name string) error {
 		return nil
 	case validmessage.FieldTs:
 		m.ResetTs()
+		return nil
+	case validmessage.FieldUUID:
+		m.ResetUUID()
 		return nil
 	}
 	return fmt.Errorf("unknown ValidMessage field %s", name)

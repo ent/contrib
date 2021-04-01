@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // ValidMessageUpdate is the builder for updating ValidMessage entities.
@@ -36,6 +37,12 @@ func (vmu *ValidMessageUpdate) SetName(s string) *ValidMessageUpdate {
 // SetTs sets the "ts" field.
 func (vmu *ValidMessageUpdate) SetTs(t time.Time) *ValidMessageUpdate {
 	vmu.mutation.SetTs(t)
+	return vmu
+}
+
+// SetUUID sets the "uuid" field.
+func (vmu *ValidMessageUpdate) SetUUID(u uuid.UUID) *ValidMessageUpdate {
+	vmu.mutation.SetUUID(u)
 	return vmu
 }
 
@@ -127,6 +134,13 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: validmessage.FieldTs,
 		})
 	}
+	if value, ok := vmu.mutation.UUID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: validmessage.FieldUUID,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, vmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{validmessage.Label}
@@ -154,6 +168,12 @@ func (vmuo *ValidMessageUpdateOne) SetName(s string) *ValidMessageUpdateOne {
 // SetTs sets the "ts" field.
 func (vmuo *ValidMessageUpdateOne) SetTs(t time.Time) *ValidMessageUpdateOne {
 	vmuo.mutation.SetTs(t)
+	return vmuo
+}
+
+// SetUUID sets the "uuid" field.
+func (vmuo *ValidMessageUpdateOne) SetUUID(u uuid.UUID) *ValidMessageUpdateOne {
+	vmuo.mutation.SetUUID(u)
 	return vmuo
 }
 
@@ -248,6 +268,13 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: validmessage.FieldTs,
+		})
+	}
+	if value, ok := vmuo.mutation.UUID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: validmessage.FieldUUID,
 		})
 	}
 	_node = &ValidMessage{config: vmuo.config}

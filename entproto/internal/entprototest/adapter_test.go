@@ -56,7 +56,7 @@ func (suite *AdapterTestSuite) TestValidMessage() {
 	suite.Equal("entgo.io/contrib/entproto/internal/entprototest/ent/proto/entpb",
 		fd.GetFileOptions().GetGoPackage())
 	message := fd.FindMessage("entpb.ValidMessage")
-	suite.Len(message.GetFields(), 3)
+	suite.Len(message.GetFields(), 4)
 
 	idField := message.FindFieldByName("id")
 	suite.NotNil(idField)
@@ -70,6 +70,9 @@ func (suite *AdapterTestSuite) TestValidMessage() {
 	suite.NotNil(nameField)
 	suite.EqualValues(3, tsField.GetNumber())
 	suite.EqualValues("google.protobuf.Timestamp", tsField.GetMessageType().GetFullyQualifiedName())
+
+	uuField := message.FindFieldByName("uuid")
+	suite.NotNil(uuField)
 }
 
 func (suite *AdapterTestSuite) TestWktProtosDropped() {
@@ -90,7 +93,7 @@ func (suite *AdapterTestSuite) TestExplicitSkippedMessage() {
 
 func (suite *AdapterTestSuite) TestInvalidField() {
 	_, err := suite.adapter.GetFileDescriptor("InvalidFieldMessage")
-	suite.EqualError(err, "unsupported field type \"TypeUUID\"")
+	suite.EqualError(err, "unsupported field type \"TypeJSON\"")
 }
 
 func (suite *AdapterTestSuite) TestDuplicateNumber() {

@@ -8,10 +8,10 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/schema"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // InvalidFieldMessageUpdate is the builder for updating InvalidFieldMessage entities.
@@ -27,9 +27,9 @@ func (ifmu *InvalidFieldMessageUpdate) Where(ps ...predicate.InvalidFieldMessage
 	return ifmu
 }
 
-// SetHello sets the "hello" field.
-func (ifmu *InvalidFieldMessageUpdate) SetHello(u uuid.UUID) *InvalidFieldMessageUpdate {
-	ifmu.mutation.SetHello(u)
+// SetJSON sets the "json" field.
+func (ifmu *InvalidFieldMessageUpdate) SetJSON(sj *schema.SomeJSON) *InvalidFieldMessageUpdate {
+	ifmu.mutation.SetJSON(sj)
 	return ifmu
 }
 
@@ -107,11 +107,11 @@ func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err 
 			}
 		}
 	}
-	if value, ok := ifmu.mutation.Hello(); ok {
+	if value, ok := ifmu.mutation.JSON(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: invalidfieldmessage.FieldHello,
+			Column: invalidfieldmessage.FieldJSON,
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ifmu.driver, _spec); err != nil {
@@ -132,9 +132,9 @@ type InvalidFieldMessageUpdateOne struct {
 	mutation *InvalidFieldMessageMutation
 }
 
-// SetHello sets the "hello" field.
-func (ifmuo *InvalidFieldMessageUpdateOne) SetHello(u uuid.UUID) *InvalidFieldMessageUpdateOne {
-	ifmuo.mutation.SetHello(u)
+// SetJSON sets the "json" field.
+func (ifmuo *InvalidFieldMessageUpdateOne) SetJSON(sj *schema.SomeJSON) *InvalidFieldMessageUpdateOne {
+	ifmuo.mutation.SetJSON(sj)
 	return ifmuo
 }
 
@@ -217,11 +217,11 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 			}
 		}
 	}
-	if value, ok := ifmuo.mutation.Hello(); ok {
+	if value, ok := ifmuo.mutation.JSON(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
+			Type:   field.TypeJSON,
 			Value:  value,
-			Column: invalidfieldmessage.FieldHello,
+			Column: invalidfieldmessage.FieldJSON,
 		})
 	}
 	_node = &InvalidFieldMessage{config: ifmuo.config}

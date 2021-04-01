@@ -22,23 +22,19 @@ import (
 	"github.com/google/uuid"
 )
 
-// ValidMessage holds the schema definition for the ValidMessage entity.
-type ValidMessage struct {
+type Attachment struct {
 	ent.Schema
 }
 
-// Fields of the ValidMessage.
-func (ValidMessage) Fields() []ent.Field {
+func (Attachment) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			Annotations(entproto.Field(2)),
-		field.Time("ts").
-			Annotations(entproto.Field(3)),
-		field.UUID("uuid", uuid.New()).
-			Annotations(entproto.Field(4)),
+		field.UUID("id", uuid.New()).
+			Annotations(entproto.Field(1)),
 	}
 }
 
-func (ValidMessage) Annotations() []schema.Annotation {
-	return []schema.Annotation{entproto.Message()}
+func (Attachment) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entproto.Message(),
+	}
 }

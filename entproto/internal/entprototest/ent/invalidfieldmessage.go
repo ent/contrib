@@ -3,12 +3,13 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/schema"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 )
 
 // InvalidFieldMessage is the model entity for the InvalidFieldMessage schema.
@@ -16,8 +17,8 @@ type InvalidFieldMessage struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Hello holds the value of the "hello" field.
-	Hello uuid.UUID `json:"hello,omitempty"`
+	// JSON holds the value of the "json" field.
+	JSON *schema.SomeJSON `json:"json,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,10 +26,10 @@ func (*InvalidFieldMessage) scanValues(columns []string) ([]interface{}, error) 
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case invalidfieldmessage.FieldJSON:
+			values[i] = &[]byte{}
 		case invalidfieldmessage.FieldID:
 			values[i] = &sql.NullInt64{}
-		case invalidfieldmessage.FieldHello:
-			values[i] = &uuid.UUID{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type InvalidFieldMessage", columns[i])
 		}
@@ -50,11 +51,14 @@ func (ifm *InvalidFieldMessage) assignValues(columns []string, values []interfac
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			ifm.ID = int(value.Int64)
-		case invalidfieldmessage.FieldHello:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field hello", values[i])
-			} else if value != nil {
-				ifm.Hello = *value
+		case invalidfieldmessage.FieldJSON:
+
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field json", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ifm.JSON); err != nil {
+					return fmt.Errorf("unmarshal field json: %w", err)
+				}
 			}
 		}
 	}
@@ -84,8 +88,8 @@ func (ifm *InvalidFieldMessage) String() string {
 	var builder strings.Builder
 	builder.WriteString("InvalidFieldMessage(")
 	builder.WriteString(fmt.Sprintf("id=%v", ifm.ID))
-	builder.WriteString(", hello=")
-	builder.WriteString(fmt.Sprintf("%v", ifm.Hello))
+	builder.WriteString(", json=")
+	builder.WriteString(fmt.Sprintf("%v", ifm.JSON))
 	builder.WriteByte(')')
 	return builder.String()
 }
