@@ -214,9 +214,7 @@ func (g *serviceGenerator) generateValidator() {
 	func validate%(typeName)(x *%(typeName)) error {`, g.withGlobals())
 	for _, fld := range g.fieldMap.Fields() {
 		if fieldNeedsValidator(fld) {
-			switch fld.EntField.Type.Type {
-			// TODO: rm string check, replace with UUID once that's merged
-			case field.TypeString:
+			if fld.EntField.Type.Type == field.TypeString {
 				g.Tmpl(`if x.Get%(pbField)() == "sentinel" {
 					return %(fmtErr)("entproto: field cannot be sentinel")
 				}`, g.withGlobals(tmplValues{
