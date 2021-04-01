@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema/field"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -109,6 +110,9 @@ func (g *serviceGenerator) generate() error {
 	}
 	if err := g.generateToProtoFunc(); err != nil {
 		return err
+	}
+	if typeNeedsValidator(g.fieldMap) {
+		g.generateValidator()
 	}
 	g.P()
 
@@ -197,6 +201,33 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 	g.P("	}")
 	g.P("}")
 	return nil
+}
+
+// generateValidator generates a validation function for the service entity, to verify that
+// the gRPC input is safe to pass to ent. Ent has already rich validation functionality and
+// this layer should *only* assert invariants that are expected by ent but cannot be guaranteed
+// by gRPC. For instance, TypeUUID is serialized as a proto bytes field, must be 16-bytes long.
+func (g *serviceGenerator) generateValidator() {
+	g.Tmpl(`
+	// validate%(typeName) validates that all fields are encoded properly and are safe to pass
+	// to the ent entity builder.
+	func validate%(typeName)(x *%(typeName)) error {`, g.withGlobals())
+	for _, fld := range g.fieldMap.Fields() {
+		if fieldNeedsValidator(fld) {
+			switch fld.EntField.Type.Type {
+			// TODO: rm string check, replace with UUID once that's merged
+			case field.TypeString:
+				g.Tmpl(`if x.Get%(pbField)() == "sentinel" {
+					return %(fmtErr)("entproto: field cannot be sentinel")
+				}`, g.withGlobals(tmplValues{
+					"pbField": fld.PbStructField(),
+				}))
+			}
+		}
+	}
+	// TODO: Generate Edge Field checks
+	g.P("return nil")
+	g.P("}")
 }
 
 type serviceGenerator struct {

@@ -79,6 +79,15 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
+
+	if typeNeedsValidator(g.fieldMap) {
+		g.Tmpl(`if err := validate%(typeName)(%(reqVar)); err != nil {
+			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
+		}`, g.withGlobals(tmplValues{
+			"reqVar": reqVar,
+		}))
+	}
+
 	switch op {
 	case "create":
 		g.Tmpl("res, err := svc.client.%(typeName).Create().", g.withGlobals())
@@ -154,6 +163,7 @@ func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
 		"notFound":          codes.Ident("NotFound"),
 		"internal":          codes.Ident("Internal"),
 		"typeName":          g.typeName,
+		"fmtErr":            protogen.GoImportPath("fmt").Ident("Errorf"),
 	}
 	for _, additional := range additionals {
 		for k, v := range additional {
