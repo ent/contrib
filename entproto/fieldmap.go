@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"entgo.io/ent/entc/gen"
-	"entgo.io/ent/schema/field"
 	"github.com/go-openapi/inflect"
 	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -120,16 +119,6 @@ func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
 func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {
 	field := strings.Title(camel(d.EntEdge.Ref.Type.ID.Name))
 	return d.ReferencedPbType.FindFieldByName(snake(field))
-}
-
-// ShouldValidatePb checks if this field should be verified when received as Protobuf
-func (d *FieldMappingDescriptor) ShouldValidatePb() bool {
-	switch d.EntField.Type.Type {
-	case field.TypeUUID:
-		return true
-	default:
-		return false
-	}
 }
 
 func (a *Adapter) mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, error) {
