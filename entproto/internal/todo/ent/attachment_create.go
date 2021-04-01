@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
-	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -24,25 +23,6 @@ type AttachmentCreate struct {
 func (ac *AttachmentCreate) SetID(u uuid.UUID) *AttachmentCreate {
 	ac.mutation.SetID(u)
 	return ac
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (ac *AttachmentCreate) SetUserID(id int) *AttachmentCreate {
-	ac.mutation.SetUserID(id)
-	return ac
-}
-
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (ac *AttachmentCreate) SetNillableUserID(id *int) *AttachmentCreate {
-	if id != nil {
-		ac = ac.SetUserID(*id)
-	}
-	return ac
-}
-
-// SetUser sets the "user" edge to the User entity.
-func (ac *AttachmentCreate) SetUser(u *User) *AttachmentCreate {
-	return ac.SetUserID(u.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -124,26 +104,6 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
-	}
-	if nodes := ac.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   attachment.UserTable,
-			Columns: []string{attachment.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.user_attachment = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

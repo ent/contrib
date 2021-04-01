@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
-	"entgo.io/contrib/entproto/internal/todo/ent/user"
-	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
 
@@ -17,33 +15,6 @@ type Attachment struct {
 	config
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the AttachmentQuery when eager-loading is set.
-	Edges           AttachmentEdges `json:"edges"`
-	user_attachment *int
-}
-
-// AttachmentEdges holds the relations/edges for other nodes in the graph.
-type AttachmentEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// UserOrErr returns the User value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AttachmentEdges) UserOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.User == nil {
-			// The edge user was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
-		return e.User, nil
-	}
-	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -53,8 +24,6 @@ func (*Attachment) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case attachment.FieldID:
 			values[i] = &uuid.UUID{}
-		case attachment.ForeignKeys[0]: // user_attachment
-			values[i] = &sql.NullInt64{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
 		}
@@ -76,21 +45,9 @@ func (a *Attachment) assignValues(columns []string, values []interface{}) error 
 			} else if value != nil {
 				a.ID = *value
 			}
-		case attachment.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_attachment", value)
-			} else if value.Valid {
-				a.user_attachment = new(int)
-				*a.user_attachment = int(value.Int64)
-			}
 		}
 	}
 	return nil
-}
-
-// QueryUser queries the "user" edge of the Attachment entity.
-func (a *Attachment) QueryUser() *UserQuery {
-	return (&AttachmentClient{config: a.config}).QueryUser(a)
 }
 
 // Update returns a builder for updating this Attachment.
