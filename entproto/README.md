@@ -249,7 +249,7 @@ Ent Type | Proto Type | More considerations
 TypeBool | bool |
 TypeTime | google.protobuf.Timestamp |
 TypeJSON | X |
-TypeUUID | X |
+TypeUUID | bytes | When receiving an arbitrary byte slice as input, 16-byte length must be validated
 TypeBytes | bytes |
 TypeEnum | Enum | Proto enums like proto fields require stable numbers to be assigned to each value. Therefore we will need to add an extra annotation to map from field value to tag number.
 TypeString | string |
