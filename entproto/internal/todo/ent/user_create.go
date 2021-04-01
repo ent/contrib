@@ -12,6 +12,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -54,6 +55,12 @@ func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
 // SetExternalID sets the "external_id" field.
 func (uc *UserCreate) SetExternalID(i int) *UserCreate {
 	uc.mutation.SetExternalID(i)
+	return uc
+}
+
+// SetCrmID sets the "crm_id" field.
+func (uc *UserCreate) SetCrmID(u uuid.UUID) *UserCreate {
+	uc.mutation.SetCrmID(u)
 	return uc
 }
 
@@ -150,6 +157,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.ExternalID(); !ok {
 		return &ValidationError{Name: "external_id", err: errors.New("ent: missing required field \"external_id\"")}
 	}
+	if _, ok := uc.mutation.CrmID(); !ok {
+		return &ValidationError{Name: "crm_id", err: errors.New("ent: missing required field \"crm_id\"")}
+	}
 	return nil
 }
 
@@ -224,6 +234,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldExternalID,
 		})
 		_node.ExternalID = value
+	}
+	if value, ok := uc.mutation.CrmID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: user.FieldCrmID,
+		})
+		_node.CrmID = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

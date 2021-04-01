@@ -8,6 +8,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
@@ -125,6 +126,13 @@ func Exp(v uint64) predicate.User {
 func ExternalID(v int) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldExternalID), v))
+	})
+}
+
+// CrmID applies equality check predicate on the "crm_id" field. It's identical to CrmIDEQ.
+func CrmID(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCrmID), v))
 	})
 }
 
@@ -588,6 +596,82 @@ func ExternalIDLT(v int) predicate.User {
 func ExternalIDLTE(v int) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldExternalID), v))
+	})
+}
+
+// CrmIDEQ applies the EQ predicate on the "crm_id" field.
+func CrmIDEQ(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCrmID), v))
+	})
+}
+
+// CrmIDNEQ applies the NEQ predicate on the "crm_id" field.
+func CrmIDNEQ(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCrmID), v))
+	})
+}
+
+// CrmIDIn applies the In predicate on the "crm_id" field.
+func CrmIDIn(vs ...uuid.UUID) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCrmID), v...))
+	})
+}
+
+// CrmIDNotIn applies the NotIn predicate on the "crm_id" field.
+func CrmIDNotIn(vs ...uuid.UUID) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCrmID), v...))
+	})
+}
+
+// CrmIDGT applies the GT predicate on the "crm_id" field.
+func CrmIDGT(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCrmID), v))
+	})
+}
+
+// CrmIDGTE applies the GTE predicate on the "crm_id" field.
+func CrmIDGTE(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCrmID), v))
+	})
+}
+
+// CrmIDLT applies the LT predicate on the "crm_id" field.
+func CrmIDLT(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCrmID), v))
+	})
+}
+
+// CrmIDLTE applies the LTE predicate on the "crm_id" field.
+func CrmIDLTE(v uuid.UUID) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCrmID), v))
 	})
 }
 

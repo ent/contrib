@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -82,6 +83,12 @@ func (uu *UserUpdate) SetExternalID(i int) *UserUpdate {
 // AddExternalID adds i to the "external_id" field.
 func (uu *UserUpdate) AddExternalID(i int) *UserUpdate {
 	uu.mutation.AddExternalID(i)
+	return uu
+}
+
+// SetCrmID sets the "crm_id" field.
+func (uu *UserUpdate) SetCrmID(u uuid.UUID) *UserUpdate {
+	uu.mutation.SetCrmID(u)
 	return uu
 }
 
@@ -263,6 +270,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldExternalID,
 		})
 	}
+	if value, ok := uu.mutation.CrmID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: user.FieldCrmID,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -370,6 +384,12 @@ func (uuo *UserUpdateOne) SetExternalID(i int) *UserUpdateOne {
 // AddExternalID adds i to the "external_id" field.
 func (uuo *UserUpdateOne) AddExternalID(i int) *UserUpdateOne {
 	uuo.mutation.AddExternalID(i)
+	return uuo
+}
+
+// SetCrmID sets the "crm_id" field.
+func (uuo *UserUpdateOne) SetCrmID(u uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetCrmID(u)
 	return uuo
 }
 
@@ -554,6 +574,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: user.FieldExternalID,
+		})
+	}
+	if value, ok := uuo.mutation.CrmID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: user.FieldCrmID,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

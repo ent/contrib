@@ -54,6 +54,8 @@ message User {
 
   int32 external_id = 8;
 
+  bytes crm_id = 9;
+
   Group group = 7;
 
   enum Status {

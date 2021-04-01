@@ -10,6 +10,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
@@ -29,6 +30,8 @@ type User struct {
 	Status user.Status `json:"status,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID int `json:"external_id,omitempty"`
+	// CrmID holds the value of the "crm_id" field.
+	CrmID uuid.UUID `json:"crm_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -69,6 +72,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = &sql.NullString{}
 		case user.FieldJoined:
 			values[i] = &sql.NullTime{}
+		case user.FieldCrmID:
+			values[i] = &uuid.UUID{}
 		case user.ForeignKeys[0]: // user_group
 			values[i] = &sql.NullInt64{}
 		default:
@@ -128,6 +133,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.ExternalID = int(value.Int64)
 			}
+		case user.FieldCrmID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field crm_id", values[i])
+			} else if value != nil {
+				u.CrmID = *value
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -180,6 +191,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Status))
 	builder.WriteString(", external_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.ExternalID))
+	builder.WriteString(", crm_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.CrmID))
 	builder.WriteByte(')')
 	return builder.String()
 }

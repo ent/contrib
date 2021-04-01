@@ -3,11 +3,10 @@ package entpb
 
 import (
 	context "context"
-	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
+	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
-	fmt "fmt"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -45,6 +44,7 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
+		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
 		Exp:        uint64(e.Exp),
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
@@ -58,8 +58,8 @@ func toProtoUser(e *ent.User) *User {
 // validateUser validates that all fields are encoded properly and are safe to pass
 // to the ent entity builder.
 func validateUser(x *User) error {
-	if x.GetUserName() == "sentinel" {
-		return fmt.Errorf("entproto: field cannot be sentinel")
+	if err := runtime.ValidateUUID(x.GetCrmId()); err != nil {
+		return err
 	}
 	return nil
 }
@@ -71,9 +71,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.Create().
+		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
-		SetJoined(entproto.ExtractTime(user.GetJoined())).
+		SetJoined(runtime.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).
@@ -112,9 +113,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
+		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
-		SetJoined(entproto.ExtractTime(user.GetJoined())).
+		SetJoined(runtime.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).

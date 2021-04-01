@@ -23,6 +23,8 @@ const (
 	FieldStatus = "status"
 	// FieldExternalID holds the string denoting the external_id field in the database.
 	FieldExternalID = "external_id"
+	// FieldCrmID holds the string denoting the crm_id field in the database.
+	FieldCrmID = "crm_id"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// Table holds the table name of the user in the database.
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldExp,
 	FieldStatus,
 	FieldExternalID,
+	FieldCrmID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

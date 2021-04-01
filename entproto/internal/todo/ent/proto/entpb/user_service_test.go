@@ -22,6 +22,8 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
+	"entgo.io/contrib/entproto/runtime"
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -35,6 +37,8 @@ func TestUserService_Create(t *testing.T) {
 	svc := NewUserService(client)
 	ctx := context.Background()
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
+	crmID, err := uuid.New().MarshalBinary()
+	require.NoError(t, err)
 	inputUser := &User{
 		UserName:   "rotemtam",
 		Joined:     timestamppb.Now(),
@@ -45,6 +49,7 @@ func TestUserService_Create(t *testing.T) {
 		Group: &Group{
 			Id: int32(group.ID),
 		},
+		CrmId: crmID,
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -80,6 +85,7 @@ func TestUserService_Get(t *testing.T) {
 		SetExp(1000).
 		SetStatus("pending").
 		SetExternalID(1).
+		SetCrmID(uuid.New()).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: int32(created.ID),
@@ -110,6 +116,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetExp(1000).
 		SetStatus("pending").
 		SetExternalID(1).
+		SetCrmID(uuid.New()).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
 		Id: int32(created.ID),
@@ -140,6 +147,7 @@ func TestUserService_Update(t *testing.T) {
 		SetExp(1000).
 		SetStatus("pending").
 		SetExternalID(1).
+		SetCrmID(uuid.New()).
 		SaveX(ctx)
 
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
@@ -154,6 +162,7 @@ func TestUserService_Update(t *testing.T) {
 		Group: &Group{
 			Id: int32(group.ID),
 		},
+		CrmId: runtime.MustExtractUUIDBytes(created.CrmID),
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,

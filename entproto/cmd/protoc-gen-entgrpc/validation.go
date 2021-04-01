@@ -16,7 +16,6 @@ package main
 
 import (
 	"entgo.io/contrib/entproto"
-	"entgo.io/ent/schema/field"
 )
 
 func typeNeedsValidator(d entproto.FieldMap) bool {
@@ -33,11 +32,5 @@ func fieldNeedsValidator(d *entproto.FieldMappingDescriptor) bool {
 	if d.EntField == nil {
 		return false
 	}
-	switch d.EntField.Type.Type {
-	// TODO: rm TypeString, leave UUID once https://github.com/ent/contrib/pull/54 is merged
-	case field.TypeUUID, field.TypeString:
-		return true
-	default:
-		return false
-	}
+	return d.EntField.IsUUID()
 }

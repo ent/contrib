@@ -23,7 +23,6 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"entgo.io/ent/schema/field"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -214,11 +213,12 @@ func (g *serviceGenerator) generateValidator() {
 	func validate%(typeName)(x *%(typeName)) error {`, g.withGlobals())
 	for _, fld := range g.fieldMap.Fields() {
 		if fieldNeedsValidator(fld) {
-			if fld.EntField.Type.Type == field.TypeString {
-				g.Tmpl(`if x.Get%(pbField)() == "sentinel" {
-					return %(fmtErr)("entproto: field cannot be sentinel")
+			if fld.EntField.IsUUID() {
+				g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)()); err != nil {
+					return err
 				}`, g.withGlobals(tmplValues{
-					"pbField": fld.PbStructField(),
+					"pbField":      fld.PbStructField(),
+					"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
 				}))
 			}
 		}

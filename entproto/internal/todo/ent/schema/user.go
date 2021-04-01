@@ -20,6 +20,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -58,6 +59,8 @@ func (User) Fields() []ent.Field {
 		field.Int("external_id").
 			Unique().
 			Annotations(entproto.Field(8)),
+		field.UUID("crm_id", uuid.New()).
+			Annotations(entproto.Field(9)),
 	}
 }
 
