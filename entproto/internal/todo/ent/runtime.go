@@ -4,6 +4,7 @@ package ent
 
 import (
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
+	"entgo.io/contrib/entproto/internal/todo/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -12,4 +13,10 @@ import (
 func init() {
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescBanned is the schema descriptor for banned field.
+	userDescBanned := userFields[6].Descriptor()
+	// user.DefaultBanned holds the default value on creation for the banned field.
+	user.DefaultBanned = userDescBanned.Default.(bool)
 }

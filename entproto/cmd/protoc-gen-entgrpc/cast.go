@@ -26,6 +26,8 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 	// TODO(rotemtam): don't wrap if the ent type == the pb type
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
+	case dpb.FieldDescriptorProto_TYPE_BOOL:
+		return "bool", nil
 	case dpb.FieldDescriptorProto_TYPE_INT32:
 		return "int32", nil
 	case dpb.FieldDescriptorProto_TYPE_INT64:
