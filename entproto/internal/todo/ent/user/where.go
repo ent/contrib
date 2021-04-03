@@ -128,6 +128,13 @@ func ExternalID(v int) predicate.User {
 	})
 }
 
+// Banned applies equality check predicate on the "banned" field. It's identical to BannedEQ.
+func Banned(v bool) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBanned), v))
+	})
+}
+
 // UserNameEQ applies the EQ predicate on the "user_name" field.
 func UserNameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -588,6 +595,20 @@ func ExternalIDLT(v int) predicate.User {
 func ExternalIDLTE(v int) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldExternalID), v))
+	})
+}
+
+// BannedEQ applies the EQ predicate on the "banned" field.
+func BannedEQ(v bool) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBanned), v))
+	})
+}
+
+// BannedNEQ applies the NEQ predicate on the "banned" field.
+func BannedNEQ(v bool) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBanned), v))
 	})
 }
 

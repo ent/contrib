@@ -44,6 +44,7 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
+		Banned:     bool(e.Banned),
 		Exp:        uint64(e.Exp),
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
@@ -58,6 +59,7 @@ func toProtoUser(e *ent.User) *User {
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
 	res, err := svc.client.User.Create().
+		SetBanned(bool(user.GetBanned())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
 		SetJoined(entproto.ExtractTime(user.GetJoined())).
@@ -96,6 +98,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
+		SetBanned(bool(user.GetBanned())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
 		SetJoined(entproto.ExtractTime(user.GetJoined())).

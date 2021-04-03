@@ -45,6 +45,7 @@ func TestUserService_Create(t *testing.T) {
 		Group: &Group{
 			Id: int32(group.ID),
 		},
+		Banned: true,
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -58,6 +59,7 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.Exp, fromDB.Exp)
 	require.EqualValues(t, inputUser.Points, fromDB.Points)
 	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper(string(fromDB.Status)))
+	require.EqualValues(t, inputUser.Banned, fromDB.Banned)
 
 	// preexisting user
 	_, err = svc.Create(ctx, &CreateUserRequest{

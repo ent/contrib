@@ -57,6 +57,20 @@ func (uc *UserCreate) SetExternalID(i int) *UserCreate {
 	return uc
 }
 
+// SetBanned sets the "banned" field.
+func (uc *UserCreate) SetBanned(b bool) *UserCreate {
+	uc.mutation.SetBanned(b)
+	return uc
+}
+
+// SetNillableBanned sets the "banned" field if the given value is not nil.
+func (uc *UserCreate) SetNillableBanned(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetBanned(*b)
+	}
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -87,6 +101,7 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 		err  error
 		node *User
 	)
+	uc.defaults()
 	if len(uc.hooks) == 0 {
 		if err = uc.check(); err != nil {
 			return nil, err
@@ -125,6 +140,14 @@ func (uc *UserCreate) SaveX(ctx context.Context) *User {
 	return v
 }
 
+// defaults sets the default values of the builder before save.
+func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.Banned(); !ok {
+		v := user.DefaultBanned
+		uc.mutation.SetBanned(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.UserName(); !ok {
@@ -149,6 +172,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.ExternalID(); !ok {
 		return &ValidationError{Name: "external_id", err: errors.New("ent: missing required field \"external_id\"")}
+	}
+	if _, ok := uc.mutation.Banned(); !ok {
+		return &ValidationError{Name: "banned", err: errors.New("ent: missing required field \"banned\"")}
 	}
 	return nil
 }
@@ -225,6 +251,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		})
 		_node.ExternalID = value
 	}
+	if value, ok := uc.mutation.Banned(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: user.FieldBanned,
+		})
+		_node.Banned = value
+	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -262,6 +296,7 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	for i := range ucb.builders {
 		func(i int, root context.Context) {
 			builder := ucb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
 				if !ok {

@@ -58,6 +58,9 @@ func (User) Fields() []ent.Field {
 		field.Int("external_id").
 			Unique().
 			Annotations(entproto.Field(8)),
+		field.Bool("banned").
+			Default(false).
+			Annotations(entproto.Field(9)),
 	}
 }
 
