@@ -16,7 +16,6 @@ package main
 
 import (
 	"entgo.io/contrib/entproto"
-	"entgo.io/ent/schema/field"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -30,10 +29,11 @@ func typeNeedsValidator(d entproto.FieldMap) bool {
 }
 
 func fieldNeedsValidator(d *entproto.FieldMappingDescriptor) bool {
+	f := d.EntField
 	if d.IsEdgeField {
-		return d.EdgeIDType() == field.TypeUUID
+		f = d.EntEdge.Type.ID
 	}
-	return d.EntField.IsUUID()
+	return f.IsUUID()
 }
 
 // generateValidator generates a validation function for the service entity, to verify that
@@ -65,7 +65,8 @@ func (g *serviceGenerator) generateValidator() {
 	}
 	for _, edg := range g.fieldMap.Edges() {
 		if fieldNeedsValidator(edg) {
-			if edg.EdgeIDType() == field.TypeUUID {
+			f := edg.EntEdge.Type.ID
+			if f.IsUUID() {
 				g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)().Get%(edgeIdField)()); err != nil {
 					return err
 				}`, g.withGlobals(tmplValues{

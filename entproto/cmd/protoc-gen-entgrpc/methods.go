@@ -15,6 +15,8 @@
 package main
 
 import (
+	"strconv"
+
 	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -85,20 +87,14 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
-	checkIDFlag := "true"
-	if op == "create" {
-		checkIDFlag = "false"
-	}
-
 	if typeNeedsValidator(g.fieldMap) {
 		g.Tmpl(`if err := validate%(typeName)(%(reqVar), %(checkIDFlag)); err != nil {
 			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
 		}`, g.withGlobals(tmplValues{
 			"reqVar":      reqVar,
-			"checkIDFlag": checkIDFlag,
+			"checkIDFlag": strconv.FormatBool(op == "create"),
 		}))
 	}
-
 	switch op {
 	case "create":
 		g.Tmpl("res, err := svc.client.%(typeName).Create().", g.withGlobals())

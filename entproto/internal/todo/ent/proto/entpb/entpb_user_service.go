@@ -71,7 +71,7 @@ func validateUser(x *User, checkId bool) error {
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user, false); err != nil {
+	if err := validateUser(user, true); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.Create().
@@ -115,7 +115,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user, true); err != nil {
+	if err := validateUser(user, false); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).

@@ -14,8 +14,6 @@
 
 package entprototest
 
-import "entgo.io/ent/schema/field"
-
 func (suite *AdapterTestSuite) TestFieldMap() {
 	require := suite.Require()
 	assert := suite.Assert()
@@ -35,7 +33,6 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 	profilePic, ok := mp["profile_pic"]
 	require.True(ok)
 	assert.True(profilePic.IsEdgeField)
-	assert.EqualValues(field.TypeUUID, profilePic.EdgeIDType())
 
 	id, ok := mp["id"]
 	require.True(ok)

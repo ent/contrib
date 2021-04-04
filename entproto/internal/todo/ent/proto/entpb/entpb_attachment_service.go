@@ -43,7 +43,7 @@ func validateAttachment(x *Attachment, checkId bool) error {
 // Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	if err := validateAttachment(attachment, false); err != nil {
+	if err := validateAttachment(attachment, true); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.Attachment.Create().
@@ -81,7 +81,7 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 // Update implements AttachmentServiceServer.Update
 func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	if err := validateAttachment(attachment, true); err != nil {
+	if err := validateAttachment(attachment, false); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.Attachment.UpdateOneID(runtime.MustBytesToUUID(attachment.GetId())).
