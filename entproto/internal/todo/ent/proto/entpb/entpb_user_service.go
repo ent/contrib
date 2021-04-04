@@ -41,7 +41,7 @@ func toEntUser_Status(e User_Status) user.Status {
 	return ""
 }
 
-// toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
+// toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
 	return &User{
 		Banned:     bool(e.Banned),
@@ -58,8 +58,11 @@ func toProtoUser(e *ent.User) *User {
 
 // validateUser validates that all fields are encoded properly and are safe to pass
 // to the ent entity builder.
-func validateUser(x *User) error {
+func validateUser(x *User, checkId bool) error {
 	if err := runtime.ValidateUUID(x.GetCrmId()); err != nil {
+		return err
+	}
+	if err := runtime.ValidateUUID(x.GetAttachment().GetId()); err != nil {
 		return err
 	}
 	return nil
@@ -68,7 +71,7 @@ func validateUser(x *User) error {
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user); err != nil {
+	if err := validateUser(user, false); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.Create().
@@ -80,6 +83,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).
+		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
 		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
 
@@ -111,7 +115,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user); err != nil {
+	if err := validateUser(user, true); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
@@ -123,6 +127,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).
+		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
 		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
 

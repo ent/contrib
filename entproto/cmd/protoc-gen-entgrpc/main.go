@@ -179,7 +179,7 @@ func (g *serviceGenerator) pbEnumIdent(fld *entproto.FieldMappingDescriptor) pro
 func (g *serviceGenerator) generateToProtoFunc() error {
 	// Mapper from the ent type to the proto type.
 	g.Tmpl(`
-	// toProto%(typeName) transforms the ent type to the pb type (TODO: complete implementation)
+	// toProto%(typeName) transforms the ent type to the pb type
 	func toProto%(typeName)(e *%(entTypeIdent)) *%(typeName){
 		return &%(typeName) {`, tmplValues{
 		"typeName":     g.typeName,
@@ -200,32 +200,6 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 	g.P("	}")
 	g.P("}")
 	return nil
-}
-
-// generateValidator generates a validation function for the service entity, to verify that
-// the gRPC input is safe to pass to ent. Ent has already rich validation functionality and
-// this layer should *only* assert invariants that are expected by ent but cannot be guaranteed
-// by gRPC. For instance, TypeUUID is serialized as a proto bytes field, must be 16-bytes long.
-func (g *serviceGenerator) generateValidator() {
-	g.Tmpl(`
-	// validate%(typeName) validates that all fields are encoded properly and are safe to pass
-	// to the ent entity builder.
-	func validate%(typeName)(x *%(typeName)) error {`, g.withGlobals())
-	for _, fld := range g.fieldMap.Fields() {
-		if fieldNeedsValidator(fld) {
-			if fld.EntField.IsUUID() {
-				g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)()); err != nil {
-					return err
-				}`, g.withGlobals(tmplValues{
-					"pbField":      fld.PbStructField(),
-					"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
-				}))
-			}
-		}
-	}
-	// TODO: Generate Edge Field checks
-	g.P("return nil")
-	g.P("}")
 }
 
 type serviceGenerator struct {

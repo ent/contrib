@@ -8,9 +8,11 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -45,6 +47,25 @@ func (uc *UserCreate) AddBlogPosts(b ...*BlogPost) *UserCreate {
 		ids[i] = b[i].ID
 	}
 	return uc.AddBlogPostIDs(ids...)
+}
+
+// SetProfilePicID sets the "profile_pic" edge to the Image entity by ID.
+func (uc *UserCreate) SetProfilePicID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetProfilePicID(id)
+	return uc
+}
+
+// SetNillableProfilePicID sets the "profile_pic" edge to the Image entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableProfilePicID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetProfilePicID(*id)
+	}
+	return uc
+}
+
+// SetProfilePic sets the "profile_pic" edge to the Image entity.
+func (uc *UserCreate) SetProfilePic(i *Image) *UserCreate {
+	return uc.SetProfilePicID(i.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -169,6 +190,26 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ProfilePicIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfilePicTable,
+			Columns: []string{user.ProfilePicColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: image.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_profile_pic = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

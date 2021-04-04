@@ -37,7 +37,10 @@ func TestUserService_Create(t *testing.T) {
 	svc := NewUserService(client)
 	ctx := context.Background()
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
+	attachment := client.Attachment.Create().SaveX(ctx)
 	crmID, err := uuid.New().MarshalBinary()
+	require.NoError(t, err)
+	attachmentID, err := attachment.ID.MarshalBinary()
 	require.NoError(t, err)
 	inputUser := &User{
 		UserName:   "rotemtam",
@@ -49,8 +52,9 @@ func TestUserService_Create(t *testing.T) {
 		Group: &Group{
 			Id: int32(group.ID),
 		},
-		CrmId:  crmID,
-		Banned: true,
+		CrmId:      crmID,
+		Attachment: &Attachment{Id: attachmentID},
+		Banned:     true,
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -142,6 +146,7 @@ func TestUserService_Update(t *testing.T) {
 	defer client.Close()
 	svc := NewUserService(client)
 	ctx := context.Background()
+	attachment := client.Attachment.Create().SaveX(ctx)
 	created := client.User.Create().
 		SetUserName("rotemtam").
 		SetJoined(time.Now()).
@@ -152,6 +157,8 @@ func TestUserService_Update(t *testing.T) {
 		SetCrmID(uuid.New()).
 		SaveX(ctx)
 
+	attachmentID, err := attachment.ID.MarshalBinary()
+	require.NoError(t, err)
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
 	inputUser := &User{
 		Id:         int32(created.ID),
@@ -163,6 +170,9 @@ func TestUserService_Update(t *testing.T) {
 		Status:     User_ACTIVE,
 		Group: &Group{
 			Id: int32(group.ID),
+		},
+		Attachment: &Attachment{
+			Id: attachmentID,
 		},
 		CrmId: runtime.MustExtractUUIDBytes(created.CrmID),
 	}

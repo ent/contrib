@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema/field"
 	"github.com/go-openapi/inflect"
 	"github.com/jhump/protoreflect/desc"
 )
@@ -117,6 +118,10 @@ func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
 func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {
 	field := strings.Title(camel(d.EntEdge.Ref.Type.ID.Name))
 	return d.ReferencedPbType.FindFieldByName(snake(field))
+}
+
+func (d *FieldMappingDescriptor) EdgeIDType() field.Type {
+	return d.EntEdge.Type.ID.Type.Type
 }
 
 func (a *Adapter) mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (FieldMap, error) {

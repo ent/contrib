@@ -15,6 +15,200 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
+// AttachmentServiceClient is the client API for AttachmentService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AttachmentServiceClient interface {
+	Create(ctx context.Context, in *CreateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
+	Get(ctx context.Context, in *GetAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
+	Update(ctx context.Context, in *UpdateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
+	Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+}
+
+type attachmentServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAttachmentServiceClient(cc grpc.ClientConnInterface) AttachmentServiceClient {
+	return &attachmentServiceClient{cc}
+}
+
+func (c *attachmentServiceClient) Create(ctx context.Context, in *CreateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error) {
+	out := new(Attachment)
+	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *attachmentServiceClient) Get(ctx context.Context, in *GetAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error) {
+	out := new(Attachment)
+	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *attachmentServiceClient) Update(ctx context.Context, in *UpdateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error) {
+	out := new(Attachment)
+	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *attachmentServiceClient) Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AttachmentServiceServer is the server API for AttachmentService service.
+// All implementations must embed UnimplementedAttachmentServiceServer
+// for forward compatibility
+type AttachmentServiceServer interface {
+	Create(context.Context, *CreateAttachmentRequest) (*Attachment, error)
+	Get(context.Context, *GetAttachmentRequest) (*Attachment, error)
+	Update(context.Context, *UpdateAttachmentRequest) (*Attachment, error)
+	Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedAttachmentServiceServer()
+}
+
+// UnimplementedAttachmentServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAttachmentServiceServer struct {
+}
+
+func (UnimplementedAttachmentServiceServer) Create(context.Context, *CreateAttachmentRequest) (*Attachment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedAttachmentServiceServer) Get(context.Context, *GetAttachmentRequest) (*Attachment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedAttachmentServiceServer) Update(context.Context, *UpdateAttachmentRequest) (*Attachment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedAttachmentServiceServer) Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedAttachmentServiceServer) mustEmbedUnimplementedAttachmentServiceServer() {}
+
+// UnsafeAttachmentServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AttachmentServiceServer will
+// result in compilation errors.
+type UnsafeAttachmentServiceServer interface {
+	mustEmbedUnimplementedAttachmentServiceServer()
+}
+
+func RegisterAttachmentServiceServer(s grpc.ServiceRegistrar, srv AttachmentServiceServer) {
+	s.RegisterService(&AttachmentService_ServiceDesc, srv)
+}
+
+func _AttachmentService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAttachmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttachmentServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.AttachmentService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttachmentServiceServer).Create(ctx, req.(*CreateAttachmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AttachmentService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAttachmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttachmentServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.AttachmentService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttachmentServiceServer).Get(ctx, req.(*GetAttachmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AttachmentService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAttachmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttachmentServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.AttachmentService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttachmentServiceServer).Update(ctx, req.(*UpdateAttachmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AttachmentService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAttachmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttachmentServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.AttachmentService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttachmentServiceServer).Delete(ctx, req.(*DeleteAttachmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AttachmentService_ServiceDesc is the grpc.ServiceDesc for AttachmentService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AttachmentService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.AttachmentService",
+	HandlerType: (*AttachmentServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _AttachmentService_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _AttachmentService_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _AttachmentService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _AttachmentService_Delete_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "entpb/entpb.proto",
+}
+
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

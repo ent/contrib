@@ -11,13 +11,21 @@ var (
 	// AttachmentsColumns holds the columns for the "attachments" table.
 	AttachmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "user_attachment", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
 	AttachmentsTable = &schema.Table{
-		Name:        "attachments",
-		Columns:     AttachmentsColumns,
-		PrimaryKey:  []*schema.Column{AttachmentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "attachments",
+		Columns:    AttachmentsColumns,
+		PrimaryKey: []*schema.Column{AttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "attachments_users_attachment",
+				Columns:    []*schema.Column{AttachmentsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// GroupsColumns holds the columns for the "groups" table.
 	GroupsColumns = []*schema.Column{
@@ -89,6 +97,7 @@ var (
 )
 
 func init() {
+	AttachmentsTable.ForeignKeys[0].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable
 }

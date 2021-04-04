@@ -16,6 +16,8 @@ package main
 
 import (
 	"entgo.io/contrib/entproto"
+	"entgo.io/ent/schema/field"
+	"google.golang.org/protobuf/compiler/protogen"
 )
 
 func typeNeedsValidator(d entproto.FieldMap) bool {
@@ -28,9 +30,65 @@ func typeNeedsValidator(d entproto.FieldMap) bool {
 }
 
 func fieldNeedsValidator(d *entproto.FieldMappingDescriptor) bool {
-	// TODO: check if edge
-	if d.EntField == nil {
-		return false
+	if d.IsEdgeField {
+		return d.EdgeIDType() == field.TypeUUID
 	}
 	return d.EntField.IsUUID()
+}
+
+// generateValidator generates a validation function for the service entity, to verify that
+// the gRPC input is safe to pass to ent. Ent has already rich validation functionality and
+// this layer should *only* assert invariants that are expected by ent but cannot be guaranteed
+// by gRPC. For instance, TypeUUID is serialized as a proto bytes field, must be 16-bytes long.
+func (g *serviceGenerator) generateValidator() {
+	g.Tmpl(`
+	// validate%(typeName) validates that all fields are encoded properly and are safe to pass
+	// to the ent entity builder.
+	func validate%(typeName)(x *%(typeName), checkId bool) error {`, g.withGlobals())
+	for _, fld := range g.fieldMap.Fields() {
+		if fieldNeedsValidator(fld) {
+			var idCheckSuffix string
+			if fld.IsIDField {
+				idCheckSuffix = "&& checkId"
+			}
+
+			if fld.EntField.IsUUID() {
+				g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)()); err != nil %(suffix) {
+					return err
+				}`, g.withGlobals(tmplValues{
+					"pbField":      fld.PbStructField(),
+					"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
+					"suffix":       idCheckSuffix,
+				}))
+			}
+		}
+	}
+	for _, edg := range g.fieldMap.Edges() {
+		if fieldNeedsValidator(edg) {
+			if edg.EdgeIDType() == field.TypeUUID {
+				g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)().Get%(edgeIdField)()); err != nil {
+					return err
+				}`, g.withGlobals(tmplValues{
+					"pbField":      edg.PbStructField(),
+					"edgeIdField":  edg.EdgeIDPbStructField(),
+					"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
+				}))
+			}
+		}
+	}
+	g.P("return nil")
+	g.P("}")
+}
+
+func (g *serviceGenerator) generateIdFieldValidator(idField *entproto.FieldMappingDescriptor) {
+	if idField.EntField.IsUUID() {
+		g.Tmpl(`if err := %(validateUUID)(req.Get%(pbField)()); err != nil {
+					return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
+				}`, g.withGlobals(tmplValues{
+			"pbField":      idField.PbStructField(),
+			"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
+		}))
+		return
+	}
+	panic("entproto: id field validation not implemented for " + idField.EntField.Type.String())
 }

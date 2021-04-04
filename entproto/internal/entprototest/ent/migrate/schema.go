@@ -79,6 +79,18 @@ var (
 		PrimaryKey:  []*schema.Column{ExplicitSkippedMessagesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// ImagesColumns holds the columns for the "images" table.
+	ImagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "url_path", Type: field.TypeString},
+	}
+	// ImagesTable holds the schema information for the "images" table.
+	ImagesTable = &schema.Table{
+		Name:        "images",
+		Columns:     ImagesColumns,
+		PrimaryKey:  []*schema.Column{ImagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// ImplicitSkippedMessagesColumns holds the columns for the "implicit_skipped_messages" table.
 	ImplicitSkippedMessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -184,13 +196,21 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "user_name", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active"}},
+		{Name: "user_profile_pic", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:        "users",
-		Columns:     UsersColumns,
-		PrimaryKey:  []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_images_profile_pic",
+				Columns:    []*schema.Column{UsersColumns[3]},
+				RefColumns: []*schema.Column{ImagesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// ValidMessagesColumns holds the columns for the "valid_messages" table.
 	ValidMessagesColumns = []*schema.Column{
@@ -238,6 +258,7 @@ var (
 		DependsOnSkippedsTable,
 		DuplicateNumberMessagesTable,
 		ExplicitSkippedMessagesTable,
+		ImagesTable,
 		ImplicitSkippedMessagesTable,
 		InvalidFieldMessagesTable,
 		MessageWithEnumsTable,
@@ -255,6 +276,7 @@ func init() {
 	BlogPostsTable.ForeignKeys[0].RefTable = UsersTable
 	ImplicitSkippedMessagesTable.ForeignKeys[0].RefTable = DependsOnSkippedsTable
 	PortalsTable.ForeignKeys[0].RefTable = CategoriesTable
+	UsersTable.ForeignKeys[0].RefTable = ImagesTable
 	CategoryBlogPostsTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategoryBlogPostsTable.ForeignKeys[1].RefTable = BlogPostsTable
 }

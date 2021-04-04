@@ -29,6 +29,9 @@ func (g *serviceGenerator) generateGetMethod() error {
 	if err != nil {
 		return err
 	}
+	if fieldNeedsValidator(idField) {
+		g.generateIdFieldValidator(idField)
+	}
 	g.Tmpl(`get, err := svc.client.%(typeName).Get(ctx, %(cast)(req.Get%(pbIdField)()))
 	switch {
 	case err == nil:
@@ -49,6 +52,9 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 	cast, err := g.castToEntFunc(idField)
 	if err != nil {
 		return err
+	}
+	if fieldNeedsValidator(idField) {
+		g.generateIdFieldValidator(idField)
 	}
 	g.Tmpl(`err := svc.client.%(typeName).DeleteOneID(%(cast)(req.Get%(pbIdField)())).Exec(ctx)
 	switch {
@@ -79,12 +85,17 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
+	checkIDFlag := "true"
+	if op == "create" {
+		checkIDFlag = "false"
+	}
 
 	if typeNeedsValidator(g.fieldMap) {
-		g.Tmpl(`if err := validate%(typeName)(%(reqVar)); err != nil {
+		g.Tmpl(`if err := validate%(typeName)(%(reqVar), %(checkIDFlag)); err != nil {
 			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
 		}`, g.withGlobals(tmplValues{
-			"reqVar": reqVar,
+			"reqVar":      reqVar,
+			"checkIDFlag": checkIDFlag,
 		}))
 	}
 

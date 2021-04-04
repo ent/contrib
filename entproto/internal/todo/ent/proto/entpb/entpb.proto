@@ -11,6 +11,24 @@ option go_package = "entgo.io/contrib/entproto/internal/todo/ent/proto/entpb";
 
 message Attachment {
   bytes id = 1;
+
+  User user = 2;
+}
+
+message CreateAttachmentRequest {
+  Attachment attachment = 1;
+}
+
+message GetAttachmentRequest {
+  bytes id = 1;
+}
+
+message UpdateAttachmentRequest {
+  Attachment attachment = 1;
+}
+
+message DeleteAttachmentRequest {
+  bytes id = 1;
 }
 
 message Group {
@@ -60,6 +78,8 @@ message User {
 
   Group group = 7;
 
+  Attachment attachment = 11;
+
   enum Status {
     STATUS_UNSPECIFIED = 0;
 
@@ -83,6 +103,16 @@ message UpdateUserRequest {
 
 message DeleteUserRequest {
   int32 id = 1;
+}
+
+service AttachmentService {
+  rpc Create ( CreateAttachmentRequest ) returns ( Attachment );
+
+  rpc Get ( GetAttachmentRequest ) returns ( Attachment );
+
+  rpc Update ( UpdateAttachmentRequest ) returns ( Attachment );
+
+  rpc Delete ( DeleteAttachmentRequest ) returns ( google.protobuf.Empty );
 }
 
 service UserService {

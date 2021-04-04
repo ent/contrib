@@ -23,30 +23,29 @@ import (
 	"github.com/google/uuid"
 )
 
-type Attachment struct {
+type Image struct {
 	ent.Schema
 }
 
-func (Attachment) Fields() []ent.Field {
+func (Image) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.New()).
-			Default(uuid.New).
 			Annotations(entproto.Field(1)),
-	}
-}
-
-func (Attachment) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.From("user", User.Type).
-			Ref("attachment").
-			Unique().
+		field.String("url_path").
 			Annotations(entproto.Field(2)),
 	}
 }
 
-func (Attachment) Annotations() []schema.Annotation {
+func (Image) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("user_profile_pic", User.Type).
+			Ref("profile_pic").
+			Annotations(entproto.Field(3)),
+	}
+}
+
+func (Image) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
-		entproto.Service(),
 	}
 }

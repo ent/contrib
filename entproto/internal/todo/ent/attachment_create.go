@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -25,6 +26,25 @@ func (ac *AttachmentCreate) SetID(u uuid.UUID) *AttachmentCreate {
 	return ac
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ac *AttachmentCreate) SetUserID(id int) *AttachmentCreate {
+	ac.mutation.SetUserID(id)
+	return ac
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableUserID(id *int) *AttachmentCreate {
+	if id != nil {
+		ac = ac.SetUserID(*id)
+	}
+	return ac
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ac *AttachmentCreate) SetUser(u *User) *AttachmentCreate {
+	return ac.SetUserID(u.ID)
+}
+
 // Mutation returns the AttachmentMutation object of the builder.
 func (ac *AttachmentCreate) Mutation() *AttachmentMutation {
 	return ac.mutation
@@ -36,6 +56,7 @@ func (ac *AttachmentCreate) Save(ctx context.Context) (*Attachment, error) {
 		err  error
 		node *Attachment
 	)
+	ac.defaults()
 	if len(ac.hooks) == 0 {
 		if err = ac.check(); err != nil {
 			return nil, err
@@ -74,6 +95,14 @@ func (ac *AttachmentCreate) SaveX(ctx context.Context) *Attachment {
 	return v
 }
 
+// defaults sets the default values of the builder before save.
+func (ac *AttachmentCreate) defaults() {
+	if _, ok := ac.mutation.ID(); !ok {
+		v := attachment.DefaultID()
+		ac.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ac *AttachmentCreate) check() error {
 	return nil
@@ -105,6 +134,26 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if nodes := ac.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   attachment.UserTable,
+			Columns: []string{attachment.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_attachment = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -122,6 +171,7 @@ func (acb *AttachmentCreateBulk) Save(ctx context.Context) ([]*Attachment, error
 	for i := range acb.builders {
 		func(i int, root context.Context) {
 			builder := acb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*AttachmentMutation)
 				if !ok {

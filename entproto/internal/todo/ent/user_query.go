@@ -4,10 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
@@ -25,8 +27,9 @@ type UserQuery struct {
 	fields     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withGroup *GroupQuery
-	withFKs   bool
+	withGroup      *GroupQuery
+	withAttachment *AttachmentQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -71,6 +74,28 @@ func (uq *UserQuery) QueryGroup() *GroupQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(group.Table, group.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, user.GroupTable, user.GroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAttachment chains the current query on the "attachment" edge.
+func (uq *UserQuery) QueryAttachment() *AttachmentQuery {
+	query := &AttachmentQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.AttachmentTable, user.AttachmentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -254,12 +279,13 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		limit:      uq.limit,
-		offset:     uq.offset,
-		order:      append([]OrderFunc{}, uq.order...),
-		predicates: append([]predicate.User{}, uq.predicates...),
-		withGroup:  uq.withGroup.Clone(),
+		config:         uq.config,
+		limit:          uq.limit,
+		offset:         uq.offset,
+		order:          append([]OrderFunc{}, uq.order...),
+		predicates:     append([]predicate.User{}, uq.predicates...),
+		withGroup:      uq.withGroup.Clone(),
+		withAttachment: uq.withAttachment.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -274,6 +300,17 @@ func (uq *UserQuery) WithGroup(opts ...func(*GroupQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withGroup = query
+	return uq
+}
+
+// WithAttachment tells the query-builder to eager-load the nodes that are connected to
+// the "attachment" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAttachment(opts ...func(*AttachmentQuery)) *UserQuery {
+	query := &AttachmentQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAttachment = query
 	return uq
 }
 
@@ -343,8 +380,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		nodes       = []*User{}
 		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			uq.withGroup != nil,
+			uq.withAttachment != nil,
 		}
 	)
 	if uq.withGroup != nil {
@@ -396,6 +434,34 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			for i := range nodes {
 				nodes[i].Edges.Group = n
 			}
+		}
+	}
+
+	if query := uq.withAttachment; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Attachment(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.AttachmentColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_attachment
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_attachment" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_attachment" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Attachment = n
 		}
 	}
 

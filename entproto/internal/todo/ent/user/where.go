@@ -724,6 +724,34 @@ func HasGroupWith(preds ...predicate.Group) predicate.User {
 	})
 }
 
+// HasAttachment applies the HasEdge predicate on the "attachment" edge.
+func HasAttachment() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AttachmentTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, AttachmentTable, AttachmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAttachmentWith applies the HasEdge predicate on the "attachment" edge with a given conditions (other predicates).
+func HasAttachmentWith(preds ...predicate.Attachment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AttachmentInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, AttachmentTable, AttachmentColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

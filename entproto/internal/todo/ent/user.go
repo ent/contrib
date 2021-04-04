@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
@@ -44,9 +45,11 @@ type User struct {
 type UserEdges struct {
 	// Group holds the value of the group edge.
 	Group *Group `json:"group,omitempty"`
+	// Attachment holds the value of the attachment edge.
+	Attachment *Attachment `json:"attachment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -61,6 +64,20 @@ func (e UserEdges) GroupOrErr() (*Group, error) {
 		return e.Group, nil
 	}
 	return nil, &NotLoadedError{edge: "group"}
+}
+
+// AttachmentOrErr returns the Attachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) AttachmentOrErr() (*Attachment, error) {
+	if e.loadedTypes[1] {
+		if e.Attachment == nil {
+			// The edge attachment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: attachment.Label}
+		}
+		return e.Attachment, nil
+	}
+	return nil, &NotLoadedError{edge: "attachment"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -164,6 +181,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryGroup queries the "group" edge of the User entity.
 func (u *User) QueryGroup() *GroupQuery {
 	return (&UserClient{config: u.config}).QueryGroup(u)
+}
+
+// QueryAttachment queries the "attachment" edge of the User entity.
+func (u *User) QueryAttachment() *AttachmentQuery {
+	return (&UserClient{config: u.config}).QueryAttachment(u)
 }
 
 // Update returns a builder for updating this User.
