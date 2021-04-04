@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -85,6 +87,12 @@ func (uu *UserUpdate) AddExternalID(i int) *UserUpdate {
 	return uu
 }
 
+// SetCrmID sets the "crm_id" field.
+func (uu *UserUpdate) SetCrmID(u uuid.UUID) *UserUpdate {
+	uu.mutation.SetCrmID(u)
+	return uu
+}
+
 // SetBanned sets the "banned" field.
 func (uu *UserUpdate) SetBanned(b bool) *UserUpdate {
 	uu.mutation.SetBanned(b)
@@ -118,6 +126,25 @@ func (uu *UserUpdate) SetGroup(g *Group) *UserUpdate {
 	return uu.SetGroupID(g.ID)
 }
 
+// SetAttachmentID sets the "attachment" edge to the Attachment entity by ID.
+func (uu *UserUpdate) SetAttachmentID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetAttachmentID(id)
+	return uu
+}
+
+// SetNillableAttachmentID sets the "attachment" edge to the Attachment entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableAttachmentID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetAttachmentID(*id)
+	}
+	return uu
+}
+
+// SetAttachment sets the "attachment" edge to the Attachment entity.
+func (uu *UserUpdate) SetAttachment(a *Attachment) *UserUpdate {
+	return uu.SetAttachmentID(a.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -126,6 +153,12 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 // ClearGroup clears the "group" edge to the Group entity.
 func (uu *UserUpdate) ClearGroup() *UserUpdate {
 	uu.mutation.ClearGroup()
+	return uu
+}
+
+// ClearAttachment clears the "attachment" edge to the Attachment entity.
+func (uu *UserUpdate) ClearAttachment() *UserUpdate {
+	uu.mutation.ClearAttachment()
 	return uu
 }
 
@@ -277,6 +310,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldExternalID,
 		})
 	}
+	if value, ok := uu.mutation.CrmID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: user.FieldCrmID,
+		})
+	}
 	if value, ok := uu.mutation.Banned(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
@@ -311,6 +351,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.AttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AttachmentTable,
+			Columns: []string{user.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AttachmentTable,
+			Columns: []string{user.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
 				},
 			},
 		}
@@ -394,6 +469,12 @@ func (uuo *UserUpdateOne) AddExternalID(i int) *UserUpdateOne {
 	return uuo
 }
 
+// SetCrmID sets the "crm_id" field.
+func (uuo *UserUpdateOne) SetCrmID(u uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetCrmID(u)
+	return uuo
+}
+
 // SetBanned sets the "banned" field.
 func (uuo *UserUpdateOne) SetBanned(b bool) *UserUpdateOne {
 	uuo.mutation.SetBanned(b)
@@ -427,6 +508,25 @@ func (uuo *UserUpdateOne) SetGroup(g *Group) *UserUpdateOne {
 	return uuo.SetGroupID(g.ID)
 }
 
+// SetAttachmentID sets the "attachment" edge to the Attachment entity by ID.
+func (uuo *UserUpdateOne) SetAttachmentID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetAttachmentID(id)
+	return uuo
+}
+
+// SetNillableAttachmentID sets the "attachment" edge to the Attachment entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAttachmentID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetAttachmentID(*id)
+	}
+	return uuo
+}
+
+// SetAttachment sets the "attachment" edge to the Attachment entity.
+func (uuo *UserUpdateOne) SetAttachment(a *Attachment) *UserUpdateOne {
+	return uuo.SetAttachmentID(a.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -435,6 +535,12 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 // ClearGroup clears the "group" edge to the Group entity.
 func (uuo *UserUpdateOne) ClearGroup() *UserUpdateOne {
 	uuo.mutation.ClearGroup()
+	return uuo
+}
+
+// ClearAttachment clears the "attachment" edge to the Attachment entity.
+func (uuo *UserUpdateOne) ClearAttachment() *UserUpdateOne {
+	uuo.mutation.ClearAttachment()
 	return uuo
 }
 
@@ -591,6 +697,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Column: user.FieldExternalID,
 		})
 	}
+	if value, ok := uuo.mutation.CrmID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: user.FieldCrmID,
+		})
+	}
 	if value, ok := uuo.mutation.Banned(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
@@ -625,6 +738,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: group.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.AttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AttachmentTable,
+			Columns: []string{user.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AttachmentTable,
+			Columns: []string{user.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
 				},
 			},
 		}

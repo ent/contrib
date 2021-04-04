@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
@@ -21,16 +23,19 @@ type User struct {
 	Status user.Status `json:"status,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
+	Edges            UserEdges `json:"edges"`
+	user_profile_pic *uuid.UUID
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
 	// BlogPosts holds the value of the blog_posts edge.
 	BlogPosts []*BlogPost `json:"blog_posts,omitempty"`
+	// ProfilePic holds the value of the profile_pic edge.
+	ProfilePic *Image `json:"profile_pic,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // BlogPostsOrErr returns the BlogPosts value or an error if the edge
@@ -42,6 +47,20 @@ func (e UserEdges) BlogPostsOrErr() ([]*BlogPost, error) {
 	return nil, &NotLoadedError{edge: "blog_posts"}
 }
 
+// ProfilePicOrErr returns the ProfilePic value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) ProfilePicOrErr() (*Image, error) {
+	if e.loadedTypes[1] {
+		if e.ProfilePic == nil {
+			// The edge profile_pic was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: image.Label}
+		}
+		return e.ProfilePic, nil
+	}
+	return nil, &NotLoadedError{edge: "profile_pic"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -51,6 +70,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = &sql.NullInt64{}
 		case user.FieldUserName, user.FieldStatus:
 			values[i] = &sql.NullString{}
+		case user.ForeignKeys[0]: // user_profile_pic
+			values[i] = &uuid.UUID{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -84,6 +105,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Status = user.Status(value.String)
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_profile_pic", values[i])
+			} else if value != nil {
+				u.user_profile_pic = value
+			}
 		}
 	}
 	return nil
@@ -92,6 +119,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryBlogPosts queries the "blog_posts" edge of the User entity.
 func (u *User) QueryBlogPosts() *BlogPostQuery {
 	return (&UserClient{config: u.config}).QueryBlogPosts(u)
+}
+
+// QueryProfilePic queries the "profile_pic" edge of the User entity.
+func (u *User) QueryProfilePic() *ImageQuery {
+	return (&UserClient{config: u.config}).QueryProfilePic(u)
 }
 
 // Update returns a builder for updating this User.

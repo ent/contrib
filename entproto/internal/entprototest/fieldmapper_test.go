@@ -30,6 +30,10 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 	assert.NotNil(userName.PbFieldDescriptor)
 	assert.EqualValues("UserName", userName.PbStructField())
 
+	profilePic, ok := mp["profile_pic"]
+	require.True(ok)
+	assert.True(profilePic.IsEdgeField)
+
 	id, ok := mp["id"]
 	require.True(ok)
 	assert.True(id.IsIDField)

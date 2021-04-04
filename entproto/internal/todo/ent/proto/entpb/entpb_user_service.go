@@ -3,9 +3,9 @@ package entpb
 
 import (
 	context "context"
-	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
+	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -41,10 +41,11 @@ func toEntUser_Status(e User_Status) user.Status {
 	return ""
 }
 
-// toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
+// toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
 	return &User{
 		Banned:     bool(e.Banned),
+		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
 		Exp:        uint64(e.Exp),
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
@@ -55,17 +56,34 @@ func toProtoUser(e *ent.User) *User {
 	}
 }
 
+// validateUser validates that all fields are encoded properly and are safe to pass
+// to the ent entity builder.
+func validateUser(x *User, checkId bool) error {
+	if err := runtime.ValidateUUID(x.GetCrmId()); err != nil {
+		return err
+	}
+	if err := runtime.ValidateUUID(x.GetAttachment().GetId()); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
+	if err := validateUser(user, true); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
 	res, err := svc.client.User.Create().
 		SetBanned(bool(user.GetBanned())).
+		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
-		SetJoined(entproto.ExtractTime(user.GetJoined())).
+		SetJoined(runtime.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).
+		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
 		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
 
@@ -97,14 +115,19 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
+	if err := validateUser(user, false); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
 		SetBanned(bool(user.GetBanned())).
+		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
-		SetJoined(entproto.ExtractTime(user.GetJoined())).
+		SetJoined(runtime.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).
+		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
 		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
 

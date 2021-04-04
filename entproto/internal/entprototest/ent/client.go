@@ -8,12 +8,14 @@ import (
 	"log"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/migrate"
+	"github.com/google/uuid"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/explicitskippedmessage"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
@@ -44,6 +46,8 @@ type Client struct {
 	DuplicateNumberMessage *DuplicateNumberMessageClient
 	// ExplicitSkippedMessage is the client for interacting with the ExplicitSkippedMessage builders.
 	ExplicitSkippedMessage *ExplicitSkippedMessageClient
+	// Image is the client for interacting with the Image builders.
+	Image *ImageClient
 	// ImplicitSkippedMessage is the client for interacting with the ImplicitSkippedMessage builders.
 	ImplicitSkippedMessage *ImplicitSkippedMessageClient
 	// InvalidFieldMessage is the client for interacting with the InvalidFieldMessage builders.
@@ -80,6 +84,7 @@ func (c *Client) init() {
 	c.DependsOnSkipped = NewDependsOnSkippedClient(c.config)
 	c.DuplicateNumberMessage = NewDuplicateNumberMessageClient(c.config)
 	c.ExplicitSkippedMessage = NewExplicitSkippedMessageClient(c.config)
+	c.Image = NewImageClient(c.config)
 	c.ImplicitSkippedMessage = NewImplicitSkippedMessageClient(c.config)
 	c.InvalidFieldMessage = NewInvalidFieldMessageClient(c.config)
 	c.MessageWithEnum = NewMessageWithEnumClient(c.config)
@@ -127,6 +132,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		DependsOnSkipped:       NewDependsOnSkippedClient(cfg),
 		DuplicateNumberMessage: NewDuplicateNumberMessageClient(cfg),
 		ExplicitSkippedMessage: NewExplicitSkippedMessageClient(cfg),
+		Image:                  NewImageClient(cfg),
 		ImplicitSkippedMessage: NewImplicitSkippedMessageClient(cfg),
 		InvalidFieldMessage:    NewInvalidFieldMessageClient(cfg),
 		MessageWithEnum:        NewMessageWithEnumClient(cfg),
@@ -159,6 +165,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		DependsOnSkipped:       NewDependsOnSkippedClient(cfg),
 		DuplicateNumberMessage: NewDuplicateNumberMessageClient(cfg),
 		ExplicitSkippedMessage: NewExplicitSkippedMessageClient(cfg),
+		Image:                  NewImageClient(cfg),
 		ImplicitSkippedMessage: NewImplicitSkippedMessageClient(cfg),
 		InvalidFieldMessage:    NewInvalidFieldMessageClient(cfg),
 		MessageWithEnum:        NewMessageWithEnumClient(cfg),
@@ -202,6 +209,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.DependsOnSkipped.Use(hooks...)
 	c.DuplicateNumberMessage.Use(hooks...)
 	c.ExplicitSkippedMessage.Use(hooks...)
+	c.Image.Use(hooks...)
 	c.ImplicitSkippedMessage.Use(hooks...)
 	c.InvalidFieldMessage.Use(hooks...)
 	c.MessageWithEnum.Use(hooks...)
@@ -715,6 +723,110 @@ func (c *ExplicitSkippedMessageClient) GetX(ctx context.Context, id int) *Explic
 // Hooks returns the client hooks.
 func (c *ExplicitSkippedMessageClient) Hooks() []Hook {
 	return c.hooks.ExplicitSkippedMessage
+}
+
+// ImageClient is a client for the Image schema.
+type ImageClient struct {
+	config
+}
+
+// NewImageClient returns a client for the Image from the given config.
+func NewImageClient(c config) *ImageClient {
+	return &ImageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `image.Hooks(f(g(h())))`.
+func (c *ImageClient) Use(hooks ...Hook) {
+	c.hooks.Image = append(c.hooks.Image, hooks...)
+}
+
+// Create returns a create builder for Image.
+func (c *ImageClient) Create() *ImageCreate {
+	mutation := newImageMutation(c.config, OpCreate)
+	return &ImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Image entities.
+func (c *ImageClient) CreateBulk(builders ...*ImageCreate) *ImageCreateBulk {
+	return &ImageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Image.
+func (c *ImageClient) Update() *ImageUpdate {
+	mutation := newImageMutation(c.config, OpUpdate)
+	return &ImageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ImageClient) UpdateOne(i *Image) *ImageUpdateOne {
+	mutation := newImageMutation(c.config, OpUpdateOne, withImage(i))
+	return &ImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ImageClient) UpdateOneID(id uuid.UUID) *ImageUpdateOne {
+	mutation := newImageMutation(c.config, OpUpdateOne, withImageID(id))
+	return &ImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Image.
+func (c *ImageClient) Delete() *ImageDelete {
+	mutation := newImageMutation(c.config, OpDelete)
+	return &ImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ImageClient) DeleteOne(i *Image) *ImageDeleteOne {
+	return c.DeleteOneID(i.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ImageClient) DeleteOneID(id uuid.UUID) *ImageDeleteOne {
+	builder := c.Delete().Where(image.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ImageDeleteOne{builder}
+}
+
+// Query returns a query builder for Image.
+func (c *ImageClient) Query() *ImageQuery {
+	return &ImageQuery{config: c.config}
+}
+
+// Get returns a Image entity by its id.
+func (c *ImageClient) Get(ctx context.Context, id uuid.UUID) (*Image, error) {
+	return c.Query().Where(image.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ImageClient) GetX(ctx context.Context, id uuid.UUID) *Image {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUserProfilePic queries the user_profile_pic edge of a Image.
+func (c *ImageClient) QueryUserProfilePic(i *Image) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(image.Table, image.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, image.UserProfilePicTable, image.UserProfilePicColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ImageClient) Hooks() []Hook {
+	return c.hooks.Image
 }
 
 // ImplicitSkippedMessageClient is a client for the ImplicitSkippedMessage schema.
@@ -1441,6 +1553,22 @@ func (c *UserClient) QueryBlogPosts(u *User) *BlogPostQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(blogpost.Table, blogpost.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.BlogPostsTable, user.BlogPostsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProfilePic queries the profile_pic edge of a User.
+func (c *UserClient) QueryProfilePic(u *User) *ImageQuery {
+	query := &ImageQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(image.Table, image.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePicTable, user.ProfilePicColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

@@ -15,6 +15,8 @@
 package main
 
 import (
+	"strconv"
+
 	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -28,6 +30,9 @@ func (g *serviceGenerator) generateGetMethod() error {
 	cast, err := g.castToEntFunc(idField)
 	if err != nil {
 		return err
+	}
+	if fieldNeedsValidator(idField) {
+		g.generateIDFieldValidator(idField)
 	}
 	g.Tmpl(`get, err := svc.client.%(typeName).Get(ctx, %(cast)(req.Get%(pbIdField)()))
 	switch {
@@ -49,6 +54,9 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 	cast, err := g.castToEntFunc(idField)
 	if err != nil {
 		return err
+	}
+	if fieldNeedsValidator(idField) {
+		g.generateIDFieldValidator(idField)
 	}
 	g.Tmpl(`err := svc.client.%(typeName).DeleteOneID(%(cast)(req.Get%(pbIdField)())).Exec(ctx)
 	switch {
@@ -79,6 +87,14 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
+	if typeNeedsValidator(g.fieldMap) {
+		g.Tmpl(`if err := validate%(typeName)(%(reqVar), %(checkIDFlag)); err != nil {
+			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
+		}`, g.withGlobals(tmplValues{
+			"reqVar":      reqVar,
+			"checkIDFlag": strconv.FormatBool(op == "create"),
+		}))
+	}
 	switch op {
 	case "create":
 		g.Tmpl("res, err := svc.client.%(typeName).Create().", g.withGlobals())
@@ -154,6 +170,7 @@ func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
 		"notFound":          codes.Ident("NotFound"),
 		"internal":          codes.Ident("Internal"),
 		"typeName":          g.typeName,
+		"fmtErr":            protogen.GoImportPath("fmt").Ident("Errorf"),
 	}
 	for _, additional := range additionals {
 		for k, v := range additional {

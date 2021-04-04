@@ -7,11 +7,13 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -54,6 +56,25 @@ func (uu *UserUpdate) AddBlogPosts(b ...*BlogPost) *UserUpdate {
 	return uu.AddBlogPostIDs(ids...)
 }
 
+// SetProfilePicID sets the "profile_pic" edge to the Image entity by ID.
+func (uu *UserUpdate) SetProfilePicID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetProfilePicID(id)
+	return uu
+}
+
+// SetNillableProfilePicID sets the "profile_pic" edge to the Image entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableProfilePicID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetProfilePicID(*id)
+	}
+	return uu
+}
+
+// SetProfilePic sets the "profile_pic" edge to the Image entity.
+func (uu *UserUpdate) SetProfilePic(i *Image) *UserUpdate {
+	return uu.SetProfilePicID(i.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -78,6 +99,12 @@ func (uu *UserUpdate) RemoveBlogPosts(b ...*BlogPost) *UserUpdate {
 		ids[i] = b[i].ID
 	}
 	return uu.RemoveBlogPostIDs(ids...)
+}
+
+// ClearProfilePic clears the "profile_pic" edge to the Image entity.
+func (uu *UserUpdate) ClearProfilePic() *UserUpdate {
+	uu.mutation.ClearProfilePic()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -233,6 +260,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.ProfilePicCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfilePicTable,
+			Columns: []string{user.ProfilePicColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: image.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ProfilePicIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfilePicTable,
+			Columns: []string{user.ProfilePicColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: image.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -278,6 +340,25 @@ func (uuo *UserUpdateOne) AddBlogPosts(b ...*BlogPost) *UserUpdateOne {
 	return uuo.AddBlogPostIDs(ids...)
 }
 
+// SetProfilePicID sets the "profile_pic" edge to the Image entity by ID.
+func (uuo *UserUpdateOne) SetProfilePicID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetProfilePicID(id)
+	return uuo
+}
+
+// SetNillableProfilePicID sets the "profile_pic" edge to the Image entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableProfilePicID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetProfilePicID(*id)
+	}
+	return uuo
+}
+
+// SetProfilePic sets the "profile_pic" edge to the Image entity.
+func (uuo *UserUpdateOne) SetProfilePic(i *Image) *UserUpdateOne {
+	return uuo.SetProfilePicID(i.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -302,6 +383,12 @@ func (uuo *UserUpdateOne) RemoveBlogPosts(b ...*BlogPost) *UserUpdateOne {
 		ids[i] = b[i].ID
 	}
 	return uuo.RemoveBlogPostIDs(ids...)
+}
+
+// ClearProfilePic clears the "profile_pic" edge to the Image entity.
+func (uuo *UserUpdateOne) ClearProfilePic() *UserUpdateOne {
+	uuo.mutation.ClearProfilePic()
+	return uuo
 }
 
 // Save executes the query and returns the updated User entity.
@@ -454,6 +541,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: blogpost.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ProfilePicCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfilePicTable,
+			Columns: []string{user.ProfilePicColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: image.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ProfilePicIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfilePicTable,
+			Columns: []string{user.ProfilePicColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: image.FieldID,
 				},
 			},
 		}

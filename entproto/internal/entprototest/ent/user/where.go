@@ -285,6 +285,34 @@ func HasBlogPostsWith(preds ...predicate.BlogPost) predicate.User {
 	})
 }
 
+// HasProfilePic applies the HasEdge predicate on the "profile_pic" edge.
+func HasProfilePic() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProfilePicTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ProfilePicTable, ProfilePicColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProfilePicWith applies the HasEdge predicate on the "profile_pic" edge with a given conditions (other predicates).
+func HasProfilePicWith(preds ...predicate.Image) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProfilePicInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ProfilePicTable, ProfilePicColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

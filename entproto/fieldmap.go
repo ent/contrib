@@ -18,12 +18,10 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	"entgo.io/ent/entc/gen"
 	"github.com/go-openapi/inflect"
 	"github.com/jhump/protoreflect/desc"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // FieldMap returns a FieldMap containing descriptors of all of the mappings between the ent schema field
@@ -177,9 +175,4 @@ func extractEntEdgeByName(entType *gen.Type, name string) (*gen.Edge, error) {
 		}
 	}
 	return nil, fmt.Errorf("entproto: could not find find edge %q in %q", name, entType.Name)
-}
-
-// ExtractTime returns the time.Time from a proto WKT Timestamp
-func ExtractTime(t *timestamppb.Timestamp) time.Time {
-	return t.AsTime()
 }

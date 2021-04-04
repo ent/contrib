@@ -23,10 +23,14 @@ const (
 	FieldStatus = "status"
 	// FieldExternalID holds the string denoting the external_id field in the database.
 	FieldExternalID = "external_id"
+	// FieldCrmID holds the string denoting the crm_id field in the database.
+	FieldCrmID = "crm_id"
 	// FieldBanned holds the string denoting the banned field in the database.
 	FieldBanned = "banned"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
+	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
+	EdgeAttachment = "attachment"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupTable is the table the holds the group relation/edge.
@@ -36,6 +40,13 @@ const (
 	GroupInverseTable = "groups"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "user_group"
+	// AttachmentTable is the table the holds the attachment relation/edge.
+	AttachmentTable = "attachments"
+	// AttachmentInverseTable is the table name for the Attachment entity.
+	// It exists in this package in order to avoid circular dependency with the "attachment" package.
+	AttachmentInverseTable = "attachments"
+	// AttachmentColumn is the table column denoting the attachment relation/edge.
+	AttachmentColumn = "user_attachment"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -47,6 +58,7 @@ var Columns = []string{
 	FieldExp,
 	FieldStatus,
 	FieldExternalID,
+	FieldCrmID,
 	FieldBanned,
 }
 

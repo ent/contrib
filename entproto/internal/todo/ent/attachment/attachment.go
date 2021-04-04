@@ -2,18 +2,37 @@
 
 package attachment
 
+import (
+	"github.com/google/uuid"
+)
+
 const (
 	// Label holds the string label denoting the attachment type in the database.
 	Label = "attachment"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
+	// UserTable is the table the holds the user relation/edge.
+	UserTable = "attachments"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_attachment"
 )
 
 // Columns holds all SQL columns for attachment fields.
 var Columns = []string{
 	FieldID,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "attachments"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_attachment",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -23,5 +42,15 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
+
+var (
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)

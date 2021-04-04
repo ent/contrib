@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -57,6 +59,12 @@ func (uc *UserCreate) SetExternalID(i int) *UserCreate {
 	return uc
 }
 
+// SetCrmID sets the "crm_id" field.
+func (uc *UserCreate) SetCrmID(u uuid.UUID) *UserCreate {
+	uc.mutation.SetCrmID(u)
+	return uc
+}
+
 // SetBanned sets the "banned" field.
 func (uc *UserCreate) SetBanned(b bool) *UserCreate {
 	uc.mutation.SetBanned(b)
@@ -88,6 +96,25 @@ func (uc *UserCreate) SetNillableGroupID(id *int) *UserCreate {
 // SetGroup sets the "group" edge to the Group entity.
 func (uc *UserCreate) SetGroup(g *Group) *UserCreate {
 	return uc.SetGroupID(g.ID)
+}
+
+// SetAttachmentID sets the "attachment" edge to the Attachment entity by ID.
+func (uc *UserCreate) SetAttachmentID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetAttachmentID(id)
+	return uc
+}
+
+// SetNillableAttachmentID sets the "attachment" edge to the Attachment entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableAttachmentID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetAttachmentID(*id)
+	}
+	return uc
+}
+
+// SetAttachment sets the "attachment" edge to the Attachment entity.
+func (uc *UserCreate) SetAttachment(a *Attachment) *UserCreate {
+	return uc.SetAttachmentID(a.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -173,6 +200,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.ExternalID(); !ok {
 		return &ValidationError{Name: "external_id", err: errors.New("ent: missing required field \"external_id\"")}
 	}
+	if _, ok := uc.mutation.CrmID(); !ok {
+		return &ValidationError{Name: "crm_id", err: errors.New("ent: missing required field \"crm_id\"")}
+	}
 	if _, ok := uc.mutation.Banned(); !ok {
 		return &ValidationError{Name: "banned", err: errors.New("ent: missing required field \"banned\"")}
 	}
@@ -251,6 +281,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		})
 		_node.ExternalID = value
 	}
+	if value, ok := uc.mutation.CrmID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: user.FieldCrmID,
+		})
+		_node.CrmID = value
+	}
 	if value, ok := uc.mutation.Banned(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
@@ -277,6 +315,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_group = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AttachmentTable,
+			Columns: []string{user.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

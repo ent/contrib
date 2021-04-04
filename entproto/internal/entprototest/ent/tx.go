@@ -22,6 +22,8 @@ type Tx struct {
 	DuplicateNumberMessage *DuplicateNumberMessageClient
 	// ExplicitSkippedMessage is the client for interacting with the ExplicitSkippedMessage builders.
 	ExplicitSkippedMessage *ExplicitSkippedMessageClient
+	// Image is the client for interacting with the Image builders.
+	Image *ImageClient
 	// ImplicitSkippedMessage is the client for interacting with the ImplicitSkippedMessage builders.
 	ImplicitSkippedMessage *ImplicitSkippedMessageClient
 	// InvalidFieldMessage is the client for interacting with the InvalidFieldMessage builders.
@@ -180,6 +182,7 @@ func (tx *Tx) init() {
 	tx.DependsOnSkipped = NewDependsOnSkippedClient(tx.config)
 	tx.DuplicateNumberMessage = NewDuplicateNumberMessageClient(tx.config)
 	tx.ExplicitSkippedMessage = NewExplicitSkippedMessageClient(tx.config)
+	tx.Image = NewImageClient(tx.config)
 	tx.ImplicitSkippedMessage = NewImplicitSkippedMessageClient(tx.config)
 	tx.InvalidFieldMessage = NewInvalidFieldMessageClient(tx.config)
 	tx.MessageWithEnum = NewMessageWithEnumClient(tx.config)

@@ -110,6 +110,9 @@ func (g *serviceGenerator) generate() error {
 	if err := g.generateToProtoFunc(); err != nil {
 		return err
 	}
+	if typeNeedsValidator(g.fieldMap) {
+		g.generateValidator()
+	}
 	g.P()
 
 	for _, method := range g.service.Methods {
@@ -176,7 +179,7 @@ func (g *serviceGenerator) pbEnumIdent(fld *entproto.FieldMappingDescriptor) pro
 func (g *serviceGenerator) generateToProtoFunc() error {
 	// Mapper from the ent type to the proto type.
 	g.Tmpl(`
-	// toProto%(typeName) transforms the ent type to the pb type (TODO: complete implementation)
+	// toProto%(typeName) transforms the ent type to the pb type
 	func toProto%(typeName)(e *%(entTypeIdent)) *%(typeName){
 		return &%(typeName) {`, tmplValues{
 		"typeName":     g.typeName,

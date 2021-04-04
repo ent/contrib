@@ -7,9 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
@@ -29,6 +31,8 @@ type User struct {
 	Status user.Status `json:"status,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID int `json:"external_id,omitempty"`
+	// CrmID holds the value of the "crm_id" field.
+	CrmID uuid.UUID `json:"crm_id,omitempty"`
 	// Banned holds the value of the "banned" field.
 	Banned bool `json:"banned,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -41,9 +45,11 @@ type User struct {
 type UserEdges struct {
 	// Group holds the value of the group edge.
 	Group *Group `json:"group,omitempty"`
+	// Attachment holds the value of the attachment edge.
+	Attachment *Attachment `json:"attachment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -60,6 +66,20 @@ func (e UserEdges) GroupOrErr() (*Group, error) {
 	return nil, &NotLoadedError{edge: "group"}
 }
 
+// AttachmentOrErr returns the Attachment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) AttachmentOrErr() (*Attachment, error) {
+	if e.loadedTypes[1] {
+		if e.Attachment == nil {
+			// The edge attachment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: attachment.Label}
+		}
+		return e.Attachment, nil
+	}
+	return nil, &NotLoadedError{edge: "attachment"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -73,6 +93,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = &sql.NullString{}
 		case user.FieldJoined:
 			values[i] = &sql.NullTime{}
+		case user.FieldCrmID:
+			values[i] = &uuid.UUID{}
 		case user.ForeignKeys[0]: // user_group
 			values[i] = &sql.NullInt64{}
 		default:
@@ -132,6 +154,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.ExternalID = int(value.Int64)
 			}
+		case user.FieldCrmID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field crm_id", values[i])
+			} else if value != nil {
+				u.CrmID = *value
+			}
 		case user.FieldBanned:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field banned", values[i])
@@ -153,6 +181,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryGroup queries the "group" edge of the User entity.
 func (u *User) QueryGroup() *GroupQuery {
 	return (&UserClient{config: u.config}).QueryGroup(u)
+}
+
+// QueryAttachment queries the "attachment" edge of the User entity.
+func (u *User) QueryAttachment() *AttachmentQuery {
+	return (&UserClient{config: u.config}).QueryAttachment(u)
 }
 
 // Update returns a builder for updating this User.
@@ -190,6 +223,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Status))
 	builder.WriteString(", external_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.ExternalID))
+	builder.WriteString(", crm_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.CrmID))
 	builder.WriteString(", banned=")
 	builder.WriteString(fmt.Sprintf("%v", u.Banned))
 	builder.WriteByte(')')

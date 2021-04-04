@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
@@ -39,6 +40,8 @@ type AttachmentMutation struct {
 	typ           string
 	id            *uuid.UUID
 	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*Attachment, error)
 	predicates    []predicate.Attachment
@@ -129,6 +132,45 @@ func (m *AttachmentMutation) ID() (id uuid.UUID, exists bool) {
 	return *m.id, true
 }
 
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *AttachmentMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *AttachmentMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared returns if the "user" edge to the User entity was cleared.
+func (m *AttachmentMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *AttachmentMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *AttachmentMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *AttachmentMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
 // Op returns the operation name.
 func (m *AttachmentMutation) Op() Op {
 	return m.op
@@ -217,49 +259,77 @@ func (m *AttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, attachment.EdgeUser)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case attachment.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, attachment.EdgeUser)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *AttachmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case attachment.EdgeUser:
+		return m.cleareduser
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *AttachmentMutation) ClearEdge(name string) error {
+	switch name {
+	case attachment.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
 	return fmt.Errorf("unknown Attachment unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *AttachmentMutation) ResetEdge(name string) error {
+	switch name {
+	case attachment.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
 }
 
@@ -1055,25 +1125,28 @@ func (m *TodoMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	user_name      *string
-	joined         *time.Time
-	points         *uint
-	addpoints      *uint
-	exp            *uint64
-	addexp         *uint64
-	status         *user.Status
-	external_id    *int
-	addexternal_id *int
-	banned         *bool
-	clearedFields  map[string]struct{}
-	group          *int
-	clearedgroup   bool
-	done           bool
-	oldValue       func(context.Context) (*User, error)
-	predicates     []predicate.User
+	op                Op
+	typ               string
+	id                *int
+	user_name         *string
+	joined            *time.Time
+	points            *uint
+	addpoints         *uint
+	exp               *uint64
+	addexp            *uint64
+	status            *user.Status
+	external_id       *int
+	addexternal_id    *int
+	crm_id            *uuid.UUID
+	banned            *bool
+	clearedFields     map[string]struct{}
+	group             *int
+	clearedgroup      bool
+	attachment        *uuid.UUID
+	clearedattachment bool
+	done              bool
+	oldValue          func(context.Context) (*User, error)
+	predicates        []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1431,6 +1504,42 @@ func (m *UserMutation) ResetExternalID() {
 	m.addexternal_id = nil
 }
 
+// SetCrmID sets the "crm_id" field.
+func (m *UserMutation) SetCrmID(u uuid.UUID) {
+	m.crm_id = &u
+}
+
+// CrmID returns the value of the "crm_id" field in the mutation.
+func (m *UserMutation) CrmID() (r uuid.UUID, exists bool) {
+	v := m.crm_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCrmID returns the old "crm_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCrmID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCrmID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCrmID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCrmID: %w", err)
+	}
+	return oldValue.CrmID, nil
+}
+
+// ResetCrmID resets all changes to the "crm_id" field.
+func (m *UserMutation) ResetCrmID() {
+	m.crm_id = nil
+}
+
 // SetBanned sets the "banned" field.
 func (m *UserMutation) SetBanned(b bool) {
 	m.banned = &b
@@ -1506,6 +1615,45 @@ func (m *UserMutation) ResetGroup() {
 	m.clearedgroup = false
 }
 
+// SetAttachmentID sets the "attachment" edge to the Attachment entity by id.
+func (m *UserMutation) SetAttachmentID(id uuid.UUID) {
+	m.attachment = &id
+}
+
+// ClearAttachment clears the "attachment" edge to the Attachment entity.
+func (m *UserMutation) ClearAttachment() {
+	m.clearedattachment = true
+}
+
+// AttachmentCleared returns if the "attachment" edge to the Attachment entity was cleared.
+func (m *UserMutation) AttachmentCleared() bool {
+	return m.clearedattachment
+}
+
+// AttachmentID returns the "attachment" edge ID in the mutation.
+func (m *UserMutation) AttachmentID() (id uuid.UUID, exists bool) {
+	if m.attachment != nil {
+		return *m.attachment, true
+	}
+	return
+}
+
+// AttachmentIDs returns the "attachment" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AttachmentID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) AttachmentIDs() (ids []uuid.UUID) {
+	if id := m.attachment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAttachment resets all changes to the "attachment" edge.
+func (m *UserMutation) ResetAttachment() {
+	m.attachment = nil
+	m.clearedattachment = false
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -1520,7 +1668,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -1538,6 +1686,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.external_id != nil {
 		fields = append(fields, user.FieldExternalID)
+	}
+	if m.crm_id != nil {
+		fields = append(fields, user.FieldCrmID)
 	}
 	if m.banned != nil {
 		fields = append(fields, user.FieldBanned)
@@ -1562,6 +1713,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case user.FieldExternalID:
 		return m.ExternalID()
+	case user.FieldCrmID:
+		return m.CrmID()
 	case user.FieldBanned:
 		return m.Banned()
 	}
@@ -1585,6 +1738,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStatus(ctx)
 	case user.FieldExternalID:
 		return m.OldExternalID(ctx)
+	case user.FieldCrmID:
+		return m.OldCrmID(ctx)
 	case user.FieldBanned:
 		return m.OldBanned(ctx)
 	}
@@ -1637,6 +1792,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExternalID(v)
+		return nil
+	case user.FieldCrmID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCrmID(v)
 		return nil
 	case user.FieldBanned:
 		v, ok := value.(bool)
@@ -1751,6 +1913,9 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldExternalID:
 		m.ResetExternalID()
 		return nil
+	case user.FieldCrmID:
+		m.ResetCrmID()
+		return nil
 	case user.FieldBanned:
 		m.ResetBanned()
 		return nil
@@ -1760,9 +1925,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.group != nil {
 		edges = append(edges, user.EdgeGroup)
+	}
+	if m.attachment != nil {
+		edges = append(edges, user.EdgeAttachment)
 	}
 	return edges
 }
@@ -1775,13 +1943,17 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.group; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeAttachment:
+		if id := m.attachment; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1795,9 +1967,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedgroup {
 		edges = append(edges, user.EdgeGroup)
+	}
+	if m.clearedattachment {
+		edges = append(edges, user.EdgeAttachment)
 	}
 	return edges
 }
@@ -1808,6 +1983,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeGroup:
 		return m.clearedgroup
+	case user.EdgeAttachment:
+		return m.clearedattachment
 	}
 	return false
 }
@@ -1819,6 +1996,9 @@ func (m *UserMutation) ClearEdge(name string) error {
 	case user.EdgeGroup:
 		m.ClearGroup()
 		return nil
+	case user.EdgeAttachment:
+		m.ClearAttachment()
+		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
@@ -1829,6 +2009,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeGroup:
 		m.ResetGroup()
+		return nil
+	case user.EdgeAttachment:
+		m.ResetAttachment()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

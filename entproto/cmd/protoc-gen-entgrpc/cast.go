@@ -26,6 +26,11 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 	// TODO(rotemtam): don't wrap if the ent type == the pb type
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
+	case dpb.FieldDescriptorProto_TYPE_BYTES:
+		if fld.EntField != nil && fld.EntField.IsUUID() {
+			return protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes"), nil
+		}
+		return "[]byte", nil
 	case dpb.FieldDescriptorProto_TYPE_BOOL:
 		return "bool", nil
 	case dpb.FieldDescriptorProto_TYPE_INT32:
@@ -62,13 +67,14 @@ func (g *serviceGenerator) castToEntFunc(fd *entproto.FieldMappingDescriptor) (i
 	case fld.IsBool(), fld.IsBytes(), fld.IsString(), fld.Type.Numeric():
 		return fld.Type.String(), nil
 	case fld.IsTime():
-		return protogen.GoImportPath("entgo.io/contrib/entproto").Ident("ExtractTime"), nil
+		return protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime"), nil
 	case fld.IsEnum():
 		ident := g.pbEnumIdent(fd)
 		methodName := "toEnt" + ident.GoName
 		return methodName, nil
+	case fld.IsUUID():
+		return protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustBytesToUUID"), nil
 	// case field.TypeJSON:
-	// case field.TypeUUID:
 	// case field.TypeOther:
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", fld.Type.ConstName())

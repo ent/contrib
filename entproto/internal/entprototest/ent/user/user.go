@@ -17,6 +17,8 @@ const (
 	FieldStatus = "status"
 	// EdgeBlogPosts holds the string denoting the blog_posts edge name in mutations.
 	EdgeBlogPosts = "blog_posts"
+	// EdgeProfilePic holds the string denoting the profile_pic edge name in mutations.
+	EdgeProfilePic = "profile_pic"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// BlogPostsTable is the table the holds the blog_posts relation/edge.
@@ -26,6 +28,13 @@ const (
 	BlogPostsInverseTable = "blog_posts"
 	// BlogPostsColumn is the table column denoting the blog_posts relation/edge.
 	BlogPostsColumn = "blog_post_author"
+	// ProfilePicTable is the table the holds the profile_pic relation/edge.
+	ProfilePicTable = "users"
+	// ProfilePicInverseTable is the table name for the Image entity.
+	// It exists in this package in order to avoid circular dependency with the "image" package.
+	ProfilePicInverseTable = "images"
+	// ProfilePicColumn is the table column denoting the profile_pic relation/edge.
+	ProfilePicColumn = "user_profile_pic"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -35,10 +44,21 @@ var Columns = []string{
 	FieldStatus,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_profile_pic",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
