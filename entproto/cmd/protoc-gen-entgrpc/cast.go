@@ -27,7 +27,6 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
 	case dpb.FieldDescriptorProto_TYPE_BYTES:
-		// TODO: handle edge
 		if fld.EntField != nil && fld.EntField.IsUUID() {
 			return protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes"), nil
 		}
