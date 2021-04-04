@@ -44,6 +44,7 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type (TODO: complete implementation)
 func toProtoUser(e *ent.User) *User {
 	return &User{
+		Banned:     bool(e.Banned),
 		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
 		Exp:        uint64(e.Exp),
 		ExternalId: int32(e.ExternalID),
@@ -71,6 +72,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.Create().
+		SetBanned(bool(user.GetBanned())).
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
@@ -113,6 +115,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
+		SetBanned(bool(user.GetBanned())).
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).

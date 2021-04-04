@@ -32,6 +32,8 @@ func (g *serviceGenerator) castToProtoFunc(fld *entproto.FieldMappingDescriptor)
 			return protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes"), nil
 		}
 		return "[]byte", nil
+	case dpb.FieldDescriptorProto_TYPE_BOOL:
+		return "bool", nil
 	case dpb.FieldDescriptorProto_TYPE_INT32:
 		return "int32", nil
 	case dpb.FieldDescriptorProto_TYPE_INT64:

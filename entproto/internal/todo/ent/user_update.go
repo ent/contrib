@@ -92,6 +92,20 @@ func (uu *UserUpdate) SetCrmID(u uuid.UUID) *UserUpdate {
 	return uu
 }
 
+// SetBanned sets the "banned" field.
+func (uu *UserUpdate) SetBanned(b bool) *UserUpdate {
+	uu.mutation.SetBanned(b)
+	return uu
+}
+
+// SetNillableBanned sets the "banned" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableBanned(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetBanned(*b)
+	}
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -277,6 +291,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldCrmID,
 		})
 	}
+	if value, ok := uu.mutation.Banned(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: user.FieldBanned,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -390,6 +411,20 @@ func (uuo *UserUpdateOne) AddExternalID(i int) *UserUpdateOne {
 // SetCrmID sets the "crm_id" field.
 func (uuo *UserUpdateOne) SetCrmID(u uuid.UUID) *UserUpdateOne {
 	uuo.mutation.SetCrmID(u)
+	return uuo
+}
+
+// SetBanned sets the "banned" field.
+func (uuo *UserUpdateOne) SetBanned(b bool) *UserUpdateOne {
+	uuo.mutation.SetBanned(b)
+	return uuo
+}
+
+// SetNillableBanned sets the "banned" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableBanned(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetBanned(*b)
+	}
 	return uuo
 }
 
@@ -581,6 +616,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeUUID,
 			Value:  value,
 			Column: user.FieldCrmID,
+		})
+	}
+	if value, ok := uuo.mutation.Banned(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: user.FieldBanned,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

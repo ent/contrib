@@ -61,6 +61,9 @@ func (User) Fields() []ent.Field {
 			Annotations(entproto.Field(8)),
 		field.UUID("crm_id", uuid.New()).
 			Annotations(entproto.Field(9)),
+		field.Bool("banned").
+			Default(false).
+			Annotations(entproto.Field(10)),
 	}
 }
 

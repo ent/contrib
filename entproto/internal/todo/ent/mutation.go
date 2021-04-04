@@ -1068,6 +1068,7 @@ type UserMutation struct {
 	external_id    *int
 	addexternal_id *int
 	crm_id         *uuid.UUID
+	banned         *bool
 	clearedFields  map[string]struct{}
 	group          *int
 	clearedgroup   bool
@@ -1467,6 +1468,42 @@ func (m *UserMutation) ResetCrmID() {
 	m.crm_id = nil
 }
 
+// SetBanned sets the "banned" field.
+func (m *UserMutation) SetBanned(b bool) {
+	m.banned = &b
+}
+
+// Banned returns the value of the "banned" field in the mutation.
+func (m *UserMutation) Banned() (r bool, exists bool) {
+	v := m.banned
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBanned returns the old "banned" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldBanned(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldBanned is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldBanned requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBanned: %w", err)
+	}
+	return oldValue.Banned, nil
+}
+
+// ResetBanned resets all changes to the "banned" field.
+func (m *UserMutation) ResetBanned() {
+	m.banned = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -1520,7 +1557,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -1541,6 +1578,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.crm_id != nil {
 		fields = append(fields, user.FieldCrmID)
+	}
+	if m.banned != nil {
+		fields = append(fields, user.FieldBanned)
 	}
 	return fields
 }
@@ -1564,6 +1604,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.ExternalID()
 	case user.FieldCrmID:
 		return m.CrmID()
+	case user.FieldBanned:
+		return m.Banned()
 	}
 	return nil, false
 }
@@ -1587,6 +1629,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldExternalID(ctx)
 	case user.FieldCrmID:
 		return m.OldCrmID(ctx)
+	case user.FieldBanned:
+		return m.OldBanned(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1644,6 +1688,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCrmID(v)
+		return nil
+	case user.FieldBanned:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBanned(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1753,6 +1804,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldCrmID:
 		m.ResetCrmID()
+		return nil
+	case user.FieldBanned:
+		m.ResetBanned()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

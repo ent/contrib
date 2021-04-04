@@ -25,6 +25,8 @@ const (
 	FieldExternalID = "external_id"
 	// FieldCrmID holds the string denoting the crm_id field in the database.
 	FieldCrmID = "crm_id"
+	// FieldBanned holds the string denoting the banned field in the database.
+	FieldBanned = "banned"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// Table holds the table name of the user in the database.
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldExternalID,
 	FieldCrmID,
+	FieldBanned,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -70,6 +73,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultBanned holds the default value on creation for the "banned" field.
+	DefaultBanned bool
+)
 
 // Status defines the type for the "status" enum field.
 type Status string
