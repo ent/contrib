@@ -80,7 +80,7 @@ func (g *serviceGenerator) generateValidator() {
 	g.P("}")
 }
 
-func (g *serviceGenerator) generateIdFieldValidator(idField *entproto.FieldMappingDescriptor) {
+func (g *serviceGenerator) generateIDFieldValidator(idField *entproto.FieldMappingDescriptor) {
 	if idField.EntField.IsUUID() {
 		g.Tmpl(`if err := %(validateUUID)(req.Get%(pbField)()); err != nil {
 					return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)

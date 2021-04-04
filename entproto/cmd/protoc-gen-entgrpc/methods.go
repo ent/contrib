@@ -30,7 +30,7 @@ func (g *serviceGenerator) generateGetMethod() error {
 		return err
 	}
 	if fieldNeedsValidator(idField) {
-		g.generateIdFieldValidator(idField)
+		g.generateIDFieldValidator(idField)
 	}
 	g.Tmpl(`get, err := svc.client.%(typeName).Get(ctx, %(cast)(req.Get%(pbIdField)()))
 	switch {
@@ -54,7 +54,7 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 		return err
 	}
 	if fieldNeedsValidator(idField) {
-		g.generateIdFieldValidator(idField)
+		g.generateIDFieldValidator(idField)
 	}
 	g.Tmpl(`err := svc.client.%(typeName).DeleteOneID(%(cast)(req.Get%(pbIdField)())).Exec(ctx)
 	switch {
