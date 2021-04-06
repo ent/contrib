@@ -112,7 +112,7 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	}
 
 	for _, fld := range g.fieldMap.Fields() {
-		if fld.IsIDField {
+		if fld.IsIDField || (op == "update" && fld.EntField.Immutable) { // There's no Set* function for Immutable fields when updating
 			continue
 		}
 		castFn, err := g.castToEntFunc(fld)

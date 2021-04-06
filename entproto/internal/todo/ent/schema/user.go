@@ -42,6 +42,7 @@ func (User) Fields() []ent.Field {
 			Unique().
 			Annotations(entproto.Field(2)),
 		field.Time("joined").
+			Immutable().
 			Annotations(entproto.Field(3)),
 		field.Uint("points").
 			Annotations(entproto.Field(4)),
