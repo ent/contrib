@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
@@ -33,12 +32,6 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 // SetUserName sets the "user_name" field.
 func (uu *UserUpdate) SetUserName(s string) *UserUpdate {
 	uu.mutation.SetUserName(s)
-	return uu
-}
-
-// SetJoined sets the "joined" field.
-func (uu *UserUpdate) SetJoined(t time.Time) *UserUpdate {
-	uu.mutation.SetJoined(t)
 	return uu
 }
 
@@ -254,13 +247,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldUserName,
 		})
 	}
-	if value, ok := uu.mutation.Joined(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldJoined,
-		})
-	}
 	if value, ok := uu.mutation.Points(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint,
@@ -415,12 +401,6 @@ type UserUpdateOne struct {
 // SetUserName sets the "user_name" field.
 func (uuo *UserUpdateOne) SetUserName(s string) *UserUpdateOne {
 	uuo.mutation.SetUserName(s)
-	return uuo
-}
-
-// SetJoined sets the "joined" field.
-func (uuo *UserUpdateOne) SetJoined(t time.Time) *UserUpdateOne {
-	uuo.mutation.SetJoined(t)
 	return uuo
 }
 
@@ -639,13 +619,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: user.FieldUserName,
-		})
-	}
-	if value, ok := uuo.mutation.Joined(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldJoined,
 		})
 	}
 	if value, ok := uuo.mutation.Points(); ok {
