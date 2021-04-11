@@ -69,7 +69,7 @@ func (User) Fields() []ent.Field {
 		field.Uint8("custom_pb").
 			Annotations(
 				entproto.Field(12,
-					entproto.OverrideType(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
+					entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
 				),
 			),
 	}

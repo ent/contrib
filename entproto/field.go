@@ -36,26 +36,33 @@ func Field(num int, options ...FieldOption) schema.Annotation {
 }
 
 type pbfield struct {
-	Number           int
-	OverrideType     descriptorpb.FieldDescriptorProto_Type
-	OverrideTypeName string
+	Number   int
+	Type     descriptorpb.FieldDescriptorProto_Type
+	TypeName string
 }
 
 func (f pbfield) Name() string {
 	return FieldAnnotation
 }
 
-// OverrideType overrides the default mapping between ent types and protobuf types.
-func OverrideType(typ descriptorpb.FieldDescriptorProto_Type) FieldOption {
+// Type overrides the default mapping between ent types and protobuf types.
+// Example:
+//	field.Uint8("custom_pb").
+//		Annotations(
+//			entproto.Field(2,
+//				entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
+//			),
+//		)
+func Type(typ descriptorpb.FieldDescriptorProto_Type) FieldOption {
 	return func(p *pbfield) {
-		p.OverrideType = typ
+		p.Type = typ
 	}
 }
 
-// OverrideTypeName sets the pb descriptors type name, needed if the OverrideType attribute is TYPE_ENUM or TYPE_MESSAGE.
-func OverrideTypeName(n string) FieldOption {
+// TypeName sets the pb descriptors type name, needed if the Type attribute is TYPE_ENUM or TYPE_MESSAGE.
+func TypeName(n string) FieldOption {
 	return func(p *pbfield) {
-		p.OverrideTypeName = n
+		p.TypeName = n
 	}
 }
 

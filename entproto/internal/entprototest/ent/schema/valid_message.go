@@ -41,7 +41,7 @@ func (ValidMessage) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(
 					5,
-					entproto.OverrideType(
+					entproto.Type(
 						descriptorpb.FieldDescriptorProto_TYPE_UINT64,
 					),
 				),

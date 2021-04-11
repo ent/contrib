@@ -449,10 +449,10 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 		return nil, fmt.Errorf("entproto: field %q has number 1 which is reserved for id", f.Name)
 	}
 	fieldDesc.Number = &fieldNumber
-	if fann.OverrideType != descriptorpb.FieldDescriptorProto_Type(0) {
-		fieldDesc.Type = &fann.OverrideType
-		if len(fann.OverrideTypeName) > 0 {
-			fieldDesc.TypeName = &fann.OverrideTypeName
+	if fann.Type != descriptorpb.FieldDescriptorProto_Type(0) {
+		fieldDesc.Type = &fann.Type
+		if len(fann.TypeName) > 0 {
+			fieldDesc.TypeName = &fann.TypeName
 		}
 		return fieldDesc, nil
 	}
