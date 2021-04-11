@@ -46,6 +46,19 @@ func (vmu *ValidMessageUpdate) SetUUID(u uuid.UUID) *ValidMessageUpdate {
 	return vmu
 }
 
+// SetU8 sets the "u8" field.
+func (vmu *ValidMessageUpdate) SetU8(u uint8) *ValidMessageUpdate {
+	vmu.mutation.ResetU8()
+	vmu.mutation.SetU8(u)
+	return vmu
+}
+
+// AddU8 adds u to the "u8" field.
+func (vmu *ValidMessageUpdate) AddU8(u uint8) *ValidMessageUpdate {
+	vmu.mutation.AddU8(u)
+	return vmu
+}
+
 // Mutation returns the ValidMessageMutation object of the builder.
 func (vmu *ValidMessageUpdate) Mutation() *ValidMessageMutation {
 	return vmu.mutation
@@ -141,6 +154,20 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: validmessage.FieldUUID,
 		})
 	}
+	if value, ok := vmu.mutation.U8(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: validmessage.FieldU8,
+		})
+	}
+	if value, ok := vmu.mutation.AddedU8(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: validmessage.FieldU8,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, vmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{validmessage.Label}
@@ -174,6 +201,19 @@ func (vmuo *ValidMessageUpdateOne) SetTs(t time.Time) *ValidMessageUpdateOne {
 // SetUUID sets the "uuid" field.
 func (vmuo *ValidMessageUpdateOne) SetUUID(u uuid.UUID) *ValidMessageUpdateOne {
 	vmuo.mutation.SetUUID(u)
+	return vmuo
+}
+
+// SetU8 sets the "u8" field.
+func (vmuo *ValidMessageUpdateOne) SetU8(u uint8) *ValidMessageUpdateOne {
+	vmuo.mutation.ResetU8()
+	vmuo.mutation.SetU8(u)
+	return vmuo
+}
+
+// AddU8 adds u to the "u8" field.
+func (vmuo *ValidMessageUpdateOne) AddU8(u uint8) *ValidMessageUpdateOne {
+	vmuo.mutation.AddU8(u)
 	return vmuo
 }
 
@@ -275,6 +315,20 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 			Type:   field.TypeUUID,
 			Value:  value,
 			Column: validmessage.FieldUUID,
+		})
+	}
+	if value, ok := vmuo.mutation.U8(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: validmessage.FieldU8,
+		})
+	}
+	if value, ok := vmuo.mutation.AddedU8(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: validmessage.FieldU8,
 		})
 	}
 	_node = &ValidMessage{config: vmuo.config}

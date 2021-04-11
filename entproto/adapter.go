@@ -440,18 +440,22 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	fieldDesc := &descriptorpb.FieldDescriptorProto{
 		Name: &f.Name,
 	}
-
-	fieldNumber, err := extractFieldNumber(f)
+	fann, err := extractFieldAnnotation(f)
 	if err != nil {
 		return nil, err
 	}
-
+	fieldNumber := int32(fann.Number)
 	if fieldNumber == 1 && strings.ToUpper(f.Name) != "ID" {
 		return nil, fmt.Errorf("entproto: field %q has number 1 which is reserved for id", f.Name)
 	}
-
 	fieldDesc.Number = &fieldNumber
-
+	if fann.Type != descriptorpb.FieldDescriptorProto_Type(0) {
+		fieldDesc.Type = &fann.Type
+		if len(fann.TypeName) > 0 {
+			fieldDesc.TypeName = &fann.TypeName
+		}
+		return fieldDesc, nil
+	}
 	typeDetails, err := extractProtoTypeDetails(f)
 	if err != nil {
 		return nil, err
@@ -462,15 +466,6 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	}
 
 	return fieldDesc, nil
-}
-
-func extractFieldNumber(field *gen.Field) (int32, error) {
-	epField, err := extractFieldAnnotation(field)
-	if err != nil {
-		return 0, err
-	}
-	i := int32(epField.Number)
-	return i, nil
 }
 
 func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {

@@ -79,6 +79,12 @@ func (uc *UserCreate) SetNillableBanned(b *bool) *UserCreate {
 	return uc
 }
 
+// SetCustomPb sets the "custom_pb" field.
+func (uc *UserCreate) SetCustomPb(u uint8) *UserCreate {
+	uc.mutation.SetCustomPb(u)
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -206,6 +212,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Banned(); !ok {
 		return &ValidationError{Name: "banned", err: errors.New("ent: missing required field \"banned\"")}
 	}
+	if _, ok := uc.mutation.CustomPb(); !ok {
+		return &ValidationError{Name: "custom_pb", err: errors.New("ent: missing required field \"custom_pb\"")}
+	}
 	return nil
 }
 
@@ -296,6 +305,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldBanned,
 		})
 		_node.Banned = value
+	}
+	if value, ok := uc.mutation.CustomPb(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: user.FieldCustomPb,
+		})
+		_node.CustomPb = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

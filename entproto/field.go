@@ -20,6 +20,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 	"github.com/mitchellh/mapstructure"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 const FieldAnnotation = "ProtoField"
@@ -35,11 +36,34 @@ func Field(num int, options ...FieldOption) schema.Annotation {
 }
 
 type pbfield struct {
-	Number int
+	Number   int
+	Type     descriptorpb.FieldDescriptorProto_Type
+	TypeName string
 }
 
 func (f pbfield) Name() string {
 	return FieldAnnotation
+}
+
+// Type overrides the default mapping between ent types and protobuf types.
+// Example:
+//	field.Uint8("custom_pb").
+//		Annotations(
+//			entproto.Field(2,
+//				entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
+//			),
+//		)
+func Type(typ descriptorpb.FieldDescriptorProto_Type) FieldOption {
+	return func(p *pbfield) {
+		p.Type = typ
+	}
+}
+
+// TypeName sets the pb descriptors type name, needed if the Type attribute is TYPE_ENUM or TYPE_MESSAGE.
+func TypeName(n string) FieldOption {
+	return func(p *pbfield) {
+		p.TypeName = n
+	}
 }
 
 func extractFieldAnnotation(fld *gen.Field) (*pbfield, error) {
