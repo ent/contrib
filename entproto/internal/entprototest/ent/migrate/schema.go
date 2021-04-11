@@ -218,6 +218,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "ts", Type: field.TypeTime},
 		{Name: "uuid", Type: field.TypeUUID},
+		{Name: "u8", Type: field.TypeUint8},
 	}
 	// ValidMessagesTable holds the schema information for the "valid_messages" table.
 	ValidMessagesTable = &schema.Table{

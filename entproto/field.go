@@ -20,6 +20,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 	"github.com/mitchellh/mapstructure"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 const FieldAnnotation = "ProtoField"
@@ -35,11 +36,27 @@ func Field(num int, options ...FieldOption) schema.Annotation {
 }
 
 type pbfield struct {
-	Number int
+	Number           int
+	OverrideType     descriptorpb.FieldDescriptorProto_Type
+	OverrideTypeName string
 }
 
 func (f pbfield) Name() string {
 	return FieldAnnotation
+}
+
+// OverrideType overrides the default mapping between ent types and protobuf types.
+func OverrideType(typ descriptorpb.FieldDescriptorProto_Type) FieldOption {
+	return func(p *pbfield) {
+		p.OverrideType = typ
+	}
+}
+
+// OverrideTypeName sets the pb descriptors type name, needed if the OverrideType attribute is TYPE_ENUM or TYPE_MESSAGE.
+func OverrideTypeName(n string) FieldOption {
+	return func(p *pbfield) {
+		p.OverrideTypeName = n
+	}
 }
 
 func extractFieldAnnotation(fld *gen.Field) (*pbfield, error) {

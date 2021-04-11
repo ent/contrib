@@ -123,6 +123,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
+		SetJoined(runtime.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(string(user.GetUserName())).

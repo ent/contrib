@@ -56,7 +56,7 @@ func (suite *AdapterTestSuite) TestValidMessage() {
 	suite.Equal("entgo.io/contrib/entproto/internal/entprototest/ent/proto/entpb",
 		fd.GetFileOptions().GetGoPackage())
 	message := fd.FindMessage("entpb.ValidMessage")
-	suite.Len(message.GetFields(), 4)
+	suite.Len(message.GetFields(), 5)
 
 	idField := message.FindFieldByName("id")
 	suite.NotNil(idField)
@@ -73,6 +73,10 @@ func (suite *AdapterTestSuite) TestValidMessage() {
 
 	uuField := message.FindFieldByName("uuid")
 	suite.NotNil(uuField)
+
+	u8Field := message.FindFieldByName("u8")
+	suite.NotNil(u8Field)
+	suite.EqualValues(u8Field.GetType(), descriptorpb.FieldDescriptorProto_TYPE_UINT64)
 }
 
 func (suite *AdapterTestSuite) TestWktProtosDropped() {

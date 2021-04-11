@@ -39,6 +39,12 @@ func (vmc *ValidMessageCreate) SetUUID(u uuid.UUID) *ValidMessageCreate {
 	return vmc
 }
 
+// SetU8 sets the "u8" field.
+func (vmc *ValidMessageCreate) SetU8(u uint8) *ValidMessageCreate {
+	vmc.mutation.SetU8(u)
+	return vmc
+}
+
 // Mutation returns the ValidMessageMutation object of the builder.
 func (vmc *ValidMessageCreate) Mutation() *ValidMessageMutation {
 	return vmc.mutation
@@ -99,6 +105,9 @@ func (vmc *ValidMessageCreate) check() error {
 	if _, ok := vmc.mutation.UUID(); !ok {
 		return &ValidationError{Name: "uuid", err: errors.New("ent: missing required field \"uuid\"")}
 	}
+	if _, ok := vmc.mutation.U8(); !ok {
+		return &ValidationError{Name: "u8", err: errors.New("ent: missing required field \"u8\"")}
+	}
 	return nil
 }
 
@@ -149,6 +158,14 @@ func (vmc *ValidMessageCreate) createSpec() (*ValidMessage, *sqlgraph.CreateSpec
 			Column: validmessage.FieldUUID,
 		})
 		_node.UUID = value
+	}
+	if value, ok := vmc.mutation.U8(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: validmessage.FieldU8,
+		})
+		_node.U8 = value
 	}
 	return _node, _spec
 }

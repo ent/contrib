@@ -114,6 +114,13 @@ func UUID(v uuid.UUID) predicate.ValidMessage {
 	})
 }
 
+// U8 applies equality check predicate on the "u8" field. It's identical to U8EQ.
+func U8(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldU8), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.ValidMessage {
 	return predicate.ValidMessage(func(s *sql.Selector) {
@@ -374,6 +381,82 @@ func UUIDLT(v uuid.UUID) predicate.ValidMessage {
 func UUIDLTE(v uuid.UUID) predicate.ValidMessage {
 	return predicate.ValidMessage(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldUUID), v))
+	})
+}
+
+// U8EQ applies the EQ predicate on the "u8" field.
+func U8EQ(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldU8), v))
+	})
+}
+
+// U8NEQ applies the NEQ predicate on the "u8" field.
+func U8NEQ(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldU8), v))
+	})
+}
+
+// U8In applies the In predicate on the "u8" field.
+func U8In(vs ...uint8) predicate.ValidMessage {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldU8), v...))
+	})
+}
+
+// U8NotIn applies the NotIn predicate on the "u8" field.
+func U8NotIn(vs ...uint8) predicate.ValidMessage {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldU8), v...))
+	})
+}
+
+// U8GT applies the GT predicate on the "u8" field.
+func U8GT(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldU8), v))
+	})
+}
+
+// U8GTE applies the GTE predicate on the "u8" field.
+func U8GTE(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldU8), v))
+	})
+}
+
+// U8LT applies the LT predicate on the "u8" field.
+func U8LT(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldU8), v))
+	})
+}
+
+// U8LTE applies the LTE predicate on the "u8" field.
+func U8LTE(v uint8) predicate.ValidMessage {
+	return predicate.ValidMessage(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldU8), v))
 	})
 }
 

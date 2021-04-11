@@ -5003,6 +5003,8 @@ type ValidMessageMutation struct {
 	name          *string
 	ts            *time.Time
 	uuid          *uuid.UUID
+	u8            *uint8
+	addu8         *uint8
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*ValidMessage, error)
@@ -5196,6 +5198,62 @@ func (m *ValidMessageMutation) ResetUUID() {
 	m.uuid = nil
 }
 
+// SetU8 sets the "u8" field.
+func (m *ValidMessageMutation) SetU8(u uint8) {
+	m.u8 = &u
+	m.addu8 = nil
+}
+
+// U8 returns the value of the "u8" field in the mutation.
+func (m *ValidMessageMutation) U8() (r uint8, exists bool) {
+	v := m.u8
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldU8 returns the old "u8" field's value of the ValidMessage entity.
+// If the ValidMessage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ValidMessageMutation) OldU8(ctx context.Context) (v uint8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldU8 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldU8 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldU8: %w", err)
+	}
+	return oldValue.U8, nil
+}
+
+// AddU8 adds u to the "u8" field.
+func (m *ValidMessageMutation) AddU8(u uint8) {
+	if m.addu8 != nil {
+		*m.addu8 += u
+	} else {
+		m.addu8 = &u
+	}
+}
+
+// AddedU8 returns the value that was added to the "u8" field in this mutation.
+func (m *ValidMessageMutation) AddedU8() (r uint8, exists bool) {
+	v := m.addu8
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetU8 resets all changes to the "u8" field.
+func (m *ValidMessageMutation) ResetU8() {
+	m.u8 = nil
+	m.addu8 = nil
+}
+
 // Op returns the operation name.
 func (m *ValidMessageMutation) Op() Op {
 	return m.op
@@ -5210,7 +5268,7 @@ func (m *ValidMessageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ValidMessageMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, validmessage.FieldName)
 	}
@@ -5219,6 +5277,9 @@ func (m *ValidMessageMutation) Fields() []string {
 	}
 	if m.uuid != nil {
 		fields = append(fields, validmessage.FieldUUID)
+	}
+	if m.u8 != nil {
+		fields = append(fields, validmessage.FieldU8)
 	}
 	return fields
 }
@@ -5234,6 +5295,8 @@ func (m *ValidMessageMutation) Field(name string) (ent.Value, bool) {
 		return m.Ts()
 	case validmessage.FieldUUID:
 		return m.UUID()
+	case validmessage.FieldU8:
+		return m.U8()
 	}
 	return nil, false
 }
@@ -5249,6 +5312,8 @@ func (m *ValidMessageMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldTs(ctx)
 	case validmessage.FieldUUID:
 		return m.OldUUID(ctx)
+	case validmessage.FieldU8:
+		return m.OldU8(ctx)
 	}
 	return nil, fmt.Errorf("unknown ValidMessage field %s", name)
 }
@@ -5279,6 +5344,13 @@ func (m *ValidMessageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUUID(v)
 		return nil
+	case validmessage.FieldU8:
+		v, ok := value.(uint8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetU8(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ValidMessage field %s", name)
 }
@@ -5286,13 +5358,21 @@ func (m *ValidMessageMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ValidMessageMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addu8 != nil {
+		fields = append(fields, validmessage.FieldU8)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ValidMessageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case validmessage.FieldU8:
+		return m.AddedU8()
+	}
 	return nil, false
 }
 
@@ -5301,6 +5381,13 @@ func (m *ValidMessageMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ValidMessageMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case validmessage.FieldU8:
+		v, ok := value.(uint8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddU8(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ValidMessage numeric field %s", name)
 }
@@ -5336,6 +5423,9 @@ func (m *ValidMessageMutation) ResetField(name string) error {
 		return nil
 	case validmessage.FieldUUID:
 		m.ResetUUID()
+		return nil
+	case validmessage.FieldU8:
+		m.ResetU8()
 		return nil
 	}
 	return fmt.Errorf("unknown ValidMessage field %s", name)
