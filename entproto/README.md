@@ -224,7 +224,7 @@ service UserService {
 ```
 ## Field Annotations
 
-### ent.Field
+### entproto.Field
 All fields must be annotated with `entproto.Field` to specify their proto field numbers
 ```go
 // Fields of the User.
@@ -274,7 +274,20 @@ Validations:
 * No duplication of field numbers (this is illegal protobuf)
 * Only supported ent field types are used
 
-### ent.Enum
+#### Custom Fields
+In some edge cases, it may be required to override the automatic ent <> proto type mapping.
+This can be done by using the `entproto.OverrideType`, field option:
+
+```go
+field.Uint8("custom_pb").
+    Annotations(
+        entproto.Field(12,
+            entproto.OverrideType(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
+        ),
+    )
+```
+
+### entproto.Enum
 
 Proto Enum options, similar to message fields are assigned a numeric identifier that is expected to remain stable through all versions. This means, that a specific Ent Enum field option must always be translated to the same numeric identifier across the re-generation of the export code.
 
