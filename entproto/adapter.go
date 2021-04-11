@@ -468,15 +468,6 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	return fieldDesc, nil
 }
 
-func extractFieldNumber(field *gen.Field) (int32, error) {
-	epField, err := extractFieldAnnotation(field)
-	if err != nil {
-		return 0, err
-	}
-	i := int32(epField.Number)
-	return i, nil
-}
-
 func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	switch f.Type.Type {
 	case field.TypeBool:
