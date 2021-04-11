@@ -27,6 +27,8 @@ const (
 	FieldCrmID = "crm_id"
 	// FieldBanned holds the string denoting the banned field in the database.
 	FieldBanned = "banned"
+	// FieldCustomPb holds the string denoting the custom_pb field in the database.
+	FieldCustomPb = "custom_pb"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -60,6 +62,7 @@ var Columns = []string{
 	FieldExternalID,
 	FieldCrmID,
 	FieldBanned,
+	FieldCustomPb,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

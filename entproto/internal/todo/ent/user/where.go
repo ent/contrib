@@ -143,6 +143,13 @@ func Banned(v bool) predicate.User {
 	})
 }
 
+// CustomPb applies equality check predicate on the "custom_pb" field. It's identical to CustomPbEQ.
+func CustomPb(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCustomPb), v))
+	})
+}
+
 // UserNameEQ applies the EQ predicate on the "user_name" field.
 func UserNameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -693,6 +700,82 @@ func BannedEQ(v bool) predicate.User {
 func BannedNEQ(v bool) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldBanned), v))
+	})
+}
+
+// CustomPbEQ applies the EQ predicate on the "custom_pb" field.
+func CustomPbEQ(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCustomPb), v))
+	})
+}
+
+// CustomPbNEQ applies the NEQ predicate on the "custom_pb" field.
+func CustomPbNEQ(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCustomPb), v))
+	})
+}
+
+// CustomPbIn applies the In predicate on the "custom_pb" field.
+func CustomPbIn(vs ...uint8) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCustomPb), v...))
+	})
+}
+
+// CustomPbNotIn applies the NotIn predicate on the "custom_pb" field.
+func CustomPbNotIn(vs ...uint8) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCustomPb), v...))
+	})
+}
+
+// CustomPbGT applies the GT predicate on the "custom_pb" field.
+func CustomPbGT(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCustomPb), v))
+	})
+}
+
+// CustomPbGTE applies the GTE predicate on the "custom_pb" field.
+func CustomPbGTE(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCustomPb), v))
+	})
+}
+
+// CustomPbLT applies the LT predicate on the "custom_pb" field.
+func CustomPbLT(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCustomPb), v))
+	})
+}
+
+// CustomPbLTE applies the LTE predicate on the "custom_pb" field.
+func CustomPbLTE(v uint8) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCustomPb), v))
 	})
 }
 

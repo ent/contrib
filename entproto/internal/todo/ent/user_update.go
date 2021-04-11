@@ -100,6 +100,19 @@ func (uu *UserUpdate) SetNillableBanned(b *bool) *UserUpdate {
 	return uu
 }
 
+// SetCustomPb sets the "custom_pb" field.
+func (uu *UserUpdate) SetCustomPb(u uint8) *UserUpdate {
+	uu.mutation.ResetCustomPb()
+	uu.mutation.SetCustomPb(u)
+	return uu
+}
+
+// AddCustomPb adds u to the "custom_pb" field.
+func (uu *UserUpdate) AddCustomPb(u uint8) *UserUpdate {
+	uu.mutation.AddCustomPb(u)
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -310,6 +323,20 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldBanned,
 		})
 	}
+	if value, ok := uu.mutation.CustomPb(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: user.FieldCustomPb,
+		})
+	}
+	if value, ok := uu.mutation.AddedCustomPb(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: user.FieldCustomPb,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -466,6 +493,19 @@ func (uuo *UserUpdateOne) SetNillableBanned(b *bool) *UserUpdateOne {
 	if b != nil {
 		uuo.SetBanned(*b)
 	}
+	return uuo
+}
+
+// SetCustomPb sets the "custom_pb" field.
+func (uuo *UserUpdateOne) SetCustomPb(u uint8) *UserUpdateOne {
+	uuo.mutation.ResetCustomPb()
+	uuo.mutation.SetCustomPb(u)
+	return uuo
+}
+
+// AddCustomPb adds u to the "custom_pb" field.
+func (uuo *UserUpdateOne) AddCustomPb(u uint8) *UserUpdateOne {
+	uuo.mutation.AddCustomPb(u)
 	return uuo
 }
 
@@ -682,6 +722,20 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: user.FieldBanned,
+		})
+	}
+	if value, ok := uuo.mutation.CustomPb(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: user.FieldCustomPb,
+		})
+	}
+	if value, ok := uuo.mutation.AddedCustomPb(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint8,
+			Value:  value,
+			Column: user.FieldCustomPb,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

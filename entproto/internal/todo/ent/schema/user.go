@@ -21,6 +21,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // User holds the schema definition for the User entity.
@@ -65,6 +66,12 @@ func (User) Fields() []ent.Field {
 		field.Bool("banned").
 			Default(false).
 			Annotations(entproto.Field(10)),
+		field.Uint8("custom_pb").
+			Annotations(
+				entproto.Field(12,
+					entproto.OverrideType(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
+				),
+			),
 	}
 }
 

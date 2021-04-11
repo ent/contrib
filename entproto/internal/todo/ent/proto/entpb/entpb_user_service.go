@@ -46,6 +46,7 @@ func toProtoUser(e *ent.User) *User {
 	return &User{
 		Banned:     bool(e.Banned),
 		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
+		CustomPb:   uint64(e.CustomPb),
 		Exp:        uint64(e.Exp),
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
@@ -77,6 +78,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	res, err := svc.client.User.Create().
 		SetBanned(bool(user.GetBanned())).
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
+		SetCustomPb(uint8(user.GetCustomPb())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
 		SetJoined(runtime.ExtractTime(user.GetJoined())).
@@ -121,6 +123,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
 		SetBanned(bool(user.GetBanned())).
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
+		SetCustomPb(uint8(user.GetCustomPb())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
 		SetPoints(uint(user.GetPoints())).

@@ -1139,6 +1139,8 @@ type UserMutation struct {
 	addexternal_id    *int
 	crm_id            *uuid.UUID
 	banned            *bool
+	custom_pb         *uint8
+	addcustom_pb      *uint8
 	clearedFields     map[string]struct{}
 	group             *int
 	clearedgroup      bool
@@ -1576,6 +1578,62 @@ func (m *UserMutation) ResetBanned() {
 	m.banned = nil
 }
 
+// SetCustomPb sets the "custom_pb" field.
+func (m *UserMutation) SetCustomPb(u uint8) {
+	m.custom_pb = &u
+	m.addcustom_pb = nil
+}
+
+// CustomPb returns the value of the "custom_pb" field in the mutation.
+func (m *UserMutation) CustomPb() (r uint8, exists bool) {
+	v := m.custom_pb
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomPb returns the old "custom_pb" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomPb(ctx context.Context) (v uint8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCustomPb is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCustomPb requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomPb: %w", err)
+	}
+	return oldValue.CustomPb, nil
+}
+
+// AddCustomPb adds u to the "custom_pb" field.
+func (m *UserMutation) AddCustomPb(u uint8) {
+	if m.addcustom_pb != nil {
+		*m.addcustom_pb += u
+	} else {
+		m.addcustom_pb = &u
+	}
+}
+
+// AddedCustomPb returns the value that was added to the "custom_pb" field in this mutation.
+func (m *UserMutation) AddedCustomPb() (r uint8, exists bool) {
+	v := m.addcustom_pb
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCustomPb resets all changes to the "custom_pb" field.
+func (m *UserMutation) ResetCustomPb() {
+	m.custom_pb = nil
+	m.addcustom_pb = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -1668,7 +1726,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -1692,6 +1750,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.banned != nil {
 		fields = append(fields, user.FieldBanned)
+	}
+	if m.custom_pb != nil {
+		fields = append(fields, user.FieldCustomPb)
 	}
 	return fields
 }
@@ -1717,6 +1778,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.CrmID()
 	case user.FieldBanned:
 		return m.Banned()
+	case user.FieldCustomPb:
+		return m.CustomPb()
 	}
 	return nil, false
 }
@@ -1742,6 +1805,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCrmID(ctx)
 	case user.FieldBanned:
 		return m.OldBanned(ctx)
+	case user.FieldCustomPb:
+		return m.OldCustomPb(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1807,6 +1872,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBanned(v)
 		return nil
+	case user.FieldCustomPb:
+		v, ok := value.(uint8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomPb(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -1824,6 +1896,9 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addexternal_id != nil {
 		fields = append(fields, user.FieldExternalID)
 	}
+	if m.addcustom_pb != nil {
+		fields = append(fields, user.FieldCustomPb)
+	}
 	return fields
 }
 
@@ -1838,6 +1913,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedExp()
 	case user.FieldExternalID:
 		return m.AddedExternalID()
+	case user.FieldCustomPb:
+		return m.AddedCustomPb()
 	}
 	return nil, false
 }
@@ -1867,6 +1944,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddExternalID(v)
+		return nil
+	case user.FieldCustomPb:
+		v, ok := value.(uint8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomPb(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -1918,6 +2002,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldBanned:
 		m.ResetBanned()
+		return nil
+	case user.FieldCustomPb:
+		m.ResetCustomPb()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

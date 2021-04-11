@@ -92,6 +92,7 @@ func TestUserService_Get(t *testing.T) {
 		SetStatus("pending").
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
+		SetCustomPb(1).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: int32(created.ID),
@@ -123,6 +124,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetStatus("pending").
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
+		SetCustomPb(1).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
 		Id: int32(created.ID),
@@ -155,6 +157,7 @@ func TestUserService_Update(t *testing.T) {
 		SetStatus("pending").
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
+		SetCustomPb(1).
 		SaveX(ctx)
 
 	attachmentID, err := attachment.ID.MarshalBinary()

@@ -35,6 +35,8 @@ type User struct {
 	CrmID uuid.UUID `json:"crm_id,omitempty"`
 	// Banned holds the value of the "banned" field.
 	Banned bool `json:"banned,omitempty"`
+	// CustomPb holds the value of the "custom_pb" field.
+	CustomPb uint8 `json:"custom_pb,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -87,7 +89,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldBanned:
 			values[i] = &sql.NullBool{}
-		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID:
+		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb:
 			values[i] = &sql.NullInt64{}
 		case user.FieldUserName, user.FieldStatus:
 			values[i] = &sql.NullString{}
@@ -166,6 +168,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Banned = value.Bool
 			}
+		case user.FieldCustomPb:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_pb", values[i])
+			} else if value.Valid {
+				u.CustomPb = uint8(value.Int64)
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -227,6 +235,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.CrmID))
 	builder.WriteString(", banned=")
 	builder.WriteString(fmt.Sprintf("%v", u.Banned))
+	builder.WriteString(", custom_pb=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomPb))
 	builder.WriteByte(')')
 	return builder.String()
 }
