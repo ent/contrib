@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -169,6 +170,26 @@ func (mwou *MessageWithOptionalsUpdate) SetUUIDField(u uuid.UUID) *MessageWithOp
 // ClearUUIDField clears the value of the "uuid_field" field.
 func (mwou *MessageWithOptionalsUpdate) ClearUUIDField() *MessageWithOptionalsUpdate {
 	mwou.mutation.ClearUUIDField()
+	return mwou
+}
+
+// SetTimeField sets the "time_field" field.
+func (mwou *MessageWithOptionalsUpdate) SetTimeField(t time.Time) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetTimeField(t)
+	return mwou
+}
+
+// SetNillableTimeField sets the "time_field" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableTimeField(t *time.Time) *MessageWithOptionalsUpdate {
+	if t != nil {
+		mwou.SetTimeField(*t)
+	}
+	return mwou
+}
+
+// ClearTimeField clears the value of the "time_field" field.
+func (mwou *MessageWithOptionalsUpdate) ClearTimeField() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearTimeField()
 	return mwou
 }
 
@@ -358,6 +379,19 @@ func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err
 			Column: messagewithoptionals.FieldUUIDField,
 		})
 	}
+	if value, ok := mwou.mutation.TimeField(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: messagewithoptionals.FieldTimeField,
+		})
+	}
+	if mwou.mutation.TimeFieldCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: messagewithoptionals.FieldTimeField,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{messagewithoptionals.Label}
@@ -518,6 +552,26 @@ func (mwouo *MessageWithOptionalsUpdateOne) SetUUIDField(u uuid.UUID) *MessageWi
 // ClearUUIDField clears the value of the "uuid_field" field.
 func (mwouo *MessageWithOptionalsUpdateOne) ClearUUIDField() *MessageWithOptionalsUpdateOne {
 	mwouo.mutation.ClearUUIDField()
+	return mwouo
+}
+
+// SetTimeField sets the "time_field" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetTimeField(t time.Time) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetTimeField(t)
+	return mwouo
+}
+
+// SetNillableTimeField sets the "time_field" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableTimeField(t *time.Time) *MessageWithOptionalsUpdateOne {
+	if t != nil {
+		mwouo.SetTimeField(*t)
+	}
+	return mwouo
+}
+
+// ClearTimeField clears the value of the "time_field" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearTimeField() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearTimeField()
 	return mwouo
 }
 
@@ -710,6 +764,19 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Column: messagewithoptionals.FieldUUIDField,
+		})
+	}
+	if value, ok := mwouo.mutation.TimeField(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: messagewithoptionals.FieldTimeField,
+		})
+	}
+	if mwouo.mutation.TimeFieldCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: messagewithoptionals.FieldTimeField,
 		})
 	}
 	_node = &MessageWithOptionals{config: mwouo.config}

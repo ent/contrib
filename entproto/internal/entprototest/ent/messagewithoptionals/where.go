@@ -3,6 +3,8 @@
 package messagewithoptionals
 
 import (
+	"time"
+
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -137,6 +139,13 @@ func BytesField(v []byte) predicate.MessageWithOptionals {
 func UUIDField(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUUIDField), v))
+	})
+}
+
+// TimeField applies equality check predicate on the "time_field" field. It's identical to TimeFieldEQ.
+func TimeField(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTimeField), v))
 	})
 }
 
@@ -740,6 +749,96 @@ func UUIDFieldIsNil() predicate.MessageWithOptionals {
 func UUIDFieldNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldUUIDField)))
+	})
+}
+
+// TimeFieldEQ applies the EQ predicate on the "time_field" field.
+func TimeFieldEQ(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTimeField), v))
+	})
+}
+
+// TimeFieldNEQ applies the NEQ predicate on the "time_field" field.
+func TimeFieldNEQ(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTimeField), v))
+	})
+}
+
+// TimeFieldIn applies the In predicate on the "time_field" field.
+func TimeFieldIn(vs ...time.Time) predicate.MessageWithOptionals {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldTimeField), v...))
+	})
+}
+
+// TimeFieldNotIn applies the NotIn predicate on the "time_field" field.
+func TimeFieldNotIn(vs ...time.Time) predicate.MessageWithOptionals {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldTimeField), v...))
+	})
+}
+
+// TimeFieldGT applies the GT predicate on the "time_field" field.
+func TimeFieldGT(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldTimeField), v))
+	})
+}
+
+// TimeFieldGTE applies the GTE predicate on the "time_field" field.
+func TimeFieldGTE(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTimeField), v))
+	})
+}
+
+// TimeFieldLT applies the LT predicate on the "time_field" field.
+func TimeFieldLT(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTimeField), v))
+	})
+}
+
+// TimeFieldLTE applies the LTE predicate on the "time_field" field.
+func TimeFieldLTE(v time.Time) predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTimeField), v))
+	})
+}
+
+// TimeFieldIsNil applies the IsNil predicate on the "time_field" field.
+func TimeFieldIsNil() predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldTimeField)))
+	})
+}
+
+// TimeFieldNotNil applies the NotNil predicate on the "time_field" field.
+func TimeFieldNotNil() predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldTimeField)))
 	})
 }
 

@@ -168,6 +168,7 @@ var (
 		{Name: "bool_field", Type: field.TypeBool, Nullable: true},
 		{Name: "bytes_field", Type: field.TypeBytes, Nullable: true},
 		{Name: "uuid_field", Type: field.TypeUUID, Nullable: true},
+		{Name: "time_field", Type: field.TypeTime, Nullable: true},
 	}
 	// MessageWithOptionalsTable holds the schema information for the "message_with_optionals" table.
 	MessageWithOptionalsTable = &schema.Table{

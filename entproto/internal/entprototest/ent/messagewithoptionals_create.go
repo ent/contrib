@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -98,6 +99,20 @@ func (mwoc *MessageWithOptionalsCreate) SetBytesField(b []byte) *MessageWithOpti
 // SetUUIDField sets the "uuid_field" field.
 func (mwoc *MessageWithOptionalsCreate) SetUUIDField(u uuid.UUID) *MessageWithOptionalsCreate {
 	mwoc.mutation.SetUUIDField(u)
+	return mwoc
+}
+
+// SetTimeField sets the "time_field" field.
+func (mwoc *MessageWithOptionalsCreate) SetTimeField(t time.Time) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetTimeField(t)
+	return mwoc
+}
+
+// SetNillableTimeField sets the "time_field" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableTimeField(t *time.Time) *MessageWithOptionalsCreate {
+	if t != nil {
+		mwoc.SetTimeField(*t)
+	}
 	return mwoc
 }
 
@@ -234,6 +249,14 @@ func (mwoc *MessageWithOptionalsCreate) createSpec() (*MessageWithOptionals, *sq
 			Column: messagewithoptionals.FieldUUIDField,
 		})
 		_node.UUIDField = value
+	}
+	if value, ok := mwoc.mutation.TimeField(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: messagewithoptionals.FieldTimeField,
+		})
+		_node.TimeField = value
 	}
 	return _node, _spec
 }

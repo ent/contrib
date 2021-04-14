@@ -3823,6 +3823,7 @@ type MessageWithOptionalsMutation struct {
 	bool_field     *bool
 	bytes_field    *[]byte
 	uuid_field     *uuid.UUID
+	time_field     *time.Time
 	clearedFields  map[string]struct{}
 	done           bool
 	oldValue       func(context.Context) (*MessageWithOptionals, error)
@@ -4314,6 +4315,55 @@ func (m *MessageWithOptionalsMutation) ResetUUIDField() {
 	delete(m.clearedFields, messagewithoptionals.FieldUUIDField)
 }
 
+// SetTimeField sets the "time_field" field.
+func (m *MessageWithOptionalsMutation) SetTimeField(t time.Time) {
+	m.time_field = &t
+}
+
+// TimeField returns the value of the "time_field" field in the mutation.
+func (m *MessageWithOptionalsMutation) TimeField() (r time.Time, exists bool) {
+	v := m.time_field
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeField returns the old "time_field" field's value of the MessageWithOptionals entity.
+// If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithOptionalsMutation) OldTimeField(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTimeField is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTimeField requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeField: %w", err)
+	}
+	return oldValue.TimeField, nil
+}
+
+// ClearTimeField clears the value of the "time_field" field.
+func (m *MessageWithOptionalsMutation) ClearTimeField() {
+	m.time_field = nil
+	m.clearedFields[messagewithoptionals.FieldTimeField] = struct{}{}
+}
+
+// TimeFieldCleared returns if the "time_field" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) TimeFieldCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldTimeField]
+	return ok
+}
+
+// ResetTimeField resets all changes to the "time_field" field.
+func (m *MessageWithOptionalsMutation) ResetTimeField() {
+	m.time_field = nil
+	delete(m.clearedFields, messagewithoptionals.FieldTimeField)
+}
+
 // Op returns the operation name.
 func (m *MessageWithOptionalsMutation) Op() Op {
 	return m.op
@@ -4328,7 +4378,7 @@ func (m *MessageWithOptionalsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageWithOptionalsMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.str_field != nil {
 		fields = append(fields, messagewithoptionals.FieldStrField)
 	}
@@ -4349,6 +4399,9 @@ func (m *MessageWithOptionalsMutation) Fields() []string {
 	}
 	if m.uuid_field != nil {
 		fields = append(fields, messagewithoptionals.FieldUUIDField)
+	}
+	if m.time_field != nil {
+		fields = append(fields, messagewithoptionals.FieldTimeField)
 	}
 	return fields
 }
@@ -4372,6 +4425,8 @@ func (m *MessageWithOptionalsMutation) Field(name string) (ent.Value, bool) {
 		return m.BytesField()
 	case messagewithoptionals.FieldUUIDField:
 		return m.UUIDField()
+	case messagewithoptionals.FieldTimeField:
+		return m.TimeField()
 	}
 	return nil, false
 }
@@ -4395,6 +4450,8 @@ func (m *MessageWithOptionalsMutation) OldField(ctx context.Context, name string
 		return m.OldBytesField(ctx)
 	case messagewithoptionals.FieldUUIDField:
 		return m.OldUUIDField(ctx)
+	case messagewithoptionals.FieldTimeField:
+		return m.OldTimeField(ctx)
 	}
 	return nil, fmt.Errorf("unknown MessageWithOptionals field %s", name)
 }
@@ -4452,6 +4509,13 @@ func (m *MessageWithOptionalsMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUUIDField(v)
+		return nil
+	case messagewithoptionals.FieldTimeField:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeField(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals field %s", name)
@@ -4543,6 +4607,9 @@ func (m *MessageWithOptionalsMutation) ClearedFields() []string {
 	if m.FieldCleared(messagewithoptionals.FieldUUIDField) {
 		fields = append(fields, messagewithoptionals.FieldUUIDField)
 	}
+	if m.FieldCleared(messagewithoptionals.FieldTimeField) {
+		fields = append(fields, messagewithoptionals.FieldTimeField)
+	}
 	return fields
 }
 
@@ -4578,6 +4645,9 @@ func (m *MessageWithOptionalsMutation) ClearField(name string) error {
 	case messagewithoptionals.FieldUUIDField:
 		m.ClearUUIDField()
 		return nil
+	case messagewithoptionals.FieldTimeField:
+		m.ClearTimeField()
+		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals nullable field %s", name)
 }
@@ -4606,6 +4676,9 @@ func (m *MessageWithOptionalsMutation) ResetField(name string) error {
 		return nil
 	case messagewithoptionals.FieldUUIDField:
 		m.ResetUUIDField()
+		return nil
+	case messagewithoptionals.FieldTimeField:
+		m.ResetTimeField()
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals field %s", name)

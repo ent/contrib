@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/ent/dialect/sql"
@@ -30,6 +31,8 @@ type MessageWithOptionals struct {
 	BytesField []byte `json:"bytes_field,omitempty"`
 	// UUIDField holds the value of the "uuid_field" field.
 	UUIDField uuid.UUID `json:"uuid_field,omitempty"`
+	// TimeField holds the value of the "time_field" field.
+	TimeField time.Time `json:"time_field,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -47,6 +50,8 @@ func (*MessageWithOptionals) scanValues(columns []string) ([]interface{}, error)
 			values[i] = &sql.NullInt64{}
 		case messagewithoptionals.FieldStrField:
 			values[i] = &sql.NullString{}
+		case messagewithoptionals.FieldTimeField:
+			values[i] = &sql.NullTime{}
 		case messagewithoptionals.FieldUUIDField:
 			values[i] = &uuid.UUID{}
 		default:
@@ -112,6 +117,12 @@ func (mwo *MessageWithOptionals) assignValues(columns []string, values []interfa
 			} else if value != nil {
 				mwo.UUIDField = *value
 			}
+		case messagewithoptionals.FieldTimeField:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field time_field", values[i])
+			} else if value.Valid {
+				mwo.TimeField = value.Time
+			}
 		}
 	}
 	return nil
@@ -154,6 +165,8 @@ func (mwo *MessageWithOptionals) String() string {
 	builder.WriteString(fmt.Sprintf("%v", mwo.BytesField))
 	builder.WriteString(", uuid_field=")
 	builder.WriteString(fmt.Sprintf("%v", mwo.UUIDField))
+	builder.WriteString(", time_field=")
+	builder.WriteString(mwo.TimeField.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

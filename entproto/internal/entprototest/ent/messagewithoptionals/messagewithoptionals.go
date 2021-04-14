@@ -21,6 +21,8 @@ const (
 	FieldBytesField = "bytes_field"
 	// FieldUUIDField holds the string denoting the uuid_field field in the database.
 	FieldUUIDField = "uuid_field"
+	// FieldTimeField holds the string denoting the time_field field in the database.
+	FieldTimeField = "time_field"
 	// Table holds the table name of the messagewithoptionals in the database.
 	Table = "message_with_optionals"
 )
@@ -35,6 +37,7 @@ var Columns = []string{
 	FieldBoolField,
 	FieldBytesField,
 	FieldUUIDField,
+	FieldTimeField,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
