@@ -39,6 +39,9 @@ type MessageWithFieldOne func(*sql.Selector)
 // MessageWithID is the predicate function for messagewithid builders.
 type MessageWithID func(*sql.Selector)
 
+// MessageWithOptionals is the predicate function for messagewithoptionals builders.
+type MessageWithOptionals func(*sql.Selector)
+
 // MessageWithPackageName is the predicate function for messagewithpackagename builders.
 type MessageWithPackageName func(*sql.Selector)
 

@@ -15,6 +15,8 @@ const (
 	FieldUUID = "uuid"
 	// FieldU8 holds the string denoting the u8 field in the database.
 	FieldU8 = "u8"
+	// FieldOpti8 holds the string denoting the opti8 field in the database.
+	FieldOpti8 = "opti8"
 	// Table holds the table name of the validmessage in the database.
 	Table = "valid_messages"
 )
@@ -26,6 +28,7 @@ var Columns = []string{
 	FieldTs,
 	FieldUUID,
 	FieldU8,
+	FieldOpti8,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

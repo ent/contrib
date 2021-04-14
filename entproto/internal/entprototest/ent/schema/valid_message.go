@@ -46,6 +46,10 @@ func (ValidMessage) Fields() []ent.Field {
 					),
 				),
 			),
+		field.Int8("opti8").
+			Nillable().
+			Optional().
+			Annotations(entproto.Field(6)),
 	}
 }
 

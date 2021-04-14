@@ -27,7 +27,8 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"google.golang.org/protobuf/types/descriptorpb"
 	_ "google.golang.org/protobuf/types/known/emptypb"
-	_ "google.golang.org/protobuf/types/known/timestamppb" // needed to load wkt to global proto registry
+	_ "google.golang.org/protobuf/types/known/timestamppb"
+	_ "google.golang.org/protobuf/types/known/wrapperspb" // needed to load wkt to global proto registry
 )
 
 const (
@@ -40,8 +41,17 @@ var (
 	repeatedFieldLabel = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
 	wktsPaths          = map[string]string{
 		// TODO: handle more Well-Known proto types
-		"google.protobuf.Timestamp": "google/protobuf/timestamp.proto",
-		"google.protobuf.Empty":     "google/protobuf/empty.proto",
+		"google.protobuf.Timestamp":   "google/protobuf/timestamp.proto",
+		"google.protobuf.Empty":       "google/protobuf/empty.proto",
+		"google.protobuf.Int32Value":  "google/protobuf/wrappers.proto",
+		"google.protobuf.Int64Value":  "google/protobuf/wrappers.proto",
+		"google.protobuf.UInt32Value": "google/protobuf/wrappers.proto",
+		"google.protobuf.UInt64Value": "google/protobuf/wrappers.proto",
+		"google.protobuf.FloatValue":  "google/protobuf/wrappers.proto",
+		"google.protobuf.DoubleValue": "google/protobuf/wrappers.proto",
+		"google.protobuf.StringValue": "google/protobuf/wrappers.proto",
+		"google.protobuf.BoolValue":   "google/protobuf/wrappers.proto",
+		"google.protobuf.BytesValue":  "google/protobuf/wrappers.proto",
 	}
 )
 
@@ -469,53 +479,27 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 }
 
 func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
-	switch f.Type.Type {
-	case field.TypeBool:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_BOOL}, nil
-	case field.TypeTime:
-		return fieldType{
-			protoType:   descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
-			messageName: "google.protobuf.Timestamp",
-		}, nil
-	case field.TypeJSON:
-		return fieldType{}, unsupportedTypeError{Type: f.Type}
-	case field.TypeUUID:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_BYTES}, nil
-	case field.TypeBytes:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_BYTES}, nil
-	case field.TypeEnum:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_ENUM, messageName: pascal(f.Name)}, nil
-	case field.TypeString:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_STRING}, nil
-	case field.TypeOther:
-		return fieldType{}, unsupportedTypeError{Type: f.Type}
-	case field.TypeInt8:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_INT32}, nil
-	case field.TypeInt16:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_INT32}, nil
-	case field.TypeInt32:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_INT32}, nil
-	case field.TypeInt:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_INT32}, nil
-	case field.TypeInt64:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_INT64}, nil
-	case field.TypeUint8:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT32}, nil
-	case field.TypeUint16:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT32}, nil
-	case field.TypeUint32:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT32}, nil
-	case field.TypeUint:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT32}, nil
-	case field.TypeUint64:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT64}, nil
-	case field.TypeFloat64:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_DOUBLE}, nil
-	case field.TypeFloat32:
-		return fieldType{protoType: descriptorpb.FieldDescriptorProto_TYPE_FLOAT}, nil
-	default:
+	cfg, ok := typeMap[f.Type.Type]
+	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
+	if f.Optional || f.Nillable {
+		if cfg.optionalType == "" {
+			return fieldType{}, unsupportedTypeError{Type: f.Type}
+		}
+		return fieldType{
+			protoType:   descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
+			messageName: cfg.optionalType,
+		}, nil
+	}
+	name := cfg.msgTypeName
+	if cfg.namer != nil {
+		name = cfg.namer(f)
+	}
+	return fieldType{
+		protoType:   cfg.pbType,
+		messageName: name,
+	}, nil
 }
 
 type fieldType struct {
