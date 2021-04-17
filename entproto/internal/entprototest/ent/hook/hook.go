@@ -152,6 +152,19 @@ func (f MessageWithIDFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return f(ctx, mv)
 }
 
+// The MessageWithOptionalsFunc type is an adapter to allow the use of ordinary
+// function as MessageWithOptionals mutator.
+type MessageWithOptionalsFunc func(context.Context, *ent.MessageWithOptionalsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageWithOptionalsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.MessageWithOptionalsMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithOptionalsMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The MessageWithPackageNameFunc type is an adapter to allow the use of ordinary
 // function as MessageWithPackageName mutator.
 type MessageWithPackageNameFunc func(context.Context, *ent.MessageWithPackageNameMutation) (ent.Value, error)

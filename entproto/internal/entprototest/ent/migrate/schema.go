@@ -158,6 +158,25 @@ var (
 		PrimaryKey:  []*schema.Column{MessageWithIdsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// MessageWithOptionalsColumns holds the columns for the "message_with_optionals" table.
+	MessageWithOptionalsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "str_optional", Type: field.TypeString, Nullable: true},
+		{Name: "int_optional", Type: field.TypeInt8, Nullable: true},
+		{Name: "uint_optional", Type: field.TypeUint8, Nullable: true},
+		{Name: "float_optional", Type: field.TypeFloat32, Nullable: true},
+		{Name: "bool_optional", Type: field.TypeBool, Nullable: true},
+		{Name: "bytes_optional", Type: field.TypeBytes, Nullable: true},
+		{Name: "uuid_optional", Type: field.TypeUUID, Nullable: true},
+		{Name: "time_optional", Type: field.TypeTime, Nullable: true},
+	}
+	// MessageWithOptionalsTable holds the schema information for the "message_with_optionals" table.
+	MessageWithOptionalsTable = &schema.Table{
+		Name:        "message_with_optionals",
+		Columns:     MessageWithOptionalsColumns,
+		PrimaryKey:  []*schema.Column{MessageWithOptionalsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// MessageWithPackageNamesColumns holds the columns for the "message_with_package_names" table.
 	MessageWithPackageNamesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -219,6 +238,7 @@ var (
 		{Name: "ts", Type: field.TypeTime},
 		{Name: "uuid", Type: field.TypeUUID},
 		{Name: "u8", Type: field.TypeUint8},
+		{Name: "opti8", Type: field.TypeInt8, Nullable: true},
 	}
 	// ValidMessagesTable holds the schema information for the "valid_messages" table.
 	ValidMessagesTable = &schema.Table{
@@ -265,6 +285,7 @@ var (
 		MessageWithEnumsTable,
 		MessageWithFieldOnesTable,
 		MessageWithIdsTable,
+		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
 		PortalsTable,
 		UsersTable,

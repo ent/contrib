@@ -34,6 +34,8 @@ type Tx struct {
 	MessageWithFieldOne *MessageWithFieldOneClient
 	// MessageWithID is the client for interacting with the MessageWithID builders.
 	MessageWithID *MessageWithIDClient
+	// MessageWithOptionals is the client for interacting with the MessageWithOptionals builders.
+	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
 	// Portal is the client for interacting with the Portal builders.
@@ -188,6 +190,7 @@ func (tx *Tx) init() {
 	tx.MessageWithEnum = NewMessageWithEnumClient(tx.config)
 	tx.MessageWithFieldOne = NewMessageWithFieldOneClient(tx.config)
 	tx.MessageWithID = NewMessageWithIDClient(tx.config)
+	tx.MessageWithOptionals = NewMessageWithOptionalsClient(tx.config)
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
 	tx.Portal = NewPortalClient(tx.config)
 	tx.User = NewUserClient(tx.config)

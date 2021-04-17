@@ -21,6 +21,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
@@ -58,6 +59,8 @@ type Client struct {
 	MessageWithFieldOne *MessageWithFieldOneClient
 	// MessageWithID is the client for interacting with the MessageWithID builders.
 	MessageWithID *MessageWithIDClient
+	// MessageWithOptionals is the client for interacting with the MessageWithOptionals builders.
+	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
 	// Portal is the client for interacting with the Portal builders.
@@ -90,6 +93,7 @@ func (c *Client) init() {
 	c.MessageWithEnum = NewMessageWithEnumClient(c.config)
 	c.MessageWithFieldOne = NewMessageWithFieldOneClient(c.config)
 	c.MessageWithID = NewMessageWithIDClient(c.config)
+	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
 	c.Portal = NewPortalClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -138,6 +142,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithEnum:        NewMessageWithEnumClient(cfg),
 		MessageWithFieldOne:    NewMessageWithFieldOneClient(cfg),
 		MessageWithID:          NewMessageWithIDClient(cfg),
+		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
 		Portal:                 NewPortalClient(cfg),
 		User:                   NewUserClient(cfg),
@@ -171,6 +176,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithEnum:        NewMessageWithEnumClient(cfg),
 		MessageWithFieldOne:    NewMessageWithFieldOneClient(cfg),
 		MessageWithID:          NewMessageWithIDClient(cfg),
+		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
 		Portal:                 NewPortalClient(cfg),
 		User:                   NewUserClient(cfg),
@@ -215,6 +221,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.MessageWithEnum.Use(hooks...)
 	c.MessageWithFieldOne.Use(hooks...)
 	c.MessageWithID.Use(hooks...)
+	c.MessageWithOptionals.Use(hooks...)
 	c.MessageWithPackageName.Use(hooks...)
 	c.Portal.Use(hooks...)
 	c.User.Use(hooks...)
@@ -1267,6 +1274,94 @@ func (c *MessageWithIDClient) GetX(ctx context.Context, id int32) *MessageWithID
 // Hooks returns the client hooks.
 func (c *MessageWithIDClient) Hooks() []Hook {
 	return c.hooks.MessageWithID
+}
+
+// MessageWithOptionalsClient is a client for the MessageWithOptionals schema.
+type MessageWithOptionalsClient struct {
+	config
+}
+
+// NewMessageWithOptionalsClient returns a client for the MessageWithOptionals from the given config.
+func NewMessageWithOptionalsClient(c config) *MessageWithOptionalsClient {
+	return &MessageWithOptionalsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagewithoptionals.Hooks(f(g(h())))`.
+func (c *MessageWithOptionalsClient) Use(hooks ...Hook) {
+	c.hooks.MessageWithOptionals = append(c.hooks.MessageWithOptionals, hooks...)
+}
+
+// Create returns a create builder for MessageWithOptionals.
+func (c *MessageWithOptionalsClient) Create() *MessageWithOptionalsCreate {
+	mutation := newMessageWithOptionalsMutation(c.config, OpCreate)
+	return &MessageWithOptionalsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageWithOptionals entities.
+func (c *MessageWithOptionalsClient) CreateBulk(builders ...*MessageWithOptionalsCreate) *MessageWithOptionalsCreateBulk {
+	return &MessageWithOptionalsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageWithOptionals.
+func (c *MessageWithOptionalsClient) Update() *MessageWithOptionalsUpdate {
+	mutation := newMessageWithOptionalsMutation(c.config, OpUpdate)
+	return &MessageWithOptionalsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageWithOptionalsClient) UpdateOne(mwo *MessageWithOptionals) *MessageWithOptionalsUpdateOne {
+	mutation := newMessageWithOptionalsMutation(c.config, OpUpdateOne, withMessageWithOptionals(mwo))
+	return &MessageWithOptionalsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageWithOptionalsClient) UpdateOneID(id int) *MessageWithOptionalsUpdateOne {
+	mutation := newMessageWithOptionalsMutation(c.config, OpUpdateOne, withMessageWithOptionalsID(id))
+	return &MessageWithOptionalsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageWithOptionals.
+func (c *MessageWithOptionalsClient) Delete() *MessageWithOptionalsDelete {
+	mutation := newMessageWithOptionalsMutation(c.config, OpDelete)
+	return &MessageWithOptionalsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *MessageWithOptionalsClient) DeleteOne(mwo *MessageWithOptionals) *MessageWithOptionalsDeleteOne {
+	return c.DeleteOneID(mwo.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *MessageWithOptionalsClient) DeleteOneID(id int) *MessageWithOptionalsDeleteOne {
+	builder := c.Delete().Where(messagewithoptionals.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageWithOptionalsDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageWithOptionals.
+func (c *MessageWithOptionalsClient) Query() *MessageWithOptionalsQuery {
+	return &MessageWithOptionalsQuery{config: c.config}
+}
+
+// Get returns a MessageWithOptionals entity by its id.
+func (c *MessageWithOptionalsClient) Get(ctx context.Context, id int) (*MessageWithOptionals, error) {
+	return c.Query().Where(messagewithoptionals.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageWithOptionalsClient) GetX(ctx context.Context, id int) *MessageWithOptionals {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MessageWithOptionalsClient) Hooks() []Hook {
+	return c.hooks.MessageWithOptionals
 }
 
 // MessageWithPackageNameClient is a client for the MessageWithPackageName schema.

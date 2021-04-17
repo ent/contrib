@@ -45,6 +45,20 @@ func (vmc *ValidMessageCreate) SetU8(u uint8) *ValidMessageCreate {
 	return vmc
 }
 
+// SetOpti8 sets the "opti8" field.
+func (vmc *ValidMessageCreate) SetOpti8(i int8) *ValidMessageCreate {
+	vmc.mutation.SetOpti8(i)
+	return vmc
+}
+
+// SetNillableOpti8 sets the "opti8" field if the given value is not nil.
+func (vmc *ValidMessageCreate) SetNillableOpti8(i *int8) *ValidMessageCreate {
+	if i != nil {
+		vmc.SetOpti8(*i)
+	}
+	return vmc
+}
+
 // Mutation returns the ValidMessageMutation object of the builder.
 func (vmc *ValidMessageCreate) Mutation() *ValidMessageMutation {
 	return vmc.mutation
@@ -166,6 +180,14 @@ func (vmc *ValidMessageCreate) createSpec() (*ValidMessage, *sqlgraph.CreateSpec
 			Column: validmessage.FieldU8,
 		})
 		_node.U8 = value
+	}
+	if value, ok := vmc.mutation.Opti8(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt8,
+			Value:  value,
+			Column: validmessage.FieldOpti8,
+		})
+		_node.Opti8 = &value
 	}
 	return _node, _spec
 }

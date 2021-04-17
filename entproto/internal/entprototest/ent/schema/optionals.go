@@ -20,39 +20,43 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-// ValidMessage holds the schema definition for the ValidMessage entity.
-type ValidMessage struct {
+type MessageWithOptionals struct {
 	ent.Schema
 }
 
-// Fields of the ValidMessage.
-func (ValidMessage) Fields() []ent.Field {
+func (MessageWithOptionals) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
+		field.String("str_optional").
+			Optional().
 			Annotations(entproto.Field(2)),
-		field.Time("ts").
+		field.Int8("int_optional").
+			Optional().
 			Annotations(entproto.Field(3)),
-		field.UUID("uuid", uuid.New()).
+		field.Uint8("uint_optional").
+			Optional().
 			Annotations(entproto.Field(4)),
-		field.Uint8("u8").
-			Annotations(
-				entproto.Field(
-					5,
-					entproto.Type(
-						descriptorpb.FieldDescriptorProto_TYPE_UINT64,
-					),
-				),
-			),
-		field.Int8("opti8").
-			Nillable().
+		field.Float32("float_optional").
+			Optional().
+			Annotations(entproto.Field(5)),
+		field.Bool("bool_optional").
 			Optional().
 			Annotations(entproto.Field(6)),
+		field.Bytes("bytes_optional").
+			Optional().
+			Annotations(entproto.Field(7)),
+		field.UUID("uuid_optional", uuid.New()).
+			Optional().
+			Annotations(entproto.Field(8)),
+		field.Time("time_optional").
+			Optional().
+			Annotations(entproto.Field(9)),
 	}
 }
 
-func (ValidMessage) Annotations() []schema.Annotation {
-	return []schema.Annotation{entproto.Message()}
+func (MessageWithOptionals) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entproto.Message(),
+	}
 }
