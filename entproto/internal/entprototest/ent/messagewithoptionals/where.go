@@ -93,78 +93,78 @@ func IDLTE(id int) predicate.MessageWithOptionals {
 	})
 }
 
-// StrField applies equality check predicate on the "str_field" field. It's identical to StrFieldEQ.
-func StrField(v string) predicate.MessageWithOptionals {
+// StrOptional applies equality check predicate on the "str_optional" field. It's identical to StrOptionalEQ.
+func StrOptional(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStrField), v))
+		s.Where(sql.EQ(s.C(FieldStrOptional), v))
 	})
 }
 
-// IntField applies equality check predicate on the "int_field" field. It's identical to IntFieldEQ.
-func IntField(v int8) predicate.MessageWithOptionals {
+// IntOptional applies equality check predicate on the "int_optional" field. It's identical to IntOptionalEQ.
+func IntOptional(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIntField), v))
+		s.Where(sql.EQ(s.C(FieldIntOptional), v))
 	})
 }
 
-// UintField applies equality check predicate on the "uint_field" field. It's identical to UintFieldEQ.
-func UintField(v uint8) predicate.MessageWithOptionals {
+// UintOptional applies equality check predicate on the "uint_optional" field. It's identical to UintOptionalEQ.
+func UintOptional(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUintField), v))
+		s.Where(sql.EQ(s.C(FieldUintOptional), v))
 	})
 }
 
-// FloatField applies equality check predicate on the "float_field" field. It's identical to FloatFieldEQ.
-func FloatField(v float32) predicate.MessageWithOptionals {
+// FloatOptional applies equality check predicate on the "float_optional" field. It's identical to FloatOptionalEQ.
+func FloatOptional(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFloatField), v))
+		s.Where(sql.EQ(s.C(FieldFloatOptional), v))
 	})
 }
 
-// BoolField applies equality check predicate on the "bool_field" field. It's identical to BoolFieldEQ.
-func BoolField(v bool) predicate.MessageWithOptionals {
+// BoolOptional applies equality check predicate on the "bool_optional" field. It's identical to BoolOptionalEQ.
+func BoolOptional(v bool) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldBoolField), v))
+		s.Where(sql.EQ(s.C(FieldBoolOptional), v))
 	})
 }
 
-// BytesField applies equality check predicate on the "bytes_field" field. It's identical to BytesFieldEQ.
-func BytesField(v []byte) predicate.MessageWithOptionals {
+// BytesOptional applies equality check predicate on the "bytes_optional" field. It's identical to BytesOptionalEQ.
+func BytesOptional(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldBytesField), v))
+		s.Where(sql.EQ(s.C(FieldBytesOptional), v))
 	})
 }
 
-// UUIDField applies equality check predicate on the "uuid_field" field. It's identical to UUIDFieldEQ.
-func UUIDField(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptional applies equality check predicate on the "uuid_optional" field. It's identical to UUIDOptionalEQ.
+func UUIDOptional(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUUIDField), v))
+		s.Where(sql.EQ(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// TimeField applies equality check predicate on the "time_field" field. It's identical to TimeFieldEQ.
-func TimeField(v time.Time) predicate.MessageWithOptionals {
+// TimeOptional applies equality check predicate on the "time_optional" field. It's identical to TimeOptionalEQ.
+func TimeOptional(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTimeField), v))
+		s.Where(sql.EQ(s.C(FieldTimeOptional), v))
 	})
 }
 
-// StrFieldEQ applies the EQ predicate on the "str_field" field.
-func StrFieldEQ(v string) predicate.MessageWithOptionals {
+// StrOptionalEQ applies the EQ predicate on the "str_optional" field.
+func StrOptionalEQ(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStrField), v))
+		s.Where(sql.EQ(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldNEQ applies the NEQ predicate on the "str_field" field.
-func StrFieldNEQ(v string) predicate.MessageWithOptionals {
+// StrOptionalNEQ applies the NEQ predicate on the "str_optional" field.
+func StrOptionalNEQ(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldStrField), v))
+		s.Where(sql.NEQ(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldIn applies the In predicate on the "str_field" field.
-func StrFieldIn(vs ...string) predicate.MessageWithOptionals {
+// StrOptionalIn applies the In predicate on the "str_optional" field.
+func StrOptionalIn(vs ...string) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -176,12 +176,12 @@ func StrFieldIn(vs ...string) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldStrField), v...))
+		s.Where(sql.In(s.C(FieldStrOptional), v...))
 	})
 }
 
-// StrFieldNotIn applies the NotIn predicate on the "str_field" field.
-func StrFieldNotIn(vs ...string) predicate.MessageWithOptionals {
+// StrOptionalNotIn applies the NotIn predicate on the "str_optional" field.
+func StrOptionalNotIn(vs ...string) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -193,103 +193,103 @@ func StrFieldNotIn(vs ...string) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldStrField), v...))
+		s.Where(sql.NotIn(s.C(FieldStrOptional), v...))
 	})
 }
 
-// StrFieldGT applies the GT predicate on the "str_field" field.
-func StrFieldGT(v string) predicate.MessageWithOptionals {
+// StrOptionalGT applies the GT predicate on the "str_optional" field.
+func StrOptionalGT(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldStrField), v))
+		s.Where(sql.GT(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldGTE applies the GTE predicate on the "str_field" field.
-func StrFieldGTE(v string) predicate.MessageWithOptionals {
+// StrOptionalGTE applies the GTE predicate on the "str_optional" field.
+func StrOptionalGTE(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldStrField), v))
+		s.Where(sql.GTE(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldLT applies the LT predicate on the "str_field" field.
-func StrFieldLT(v string) predicate.MessageWithOptionals {
+// StrOptionalLT applies the LT predicate on the "str_optional" field.
+func StrOptionalLT(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldStrField), v))
+		s.Where(sql.LT(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldLTE applies the LTE predicate on the "str_field" field.
-func StrFieldLTE(v string) predicate.MessageWithOptionals {
+// StrOptionalLTE applies the LTE predicate on the "str_optional" field.
+func StrOptionalLTE(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldStrField), v))
+		s.Where(sql.LTE(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldContains applies the Contains predicate on the "str_field" field.
-func StrFieldContains(v string) predicate.MessageWithOptionals {
+// StrOptionalContains applies the Contains predicate on the "str_optional" field.
+func StrOptionalContains(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldStrField), v))
+		s.Where(sql.Contains(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldHasPrefix applies the HasPrefix predicate on the "str_field" field.
-func StrFieldHasPrefix(v string) predicate.MessageWithOptionals {
+// StrOptionalHasPrefix applies the HasPrefix predicate on the "str_optional" field.
+func StrOptionalHasPrefix(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldStrField), v))
+		s.Where(sql.HasPrefix(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldHasSuffix applies the HasSuffix predicate on the "str_field" field.
-func StrFieldHasSuffix(v string) predicate.MessageWithOptionals {
+// StrOptionalHasSuffix applies the HasSuffix predicate on the "str_optional" field.
+func StrOptionalHasSuffix(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldStrField), v))
+		s.Where(sql.HasSuffix(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldIsNil applies the IsNil predicate on the "str_field" field.
-func StrFieldIsNil() predicate.MessageWithOptionals {
+// StrOptionalIsNil applies the IsNil predicate on the "str_optional" field.
+func StrOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldStrField)))
+		s.Where(sql.IsNull(s.C(FieldStrOptional)))
 	})
 }
 
-// StrFieldNotNil applies the NotNil predicate on the "str_field" field.
-func StrFieldNotNil() predicate.MessageWithOptionals {
+// StrOptionalNotNil applies the NotNil predicate on the "str_optional" field.
+func StrOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldStrField)))
+		s.Where(sql.NotNull(s.C(FieldStrOptional)))
 	})
 }
 
-// StrFieldEqualFold applies the EqualFold predicate on the "str_field" field.
-func StrFieldEqualFold(v string) predicate.MessageWithOptionals {
+// StrOptionalEqualFold applies the EqualFold predicate on the "str_optional" field.
+func StrOptionalEqualFold(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldStrField), v))
+		s.Where(sql.EqualFold(s.C(FieldStrOptional), v))
 	})
 }
 
-// StrFieldContainsFold applies the ContainsFold predicate on the "str_field" field.
-func StrFieldContainsFold(v string) predicate.MessageWithOptionals {
+// StrOptionalContainsFold applies the ContainsFold predicate on the "str_optional" field.
+func StrOptionalContainsFold(v string) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldStrField), v))
+		s.Where(sql.ContainsFold(s.C(FieldStrOptional), v))
 	})
 }
 
-// IntFieldEQ applies the EQ predicate on the "int_field" field.
-func IntFieldEQ(v int8) predicate.MessageWithOptionals {
+// IntOptionalEQ applies the EQ predicate on the "int_optional" field.
+func IntOptionalEQ(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIntField), v))
+		s.Where(sql.EQ(s.C(FieldIntOptional), v))
 	})
 }
 
-// IntFieldNEQ applies the NEQ predicate on the "int_field" field.
-func IntFieldNEQ(v int8) predicate.MessageWithOptionals {
+// IntOptionalNEQ applies the NEQ predicate on the "int_optional" field.
+func IntOptionalNEQ(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldIntField), v))
+		s.Where(sql.NEQ(s.C(FieldIntOptional), v))
 	})
 }
 
-// IntFieldIn applies the In predicate on the "int_field" field.
-func IntFieldIn(vs ...int8) predicate.MessageWithOptionals {
+// IntOptionalIn applies the In predicate on the "int_optional" field.
+func IntOptionalIn(vs ...int8) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -301,12 +301,12 @@ func IntFieldIn(vs ...int8) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldIntField), v...))
+		s.Where(sql.In(s.C(FieldIntOptional), v...))
 	})
 }
 
-// IntFieldNotIn applies the NotIn predicate on the "int_field" field.
-func IntFieldNotIn(vs ...int8) predicate.MessageWithOptionals {
+// IntOptionalNotIn applies the NotIn predicate on the "int_optional" field.
+func IntOptionalNotIn(vs ...int8) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -318,68 +318,68 @@ func IntFieldNotIn(vs ...int8) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldIntField), v...))
+		s.Where(sql.NotIn(s.C(FieldIntOptional), v...))
 	})
 }
 
-// IntFieldGT applies the GT predicate on the "int_field" field.
-func IntFieldGT(v int8) predicate.MessageWithOptionals {
+// IntOptionalGT applies the GT predicate on the "int_optional" field.
+func IntOptionalGT(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldIntField), v))
+		s.Where(sql.GT(s.C(FieldIntOptional), v))
 	})
 }
 
-// IntFieldGTE applies the GTE predicate on the "int_field" field.
-func IntFieldGTE(v int8) predicate.MessageWithOptionals {
+// IntOptionalGTE applies the GTE predicate on the "int_optional" field.
+func IntOptionalGTE(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldIntField), v))
+		s.Where(sql.GTE(s.C(FieldIntOptional), v))
 	})
 }
 
-// IntFieldLT applies the LT predicate on the "int_field" field.
-func IntFieldLT(v int8) predicate.MessageWithOptionals {
+// IntOptionalLT applies the LT predicate on the "int_optional" field.
+func IntOptionalLT(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldIntField), v))
+		s.Where(sql.LT(s.C(FieldIntOptional), v))
 	})
 }
 
-// IntFieldLTE applies the LTE predicate on the "int_field" field.
-func IntFieldLTE(v int8) predicate.MessageWithOptionals {
+// IntOptionalLTE applies the LTE predicate on the "int_optional" field.
+func IntOptionalLTE(v int8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldIntField), v))
+		s.Where(sql.LTE(s.C(FieldIntOptional), v))
 	})
 }
 
-// IntFieldIsNil applies the IsNil predicate on the "int_field" field.
-func IntFieldIsNil() predicate.MessageWithOptionals {
+// IntOptionalIsNil applies the IsNil predicate on the "int_optional" field.
+func IntOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldIntField)))
+		s.Where(sql.IsNull(s.C(FieldIntOptional)))
 	})
 }
 
-// IntFieldNotNil applies the NotNil predicate on the "int_field" field.
-func IntFieldNotNil() predicate.MessageWithOptionals {
+// IntOptionalNotNil applies the NotNil predicate on the "int_optional" field.
+func IntOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldIntField)))
+		s.Where(sql.NotNull(s.C(FieldIntOptional)))
 	})
 }
 
-// UintFieldEQ applies the EQ predicate on the "uint_field" field.
-func UintFieldEQ(v uint8) predicate.MessageWithOptionals {
+// UintOptionalEQ applies the EQ predicate on the "uint_optional" field.
+func UintOptionalEQ(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUintField), v))
+		s.Where(sql.EQ(s.C(FieldUintOptional), v))
 	})
 }
 
-// UintFieldNEQ applies the NEQ predicate on the "uint_field" field.
-func UintFieldNEQ(v uint8) predicate.MessageWithOptionals {
+// UintOptionalNEQ applies the NEQ predicate on the "uint_optional" field.
+func UintOptionalNEQ(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUintField), v))
+		s.Where(sql.NEQ(s.C(FieldUintOptional), v))
 	})
 }
 
-// UintFieldIn applies the In predicate on the "uint_field" field.
-func UintFieldIn(vs ...uint8) predicate.MessageWithOptionals {
+// UintOptionalIn applies the In predicate on the "uint_optional" field.
+func UintOptionalIn(vs ...uint8) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -391,12 +391,12 @@ func UintFieldIn(vs ...uint8) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldUintField), v...))
+		s.Where(sql.In(s.C(FieldUintOptional), v...))
 	})
 }
 
-// UintFieldNotIn applies the NotIn predicate on the "uint_field" field.
-func UintFieldNotIn(vs ...uint8) predicate.MessageWithOptionals {
+// UintOptionalNotIn applies the NotIn predicate on the "uint_optional" field.
+func UintOptionalNotIn(vs ...uint8) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -408,68 +408,68 @@ func UintFieldNotIn(vs ...uint8) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldUintField), v...))
+		s.Where(sql.NotIn(s.C(FieldUintOptional), v...))
 	})
 }
 
-// UintFieldGT applies the GT predicate on the "uint_field" field.
-func UintFieldGT(v uint8) predicate.MessageWithOptionals {
+// UintOptionalGT applies the GT predicate on the "uint_optional" field.
+func UintOptionalGT(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUintField), v))
+		s.Where(sql.GT(s.C(FieldUintOptional), v))
 	})
 }
 
-// UintFieldGTE applies the GTE predicate on the "uint_field" field.
-func UintFieldGTE(v uint8) predicate.MessageWithOptionals {
+// UintOptionalGTE applies the GTE predicate on the "uint_optional" field.
+func UintOptionalGTE(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUintField), v))
+		s.Where(sql.GTE(s.C(FieldUintOptional), v))
 	})
 }
 
-// UintFieldLT applies the LT predicate on the "uint_field" field.
-func UintFieldLT(v uint8) predicate.MessageWithOptionals {
+// UintOptionalLT applies the LT predicate on the "uint_optional" field.
+func UintOptionalLT(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUintField), v))
+		s.Where(sql.LT(s.C(FieldUintOptional), v))
 	})
 }
 
-// UintFieldLTE applies the LTE predicate on the "uint_field" field.
-func UintFieldLTE(v uint8) predicate.MessageWithOptionals {
+// UintOptionalLTE applies the LTE predicate on the "uint_optional" field.
+func UintOptionalLTE(v uint8) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUintField), v))
+		s.Where(sql.LTE(s.C(FieldUintOptional), v))
 	})
 }
 
-// UintFieldIsNil applies the IsNil predicate on the "uint_field" field.
-func UintFieldIsNil() predicate.MessageWithOptionals {
+// UintOptionalIsNil applies the IsNil predicate on the "uint_optional" field.
+func UintOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldUintField)))
+		s.Where(sql.IsNull(s.C(FieldUintOptional)))
 	})
 }
 
-// UintFieldNotNil applies the NotNil predicate on the "uint_field" field.
-func UintFieldNotNil() predicate.MessageWithOptionals {
+// UintOptionalNotNil applies the NotNil predicate on the "uint_optional" field.
+func UintOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldUintField)))
+		s.Where(sql.NotNull(s.C(FieldUintOptional)))
 	})
 }
 
-// FloatFieldEQ applies the EQ predicate on the "float_field" field.
-func FloatFieldEQ(v float32) predicate.MessageWithOptionals {
+// FloatOptionalEQ applies the EQ predicate on the "float_optional" field.
+func FloatOptionalEQ(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFloatField), v))
+		s.Where(sql.EQ(s.C(FieldFloatOptional), v))
 	})
 }
 
-// FloatFieldNEQ applies the NEQ predicate on the "float_field" field.
-func FloatFieldNEQ(v float32) predicate.MessageWithOptionals {
+// FloatOptionalNEQ applies the NEQ predicate on the "float_optional" field.
+func FloatOptionalNEQ(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldFloatField), v))
+		s.Where(sql.NEQ(s.C(FieldFloatOptional), v))
 	})
 }
 
-// FloatFieldIn applies the In predicate on the "float_field" field.
-func FloatFieldIn(vs ...float32) predicate.MessageWithOptionals {
+// FloatOptionalIn applies the In predicate on the "float_optional" field.
+func FloatOptionalIn(vs ...float32) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -481,12 +481,12 @@ func FloatFieldIn(vs ...float32) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldFloatField), v...))
+		s.Where(sql.In(s.C(FieldFloatOptional), v...))
 	})
 }
 
-// FloatFieldNotIn applies the NotIn predicate on the "float_field" field.
-func FloatFieldNotIn(vs ...float32) predicate.MessageWithOptionals {
+// FloatOptionalNotIn applies the NotIn predicate on the "float_optional" field.
+func FloatOptionalNotIn(vs ...float32) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -498,96 +498,96 @@ func FloatFieldNotIn(vs ...float32) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldFloatField), v...))
+		s.Where(sql.NotIn(s.C(FieldFloatOptional), v...))
 	})
 }
 
-// FloatFieldGT applies the GT predicate on the "float_field" field.
-func FloatFieldGT(v float32) predicate.MessageWithOptionals {
+// FloatOptionalGT applies the GT predicate on the "float_optional" field.
+func FloatOptionalGT(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldFloatField), v))
+		s.Where(sql.GT(s.C(FieldFloatOptional), v))
 	})
 }
 
-// FloatFieldGTE applies the GTE predicate on the "float_field" field.
-func FloatFieldGTE(v float32) predicate.MessageWithOptionals {
+// FloatOptionalGTE applies the GTE predicate on the "float_optional" field.
+func FloatOptionalGTE(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldFloatField), v))
+		s.Where(sql.GTE(s.C(FieldFloatOptional), v))
 	})
 }
 
-// FloatFieldLT applies the LT predicate on the "float_field" field.
-func FloatFieldLT(v float32) predicate.MessageWithOptionals {
+// FloatOptionalLT applies the LT predicate on the "float_optional" field.
+func FloatOptionalLT(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldFloatField), v))
+		s.Where(sql.LT(s.C(FieldFloatOptional), v))
 	})
 }
 
-// FloatFieldLTE applies the LTE predicate on the "float_field" field.
-func FloatFieldLTE(v float32) predicate.MessageWithOptionals {
+// FloatOptionalLTE applies the LTE predicate on the "float_optional" field.
+func FloatOptionalLTE(v float32) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldFloatField), v))
+		s.Where(sql.LTE(s.C(FieldFloatOptional), v))
 	})
 }
 
-// FloatFieldIsNil applies the IsNil predicate on the "float_field" field.
-func FloatFieldIsNil() predicate.MessageWithOptionals {
+// FloatOptionalIsNil applies the IsNil predicate on the "float_optional" field.
+func FloatOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldFloatField)))
+		s.Where(sql.IsNull(s.C(FieldFloatOptional)))
 	})
 }
 
-// FloatFieldNotNil applies the NotNil predicate on the "float_field" field.
-func FloatFieldNotNil() predicate.MessageWithOptionals {
+// FloatOptionalNotNil applies the NotNil predicate on the "float_optional" field.
+func FloatOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldFloatField)))
+		s.Where(sql.NotNull(s.C(FieldFloatOptional)))
 	})
 }
 
-// BoolFieldEQ applies the EQ predicate on the "bool_field" field.
-func BoolFieldEQ(v bool) predicate.MessageWithOptionals {
+// BoolOptionalEQ applies the EQ predicate on the "bool_optional" field.
+func BoolOptionalEQ(v bool) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldBoolField), v))
+		s.Where(sql.EQ(s.C(FieldBoolOptional), v))
 	})
 }
 
-// BoolFieldNEQ applies the NEQ predicate on the "bool_field" field.
-func BoolFieldNEQ(v bool) predicate.MessageWithOptionals {
+// BoolOptionalNEQ applies the NEQ predicate on the "bool_optional" field.
+func BoolOptionalNEQ(v bool) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldBoolField), v))
+		s.Where(sql.NEQ(s.C(FieldBoolOptional), v))
 	})
 }
 
-// BoolFieldIsNil applies the IsNil predicate on the "bool_field" field.
-func BoolFieldIsNil() predicate.MessageWithOptionals {
+// BoolOptionalIsNil applies the IsNil predicate on the "bool_optional" field.
+func BoolOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldBoolField)))
+		s.Where(sql.IsNull(s.C(FieldBoolOptional)))
 	})
 }
 
-// BoolFieldNotNil applies the NotNil predicate on the "bool_field" field.
-func BoolFieldNotNil() predicate.MessageWithOptionals {
+// BoolOptionalNotNil applies the NotNil predicate on the "bool_optional" field.
+func BoolOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldBoolField)))
+		s.Where(sql.NotNull(s.C(FieldBoolOptional)))
 	})
 }
 
-// BytesFieldEQ applies the EQ predicate on the "bytes_field" field.
-func BytesFieldEQ(v []byte) predicate.MessageWithOptionals {
+// BytesOptionalEQ applies the EQ predicate on the "bytes_optional" field.
+func BytesOptionalEQ(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldBytesField), v))
+		s.Where(sql.EQ(s.C(FieldBytesOptional), v))
 	})
 }
 
-// BytesFieldNEQ applies the NEQ predicate on the "bytes_field" field.
-func BytesFieldNEQ(v []byte) predicate.MessageWithOptionals {
+// BytesOptionalNEQ applies the NEQ predicate on the "bytes_optional" field.
+func BytesOptionalNEQ(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldBytesField), v))
+		s.Where(sql.NEQ(s.C(FieldBytesOptional), v))
 	})
 }
 
-// BytesFieldIn applies the In predicate on the "bytes_field" field.
-func BytesFieldIn(vs ...[]byte) predicate.MessageWithOptionals {
+// BytesOptionalIn applies the In predicate on the "bytes_optional" field.
+func BytesOptionalIn(vs ...[]byte) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -599,12 +599,12 @@ func BytesFieldIn(vs ...[]byte) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldBytesField), v...))
+		s.Where(sql.In(s.C(FieldBytesOptional), v...))
 	})
 }
 
-// BytesFieldNotIn applies the NotIn predicate on the "bytes_field" field.
-func BytesFieldNotIn(vs ...[]byte) predicate.MessageWithOptionals {
+// BytesOptionalNotIn applies the NotIn predicate on the "bytes_optional" field.
+func BytesOptionalNotIn(vs ...[]byte) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -616,68 +616,68 @@ func BytesFieldNotIn(vs ...[]byte) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldBytesField), v...))
+		s.Where(sql.NotIn(s.C(FieldBytesOptional), v...))
 	})
 }
 
-// BytesFieldGT applies the GT predicate on the "bytes_field" field.
-func BytesFieldGT(v []byte) predicate.MessageWithOptionals {
+// BytesOptionalGT applies the GT predicate on the "bytes_optional" field.
+func BytesOptionalGT(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldBytesField), v))
+		s.Where(sql.GT(s.C(FieldBytesOptional), v))
 	})
 }
 
-// BytesFieldGTE applies the GTE predicate on the "bytes_field" field.
-func BytesFieldGTE(v []byte) predicate.MessageWithOptionals {
+// BytesOptionalGTE applies the GTE predicate on the "bytes_optional" field.
+func BytesOptionalGTE(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldBytesField), v))
+		s.Where(sql.GTE(s.C(FieldBytesOptional), v))
 	})
 }
 
-// BytesFieldLT applies the LT predicate on the "bytes_field" field.
-func BytesFieldLT(v []byte) predicate.MessageWithOptionals {
+// BytesOptionalLT applies the LT predicate on the "bytes_optional" field.
+func BytesOptionalLT(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldBytesField), v))
+		s.Where(sql.LT(s.C(FieldBytesOptional), v))
 	})
 }
 
-// BytesFieldLTE applies the LTE predicate on the "bytes_field" field.
-func BytesFieldLTE(v []byte) predicate.MessageWithOptionals {
+// BytesOptionalLTE applies the LTE predicate on the "bytes_optional" field.
+func BytesOptionalLTE(v []byte) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldBytesField), v))
+		s.Where(sql.LTE(s.C(FieldBytesOptional), v))
 	})
 }
 
-// BytesFieldIsNil applies the IsNil predicate on the "bytes_field" field.
-func BytesFieldIsNil() predicate.MessageWithOptionals {
+// BytesOptionalIsNil applies the IsNil predicate on the "bytes_optional" field.
+func BytesOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldBytesField)))
+		s.Where(sql.IsNull(s.C(FieldBytesOptional)))
 	})
 }
 
-// BytesFieldNotNil applies the NotNil predicate on the "bytes_field" field.
-func BytesFieldNotNil() predicate.MessageWithOptionals {
+// BytesOptionalNotNil applies the NotNil predicate on the "bytes_optional" field.
+func BytesOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldBytesField)))
+		s.Where(sql.NotNull(s.C(FieldBytesOptional)))
 	})
 }
 
-// UUIDFieldEQ applies the EQ predicate on the "uuid_field" field.
-func UUIDFieldEQ(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalEQ applies the EQ predicate on the "uuid_optional" field.
+func UUIDOptionalEQ(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUUIDField), v))
+		s.Where(sql.EQ(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// UUIDFieldNEQ applies the NEQ predicate on the "uuid_field" field.
-func UUIDFieldNEQ(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalNEQ applies the NEQ predicate on the "uuid_optional" field.
+func UUIDOptionalNEQ(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUUIDField), v))
+		s.Where(sql.NEQ(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// UUIDFieldIn applies the In predicate on the "uuid_field" field.
-func UUIDFieldIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalIn applies the In predicate on the "uuid_optional" field.
+func UUIDOptionalIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -689,12 +689,12 @@ func UUIDFieldIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldUUIDField), v...))
+		s.Where(sql.In(s.C(FieldUUIDOptional), v...))
 	})
 }
 
-// UUIDFieldNotIn applies the NotIn predicate on the "uuid_field" field.
-func UUIDFieldNotIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalNotIn applies the NotIn predicate on the "uuid_optional" field.
+func UUIDOptionalNotIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -706,68 +706,68 @@ func UUIDFieldNotIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldUUIDField), v...))
+		s.Where(sql.NotIn(s.C(FieldUUIDOptional), v...))
 	})
 }
 
-// UUIDFieldGT applies the GT predicate on the "uuid_field" field.
-func UUIDFieldGT(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalGT applies the GT predicate on the "uuid_optional" field.
+func UUIDOptionalGT(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUUIDField), v))
+		s.Where(sql.GT(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// UUIDFieldGTE applies the GTE predicate on the "uuid_field" field.
-func UUIDFieldGTE(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalGTE applies the GTE predicate on the "uuid_optional" field.
+func UUIDOptionalGTE(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUUIDField), v))
+		s.Where(sql.GTE(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// UUIDFieldLT applies the LT predicate on the "uuid_field" field.
-func UUIDFieldLT(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalLT applies the LT predicate on the "uuid_optional" field.
+func UUIDOptionalLT(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUUIDField), v))
+		s.Where(sql.LT(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// UUIDFieldLTE applies the LTE predicate on the "uuid_field" field.
-func UUIDFieldLTE(v uuid.UUID) predicate.MessageWithOptionals {
+// UUIDOptionalLTE applies the LTE predicate on the "uuid_optional" field.
+func UUIDOptionalLTE(v uuid.UUID) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUUIDField), v))
+		s.Where(sql.LTE(s.C(FieldUUIDOptional), v))
 	})
 }
 
-// UUIDFieldIsNil applies the IsNil predicate on the "uuid_field" field.
-func UUIDFieldIsNil() predicate.MessageWithOptionals {
+// UUIDOptionalIsNil applies the IsNil predicate on the "uuid_optional" field.
+func UUIDOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldUUIDField)))
+		s.Where(sql.IsNull(s.C(FieldUUIDOptional)))
 	})
 }
 
-// UUIDFieldNotNil applies the NotNil predicate on the "uuid_field" field.
-func UUIDFieldNotNil() predicate.MessageWithOptionals {
+// UUIDOptionalNotNil applies the NotNil predicate on the "uuid_optional" field.
+func UUIDOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldUUIDField)))
+		s.Where(sql.NotNull(s.C(FieldUUIDOptional)))
 	})
 }
 
-// TimeFieldEQ applies the EQ predicate on the "time_field" field.
-func TimeFieldEQ(v time.Time) predicate.MessageWithOptionals {
+// TimeOptionalEQ applies the EQ predicate on the "time_optional" field.
+func TimeOptionalEQ(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTimeField), v))
+		s.Where(sql.EQ(s.C(FieldTimeOptional), v))
 	})
 }
 
-// TimeFieldNEQ applies the NEQ predicate on the "time_field" field.
-func TimeFieldNEQ(v time.Time) predicate.MessageWithOptionals {
+// TimeOptionalNEQ applies the NEQ predicate on the "time_optional" field.
+func TimeOptionalNEQ(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTimeField), v))
+		s.Where(sql.NEQ(s.C(FieldTimeOptional), v))
 	})
 }
 
-// TimeFieldIn applies the In predicate on the "time_field" field.
-func TimeFieldIn(vs ...time.Time) predicate.MessageWithOptionals {
+// TimeOptionalIn applies the In predicate on the "time_optional" field.
+func TimeOptionalIn(vs ...time.Time) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -779,12 +779,12 @@ func TimeFieldIn(vs ...time.Time) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldTimeField), v...))
+		s.Where(sql.In(s.C(FieldTimeOptional), v...))
 	})
 }
 
-// TimeFieldNotIn applies the NotIn predicate on the "time_field" field.
-func TimeFieldNotIn(vs ...time.Time) predicate.MessageWithOptionals {
+// TimeOptionalNotIn applies the NotIn predicate on the "time_optional" field.
+func TimeOptionalNotIn(vs ...time.Time) predicate.MessageWithOptionals {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -796,49 +796,49 @@ func TimeFieldNotIn(vs ...time.Time) predicate.MessageWithOptionals {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldTimeField), v...))
+		s.Where(sql.NotIn(s.C(FieldTimeOptional), v...))
 	})
 }
 
-// TimeFieldGT applies the GT predicate on the "time_field" field.
-func TimeFieldGT(v time.Time) predicate.MessageWithOptionals {
+// TimeOptionalGT applies the GT predicate on the "time_optional" field.
+func TimeOptionalGT(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTimeField), v))
+		s.Where(sql.GT(s.C(FieldTimeOptional), v))
 	})
 }
 
-// TimeFieldGTE applies the GTE predicate on the "time_field" field.
-func TimeFieldGTE(v time.Time) predicate.MessageWithOptionals {
+// TimeOptionalGTE applies the GTE predicate on the "time_optional" field.
+func TimeOptionalGTE(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTimeField), v))
+		s.Where(sql.GTE(s.C(FieldTimeOptional), v))
 	})
 }
 
-// TimeFieldLT applies the LT predicate on the "time_field" field.
-func TimeFieldLT(v time.Time) predicate.MessageWithOptionals {
+// TimeOptionalLT applies the LT predicate on the "time_optional" field.
+func TimeOptionalLT(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTimeField), v))
+		s.Where(sql.LT(s.C(FieldTimeOptional), v))
 	})
 }
 
-// TimeFieldLTE applies the LTE predicate on the "time_field" field.
-func TimeFieldLTE(v time.Time) predicate.MessageWithOptionals {
+// TimeOptionalLTE applies the LTE predicate on the "time_optional" field.
+func TimeOptionalLTE(v time.Time) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTimeField), v))
+		s.Where(sql.LTE(s.C(FieldTimeOptional), v))
 	})
 }
 
-// TimeFieldIsNil applies the IsNil predicate on the "time_field" field.
-func TimeFieldIsNil() predicate.MessageWithOptionals {
+// TimeOptionalIsNil applies the IsNil predicate on the "time_optional" field.
+func TimeOptionalIsNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldTimeField)))
+		s.Where(sql.IsNull(s.C(FieldTimeOptional)))
 	})
 }
 
-// TimeFieldNotNil applies the NotNil predicate on the "time_field" field.
-func TimeFieldNotNil() predicate.MessageWithOptionals {
+// TimeOptionalNotNil applies the NotNil predicate on the "time_optional" field.
+func TimeOptionalNotNil() predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldTimeField)))
+		s.Where(sql.NotNull(s.C(FieldTimeOptional)))
 	})
 }
 

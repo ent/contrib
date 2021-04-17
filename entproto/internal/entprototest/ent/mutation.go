@@ -3810,24 +3810,24 @@ func (m *MessageWithIDMutation) ResetEdge(name string) error {
 // MessageWithOptionalsMutation represents an operation that mutates the MessageWithOptionals nodes in the graph.
 type MessageWithOptionalsMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	str_field      *string
-	int_field      *int8
-	addint_field   *int8
-	uint_field     *uint8
-	adduint_field  *uint8
-	float_field    *float32
-	addfloat_field *float32
-	bool_field     *bool
-	bytes_field    *[]byte
-	uuid_field     *uuid.UUID
-	time_field     *time.Time
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*MessageWithOptionals, error)
-	predicates     []predicate.MessageWithOptionals
+	op                Op
+	typ               string
+	id                *int
+	str_optional      *string
+	int_optional      *int8
+	addint_optional   *int8
+	uint_optional     *uint8
+	adduint_optional  *uint8
+	float_optional    *float32
+	addfloat_optional *float32
+	bool_optional     *bool
+	bytes_optional    *[]byte
+	uuid_optional     *uuid.UUID
+	time_optional     *time.Time
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*MessageWithOptionals, error)
+	predicates        []predicate.MessageWithOptionals
 }
 
 var _ ent.Mutation = (*MessageWithOptionalsMutation)(nil)
@@ -3909,459 +3909,459 @@ func (m *MessageWithOptionalsMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
-// SetStrField sets the "str_field" field.
-func (m *MessageWithOptionalsMutation) SetStrField(s string) {
-	m.str_field = &s
+// SetStrOptional sets the "str_optional" field.
+func (m *MessageWithOptionalsMutation) SetStrOptional(s string) {
+	m.str_optional = &s
 }
 
-// StrField returns the value of the "str_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) StrField() (r string, exists bool) {
-	v := m.str_field
+// StrOptional returns the value of the "str_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) StrOptional() (r string, exists bool) {
+	v := m.str_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStrField returns the old "str_field" field's value of the MessageWithOptionals entity.
+// OldStrOptional returns the old "str_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldStrField(ctx context.Context) (v string, err error) {
+func (m *MessageWithOptionalsMutation) OldStrOptional(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldStrField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldStrOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldStrField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldStrOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStrField: %w", err)
+		return v, fmt.Errorf("querying old value for OldStrOptional: %w", err)
 	}
-	return oldValue.StrField, nil
+	return oldValue.StrOptional, nil
 }
 
-// ClearStrField clears the value of the "str_field" field.
-func (m *MessageWithOptionalsMutation) ClearStrField() {
-	m.str_field = nil
-	m.clearedFields[messagewithoptionals.FieldStrField] = struct{}{}
+// ClearStrOptional clears the value of the "str_optional" field.
+func (m *MessageWithOptionalsMutation) ClearStrOptional() {
+	m.str_optional = nil
+	m.clearedFields[messagewithoptionals.FieldStrOptional] = struct{}{}
 }
 
-// StrFieldCleared returns if the "str_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) StrFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldStrField]
+// StrOptionalCleared returns if the "str_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) StrOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldStrOptional]
 	return ok
 }
 
-// ResetStrField resets all changes to the "str_field" field.
-func (m *MessageWithOptionalsMutation) ResetStrField() {
-	m.str_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldStrField)
+// ResetStrOptional resets all changes to the "str_optional" field.
+func (m *MessageWithOptionalsMutation) ResetStrOptional() {
+	m.str_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldStrOptional)
 }
 
-// SetIntField sets the "int_field" field.
-func (m *MessageWithOptionalsMutation) SetIntField(i int8) {
-	m.int_field = &i
-	m.addint_field = nil
+// SetIntOptional sets the "int_optional" field.
+func (m *MessageWithOptionalsMutation) SetIntOptional(i int8) {
+	m.int_optional = &i
+	m.addint_optional = nil
 }
 
-// IntField returns the value of the "int_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) IntField() (r int8, exists bool) {
-	v := m.int_field
+// IntOptional returns the value of the "int_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) IntOptional() (r int8, exists bool) {
+	v := m.int_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIntField returns the old "int_field" field's value of the MessageWithOptionals entity.
+// OldIntOptional returns the old "int_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldIntField(ctx context.Context) (v int8, err error) {
+func (m *MessageWithOptionalsMutation) OldIntOptional(ctx context.Context) (v int8, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldIntField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldIntOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldIntField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldIntOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIntField: %w", err)
+		return v, fmt.Errorf("querying old value for OldIntOptional: %w", err)
 	}
-	return oldValue.IntField, nil
+	return oldValue.IntOptional, nil
 }
 
-// AddIntField adds i to the "int_field" field.
-func (m *MessageWithOptionalsMutation) AddIntField(i int8) {
-	if m.addint_field != nil {
-		*m.addint_field += i
+// AddIntOptional adds i to the "int_optional" field.
+func (m *MessageWithOptionalsMutation) AddIntOptional(i int8) {
+	if m.addint_optional != nil {
+		*m.addint_optional += i
 	} else {
-		m.addint_field = &i
+		m.addint_optional = &i
 	}
 }
 
-// AddedIntField returns the value that was added to the "int_field" field in this mutation.
-func (m *MessageWithOptionalsMutation) AddedIntField() (r int8, exists bool) {
-	v := m.addint_field
+// AddedIntOptional returns the value that was added to the "int_optional" field in this mutation.
+func (m *MessageWithOptionalsMutation) AddedIntOptional() (r int8, exists bool) {
+	v := m.addint_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearIntField clears the value of the "int_field" field.
-func (m *MessageWithOptionalsMutation) ClearIntField() {
-	m.int_field = nil
-	m.addint_field = nil
-	m.clearedFields[messagewithoptionals.FieldIntField] = struct{}{}
+// ClearIntOptional clears the value of the "int_optional" field.
+func (m *MessageWithOptionalsMutation) ClearIntOptional() {
+	m.int_optional = nil
+	m.addint_optional = nil
+	m.clearedFields[messagewithoptionals.FieldIntOptional] = struct{}{}
 }
 
-// IntFieldCleared returns if the "int_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) IntFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldIntField]
+// IntOptionalCleared returns if the "int_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) IntOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldIntOptional]
 	return ok
 }
 
-// ResetIntField resets all changes to the "int_field" field.
-func (m *MessageWithOptionalsMutation) ResetIntField() {
-	m.int_field = nil
-	m.addint_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldIntField)
+// ResetIntOptional resets all changes to the "int_optional" field.
+func (m *MessageWithOptionalsMutation) ResetIntOptional() {
+	m.int_optional = nil
+	m.addint_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldIntOptional)
 }
 
-// SetUintField sets the "uint_field" field.
-func (m *MessageWithOptionalsMutation) SetUintField(u uint8) {
-	m.uint_field = &u
-	m.adduint_field = nil
+// SetUintOptional sets the "uint_optional" field.
+func (m *MessageWithOptionalsMutation) SetUintOptional(u uint8) {
+	m.uint_optional = &u
+	m.adduint_optional = nil
 }
 
-// UintField returns the value of the "uint_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) UintField() (r uint8, exists bool) {
-	v := m.uint_field
+// UintOptional returns the value of the "uint_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) UintOptional() (r uint8, exists bool) {
+	v := m.uint_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUintField returns the old "uint_field" field's value of the MessageWithOptionals entity.
+// OldUintOptional returns the old "uint_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldUintField(ctx context.Context) (v uint8, err error) {
+func (m *MessageWithOptionalsMutation) OldUintOptional(ctx context.Context) (v uint8, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldUintField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldUintOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldUintField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldUintOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUintField: %w", err)
+		return v, fmt.Errorf("querying old value for OldUintOptional: %w", err)
 	}
-	return oldValue.UintField, nil
+	return oldValue.UintOptional, nil
 }
 
-// AddUintField adds u to the "uint_field" field.
-func (m *MessageWithOptionalsMutation) AddUintField(u uint8) {
-	if m.adduint_field != nil {
-		*m.adduint_field += u
+// AddUintOptional adds u to the "uint_optional" field.
+func (m *MessageWithOptionalsMutation) AddUintOptional(u uint8) {
+	if m.adduint_optional != nil {
+		*m.adduint_optional += u
 	} else {
-		m.adduint_field = &u
+		m.adduint_optional = &u
 	}
 }
 
-// AddedUintField returns the value that was added to the "uint_field" field in this mutation.
-func (m *MessageWithOptionalsMutation) AddedUintField() (r uint8, exists bool) {
-	v := m.adduint_field
+// AddedUintOptional returns the value that was added to the "uint_optional" field in this mutation.
+func (m *MessageWithOptionalsMutation) AddedUintOptional() (r uint8, exists bool) {
+	v := m.adduint_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearUintField clears the value of the "uint_field" field.
-func (m *MessageWithOptionalsMutation) ClearUintField() {
-	m.uint_field = nil
-	m.adduint_field = nil
-	m.clearedFields[messagewithoptionals.FieldUintField] = struct{}{}
+// ClearUintOptional clears the value of the "uint_optional" field.
+func (m *MessageWithOptionalsMutation) ClearUintOptional() {
+	m.uint_optional = nil
+	m.adduint_optional = nil
+	m.clearedFields[messagewithoptionals.FieldUintOptional] = struct{}{}
 }
 
-// UintFieldCleared returns if the "uint_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) UintFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldUintField]
+// UintOptionalCleared returns if the "uint_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) UintOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldUintOptional]
 	return ok
 }
 
-// ResetUintField resets all changes to the "uint_field" field.
-func (m *MessageWithOptionalsMutation) ResetUintField() {
-	m.uint_field = nil
-	m.adduint_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldUintField)
+// ResetUintOptional resets all changes to the "uint_optional" field.
+func (m *MessageWithOptionalsMutation) ResetUintOptional() {
+	m.uint_optional = nil
+	m.adduint_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldUintOptional)
 }
 
-// SetFloatField sets the "float_field" field.
-func (m *MessageWithOptionalsMutation) SetFloatField(f float32) {
-	m.float_field = &f
-	m.addfloat_field = nil
+// SetFloatOptional sets the "float_optional" field.
+func (m *MessageWithOptionalsMutation) SetFloatOptional(f float32) {
+	m.float_optional = &f
+	m.addfloat_optional = nil
 }
 
-// FloatField returns the value of the "float_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) FloatField() (r float32, exists bool) {
-	v := m.float_field
+// FloatOptional returns the value of the "float_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) FloatOptional() (r float32, exists bool) {
+	v := m.float_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldFloatField returns the old "float_field" field's value of the MessageWithOptionals entity.
+// OldFloatOptional returns the old "float_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldFloatField(ctx context.Context) (v float32, err error) {
+func (m *MessageWithOptionalsMutation) OldFloatOptional(ctx context.Context) (v float32, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldFloatField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldFloatOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldFloatField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldFloatOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFloatField: %w", err)
+		return v, fmt.Errorf("querying old value for OldFloatOptional: %w", err)
 	}
-	return oldValue.FloatField, nil
+	return oldValue.FloatOptional, nil
 }
 
-// AddFloatField adds f to the "float_field" field.
-func (m *MessageWithOptionalsMutation) AddFloatField(f float32) {
-	if m.addfloat_field != nil {
-		*m.addfloat_field += f
+// AddFloatOptional adds f to the "float_optional" field.
+func (m *MessageWithOptionalsMutation) AddFloatOptional(f float32) {
+	if m.addfloat_optional != nil {
+		*m.addfloat_optional += f
 	} else {
-		m.addfloat_field = &f
+		m.addfloat_optional = &f
 	}
 }
 
-// AddedFloatField returns the value that was added to the "float_field" field in this mutation.
-func (m *MessageWithOptionalsMutation) AddedFloatField() (r float32, exists bool) {
-	v := m.addfloat_field
+// AddedFloatOptional returns the value that was added to the "float_optional" field in this mutation.
+func (m *MessageWithOptionalsMutation) AddedFloatOptional() (r float32, exists bool) {
+	v := m.addfloat_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearFloatField clears the value of the "float_field" field.
-func (m *MessageWithOptionalsMutation) ClearFloatField() {
-	m.float_field = nil
-	m.addfloat_field = nil
-	m.clearedFields[messagewithoptionals.FieldFloatField] = struct{}{}
+// ClearFloatOptional clears the value of the "float_optional" field.
+func (m *MessageWithOptionalsMutation) ClearFloatOptional() {
+	m.float_optional = nil
+	m.addfloat_optional = nil
+	m.clearedFields[messagewithoptionals.FieldFloatOptional] = struct{}{}
 }
 
-// FloatFieldCleared returns if the "float_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) FloatFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldFloatField]
+// FloatOptionalCleared returns if the "float_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) FloatOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldFloatOptional]
 	return ok
 }
 
-// ResetFloatField resets all changes to the "float_field" field.
-func (m *MessageWithOptionalsMutation) ResetFloatField() {
-	m.float_field = nil
-	m.addfloat_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldFloatField)
+// ResetFloatOptional resets all changes to the "float_optional" field.
+func (m *MessageWithOptionalsMutation) ResetFloatOptional() {
+	m.float_optional = nil
+	m.addfloat_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldFloatOptional)
 }
 
-// SetBoolField sets the "bool_field" field.
-func (m *MessageWithOptionalsMutation) SetBoolField(b bool) {
-	m.bool_field = &b
+// SetBoolOptional sets the "bool_optional" field.
+func (m *MessageWithOptionalsMutation) SetBoolOptional(b bool) {
+	m.bool_optional = &b
 }
 
-// BoolField returns the value of the "bool_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) BoolField() (r bool, exists bool) {
-	v := m.bool_field
+// BoolOptional returns the value of the "bool_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) BoolOptional() (r bool, exists bool) {
+	v := m.bool_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldBoolField returns the old "bool_field" field's value of the MessageWithOptionals entity.
+// OldBoolOptional returns the old "bool_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldBoolField(ctx context.Context) (v bool, err error) {
+func (m *MessageWithOptionalsMutation) OldBoolOptional(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldBoolField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldBoolOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldBoolField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldBoolOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBoolField: %w", err)
+		return v, fmt.Errorf("querying old value for OldBoolOptional: %w", err)
 	}
-	return oldValue.BoolField, nil
+	return oldValue.BoolOptional, nil
 }
 
-// ClearBoolField clears the value of the "bool_field" field.
-func (m *MessageWithOptionalsMutation) ClearBoolField() {
-	m.bool_field = nil
-	m.clearedFields[messagewithoptionals.FieldBoolField] = struct{}{}
+// ClearBoolOptional clears the value of the "bool_optional" field.
+func (m *MessageWithOptionalsMutation) ClearBoolOptional() {
+	m.bool_optional = nil
+	m.clearedFields[messagewithoptionals.FieldBoolOptional] = struct{}{}
 }
 
-// BoolFieldCleared returns if the "bool_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) BoolFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldBoolField]
+// BoolOptionalCleared returns if the "bool_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) BoolOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldBoolOptional]
 	return ok
 }
 
-// ResetBoolField resets all changes to the "bool_field" field.
-func (m *MessageWithOptionalsMutation) ResetBoolField() {
-	m.bool_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldBoolField)
+// ResetBoolOptional resets all changes to the "bool_optional" field.
+func (m *MessageWithOptionalsMutation) ResetBoolOptional() {
+	m.bool_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldBoolOptional)
 }
 
-// SetBytesField sets the "bytes_field" field.
-func (m *MessageWithOptionalsMutation) SetBytesField(b []byte) {
-	m.bytes_field = &b
+// SetBytesOptional sets the "bytes_optional" field.
+func (m *MessageWithOptionalsMutation) SetBytesOptional(b []byte) {
+	m.bytes_optional = &b
 }
 
-// BytesField returns the value of the "bytes_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) BytesField() (r []byte, exists bool) {
-	v := m.bytes_field
+// BytesOptional returns the value of the "bytes_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) BytesOptional() (r []byte, exists bool) {
+	v := m.bytes_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldBytesField returns the old "bytes_field" field's value of the MessageWithOptionals entity.
+// OldBytesOptional returns the old "bytes_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldBytesField(ctx context.Context) (v []byte, err error) {
+func (m *MessageWithOptionalsMutation) OldBytesOptional(ctx context.Context) (v []byte, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldBytesField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldBytesOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldBytesField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldBytesOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBytesField: %w", err)
+		return v, fmt.Errorf("querying old value for OldBytesOptional: %w", err)
 	}
-	return oldValue.BytesField, nil
+	return oldValue.BytesOptional, nil
 }
 
-// ClearBytesField clears the value of the "bytes_field" field.
-func (m *MessageWithOptionalsMutation) ClearBytesField() {
-	m.bytes_field = nil
-	m.clearedFields[messagewithoptionals.FieldBytesField] = struct{}{}
+// ClearBytesOptional clears the value of the "bytes_optional" field.
+func (m *MessageWithOptionalsMutation) ClearBytesOptional() {
+	m.bytes_optional = nil
+	m.clearedFields[messagewithoptionals.FieldBytesOptional] = struct{}{}
 }
 
-// BytesFieldCleared returns if the "bytes_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) BytesFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldBytesField]
+// BytesOptionalCleared returns if the "bytes_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) BytesOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldBytesOptional]
 	return ok
 }
 
-// ResetBytesField resets all changes to the "bytes_field" field.
-func (m *MessageWithOptionalsMutation) ResetBytesField() {
-	m.bytes_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldBytesField)
+// ResetBytesOptional resets all changes to the "bytes_optional" field.
+func (m *MessageWithOptionalsMutation) ResetBytesOptional() {
+	m.bytes_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldBytesOptional)
 }
 
-// SetUUIDField sets the "uuid_field" field.
-func (m *MessageWithOptionalsMutation) SetUUIDField(u uuid.UUID) {
-	m.uuid_field = &u
+// SetUUIDOptional sets the "uuid_optional" field.
+func (m *MessageWithOptionalsMutation) SetUUIDOptional(u uuid.UUID) {
+	m.uuid_optional = &u
 }
 
-// UUIDField returns the value of the "uuid_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) UUIDField() (r uuid.UUID, exists bool) {
-	v := m.uuid_field
+// UUIDOptional returns the value of the "uuid_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) UUIDOptional() (r uuid.UUID, exists bool) {
+	v := m.uuid_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUUIDField returns the old "uuid_field" field's value of the MessageWithOptionals entity.
+// OldUUIDOptional returns the old "uuid_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldUUIDField(ctx context.Context) (v uuid.UUID, err error) {
+func (m *MessageWithOptionalsMutation) OldUUIDOptional(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldUUIDField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldUUIDOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldUUIDField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldUUIDOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUUIDField: %w", err)
+		return v, fmt.Errorf("querying old value for OldUUIDOptional: %w", err)
 	}
-	return oldValue.UUIDField, nil
+	return oldValue.UUIDOptional, nil
 }
 
-// ClearUUIDField clears the value of the "uuid_field" field.
-func (m *MessageWithOptionalsMutation) ClearUUIDField() {
-	m.uuid_field = nil
-	m.clearedFields[messagewithoptionals.FieldUUIDField] = struct{}{}
+// ClearUUIDOptional clears the value of the "uuid_optional" field.
+func (m *MessageWithOptionalsMutation) ClearUUIDOptional() {
+	m.uuid_optional = nil
+	m.clearedFields[messagewithoptionals.FieldUUIDOptional] = struct{}{}
 }
 
-// UUIDFieldCleared returns if the "uuid_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) UUIDFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldUUIDField]
+// UUIDOptionalCleared returns if the "uuid_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) UUIDOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldUUIDOptional]
 	return ok
 }
 
-// ResetUUIDField resets all changes to the "uuid_field" field.
-func (m *MessageWithOptionalsMutation) ResetUUIDField() {
-	m.uuid_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldUUIDField)
+// ResetUUIDOptional resets all changes to the "uuid_optional" field.
+func (m *MessageWithOptionalsMutation) ResetUUIDOptional() {
+	m.uuid_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldUUIDOptional)
 }
 
-// SetTimeField sets the "time_field" field.
-func (m *MessageWithOptionalsMutation) SetTimeField(t time.Time) {
-	m.time_field = &t
+// SetTimeOptional sets the "time_optional" field.
+func (m *MessageWithOptionalsMutation) SetTimeOptional(t time.Time) {
+	m.time_optional = &t
 }
 
-// TimeField returns the value of the "time_field" field in the mutation.
-func (m *MessageWithOptionalsMutation) TimeField() (r time.Time, exists bool) {
-	v := m.time_field
+// TimeOptional returns the value of the "time_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) TimeOptional() (r time.Time, exists bool) {
+	v := m.time_optional
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTimeField returns the old "time_field" field's value of the MessageWithOptionals entity.
+// OldTimeOptional returns the old "time_optional" field's value of the MessageWithOptionals entity.
 // If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MessageWithOptionalsMutation) OldTimeField(ctx context.Context) (v time.Time, err error) {
+func (m *MessageWithOptionalsMutation) OldTimeOptional(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldTimeField is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldTimeOptional is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldTimeField requires an ID field in the mutation")
+		return v, fmt.Errorf("OldTimeOptional requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTimeField: %w", err)
+		return v, fmt.Errorf("querying old value for OldTimeOptional: %w", err)
 	}
-	return oldValue.TimeField, nil
+	return oldValue.TimeOptional, nil
 }
 
-// ClearTimeField clears the value of the "time_field" field.
-func (m *MessageWithOptionalsMutation) ClearTimeField() {
-	m.time_field = nil
-	m.clearedFields[messagewithoptionals.FieldTimeField] = struct{}{}
+// ClearTimeOptional clears the value of the "time_optional" field.
+func (m *MessageWithOptionalsMutation) ClearTimeOptional() {
+	m.time_optional = nil
+	m.clearedFields[messagewithoptionals.FieldTimeOptional] = struct{}{}
 }
 
-// TimeFieldCleared returns if the "time_field" field was cleared in this mutation.
-func (m *MessageWithOptionalsMutation) TimeFieldCleared() bool {
-	_, ok := m.clearedFields[messagewithoptionals.FieldTimeField]
+// TimeOptionalCleared returns if the "time_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) TimeOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldTimeOptional]
 	return ok
 }
 
-// ResetTimeField resets all changes to the "time_field" field.
-func (m *MessageWithOptionalsMutation) ResetTimeField() {
-	m.time_field = nil
-	delete(m.clearedFields, messagewithoptionals.FieldTimeField)
+// ResetTimeOptional resets all changes to the "time_optional" field.
+func (m *MessageWithOptionalsMutation) ResetTimeOptional() {
+	m.time_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldTimeOptional)
 }
 
 // Op returns the operation name.
@@ -4379,29 +4379,29 @@ func (m *MessageWithOptionalsMutation) Type() string {
 // AddedFields().
 func (m *MessageWithOptionalsMutation) Fields() []string {
 	fields := make([]string, 0, 8)
-	if m.str_field != nil {
-		fields = append(fields, messagewithoptionals.FieldStrField)
+	if m.str_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldStrOptional)
 	}
-	if m.int_field != nil {
-		fields = append(fields, messagewithoptionals.FieldIntField)
+	if m.int_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldIntOptional)
 	}
-	if m.uint_field != nil {
-		fields = append(fields, messagewithoptionals.FieldUintField)
+	if m.uint_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldUintOptional)
 	}
-	if m.float_field != nil {
-		fields = append(fields, messagewithoptionals.FieldFloatField)
+	if m.float_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldFloatOptional)
 	}
-	if m.bool_field != nil {
-		fields = append(fields, messagewithoptionals.FieldBoolField)
+	if m.bool_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldBoolOptional)
 	}
-	if m.bytes_field != nil {
-		fields = append(fields, messagewithoptionals.FieldBytesField)
+	if m.bytes_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldBytesOptional)
 	}
-	if m.uuid_field != nil {
-		fields = append(fields, messagewithoptionals.FieldUUIDField)
+	if m.uuid_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldUUIDOptional)
 	}
-	if m.time_field != nil {
-		fields = append(fields, messagewithoptionals.FieldTimeField)
+	if m.time_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldTimeOptional)
 	}
 	return fields
 }
@@ -4411,22 +4411,22 @@ func (m *MessageWithOptionalsMutation) Fields() []string {
 // schema.
 func (m *MessageWithOptionalsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case messagewithoptionals.FieldStrField:
-		return m.StrField()
-	case messagewithoptionals.FieldIntField:
-		return m.IntField()
-	case messagewithoptionals.FieldUintField:
-		return m.UintField()
-	case messagewithoptionals.FieldFloatField:
-		return m.FloatField()
-	case messagewithoptionals.FieldBoolField:
-		return m.BoolField()
-	case messagewithoptionals.FieldBytesField:
-		return m.BytesField()
-	case messagewithoptionals.FieldUUIDField:
-		return m.UUIDField()
-	case messagewithoptionals.FieldTimeField:
-		return m.TimeField()
+	case messagewithoptionals.FieldStrOptional:
+		return m.StrOptional()
+	case messagewithoptionals.FieldIntOptional:
+		return m.IntOptional()
+	case messagewithoptionals.FieldUintOptional:
+		return m.UintOptional()
+	case messagewithoptionals.FieldFloatOptional:
+		return m.FloatOptional()
+	case messagewithoptionals.FieldBoolOptional:
+		return m.BoolOptional()
+	case messagewithoptionals.FieldBytesOptional:
+		return m.BytesOptional()
+	case messagewithoptionals.FieldUUIDOptional:
+		return m.UUIDOptional()
+	case messagewithoptionals.FieldTimeOptional:
+		return m.TimeOptional()
 	}
 	return nil, false
 }
@@ -4436,22 +4436,22 @@ func (m *MessageWithOptionalsMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MessageWithOptionalsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case messagewithoptionals.FieldStrField:
-		return m.OldStrField(ctx)
-	case messagewithoptionals.FieldIntField:
-		return m.OldIntField(ctx)
-	case messagewithoptionals.FieldUintField:
-		return m.OldUintField(ctx)
-	case messagewithoptionals.FieldFloatField:
-		return m.OldFloatField(ctx)
-	case messagewithoptionals.FieldBoolField:
-		return m.OldBoolField(ctx)
-	case messagewithoptionals.FieldBytesField:
-		return m.OldBytesField(ctx)
-	case messagewithoptionals.FieldUUIDField:
-		return m.OldUUIDField(ctx)
-	case messagewithoptionals.FieldTimeField:
-		return m.OldTimeField(ctx)
+	case messagewithoptionals.FieldStrOptional:
+		return m.OldStrOptional(ctx)
+	case messagewithoptionals.FieldIntOptional:
+		return m.OldIntOptional(ctx)
+	case messagewithoptionals.FieldUintOptional:
+		return m.OldUintOptional(ctx)
+	case messagewithoptionals.FieldFloatOptional:
+		return m.OldFloatOptional(ctx)
+	case messagewithoptionals.FieldBoolOptional:
+		return m.OldBoolOptional(ctx)
+	case messagewithoptionals.FieldBytesOptional:
+		return m.OldBytesOptional(ctx)
+	case messagewithoptionals.FieldUUIDOptional:
+		return m.OldUUIDOptional(ctx)
+	case messagewithoptionals.FieldTimeOptional:
+		return m.OldTimeOptional(ctx)
 	}
 	return nil, fmt.Errorf("unknown MessageWithOptionals field %s", name)
 }
@@ -4461,61 +4461,61 @@ func (m *MessageWithOptionalsMutation) OldField(ctx context.Context, name string
 // type.
 func (m *MessageWithOptionalsMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case messagewithoptionals.FieldStrField:
+	case messagewithoptionals.FieldStrOptional:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStrField(v)
+		m.SetStrOptional(v)
 		return nil
-	case messagewithoptionals.FieldIntField:
+	case messagewithoptionals.FieldIntOptional:
 		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIntField(v)
+		m.SetIntOptional(v)
 		return nil
-	case messagewithoptionals.FieldUintField:
+	case messagewithoptionals.FieldUintOptional:
 		v, ok := value.(uint8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUintField(v)
+		m.SetUintOptional(v)
 		return nil
-	case messagewithoptionals.FieldFloatField:
+	case messagewithoptionals.FieldFloatOptional:
 		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetFloatField(v)
+		m.SetFloatOptional(v)
 		return nil
-	case messagewithoptionals.FieldBoolField:
+	case messagewithoptionals.FieldBoolOptional:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetBoolField(v)
+		m.SetBoolOptional(v)
 		return nil
-	case messagewithoptionals.FieldBytesField:
+	case messagewithoptionals.FieldBytesOptional:
 		v, ok := value.([]byte)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetBytesField(v)
+		m.SetBytesOptional(v)
 		return nil
-	case messagewithoptionals.FieldUUIDField:
+	case messagewithoptionals.FieldUUIDOptional:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUUIDField(v)
+		m.SetUUIDOptional(v)
 		return nil
-	case messagewithoptionals.FieldTimeField:
+	case messagewithoptionals.FieldTimeOptional:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTimeField(v)
+		m.SetTimeOptional(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals field %s", name)
@@ -4525,14 +4525,14 @@ func (m *MessageWithOptionalsMutation) SetField(name string, value ent.Value) er
 // this mutation.
 func (m *MessageWithOptionalsMutation) AddedFields() []string {
 	var fields []string
-	if m.addint_field != nil {
-		fields = append(fields, messagewithoptionals.FieldIntField)
+	if m.addint_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldIntOptional)
 	}
-	if m.adduint_field != nil {
-		fields = append(fields, messagewithoptionals.FieldUintField)
+	if m.adduint_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldUintOptional)
 	}
-	if m.addfloat_field != nil {
-		fields = append(fields, messagewithoptionals.FieldFloatField)
+	if m.addfloat_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldFloatOptional)
 	}
 	return fields
 }
@@ -4542,12 +4542,12 @@ func (m *MessageWithOptionalsMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *MessageWithOptionalsMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case messagewithoptionals.FieldIntField:
-		return m.AddedIntField()
-	case messagewithoptionals.FieldUintField:
-		return m.AddedUintField()
-	case messagewithoptionals.FieldFloatField:
-		return m.AddedFloatField()
+	case messagewithoptionals.FieldIntOptional:
+		return m.AddedIntOptional()
+	case messagewithoptionals.FieldUintOptional:
+		return m.AddedUintOptional()
+	case messagewithoptionals.FieldFloatOptional:
+		return m.AddedFloatOptional()
 	}
 	return nil, false
 }
@@ -4557,26 +4557,26 @@ func (m *MessageWithOptionalsMutation) AddedField(name string) (ent.Value, bool)
 // type.
 func (m *MessageWithOptionalsMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case messagewithoptionals.FieldIntField:
+	case messagewithoptionals.FieldIntOptional:
 		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddIntField(v)
+		m.AddIntOptional(v)
 		return nil
-	case messagewithoptionals.FieldUintField:
+	case messagewithoptionals.FieldUintOptional:
 		v, ok := value.(uint8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddUintField(v)
+		m.AddUintOptional(v)
 		return nil
-	case messagewithoptionals.FieldFloatField:
+	case messagewithoptionals.FieldFloatOptional:
 		v, ok := value.(float32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddFloatField(v)
+		m.AddFloatOptional(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals numeric field %s", name)
@@ -4586,29 +4586,29 @@ func (m *MessageWithOptionalsMutation) AddField(name string, value ent.Value) er
 // mutation.
 func (m *MessageWithOptionalsMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(messagewithoptionals.FieldStrField) {
-		fields = append(fields, messagewithoptionals.FieldStrField)
+	if m.FieldCleared(messagewithoptionals.FieldStrOptional) {
+		fields = append(fields, messagewithoptionals.FieldStrOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldIntField) {
-		fields = append(fields, messagewithoptionals.FieldIntField)
+	if m.FieldCleared(messagewithoptionals.FieldIntOptional) {
+		fields = append(fields, messagewithoptionals.FieldIntOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldUintField) {
-		fields = append(fields, messagewithoptionals.FieldUintField)
+	if m.FieldCleared(messagewithoptionals.FieldUintOptional) {
+		fields = append(fields, messagewithoptionals.FieldUintOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldFloatField) {
-		fields = append(fields, messagewithoptionals.FieldFloatField)
+	if m.FieldCleared(messagewithoptionals.FieldFloatOptional) {
+		fields = append(fields, messagewithoptionals.FieldFloatOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldBoolField) {
-		fields = append(fields, messagewithoptionals.FieldBoolField)
+	if m.FieldCleared(messagewithoptionals.FieldBoolOptional) {
+		fields = append(fields, messagewithoptionals.FieldBoolOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldBytesField) {
-		fields = append(fields, messagewithoptionals.FieldBytesField)
+	if m.FieldCleared(messagewithoptionals.FieldBytesOptional) {
+		fields = append(fields, messagewithoptionals.FieldBytesOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldUUIDField) {
-		fields = append(fields, messagewithoptionals.FieldUUIDField)
+	if m.FieldCleared(messagewithoptionals.FieldUUIDOptional) {
+		fields = append(fields, messagewithoptionals.FieldUUIDOptional)
 	}
-	if m.FieldCleared(messagewithoptionals.FieldTimeField) {
-		fields = append(fields, messagewithoptionals.FieldTimeField)
+	if m.FieldCleared(messagewithoptionals.FieldTimeOptional) {
+		fields = append(fields, messagewithoptionals.FieldTimeOptional)
 	}
 	return fields
 }
@@ -4624,29 +4624,29 @@ func (m *MessageWithOptionalsMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *MessageWithOptionalsMutation) ClearField(name string) error {
 	switch name {
-	case messagewithoptionals.FieldStrField:
-		m.ClearStrField()
+	case messagewithoptionals.FieldStrOptional:
+		m.ClearStrOptional()
 		return nil
-	case messagewithoptionals.FieldIntField:
-		m.ClearIntField()
+	case messagewithoptionals.FieldIntOptional:
+		m.ClearIntOptional()
 		return nil
-	case messagewithoptionals.FieldUintField:
-		m.ClearUintField()
+	case messagewithoptionals.FieldUintOptional:
+		m.ClearUintOptional()
 		return nil
-	case messagewithoptionals.FieldFloatField:
-		m.ClearFloatField()
+	case messagewithoptionals.FieldFloatOptional:
+		m.ClearFloatOptional()
 		return nil
-	case messagewithoptionals.FieldBoolField:
-		m.ClearBoolField()
+	case messagewithoptionals.FieldBoolOptional:
+		m.ClearBoolOptional()
 		return nil
-	case messagewithoptionals.FieldBytesField:
-		m.ClearBytesField()
+	case messagewithoptionals.FieldBytesOptional:
+		m.ClearBytesOptional()
 		return nil
-	case messagewithoptionals.FieldUUIDField:
-		m.ClearUUIDField()
+	case messagewithoptionals.FieldUUIDOptional:
+		m.ClearUUIDOptional()
 		return nil
-	case messagewithoptionals.FieldTimeField:
-		m.ClearTimeField()
+	case messagewithoptionals.FieldTimeOptional:
+		m.ClearTimeOptional()
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals nullable field %s", name)
@@ -4656,29 +4656,29 @@ func (m *MessageWithOptionalsMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MessageWithOptionalsMutation) ResetField(name string) error {
 	switch name {
-	case messagewithoptionals.FieldStrField:
-		m.ResetStrField()
+	case messagewithoptionals.FieldStrOptional:
+		m.ResetStrOptional()
 		return nil
-	case messagewithoptionals.FieldIntField:
-		m.ResetIntField()
+	case messagewithoptionals.FieldIntOptional:
+		m.ResetIntOptional()
 		return nil
-	case messagewithoptionals.FieldUintField:
-		m.ResetUintField()
+	case messagewithoptionals.FieldUintOptional:
+		m.ResetUintOptional()
 		return nil
-	case messagewithoptionals.FieldFloatField:
-		m.ResetFloatField()
+	case messagewithoptionals.FieldFloatOptional:
+		m.ResetFloatOptional()
 		return nil
-	case messagewithoptionals.FieldBoolField:
-		m.ResetBoolField()
+	case messagewithoptionals.FieldBoolOptional:
+		m.ResetBoolOptional()
 		return nil
-	case messagewithoptionals.FieldBytesField:
-		m.ResetBytesField()
+	case messagewithoptionals.FieldBytesOptional:
+		m.ResetBytesOptional()
 		return nil
-	case messagewithoptionals.FieldUUIDField:
-		m.ResetUUIDField()
+	case messagewithoptionals.FieldUUIDOptional:
+		m.ResetUUIDOptional()
 		return nil
-	case messagewithoptionals.FieldTimeField:
-		m.ResetTimeField()
+	case messagewithoptionals.FieldTimeOptional:
+		m.ResetTimeOptional()
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals field %s", name)

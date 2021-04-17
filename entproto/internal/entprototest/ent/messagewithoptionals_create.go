@@ -20,98 +20,98 @@ type MessageWithOptionalsCreate struct {
 	hooks    []Hook
 }
 
-// SetStrField sets the "str_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetStrField(s string) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetStrField(s)
+// SetStrOptional sets the "str_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetStrOptional(s string) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetStrOptional(s)
 	return mwoc
 }
 
-// SetNillableStrField sets the "str_field" field if the given value is not nil.
-func (mwoc *MessageWithOptionalsCreate) SetNillableStrField(s *string) *MessageWithOptionalsCreate {
+// SetNillableStrOptional sets the "str_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableStrOptional(s *string) *MessageWithOptionalsCreate {
 	if s != nil {
-		mwoc.SetStrField(*s)
+		mwoc.SetStrOptional(*s)
 	}
 	return mwoc
 }
 
-// SetIntField sets the "int_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetIntField(i int8) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetIntField(i)
+// SetIntOptional sets the "int_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetIntOptional(i int8) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetIntOptional(i)
 	return mwoc
 }
 
-// SetNillableIntField sets the "int_field" field if the given value is not nil.
-func (mwoc *MessageWithOptionalsCreate) SetNillableIntField(i *int8) *MessageWithOptionalsCreate {
+// SetNillableIntOptional sets the "int_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableIntOptional(i *int8) *MessageWithOptionalsCreate {
 	if i != nil {
-		mwoc.SetIntField(*i)
+		mwoc.SetIntOptional(*i)
 	}
 	return mwoc
 }
 
-// SetUintField sets the "uint_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetUintField(u uint8) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetUintField(u)
+// SetUintOptional sets the "uint_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetUintOptional(u uint8) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetUintOptional(u)
 	return mwoc
 }
 
-// SetNillableUintField sets the "uint_field" field if the given value is not nil.
-func (mwoc *MessageWithOptionalsCreate) SetNillableUintField(u *uint8) *MessageWithOptionalsCreate {
+// SetNillableUintOptional sets the "uint_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableUintOptional(u *uint8) *MessageWithOptionalsCreate {
 	if u != nil {
-		mwoc.SetUintField(*u)
+		mwoc.SetUintOptional(*u)
 	}
 	return mwoc
 }
 
-// SetFloatField sets the "float_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetFloatField(f float32) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetFloatField(f)
+// SetFloatOptional sets the "float_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetFloatOptional(f float32) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetFloatOptional(f)
 	return mwoc
 }
 
-// SetNillableFloatField sets the "float_field" field if the given value is not nil.
-func (mwoc *MessageWithOptionalsCreate) SetNillableFloatField(f *float32) *MessageWithOptionalsCreate {
+// SetNillableFloatOptional sets the "float_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableFloatOptional(f *float32) *MessageWithOptionalsCreate {
 	if f != nil {
-		mwoc.SetFloatField(*f)
+		mwoc.SetFloatOptional(*f)
 	}
 	return mwoc
 }
 
-// SetBoolField sets the "bool_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetBoolField(b bool) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetBoolField(b)
+// SetBoolOptional sets the "bool_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetBoolOptional(b bool) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetBoolOptional(b)
 	return mwoc
 }
 
-// SetNillableBoolField sets the "bool_field" field if the given value is not nil.
-func (mwoc *MessageWithOptionalsCreate) SetNillableBoolField(b *bool) *MessageWithOptionalsCreate {
+// SetNillableBoolOptional sets the "bool_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableBoolOptional(b *bool) *MessageWithOptionalsCreate {
 	if b != nil {
-		mwoc.SetBoolField(*b)
+		mwoc.SetBoolOptional(*b)
 	}
 	return mwoc
 }
 
-// SetBytesField sets the "bytes_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetBytesField(b []byte) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetBytesField(b)
+// SetBytesOptional sets the "bytes_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetBytesOptional(b []byte) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetBytesOptional(b)
 	return mwoc
 }
 
-// SetUUIDField sets the "uuid_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetUUIDField(u uuid.UUID) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetUUIDField(u)
+// SetUUIDOptional sets the "uuid_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetUUIDOptional(u uuid.UUID) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetUUIDOptional(u)
 	return mwoc
 }
 
-// SetTimeField sets the "time_field" field.
-func (mwoc *MessageWithOptionalsCreate) SetTimeField(t time.Time) *MessageWithOptionalsCreate {
-	mwoc.mutation.SetTimeField(t)
+// SetTimeOptional sets the "time_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetTimeOptional(t time.Time) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetTimeOptional(t)
 	return mwoc
 }
 
-// SetNillableTimeField sets the "time_field" field if the given value is not nil.
-func (mwoc *MessageWithOptionalsCreate) SetNillableTimeField(t *time.Time) *MessageWithOptionalsCreate {
+// SetNillableTimeOptional sets the "time_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableTimeOptional(t *time.Time) *MessageWithOptionalsCreate {
 	if t != nil {
-		mwoc.SetTimeField(*t)
+		mwoc.SetTimeOptional(*t)
 	}
 	return mwoc
 }
@@ -194,69 +194,69 @@ func (mwoc *MessageWithOptionalsCreate) createSpec() (*MessageWithOptionals, *sq
 			},
 		}
 	)
-	if value, ok := mwoc.mutation.StrField(); ok {
+	if value, ok := mwoc.mutation.StrOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: messagewithoptionals.FieldStrField,
+			Column: messagewithoptionals.FieldStrOptional,
 		})
-		_node.StrField = value
+		_node.StrOptional = value
 	}
-	if value, ok := mwoc.mutation.IntField(); ok {
+	if value, ok := mwoc.mutation.IntOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
 			Value:  value,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
-		_node.IntField = value
+		_node.IntOptional = value
 	}
-	if value, ok := mwoc.mutation.UintField(); ok {
+	if value, ok := mwoc.mutation.UintOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
 			Value:  value,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
-		_node.UintField = value
+		_node.UintOptional = value
 	}
-	if value, ok := mwoc.mutation.FloatField(); ok {
+	if value, ok := mwoc.mutation.FloatOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
 			Value:  value,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
-		_node.FloatField = value
+		_node.FloatOptional = value
 	}
-	if value, ok := mwoc.mutation.BoolField(); ok {
+	if value, ok := mwoc.mutation.BoolOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  value,
-			Column: messagewithoptionals.FieldBoolField,
+			Column: messagewithoptionals.FieldBoolOptional,
 		})
-		_node.BoolField = value
+		_node.BoolOptional = value
 	}
-	if value, ok := mwoc.mutation.BytesField(); ok {
+	if value, ok := mwoc.mutation.BytesOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
 			Value:  value,
-			Column: messagewithoptionals.FieldBytesField,
+			Column: messagewithoptionals.FieldBytesOptional,
 		})
-		_node.BytesField = value
+		_node.BytesOptional = value
 	}
-	if value, ok := mwoc.mutation.UUIDField(); ok {
+	if value, ok := mwoc.mutation.UUIDOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Value:  value,
-			Column: messagewithoptionals.FieldUUIDField,
+			Column: messagewithoptionals.FieldUUIDOptional,
 		})
-		_node.UUIDField = value
+		_node.UUIDOptional = value
 	}
-	if value, ok := mwoc.mutation.TimeField(); ok {
+	if value, ok := mwoc.mutation.TimeOptional(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
-			Column: messagewithoptionals.FieldTimeField,
+			Column: messagewithoptionals.FieldTimeOptional,
 		})
-		_node.TimeField = value
+		_node.TimeOptional = value
 	}
 	return _node, _spec
 }

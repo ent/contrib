@@ -28,28 +28,28 @@ type MessageWithOptionals struct {
 
 func (MessageWithOptionals) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("str_field").
+		field.String("str_optional").
 			Optional().
 			Annotations(entproto.Field(2)),
-		field.Int8("int_field").
+		field.Int8("int_optional").
 			Optional().
 			Annotations(entproto.Field(3)),
-		field.Uint8("uint_field").
+		field.Uint8("uint_optional").
 			Optional().
 			Annotations(entproto.Field(4)),
-		field.Float32("float_field").
+		field.Float32("float_optional").
 			Optional().
 			Annotations(entproto.Field(5)),
-		field.Bool("bool_field").
+		field.Bool("bool_optional").
 			Optional().
 			Annotations(entproto.Field(6)),
-		field.Bytes("bytes_field").
+		field.Bytes("bytes_optional").
 			Optional().
 			Annotations(entproto.Field(7)),
-		field.UUID("uuid_field", uuid.New()).
+		field.UUID("uuid_optional", uuid.New()).
 			Optional().
 			Annotations(entproto.Field(8)),
-		field.Time("time_field").
+		field.Time("time_optional").
 			Optional().
 			Annotations(entproto.Field(9)),
 	}

@@ -483,7 +483,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	if f.Optional || f.Nillable {
+	if f.Optional {
 		if cfg.optionalType == "" {
 			return fieldType{}, unsupportedTypeError{Type: f.Type}
 		}

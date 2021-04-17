@@ -245,12 +245,12 @@ func (mwoq *MessageWithOptionalsQuery) Clone() *MessageWithOptionalsQuery {
 // Example:
 //
 //	var v []struct {
-//		StrField string `json:"str_field,omitempty"`
+//		StrOptional string `json:"str_optional,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.MessageWithOptionals.Query().
-//		GroupBy(messagewithoptionals.FieldStrField).
+//		GroupBy(messagewithoptionals.FieldStrOptional).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -272,11 +272,11 @@ func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *
 // Example:
 //
 //	var v []struct {
-//		StrField string `json:"str_field,omitempty"`
+//		StrOptional string `json:"str_optional,omitempty"`
 //	}
 //
 //	client.MessageWithOptionals.Query().
-//		Select(messagewithoptionals.FieldStrField).
+//		Select(messagewithoptionals.FieldStrOptional).
 //		Scan(ctx, &v)
 //
 func (mwoq *MessageWithOptionalsQuery) Select(field string, fields ...string) *MessageWithOptionalsSelect {

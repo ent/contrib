@@ -7,22 +7,22 @@ const (
 	Label = "message_with_optionals"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldStrField holds the string denoting the str_field field in the database.
-	FieldStrField = "str_field"
-	// FieldIntField holds the string denoting the int_field field in the database.
-	FieldIntField = "int_field"
-	// FieldUintField holds the string denoting the uint_field field in the database.
-	FieldUintField = "uint_field"
-	// FieldFloatField holds the string denoting the float_field field in the database.
-	FieldFloatField = "float_field"
-	// FieldBoolField holds the string denoting the bool_field field in the database.
-	FieldBoolField = "bool_field"
-	// FieldBytesField holds the string denoting the bytes_field field in the database.
-	FieldBytesField = "bytes_field"
-	// FieldUUIDField holds the string denoting the uuid_field field in the database.
-	FieldUUIDField = "uuid_field"
-	// FieldTimeField holds the string denoting the time_field field in the database.
-	FieldTimeField = "time_field"
+	// FieldStrOptional holds the string denoting the str_optional field in the database.
+	FieldStrOptional = "str_optional"
+	// FieldIntOptional holds the string denoting the int_optional field in the database.
+	FieldIntOptional = "int_optional"
+	// FieldUintOptional holds the string denoting the uint_optional field in the database.
+	FieldUintOptional = "uint_optional"
+	// FieldFloatOptional holds the string denoting the float_optional field in the database.
+	FieldFloatOptional = "float_optional"
+	// FieldBoolOptional holds the string denoting the bool_optional field in the database.
+	FieldBoolOptional = "bool_optional"
+	// FieldBytesOptional holds the string denoting the bytes_optional field in the database.
+	FieldBytesOptional = "bytes_optional"
+	// FieldUUIDOptional holds the string denoting the uuid_optional field in the database.
+	FieldUUIDOptional = "uuid_optional"
+	// FieldTimeOptional holds the string denoting the time_optional field in the database.
+	FieldTimeOptional = "time_optional"
 	// Table holds the table name of the messagewithoptionals in the database.
 	Table = "message_with_optionals"
 )
@@ -30,14 +30,14 @@ const (
 // Columns holds all SQL columns for messagewithoptionals fields.
 var Columns = []string{
 	FieldID,
-	FieldStrField,
-	FieldIntField,
-	FieldUintField,
-	FieldFloatField,
-	FieldBoolField,
-	FieldBytesField,
-	FieldUUIDField,
-	FieldTimeField,
+	FieldStrOptional,
+	FieldIntOptional,
+	FieldUintOptional,
+	FieldFloatOptional,
+	FieldBoolOptional,
+	FieldBytesOptional,
+	FieldUUIDOptional,
+	FieldTimeOptional,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

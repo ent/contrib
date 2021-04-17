@@ -28,168 +28,168 @@ func (mwou *MessageWithOptionalsUpdate) Where(ps ...predicate.MessageWithOptiona
 	return mwou
 }
 
-// SetStrField sets the "str_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetStrField(s string) *MessageWithOptionalsUpdate {
-	mwou.mutation.SetStrField(s)
+// SetStrOptional sets the "str_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetStrOptional(s string) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetStrOptional(s)
 	return mwou
 }
 
-// SetNillableStrField sets the "str_field" field if the given value is not nil.
-func (mwou *MessageWithOptionalsUpdate) SetNillableStrField(s *string) *MessageWithOptionalsUpdate {
+// SetNillableStrOptional sets the "str_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableStrOptional(s *string) *MessageWithOptionalsUpdate {
 	if s != nil {
-		mwou.SetStrField(*s)
+		mwou.SetStrOptional(*s)
 	}
 	return mwou
 }
 
-// ClearStrField clears the value of the "str_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearStrField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearStrField()
+// ClearStrOptional clears the value of the "str_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearStrOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearStrOptional()
 	return mwou
 }
 
-// SetIntField sets the "int_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetIntField(i int8) *MessageWithOptionalsUpdate {
-	mwou.mutation.ResetIntField()
-	mwou.mutation.SetIntField(i)
+// SetIntOptional sets the "int_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetIntOptional(i int8) *MessageWithOptionalsUpdate {
+	mwou.mutation.ResetIntOptional()
+	mwou.mutation.SetIntOptional(i)
 	return mwou
 }
 
-// SetNillableIntField sets the "int_field" field if the given value is not nil.
-func (mwou *MessageWithOptionalsUpdate) SetNillableIntField(i *int8) *MessageWithOptionalsUpdate {
+// SetNillableIntOptional sets the "int_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableIntOptional(i *int8) *MessageWithOptionalsUpdate {
 	if i != nil {
-		mwou.SetIntField(*i)
+		mwou.SetIntOptional(*i)
 	}
 	return mwou
 }
 
-// AddIntField adds i to the "int_field" field.
-func (mwou *MessageWithOptionalsUpdate) AddIntField(i int8) *MessageWithOptionalsUpdate {
-	mwou.mutation.AddIntField(i)
+// AddIntOptional adds i to the "int_optional" field.
+func (mwou *MessageWithOptionalsUpdate) AddIntOptional(i int8) *MessageWithOptionalsUpdate {
+	mwou.mutation.AddIntOptional(i)
 	return mwou
 }
 
-// ClearIntField clears the value of the "int_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearIntField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearIntField()
+// ClearIntOptional clears the value of the "int_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearIntOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearIntOptional()
 	return mwou
 }
 
-// SetUintField sets the "uint_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetUintField(u uint8) *MessageWithOptionalsUpdate {
-	mwou.mutation.ResetUintField()
-	mwou.mutation.SetUintField(u)
+// SetUintOptional sets the "uint_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetUintOptional(u uint8) *MessageWithOptionalsUpdate {
+	mwou.mutation.ResetUintOptional()
+	mwou.mutation.SetUintOptional(u)
 	return mwou
 }
 
-// SetNillableUintField sets the "uint_field" field if the given value is not nil.
-func (mwou *MessageWithOptionalsUpdate) SetNillableUintField(u *uint8) *MessageWithOptionalsUpdate {
+// SetNillableUintOptional sets the "uint_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableUintOptional(u *uint8) *MessageWithOptionalsUpdate {
 	if u != nil {
-		mwou.SetUintField(*u)
+		mwou.SetUintOptional(*u)
 	}
 	return mwou
 }
 
-// AddUintField adds u to the "uint_field" field.
-func (mwou *MessageWithOptionalsUpdate) AddUintField(u uint8) *MessageWithOptionalsUpdate {
-	mwou.mutation.AddUintField(u)
+// AddUintOptional adds u to the "uint_optional" field.
+func (mwou *MessageWithOptionalsUpdate) AddUintOptional(u uint8) *MessageWithOptionalsUpdate {
+	mwou.mutation.AddUintOptional(u)
 	return mwou
 }
 
-// ClearUintField clears the value of the "uint_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearUintField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearUintField()
+// ClearUintOptional clears the value of the "uint_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearUintOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearUintOptional()
 	return mwou
 }
 
-// SetFloatField sets the "float_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetFloatField(f float32) *MessageWithOptionalsUpdate {
-	mwou.mutation.ResetFloatField()
-	mwou.mutation.SetFloatField(f)
+// SetFloatOptional sets the "float_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetFloatOptional(f float32) *MessageWithOptionalsUpdate {
+	mwou.mutation.ResetFloatOptional()
+	mwou.mutation.SetFloatOptional(f)
 	return mwou
 }
 
-// SetNillableFloatField sets the "float_field" field if the given value is not nil.
-func (mwou *MessageWithOptionalsUpdate) SetNillableFloatField(f *float32) *MessageWithOptionalsUpdate {
+// SetNillableFloatOptional sets the "float_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableFloatOptional(f *float32) *MessageWithOptionalsUpdate {
 	if f != nil {
-		mwou.SetFloatField(*f)
+		mwou.SetFloatOptional(*f)
 	}
 	return mwou
 }
 
-// AddFloatField adds f to the "float_field" field.
-func (mwou *MessageWithOptionalsUpdate) AddFloatField(f float32) *MessageWithOptionalsUpdate {
-	mwou.mutation.AddFloatField(f)
+// AddFloatOptional adds f to the "float_optional" field.
+func (mwou *MessageWithOptionalsUpdate) AddFloatOptional(f float32) *MessageWithOptionalsUpdate {
+	mwou.mutation.AddFloatOptional(f)
 	return mwou
 }
 
-// ClearFloatField clears the value of the "float_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearFloatField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearFloatField()
+// ClearFloatOptional clears the value of the "float_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearFloatOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearFloatOptional()
 	return mwou
 }
 
-// SetBoolField sets the "bool_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetBoolField(b bool) *MessageWithOptionalsUpdate {
-	mwou.mutation.SetBoolField(b)
+// SetBoolOptional sets the "bool_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetBoolOptional(b bool) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetBoolOptional(b)
 	return mwou
 }
 
-// SetNillableBoolField sets the "bool_field" field if the given value is not nil.
-func (mwou *MessageWithOptionalsUpdate) SetNillableBoolField(b *bool) *MessageWithOptionalsUpdate {
+// SetNillableBoolOptional sets the "bool_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableBoolOptional(b *bool) *MessageWithOptionalsUpdate {
 	if b != nil {
-		mwou.SetBoolField(*b)
+		mwou.SetBoolOptional(*b)
 	}
 	return mwou
 }
 
-// ClearBoolField clears the value of the "bool_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearBoolField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearBoolField()
+// ClearBoolOptional clears the value of the "bool_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearBoolOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearBoolOptional()
 	return mwou
 }
 
-// SetBytesField sets the "bytes_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetBytesField(b []byte) *MessageWithOptionalsUpdate {
-	mwou.mutation.SetBytesField(b)
+// SetBytesOptional sets the "bytes_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetBytesOptional(b []byte) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetBytesOptional(b)
 	return mwou
 }
 
-// ClearBytesField clears the value of the "bytes_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearBytesField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearBytesField()
+// ClearBytesOptional clears the value of the "bytes_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearBytesOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearBytesOptional()
 	return mwou
 }
 
-// SetUUIDField sets the "uuid_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetUUIDField(u uuid.UUID) *MessageWithOptionalsUpdate {
-	mwou.mutation.SetUUIDField(u)
+// SetUUIDOptional sets the "uuid_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetUUIDOptional(u uuid.UUID) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetUUIDOptional(u)
 	return mwou
 }
 
-// ClearUUIDField clears the value of the "uuid_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearUUIDField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearUUIDField()
+// ClearUUIDOptional clears the value of the "uuid_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearUUIDOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearUUIDOptional()
 	return mwou
 }
 
-// SetTimeField sets the "time_field" field.
-func (mwou *MessageWithOptionalsUpdate) SetTimeField(t time.Time) *MessageWithOptionalsUpdate {
-	mwou.mutation.SetTimeField(t)
+// SetTimeOptional sets the "time_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetTimeOptional(t time.Time) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetTimeOptional(t)
 	return mwou
 }
 
-// SetNillableTimeField sets the "time_field" field if the given value is not nil.
-func (mwou *MessageWithOptionalsUpdate) SetNillableTimeField(t *time.Time) *MessageWithOptionalsUpdate {
+// SetNillableTimeOptional sets the "time_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableTimeOptional(t *time.Time) *MessageWithOptionalsUpdate {
 	if t != nil {
-		mwou.SetTimeField(*t)
+		mwou.SetTimeOptional(*t)
 	}
 	return mwou
 }
 
-// ClearTimeField clears the value of the "time_field" field.
-func (mwou *MessageWithOptionalsUpdate) ClearTimeField() *MessageWithOptionalsUpdate {
-	mwou.mutation.ClearTimeField()
+// ClearTimeOptional clears the value of the "time_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearTimeOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearTimeOptional()
 	return mwou
 }
 
@@ -267,129 +267,129 @@ func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err
 			}
 		}
 	}
-	if value, ok := mwou.mutation.StrField(); ok {
+	if value, ok := mwou.mutation.StrOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: messagewithoptionals.FieldStrField,
+			Column: messagewithoptionals.FieldStrOptional,
 		})
 	}
-	if mwou.mutation.StrFieldCleared() {
+	if mwou.mutation.StrOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: messagewithoptionals.FieldStrField,
+			Column: messagewithoptionals.FieldStrOptional,
 		})
 	}
-	if value, ok := mwou.mutation.IntField(); ok {
+	if value, ok := mwou.mutation.IntOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
 			Value:  value,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
 	}
-	if value, ok := mwou.mutation.AddedIntField(); ok {
+	if value, ok := mwou.mutation.AddedIntOptional(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
 			Value:  value,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
 	}
-	if mwou.mutation.IntFieldCleared() {
+	if mwou.mutation.IntOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
 	}
-	if value, ok := mwou.mutation.UintField(); ok {
+	if value, ok := mwou.mutation.UintOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
 			Value:  value,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
 	}
-	if value, ok := mwou.mutation.AddedUintField(); ok {
+	if value, ok := mwou.mutation.AddedUintOptional(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
 			Value:  value,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
 	}
-	if mwou.mutation.UintFieldCleared() {
+	if mwou.mutation.UintOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
 	}
-	if value, ok := mwou.mutation.FloatField(); ok {
+	if value, ok := mwou.mutation.FloatOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
 			Value:  value,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
 	}
-	if value, ok := mwou.mutation.AddedFloatField(); ok {
+	if value, ok := mwou.mutation.AddedFloatOptional(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
 			Value:  value,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
 	}
-	if mwou.mutation.FloatFieldCleared() {
+	if mwou.mutation.FloatOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
 	}
-	if value, ok := mwou.mutation.BoolField(); ok {
+	if value, ok := mwou.mutation.BoolOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  value,
-			Column: messagewithoptionals.FieldBoolField,
+			Column: messagewithoptionals.FieldBoolOptional,
 		})
 	}
-	if mwou.mutation.BoolFieldCleared() {
+	if mwou.mutation.BoolOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Column: messagewithoptionals.FieldBoolField,
+			Column: messagewithoptionals.FieldBoolOptional,
 		})
 	}
-	if value, ok := mwou.mutation.BytesField(); ok {
+	if value, ok := mwou.mutation.BytesOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
 			Value:  value,
-			Column: messagewithoptionals.FieldBytesField,
+			Column: messagewithoptionals.FieldBytesOptional,
 		})
 	}
-	if mwou.mutation.BytesFieldCleared() {
+	if mwou.mutation.BytesOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
-			Column: messagewithoptionals.FieldBytesField,
+			Column: messagewithoptionals.FieldBytesOptional,
 		})
 	}
-	if value, ok := mwou.mutation.UUIDField(); ok {
+	if value, ok := mwou.mutation.UUIDOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Value:  value,
-			Column: messagewithoptionals.FieldUUIDField,
+			Column: messagewithoptionals.FieldUUIDOptional,
 		})
 	}
-	if mwou.mutation.UUIDFieldCleared() {
+	if mwou.mutation.UUIDOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Column: messagewithoptionals.FieldUUIDField,
+			Column: messagewithoptionals.FieldUUIDOptional,
 		})
 	}
-	if value, ok := mwou.mutation.TimeField(); ok {
+	if value, ok := mwou.mutation.TimeOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
-			Column: messagewithoptionals.FieldTimeField,
+			Column: messagewithoptionals.FieldTimeOptional,
 		})
 	}
-	if mwou.mutation.TimeFieldCleared() {
+	if mwou.mutation.TimeOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Column: messagewithoptionals.FieldTimeField,
+			Column: messagewithoptionals.FieldTimeOptional,
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwou.driver, _spec); err != nil {
@@ -410,168 +410,168 @@ type MessageWithOptionalsUpdateOne struct {
 	mutation *MessageWithOptionalsMutation
 }
 
-// SetStrField sets the "str_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetStrField(s string) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.SetStrField(s)
+// SetStrOptional sets the "str_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetStrOptional(s string) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetStrOptional(s)
 	return mwouo
 }
 
-// SetNillableStrField sets the "str_field" field if the given value is not nil.
-func (mwouo *MessageWithOptionalsUpdateOne) SetNillableStrField(s *string) *MessageWithOptionalsUpdateOne {
+// SetNillableStrOptional sets the "str_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableStrOptional(s *string) *MessageWithOptionalsUpdateOne {
 	if s != nil {
-		mwouo.SetStrField(*s)
+		mwouo.SetStrOptional(*s)
 	}
 	return mwouo
 }
 
-// ClearStrField clears the value of the "str_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearStrField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearStrField()
+// ClearStrOptional clears the value of the "str_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearStrOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearStrOptional()
 	return mwouo
 }
 
-// SetIntField sets the "int_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetIntField(i int8) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ResetIntField()
-	mwouo.mutation.SetIntField(i)
+// SetIntOptional sets the "int_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetIntOptional(i int8) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ResetIntOptional()
+	mwouo.mutation.SetIntOptional(i)
 	return mwouo
 }
 
-// SetNillableIntField sets the "int_field" field if the given value is not nil.
-func (mwouo *MessageWithOptionalsUpdateOne) SetNillableIntField(i *int8) *MessageWithOptionalsUpdateOne {
+// SetNillableIntOptional sets the "int_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableIntOptional(i *int8) *MessageWithOptionalsUpdateOne {
 	if i != nil {
-		mwouo.SetIntField(*i)
+		mwouo.SetIntOptional(*i)
 	}
 	return mwouo
 }
 
-// AddIntField adds i to the "int_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) AddIntField(i int8) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.AddIntField(i)
+// AddIntOptional adds i to the "int_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) AddIntOptional(i int8) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.AddIntOptional(i)
 	return mwouo
 }
 
-// ClearIntField clears the value of the "int_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearIntField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearIntField()
+// ClearIntOptional clears the value of the "int_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearIntOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearIntOptional()
 	return mwouo
 }
 
-// SetUintField sets the "uint_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetUintField(u uint8) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ResetUintField()
-	mwouo.mutation.SetUintField(u)
+// SetUintOptional sets the "uint_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetUintOptional(u uint8) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ResetUintOptional()
+	mwouo.mutation.SetUintOptional(u)
 	return mwouo
 }
 
-// SetNillableUintField sets the "uint_field" field if the given value is not nil.
-func (mwouo *MessageWithOptionalsUpdateOne) SetNillableUintField(u *uint8) *MessageWithOptionalsUpdateOne {
+// SetNillableUintOptional sets the "uint_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableUintOptional(u *uint8) *MessageWithOptionalsUpdateOne {
 	if u != nil {
-		mwouo.SetUintField(*u)
+		mwouo.SetUintOptional(*u)
 	}
 	return mwouo
 }
 
-// AddUintField adds u to the "uint_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) AddUintField(u uint8) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.AddUintField(u)
+// AddUintOptional adds u to the "uint_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) AddUintOptional(u uint8) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.AddUintOptional(u)
 	return mwouo
 }
 
-// ClearUintField clears the value of the "uint_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearUintField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearUintField()
+// ClearUintOptional clears the value of the "uint_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearUintOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearUintOptional()
 	return mwouo
 }
 
-// SetFloatField sets the "float_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetFloatField(f float32) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ResetFloatField()
-	mwouo.mutation.SetFloatField(f)
+// SetFloatOptional sets the "float_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetFloatOptional(f float32) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ResetFloatOptional()
+	mwouo.mutation.SetFloatOptional(f)
 	return mwouo
 }
 
-// SetNillableFloatField sets the "float_field" field if the given value is not nil.
-func (mwouo *MessageWithOptionalsUpdateOne) SetNillableFloatField(f *float32) *MessageWithOptionalsUpdateOne {
+// SetNillableFloatOptional sets the "float_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableFloatOptional(f *float32) *MessageWithOptionalsUpdateOne {
 	if f != nil {
-		mwouo.SetFloatField(*f)
+		mwouo.SetFloatOptional(*f)
 	}
 	return mwouo
 }
 
-// AddFloatField adds f to the "float_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) AddFloatField(f float32) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.AddFloatField(f)
+// AddFloatOptional adds f to the "float_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) AddFloatOptional(f float32) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.AddFloatOptional(f)
 	return mwouo
 }
 
-// ClearFloatField clears the value of the "float_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearFloatField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearFloatField()
+// ClearFloatOptional clears the value of the "float_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearFloatOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearFloatOptional()
 	return mwouo
 }
 
-// SetBoolField sets the "bool_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetBoolField(b bool) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.SetBoolField(b)
+// SetBoolOptional sets the "bool_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetBoolOptional(b bool) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetBoolOptional(b)
 	return mwouo
 }
 
-// SetNillableBoolField sets the "bool_field" field if the given value is not nil.
-func (mwouo *MessageWithOptionalsUpdateOne) SetNillableBoolField(b *bool) *MessageWithOptionalsUpdateOne {
+// SetNillableBoolOptional sets the "bool_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableBoolOptional(b *bool) *MessageWithOptionalsUpdateOne {
 	if b != nil {
-		mwouo.SetBoolField(*b)
+		mwouo.SetBoolOptional(*b)
 	}
 	return mwouo
 }
 
-// ClearBoolField clears the value of the "bool_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearBoolField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearBoolField()
+// ClearBoolOptional clears the value of the "bool_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearBoolOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearBoolOptional()
 	return mwouo
 }
 
-// SetBytesField sets the "bytes_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetBytesField(b []byte) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.SetBytesField(b)
+// SetBytesOptional sets the "bytes_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetBytesOptional(b []byte) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetBytesOptional(b)
 	return mwouo
 }
 
-// ClearBytesField clears the value of the "bytes_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearBytesField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearBytesField()
+// ClearBytesOptional clears the value of the "bytes_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearBytesOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearBytesOptional()
 	return mwouo
 }
 
-// SetUUIDField sets the "uuid_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetUUIDField(u uuid.UUID) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.SetUUIDField(u)
+// SetUUIDOptional sets the "uuid_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetUUIDOptional(u uuid.UUID) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetUUIDOptional(u)
 	return mwouo
 }
 
-// ClearUUIDField clears the value of the "uuid_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearUUIDField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearUUIDField()
+// ClearUUIDOptional clears the value of the "uuid_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearUUIDOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearUUIDOptional()
 	return mwouo
 }
 
-// SetTimeField sets the "time_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) SetTimeField(t time.Time) *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.SetTimeField(t)
+// SetTimeOptional sets the "time_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetTimeOptional(t time.Time) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetTimeOptional(t)
 	return mwouo
 }
 
-// SetNillableTimeField sets the "time_field" field if the given value is not nil.
-func (mwouo *MessageWithOptionalsUpdateOne) SetNillableTimeField(t *time.Time) *MessageWithOptionalsUpdateOne {
+// SetNillableTimeOptional sets the "time_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableTimeOptional(t *time.Time) *MessageWithOptionalsUpdateOne {
 	if t != nil {
-		mwouo.SetTimeField(*t)
+		mwouo.SetTimeOptional(*t)
 	}
 	return mwouo
 }
 
-// ClearTimeField clears the value of the "time_field" field.
-func (mwouo *MessageWithOptionalsUpdateOne) ClearTimeField() *MessageWithOptionalsUpdateOne {
-	mwouo.mutation.ClearTimeField()
+// ClearTimeOptional clears the value of the "time_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearTimeOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearTimeOptional()
 	return mwouo
 }
 
@@ -654,129 +654,129 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 			}
 		}
 	}
-	if value, ok := mwouo.mutation.StrField(); ok {
+	if value, ok := mwouo.mutation.StrOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: messagewithoptionals.FieldStrField,
+			Column: messagewithoptionals.FieldStrOptional,
 		})
 	}
-	if mwouo.mutation.StrFieldCleared() {
+	if mwouo.mutation.StrOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: messagewithoptionals.FieldStrField,
+			Column: messagewithoptionals.FieldStrOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.IntField(); ok {
+	if value, ok := mwouo.mutation.IntOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
 			Value:  value,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.AddedIntField(); ok {
+	if value, ok := mwouo.mutation.AddedIntOptional(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
 			Value:  value,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
 	}
-	if mwouo.mutation.IntFieldCleared() {
+	if mwouo.mutation.IntOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt8,
-			Column: messagewithoptionals.FieldIntField,
+			Column: messagewithoptionals.FieldIntOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.UintField(); ok {
+	if value, ok := mwouo.mutation.UintOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
 			Value:  value,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.AddedUintField(); ok {
+	if value, ok := mwouo.mutation.AddedUintOptional(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
 			Value:  value,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
 	}
-	if mwouo.mutation.UintFieldCleared() {
+	if mwouo.mutation.UintOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint8,
-			Column: messagewithoptionals.FieldUintField,
+			Column: messagewithoptionals.FieldUintOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.FloatField(); ok {
+	if value, ok := mwouo.mutation.FloatOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
 			Value:  value,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.AddedFloatField(); ok {
+	if value, ok := mwouo.mutation.AddedFloatOptional(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
 			Value:  value,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
 	}
-	if mwouo.mutation.FloatFieldCleared() {
+	if mwouo.mutation.FloatOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat32,
-			Column: messagewithoptionals.FieldFloatField,
+			Column: messagewithoptionals.FieldFloatOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.BoolField(); ok {
+	if value, ok := mwouo.mutation.BoolOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Value:  value,
-			Column: messagewithoptionals.FieldBoolField,
+			Column: messagewithoptionals.FieldBoolOptional,
 		})
 	}
-	if mwouo.mutation.BoolFieldCleared() {
+	if mwouo.mutation.BoolOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Column: messagewithoptionals.FieldBoolField,
+			Column: messagewithoptionals.FieldBoolOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.BytesField(); ok {
+	if value, ok := mwouo.mutation.BytesOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
 			Value:  value,
-			Column: messagewithoptionals.FieldBytesField,
+			Column: messagewithoptionals.FieldBytesOptional,
 		})
 	}
-	if mwouo.mutation.BytesFieldCleared() {
+	if mwouo.mutation.BytesOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
-			Column: messagewithoptionals.FieldBytesField,
+			Column: messagewithoptionals.FieldBytesOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.UUIDField(); ok {
+	if value, ok := mwouo.mutation.UUIDOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Value:  value,
-			Column: messagewithoptionals.FieldUUIDField,
+			Column: messagewithoptionals.FieldUUIDOptional,
 		})
 	}
-	if mwouo.mutation.UUIDFieldCleared() {
+	if mwouo.mutation.UUIDOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Column: messagewithoptionals.FieldUUIDField,
+			Column: messagewithoptionals.FieldUUIDOptional,
 		})
 	}
-	if value, ok := mwouo.mutation.TimeField(); ok {
+	if value, ok := mwouo.mutation.TimeOptional(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
-			Column: messagewithoptionals.FieldTimeField,
+			Column: messagewithoptionals.FieldTimeOptional,
 		})
 	}
-	if mwouo.mutation.TimeFieldCleared() {
+	if mwouo.mutation.TimeOptionalCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Column: messagewithoptionals.FieldTimeField,
+			Column: messagewithoptionals.FieldTimeOptional,
 		})
 	}
 	_node = &MessageWithOptionals{config: mwouo.config}

@@ -17,22 +17,22 @@ type MessageWithOptionals struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// StrField holds the value of the "str_field" field.
-	StrField string `json:"str_field,omitempty"`
-	// IntField holds the value of the "int_field" field.
-	IntField int8 `json:"int_field,omitempty"`
-	// UintField holds the value of the "uint_field" field.
-	UintField uint8 `json:"uint_field,omitempty"`
-	// FloatField holds the value of the "float_field" field.
-	FloatField float32 `json:"float_field,omitempty"`
-	// BoolField holds the value of the "bool_field" field.
-	BoolField bool `json:"bool_field,omitempty"`
-	// BytesField holds the value of the "bytes_field" field.
-	BytesField []byte `json:"bytes_field,omitempty"`
-	// UUIDField holds the value of the "uuid_field" field.
-	UUIDField uuid.UUID `json:"uuid_field,omitempty"`
-	// TimeField holds the value of the "time_field" field.
-	TimeField time.Time `json:"time_field,omitempty"`
+	// StrOptional holds the value of the "str_optional" field.
+	StrOptional string `json:"str_optional,omitempty"`
+	// IntOptional holds the value of the "int_optional" field.
+	IntOptional int8 `json:"int_optional,omitempty"`
+	// UintOptional holds the value of the "uint_optional" field.
+	UintOptional uint8 `json:"uint_optional,omitempty"`
+	// FloatOptional holds the value of the "float_optional" field.
+	FloatOptional float32 `json:"float_optional,omitempty"`
+	// BoolOptional holds the value of the "bool_optional" field.
+	BoolOptional bool `json:"bool_optional,omitempty"`
+	// BytesOptional holds the value of the "bytes_optional" field.
+	BytesOptional []byte `json:"bytes_optional,omitempty"`
+	// UUIDOptional holds the value of the "uuid_optional" field.
+	UUIDOptional uuid.UUID `json:"uuid_optional,omitempty"`
+	// TimeOptional holds the value of the "time_optional" field.
+	TimeOptional time.Time `json:"time_optional,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -40,19 +40,19 @@ func (*MessageWithOptionals) scanValues(columns []string) ([]interface{}, error)
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case messagewithoptionals.FieldBytesField:
+		case messagewithoptionals.FieldBytesOptional:
 			values[i] = &[]byte{}
-		case messagewithoptionals.FieldBoolField:
+		case messagewithoptionals.FieldBoolOptional:
 			values[i] = &sql.NullBool{}
-		case messagewithoptionals.FieldFloatField:
+		case messagewithoptionals.FieldFloatOptional:
 			values[i] = &sql.NullFloat64{}
-		case messagewithoptionals.FieldID, messagewithoptionals.FieldIntField, messagewithoptionals.FieldUintField:
+		case messagewithoptionals.FieldID, messagewithoptionals.FieldIntOptional, messagewithoptionals.FieldUintOptional:
 			values[i] = &sql.NullInt64{}
-		case messagewithoptionals.FieldStrField:
+		case messagewithoptionals.FieldStrOptional:
 			values[i] = &sql.NullString{}
-		case messagewithoptionals.FieldTimeField:
+		case messagewithoptionals.FieldTimeOptional:
 			values[i] = &sql.NullTime{}
-		case messagewithoptionals.FieldUUIDField:
+		case messagewithoptionals.FieldUUIDOptional:
 			values[i] = &uuid.UUID{}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type MessageWithOptionals", columns[i])
@@ -75,53 +75,53 @@ func (mwo *MessageWithOptionals) assignValues(columns []string, values []interfa
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			mwo.ID = int(value.Int64)
-		case messagewithoptionals.FieldStrField:
+		case messagewithoptionals.FieldStrOptional:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field str_field", values[i])
+				return fmt.Errorf("unexpected type %T for field str_optional", values[i])
 			} else if value.Valid {
-				mwo.StrField = value.String
+				mwo.StrOptional = value.String
 			}
-		case messagewithoptionals.FieldIntField:
+		case messagewithoptionals.FieldIntOptional:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field int_field", values[i])
+				return fmt.Errorf("unexpected type %T for field int_optional", values[i])
 			} else if value.Valid {
-				mwo.IntField = int8(value.Int64)
+				mwo.IntOptional = int8(value.Int64)
 			}
-		case messagewithoptionals.FieldUintField:
+		case messagewithoptionals.FieldUintOptional:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field uint_field", values[i])
+				return fmt.Errorf("unexpected type %T for field uint_optional", values[i])
 			} else if value.Valid {
-				mwo.UintField = uint8(value.Int64)
+				mwo.UintOptional = uint8(value.Int64)
 			}
-		case messagewithoptionals.FieldFloatField:
+		case messagewithoptionals.FieldFloatOptional:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field float_field", values[i])
+				return fmt.Errorf("unexpected type %T for field float_optional", values[i])
 			} else if value.Valid {
-				mwo.FloatField = float32(value.Float64)
+				mwo.FloatOptional = float32(value.Float64)
 			}
-		case messagewithoptionals.FieldBoolField:
+		case messagewithoptionals.FieldBoolOptional:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field bool_field", values[i])
+				return fmt.Errorf("unexpected type %T for field bool_optional", values[i])
 			} else if value.Valid {
-				mwo.BoolField = value.Bool
+				mwo.BoolOptional = value.Bool
 			}
-		case messagewithoptionals.FieldBytesField:
+		case messagewithoptionals.FieldBytesOptional:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field bytes_field", values[i])
+				return fmt.Errorf("unexpected type %T for field bytes_optional", values[i])
 			} else if value != nil {
-				mwo.BytesField = *value
+				mwo.BytesOptional = *value
 			}
-		case messagewithoptionals.FieldUUIDField:
+		case messagewithoptionals.FieldUUIDOptional:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field uuid_field", values[i])
+				return fmt.Errorf("unexpected type %T for field uuid_optional", values[i])
 			} else if value != nil {
-				mwo.UUIDField = *value
+				mwo.UUIDOptional = *value
 			}
-		case messagewithoptionals.FieldTimeField:
+		case messagewithoptionals.FieldTimeOptional:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field time_field", values[i])
+				return fmt.Errorf("unexpected type %T for field time_optional", values[i])
 			} else if value.Valid {
-				mwo.TimeField = value.Time
+				mwo.TimeOptional = value.Time
 			}
 		}
 	}
@@ -151,22 +151,22 @@ func (mwo *MessageWithOptionals) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageWithOptionals(")
 	builder.WriteString(fmt.Sprintf("id=%v", mwo.ID))
-	builder.WriteString(", str_field=")
-	builder.WriteString(mwo.StrField)
-	builder.WriteString(", int_field=")
-	builder.WriteString(fmt.Sprintf("%v", mwo.IntField))
-	builder.WriteString(", uint_field=")
-	builder.WriteString(fmt.Sprintf("%v", mwo.UintField))
-	builder.WriteString(", float_field=")
-	builder.WriteString(fmt.Sprintf("%v", mwo.FloatField))
-	builder.WriteString(", bool_field=")
-	builder.WriteString(fmt.Sprintf("%v", mwo.BoolField))
-	builder.WriteString(", bytes_field=")
-	builder.WriteString(fmt.Sprintf("%v", mwo.BytesField))
-	builder.WriteString(", uuid_field=")
-	builder.WriteString(fmt.Sprintf("%v", mwo.UUIDField))
-	builder.WriteString(", time_field=")
-	builder.WriteString(mwo.TimeField.Format(time.ANSIC))
+	builder.WriteString(", str_optional=")
+	builder.WriteString(mwo.StrOptional)
+	builder.WriteString(", int_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.IntOptional))
+	builder.WriteString(", uint_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.UintOptional))
+	builder.WriteString(", float_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.FloatOptional))
+	builder.WriteString(", bool_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.BoolOptional))
+	builder.WriteString(", bytes_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.BytesOptional))
+	builder.WriteString(", uuid_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.UUIDOptional))
+	builder.WriteString(", time_optional=")
+	builder.WriteString(mwo.TimeOptional.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

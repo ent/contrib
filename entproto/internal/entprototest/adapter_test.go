@@ -211,31 +211,31 @@ func (suite *AdapterTestSuite) TestOptionals() {
 	message, err := suite.adapter.GetMessageDescriptor("MessageWithOptionals")
 	suite.Require().NoError(err)
 
-	intField := message.FindFieldByName("int_field")
+	intField := message.FindFieldByName("int_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, intField.GetType())
 	suite.Require().EqualValues("Int32Value", intField.GetMessageType().GetName())
 
-	uintField := message.FindFieldByName("uint_field")
+	uintField := message.FindFieldByName("uint_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, uintField.GetType())
 	suite.Require().EqualValues("UInt32Value", uintField.GetMessageType().GetName())
 
-	floatField := message.FindFieldByName("float_field")
+	floatField := message.FindFieldByName("float_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, floatField.GetType())
 	suite.Require().EqualValues("FloatValue", floatField.GetMessageType().GetName())
 
-	strField := message.FindFieldByName("str_field")
+	strField := message.FindFieldByName("str_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, strField.GetType())
 	suite.Require().EqualValues("StringValue", strField.GetMessageType().GetName())
 
-	boolField := message.FindFieldByName("bool_field")
+	boolField := message.FindFieldByName("bool_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, boolField.GetType())
 	suite.Require().EqualValues("BoolValue", boolField.GetMessageType().GetName())
 
-	bytesField := message.FindFieldByName("bytes_field")
+	bytesField := message.FindFieldByName("bytes_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, bytesField.GetType())
 	suite.Require().EqualValues("BytesValue", bytesField.GetMessageType().GetName())
 
-	uuidField := message.FindFieldByName("uuid_field")
+	uuidField := message.FindFieldByName("uuid_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, bytesField.GetType())
 	suite.Require().EqualValues("BytesValue", uuidField.GetMessageType().GetName())
 }

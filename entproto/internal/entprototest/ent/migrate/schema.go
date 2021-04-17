@@ -161,14 +161,14 @@ var (
 	// MessageWithOptionalsColumns holds the columns for the "message_with_optionals" table.
 	MessageWithOptionalsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "str_field", Type: field.TypeString, Nullable: true},
-		{Name: "int_field", Type: field.TypeInt8, Nullable: true},
-		{Name: "uint_field", Type: field.TypeUint8, Nullable: true},
-		{Name: "float_field", Type: field.TypeFloat32, Nullable: true},
-		{Name: "bool_field", Type: field.TypeBool, Nullable: true},
-		{Name: "bytes_field", Type: field.TypeBytes, Nullable: true},
-		{Name: "uuid_field", Type: field.TypeUUID, Nullable: true},
-		{Name: "time_field", Type: field.TypeTime, Nullable: true},
+		{Name: "str_optional", Type: field.TypeString, Nullable: true},
+		{Name: "int_optional", Type: field.TypeInt8, Nullable: true},
+		{Name: "uint_optional", Type: field.TypeUint8, Nullable: true},
+		{Name: "float_optional", Type: field.TypeFloat32, Nullable: true},
+		{Name: "bool_optional", Type: field.TypeBool, Nullable: true},
+		{Name: "bytes_optional", Type: field.TypeBytes, Nullable: true},
+		{Name: "uuid_optional", Type: field.TypeUUID, Nullable: true},
+		{Name: "time_optional", Type: field.TypeTime, Nullable: true},
 	}
 	// MessageWithOptionalsTable holds the schema information for the "message_with_optionals" table.
 	MessageWithOptionalsTable = &schema.Table{
