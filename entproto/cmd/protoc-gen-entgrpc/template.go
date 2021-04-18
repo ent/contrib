@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -48,6 +49,8 @@ func printTemplate(g *protogen.GeneratedFile, tmpl string, values tmplValues) er
 		switch p := val.(type) {
 		case protogen.GoIdent:
 			return g.QualifiedGoIdent(p) // The P(..) magic for Go identifiers.
+		case wrappedCalls:
+			return renderWrappedCalls(g, p)
 		default:
 			return fmt.Sprint(p)
 		}
@@ -67,4 +70,24 @@ func (t tmplValues) retrieve(token string) (interface{}, error) {
 		return nil, fmt.Errorf("entproto: could not find token %q in map", token)
 	}
 	return k, nil
+}
+
+type wrappedCalls struct {
+	invocations []interface{}
+	arguments   []string
+}
+
+func renderWrappedCalls(g *protogen.GeneratedFile, chain wrappedCalls) string {
+	var out string
+	for _, inv := range chain.invocations {
+		switch t := inv.(type) {
+		case protogen.GoIdent:
+			out += g.QualifiedGoIdent(t)
+		default:
+			out += fmt.Sprint(t)
+		}
+		out += "("
+	}
+	out += strings.Join(chain.arguments, ",")
+	return out + strings.Repeat(")", len(chain.invocations))
 }

@@ -26,6 +26,10 @@ func TestPrintTemplate(t *testing.T) {
 	values := tmplValues{
 		"world": "world",
 		"ctx":   protogen.GoImportPath("context").Ident("Context"),
+		"chain": wrappedCalls{
+			invocations: []interface{}{protogen.GoImportPath("golang.google.com/protobuf/wrapperspb").Ident("Int32"), "int32"},
+			arguments:   []string{"x"},
+		},
 	}
 	tests := []struct {
 		tmpl             string
@@ -43,6 +47,10 @@ func TestPrintTemplate(t *testing.T) {
 		{
 			tmpl:             "func c(ctx %(ctx)) {}",
 			expectedContents: "func c(ctx context.Context)",
+		},
+		{
+			tmpl:             "var v = %(chain)",
+			expectedContents: "wrapperspb.Int32(int32(x))",
 		},
 	}
 
