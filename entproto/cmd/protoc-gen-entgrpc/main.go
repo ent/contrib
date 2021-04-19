@@ -187,14 +187,14 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 	})
 
 	for _, fld := range g.fieldMap.Fields() {
-		protoFunc, err := g.castToProtoFunc(fld)
+		codec, err := g.newFieldCodec(fld)
 		if err != nil {
 			return err
 		}
-		g.Tmpl("%(pbStructField): %(castFunc)(e.%(entStructField)),", tmplValues{
-			"pbStructField":  fld.PbStructField(),
-			"entStructField": fld.EntField.StructField(),
-			"castFunc":       protoFunc,
+		g.Tmpl("%(pbStructField): %(toProto),", tmplValues{
+			"pbStructField": fld.PbStructField(),
+			"toProto":       g.renderToProto(codec, "e."+fld.EntField.StructField()),
+			"codec":         codec,
 		})
 	}
 	g.P("	}")
