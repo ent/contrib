@@ -3,8 +3,6 @@ package entpb
 
 import (
 	context "context"
-	strings "strings"
-
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
@@ -13,6 +11,7 @@ import (
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	strings "strings"
 )
 
 // UserService implements UserServiceServer
