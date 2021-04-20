@@ -28,7 +28,7 @@ var (
 
 func (g *serviceGenerator) generateGetMethod() error {
 	idField := g.fieldMap.ID()
-	codec, err := g.newFieldCodec(idField)
+	convert, err := g.newConverter(idField)
 	if err != nil {
 		return err
 	}
@@ -44,14 +44,14 @@ func (g *serviceGenerator) generateGetMethod() error {
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
 	}`, g.withGlobals(tmplValues{
-		"id": g.renderToEnt(codec, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"id": g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
 	}))
 	return nil
 }
 
 func (g *serviceGenerator) generateDeleteMethod() error {
 	idField := g.fieldMap.ID()
-	codec, err := g.newFieldCodec(idField)
+	convert, err := g.newConverter(idField)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
 	}`, g.withGlobals(tmplValues{
-		"id":    g.renderToEnt(codec, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"id":    g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
 		"empty": protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb").Ident("Empty"),
 	}))
 	return nil
@@ -99,12 +99,12 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 		g.Tmpl("res, err := svc.client.%(typeName).Create().", g.withGlobals())
 	case "update":
 		idField := g.fieldMap.ID()
-		codec, err := g.newFieldCodec(idField)
+		convert, err := g.newConverter(idField)
 		if err != nil {
 			return err
 		}
 		g.Tmpl(`res, err := svc.client.%(typeName).UpdateOneID(%(id)).`, g.withGlobals(tmplValues{
-			"id":     g.renderToEnt(codec, fmt.Sprintf("%s.Get%s()", reqVar, idField.PbStructField())),
+			"id":     g.renderToEnt(convert, fmt.Sprintf("%s.Get%s()", reqVar, idField.PbStructField())),
 			"reqVar": reqVar,
 		}))
 	}
@@ -113,25 +113,25 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 		if fld.IsIDField || (op == "update" && fld.EntField.Immutable) {
 			continue
 		}
-		codec, err := g.newFieldCodec(fld)
+		convert, err := g.newConverter(fld)
 		if err != nil {
 			return err
 		}
 		entField := fld.EntField.StructField()
 		g.Tmpl("Set%(entField)(%(converted)).", tmplValues{
 			"entField":  entField,
-			"converted": g.renderToEnt(codec, fmt.Sprintf("%s.Get%s()", reqVar, fld.PbStructField())),
+			"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s()", reqVar, fld.PbStructField())),
 		})
 	}
 	for _, edg := range g.fieldMap.Edges() {
-		codec, err := g.newFieldCodec(edg)
+		convert, err := g.newConverter(edg)
 		if err != nil {
 			return err
 		}
 		if edg.EntEdge.Unique {
 			g.Tmpl("Set%(edgeName)ID(%(converted)).", tmplValues{
 				"edgeName":  edg.EntEdge.StructField(),
-				"converted": g.renderToEnt(codec, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
+				"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
 			})
 		}
 	}

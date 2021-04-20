@@ -22,19 +22,18 @@ import (
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
-type fieldCodec struct {
+type converter struct {
 	toEntConversion    string
 	toEntConstructor   protogen.GoIdent
 	toProtoConversion  string
 	toProtoConstructor protogen.GoIdent
 }
 
-func (g *serviceGenerator) newFieldCodec(fld *entproto.FieldMappingDescriptor) (*fieldCodec, error) {
-	out := &fieldCodec{}
+func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*converter, error) {
+	out := &converter{}
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
 	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING:
-		break
 	case dpb.FieldDescriptorProto_TYPE_BYTES:
 		if fld.EntField != nil && fld.EntField.IsUUID() {
 			out.toProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes")
@@ -56,9 +55,9 @@ func (g *serviceGenerator) newFieldCodec(fld *entproto.FieldMappingDescriptor) (
 			out.toProtoConversion = "uint64"
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
-		enumTypeName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		enumMethod := fmt.Sprintf("toProto%s_%s", g.typeName, enumTypeName)
-		out.toProtoConstructor = g.file.GoImportPath.Ident(enumMethod)
+		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
+		method := fmt.Sprintf("toProto%s_%s", g.typeName, enumName)
+		out.toProtoConstructor = g.file.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
 			break
@@ -76,47 +75,44 @@ func (g *serviceGenerator) newFieldCodec(fld *entproto.FieldMappingDescriptor) (
 	}
 	switch {
 	case efld.IsBool(), efld.IsBytes(), efld.IsString():
-		break
 	case efld.Type.Numeric():
 		out.toEntConversion = efld.Type.String()
 	case efld.IsTime():
 		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime")
 	case efld.IsEnum():
-		enumTypeName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		enumMethod := fmt.Sprintf("toEnt%s_%s", g.typeName, enumTypeName)
-		out.toEntConstructor = g.file.GoImportPath.Ident(enumMethod)
+		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
+		method := fmt.Sprintf("toEnt%s_%s", g.typeName, enumName)
+		out.toEntConstructor = g.file.GoImportPath.Ident(method)
 	case efld.IsUUID():
 		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustBytesToUUID")
-	// case field.TypeJSON:
-	// case field.TypeOther:
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}
 	return out, nil
 }
 
-func (g *serviceGenerator) renderToProto(fc *fieldCodec, ident string) string {
-	var out, closing string
+func (g *serviceGenerator) renderToProto(fc *converter, ident string) string {
+	var left, right string
 	if fc.toProtoConstructor.GoName != "" {
-		out += g.QualifiedGoIdent(fc.toProtoConstructor) + "("
-		closing += ")"
+		left += g.QualifiedGoIdent(fc.toProtoConstructor) + "("
+		right += ")"
 	}
 	if fc.toProtoConversion != "" {
-		out += fc.toProtoConversion + "("
-		closing += ")"
+		left += fc.toProtoConversion + "("
+		right += ")"
 	}
-	return out + ident + closing
+	return left + ident + right
 }
 
-func (g *serviceGenerator) renderToEnt(fc *fieldCodec, ident string) string {
-	var out, closing string
+func (g *serviceGenerator) renderToEnt(fc *converter, ident string) string {
+	var left, right string
 	if fc.toEntConstructor.GoName != "" {
-		out += g.QualifiedGoIdent(fc.toEntConstructor) + "("
-		closing += ")"
+		left += g.QualifiedGoIdent(fc.toEntConstructor) + "("
+		right += ")"
 	}
 	if fc.toEntConversion != "" {
-		out += fc.toEntConversion + "("
-		closing += ")"
+		left += fc.toEntConversion + "("
+		right += ")"
 	}
-	return out + ident + closing
+	return left + ident + right
 }
