@@ -44,16 +44,16 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
 	return &User{
-		Banned:     bool(e.Banned),
+		Banned:     e.Banned,
 		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
 		CustomPb:   uint64(e.CustomPb),
-		Exp:        uint64(e.Exp),
+		Exp:        e.Exp,
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
 		Joined:     timestamppb.New(e.Joined),
 		Points:     uint32(e.Points),
 		Status:     toProtoUser_Status(e.Status),
-		UserName:   string(e.UserName),
+		UserName:   e.UserName,
 	}
 }
 
@@ -76,7 +76,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.Create().
-		SetBanned(bool(user.GetBanned())).
+		SetBanned(user.GetBanned()).
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetCustomPb(uint8(user.GetCustomPb())).
 		SetExp(uint64(user.GetExp())).
@@ -84,7 +84,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		SetJoined(runtime.ExtractTime(user.GetJoined())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
-		SetUserName(string(user.GetUserName())).
+		SetUserName(user.GetUserName()).
 		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
 		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
@@ -121,14 +121,14 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
-		SetBanned(bool(user.GetBanned())).
+		SetBanned(user.GetBanned()).
 		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
 		SetCustomPb(uint8(user.GetCustomPb())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
-		SetUserName(string(user.GetUserName())).
+		SetUserName(user.GetUserName()).
 		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
 		SetGroupID(int(user.GetGroup().GetId())).
 		Save(ctx)
