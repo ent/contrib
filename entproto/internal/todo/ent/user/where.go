@@ -150,6 +150,27 @@ func CustomPb(v uint8) predicate.User {
 	})
 }
 
+// OptNum applies equality check predicate on the "opt_num" field. It's identical to OptNumEQ.
+func OptNum(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptNum), v))
+	})
+}
+
+// OptStr applies equality check predicate on the "opt_str" field. It's identical to OptStrEQ.
+func OptStr(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptStr), v))
+	})
+}
+
+// OptBool applies equality check predicate on the "opt_bool" field. It's identical to OptBoolEQ.
+func OptBool(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptBool), v))
+	})
+}
+
 // UserNameEQ applies the EQ predicate on the "user_name" field.
 func UserNameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -776,6 +797,346 @@ func CustomPbLT(v uint8) predicate.User {
 func CustomPbLTE(v uint8) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCustomPb), v))
+	})
+}
+
+// OptNumEQ applies the EQ predicate on the "opt_num" field.
+func OptNumEQ(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptNum), v))
+	})
+}
+
+// OptNumNEQ applies the NEQ predicate on the "opt_num" field.
+func OptNumNEQ(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOptNum), v))
+	})
+}
+
+// OptNumIn applies the In predicate on the "opt_num" field.
+func OptNumIn(vs ...int) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldOptNum), v...))
+	})
+}
+
+// OptNumNotIn applies the NotIn predicate on the "opt_num" field.
+func OptNumNotIn(vs ...int) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldOptNum), v...))
+	})
+}
+
+// OptNumGT applies the GT predicate on the "opt_num" field.
+func OptNumGT(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOptNum), v))
+	})
+}
+
+// OptNumGTE applies the GTE predicate on the "opt_num" field.
+func OptNumGTE(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOptNum), v))
+	})
+}
+
+// OptNumLT applies the LT predicate on the "opt_num" field.
+func OptNumLT(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOptNum), v))
+	})
+}
+
+// OptNumLTE applies the LTE predicate on the "opt_num" field.
+func OptNumLTE(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOptNum), v))
+	})
+}
+
+// OptNumIsNil applies the IsNil predicate on the "opt_num" field.
+func OptNumIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOptNum)))
+	})
+}
+
+// OptNumNotNil applies the NotNil predicate on the "opt_num" field.
+func OptNumNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOptNum)))
+	})
+}
+
+// OptStrEQ applies the EQ predicate on the "opt_str" field.
+func OptStrEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrNEQ applies the NEQ predicate on the "opt_str" field.
+func OptStrNEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrIn applies the In predicate on the "opt_str" field.
+func OptStrIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldOptStr), v...))
+	})
+}
+
+// OptStrNotIn applies the NotIn predicate on the "opt_str" field.
+func OptStrNotIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldOptStr), v...))
+	})
+}
+
+// OptStrGT applies the GT predicate on the "opt_str" field.
+func OptStrGT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrGTE applies the GTE predicate on the "opt_str" field.
+func OptStrGTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrLT applies the LT predicate on the "opt_str" field.
+func OptStrLT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrLTE applies the LTE predicate on the "opt_str" field.
+func OptStrLTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrContains applies the Contains predicate on the "opt_str" field.
+func OptStrContains(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrHasPrefix applies the HasPrefix predicate on the "opt_str" field.
+func OptStrHasPrefix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrHasSuffix applies the HasSuffix predicate on the "opt_str" field.
+func OptStrHasSuffix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrIsNil applies the IsNil predicate on the "opt_str" field.
+func OptStrIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOptStr)))
+	})
+}
+
+// OptStrNotNil applies the NotNil predicate on the "opt_str" field.
+func OptStrNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOptStr)))
+	})
+}
+
+// OptStrEqualFold applies the EqualFold predicate on the "opt_str" field.
+func OptStrEqualFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldOptStr), v))
+	})
+}
+
+// OptStrContainsFold applies the ContainsFold predicate on the "opt_str" field.
+func OptStrContainsFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldOptStr), v))
+	})
+}
+
+// OptBoolEQ applies the EQ predicate on the "opt_bool" field.
+func OptBoolEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolNEQ applies the NEQ predicate on the "opt_bool" field.
+func OptBoolNEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolIn applies the In predicate on the "opt_bool" field.
+func OptBoolIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldOptBool), v...))
+	})
+}
+
+// OptBoolNotIn applies the NotIn predicate on the "opt_bool" field.
+func OptBoolNotIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldOptBool), v...))
+	})
+}
+
+// OptBoolGT applies the GT predicate on the "opt_bool" field.
+func OptBoolGT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolGTE applies the GTE predicate on the "opt_bool" field.
+func OptBoolGTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolLT applies the LT predicate on the "opt_bool" field.
+func OptBoolLT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolLTE applies the LTE predicate on the "opt_bool" field.
+func OptBoolLTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolContains applies the Contains predicate on the "opt_bool" field.
+func OptBoolContains(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolHasPrefix applies the HasPrefix predicate on the "opt_bool" field.
+func OptBoolHasPrefix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolHasSuffix applies the HasSuffix predicate on the "opt_bool" field.
+func OptBoolHasSuffix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolIsNil applies the IsNil predicate on the "opt_bool" field.
+func OptBoolIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOptBool)))
+	})
+}
+
+// OptBoolNotNil applies the NotNil predicate on the "opt_bool" field.
+func OptBoolNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOptBool)))
+	})
+}
+
+// OptBoolEqualFold applies the EqualFold predicate on the "opt_bool" field.
+func OptBoolEqualFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldOptBool), v))
+	})
+}
+
+// OptBoolContainsFold applies the ContainsFold predicate on the "opt_bool" field.
+func OptBoolContainsFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldOptBool), v))
 	})
 }
 

@@ -72,6 +72,9 @@ var (
 		{Name: "crm_id", Type: field.TypeUUID},
 		{Name: "banned", Type: field.TypeBool, Default: false},
 		{Name: "custom_pb", Type: field.TypeUint8},
+		{Name: "opt_num", Type: field.TypeInt, Nullable: true},
+		{Name: "opt_str", Type: field.TypeString, Nullable: true},
+		{Name: "opt_bool", Type: field.TypeString, Nullable: true},
 		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -82,7 +85,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[10]},
+				Columns:    []*schema.Column{UsersColumns[13]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

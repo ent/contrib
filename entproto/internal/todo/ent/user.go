@@ -37,6 +37,12 @@ type User struct {
 	Banned bool `json:"banned,omitempty"`
 	// CustomPb holds the value of the "custom_pb" field.
 	CustomPb uint8 `json:"custom_pb,omitempty"`
+	// OptNum holds the value of the "opt_num" field.
+	OptNum int `json:"opt_num,omitempty"`
+	// OptStr holds the value of the "opt_str" field.
+	OptStr string `json:"opt_str,omitempty"`
+	// OptBool holds the value of the "opt_bool" field.
+	OptBool string `json:"opt_bool,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -89,9 +95,9 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldBanned:
 			values[i] = &sql.NullBool{}
-		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb:
+		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum:
 			values[i] = &sql.NullInt64{}
-		case user.FieldUserName, user.FieldStatus:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldOptBool:
 			values[i] = &sql.NullString{}
 		case user.FieldJoined:
 			values[i] = &sql.NullTime{}
@@ -174,6 +180,24 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.CustomPb = uint8(value.Int64)
 			}
+		case user.FieldOptNum:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field opt_num", values[i])
+			} else if value.Valid {
+				u.OptNum = int(value.Int64)
+			}
+		case user.FieldOptStr:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field opt_str", values[i])
+			} else if value.Valid {
+				u.OptStr = value.String
+			}
+		case user.FieldOptBool:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field opt_bool", values[i])
+			} else if value.Valid {
+				u.OptBool = value.String
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -237,6 +261,12 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Banned))
 	builder.WriteString(", custom_pb=")
 	builder.WriteString(fmt.Sprintf("%v", u.CustomPb))
+	builder.WriteString(", opt_num=")
+	builder.WriteString(fmt.Sprintf("%v", u.OptNum))
+	builder.WriteString(", opt_str=")
+	builder.WriteString(u.OptStr)
+	builder.WriteString(", opt_bool=")
+	builder.WriteString(u.OptBool)
 	builder.WriteByte(')')
 	return builder.String()
 }

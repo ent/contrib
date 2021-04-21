@@ -85,6 +85,48 @@ func (uc *UserCreate) SetCustomPb(u uint8) *UserCreate {
 	return uc
 }
 
+// SetOptNum sets the "opt_num" field.
+func (uc *UserCreate) SetOptNum(i int) *UserCreate {
+	uc.mutation.SetOptNum(i)
+	return uc
+}
+
+// SetNillableOptNum sets the "opt_num" field if the given value is not nil.
+func (uc *UserCreate) SetNillableOptNum(i *int) *UserCreate {
+	if i != nil {
+		uc.SetOptNum(*i)
+	}
+	return uc
+}
+
+// SetOptStr sets the "opt_str" field.
+func (uc *UserCreate) SetOptStr(s string) *UserCreate {
+	uc.mutation.SetOptStr(s)
+	return uc
+}
+
+// SetNillableOptStr sets the "opt_str" field if the given value is not nil.
+func (uc *UserCreate) SetNillableOptStr(s *string) *UserCreate {
+	if s != nil {
+		uc.SetOptStr(*s)
+	}
+	return uc
+}
+
+// SetOptBool sets the "opt_bool" field.
+func (uc *UserCreate) SetOptBool(s string) *UserCreate {
+	uc.mutation.SetOptBool(s)
+	return uc
+}
+
+// SetNillableOptBool sets the "opt_bool" field if the given value is not nil.
+func (uc *UserCreate) SetNillableOptBool(s *string) *UserCreate {
+	if s != nil {
+		uc.SetOptBool(*s)
+	}
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -313,6 +355,30 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldCustomPb,
 		})
 		_node.CustomPb = value
+	}
+	if value, ok := uc.mutation.OptNum(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldOptNum,
+		})
+		_node.OptNum = value
+	}
+	if value, ok := uc.mutation.OptStr(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldOptStr,
+		})
+		_node.OptStr = value
+	}
+	if value, ok := uc.mutation.OptBool(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldOptBool,
+		})
+		_node.OptBool = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

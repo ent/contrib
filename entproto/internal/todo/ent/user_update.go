@@ -113,6 +113,73 @@ func (uu *UserUpdate) AddCustomPb(u uint8) *UserUpdate {
 	return uu
 }
 
+// SetOptNum sets the "opt_num" field.
+func (uu *UserUpdate) SetOptNum(i int) *UserUpdate {
+	uu.mutation.ResetOptNum()
+	uu.mutation.SetOptNum(i)
+	return uu
+}
+
+// SetNillableOptNum sets the "opt_num" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableOptNum(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetOptNum(*i)
+	}
+	return uu
+}
+
+// AddOptNum adds i to the "opt_num" field.
+func (uu *UserUpdate) AddOptNum(i int) *UserUpdate {
+	uu.mutation.AddOptNum(i)
+	return uu
+}
+
+// ClearOptNum clears the value of the "opt_num" field.
+func (uu *UserUpdate) ClearOptNum() *UserUpdate {
+	uu.mutation.ClearOptNum()
+	return uu
+}
+
+// SetOptStr sets the "opt_str" field.
+func (uu *UserUpdate) SetOptStr(s string) *UserUpdate {
+	uu.mutation.SetOptStr(s)
+	return uu
+}
+
+// SetNillableOptStr sets the "opt_str" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableOptStr(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetOptStr(*s)
+	}
+	return uu
+}
+
+// ClearOptStr clears the value of the "opt_str" field.
+func (uu *UserUpdate) ClearOptStr() *UserUpdate {
+	uu.mutation.ClearOptStr()
+	return uu
+}
+
+// SetOptBool sets the "opt_bool" field.
+func (uu *UserUpdate) SetOptBool(s string) *UserUpdate {
+	uu.mutation.SetOptBool(s)
+	return uu
+}
+
+// SetNillableOptBool sets the "opt_bool" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableOptBool(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetOptBool(*s)
+	}
+	return uu
+}
+
+// ClearOptBool clears the value of the "opt_bool" field.
+func (uu *UserUpdate) ClearOptBool() *UserUpdate {
+	uu.mutation.ClearOptBool()
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -337,6 +404,52 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldCustomPb,
 		})
 	}
+	if value, ok := uu.mutation.OptNum(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldOptNum,
+		})
+	}
+	if value, ok := uu.mutation.AddedOptNum(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldOptNum,
+		})
+	}
+	if uu.mutation.OptNumCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: user.FieldOptNum,
+		})
+	}
+	if value, ok := uu.mutation.OptStr(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldOptStr,
+		})
+	}
+	if uu.mutation.OptStrCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldOptStr,
+		})
+	}
+	if value, ok := uu.mutation.OptBool(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldOptBool,
+		})
+	}
+	if uu.mutation.OptBoolCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldOptBool,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -506,6 +619,73 @@ func (uuo *UserUpdateOne) SetCustomPb(u uint8) *UserUpdateOne {
 // AddCustomPb adds u to the "custom_pb" field.
 func (uuo *UserUpdateOne) AddCustomPb(u uint8) *UserUpdateOne {
 	uuo.mutation.AddCustomPb(u)
+	return uuo
+}
+
+// SetOptNum sets the "opt_num" field.
+func (uuo *UserUpdateOne) SetOptNum(i int) *UserUpdateOne {
+	uuo.mutation.ResetOptNum()
+	uuo.mutation.SetOptNum(i)
+	return uuo
+}
+
+// SetNillableOptNum sets the "opt_num" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableOptNum(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetOptNum(*i)
+	}
+	return uuo
+}
+
+// AddOptNum adds i to the "opt_num" field.
+func (uuo *UserUpdateOne) AddOptNum(i int) *UserUpdateOne {
+	uuo.mutation.AddOptNum(i)
+	return uuo
+}
+
+// ClearOptNum clears the value of the "opt_num" field.
+func (uuo *UserUpdateOne) ClearOptNum() *UserUpdateOne {
+	uuo.mutation.ClearOptNum()
+	return uuo
+}
+
+// SetOptStr sets the "opt_str" field.
+func (uuo *UserUpdateOne) SetOptStr(s string) *UserUpdateOne {
+	uuo.mutation.SetOptStr(s)
+	return uuo
+}
+
+// SetNillableOptStr sets the "opt_str" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableOptStr(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetOptStr(*s)
+	}
+	return uuo
+}
+
+// ClearOptStr clears the value of the "opt_str" field.
+func (uuo *UserUpdateOne) ClearOptStr() *UserUpdateOne {
+	uuo.mutation.ClearOptStr()
+	return uuo
+}
+
+// SetOptBool sets the "opt_bool" field.
+func (uuo *UserUpdateOne) SetOptBool(s string) *UserUpdateOne {
+	uuo.mutation.SetOptBool(s)
+	return uuo
+}
+
+// SetNillableOptBool sets the "opt_bool" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableOptBool(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetOptBool(*s)
+	}
+	return uuo
+}
+
+// ClearOptBool clears the value of the "opt_bool" field.
+func (uuo *UserUpdateOne) ClearOptBool() *UserUpdateOne {
+	uuo.mutation.ClearOptBool()
 	return uuo
 }
 
@@ -736,6 +916,52 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeUint8,
 			Value:  value,
 			Column: user.FieldCustomPb,
+		})
+	}
+	if value, ok := uuo.mutation.OptNum(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldOptNum,
+		})
+	}
+	if value, ok := uuo.mutation.AddedOptNum(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldOptNum,
+		})
+	}
+	if uuo.mutation.OptNumCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: user.FieldOptNum,
+		})
+	}
+	if value, ok := uuo.mutation.OptStr(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldOptStr,
+		})
+	}
+	if uuo.mutation.OptStrCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldOptStr,
+		})
+	}
+	if value, ok := uuo.mutation.OptBool(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldOptBool,
+		})
+	}
+	if uuo.mutation.OptBoolCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldOptBool,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

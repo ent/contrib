@@ -1141,6 +1141,10 @@ type UserMutation struct {
 	banned            *bool
 	custom_pb         *uint8
 	addcustom_pb      *uint8
+	opt_num           *int
+	addopt_num        *int
+	opt_str           *string
+	opt_bool          *string
 	clearedFields     map[string]struct{}
 	group             *int
 	clearedgroup      bool
@@ -1634,6 +1638,174 @@ func (m *UserMutation) ResetCustomPb() {
 	m.addcustom_pb = nil
 }
 
+// SetOptNum sets the "opt_num" field.
+func (m *UserMutation) SetOptNum(i int) {
+	m.opt_num = &i
+	m.addopt_num = nil
+}
+
+// OptNum returns the value of the "opt_num" field in the mutation.
+func (m *UserMutation) OptNum() (r int, exists bool) {
+	v := m.opt_num
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptNum returns the old "opt_num" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldOptNum(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOptNum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOptNum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptNum: %w", err)
+	}
+	return oldValue.OptNum, nil
+}
+
+// AddOptNum adds i to the "opt_num" field.
+func (m *UserMutation) AddOptNum(i int) {
+	if m.addopt_num != nil {
+		*m.addopt_num += i
+	} else {
+		m.addopt_num = &i
+	}
+}
+
+// AddedOptNum returns the value that was added to the "opt_num" field in this mutation.
+func (m *UserMutation) AddedOptNum() (r int, exists bool) {
+	v := m.addopt_num
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOptNum clears the value of the "opt_num" field.
+func (m *UserMutation) ClearOptNum() {
+	m.opt_num = nil
+	m.addopt_num = nil
+	m.clearedFields[user.FieldOptNum] = struct{}{}
+}
+
+// OptNumCleared returns if the "opt_num" field was cleared in this mutation.
+func (m *UserMutation) OptNumCleared() bool {
+	_, ok := m.clearedFields[user.FieldOptNum]
+	return ok
+}
+
+// ResetOptNum resets all changes to the "opt_num" field.
+func (m *UserMutation) ResetOptNum() {
+	m.opt_num = nil
+	m.addopt_num = nil
+	delete(m.clearedFields, user.FieldOptNum)
+}
+
+// SetOptStr sets the "opt_str" field.
+func (m *UserMutation) SetOptStr(s string) {
+	m.opt_str = &s
+}
+
+// OptStr returns the value of the "opt_str" field in the mutation.
+func (m *UserMutation) OptStr() (r string, exists bool) {
+	v := m.opt_str
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptStr returns the old "opt_str" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldOptStr(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOptStr is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOptStr requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptStr: %w", err)
+	}
+	return oldValue.OptStr, nil
+}
+
+// ClearOptStr clears the value of the "opt_str" field.
+func (m *UserMutation) ClearOptStr() {
+	m.opt_str = nil
+	m.clearedFields[user.FieldOptStr] = struct{}{}
+}
+
+// OptStrCleared returns if the "opt_str" field was cleared in this mutation.
+func (m *UserMutation) OptStrCleared() bool {
+	_, ok := m.clearedFields[user.FieldOptStr]
+	return ok
+}
+
+// ResetOptStr resets all changes to the "opt_str" field.
+func (m *UserMutation) ResetOptStr() {
+	m.opt_str = nil
+	delete(m.clearedFields, user.FieldOptStr)
+}
+
+// SetOptBool sets the "opt_bool" field.
+func (m *UserMutation) SetOptBool(s string) {
+	m.opt_bool = &s
+}
+
+// OptBool returns the value of the "opt_bool" field in the mutation.
+func (m *UserMutation) OptBool() (r string, exists bool) {
+	v := m.opt_bool
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptBool returns the old "opt_bool" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldOptBool(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOptBool is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOptBool requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptBool: %w", err)
+	}
+	return oldValue.OptBool, nil
+}
+
+// ClearOptBool clears the value of the "opt_bool" field.
+func (m *UserMutation) ClearOptBool() {
+	m.opt_bool = nil
+	m.clearedFields[user.FieldOptBool] = struct{}{}
+}
+
+// OptBoolCleared returns if the "opt_bool" field was cleared in this mutation.
+func (m *UserMutation) OptBoolCleared() bool {
+	_, ok := m.clearedFields[user.FieldOptBool]
+	return ok
+}
+
+// ResetOptBool resets all changes to the "opt_bool" field.
+func (m *UserMutation) ResetOptBool() {
+	m.opt_bool = nil
+	delete(m.clearedFields, user.FieldOptBool)
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -1726,7 +1898,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 12)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -1754,6 +1926,15 @@ func (m *UserMutation) Fields() []string {
 	if m.custom_pb != nil {
 		fields = append(fields, user.FieldCustomPb)
 	}
+	if m.opt_num != nil {
+		fields = append(fields, user.FieldOptNum)
+	}
+	if m.opt_str != nil {
+		fields = append(fields, user.FieldOptStr)
+	}
+	if m.opt_bool != nil {
+		fields = append(fields, user.FieldOptBool)
+	}
 	return fields
 }
 
@@ -1780,6 +1961,12 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Banned()
 	case user.FieldCustomPb:
 		return m.CustomPb()
+	case user.FieldOptNum:
+		return m.OptNum()
+	case user.FieldOptStr:
+		return m.OptStr()
+	case user.FieldOptBool:
+		return m.OptBool()
 	}
 	return nil, false
 }
@@ -1807,6 +1994,12 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldBanned(ctx)
 	case user.FieldCustomPb:
 		return m.OldCustomPb(ctx)
+	case user.FieldOptNum:
+		return m.OldOptNum(ctx)
+	case user.FieldOptStr:
+		return m.OldOptStr(ctx)
+	case user.FieldOptBool:
+		return m.OldOptBool(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1879,6 +2072,27 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCustomPb(v)
 		return nil
+	case user.FieldOptNum:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptNum(v)
+		return nil
+	case user.FieldOptStr:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptStr(v)
+		return nil
+	case user.FieldOptBool:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptBool(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -1899,6 +2113,9 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addcustom_pb != nil {
 		fields = append(fields, user.FieldCustomPb)
 	}
+	if m.addopt_num != nil {
+		fields = append(fields, user.FieldOptNum)
+	}
 	return fields
 }
 
@@ -1915,6 +2132,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedExternalID()
 	case user.FieldCustomPb:
 		return m.AddedCustomPb()
+	case user.FieldOptNum:
+		return m.AddedOptNum()
 	}
 	return nil, false
 }
@@ -1952,6 +2171,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCustomPb(v)
 		return nil
+	case user.FieldOptNum:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOptNum(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -1959,7 +2185,17 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldOptNum) {
+		fields = append(fields, user.FieldOptNum)
+	}
+	if m.FieldCleared(user.FieldOptStr) {
+		fields = append(fields, user.FieldOptStr)
+	}
+	if m.FieldCleared(user.FieldOptBool) {
+		fields = append(fields, user.FieldOptBool)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1972,6 +2208,17 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldOptNum:
+		m.ClearOptNum()
+		return nil
+	case user.FieldOptStr:
+		m.ClearOptStr()
+		return nil
+	case user.FieldOptBool:
+		m.ClearOptBool()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -2005,6 +2252,15 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldCustomPb:
 		m.ResetCustomPb()
+		return nil
+	case user.FieldOptNum:
+		m.ResetOptNum()
+		return nil
+	case user.FieldOptStr:
+		m.ResetOptStr()
+		return nil
+	case user.FieldOptBool:
+		m.ResetOptBool()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
