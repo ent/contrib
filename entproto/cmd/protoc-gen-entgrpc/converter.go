@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto"
+	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -64,8 +65,8 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		if fld.IsEdgeField {
 			break
 		}
-		fqn := pbd.GetMessageType().GetFullyQualifiedName()
-		if err := convertPbMessageType(fqn, fld.EntField.Type.String(), out); err != nil {
+		md := pbd.GetMessageType()
+		if err := convertPbMessageType(md, fld.EntField.Type.String(), out); err != nil {
 			return nil, err
 		}
 	default:
@@ -92,21 +93,22 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	}
 	return out, nil
 }
-func convertPbMessageType(fqn, entFieldType string, conv *converter) error {
+
+func convertPbMessageType(md *desc.MessageDescriptor, entFieldType string, conv *converter) error {
 	switch {
-	case fqn == "google.protobuf.Timestamp":
+	case md.GetFullyQualifiedName() == "google.protobuf.Timestamp":
 		conv.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
-	case isWrapperType(fqn):
+	case isWrapperType(md):
+		fqn := md.GetFullyQualifiedName()
 		typ := strings.Split(fqn, ".")[2]
 		constructor := strings.TrimSuffix(typ, "Value")
 		conv.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/wrapperspb").Ident(constructor)
-		goType := wrapperPrimitives[fqn]
-		if entFieldType != goType {
+		if goType := wrapperPrimitives[fqn]; entFieldType != goType {
 			conv.toProtoConversion = goType
 		}
 		conv.toEntModifier = ".GetValue()"
 	default:
-		return fmt.Errorf("entproto: no mapping for pb field type %q", fqn)
+		return fmt.Errorf("entproto: no mapping for pb field type %q", md.GetFullyQualifiedName())
 	}
 	return nil
 }
@@ -140,8 +142,8 @@ func (g *serviceGenerator) renderToEnt(conv *converter, ident string) string {
 	return left + ident + right
 }
 
-func isWrapperType(fqn string) bool {
-	_, ok := wrapperPrimitives[fqn]
+func isWrapperType(md *desc.MessageDescriptor) bool {
+	_, ok := wrapperPrimitives[md.GetFullyQualifiedName()]
 	return ok
 }
 
