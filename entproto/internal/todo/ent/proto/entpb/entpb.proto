@@ -7,6 +7,8 @@ import "google/protobuf/empty.proto";
 
 import "google/protobuf/timestamp.proto";
 
+import "google/protobuf/wrappers.proto";
+
 option go_package = "entgo.io/contrib/entproto/internal/todo/ent/proto/entpb";
 
 message Attachment {
@@ -77,6 +79,12 @@ message User {
   bool banned = 10;
 
   uint64 custom_pb = 12;
+
+  google.protobuf.Int32Value opt_num = 13;
+
+  google.protobuf.StringValue opt_str = 14;
+
+  google.protobuf.StringValue opt_bool = 15;
 
   Group group = 7;
 

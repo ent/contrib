@@ -16,8 +16,10 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"entgo.io/contrib/entproto"
+	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -25,6 +27,7 @@ import (
 type converter struct {
 	toEntConversion    string
 	toEntConstructor   protogen.GoIdent
+	toEntModifier      string
 	toProtoConversion  string
 	toProtoConstructor protogen.GoIdent
 }
@@ -62,10 +65,10 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		if fld.IsEdgeField {
 			break
 		}
-		if name := pbd.GetMessageType().GetFullyQualifiedName(); name != "google.protobuf.Timestamp" {
-			return nil, fmt.Errorf("entproto: no mapping for pb message type %q", pbd.GetFullyQualifiedName())
+		md := pbd.GetMessageType()
+		if err := convertPbMessageType(md, fld.EntField.Type.String(), out); err != nil {
+			return nil, err
 		}
-		out.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
 	default:
 		return nil, fmt.Errorf("entproto: no mapping for pb field type %q", pbd.GetType())
 	}
@@ -91,28 +94,67 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	return out, nil
 }
 
-func (g *serviceGenerator) renderToProto(fc *converter, ident string) string {
+func convertPbMessageType(md *desc.MessageDescriptor, entFieldType string, conv *converter) error {
+	switch {
+	case md.GetFullyQualifiedName() == "google.protobuf.Timestamp":
+		conv.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
+	case isWrapperType(md):
+		fqn := md.GetFullyQualifiedName()
+		typ := strings.Split(fqn, ".")[2]
+		constructor := strings.TrimSuffix(typ, "Value")
+		conv.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/wrapperspb").Ident(constructor)
+		if goType := wrapperPrimitives[fqn]; entFieldType != goType {
+			conv.toProtoConversion = goType
+		}
+		conv.toEntModifier = ".GetValue()"
+	default:
+		return fmt.Errorf("entproto: no mapping for pb field type %q", md.GetFullyQualifiedName())
+	}
+	return nil
+}
+
+func (g *serviceGenerator) renderToProto(conv *converter, ident string) string {
 	var left, right string
-	if fc.toProtoConstructor.GoName != "" {
-		left += g.QualifiedGoIdent(fc.toProtoConstructor) + "("
+	if conv.toProtoConstructor.GoName != "" {
+		left += g.QualifiedGoIdent(conv.toProtoConstructor) + "("
 		right += ")"
 	}
-	if fc.toProtoConversion != "" {
-		left += fc.toProtoConversion + "("
+	if conv.toProtoConversion != "" {
+		left += conv.toProtoConversion + "("
 		right += ")"
 	}
 	return left + ident + right
 }
 
-func (g *serviceGenerator) renderToEnt(fc *converter, ident string) string {
+func (g *serviceGenerator) renderToEnt(conv *converter, ident string) string {
 	var left, right string
-	if fc.toEntConstructor.GoName != "" {
-		left += g.QualifiedGoIdent(fc.toEntConstructor) + "("
+	if conv.toEntConstructor.GoName != "" {
+		left += g.QualifiedGoIdent(conv.toEntConstructor) + "("
 		right += ")"
 	}
-	if fc.toEntConversion != "" {
-		left += fc.toEntConversion + "("
+	if conv.toEntConversion != "" {
+		left += conv.toEntConversion + "("
 		right += ")"
+	}
+	if conv.toEntModifier != "" {
+		ident += conv.toEntModifier
 	}
 	return left + ident + right
+}
+
+func isWrapperType(md *desc.MessageDescriptor) bool {
+	_, ok := wrapperPrimitives[md.GetFullyQualifiedName()]
+	return ok
+}
+
+var wrapperPrimitives = map[string]string{
+	"google.protobuf.DoubleValue": "float64",
+	"google.protobuf.FloatValue":  "float32",
+	"google.protobuf.Int64Value":  "int64",
+	"google.protobuf.UInt64Value": "uint64",
+	"google.protobuf.Int32Value":  "int32",
+	"google.protobuf.UInt32Value": "uint32",
+	"google.protobuf.BoolValue":   "bool",
+	"google.protobuf.StringValue": "string",
+	"google.protobuf.BytesValue":  "[]byte",
 }

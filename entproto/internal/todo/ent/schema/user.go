@@ -72,6 +72,15 @@ func (User) Fields() []ent.Field {
 					entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_UINT64),
 				),
 			),
+		field.Int("opt_num").
+			Optional().
+			Annotations(entproto.Field(13)),
+		field.String("opt_str").
+			Optional().
+			Annotations(entproto.Field(14)),
+		field.String("opt_bool").
+			Optional().
+			Annotations(entproto.Field(15)),
 	}
 }
 

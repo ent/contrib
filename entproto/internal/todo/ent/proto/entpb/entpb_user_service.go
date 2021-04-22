@@ -11,6 +11,7 @@ import (
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	strings "strings"
 )
 
@@ -51,6 +52,9 @@ func toProtoUser(e *ent.User) *User {
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
 		Joined:     timestamppb.New(e.Joined),
+		OptBool:    wrapperspb.String(e.OptBool),
+		OptNum:     wrapperspb.Int32(int32(e.OptNum)),
+		OptStr:     wrapperspb.String(e.OptStr),
 		Points:     uint32(e.Points),
 		Status:     toProtoUser_Status(e.Status),
 		UserName:   e.UserName,
@@ -82,6 +86,9 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
 		SetJoined(runtime.ExtractTime(user.GetJoined())).
+		SetOptBool(user.GetOptBool().GetValue()).
+		SetOptNum(int(user.GetOptNum().GetValue())).
+		SetOptStr(user.GetOptStr().GetValue()).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(user.GetUserName()).
@@ -126,6 +133,9 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		SetCustomPb(uint8(user.GetCustomPb())).
 		SetExp(uint64(user.GetExp())).
 		SetExternalID(int(user.GetExternalId())).
+		SetOptBool(user.GetOptBool().GetValue()).
+		SetOptNum(int(user.GetOptNum().GetValue())).
+		SetOptStr(user.GetOptStr().GetValue()).
 		SetPoints(uint(user.GetPoints())).
 		SetStatus(toEntUser_Status(user.GetStatus())).
 		SetUserName(user.GetUserName()).

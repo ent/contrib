@@ -29,6 +29,12 @@ const (
 	FieldBanned = "banned"
 	// FieldCustomPb holds the string denoting the custom_pb field in the database.
 	FieldCustomPb = "custom_pb"
+	// FieldOptNum holds the string denoting the opt_num field in the database.
+	FieldOptNum = "opt_num"
+	// FieldOptStr holds the string denoting the opt_str field in the database.
+	FieldOptStr = "opt_str"
+	// FieldOptBool holds the string denoting the opt_bool field in the database.
+	FieldOptBool = "opt_bool"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -63,6 +69,9 @@ var Columns = []string{
 	FieldCrmID,
 	FieldBanned,
 	FieldCustomPb,
+	FieldOptNum,
+	FieldOptStr,
+	FieldOptBool,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
