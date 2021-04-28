@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package testdata;
+
+import "options/ent/opts.proto";
+
+option go_package = "ent/testdata";
+
+// Standalone Enum
+enum JobStatus {
+  STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  ACTIVE = 2;
+  COMPLETE = 3;
+  FAILED = 4;
+}
+
+message Job {
+  option (ent.schema).gen = true;
+  string name = 1;
+  JobStatus status = 2;
+  Priority priority = 3;
+
+  // Inline Enum
+  enum Priority {
+    PRIORITY_UNSPECIFIED = 0;
+    LOW = 1;
+    HIGH = 2;
+  }
+}

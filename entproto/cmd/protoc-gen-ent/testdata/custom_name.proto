@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package testdata;
+
+import "options/ent/opts.proto";
+
+option go_package = "ent/testdata";
+
+message CustomName {
+  option (ent.schema) = {gen: true, name: "Rotemtam"};
+  string name = 1;
+}
