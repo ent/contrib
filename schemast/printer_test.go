@@ -74,11 +74,11 @@ func TestPrintHeaderComment(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NoError(t, tt.print(Header("File updated by test.")))
-	contents, err := os.ReadFile(filepath.Join(tt.schemaDir(), "message.go")) // A file that didn't have the header.
+	contents, err := ioutil.ReadFile(filepath.Join(tt.schemaDir(), "message.go")) // A file that didn't have the header.
 	require.NoError(t, err)
 	require.Regexp(t, commentRegexp, string(contents))
 
-	contents, err = os.ReadFile(filepath.Join(tt.schemaDir(), "user.go")) // A file that had the header, but not on the first line.
+	contents, err = ioutil.ReadFile(filepath.Join(tt.schemaDir(), "user.go")) // A file that had the header, but not on the first line.
 	require.NoError(t, err)
 	matches := commentRegexp.FindAllString(string(contents), -1)
 	require.Len(t, matches, 1)
