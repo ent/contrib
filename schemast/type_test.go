@@ -36,6 +36,7 @@ func TestContext_AddType(t *testing.T) {
 	var buf bytes.Buffer
 	method, _ := ctx.lookupMethod("Cat", "Fields")
 	err = printer.Fprint(&buf, ctx.SchemaPackage.Fset, method)
+	require.NoError(t, err)
 	require.EqualValues(t, `func (Cat) Fields() []ent.Field {
 	return []ent.Field{field.String("name")}
 }`, buf.String())

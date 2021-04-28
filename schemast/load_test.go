@@ -34,6 +34,7 @@ func TestLoad(t *testing.T) {
 
 	buf := bytes.Buffer{}
 	err = printer.Fprint(&buf, load.SchemaPackage.Fset, fd)
+	require.NoError(t, err)
 	require.EqualValues(t, `// Fields of the Message.
 func (Message) Fields() []ent.Field {
 	return nil

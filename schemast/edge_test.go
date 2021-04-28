@@ -91,6 +91,7 @@ func TestFromEdgeDescriptor(t *testing.T) {
 			var buf bytes.Buffer
 			fst := token.NewFileSet()
 			err = printer.Fprint(&buf, fst, r)
+			require.NoError(t, err)
 			require.EqualValues(t, tt.expected, buf.String())
 		})
 	}
@@ -132,6 +133,7 @@ func (WithFields) Edges() []ent.Edge {
 			var buf bytes.Buffer
 			method, _ := ctx.lookupMethod(tt.typeName, "Edges")
 			err = printer.Fprint(&buf, ctx.SchemaPackage.Fset, method)
+			require.NoError(t, err)
 			require.EqualValues(t, tt.expectedBody, buf.String())
 		})
 	}
@@ -148,6 +150,7 @@ func TestRemoveEdge(t *testing.T) {
 	var buf bytes.Buffer
 	method, _ := ctx.lookupMethod("WithModifiedField", "Edges")
 	err = printer.Fprint(&buf, ctx.SchemaPackage.Fset, method)
+	require.NoError(t, err)
 	require.EqualValues(t, `func (WithModifiedField) Edges() []ent.Edge {
 	return []ent.Edge{}
 }`, buf.String())

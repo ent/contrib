@@ -116,6 +116,7 @@ func TestFromFieldDescriptor(t *testing.T) {
 			var buf bytes.Buffer
 			fst := token.NewFileSet()
 			err = printer.Fprint(&buf, fst, r)
+			require.NoError(t, err)
 			require.EqualValues(t, tt.expected, buf.String())
 		})
 	}
@@ -173,6 +174,7 @@ func (WithoutFields) Fields() []ent.Field {
 			var buf bytes.Buffer
 			method, _ := ctx.lookupMethod(tt.typeName, "Fields")
 			err = printer.Fprint(&buf, ctx.SchemaPackage.Fset, method)
+			require.NoError(t, err)
 			require.EqualValues(t, tt.expectedBody, buf.String())
 		})
 	}
@@ -189,6 +191,7 @@ func TestRemoveField(t *testing.T) {
 	var buf bytes.Buffer
 	method, _ := ctx.lookupMethod("WithModifiedField", "Fields")
 	err = printer.Fprint(&buf, ctx.SchemaPackage.Fset, method)
+	require.NoError(t, err)
 	require.EqualValues(t, `func (WithModifiedField) Fields() []ent.Field {
 	return []ent.Field{}
 }`, buf.String())

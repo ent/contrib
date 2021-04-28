@@ -105,9 +105,7 @@ func (e *notFoundErr) Error() string {
 
 func (c *Context) syntax() []*ast.File {
 	var out []*ast.File
-	for _, f := range c.SchemaPackage.Syntax {
-		out = append(out, f)
-	}
+	out = append(out, c.SchemaPackage.Syntax...)
 	for _, f := range c.newTypes {
 		out = append(out, f)
 	}
