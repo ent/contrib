@@ -112,13 +112,16 @@ func newGenTest(t *testing.T, files ...string) *genTest {
 	err = printSchemas(tmp, gen)
 	require.NoError(t, err)
 	output := make(map[string]string)
-	filepath.Walk(tmp, func(path string, info fs.FileInfo, _ error) error {
+	filepath.Walk(tmp, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		if info.IsDir() {
 			return nil
 		}
-		contents, err := os.ReadFile(path)
-		if err != nil {
-			return err
+		contents, rerr := os.ReadFile(path)
+		if rerr != nil {
+			return rerr
 		}
 		output[filepath.Base(path)] = string(contents)
 		return nil
