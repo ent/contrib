@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -112,20 +111,21 @@ func newGenTest(t *testing.T, files ...string) *genTest {
 	err = printSchemas(tmp, gen)
 	require.NoError(t, err)
 	output := make(map[string]string)
-	filepath.Walk(tmp, func(path string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(tmp, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() {
 			return nil
 		}
-		contents, rerr := os.ReadFile(path)
+		contents, rerr := ioutil.ReadFile(path)
 		if rerr != nil {
 			return rerr
 		}
 		output[filepath.Base(path)] = string(contents)
 		return nil
 	})
+	require.NoError(t, err)
 	return &genTest{output: output}
 }
 
