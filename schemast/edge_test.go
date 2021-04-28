@@ -97,6 +97,7 @@ func TestFromEdgeDescriptor(t *testing.T) {
 	}
 }
 
+//nolint:golint,unused
 type Entity struct {
 	ent.Schema
 }
