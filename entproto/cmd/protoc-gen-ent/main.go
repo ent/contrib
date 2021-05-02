@@ -67,7 +67,7 @@ func printSchemas(schemaDir string, gen *protogen.Plugin) error {
 	if err := schemast.Mutate(ctx, mutations...); err != nil {
 		return err
 	}
-	if err := ctx.Print(schemaDir); err != nil {
+	if err := ctx.Print(schemaDir, schemast.Header("File updated by protoc-gen-ent.")); err != nil {
 		return err
 	}
 	return nil

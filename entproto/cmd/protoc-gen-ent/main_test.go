@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/jhump/protoreflect/desc/protoparse"
@@ -37,6 +38,7 @@ func TestBasic(t *testing.T) {
 	_, err = tt.fileContents("skipped.go")
 	require.EqualError(t, err, `file "skipped.go" not generated`)
 	require.Len(t, tt.output, 1)
+	require.True(t, strings.HasPrefix(contents, "// File updated by protoc-gen-ent."))
 }
 
 func TestCustomName(t *testing.T) {
