@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package todo;
+
+option go_package = "github.com/ariga/ent-temp/schemaio/protoc-gen-ent/internal/todo/ent/proto/todo";
+
+import "options/ent/opts.proto";
+
+message Task {
+  option (ent.schema).gen = true;
+
+  string title = 1 [(ent.field) = {optional: true, comment:"comment"}];
+  string description = 2 [(ent.field).immutable = true];
+  bool complete = 3;
+  string signature = 4;
+}
+
+message User {
+  option (ent.schema).gen = true;
+  string name = 1 [(ent.field) = {unique: true, comment:"the user name"}];
+}
+
+message Attachment {
+  option (ent.schema) = {gen: true, name: "File"};
+  string id = 1;
+  string contents = 2;
+}

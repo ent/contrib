@@ -1,0 +1,45 @@
+syntax = "proto2";
+
+import "google/protobuf/descriptor.proto";
+package ent;
+option go_package = "entgo.io/contrib/entproto/cmd/protoc-gen-ent/options/ent";
+
+message Schema {
+  optional bool gen = 1;
+  optional string name = 2;
+}
+
+extend google.protobuf.MessageOptions {
+  optional Schema schema = 150119;
+}
+
+message Field {
+  optional bool optional = 1;
+  optional bool nillable = 2;
+  optional bool unique = 3;
+  optional bool sensitive = 4;
+  optional bool immutable = 5;
+  optional string comment = 6;
+  optional string struct_tag = 7;
+  optional string storage_key = 8;
+  map<string, string> schema_type = 9;
+}
+
+message Edge {
+  optional bool unique = 1;
+  optional string ref = 2;
+  optional bool required = 3;
+  optional string field = 4;
+  optional StorageKey storage_key = 5;
+  optional string struct_tag = 6;
+
+  message StorageKey {
+    optional string table = 1;
+    repeated string columns = 2;
+  }
+}
+
+extend google.protobuf.FieldOptions {
+  optional Field field = 150119;
+  optional Edge edge = 150120;
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package testdata;
+
+import "options/ent/opts.proto";
+
+option go_package = "ent/testdata";
+
+message Basic {
+  option (ent.schema).gen = true;
+  string name = 1;
+}
+
+message Skipped {
+  string name = 1;
+}
