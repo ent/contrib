@@ -169,6 +169,7 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 // MessageWithEnumUpdateOne is the builder for updating a single MessageWithEnum entity.
 type MessageWithEnumUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *MessageWithEnumMutation
 }
@@ -196,6 +197,13 @@ func (mweuo *MessageWithEnumUpdateOne) SetEnumWithoutDefault(mwd messagewithenum
 // Mutation returns the MessageWithEnumMutation object of the builder.
 func (mweuo *MessageWithEnumUpdateOne) Mutation() *MessageWithEnumMutation {
 	return mweuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (mweuo *MessageWithEnumUpdateOne) Select(field string, fields ...string) *MessageWithEnumUpdateOne {
+	mweuo.fields = append([]string{field}, fields...)
+	return mweuo
 }
 
 // Save executes the query and returns the updated MessageWithEnum entity.
@@ -286,6 +294,18 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MessageWithEnum.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := mweuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, messagewithenum.FieldID)
+		for _, f := range fields {
+			if !messagewithenum.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != messagewithenum.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := mweuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

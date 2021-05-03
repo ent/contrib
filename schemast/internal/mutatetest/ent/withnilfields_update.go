@@ -114,6 +114,7 @@ func (wnfu *WithNilFieldsUpdate) sqlSave(ctx context.Context) (n int, err error)
 // WithNilFieldsUpdateOne is the builder for updating a single WithNilFields entity.
 type WithNilFieldsUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *WithNilFieldsMutation
 }
@@ -121,6 +122,13 @@ type WithNilFieldsUpdateOne struct {
 // Mutation returns the WithNilFieldsMutation object of the builder.
 func (wnfuo *WithNilFieldsUpdateOne) Mutation() *WithNilFieldsMutation {
 	return wnfuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (wnfuo *WithNilFieldsUpdateOne) Select(field string, fields ...string) *WithNilFieldsUpdateOne {
+	wnfuo.fields = append([]string{field}, fields...)
+	return wnfuo
 }
 
 // Save executes the query and returns the updated WithNilFields entity.
@@ -190,6 +198,18 @@ func (wnfuo *WithNilFieldsUpdateOne) sqlSave(ctx context.Context) (_node *WithNi
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WithNilFields.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := wnfuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, withnilfields.FieldID)
+		for _, f := range fields {
+			if !withnilfields.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != withnilfields.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := wnfuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

@@ -53,11 +53,11 @@ func (*WithModifiedField) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case withmodifiedfield.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case withmodifiedfield.FieldName:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case withmodifiedfield.ForeignKeys[0]: // with_modified_field_owner
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type WithModifiedField", columns[i])
 		}

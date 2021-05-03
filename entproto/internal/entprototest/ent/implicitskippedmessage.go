@@ -24,9 +24,9 @@ func (*ImplicitSkippedMessage) scanValues(columns []string) ([]interface{}, erro
 	for i := range columns {
 		switch columns[i] {
 		case implicitskippedmessage.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case implicitskippedmessage.ForeignKeys[0]: // depends_on_skipped_skipped
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ImplicitSkippedMessage", columns[i])
 		}

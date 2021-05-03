@@ -127,6 +127,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // AttachmentUpdateOne is the builder for updating a single Attachment entity.
 type AttachmentUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *AttachmentMutation
 }
@@ -140,6 +141,13 @@ func (auo *AttachmentUpdateOne) SetContents(s string) *AttachmentUpdateOne {
 // Mutation returns the AttachmentMutation object of the builder.
 func (auo *AttachmentUpdateOne) Mutation() *AttachmentMutation {
 	return auo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (auo *AttachmentUpdateOne) Select(field string, fields ...string) *AttachmentUpdateOne {
+	auo.fields = append([]string{field}, fields...)
+	return auo
 }
 
 // Save executes the query and returns the updated Attachment entity.
@@ -209,6 +217,18 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Attachment.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := auo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, attachment.FieldID)
+		for _, f := range fields {
+			if !attachment.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != attachment.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := auo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

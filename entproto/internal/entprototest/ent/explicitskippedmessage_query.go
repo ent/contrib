@@ -20,6 +20,7 @@ type ExplicitSkippedMessageQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.ExplicitSkippedMessage
@@ -43,6 +44,13 @@ func (esmq *ExplicitSkippedMessageQuery) Limit(limit int) *ExplicitSkippedMessag
 // Offset adds an offset step to the query.
 func (esmq *ExplicitSkippedMessageQuery) Offset(offset int) *ExplicitSkippedMessageQuery {
 	esmq.offset = &offset
+	return esmq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (esmq *ExplicitSkippedMessageQuery) Unique(unique bool) *ExplicitSkippedMessageQuery {
+	esmq.unique = &unique
 	return esmq
 }
 
@@ -328,6 +336,9 @@ func (esmq *ExplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   esmq.sql,
 		Unique: true,
 	}
+	if unique := esmq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := esmq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, explicitskippedmessage.FieldID)
@@ -353,7 +364,7 @@ func (esmq *ExplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := esmq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, explicitskippedmessage.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -372,7 +383,7 @@ func (esmq *ExplicitSkippedMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 		p(selector)
 	}
 	for _, p := range esmq.order {
-		p(selector, explicitskippedmessage.ValidColumn)
+		p(selector)
 	}
 	if offset := esmq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -638,7 +649,7 @@ func (esmgb *ExplicitSkippedMessageGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(esmgb.fields)+len(esmgb.fns))
 	columns = append(columns, esmgb.fields...)
 	for _, fn := range esmgb.fns {
-		columns = append(columns, fn(selector, explicitskippedmessage.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(esmgb.fields...)
 }

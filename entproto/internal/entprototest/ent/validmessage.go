@@ -35,13 +35,13 @@ func (*ValidMessage) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case validmessage.FieldID, validmessage.FieldU8, validmessage.FieldOpti8:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case validmessage.FieldName:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case validmessage.FieldTs:
-			values[i] = &sql.NullTime{}
+			values[i] = new(sql.NullTime)
 		case validmessage.FieldUUID:
-			values[i] = &uuid.UUID{}
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ValidMessage", columns[i])
 		}

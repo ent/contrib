@@ -201,6 +201,7 @@ func (pu *PortalUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // PortalUpdateOne is the builder for updating a single Portal entity.
 type PortalUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *PortalMutation
 }
@@ -244,6 +245,13 @@ func (puo *PortalUpdateOne) Mutation() *PortalMutation {
 // ClearCategory clears the "category" edge to the Category entity.
 func (puo *PortalUpdateOne) ClearCategory() *PortalUpdateOne {
 	puo.mutation.ClearCategory()
+	return puo
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (puo *PortalUpdateOne) Select(field string, fields ...string) *PortalUpdateOne {
+	puo.fields = append([]string{field}, fields...)
 	return puo
 }
 
@@ -314,6 +322,18 @@ func (puo *PortalUpdateOne) sqlSave(ctx context.Context) (_node *Portal, err err
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Portal.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := puo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, portal.FieldID)
+		for _, f := range fields {
+			if !portal.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != portal.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := puo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.16
 
 require (
-	entgo.io/ent v0.7.0
+	entgo.io/ent v0.8.0
 	github.com/99designs/gqlgen v0.13.0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect

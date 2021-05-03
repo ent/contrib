@@ -22,6 +22,7 @@ type DependsOnSkippedQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.DependsOnSkipped
@@ -47,6 +48,13 @@ func (dosq *DependsOnSkippedQuery) Limit(limit int) *DependsOnSkippedQuery {
 // Offset adds an offset step to the query.
 func (dosq *DependsOnSkippedQuery) Offset(offset int) *DependsOnSkippedQuery {
 	dosq.offset = &offset
+	return dosq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (dosq *DependsOnSkippedQuery) Unique(unique bool) *DependsOnSkippedQuery {
+	dosq.unique = &unique
 	return dosq
 }
 
@@ -424,6 +432,9 @@ func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   dosq.sql,
 		Unique: true,
 	}
+	if unique := dosq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := dosq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, dependsonskipped.FieldID)
@@ -449,7 +460,7 @@ func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := dosq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, dependsonskipped.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -468,7 +479,7 @@ func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range dosq.order {
-		p(selector, dependsonskipped.ValidColumn)
+		p(selector)
 	}
 	if offset := dosq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -734,7 +745,7 @@ func (dosgb *DependsOnSkippedGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(dosgb.fields)+len(dosgb.fns))
 	columns = append(columns, dosgb.fields...)
 	for _, fn := range dosgb.fns {
-		columns = append(columns, fn(selector, dependsonskipped.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(dosgb.fields...)
 }

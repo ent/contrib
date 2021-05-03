@@ -20,6 +20,7 @@ type DuplicateNumberMessageQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.DuplicateNumberMessage
@@ -43,6 +44,13 @@ func (dnmq *DuplicateNumberMessageQuery) Limit(limit int) *DuplicateNumberMessag
 // Offset adds an offset step to the query.
 func (dnmq *DuplicateNumberMessageQuery) Offset(offset int) *DuplicateNumberMessageQuery {
 	dnmq.offset = &offset
+	return dnmq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (dnmq *DuplicateNumberMessageQuery) Unique(unique bool) *DuplicateNumberMessageQuery {
+	dnmq.unique = &unique
 	return dnmq
 }
 
@@ -352,6 +360,9 @@ func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   dnmq.sql,
 		Unique: true,
 	}
+	if unique := dnmq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := dnmq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, duplicatenumbermessage.FieldID)
@@ -377,7 +388,7 @@ func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := dnmq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, duplicatenumbermessage.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 		p(selector)
 	}
 	for _, p := range dnmq.order {
-		p(selector, duplicatenumbermessage.ValidColumn)
+		p(selector)
 	}
 	if offset := dnmq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (dnmgb *DuplicateNumberMessageGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(dnmgb.fields)+len(dnmgb.fns))
 	columns = append(columns, dnmgb.fields...)
 	for _, fn := range dnmgb.fns {
-		columns = append(columns, fn(selector, duplicatenumbermessage.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(dnmgb.fields...)
 }

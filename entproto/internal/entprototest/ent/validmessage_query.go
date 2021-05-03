@@ -20,6 +20,7 @@ type ValidMessageQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.ValidMessage
@@ -43,6 +44,13 @@ func (vmq *ValidMessageQuery) Limit(limit int) *ValidMessageQuery {
 // Offset adds an offset step to the query.
 func (vmq *ValidMessageQuery) Offset(offset int) *ValidMessageQuery {
 	vmq.offset = &offset
+	return vmq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (vmq *ValidMessageQuery) Unique(unique bool) *ValidMessageQuery {
+	vmq.unique = &unique
 	return vmq
 }
 
@@ -352,6 +360,9 @@ func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   vmq.sql,
 		Unique: true,
 	}
+	if unique := vmq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := vmq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, validmessage.FieldID)
@@ -377,7 +388,7 @@ func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := vmq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, validmessage.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range vmq.order {
-		p(selector, validmessage.ValidColumn)
+		p(selector)
 	}
 	if offset := vmq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (vmgb *ValidMessageGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(vmgb.fields)+len(vmgb.fns))
 	columns = append(columns, vmgb.fields...)
 	for _, fn := range vmgb.fns {
-		columns = append(columns, fn(selector, validmessage.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(vmgb.fields...)
 }

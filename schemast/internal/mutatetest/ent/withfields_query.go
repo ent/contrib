@@ -20,6 +20,7 @@ type WithFieldsQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.WithFields
@@ -43,6 +44,13 @@ func (wfq *WithFieldsQuery) Limit(limit int) *WithFieldsQuery {
 // Offset adds an offset step to the query.
 func (wfq *WithFieldsQuery) Offset(offset int) *WithFieldsQuery {
 	wfq.offset = &offset
+	return wfq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (wfq *WithFieldsQuery) Unique(unique bool) *WithFieldsQuery {
+	wfq.unique = &unique
 	return wfq
 }
 
@@ -352,6 +360,9 @@ func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wfq.sql,
 		Unique: true,
 	}
+	if unique := wfq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := wfq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withfields.FieldID)
@@ -377,7 +388,7 @@ func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := wfq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, withfields.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range wfq.order {
-		p(selector, withfields.ValidColumn)
+		p(selector)
 	}
 	if offset := wfq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (wfgb *WithFieldsGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wfgb.fields)+len(wfgb.fns))
 	columns = append(columns, wfgb.fields...)
 	for _, fn := range wfgb.fns {
-		columns = append(columns, fn(selector, withfields.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wfgb.fields...)
 }

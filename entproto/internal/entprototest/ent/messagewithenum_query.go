@@ -20,6 +20,7 @@ type MessageWithEnumQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.MessageWithEnum
@@ -43,6 +44,13 @@ func (mweq *MessageWithEnumQuery) Limit(limit int) *MessageWithEnumQuery {
 // Offset adds an offset step to the query.
 func (mweq *MessageWithEnumQuery) Offset(offset int) *MessageWithEnumQuery {
 	mweq.offset = &offset
+	return mweq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (mweq *MessageWithEnumQuery) Unique(unique bool) *MessageWithEnumQuery {
+	mweq.unique = &unique
 	return mweq
 }
 
@@ -352,6 +360,9 @@ func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mweq.sql,
 		Unique: true,
 	}
+	if unique := mweq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := mweq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithenum.FieldID)
@@ -377,7 +388,7 @@ func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := mweq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, messagewithenum.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range mweq.order {
-		p(selector, messagewithenum.ValidColumn)
+		p(selector)
 	}
 	if offset := mweq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (mwegb *MessageWithEnumGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(mwegb.fields)+len(mwegb.fns))
 	columns = append(columns, mwegb.fields...)
 	for _, fn := range mwegb.fns {
-		columns = append(columns, fn(selector, messagewithenum.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(mwegb.fields...)
 }

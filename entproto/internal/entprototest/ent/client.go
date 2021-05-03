@@ -294,7 +294,9 @@ func (c *BlogPostClient) DeleteOneID(id int) *BlogPostDeleteOne {
 
 // Query returns a query builder for BlogPost.
 func (c *BlogPostClient) Query() *BlogPostQuery {
-	return &BlogPostQuery{config: c.config}
+	return &BlogPostQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a BlogPost entity by its id.
@@ -414,7 +416,9 @@ func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 
 // Query returns a query builder for Category.
 func (c *CategoryClient) Query() *CategoryQuery {
-	return &CategoryQuery{config: c.config}
+	return &CategoryQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Category entity by its id.
@@ -518,7 +522,9 @@ func (c *DependsOnSkippedClient) DeleteOneID(id int) *DependsOnSkippedDeleteOne 
 
 // Query returns a query builder for DependsOnSkipped.
 func (c *DependsOnSkippedClient) Query() *DependsOnSkippedQuery {
-	return &DependsOnSkippedQuery{config: c.config}
+	return &DependsOnSkippedQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a DependsOnSkipped entity by its id.
@@ -622,7 +628,9 @@ func (c *DuplicateNumberMessageClient) DeleteOneID(id int) *DuplicateNumberMessa
 
 // Query returns a query builder for DuplicateNumberMessage.
 func (c *DuplicateNumberMessageClient) Query() *DuplicateNumberMessageQuery {
-	return &DuplicateNumberMessageQuery{config: c.config}
+	return &DuplicateNumberMessageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a DuplicateNumberMessage entity by its id.
@@ -710,7 +718,9 @@ func (c *ExplicitSkippedMessageClient) DeleteOneID(id int) *ExplicitSkippedMessa
 
 // Query returns a query builder for ExplicitSkippedMessage.
 func (c *ExplicitSkippedMessageClient) Query() *ExplicitSkippedMessageQuery {
-	return &ExplicitSkippedMessageQuery{config: c.config}
+	return &ExplicitSkippedMessageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a ExplicitSkippedMessage entity by its id.
@@ -798,7 +808,9 @@ func (c *ImageClient) DeleteOneID(id uuid.UUID) *ImageDeleteOne {
 
 // Query returns a query builder for Image.
 func (c *ImageClient) Query() *ImageQuery {
-	return &ImageQuery{config: c.config}
+	return &ImageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Image entity by its id.
@@ -902,7 +914,9 @@ func (c *ImplicitSkippedMessageClient) DeleteOneID(id int) *ImplicitSkippedMessa
 
 // Query returns a query builder for ImplicitSkippedMessage.
 func (c *ImplicitSkippedMessageClient) Query() *ImplicitSkippedMessageQuery {
-	return &ImplicitSkippedMessageQuery{config: c.config}
+	return &ImplicitSkippedMessageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a ImplicitSkippedMessage entity by its id.
@@ -990,7 +1004,9 @@ func (c *InvalidFieldMessageClient) DeleteOneID(id int) *InvalidFieldMessageDele
 
 // Query returns a query builder for InvalidFieldMessage.
 func (c *InvalidFieldMessageClient) Query() *InvalidFieldMessageQuery {
-	return &InvalidFieldMessageQuery{config: c.config}
+	return &InvalidFieldMessageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a InvalidFieldMessage entity by its id.
@@ -1078,7 +1094,9 @@ func (c *MessageWithEnumClient) DeleteOneID(id int) *MessageWithEnumDeleteOne {
 
 // Query returns a query builder for MessageWithEnum.
 func (c *MessageWithEnumClient) Query() *MessageWithEnumQuery {
-	return &MessageWithEnumQuery{config: c.config}
+	return &MessageWithEnumQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a MessageWithEnum entity by its id.
@@ -1166,7 +1184,9 @@ func (c *MessageWithFieldOneClient) DeleteOneID(id int) *MessageWithFieldOneDele
 
 // Query returns a query builder for MessageWithFieldOne.
 func (c *MessageWithFieldOneClient) Query() *MessageWithFieldOneQuery {
-	return &MessageWithFieldOneQuery{config: c.config}
+	return &MessageWithFieldOneQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a MessageWithFieldOne entity by its id.
@@ -1254,7 +1274,9 @@ func (c *MessageWithIDClient) DeleteOneID(id int32) *MessageWithIDDeleteOne {
 
 // Query returns a query builder for MessageWithID.
 func (c *MessageWithIDClient) Query() *MessageWithIDQuery {
-	return &MessageWithIDQuery{config: c.config}
+	return &MessageWithIDQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a MessageWithID entity by its id.
@@ -1342,7 +1364,9 @@ func (c *MessageWithOptionalsClient) DeleteOneID(id int) *MessageWithOptionalsDe
 
 // Query returns a query builder for MessageWithOptionals.
 func (c *MessageWithOptionalsClient) Query() *MessageWithOptionalsQuery {
-	return &MessageWithOptionalsQuery{config: c.config}
+	return &MessageWithOptionalsQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a MessageWithOptionals entity by its id.
@@ -1430,7 +1454,9 @@ func (c *MessageWithPackageNameClient) DeleteOneID(id int) *MessageWithPackageNa
 
 // Query returns a query builder for MessageWithPackageName.
 func (c *MessageWithPackageNameClient) Query() *MessageWithPackageNameQuery {
-	return &MessageWithPackageNameQuery{config: c.config}
+	return &MessageWithPackageNameQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a MessageWithPackageName entity by its id.
@@ -1518,7 +1544,9 @@ func (c *PortalClient) DeleteOneID(id int) *PortalDeleteOne {
 
 // Query returns a query builder for Portal.
 func (c *PortalClient) Query() *PortalQuery {
-	return &PortalQuery{config: c.config}
+	return &PortalQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Portal entity by its id.
@@ -1622,7 +1650,9 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 
 // Query returns a query builder for User.
 func (c *UserClient) Query() *UserQuery {
-	return &UserQuery{config: c.config}
+	return &UserQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a User entity by its id.
@@ -1742,7 +1772,9 @@ func (c *ValidMessageClient) DeleteOneID(id int) *ValidMessageDeleteOne {
 
 // Query returns a query builder for ValidMessage.
 func (c *ValidMessageClient) Query() *ValidMessageQuery {
-	return &ValidMessageQuery{config: c.config}
+	return &ValidMessageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a ValidMessage entity by its id.

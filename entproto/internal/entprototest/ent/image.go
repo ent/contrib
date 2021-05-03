@@ -47,9 +47,9 @@ func (*Image) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case image.FieldURLPath:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case image.FieldID:
-			values[i] = &uuid.UUID{}
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Image", columns[i])
 		}

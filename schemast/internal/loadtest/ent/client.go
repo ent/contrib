@@ -187,7 +187,9 @@ func (c *MessageClient) DeleteOneID(id int) *MessageDeleteOne {
 
 // Query returns a query builder for Message.
 func (c *MessageClient) Query() *MessageQuery {
-	return &MessageQuery{config: c.config}
+	return &MessageQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Message entity by its id.

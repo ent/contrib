@@ -21,6 +21,7 @@ type TodoQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Todo
@@ -47,6 +48,13 @@ func (tq *TodoQuery) Limit(limit int) *TodoQuery {
 // Offset adds an offset step to the query.
 func (tq *TodoQuery) Offset(offset int) *TodoQuery {
 	tq.offset = &offset
+	return tq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (tq *TodoQuery) Unique(unique bool) *TodoQuery {
+	tq.unique = &unique
 	return tq
 }
 
@@ -377,11 +385,14 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Todo)
 		for i := range nodes {
-			fk := nodes[i].todo_user
-			if fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			if nodes[i].todo_user == nil {
+				continue
 			}
+			fk := *nodes[i].todo_user
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
 		query.Where(user.IDIn(ids...))
 		neighbors, err := query.All(ctx)
@@ -428,6 +439,9 @@ func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   tq.sql,
 		Unique: true,
 	}
+	if unique := tq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := tq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, todo.FieldID)
@@ -453,7 +467,7 @@ func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := tq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, todo.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -472,7 +486,7 @@ func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range tq.order {
-		p(selector, todo.ValidColumn)
+		p(selector)
 	}
 	if offset := tq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -738,7 +752,7 @@ func (tgb *TodoGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
 	columns = append(columns, tgb.fields...)
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn(selector, todo.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }

@@ -216,7 +216,9 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 
 // Query returns a query builder for User.
 func (c *UserClient) Query() *UserQuery {
-	return &UserQuery{config: c.config}
+	return &UserQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a User entity by its id.
@@ -304,7 +306,9 @@ func (c *WithFieldsClient) DeleteOneID(id int) *WithFieldsDeleteOne {
 
 // Query returns a query builder for WithFields.
 func (c *WithFieldsClient) Query() *WithFieldsQuery {
-	return &WithFieldsQuery{config: c.config}
+	return &WithFieldsQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a WithFields entity by its id.
@@ -392,7 +396,9 @@ func (c *WithModifiedFieldClient) DeleteOneID(id int) *WithModifiedFieldDeleteOn
 
 // Query returns a query builder for WithModifiedField.
 func (c *WithModifiedFieldClient) Query() *WithModifiedFieldQuery {
-	return &WithModifiedFieldQuery{config: c.config}
+	return &WithModifiedFieldQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a WithModifiedField entity by its id.
@@ -496,7 +502,9 @@ func (c *WithNilFieldsClient) DeleteOneID(id int) *WithNilFieldsDeleteOne {
 
 // Query returns a query builder for WithNilFields.
 func (c *WithNilFieldsClient) Query() *WithNilFieldsQuery {
-	return &WithNilFieldsQuery{config: c.config}
+	return &WithNilFieldsQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a WithNilFields entity by its id.
@@ -584,7 +592,9 @@ func (c *WithoutFieldsClient) DeleteOneID(id int) *WithoutFieldsDeleteOne {
 
 // Query returns a query builder for WithoutFields.
 func (c *WithoutFieldsClient) Query() *WithoutFieldsQuery {
-	return &WithoutFieldsQuery{config: c.config}
+	return &WithoutFieldsQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a WithoutFields entity by its id.

@@ -27,9 +27,9 @@ func (*InvalidFieldMessage) scanValues(columns []string) ([]interface{}, error) 
 	for i := range columns {
 		switch columns[i] {
 		case invalidfieldmessage.FieldJSON:
-			values[i] = &[]byte{}
+			values[i] = new([]byte)
 		case invalidfieldmessage.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type InvalidFieldMessage", columns[i])
 		}

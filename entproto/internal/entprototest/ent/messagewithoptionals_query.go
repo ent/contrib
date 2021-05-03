@@ -20,6 +20,7 @@ type MessageWithOptionalsQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.MessageWithOptionals
@@ -43,6 +44,13 @@ func (mwoq *MessageWithOptionalsQuery) Limit(limit int) *MessageWithOptionalsQue
 // Offset adds an offset step to the query.
 func (mwoq *MessageWithOptionalsQuery) Offset(offset int) *MessageWithOptionalsQuery {
 	mwoq.offset = &offset
+	return mwoq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (mwoq *MessageWithOptionalsQuery) Unique(unique bool) *MessageWithOptionalsQuery {
+	mwoq.unique = &unique
 	return mwoq
 }
 
@@ -352,6 +360,9 @@ func (mwoq *MessageWithOptionalsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwoq.sql,
 		Unique: true,
 	}
+	if unique := mwoq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := mwoq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithoptionals.FieldID)
@@ -377,7 +388,7 @@ func (mwoq *MessageWithOptionalsQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := mwoq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, messagewithoptionals.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (mwoq *MessageWithOptionalsQuery) sqlQuery(ctx context.Context) *sql.Select
 		p(selector)
 	}
 	for _, p := range mwoq.order {
-		p(selector, messagewithoptionals.ValidColumn)
+		p(selector)
 	}
 	if offset := mwoq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (mwogb *MessageWithOptionalsGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(mwogb.fields)+len(mwogb.fns))
 	columns = append(columns, mwogb.fields...)
 	for _, fn := range mwogb.fns {
-		columns = append(columns, fn(selector, messagewithoptionals.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(mwogb.fields...)
 }
