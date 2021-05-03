@@ -161,12 +161,25 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	if len(desc.SchemaType) > 0 {
 		builder.method("SchemaType", strMapLit(desc.SchemaType))
 	}
+	if len(desc.Annotations) != 0 {
+		annots := make([]ast.Expr, 0, len(desc.Annotations))
+		for _, annot := range desc.Annotations {
+			a, shouldAdd, err := Annotation(annot)
+			if err != nil {
+				return nil, err
+			}
+			if !shouldAdd {
+				continue
+			}
+			annots = append(annots, a)
+		}
+		if len(annots) > 0 {
+			builder.method("Annotations", annots...)
+		}
+	}
 
 	// Unsupported features
 	var unsupported error
-	if len(desc.Annotations) != 0 {
-		unsupported = combineUnsupported(unsupported, "Descriptor.Annotations")
-	}
 	if len(desc.Validators) != 0 {
 		unsupported = combineUnsupported(unsupported, "Descriptor.Validators")
 	}
@@ -237,7 +250,10 @@ func extractFieldName(fd *ast.CallExpr) (string, error) {
 
 func (c *Context) AddType(typeName string) error {
 	body := fmt.Sprintf(`package schema
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+)
 type %s struct {
 	ent.Schema
 }
@@ -247,7 +263,10 @@ func (%s) Fields() []ent.Field {
 func (%s) Edges() []ent.Edge {
 	return nil
 }
-`, typeName, typeName, typeName)
+func (%s) Annotations() []schema.Annotation {
+	return nil
+}
+`, typeName, typeName, typeName, typeName)
 	fn := inflect.Underscore(typeName) + ".go"
 	f, err := parser.ParseFile(c.SchemaPackage.Fset, fn, body, 0)
 	if err != nil {

@@ -167,3 +167,36 @@ func TestAnnotation(t *testing.T) {
 		})
 	}
 }
+
+func TestContext_AnnotateType(t *testing.T) {
+	tt, err := newPrintTest(t)
+	require.NoError(t, err)
+	err = tt.ctx.AddType("NewType")
+	require.NoError(t, err)
+	err = tt.ctx.AppendTypeAnnotation("NewType", entproto.Message())
+	require.NoError(t, err)
+
+	require.NoError(t, tt.print())
+	require.NoError(t, tt.load())
+	nt := tt.getType("NewType")
+	require.Len(t, nt.Annotations, 1)
+	contents := tt.getContents("new_type.go")
+	require.Contains(t, contents, `func (NewType) Annotations() []schema.Annotation {
+	return []schema.Annotation{entproto.Message()}
+}`)
+}
+
+func TestContext_AnnotateTypeExisting(t *testing.T) {
+	tt, err := newPrintTest(t)
+	require.NoError(t, err)
+	err = tt.ctx.AppendTypeAnnotation("Message", entproto.Message())
+	require.NoError(t, err)
+	require.NoError(t, tt.print())
+	require.NoError(t, tt.load())
+	nt := tt.getType("Message")
+	require.Len(t, nt.Annotations, 1)
+	contents := tt.getContents("message.go")
+	require.Contains(t, contents, `func (Message) Annotations() []schema.Annotation {
+	return []schema.Annotation{entproto.Message()}
+}`)
+}

@@ -139,3 +139,9 @@ func (p *printTest) getType(name string) *gen.Type {
 	}
 	return nil
 }
+
+func (p *printTest) getContents(fname string) string {
+	file, err := ioutil.ReadFile(filepath.Join(p.schemaDir(), fname))
+	require.NoError(p.t, err)
+	return string(file)
+}

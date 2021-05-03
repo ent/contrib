@@ -14,7 +14,10 @@
 
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+)
 
 // Message holds the schema definition for the Message entity.
 type Message struct {
@@ -28,5 +31,9 @@ func (Message) Fields() []ent.Field {
 
 // Edges of the Message.
 func (Message) Edges() []ent.Edge {
+	return nil
+}
+
+func (Message) Annotations() []schema.Annotation {
 	return nil
 }
