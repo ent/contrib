@@ -78,6 +78,20 @@ func (c *Context) lookupMethod(typeName string, methodName string) (*ast.FuncDec
 	}
 }
 
+func (c *Context) returnStmt(typeName, method string) (*ast.ReturnStmt, error) {
+	fd, err := c.lookupMethod(typeName, method)
+	if err != nil {
+		return nil, err
+	}
+	if len(fd.Body.List) != 1 {
+		return nil, fmt.Errorf("schmeast: %s() func body must have a single element", method)
+	}
+	if _, ok := fd.Body.List[0].(*ast.ReturnStmt); !ok {
+		return nil, fmt.Errorf("schmeast: %s() func body must contain a return statement", method)
+	}
+	return fd.Body.List[0].(*ast.ReturnStmt), err
+}
+
 // Load loads a *schemast.Context from a path.
 func Load(path string) (*Context, error) {
 	pkgs, err := packages.Load(&packages.Config{

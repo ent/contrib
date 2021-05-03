@@ -52,17 +52,17 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 			return err
 		}
 	}
-	fieldsReturn, err := ctx.fieldsReturnStmt(u.Name)
+	fieldsReturn, err := ctx.returnStmt(u.Name, "Fields")
 	if err != nil {
 		return err
 	}
 	fieldsReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset fields.
-	edgesReturn, err := ctx.edgesReturnStmt(u.Name)
+	edgesReturn, err := ctx.returnStmt(u.Name, "Edges")
 	if err != nil {
 		return err
 	}
 	edgesReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset edges.
-	annotReturn, err := ctx.annotReturnStmt(u.Name)
+	annotReturn, err := ctx.returnStmt(u.Name, "Annotations")
 	if err != nil {
 		return err
 	}

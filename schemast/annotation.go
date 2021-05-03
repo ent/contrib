@@ -57,7 +57,7 @@ func Annotation(annot schema.Annotation) (ast.Expr, bool, error) {
 }
 
 func (c *Context) AppendTypeAnnotation(typeName string, annot schema.Annotation) error {
-	stmt, err := c.annotReturnStmt(typeName)
+	stmt, err := c.returnStmt(typeName, "Annotations")
 	if err != nil {
 		return err
 	}
@@ -68,48 +68,7 @@ func (c *Context) AppendTypeAnnotation(typeName string, annot schema.Annotation)
 	if !shouldAdd {
 		return nil
 	}
-	returned := stmt.Results[0]
-	switch r := returned.(type) {
-	case *ast.Ident:
-		if r.Name == "nil" {
-			stmt.Results = []ast.Expr{
-				newAnnotSliceWith(newAnnot),
-			}
-			return nil
-		}
-		return fmt.Errorf("schemast: unexpected ident. expected nil got %s", r.Name)
-	case *ast.CompositeLit:
-		r.Elts = append(r.Elts, newAnnot)
-		return nil
-	default:
-		return fmt.Errorf("schemast: unexpected AST component type %T", r)
-	}
-}
-
-func (c *Context) annotReturnStmt(typeName string) (*ast.ReturnStmt, error) {
-	fd, err := c.lookupMethod(typeName, "Annotations")
-	if err != nil {
-		return nil, err
-	}
-	if len(fd.Body.List) != 1 {
-		return nil, fmt.Errorf("schmeast: Annotations() func body must have a single element")
-	}
-	if _, ok := fd.Body.List[0].(*ast.ReturnStmt); !ok {
-		return nil, fmt.Errorf("schmeast: Annotations() func body must contain a return statement")
-	}
-	return fd.Body.List[0].(*ast.ReturnStmt), err
-}
-
-func newAnnotSliceWith(annotations ...ast.Expr) *ast.CompositeLit {
-	return &ast.CompositeLit{
-		Type: &ast.ArrayType{
-			Elt: &ast.SelectorExpr{
-				X:   ast.NewIdent("schema"),
-				Sel: ast.NewIdent("Annotation"),
-			},
-		},
-		Elts: annotations,
-	}
+	return appendToReturn(stmt, selectorLit("schema", "Annotation"), newAnnot)
 }
 
 func protoMsg(annot schema.Annotation) (ast.Expr, bool, error) {
