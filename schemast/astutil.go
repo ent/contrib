@@ -70,6 +70,23 @@ func strLit(lit string) ast.Expr {
 	}
 }
 
+func structAttr(name string, val ast.Expr) ast.Expr {
+	return &ast.KeyValueExpr{
+		Key: &ast.BasicLit{
+			Kind:  token.STRING,
+			Value: name,
+		},
+		Value: val,
+	}
+}
+
+func intLit(lit int) ast.Expr {
+	return &ast.BasicLit{
+		Kind:  token.INT,
+		Value: strconv.Itoa(lit),
+	}
+}
+
 func selectorLit(x, sel string) *ast.SelectorExpr {
 	return &ast.SelectorExpr{
 		X:   ast.NewIdent(x),

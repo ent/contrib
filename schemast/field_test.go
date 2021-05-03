@@ -127,7 +127,7 @@ type SomeJSON struct {
 
 type annotation string
 
-func (annotation) Name() string { return "" }
+func (a annotation) Name() string { return string(a) }
 
 func TestAppendField(t *testing.T) {
 	tests := []struct {
