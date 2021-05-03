@@ -22,6 +22,7 @@ type AttachmentQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Attachment
@@ -48,6 +49,13 @@ func (aq *AttachmentQuery) Limit(limit int) *AttachmentQuery {
 // Offset adds an offset step to the query.
 func (aq *AttachmentQuery) Offset(offset int) *AttachmentQuery {
 	aq.offset = &offset
+	return aq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (aq *AttachmentQuery) Unique(unique bool) *AttachmentQuery {
+	aq.unique = &unique
 	return aq
 }
 
@@ -354,11 +362,14 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context) ([]*Attachment, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Attachment)
 		for i := range nodes {
-			fk := nodes[i].user_attachment
-			if fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			if nodes[i].user_attachment == nil {
+				continue
 			}
+			fk := *nodes[i].user_attachment
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
 		query.Where(user.IDIn(ids...))
 		neighbors, err := query.All(ctx)
@@ -405,6 +416,9 @@ func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   aq.sql,
 		Unique: true,
 	}
+	if unique := aq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := aq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, attachment.FieldID)
@@ -430,7 +444,7 @@ func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := aq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, attachment.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -449,7 +463,7 @@ func (aq *AttachmentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range aq.order {
-		p(selector, attachment.ValidColumn)
+		p(selector)
 	}
 	if offset := aq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -715,7 +729,7 @@ func (agb *AttachmentGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(agb.fields)+len(agb.fns))
 	columns = append(columns, agb.fields...)
 	for _, fn := range agb.fns {
-		columns = append(columns, fn(selector, attachment.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(agb.fields...)
 }

@@ -141,6 +141,7 @@ func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err
 // MessageWithFieldOneUpdateOne is the builder for updating a single MessageWithFieldOne entity.
 type MessageWithFieldOneUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *MessageWithFieldOneMutation
 }
@@ -161,6 +162,13 @@ func (mwfouo *MessageWithFieldOneUpdateOne) AddFieldOne(i int32) *MessageWithFie
 // Mutation returns the MessageWithFieldOneMutation object of the builder.
 func (mwfouo *MessageWithFieldOneUpdateOne) Mutation() *MessageWithFieldOneMutation {
 	return mwfouo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (mwfouo *MessageWithFieldOneUpdateOne) Select(field string, fields ...string) *MessageWithFieldOneUpdateOne {
+	mwfouo.fields = append([]string{field}, fields...)
+	return mwfouo
 }
 
 // Save executes the query and returns the updated MessageWithFieldOne entity.
@@ -230,6 +238,18 @@ func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node 
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MessageWithFieldOne.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := mwfouo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, messagewithfieldone.FieldID)
+		for _, f := range fields {
+			if !messagewithfieldone.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != messagewithfieldone.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := mwfouo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

@@ -20,6 +20,7 @@ type MessageWithIDQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.MessageWithID
@@ -43,6 +44,13 @@ func (mwiq *MessageWithIDQuery) Limit(limit int) *MessageWithIDQuery {
 // Offset adds an offset step to the query.
 func (mwiq *MessageWithIDQuery) Offset(offset int) *MessageWithIDQuery {
 	mwiq.offset = &offset
+	return mwiq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (mwiq *MessageWithIDQuery) Unique(unique bool) *MessageWithIDQuery {
+	mwiq.unique = &unique
 	return mwiq
 }
 
@@ -328,6 +336,9 @@ func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwiq.sql,
 		Unique: true,
 	}
+	if unique := mwiq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := mwiq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithid.FieldID)
@@ -353,7 +364,7 @@ func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := mwiq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, messagewithid.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -372,7 +383,7 @@ func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range mwiq.order {
-		p(selector, messagewithid.ValidColumn)
+		p(selector)
 	}
 	if offset := mwiq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -638,7 +649,7 @@ func (mwigb *MessageWithIDGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(mwigb.fields)+len(mwigb.fns))
 	columns = append(columns, mwigb.fields...)
 	for _, fn := range mwigb.fns {
-		columns = append(columns, fn(selector, messagewithid.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(mwigb.fields...)
 }

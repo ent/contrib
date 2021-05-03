@@ -406,6 +406,7 @@ func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err
 // MessageWithOptionalsUpdateOne is the builder for updating a single MessageWithOptionals entity.
 type MessageWithOptionalsUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *MessageWithOptionalsMutation
 }
@@ -580,6 +581,13 @@ func (mwouo *MessageWithOptionalsUpdateOne) Mutation() *MessageWithOptionalsMuta
 	return mwouo.mutation
 }
 
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (mwouo *MessageWithOptionalsUpdateOne) Select(field string, fields ...string) *MessageWithOptionalsUpdateOne {
+	mwouo.fields = append([]string{field}, fields...)
+	return mwouo
+}
+
 // Save executes the query and returns the updated MessageWithOptionals entity.
 func (mwouo *MessageWithOptionalsUpdateOne) Save(ctx context.Context) (*MessageWithOptionals, error) {
 	var (
@@ -647,6 +655,18 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MessageWithOptionals.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := mwouo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, messagewithoptionals.FieldID)
+		for _, f := range fields {
+			if !messagewithoptionals.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != messagewithoptionals.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := mwouo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

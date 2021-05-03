@@ -210,7 +210,9 @@ func (c *AttachmentClient) DeleteOneID(id uuid.UUID) *AttachmentDeleteOne {
 
 // Query returns a query builder for Attachment.
 func (c *AttachmentClient) Query() *AttachmentQuery {
-	return &AttachmentQuery{config: c.config}
+	return &AttachmentQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Attachment entity by its id.
@@ -314,7 +316,9 @@ func (c *GroupClient) DeleteOneID(id int) *GroupDeleteOne {
 
 // Query returns a query builder for Group.
 func (c *GroupClient) Query() *GroupQuery {
-	return &GroupQuery{config: c.config}
+	return &GroupQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Group entity by its id.
@@ -418,7 +422,9 @@ func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
 
 // Query returns a query builder for Todo.
 func (c *TodoClient) Query() *TodoQuery {
-	return &TodoQuery{config: c.config}
+	return &TodoQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Todo entity by its id.
@@ -522,7 +528,9 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 
 // Query returns a query builder for User.
 func (c *UserClient) Query() *UserQuery {
-	return &UserQuery{config: c.config}
+	return &UserQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a User entity by its id.

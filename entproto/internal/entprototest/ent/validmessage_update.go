@@ -229,6 +229,7 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ValidMessageUpdateOne is the builder for updating a single ValidMessage entity.
 type ValidMessageUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *ValidMessageMutation
 }
@@ -294,6 +295,13 @@ func (vmuo *ValidMessageUpdateOne) ClearOpti8() *ValidMessageUpdateOne {
 // Mutation returns the ValidMessageMutation object of the builder.
 func (vmuo *ValidMessageUpdateOne) Mutation() *ValidMessageMutation {
 	return vmuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (vmuo *ValidMessageUpdateOne) Select(field string, fields ...string) *ValidMessageUpdateOne {
+	vmuo.fields = append([]string{field}, fields...)
+	return vmuo
 }
 
 // Save executes the query and returns the updated ValidMessage entity.
@@ -363,6 +371,18 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ValidMessage.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := vmuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, validmessage.FieldID)
+		for _, f := range fields {
+			if !validmessage.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != validmessage.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := vmuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

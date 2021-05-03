@@ -55,11 +55,11 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case todo.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case todo.FieldTask, todo.FieldStatus:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case todo.ForeignKeys[0]: // todo_user
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
 		}

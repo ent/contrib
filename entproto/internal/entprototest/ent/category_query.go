@@ -22,6 +22,7 @@ type CategoryQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Category
@@ -47,6 +48,13 @@ func (cq *CategoryQuery) Limit(limit int) *CategoryQuery {
 // Offset adds an offset step to the query.
 func (cq *CategoryQuery) Offset(offset int) *CategoryQuery {
 	cq.offset = &offset
+	return cq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (cq *CategoryQuery) Unique(unique bool) *CategoryQuery {
+	cq.unique = &unique
 	return cq
 }
 
@@ -387,7 +395,6 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 			Predicate: func(s *sql.Selector) {
 				s.Where(sql.InValues(category.BlogPostsPrimaryKey[0], fks...))
 			},
-
 			ScanValues: func() [2]interface{} {
 				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
 			},
@@ -406,7 +413,9 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
 				}
-				edgeids = append(edgeids, inValue)
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
 				edges[inValue] = append(edges[inValue], node)
 				return nil
 			},
@@ -459,6 +468,9 @@ func (cq *CategoryQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   cq.sql,
 		Unique: true,
 	}
+	if unique := cq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := cq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, category.FieldID)
@@ -484,7 +496,7 @@ func (cq *CategoryQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := cq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, category.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -503,7 +515,7 @@ func (cq *CategoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range cq.order {
-		p(selector, category.ValidColumn)
+		p(selector)
 	}
 	if offset := cq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -769,7 +781,7 @@ func (cgb *CategoryGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(cgb.fields)+len(cgb.fns))
 	columns = append(columns, cgb.fields...)
 	for _, fn := range cgb.fns {
-		columns = append(columns, fn(selector, category.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(cgb.fields...)
 }

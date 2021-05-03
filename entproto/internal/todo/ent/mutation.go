@@ -142,7 +142,7 @@ func (m *AttachmentMutation) ClearUser() {
 	m.cleareduser = true
 }
 
-// UserCleared returns if the "user" edge to the User entity was cleared.
+// UserCleared reports if the "user" edge to the User entity was cleared.
 func (m *AttachmentMutation) UserCleared() bool {
 	return m.cleareduser
 }
@@ -479,7 +479,7 @@ func (m *GroupMutation) ClearUsers() {
 	m.clearedusers = true
 }
 
-// UsersCleared returns if the "users" edge to the User entity was cleared.
+// UsersCleared reports if the "users" edge to the User entity was cleared.
 func (m *GroupMutation) UsersCleared() bool {
 	return m.clearedusers
 }
@@ -889,7 +889,7 @@ func (m *TodoMutation) ClearUser() {
 	m.cleareduser = true
 }
 
-// UserCleared returns if the "user" edge to the User entity was cleared.
+// UserCleared reports if the "user" edge to the User entity was cleared.
 func (m *TodoMutation) UserCleared() bool {
 	return m.cleareduser
 }
@@ -1816,7 +1816,7 @@ func (m *UserMutation) ClearGroup() {
 	m.clearedgroup = true
 }
 
-// GroupCleared returns if the "group" edge to the Group entity was cleared.
+// GroupCleared reports if the "group" edge to the Group entity was cleared.
 func (m *UserMutation) GroupCleared() bool {
 	return m.clearedgroup
 }
@@ -1855,7 +1855,7 @@ func (m *UserMutation) ClearAttachment() {
 	m.clearedattachment = true
 }
 
-// AttachmentCleared returns if the "attachment" edge to the Attachment entity was cleared.
+// AttachmentCleared reports if the "attachment" edge to the Attachment entity was cleared.
 func (m *UserMutation) AttachmentCleared() bool {
 	return m.clearedattachment
 }

@@ -225,6 +225,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TodoUpdateOne is the builder for updating a single Todo entity.
 type TodoUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *TodoMutation
 }
@@ -276,6 +277,13 @@ func (tuo *TodoUpdateOne) Mutation() *TodoMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (tuo *TodoUpdateOne) ClearUser() *TodoUpdateOne {
 	tuo.mutation.ClearUser()
+	return tuo
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (tuo *TodoUpdateOne) Select(field string, fields ...string) *TodoUpdateOne {
+	tuo.fields = append([]string{field}, fields...)
 	return tuo
 }
 
@@ -362,6 +370,18 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Todo.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := tuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, todo.FieldID)
+		for _, f := range fields {
+			if !todo.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != todo.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := tuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

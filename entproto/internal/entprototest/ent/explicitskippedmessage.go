@@ -23,7 +23,7 @@ func (*ExplicitSkippedMessage) scanValues(columns []string) ([]interface{}, erro
 	for i := range columns {
 		switch columns[i] {
 		case explicitskippedmessage.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ExplicitSkippedMessage", columns[i])
 		}

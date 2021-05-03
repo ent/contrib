@@ -21,6 +21,7 @@ type WithModifiedFieldQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.WithModifiedField
@@ -47,6 +48,13 @@ func (wmfq *WithModifiedFieldQuery) Limit(limit int) *WithModifiedFieldQuery {
 // Offset adds an offset step to the query.
 func (wmfq *WithModifiedFieldQuery) Offset(offset int) *WithModifiedFieldQuery {
 	wmfq.offset = &offset
+	return wmfq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (wmfq *WithModifiedFieldQuery) Unique(unique bool) *WithModifiedFieldQuery {
+	wmfq.unique = &unique
 	return wmfq
 }
 
@@ -377,11 +385,14 @@ func (wmfq *WithModifiedFieldQuery) sqlAll(ctx context.Context) ([]*WithModified
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*WithModifiedField)
 		for i := range nodes {
-			fk := nodes[i].with_modified_field_owner
-			if fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			if nodes[i].with_modified_field_owner == nil {
+				continue
 			}
+			fk := *nodes[i].with_modified_field_owner
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
 		query.Where(user.IDIn(ids...))
 		neighbors, err := query.All(ctx)
@@ -428,6 +439,9 @@ func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wmfq.sql,
 		Unique: true,
 	}
+	if unique := wmfq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := wmfq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withmodifiedfield.FieldID)
@@ -453,7 +467,7 @@ func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := wmfq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, withmodifiedfield.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -472,7 +486,7 @@ func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector 
 		p(selector)
 	}
 	for _, p := range wmfq.order {
-		p(selector, withmodifiedfield.ValidColumn)
+		p(selector)
 	}
 	if offset := wmfq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -738,7 +752,7 @@ func (wmfgb *WithModifiedFieldGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wmfgb.fields)+len(wmfgb.fns))
 	columns = append(columns, wmfgb.fields...)
 	for _, fn := range wmfgb.fns {
-		columns = append(columns, fn(selector, withmodifiedfield.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wmfgb.fields...)
 }

@@ -20,6 +20,7 @@ type MessageWithPackageNameQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.MessageWithPackageName
@@ -43,6 +44,13 @@ func (mwpnq *MessageWithPackageNameQuery) Limit(limit int) *MessageWithPackageNa
 // Offset adds an offset step to the query.
 func (mwpnq *MessageWithPackageNameQuery) Offset(offset int) *MessageWithPackageNameQuery {
 	mwpnq.offset = &offset
+	return mwpnq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (mwpnq *MessageWithPackageNameQuery) Unique(unique bool) *MessageWithPackageNameQuery {
+	mwpnq.unique = &unique
 	return mwpnq
 }
 
@@ -352,6 +360,9 @@ func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwpnq.sql,
 		Unique: true,
 	}
+	if unique := mwpnq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := mwpnq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithpackagename.FieldID)
@@ -377,7 +388,7 @@ func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := mwpnq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, messagewithpackagename.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Sel
 		p(selector)
 	}
 	for _, p := range mwpnq.order {
-		p(selector, messagewithpackagename.ValidColumn)
+		p(selector)
 	}
 	if offset := mwpnq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (mwpngb *MessageWithPackageNameGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(mwpngb.fields)+len(mwpngb.fns))
 	columns = append(columns, mwpngb.fields...)
 	for _, fn := range mwpngb.fns {
-		columns = append(columns, fn(selector, messagewithpackagename.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(mwpngb.fields...)
 }

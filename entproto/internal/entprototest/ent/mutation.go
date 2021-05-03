@@ -293,7 +293,7 @@ func (m *BlogPostMutation) ClearAuthor() {
 	m.clearedauthor = true
 }
 
-// AuthorCleared returns if the "author" edge to the User entity was cleared.
+// AuthorCleared reports if the "author" edge to the User entity was cleared.
 func (m *BlogPostMutation) AuthorCleared() bool {
 	return m.clearedauthor
 }
@@ -337,7 +337,7 @@ func (m *BlogPostMutation) ClearCategories() {
 	m.clearedcategories = true
 }
 
-// CategoriesCleared returns if the "categories" edge to the Category entity was cleared.
+// CategoriesCleared reports if the "categories" edge to the Category entity was cleared.
 func (m *BlogPostMutation) CategoriesCleared() bool {
 	return m.clearedcategories
 }
@@ -820,7 +820,7 @@ func (m *CategoryMutation) ClearBlogPosts() {
 	m.clearedblog_posts = true
 }
 
-// BlogPostsCleared returns if the "blog_posts" edge to the BlogPost entity was cleared.
+// BlogPostsCleared reports if the "blog_posts" edge to the BlogPost entity was cleared.
 func (m *CategoryMutation) BlogPostsCleared() bool {
 	return m.clearedblog_posts
 }
@@ -1216,7 +1216,7 @@ func (m *DependsOnSkippedMutation) ClearSkipped() {
 	m.clearedskipped = true
 }
 
-// SkippedCleared returns if the "skipped" edge to the ImplicitSkippedMessage entity was cleared.
+// SkippedCleared reports if the "skipped" edge to the ImplicitSkippedMessage entity was cleared.
 func (m *DependsOnSkippedMutation) SkippedCleared() bool {
 	return m.clearedskipped
 }
@@ -2167,7 +2167,7 @@ func (m *ImageMutation) ClearUserProfilePic() {
 	m.cleareduser_profile_pic = true
 }
 
-// UserProfilePicCleared returns if the "user_profile_pic" edge to the User entity was cleared.
+// UserProfilePicCleared reports if the "user_profile_pic" edge to the User entity was cleared.
 func (m *ImageMutation) UserProfilePicCleared() bool {
 	return m.cleareduser_profile_pic
 }
@@ -5196,7 +5196,7 @@ func (m *PortalMutation) ClearCategory() {
 	m.clearedcategory = true
 }
 
-// CategoryCleared returns if the "category" edge to the Category entity was cleared.
+// CategoryCleared reports if the "category" edge to the Category entity was cleared.
 func (m *PortalMutation) CategoryCleared() bool {
 	return m.clearedcategory
 }
@@ -5614,7 +5614,7 @@ func (m *UserMutation) ClearBlogPosts() {
 	m.clearedblog_posts = true
 }
 
-// BlogPostsCleared returns if the "blog_posts" edge to the BlogPost entity was cleared.
+// BlogPostsCleared reports if the "blog_posts" edge to the BlogPost entity was cleared.
 func (m *UserMutation) BlogPostsCleared() bool {
 	return m.clearedblog_posts
 }
@@ -5662,7 +5662,7 @@ func (m *UserMutation) ClearProfilePic() {
 	m.clearedprofile_pic = true
 }
 
-// ProfilePicCleared returns if the "profile_pic" edge to the Image entity was cleared.
+// ProfilePicCleared reports if the "profile_pic" edge to the Image entity was cleared.
 func (m *UserMutation) ProfilePicCleared() bool {
 	return m.clearedprofile_pic
 }

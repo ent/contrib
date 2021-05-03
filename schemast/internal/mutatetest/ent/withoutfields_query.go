@@ -20,6 +20,7 @@ type WithoutFieldsQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.WithoutFields
@@ -43,6 +44,13 @@ func (wfq *WithoutFieldsQuery) Limit(limit int) *WithoutFieldsQuery {
 // Offset adds an offset step to the query.
 func (wfq *WithoutFieldsQuery) Offset(offset int) *WithoutFieldsQuery {
 	wfq.offset = &offset
+	return wfq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (wfq *WithoutFieldsQuery) Unique(unique bool) *WithoutFieldsQuery {
+	wfq.unique = &unique
 	return wfq
 }
 
@@ -328,6 +336,9 @@ func (wfq *WithoutFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wfq.sql,
 		Unique: true,
 	}
+	if unique := wfq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := wfq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withoutfields.FieldID)
@@ -353,7 +364,7 @@ func (wfq *WithoutFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := wfq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, withoutfields.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -372,7 +383,7 @@ func (wfq *WithoutFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range wfq.order {
-		p(selector, withoutfields.ValidColumn)
+		p(selector)
 	}
 	if offset := wfq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -638,7 +649,7 @@ func (wfgb *WithoutFieldsGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wfgb.fields)+len(wfgb.fns))
 	columns = append(columns, wfgb.fields...)
 	for _, fn := range wfgb.fns {
-		columns = append(columns, fn(selector, withoutfields.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wfgb.fields...)
 }

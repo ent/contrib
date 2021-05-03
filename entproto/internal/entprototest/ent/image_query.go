@@ -23,6 +23,7 @@ type ImageQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Image
@@ -48,6 +49,13 @@ func (iq *ImageQuery) Limit(limit int) *ImageQuery {
 // Offset adds an offset step to the query.
 func (iq *ImageQuery) Offset(offset int) *ImageQuery {
 	iq.offset = &offset
+	return iq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (iq *ImageQuery) Unique(unique bool) *ImageQuery {
+	iq.unique = &unique
 	return iq
 }
 
@@ -425,6 +433,9 @@ func (iq *ImageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   iq.sql,
 		Unique: true,
 	}
+	if unique := iq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := iq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, image.FieldID)
@@ -450,7 +461,7 @@ func (iq *ImageQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := iq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, image.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -469,7 +480,7 @@ func (iq *ImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range iq.order {
-		p(selector, image.ValidColumn)
+		p(selector)
 	}
 	if offset := iq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -735,7 +746,7 @@ func (igb *ImageGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(igb.fields)+len(igb.fns))
 	columns = append(columns, igb.fields...)
 	for _, fn := range igb.fns {
-		columns = append(columns, fn(selector, image.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(igb.fields...)
 }

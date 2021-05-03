@@ -25,7 +25,7 @@ func (*MessageWithFieldOne) scanValues(columns []string) ([]interface{}, error) 
 	for i := range columns {
 		switch columns[i] {
 		case messagewithfieldone.FieldID, messagewithfieldone.FieldFieldOne:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type MessageWithFieldOne", columns[i])
 		}

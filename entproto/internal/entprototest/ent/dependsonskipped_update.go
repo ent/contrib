@@ -218,6 +218,7 @@ func (dosu *DependsOnSkippedUpdate) sqlSave(ctx context.Context) (n int, err err
 // DependsOnSkippedUpdateOne is the builder for updating a single DependsOnSkipped entity.
 type DependsOnSkippedUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *DependsOnSkippedMutation
 }
@@ -267,6 +268,13 @@ func (dosuo *DependsOnSkippedUpdateOne) RemoveSkipped(i ...*ImplicitSkippedMessa
 		ids[j] = i[j].ID
 	}
 	return dosuo.RemoveSkippedIDs(ids...)
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (dosuo *DependsOnSkippedUpdateOne) Select(field string, fields ...string) *DependsOnSkippedUpdateOne {
+	dosuo.fields = append([]string{field}, fields...)
+	return dosuo
 }
 
 // Save executes the query and returns the updated DependsOnSkipped entity.
@@ -336,6 +344,18 @@ func (dosuo *DependsOnSkippedUpdateOne) sqlSave(ctx context.Context) (_node *Dep
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing DependsOnSkipped.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := dosuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, dependsonskipped.FieldID)
+		for _, f := range fields {
+			if !dependsonskipped.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != dependsonskipped.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := dosuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

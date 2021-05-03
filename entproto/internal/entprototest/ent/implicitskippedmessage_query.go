@@ -20,6 +20,7 @@ type ImplicitSkippedMessageQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.ImplicitSkippedMessage
@@ -44,6 +45,13 @@ func (ismq *ImplicitSkippedMessageQuery) Limit(limit int) *ImplicitSkippedMessag
 // Offset adds an offset step to the query.
 func (ismq *ImplicitSkippedMessageQuery) Offset(offset int) *ImplicitSkippedMessageQuery {
 	ismq.offset = &offset
+	return ismq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (ismq *ImplicitSkippedMessageQuery) Unique(unique bool) *ImplicitSkippedMessageQuery {
+	ismq.unique = &unique
 	return ismq
 }
 
@@ -333,6 +341,9 @@ func (ismq *ImplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   ismq.sql,
 		Unique: true,
 	}
+	if unique := ismq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := ismq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, implicitskippedmessage.FieldID)
@@ -358,7 +369,7 @@ func (ismq *ImplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := ismq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, implicitskippedmessage.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -377,7 +388,7 @@ func (ismq *ImplicitSkippedMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 		p(selector)
 	}
 	for _, p := range ismq.order {
-		p(selector, implicitskippedmessage.ValidColumn)
+		p(selector)
 	}
 	if offset := ismq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -643,7 +654,7 @@ func (ismgb *ImplicitSkippedMessageGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(ismgb.fields)+len(ismgb.fns))
 	columns = append(columns, ismgb.fields...)
 	for _, fn := range ismgb.fns {
-		columns = append(columns, fn(selector, implicitskippedmessage.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(ismgb.fields...)
 }

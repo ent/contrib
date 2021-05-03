@@ -20,6 +20,7 @@ type InvalidFieldMessageQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.InvalidFieldMessage
@@ -43,6 +44,13 @@ func (ifmq *InvalidFieldMessageQuery) Limit(limit int) *InvalidFieldMessageQuery
 // Offset adds an offset step to the query.
 func (ifmq *InvalidFieldMessageQuery) Offset(offset int) *InvalidFieldMessageQuery {
 	ifmq.offset = &offset
+	return ifmq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (ifmq *InvalidFieldMessageQuery) Unique(unique bool) *InvalidFieldMessageQuery {
+	ifmq.unique = &unique
 	return ifmq
 }
 
@@ -352,6 +360,9 @@ func (ifmq *InvalidFieldMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   ifmq.sql,
 		Unique: true,
 	}
+	if unique := ifmq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := ifmq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, invalidfieldmessage.FieldID)
@@ -377,7 +388,7 @@ func (ifmq *InvalidFieldMessageQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := ifmq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, invalidfieldmessage.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -396,7 +407,7 @@ func (ifmq *InvalidFieldMessageQuery) sqlQuery(ctx context.Context) *sql.Selecto
 		p(selector)
 	}
 	for _, p := range ifmq.order {
-		p(selector, invalidfieldmessage.ValidColumn)
+		p(selector)
 	}
 	if offset := ifmq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -662,7 +673,7 @@ func (ifmgb *InvalidFieldMessageGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(ifmgb.fields)+len(ifmgb.fns))
 	columns = append(columns, ifmgb.fields...)
 	for _, fn := range ifmgb.fns {
-		columns = append(columns, fn(selector, invalidfieldmessage.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(ifmgb.fields...)
 }

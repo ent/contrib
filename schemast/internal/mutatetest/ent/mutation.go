@@ -682,7 +682,7 @@ func (m *WithModifiedFieldMutation) ClearOwner() {
 	m.clearedowner = true
 }
 
-// OwnerCleared returns if the "owner" edge to the User entity was cleared.
+// OwnerCleared reports if the "owner" edge to the User entity was cleared.
 func (m *WithModifiedFieldMutation) OwnerCleared() bool {
 	return m.clearedowner
 }

@@ -203,7 +203,9 @@ func (c *TodoClient) DeleteOneID(id pulid.ID) *TodoDeleteOne {
 
 // Query returns a query builder for Todo.
 func (c *TodoClient) Query() *TodoQuery {
-	return &TodoQuery{config: c.config}
+	return &TodoQuery{
+		config: c.config,
+	}
 }
 
 // Get returns a Todo entity by its id.

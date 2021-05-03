@@ -32,11 +32,11 @@ func (*Task) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case task.FieldComplete:
-			values[i] = &sql.NullBool{}
+			values[i] = new(sql.NullBool)
 		case task.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case task.FieldTitle, task.FieldDescription, task.FieldSignature:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Task", columns[i])
 		}

@@ -140,6 +140,7 @@ func (dnmu *DuplicateNumberMessageUpdate) sqlSave(ctx context.Context) (n int, e
 // DuplicateNumberMessageUpdateOne is the builder for updating a single DuplicateNumberMessage entity.
 type DuplicateNumberMessageUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *DuplicateNumberMessageMutation
 }
@@ -159,6 +160,13 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) SetWorld(s string) *DuplicateNumbe
 // Mutation returns the DuplicateNumberMessageMutation object of the builder.
 func (dnmuo *DuplicateNumberMessageUpdateOne) Mutation() *DuplicateNumberMessageMutation {
 	return dnmuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (dnmuo *DuplicateNumberMessageUpdateOne) Select(field string, fields ...string) *DuplicateNumberMessageUpdateOne {
+	dnmuo.fields = append([]string{field}, fields...)
+	return dnmuo
 }
 
 // Save executes the query and returns the updated DuplicateNumberMessage entity.
@@ -228,6 +236,18 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing DuplicateNumberMessage.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := dnmuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, duplicatenumbermessage.FieldID)
+		for _, f := range fields {
+			if !duplicatenumbermessage.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != duplicatenumbermessage.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := dnmuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

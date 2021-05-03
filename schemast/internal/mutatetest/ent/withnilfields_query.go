@@ -20,6 +20,7 @@ type WithNilFieldsQuery struct {
 	config
 	limit      *int
 	offset     *int
+	unique     *bool
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.WithNilFields
@@ -43,6 +44,13 @@ func (wnfq *WithNilFieldsQuery) Limit(limit int) *WithNilFieldsQuery {
 // Offset adds an offset step to the query.
 func (wnfq *WithNilFieldsQuery) Offset(offset int) *WithNilFieldsQuery {
 	wnfq.offset = &offset
+	return wnfq
+}
+
+// Unique configures the query builder to filter duplicate records on query.
+// By default, unique is set to true, and can be disabled using this method.
+func (wnfq *WithNilFieldsQuery) Unique(unique bool) *WithNilFieldsQuery {
+	wnfq.unique = &unique
 	return wnfq
 }
 
@@ -328,6 +336,9 @@ func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wnfq.sql,
 		Unique: true,
 	}
+	if unique := wnfq.unique; unique != nil {
+		_spec.Unique = *unique
+	}
 	if fields := wnfq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withnilfields.FieldID)
@@ -353,7 +364,7 @@ func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := wnfq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector, withnilfields.ValidColumn)
+				ps[i](selector)
 			}
 		}
 	}
@@ -372,7 +383,7 @@ func (wnfq *WithNilFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		p(selector)
 	}
 	for _, p := range wnfq.order {
-		p(selector, withnilfields.ValidColumn)
+		p(selector)
 	}
 	if offset := wnfq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -638,7 +649,7 @@ func (wnfgb *WithNilFieldsGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wnfgb.fields)+len(wnfgb.fns))
 	columns = append(columns, wnfgb.fields...)
 	for _, fn := range wnfgb.fns {
-		columns = append(columns, fn(selector, withnilfields.ValidColumn))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wnfgb.fields...)
 }

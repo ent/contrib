@@ -55,11 +55,11 @@ func (*Portal) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case portal.FieldID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case portal.FieldName, portal.FieldDescription:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case portal.ForeignKeys[0]: // portal_category
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Portal", columns[i])
 		}

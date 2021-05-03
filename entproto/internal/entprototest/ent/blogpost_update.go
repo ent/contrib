@@ -319,6 +319,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // BlogPostUpdateOne is the builder for updating a single BlogPost entity.
 type BlogPostUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *BlogPostMutation
 }
@@ -414,6 +415,13 @@ func (bpuo *BlogPostUpdateOne) RemoveCategories(c ...*Category) *BlogPostUpdateO
 	return bpuo.RemoveCategoryIDs(ids...)
 }
 
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (bpuo *BlogPostUpdateOne) Select(field string, fields ...string) *BlogPostUpdateOne {
+	bpuo.fields = append([]string{field}, fields...)
+	return bpuo
+}
+
 // Save executes the query and returns the updated BlogPost entity.
 func (bpuo *BlogPostUpdateOne) Save(ctx context.Context) (*BlogPost, error) {
 	var (
@@ -481,6 +489,18 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing BlogPost.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := bpuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, blogpost.FieldID)
+		for _, f := range fields {
+			if !blogpost.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != blogpost.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := bpuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

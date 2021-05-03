@@ -114,6 +114,7 @@ func (esmu *ExplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, e
 // ExplicitSkippedMessageUpdateOne is the builder for updating a single ExplicitSkippedMessage entity.
 type ExplicitSkippedMessageUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *ExplicitSkippedMessageMutation
 }
@@ -121,6 +122,13 @@ type ExplicitSkippedMessageUpdateOne struct {
 // Mutation returns the ExplicitSkippedMessageMutation object of the builder.
 func (esmuo *ExplicitSkippedMessageUpdateOne) Mutation() *ExplicitSkippedMessageMutation {
 	return esmuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (esmuo *ExplicitSkippedMessageUpdateOne) Select(field string, fields ...string) *ExplicitSkippedMessageUpdateOne {
+	esmuo.fields = append([]string{field}, fields...)
+	return esmuo
 }
 
 // Save executes the query and returns the updated ExplicitSkippedMessage entity.
@@ -190,6 +198,18 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ExplicitSkippedMessage.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := esmuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, explicitskippedmessage.FieldID)
+		for _, f := range fields {
+			if !explicitskippedmessage.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != explicitskippedmessage.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := esmuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

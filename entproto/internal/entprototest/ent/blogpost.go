@@ -68,11 +68,11 @@ func (*BlogPost) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case blogpost.FieldID, blogpost.FieldExternalID:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case blogpost.FieldTitle, blogpost.FieldBody:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case blogpost.ForeignKeys[0]: // blog_post_author
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type BlogPost", columns[i])
 		}

@@ -218,6 +218,7 @@ func (iu *ImageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ImageUpdateOne is the builder for updating a single Image entity.
 type ImageUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *ImageMutation
 }
@@ -267,6 +268,13 @@ func (iuo *ImageUpdateOne) RemoveUserProfilePic(u ...*User) *ImageUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return iuo.RemoveUserProfilePicIDs(ids...)
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (iuo *ImageUpdateOne) Select(field string, fields ...string) *ImageUpdateOne {
+	iuo.fields = append([]string{field}, fields...)
+	return iuo
 }
 
 // Save executes the query and returns the updated Image entity.
@@ -336,6 +344,18 @@ func (iuo *ImageUpdateOne) sqlSave(ctx context.Context) (_node *Image, err error
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Image.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := iuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, image.FieldID)
+		for _, f := range fields {
+			if !image.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != image.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := iuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

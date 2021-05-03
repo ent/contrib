@@ -128,6 +128,7 @@ func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err 
 // InvalidFieldMessageUpdateOne is the builder for updating a single InvalidFieldMessage entity.
 type InvalidFieldMessageUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *InvalidFieldMessageMutation
 }
@@ -141,6 +142,13 @@ func (ifmuo *InvalidFieldMessageUpdateOne) SetJSON(sj *schema.SomeJSON) *Invalid
 // Mutation returns the InvalidFieldMessageMutation object of the builder.
 func (ifmuo *InvalidFieldMessageUpdateOne) Mutation() *InvalidFieldMessageMutation {
 	return ifmuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (ifmuo *InvalidFieldMessageUpdateOne) Select(field string, fields ...string) *InvalidFieldMessageUpdateOne {
+	ifmuo.fields = append([]string{field}, fields...)
+	return ifmuo
 }
 
 // Save executes the query and returns the updated InvalidFieldMessage entity.
@@ -210,6 +218,18 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing InvalidFieldMessage.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := ifmuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, invalidfieldmessage.FieldID)
+		for _, f := range fields {
+			if !invalidfieldmessage.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != invalidfieldmessage.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := ifmuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

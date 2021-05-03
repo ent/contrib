@@ -127,6 +127,7 @@ func (wfu *WithFieldsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // WithFieldsUpdateOne is the builder for updating a single WithFields entity.
 type WithFieldsUpdateOne struct {
 	config
+	fields   []string
 	hooks    []Hook
 	mutation *WithFieldsMutation
 }
@@ -140,6 +141,13 @@ func (wfuo *WithFieldsUpdateOne) SetExisting(s string) *WithFieldsUpdateOne {
 // Mutation returns the WithFieldsMutation object of the builder.
 func (wfuo *WithFieldsUpdateOne) Mutation() *WithFieldsMutation {
 	return wfuo.mutation
+}
+
+// Select allows selecting one or more fields (columns) of the returned entity.
+// The default is selecting all fields defined in the entity schema.
+func (wfuo *WithFieldsUpdateOne) Select(field string, fields ...string) *WithFieldsUpdateOne {
+	wfuo.fields = append([]string{field}, fields...)
+	return wfuo
 }
 
 // Save executes the query and returns the updated WithFields entity.
@@ -209,6 +217,18 @@ func (wfuo *WithFieldsUpdateOne) sqlSave(ctx context.Context) (_node *WithFields
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WithFields.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if fields := wfuo.fields; len(fields) > 0 {
+		_spec.Node.Columns = make([]string, 0, len(fields))
+		_spec.Node.Columns = append(_spec.Node.Columns, withfields.FieldID)
+		for _, f := range fields {
+			if !withfields.ValidColumn(f) {
+				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
+			}
+			if f != withfields.FieldID {
+				_spec.Node.Columns = append(_spec.Node.Columns, f)
+			}
+		}
+	}
 	if ps := wfuo.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

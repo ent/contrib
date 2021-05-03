@@ -15,6 +15,8 @@ entgo.io/ent v0.6.0 h1:oo/a8sXPQKzHYFlVwmwOnyzBy+u8FWQsoLLqFCrOBt0=
 entgo.io/ent v0.6.0/go.mod h1:+Y513RSj+qleCpyeCmF8leXqAAhCYDJfpzGPIAFPBxc=
 entgo.io/ent v0.7.0 h1:E3EjO0cUL61DvUg5ZEZdxa4yTL+4SuZv0LqBExo8CQA=
 entgo.io/ent v0.7.0/go.mod h1:HZZJxglL8ro4OVDmM06lijj4bOTGcaDdrZttDZ8fVJs=
+entgo.io/ent v0.8.0 h1:xirrW//1oda7pp0bz+XssSOv4/C3nmgYQOxjIfljFt8=
+entgo.io/ent v0.8.0/go.mod h1:KNjsukat/NJi6zJh1utwRadsbGOZsBbAZNDxkW7tMCc=
 github.com/99designs/gqlgen v0.13.0 h1:haLTcUp3Vwp80xMVEg5KRNwzfUrgFdRmtBY8fuB8scA=
 github.com/99designs/gqlgen v0.13.0/go.mod h1:NV130r6f4tpRWuAI+zsrSdooO/eWUv+Gyyoi3rEfXIk=
 github.com/AlekSi/pointer v1.1.0 h1:SSDMPcXD9jSl8FPy9cRzoRaMJtm9g9ggGTxecRUbQoI=
@@ -171,6 +173,7 @@ github.com/hashicorp/serf v0.8.2/go.mod h1:6hOLApaqBFA1NXqRQAsxw9QxuDEvNxSQRwA/J
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
+github.com/jessevdk/go-flags v1.5.0/go.mod h1:Fw0T6WPc1dYxT4mKEZRfG5kJhaTDP9pj1c2EWnYs/m4=
 github.com/jhump/protoreflect v1.7.1 h1:dU3rf2wv1WHvC7mSGYfOaciUAFf5idu6FdC3uZIOlP0=
 github.com/jhump/protoreflect v1.7.1/go.mod h1:RZkzh7Hi9J7qT/sPlWnJ/UwZqCJvciFxKDA0UCeltSM=
 github.com/jhump/protoreflect v1.8.2 h1:k2xE7wcUomeqwY0LDCYA16y4WWfyTcMx5mKhk0d4ua0=

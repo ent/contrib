@@ -41,19 +41,19 @@ func (*MessageWithOptionals) scanValues(columns []string) ([]interface{}, error)
 	for i := range columns {
 		switch columns[i] {
 		case messagewithoptionals.FieldBytesOptional:
-			values[i] = &[]byte{}
+			values[i] = new([]byte)
 		case messagewithoptionals.FieldBoolOptional:
-			values[i] = &sql.NullBool{}
+			values[i] = new(sql.NullBool)
 		case messagewithoptionals.FieldFloatOptional:
-			values[i] = &sql.NullFloat64{}
+			values[i] = new(sql.NullFloat64)
 		case messagewithoptionals.FieldID, messagewithoptionals.FieldIntOptional, messagewithoptionals.FieldUintOptional:
-			values[i] = &sql.NullInt64{}
+			values[i] = new(sql.NullInt64)
 		case messagewithoptionals.FieldStrOptional:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullString)
 		case messagewithoptionals.FieldTimeOptional:
-			values[i] = &sql.NullTime{}
+			values[i] = new(sql.NullTime)
 		case messagewithoptionals.FieldUUIDOptional:
-			values[i] = &uuid.UUID{}
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type MessageWithOptionals", columns[i])
 		}
