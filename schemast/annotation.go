@@ -26,18 +26,18 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-type AnnotNotSupportedErr struct {
+type UnsupportedAnnotationError struct {
 	annot schema.Annotation
 }
 
-func (e *AnnotNotSupportedErr) Error() string {
+func (e *UnsupportedAnnotationError) Error() string {
 	return fmt.Sprintf("schemast: no Annotator configured for annotation %q", e.annot.Name())
 }
 
 // Annotator takes a schema.Annotation and returns an AST node that can be used
 // to build that annotation. In addition, Annotator reports whether an AST node should be created or not.
-// If the passed schema.Annotation is not supported by the Annotator, it returns AnnotNotSupportedErr.
-type Annotator func(annot schema.Annotation) (ast.Expr, bool, error)
+// If the passed schema.Annotation is not supported by the Annotator, it returns UnsupportedAnnotationError.
+type Annotator func(schema.Annotation) (ast.Expr, bool, error)
 
 // Annotation is an Annotator that searches a map of well-known ent annotation (entproto, entsql, etc.) and
 // invokes that Annotator if found.
@@ -51,16 +51,16 @@ func Annotation(annot schema.Annotation) (ast.Expr, bool, error) {
 	}
 	fn, ok := annotators[annot.Name()]
 	if !ok {
-		return nil, false, &AnnotNotSupportedErr{annot: annot}
+		return nil, false, &UnsupportedAnnotationError{annot: annot}
 	}
 	return fn(annot)
 }
 
 func protoMsg(annot schema.Annotation) (ast.Expr, bool, error) {
-	m := &struct {
+	var m struct {
 		Generate bool
 		Package  string
-	}{}
+	}
 	if err := mapstructure.Decode(annot, &m); err != nil {
 		return nil, false, err
 	}
@@ -75,9 +75,9 @@ func protoMsg(annot schema.Annotation) (ast.Expr, bool, error) {
 }
 
 func protoSvc(annot schema.Annotation) (ast.Expr, bool, error) {
-	m := &struct {
+	var m struct {
 		Generate bool
-	}{}
+	}
 	if err := mapstructure.Decode(annot, &m); err != nil {
 		return nil, false, err
 	}
@@ -88,11 +88,11 @@ func protoSvc(annot schema.Annotation) (ast.Expr, bool, error) {
 }
 
 func protoField(annot schema.Annotation) (ast.Expr, bool, error) {
-	m := &struct {
+	var m struct {
 		Number   int
 		Type     descriptorpb.FieldDescriptorProto_Type
 		TypeName string
-	}{}
+	}
 	if err := mapstructure.Decode(annot, &m); err != nil {
 		return nil, false, err
 	}
@@ -108,9 +108,9 @@ func protoField(annot schema.Annotation) (ast.Expr, bool, error) {
 }
 
 func protoEnum(annot schema.Annotation) (ast.Expr, bool, error) {
-	m := &struct {
+	var m struct {
 		Options map[string]int32
-	}{}
+	}
 	if err := mapstructure.Decode(annot, &m); err != nil {
 		return nil, false, err
 	}
@@ -134,7 +134,7 @@ func protoEnum(annot schema.Annotation) (ast.Expr, bool, error) {
 
 func entSQL(annot schema.Annotation) (ast.Expr, bool, error) {
 	m := &entsql.Annotation{}
-	if err := mapstructure.Decode(annot, &m); err != nil {
+	if err := mapstructure.Decode(annot, m); err != nil {
 		return nil, false, err
 	}
 	c := &ast.CompositeLit{
