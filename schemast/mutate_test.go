@@ -17,7 +17,9 @@ package schemast
 import (
 	"testing"
 
+	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/stretchr/testify/require"
@@ -35,6 +37,9 @@ func TestUpsert(t *testing.T) {
 			Edges: []ent.Edge{
 				WithType(edge.From("administered", placeholder.Type).Ref("admin"), "Team"),
 			},
+			Annotations: []schema.Annotation{
+				entproto.Message(),
+			},
 		},
 		&UpsertSchema{
 			Name: "Team", // A new schema
@@ -43,6 +48,9 @@ func TestUpsert(t *testing.T) {
 			},
 			Edges: []ent.Edge{
 				WithType(edge.To("admin", placeholder.Type), "User"),
+			},
+			Annotations: []schema.Annotation{
+				entproto.Message(),
 			},
 		},
 	}
@@ -54,10 +62,12 @@ func TestUpsert(t *testing.T) {
 	team := tt.getType("Team")
 	require.NotNil(t, team)
 	require.Len(t, team.Edges, 1)
+	require.Len(t, team.Annotations, 1)
 	user := tt.getType("User")
 	require.NotNil(t, user)
 	require.Len(t, user.Fields, 1)
 	require.Len(t, user.Edges, 1)
+	require.Len(t, user.Annotations, 1)
 }
 
 func WithType(e ent.Edge, typeName string) ent.Edge {

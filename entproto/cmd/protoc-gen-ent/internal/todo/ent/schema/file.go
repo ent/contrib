@@ -18,6 +18,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 
@@ -28,6 +29,11 @@ type File struct {
 func (File) Fields() []ent.Field {
 	return []ent.Field{field.String("id"), field.String("contents")}
 }
+
 func (File) Edges() []ent.Edge {
+	return nil
+}
+
+func (File) Annotations() []schema.Annotation {
 	return nil
 }

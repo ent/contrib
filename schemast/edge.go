@@ -26,9 +26,6 @@ import (
 // Edge converts a *edge.Descriptor back into an *ast.CallExpr of the ent edge package that can be used
 // to construct it.
 func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
-	if len(desc.Annotations) > 0 {
-		return nil, fmt.Errorf("schemast: unsupported feature: Annotations")
-	}
 	builder := newEdgeCall(desc)
 	if desc.RefName != "" {
 		builder.method("Ref", strLit(desc.RefName))
@@ -53,6 +50,13 @@ func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
 	}
 	if desc.Tag != "" {
 		builder.method("StructTag", strLit(desc.Tag))
+	}
+	if len(desc.Annotations) != 0 {
+		annots, err := toAnnotASTs(desc.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		builder.annotate(annots...)
 	}
 	return builder.curr, nil
 }

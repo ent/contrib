@@ -20,6 +20,7 @@ import (
 	"go/token"
 	"testing"
 
+	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
@@ -82,9 +83,9 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.String("x").SchemaType(map[string]string{"sqlite3": "VARCHAR"})`,
 		},
 		{
-			name:           "unsupported annotations",
-			field:          field.String("x").Annotations(annotation("x")),
-			expectedErrMsg: "schemast: unsupported feature Descriptor.Annotations",
+			name:     "annotations",
+			field:    field.String("x").Annotations(entproto.Message()),
+			expected: `field.String("x").Annotations(entproto.Message())`,
 		},
 		{
 			name:           "unsupported default",
@@ -100,8 +101,8 @@ func TestFromFieldDescriptor(t *testing.T) {
 		},
 		{
 			name:           "multi unsupported",
-			field:          field.String("x").MaxLen(10).Annotations(annotation("x")),
-			expectedErrMsg: "schemast: unsupported feature Descriptor.Annotations; schemast: unsupported feature Descriptor.Validators",
+			field:          field.String("x").MaxLen(10).Default("x"),
+			expectedErrMsg: "schemast: unsupported feature Descriptor.Validators; schemast: unsupported feature Descriptor.Default",
 		},
 	}
 

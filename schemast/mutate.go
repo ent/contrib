@@ -18,6 +18,7 @@ import (
 	"go/ast"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 )
 
 // Mutator changes a Context.
@@ -38,9 +39,10 @@ func Mutate(ctx *Context, mutations ...Mutator) error {
 // UpsertSchema implements Mutator. UpsertSchema will add to the Context the type named Name if not present and rewrite
 // the type's Fields and Edges methods to return the desired fields and edges.
 type UpsertSchema struct {
-	Name   string
-	Fields []ent.Field
-	Edges  []ent.Edge
+	Name        string
+	Fields      []ent.Field
+	Edges       []ent.Edge
+	Annotations []schema.Annotation
 }
 
 // Mutate applies the UpsertSchema mutation to the Context.
@@ -60,6 +62,11 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 		return err
 	}
 	edgesReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset edges.
+	annotReturn, err := ctx.annotReturnStmt(u.Name)
+	if err != nil {
+		return err
+	}
+	annotReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset Annotations.
 	for _, fld := range u.Fields {
 		if err := ctx.AppendField(u.Name, fld.Descriptor()); err != nil {
 			return err
@@ -67,6 +74,11 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 	}
 	for _, edg := range u.Edges {
 		if err := ctx.AppendEdge(u.Name, edg.Descriptor()); err != nil {
+			return err
+		}
+	}
+	for _, annot := range u.Annotations {
+		if err := ctx.AppendTypeAnnotation(u.Name, annot); err != nil {
 			return err
 		}
 	}
