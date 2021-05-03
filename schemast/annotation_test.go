@@ -180,7 +180,7 @@ func TestContext_AnnotateType(t *testing.T) {
 	require.NoError(t, tt.load())
 	nt := tt.getType("NewType")
 	require.Len(t, nt.Annotations, 1)
-	contents := tt.getContents("new_type.go")
+	contents := tt.contents("new_type.go")
 	require.Contains(t, contents, `func (NewType) Annotations() []schema.Annotation {
 	return []schema.Annotation{entproto.Message()}
 }`)
@@ -195,7 +195,7 @@ func TestContext_AnnotateTypeExisting(t *testing.T) {
 	require.NoError(t, tt.load())
 	nt := tt.getType("Message")
 	require.Len(t, nt.Annotations, 1)
-	contents := tt.getContents("message.go")
+	contents := tt.contents("message.go")
 	require.Contains(t, contents, `func (Message) Annotations() []schema.Annotation {
 	return []schema.Annotation{entproto.Message()}
 }`)
