@@ -20,6 +20,7 @@ import (
 	"go/token"
 	"testing"
 
+	"entgo.io/contrib/entproto"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/schema"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
@@ -42,11 +43,6 @@ func TestFromEdgeDescriptor(t *testing.T) {
 			name:     "inverse",
 			edge:     edge.From("entity", Entity.Type).Ref("related"),
 			expected: `edge.From("entity", Entity.Type).Ref("related")`,
-		},
-		{
-			name:           "annotations",
-			edge:           edge.To("entity", Entity.Type).Annotations(annotation("x")),
-			expectedErrMsg: "schemast: unsupported feature: Annotations",
 		},
 		{
 			name:     "required",
@@ -77,6 +73,11 @@ func TestFromEdgeDescriptor(t *testing.T) {
 			name:     "storage_key_two_col",
 			edge:     edge.To("entity", Entity.Type).StorageKey(edge.Table("table"), edge.Columns("to", "from")),
 			expected: `edge.To("entity", Entity.Type).StorageKey(edge.Table("table"), edge.Columns("to", "from"))`,
+		},
+		{
+			name:     "annotation",
+			edge:     edge.To("entity", Entity.Type).Annotations(entproto.Field(10)),
+			expected: `edge.To("entity", Entity.Type).Annotations(entproto.Field(10))`,
 		},
 	}
 

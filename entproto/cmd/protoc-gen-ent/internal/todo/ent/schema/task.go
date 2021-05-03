@@ -18,6 +18,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 
@@ -29,5 +30,9 @@ func (Task) Fields() []ent.Field {
 	return []ent.Field{field.String("title").Optional().Comment("comment"), field.String("description").Immutable(), field.Bool("complete"), field.String("signature")}
 }
 func (Task) Edges() []ent.Edge {
+	return nil
+}
+
+func (Task) Annotations() []schema.Annotation {
 	return nil
 }

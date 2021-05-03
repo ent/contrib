@@ -17,7 +17,10 @@
 
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+)
 
 type User struct {
 	ent.Schema
@@ -28,5 +31,9 @@ func (User) Fields() []ent.Field {
 }
 
 func (User) Edges() []ent.Edge {
+	return nil
+}
+
+func (User) Annotations() []schema.Annotation {
 	return nil
 }

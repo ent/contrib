@@ -38,6 +38,12 @@ func (f *builderCall) method(name string, args ...ast.Expr) {
 	}
 }
 
+func (f *builderCall) annotate(annots ...ast.Expr) {
+	if len(annots) > 0 {
+		f.method("Annotations", annots...)
+	}
+}
+
 func combineUnsupported(err error, feature string) error {
 	return multierr.Combine(err, fmt.Errorf("schemast: unsupported feature %s", feature))
 }
@@ -67,6 +73,23 @@ func strLit(lit string) ast.Expr {
 	return &ast.BasicLit{
 		Kind:  token.STRING,
 		Value: strconv.Quote(lit),
+	}
+}
+
+func structAttr(name string, val ast.Expr) ast.Expr {
+	return &ast.KeyValueExpr{
+		Key: &ast.BasicLit{
+			Kind:  token.STRING,
+			Value: name,
+		},
+		Value: val,
+	}
+}
+
+func intLit(lit int) ast.Expr {
+	return &ast.BasicLit{
+		Kind:  token.INT,
+		Value: strconv.Itoa(lit),
 	}
 }
 
