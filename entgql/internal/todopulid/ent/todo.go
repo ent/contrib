@@ -84,14 +84,16 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case todo.FieldID:
+			values[i] = new(pulid.ID)
 		case todo.FieldPriority:
-			values[i] = &sql.NullInt64{}
-		case todo.FieldID, todo.FieldStatus, todo.FieldText:
-			values[i] = &sql.NullString{}
+			values[i] = new(sql.NullInt64)
+		case todo.FieldStatus, todo.FieldText:
+			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
-			values[i] = &sql.NullTime{}
+			values[i] = new(sql.NullTime)
 		case todo.ForeignKeys[0]: // todo_children
-			values[i] = &sql.NullString{}
+			values[i] = new(pulid.ID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
 		}
@@ -108,10 +110,10 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case todo.FieldID:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*pulid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value.Valid {
-				t.ID = pulid.ID(value.String)
+			} else if value != nil {
+				t.ID = *value
 			}
 		case todo.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -138,11 +140,10 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				t.Text = value.String
 			}
 		case todo.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*pulid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
-			} else if value.Valid {
-				t.todo_children = new(pulid.ID)
-				*t.todo_children = pulid.ID(value.String)
+			} else if value != nil {
+				t.todo_children = value
 			}
 		}
 	}

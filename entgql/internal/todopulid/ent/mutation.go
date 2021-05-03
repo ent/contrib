@@ -322,7 +322,7 @@ func (m *TodoMutation) ClearParent() {
 	m.clearedparent = true
 }
 
-// ParentCleared returns if the "parent" edge to the Todo entity was cleared.
+// ParentCleared reports if the "parent" edge to the Todo entity was cleared.
 func (m *TodoMutation) ParentCleared() bool {
 	return m.clearedparent
 }
@@ -366,7 +366,7 @@ func (m *TodoMutation) ClearChildren() {
 	m.clearedchildren = true
 }
 
-// ChildrenCleared returns if the "children" edge to the Todo entity was cleared.
+// ChildrenCleared reports if the "children" edge to the Todo entity was cleared.
 func (m *TodoMutation) ChildrenCleared() bool {
 	return m.clearedchildren
 }
