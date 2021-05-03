@@ -162,20 +162,11 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 		builder.method("SchemaType", strMapLit(desc.SchemaType))
 	}
 	if len(desc.Annotations) != 0 {
-		annots := make([]ast.Expr, 0, len(desc.Annotations))
-		for _, annot := range desc.Annotations {
-			a, shouldAdd, err := Annotation(annot)
-			if err != nil {
-				return nil, err
-			}
-			if !shouldAdd {
-				continue
-			}
-			annots = append(annots, a)
+		annots, err := toAnnotASTs(desc.Annotations)
+		if err != nil {
+			return nil, err
 		}
-		if len(annots) > 0 {
-			builder.method("Annotations", annots...)
-		}
+		builder.annotate(annots...)
 	}
 
 	// Unsupported features

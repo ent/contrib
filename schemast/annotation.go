@@ -230,3 +230,18 @@ func entSQL(annot schema.Annotation) (ast.Expr, bool, error) {
 	// TODO(rotemtam): support m.Incremental (it is a *bool)
 	return c, true, nil
 }
+
+func toAnnotASTs(annots []schema.Annotation) ([]ast.Expr, error) {
+	out := make([]ast.Expr, 0, len(annots))
+	for _, annot := range annots {
+		a, shouldAdd, err := Annotation(annot)
+		if err != nil {
+			return nil, err
+		}
+		if !shouldAdd {
+			continue
+		}
+		out = append(out, a)
+	}
+	return out, nil
+}

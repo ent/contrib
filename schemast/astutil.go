@@ -38,6 +38,12 @@ func (f *builderCall) method(name string, args ...ast.Expr) {
 	}
 }
 
+func (f *builderCall) annotate(annots ...ast.Expr) {
+	if len(annots) > 0 {
+		f.method("Annotations", annots...)
+	}
+}
+
 func combineUnsupported(err error, feature string) error {
 	return multierr.Combine(err, fmt.Errorf("schemast: unsupported feature %s", feature))
 }

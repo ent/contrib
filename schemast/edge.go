@@ -51,21 +51,12 @@ func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
 	if desc.Tag != "" {
 		builder.method("StructTag", strLit(desc.Tag))
 	}
-	if len(desc.Annotations) > 0 {
-		annots := make([]ast.Expr, 0, len(desc.Annotations))
-		for _, annot := range desc.Annotations {
-			a, shouldAdd, err := Annotation(annot)
-			if err != nil {
-				return nil, err
-			}
-			if !shouldAdd {
-				continue
-			}
-			annots = append(annots, a)
+	if len(desc.Annotations) != 0 {
+		annots, err := toAnnotASTs(desc.Annotations)
+		if err != nil {
+			return nil, err
 		}
-		if len(annots) > 0 {
-			builder.method("Annotations", annots...)
-		}
+		builder.annotate(annots...)
 	}
 	return builder.curr, nil
 }
