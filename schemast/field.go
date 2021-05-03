@@ -41,7 +41,7 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 
 // AppendField adds a field to the returned values of the Fields method of type typeName.
 func (c *Context) AppendField(typeName string, desc *field.Descriptor) error {
-	stmt, err := c.fieldsReturnStmt(typeName)
+	stmt, err := c.returnStmt(typeName, "Fields")
 	if err != nil {
 		return err
 	}
@@ -49,27 +49,12 @@ func (c *Context) AppendField(typeName string, desc *field.Descriptor) error {
 	if err != nil {
 		return err
 	}
-	returned := stmt.Results[0]
-	switch r := returned.(type) {
-	case *ast.Ident:
-		if r.Name == "nil" {
-			stmt.Results = []ast.Expr{
-				newFieldSliceWith(newField),
-			}
-			return nil
-		}
-		return fmt.Errorf("schemast: unexpected ident. expected nil got %s", r.Name)
-	case *ast.CompositeLit:
-		r.Elts = append(r.Elts, newField)
-		return nil
-	default:
-		return fmt.Errorf("schemast: unexpected AST component type %T", r)
-	}
+	return appendToReturn(stmt, selectorLit("ent", "Field"), newField)
 }
 
 // RemoveField removes a field from the returned values of the Fields method of type typeName.
 func (c *Context) RemoveField(typeName string, fieldName string) error {
-	stmt, err := c.fieldsReturnStmt(typeName)
+	stmt, err := c.returnStmt(typeName, "Fields")
 	if err != nil {
 		return err
 	}
@@ -188,34 +173,6 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 
 func fieldConstructor(dsc *field.Descriptor) string {
 	return strings.TrimPrefix(dsc.Info.ConstName(), "Type")
-}
-
-func (c *Context) fieldsReturnStmt(typeName string) (*ast.ReturnStmt, error) {
-	fd, err := c.lookupMethod(typeName, "Fields")
-	if err != nil {
-		return nil, err
-	}
-	if len(fd.Body.List) != 1 {
-		return nil, fmt.Errorf("schmeast: Fields() func body must have a single element")
-	}
-	if _, ok := fd.Body.List[0].(*ast.ReturnStmt); !ok {
-		return nil, fmt.Errorf("schmeast: Fields() func body must contain a return statement")
-	}
-	return fd.Body.List[0].(*ast.ReturnStmt), err
-}
-
-func newFieldSliceWith(f *ast.CallExpr) *ast.CompositeLit {
-	return &ast.CompositeLit{
-		Type: &ast.ArrayType{
-			Elt: &ast.SelectorExpr{
-				X:   ast.NewIdent("ent"),
-				Sel: ast.NewIdent("Field"),
-			},
-		},
-		Elts: []ast.Expr{
-			f,
-		},
-	}
 }
 
 func extractFieldName(fd *ast.CallExpr) (string, error) {

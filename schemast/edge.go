@@ -63,7 +63,7 @@ func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
 
 // AppendEdge adds an edge to the returned values of the Edges method of type typeName.
 func (c *Context) AppendEdge(typeName string, desc *edge.Descriptor) error {
-	stmt, err := c.edgesReturnStmt(typeName)
+	stmt, err := c.returnStmt(typeName, "Edges")
 	if err != nil {
 		return err
 	}
@@ -71,24 +71,12 @@ func (c *Context) AppendEdge(typeName string, desc *edge.Descriptor) error {
 	if err != nil {
 		return err
 	}
-	returned := stmt.Results[0]
-	switch r := returned.(type) {
-	case *ast.Ident:
-		if r.Name != "nil" {
-			return fmt.Errorf("schemast: unexpected ident. expected nil got %s", r.Name)
-		}
-		stmt.Results = []ast.Expr{newEdgeSliceWith(newEdge)}
-	case *ast.CompositeLit:
-		r.Elts = append(r.Elts, newEdge)
-	default:
-		return fmt.Errorf("schemast: unexpected AST component type %T", r)
-	}
-	return nil
+	return appendToReturn(stmt, selectorLit("ent", "Edge"), newEdge)
 }
 
 // RemoveEdge removes an edge from the returned values of the Edges method of type typeName.
 func (c *Context) RemoveEdge(typeName string, edgeName string) error {
-	stmt, err := c.edgesReturnStmt(typeName)
+	stmt, err := c.returnStmt(typeName, "Edges")
 	if err != nil {
 		return err
 	}
@@ -128,34 +116,6 @@ func newEdgeCall(desc *edge.Descriptor) *builderCall {
 				strLit(desc.Name),
 				selectorLit(desc.Type, "Type"),
 			},
-		},
-	}
-}
-
-func (c *Context) edgesReturnStmt(typeName string) (*ast.ReturnStmt, error) {
-	fd, err := c.lookupMethod(typeName, "Edges")
-	if err != nil {
-		return nil, err
-	}
-	if len(fd.Body.List) != 1 {
-		return nil, fmt.Errorf("schmeast: Edges() func body must have a single element")
-	}
-	if _, ok := fd.Body.List[0].(*ast.ReturnStmt); !ok {
-		return nil, fmt.Errorf("schmeast: Edges() func body must contain a return statement")
-	}
-	return fd.Body.List[0].(*ast.ReturnStmt), err
-}
-
-func newEdgeSliceWith(f *ast.CallExpr) *ast.CompositeLit {
-	return &ast.CompositeLit{
-		Type: &ast.ArrayType{
-			Elt: &ast.SelectorExpr{
-				X:   ast.NewIdent("ent"),
-				Sel: ast.NewIdent("Edge"),
-			},
-		},
-		Elts: []ast.Expr{
-			f,
 		},
 	}
 }

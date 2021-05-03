@@ -106,3 +106,28 @@ func fnCall(sel *ast.SelectorExpr, args ...ast.Expr) *ast.CallExpr {
 		Args: args,
 	}
 }
+
+func appendToReturn(stmt *ast.ReturnStmt, sel *ast.SelectorExpr, exprs ...ast.Expr) error {
+	returned := stmt.Results[0]
+	switch r := returned.(type) {
+	case *ast.Ident:
+		if r.Name != "nil" {
+			return fmt.Errorf("schemast: unexpected ident. expected nil got %s", r.Name)
+		}
+		stmt.Results = []ast.Expr{sliceWith(sel, exprs...)}
+	case *ast.CompositeLit:
+		r.Elts = append(r.Elts, exprs...)
+	default:
+		return fmt.Errorf("schemast: unexpected AST component type %T", r)
+	}
+	return nil
+}
+
+func sliceWith(sel *ast.SelectorExpr, exprs ...ast.Expr) *ast.CompositeLit {
+	return &ast.CompositeLit{
+		Type: &ast.ArrayType{
+			Elt: sel,
+		},
+		Elts: exprs,
+	}
+}
