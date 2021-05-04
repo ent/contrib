@@ -30,32 +30,42 @@ type Context struct {
 
 // HasType reports whether typeName is already defined in the Context.
 func (c *Context) HasType(typeName string) bool {
+	_, _, ok := c.lookupTypeDecl(typeName)
+	return ok
+}
+
+func (c *Context) lookupTypeDecl(typeName string) (*ast.File, *ast.GenDecl, bool) {
 	for _, file := range c.syntax() {
-		var found bool
+		var found *ast.GenDecl
+		var parent *ast.File
 		ast.Inspect(file, func(node ast.Node) bool {
 			if decl, ok := node.(*ast.GenDecl); ok {
 				if isTypeDeclFor(decl, typeName) {
-					found = true
+					found = decl
+					parent = file
 					return false
 				}
 			}
 			return true
 		})
-		if found {
-			return true
+		if found != nil {
+			return parent, found, true
 		}
 	}
-	return false
+	return nil, nil, false
 }
 
 // lookupMethod will search the schemast.Context for the AST representing the function declaration of the requested
 // methodName for type typeName.
-func (c *Context) lookupMethod(typeName string, methodName string) (*ast.FuncDecl, error) {
+func (c *Context) lookupMethod(typeName string, methodName string) (*ast.FuncDecl, bool) {
 	var found *ast.FuncDecl
 	for _, file := range c.syntax() {
 		ast.Inspect(file, func(node ast.Node) bool {
 			if fd, ok := node.(*ast.FuncDecl); ok {
 				if fd.Name.Name != methodName {
+					return true
+				}
+				if fd.Recv == nil {
 					return true
 				}
 				if len(fd.Recv.List) != 1 {
@@ -69,19 +79,16 @@ func (c *Context) lookupMethod(typeName string, methodName string) (*ast.FuncDec
 			return true
 		})
 		if found != nil {
-			return found, nil
+			return found, true
 		}
 	}
-	return nil, &notFoundErr{
-		typeName:   typeName,
-		methodName: methodName,
-	}
+	return nil, false
 }
 
 func (c *Context) returnStmt(typeName, method string) (*ast.ReturnStmt, error) {
-	fd, err := c.lookupMethod(typeName, method)
-	if err != nil {
-		return nil, err
+	fd, ok := c.lookupMethod(typeName, method)
+	if !ok {
+		return nil, fmt.Errorf("schemast: could not find method %q for type %q", method, typeName)
 	}
 	if len(fd.Body.List) != 1 {
 		return nil, fmt.Errorf("schmeast: %s() func body must have a single element", method)
@@ -89,7 +96,7 @@ func (c *Context) returnStmt(typeName, method string) (*ast.ReturnStmt, error) {
 	if _, ok := fd.Body.List[0].(*ast.ReturnStmt); !ok {
 		return nil, fmt.Errorf("schmeast: %s() func body must contain a return statement", method)
 	}
-	return fd.Body.List[0].(*ast.ReturnStmt), err
+	return fd.Body.List[0].(*ast.ReturnStmt), nil
 }
 
 // Load loads a *schemast.Context from a path.
@@ -107,14 +114,6 @@ func Load(path string) (*Context, error) {
 		SchemaPackage: pkgs[0],
 		newTypes:      make(map[string]*ast.File),
 	}, nil
-}
-
-type notFoundErr struct {
-	typeName, methodName string
-}
-
-func (e *notFoundErr) Error() string {
-	return fmt.Sprintf("schemast: could not find method %q for type %q", e.methodName, e.typeName)
 }
 
 func (c *Context) syntax() []*ast.File {

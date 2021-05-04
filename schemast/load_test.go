@@ -26,8 +26,8 @@ func TestLoad(t *testing.T) {
 	load, err := Load("./internal/loadtest/ent/schema")
 	require.NoError(t, err)
 
-	fd, err := load.lookupMethod("Message", "Fields")
-	require.NoError(t, err)
+	fd, ok := load.lookupMethod("Message", "Fields")
+	require.True(t, ok)
 	require.EqualValues(t, fd.Name.Name, "Fields")
 	require.True(t, load.HasType("Message"))
 	require.False(t, load.HasType("MessageXX"))

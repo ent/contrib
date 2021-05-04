@@ -84,3 +84,16 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 	}
 	return nil
 }
+
+func (c *Context) appendReturnItem(k kind, typeName string, item ast.Expr) error {
+	if _, ok := c.lookupMethod(typeName, k.methodName); !ok {
+		if err := c.appendMethod(typeName, k.methodName, k.ifaceSelector); err != nil {
+			return err
+		}
+	}
+	stmt, err := c.returnStmt(typeName, k.methodName)
+	if err != nil {
+		return err
+	}
+	return appendToReturn(stmt, k.ifaceSelector, item)
+}

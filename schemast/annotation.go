@@ -57,10 +57,6 @@ func Annotation(annot schema.Annotation) (ast.Expr, bool, error) {
 }
 
 func (c *Context) AppendTypeAnnotation(typeName string, annot schema.Annotation) error {
-	stmt, err := c.returnStmt(typeName, "Annotations")
-	if err != nil {
-		return err
-	}
 	newAnnot, shouldAdd, err := Annotation(annot)
 	if err != nil {
 		return err
@@ -68,7 +64,7 @@ func (c *Context) AppendTypeAnnotation(typeName string, annot schema.Annotation)
 	if !shouldAdd {
 		return nil
 	}
-	return appendToReturn(stmt, selectorLit("schema", "Annotation"), newAnnot)
+	return c.appendReturnItem(annotKind, typeName, newAnnot)
 }
 
 func protoMsg(annot schema.Annotation) (ast.Expr, bool, error) {

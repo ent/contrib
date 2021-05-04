@@ -131,3 +131,36 @@ func sliceWith(sel *ast.SelectorExpr, exprs ...ast.Expr) *ast.CompositeLit {
 		Elts: exprs,
 	}
 }
+
+func (c *Context) appendMethod(typeName, method string, retType *ast.SelectorExpr) error {
+	file, _, _ := c.lookupTypeDecl(typeName)
+	fd := &ast.FuncDecl{
+		Name: ast.NewIdent(method),
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{},
+			Results: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Type: &ast.ArrayType{
+							Elt: retType,
+						},
+					},
+				},
+			},
+		},
+		Recv: &ast.FieldList{
+			List: []*ast.Field{
+				{Type: ast.NewIdent(typeName)},
+			},
+		},
+		Body: &ast.BlockStmt{
+			List: []ast.Stmt{
+				&ast.ReturnStmt{
+					Results: []ast.Expr{ast.NewIdent("nil")},
+				},
+			},
+		},
+	}
+	file.Decls = append(file.Decls, fd)
+	return nil
+}
