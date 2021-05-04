@@ -24,6 +24,7 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,11 +59,14 @@ func TestPrintAppended(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, tt.ctx.AppendField("Message", field.String("title").Optional().Descriptor()))
+	require.NoError(t, tt.ctx.AppendField("Message", field.String("author").Optional().Descriptor()))
+	require.NoError(t, tt.ctx.AppendIndex("Message", index.Fields("title", "author")))
 	require.NoError(t, tt.print())
 	require.NoError(t, tt.load())
 	g := tt.getType("Message")
 	require.NotNil(t, g, "expected to find a type named Message")
-	require.Len(t, g.Fields, 1)
+	require.Len(t, g.Fields, 2)
+	require.Len(t, g.Indexes, 1)
 	title := g.Fields[0]
 	require.EqualValues(t, "title", title.Name)
 	require.EqualValues(t, true, title.Optional)

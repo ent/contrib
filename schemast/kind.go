@@ -41,4 +41,8 @@ var (
 		methodName:    "Annotations",
 		ifaceSelector: selectorLit("schema", "Annotation"),
 	}
+	indexKind = kind{
+		methodName:    "Indexes",
+		ifaceSelector: selectorLit("ent", "Index"),
+	}
 )
