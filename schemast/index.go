@@ -33,8 +33,8 @@ func Index(desc *index.Descriptor) (*ast.CallExpr, error) {
 	}
 	if len(desc.Edges) > 0 {
 		var edges []ast.Expr
-		for _, edg := range desc.Edges {
-			edges = append(edges, strLit(edg))
+		for _, e := range desc.Edges {
+			edges = append(edges, strLit(e))
 		}
 		idx.method("Edges", edges...)
 	}
