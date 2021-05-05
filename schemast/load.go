@@ -37,7 +37,7 @@ func (c *Context) HasType(typeName string) bool {
 func (c *Context) lookupTypeDecl(typeName string) (*ast.File, *ast.GenDecl, bool) {
 	for _, file := range c.syntax() {
 		var (
-			found *ast.GenDecl
+			found  *ast.GenDecl
 			parent *ast.File
 		)
 		ast.Inspect(file, func(node ast.Node) bool {

@@ -47,7 +47,7 @@ func (c *Context) AppendIndex(typeName string, idx ent.Index) error {
 	if err != nil {
 		return err
 	}
-	return c.appendReturnItem(indexKind, typeName, newIdx)
+	return c.appendReturnItem(kindIndex, typeName, newIdx)
 }
 
 func newIndexCall(desc *index.Descriptor) *builderCall {

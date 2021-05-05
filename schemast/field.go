@@ -43,7 +43,7 @@ func (c *Context) AppendField(typeName string, desc *field.Descriptor) error {
 	if err != nil {
 		return err
 	}
-	return c.appendReturnItem(fieldKind, typeName, newField)
+	return c.appendReturnItem(kindField, typeName, newField)
 }
 
 // RemoveField removes a field from the returned values of the Fields method of type typeName.

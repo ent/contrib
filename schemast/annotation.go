@@ -64,7 +64,7 @@ func (c *Context) AppendTypeAnnotation(typeName string, annot schema.Annotation)
 	if !shouldAdd {
 		return nil
 	}
-	return c.appendReturnItem(annotKind, typeName, newAnnot)
+	return c.appendReturnItem(kindAnnot, typeName, newAnnot)
 }
 
 func protoMsg(annot schema.Annotation) (ast.Expr, bool, error) {

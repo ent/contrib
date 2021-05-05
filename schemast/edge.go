@@ -67,7 +67,7 @@ func (c *Context) AppendEdge(typeName string, desc *edge.Descriptor) error {
 	if err != nil {
 		return err
 	}
-	return c.appendReturnItem(edgeKind, typeName, newEdge)
+	return c.appendReturnItem(kindEdge, typeName, newEdge)
 }
 
 // RemoveEdge removes an edge from the returned values of the Edges method of type typeName.

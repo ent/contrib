@@ -29,19 +29,19 @@ type kind struct {
 }
 
 var (
-	edgeKind = kind{
+	kindEdge = kind{
 		methodName:    "Edges",
 		ifaceSelector: selectorLit("ent", "Edge"),
 	}
-	fieldKind = kind{
+	kindField = kind{
 		methodName:    "Fields",
 		ifaceSelector: selectorLit("ent", "Field"),
 	}
-	annotKind = kind{
+	kindAnnot = kind{
 		methodName:    "Annotations",
 		ifaceSelector: selectorLit("schema", "Annotation"),
 	}
-	indexKind = kind{
+	kindIndex = kind{
 		methodName:    "Indexes",
 		ifaceSelector: selectorLit("ent", "Index"),
 	}
