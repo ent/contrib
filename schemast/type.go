@@ -17,7 +17,10 @@ package schemast
 import (
 	"fmt"
 	"go/ast"
+	"go/parser"
 	"go/token"
+
+	"github.com/go-openapi/inflect"
 )
 
 // RemoveType removes the type definition as well as any method receivers or associated comment groups from the context.
@@ -65,6 +68,34 @@ func (c *Context) RemoveType(typeName string) error {
 	if !found {
 		return fmt.Errorf("schemast: type %q not found", typeName)
 	}
+	return nil
+}
+
+func (c *Context) AddType(typeName string) error {
+	body := fmt.Sprintf(`package schema
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+)
+type %s struct {
+	ent.Schema
+}
+func (%s) Fields() []ent.Field {
+	return nil
+}
+func (%s) Edges() []ent.Edge {
+	return nil
+}
+func (%s) Annotations() []schema.Annotation {
+	return nil
+}
+`, typeName, typeName, typeName, typeName)
+	fn := inflect.Underscore(typeName) + ".go"
+	f, err := parser.ParseFile(c.SchemaPackage.Fset, fn, body, 0)
+	if err != nil {
+		return err
+	}
+	c.newTypes[typeName] = f
 	return nil
 }
 

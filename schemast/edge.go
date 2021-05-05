@@ -63,15 +63,11 @@ func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
 
 // AppendEdge adds an edge to the returned values of the Edges method of type typeName.
 func (c *Context) AppendEdge(typeName string, desc *edge.Descriptor) error {
-	stmt, err := c.returnStmt(typeName, "Edges")
-	if err != nil {
-		return err
-	}
 	newEdge, err := Edge(desc)
 	if err != nil {
 		return err
 	}
-	return appendToReturn(stmt, selectorLit("ent", "Edge"), newEdge)
+	return c.appendReturnItem(kindEdge, typeName, newEdge)
 }
 
 // RemoveEdge removes an edge from the returned values of the Edges method of type typeName.

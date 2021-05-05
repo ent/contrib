@@ -154,11 +154,9 @@ func (WithNilFields) Fields() []ent.Field {
 		},
 		{
 			typeName: "WithoutFields",
-			expectedBody: `// Fields of the WithoutFields.
-func (WithoutFields) Fields() []ent.Field {
+			expectedBody: `func (WithoutFields) Fields() []ent.Field {
 	return []ent.Field{field.String("newField")}
 }`,
-			expectedErr: `schemast: could not find method "Fields" for type "WithoutFields"`,
 		},
 	}
 

@@ -17,13 +17,11 @@ package schemast
 import (
 	"fmt"
 	"go/ast"
-	"go/parser"
 	"go/token"
 	"strconv"
 	"strings"
 
 	"entgo.io/ent/schema/field"
-	"github.com/go-openapi/inflect"
 )
 
 // Field converts a *field.Descriptor back into an *ast.CallExpr of the ent field package that can be used
@@ -41,15 +39,11 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 
 // AppendField adds a field to the returned values of the Fields method of type typeName.
 func (c *Context) AppendField(typeName string, desc *field.Descriptor) error {
-	stmt, err := c.returnStmt(typeName, "Fields")
-	if err != nil {
-		return err
-	}
 	newField, err := Field(desc)
 	if err != nil {
 		return err
 	}
-	return appendToReturn(stmt, selectorLit("ent", "Field"), newField)
+	return c.appendReturnItem(kindField, typeName, newField)
 }
 
 // RemoveField removes a field from the returned values of the Fields method of type typeName.
@@ -194,32 +188,4 @@ func extractFieldName(fd *ast.CallExpr) (string, error) {
 		return "", fmt.Errorf("schemast: expected field name to be a string literal")
 	}
 	return strconv.Unquote(name.Value)
-}
-
-func (c *Context) AddType(typeName string) error {
-	body := fmt.Sprintf(`package schema
-import (
-	"entgo.io/ent"
-	"entgo.io/ent/schema"
-)
-type %s struct {
-	ent.Schema
-}
-func (%s) Fields() []ent.Field {
-	return nil
-}
-func (%s) Edges() []ent.Edge {
-	return nil
-}
-func (%s) Annotations() []schema.Annotation {
-	return nil
-}
-`, typeName, typeName, typeName, typeName)
-	fn := inflect.Underscore(typeName) + ".go"
-	f, err := parser.ParseFile(c.SchemaPackage.Fset, fn, body, 0)
-	if err != nil {
-		return err
-	}
-	c.newTypes[typeName] = f
-	return nil
 }

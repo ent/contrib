@@ -117,8 +117,10 @@ func (WithFields) Edges() []ent.Edge {
 }`,
 		},
 		{
-			typeName:    "WithoutFields",
-			expectedErr: `schemast: could not find method "Edges" for type "WithoutFields"`,
+			typeName: "WithoutFields",
+			expectedBody: `func (WithoutFields) Edges() []ent.Edge {
+	return []ent.Edge{edge.To("owner", User.Type).Unique()}
+}`,
 		},
 	}
 

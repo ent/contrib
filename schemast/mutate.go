@@ -42,6 +42,7 @@ type UpsertSchema struct {
 	Name        string
 	Fields      []ent.Field
 	Edges       []ent.Edge
+	Indexes     []ent.Index
 	Annotations []schema.Annotation
 }
 
@@ -52,21 +53,9 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 			return err
 		}
 	}
-	fieldsReturn, err := ctx.returnStmt(u.Name, "Fields")
-	if err != nil {
+	if err := resetMethods(ctx, u.Name); err != nil {
 		return err
 	}
-	fieldsReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset fields.
-	edgesReturn, err := ctx.returnStmt(u.Name, "Edges")
-	if err != nil {
-		return err
-	}
-	edgesReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset edges.
-	annotReturn, err := ctx.returnStmt(u.Name, "Annotations")
-	if err != nil {
-		return err
-	}
-	annotReturn.Results = []ast.Expr{ast.NewIdent("nil")} // Reset Annotations.
 	for _, fld := range u.Fields {
 		if err := ctx.AppendField(u.Name, fld.Descriptor()); err != nil {
 			return err
@@ -82,5 +71,37 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 			return err
 		}
 	}
+	for _, idx := range u.Indexes {
+		if err := ctx.AppendIndex(u.Name, idx); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func resetMethods(ctx *Context, typeName string) error {
+	for _, m := range []string{"Fields", "Edges", "Annotations", "Indexes"} {
+		if _, ok := ctx.lookupMethod(typeName, m); !ok {
+			continue
+		}
+		stmt, err := ctx.returnStmt(typeName, m)
+		if err != nil {
+			return err
+		}
+		stmt.Results = []ast.Expr{ast.NewIdent("nil")}
+	}
+	return nil
+}
+
+func (c *Context) appendReturnItem(k kind, typeName string, item ast.Expr) error {
+	if _, ok := c.lookupMethod(typeName, k.methodName); !ok {
+		if err := c.appendMethod(typeName, k.methodName, k.ifaceSelector); err != nil {
+			return err
+		}
+	}
+	stmt, err := c.returnStmt(typeName, k.methodName)
+	if err != nil {
+		return err
+	}
+	return appendToReturn(stmt, k.ifaceSelector, item)
 }
