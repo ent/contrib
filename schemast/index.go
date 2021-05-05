@@ -21,8 +21,8 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// Index converts a *index.Descriptor back into an *ast.CallExpr of the ent Index package that can be used
-// to construct it.
+// Index converts an *index.Descriptor back into an *ast.CallExpr
+// of the ent Index package that can be used to construct it.
 func Index(desc *index.Descriptor) (*ast.CallExpr, error) {
 	idx := newIndexCall(desc)
 	if desc.Unique {
