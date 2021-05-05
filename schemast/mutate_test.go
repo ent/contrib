@@ -22,6 +22,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,6 +41,9 @@ func TestUpsert(t *testing.T) {
 			Annotations: []schema.Annotation{
 				entproto.Message(),
 			},
+			Indexes: []ent.Index{
+				index.Fields("name"),
+			},
 		},
 		&UpsertSchema{
 			Name: "Team", // A new schema
@@ -52,6 +56,9 @@ func TestUpsert(t *testing.T) {
 			Annotations: []schema.Annotation{
 				entproto.Message(),
 			},
+			Indexes: []ent.Index{
+				index.Fields("name"),
+			},
 		},
 	}
 	err = Mutate(tt.ctx, mutations...)
@@ -63,11 +70,13 @@ func TestUpsert(t *testing.T) {
 	require.NotNil(t, team)
 	require.Len(t, team.Edges, 1)
 	require.Len(t, team.Annotations, 1)
+	require.Len(t, team.Indexes, 1)
 	user := tt.getType("User")
 	require.NotNil(t, user)
 	require.Len(t, user.Fields, 1)
 	require.Len(t, user.Edges, 1)
 	require.Len(t, user.Annotations, 1)
+	require.Len(t, user.Indexes, 1)
 }
 
 func WithType(e ent.Edge, typeName string) ent.Edge {

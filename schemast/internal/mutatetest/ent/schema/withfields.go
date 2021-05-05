@@ -35,3 +35,8 @@ func (WithFields) Fields() []ent.Field {
 func (WithFields) Edges() []ent.Edge {
 	return nil
 }
+
+// Indexes of the WithFields.
+func (WithFields) Indexes() []ent.Index {
+	return nil
+}
