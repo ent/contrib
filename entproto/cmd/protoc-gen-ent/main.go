@@ -95,7 +95,7 @@ func fieldOpts(fld *protogen.Field) (*entopts.Field, bool) {
 
 func edgeOpts(fld *protogen.Field) (*entopts.Edge, bool) {
 	opts, ok := fld.Desc.Options().(*descriptorpb.FieldOptions)
-	if !ok {
+	if !ok || opts == nil {
 		return nil, false
 	}
 	extension := proto.GetExtension(opts, entopts.E_Edge)

@@ -30,7 +30,8 @@ import (
 )
 
 func TestBasic(t *testing.T) {
-	tt := newGenTest(t, "testdata/basic.proto")
+	tt, err := newGenTest(t, "testdata/basic.proto")
+	require.NoError(t, err)
 	contents, err := tt.fileContents("basic.go")
 	require.NoError(t, err)
 	require.Contains(t, contents, "type Basic struct")
@@ -42,14 +43,16 @@ func TestBasic(t *testing.T) {
 }
 
 func TestCustomName(t *testing.T) {
-	tt := newGenTest(t, "testdata/custom_name.proto")
+	tt, err := newGenTest(t, "testdata/custom_name.proto")
+	require.NoError(t, err)
 	contents, err := tt.fileContents("rotemtam.go")
 	require.NoError(t, err)
 	require.Contains(t, contents, "type Rotemtam struct")
 }
 
 func TestFieldModifier(t *testing.T) {
-	tt := newGenTest(t, "testdata/fields.proto")
+	tt, err := newGenTest(t, "testdata/fields.proto")
+	require.NoError(t, err)
 	contents, err := tt.fileContents("pet.go")
 	require.NoError(t, err)
 	require.Contains(t, contents, "type Pet struct")
@@ -57,7 +60,8 @@ func TestFieldModifier(t *testing.T) {
 }
 
 func TestEdges_O2M(t *testing.T) {
-	tt := newGenTest(t, "testdata/edges.proto")
+	tt, err := newGenTest(t, "testdata/edges.proto")
+	require.NoError(t, err)
 	catContents, err := tt.fileContents("cat.go")
 	require.NoError(t, err)
 	require.Contains(t, catContents, `edge.To("owner", Human.Type)`)
@@ -67,7 +71,8 @@ func TestEdges_O2M(t *testing.T) {
 }
 
 func TestEdges_M2M(t *testing.T) {
-	tt := newGenTest(t, "testdata/edges.proto")
+	tt, err := newGenTest(t, "testdata/edges.proto")
+	require.NoError(t, err)
 	articleContents, err := tt.fileContents("article.go")
 	require.NoError(t, err)
 	require.Contains(t, articleContents, `edge.To("categories", Category.Type).StorageKey(edge.Table("table"), edge.Columns("a", "b"))`)
@@ -76,8 +81,14 @@ func TestEdges_M2M(t *testing.T) {
 	require.Contains(t, categoryContents, `edge.From("articles", Article.Type)`)
 }
 
+func TestEdges_NotAnnotated(t *testing.T) {
+	_, err := newGenTest(t, "testdata/edge_not_annotated.proto")
+	require.EqualError(t, err, `protoc-gen-ent: expected ent.edge option on field "wheel"`)
+}
+
 func TestEnum(t *testing.T) {
-	tt := newGenTest(t, "testdata/enums.proto")
+	tt, err := newGenTest(t, "testdata/enums.proto")
+	require.NoError(t, err)
 	contents, err := tt.fileContents("job.go")
 	require.NoError(t, err)
 	require.Contains(t, contents, `field.Enum("priority").Values("PRIORITY_UNSPECIFIED", "LOW", "HIGH")`)
@@ -88,7 +99,7 @@ type genTest struct {
 	output map[string]string
 }
 
-func newGenTest(t *testing.T, files ...string) *genTest {
+func newGenTest(t *testing.T, files ...string) (*genTest, error) {
 	tmp, err := ioutil.TempDir("", "protoc-gen-ent-")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -109,9 +120,13 @@ func newGenTest(t *testing.T, files ...string) *genTest {
 		ProtoFile:       descs,
 		CompilerVersion: nil,
 	})
-	require.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 	err = printSchemas(tmp, gen)
-	require.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 	output := make(map[string]string)
 	err = filepath.Walk(tmp, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -127,8 +142,10 @@ func newGenTest(t *testing.T, files ...string) *genTest {
 		output[filepath.Base(path)] = string(contents)
 		return nil
 	})
-	require.NoError(t, err)
-	return &genTest{output: output}
+	if err != nil {
+		return nil, err
+	}
+	return &genTest{output: output}, nil
 }
 
 func (g *genTest) fileContents(name string) (string, error) {
