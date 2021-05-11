@@ -30,6 +30,16 @@ type Annotation struct {
 	Mapping []string `json:"mapping,omitempty"`
 	// Skip exclude the type
 	Skip bool `json:"skip,omitempty"`
+	// RelayConnection expose this node as a relay connection
+	RelayConnection bool `json:"relay_connection,omitempty"`
+	// GqlName provide alternative name. see: https://gqlgen.com/config/#inline-config-with-directives
+	GqlName string `json:"gql_name,omitempty"`
+	// GqlType override type
+	GqlType string `json:"gql_type,omitempty"`
+	// GqlImplements extra interfaces that are implemented
+	GqlImplements []string `json:"gql_implements,omitempty"`
+	// GqlScalarMappings defines custom scalars mappings, scalars will also be created automatically
+	GqlScalarMappings map[string]string `json:"gql_scalar_mappings,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
@@ -81,6 +91,18 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.Skip {
 		a.Skip = true
+	}
+	if ant.RelayConnection {
+		a.RelayConnection = true
+	}
+	if ant.GqlName != "" {
+		a.GqlName = ant.GqlName
+	}
+	if ant.GqlType != "" {
+		a.GqlType = ant.GqlType
+	}
+	if len(ant.GqlImplements) > 0 {
+		a.GqlImplements = ant.GqlImplements
 	}
 	return a
 }
