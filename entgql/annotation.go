@@ -25,6 +25,8 @@ type Annotation struct {
 	Bind bool
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string
+	// RelayConnection expose this node as a relay connection
+	RelayConnection bool
 }
 
 // Name implements ent.Annotation interface.
@@ -45,6 +47,11 @@ func Bind() Annotation {
 // MapsTo returns a mapping annotation.
 func MapsTo(names ...string) Annotation {
 	return Annotation{Mapping: names}
+}
+
+// RelayConnection returns a connection annotation.
+func RelayConnection() Annotation {
+	return Annotation{RelayConnection: true}
 }
 
 // Merge implements the schema.Merger interface.
@@ -68,6 +75,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if len(ant.Mapping) != 0 {
 		a.Mapping = ant.Mapping
+	}
+	if ant.RelayConnection {
+		a.RelayConnection = true
 	}
 	return a
 }
