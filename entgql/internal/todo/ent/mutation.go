@@ -51,6 +51,7 @@ type TodoMutation struct {
 	priority        *int
 	addpriority     *int
 	text            *string
+	blob            *[]byte
 	clearedFields   map[string]struct{}
 	parent          *int
 	clearedparent   bool
@@ -305,6 +306,42 @@ func (m *TodoMutation) ResetText() {
 	m.text = nil
 }
 
+// SetBlob sets the "blob" field.
+func (m *TodoMutation) SetBlob(b []byte) {
+	m.blob = &b
+}
+
+// Blob returns the value of the "blob" field in the mutation.
+func (m *TodoMutation) Blob() (r []byte, exists bool) {
+	v := m.blob
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlob returns the old "blob" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldBlob(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldBlob is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldBlob requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlob: %w", err)
+	}
+	return oldValue.Blob, nil
+}
+
+// ResetBlob resets all changes to the "blob" field.
+func (m *TodoMutation) ResetBlob() {
+	m.blob = nil
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by id.
 func (m *TodoMutation) SetParentID(id int) {
 	m.parent = &id
@@ -411,7 +448,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -423,6 +460,9 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.text != nil {
 		fields = append(fields, todo.FieldText)
+	}
+	if m.blob != nil {
+		fields = append(fields, todo.FieldBlob)
 	}
 	return fields
 }
@@ -440,6 +480,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Priority()
 	case todo.FieldText:
 		return m.Text()
+	case todo.FieldBlob:
+		return m.Blob()
 	}
 	return nil, false
 }
@@ -457,6 +499,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPriority(ctx)
 	case todo.FieldText:
 		return m.OldText(ctx)
+	case todo.FieldBlob:
+		return m.OldBlob(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -493,6 +537,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetText(v)
+		return nil
+	case todo.FieldBlob:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlob(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
@@ -569,6 +620,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldText:
 		m.ResetText()
+		return nil
+	case todo.FieldBlob:
+		m.ResetBlob()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)

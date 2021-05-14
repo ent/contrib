@@ -55,6 +55,7 @@ func (Todo) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("TEXT"),
 			),
+		field.Bytes("blob"),
 	}
 }
 

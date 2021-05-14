@@ -38,6 +38,8 @@ type Todo struct {
 	Priority int `json:"priority,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// Blob holds the value of the "blob" field.
+	Blob []byte `json:"blob,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
@@ -83,6 +85,8 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case todo.FieldBlob:
+			values[i] = new([]byte)
 		case todo.FieldID, todo.FieldPriority:
 			values[i] = new(sql.NullInt64)
 		case todo.FieldStatus, todo.FieldText:
@@ -135,6 +139,12 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field text", values[i])
 			} else if value.Valid {
 				t.Text = value.String
+			}
+		case todo.FieldBlob:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field blob", values[i])
+			} else if value != nil {
+				t.Blob = *value
 			}
 		case todo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -189,6 +199,8 @@ func (t *Todo) String() string {
 	builder.WriteString(fmt.Sprintf("%v", t.Priority))
 	builder.WriteString(", text=")
 	builder.WriteString(t.Text)
+	builder.WriteString(", blob=")
+	builder.WriteString(fmt.Sprintf("%v", t.Blob))
 	builder.WriteByte(')')
 	return builder.String()
 }
