@@ -80,6 +80,12 @@ func (tu *TodoUpdate) SetBlob(b []byte) *TodoUpdate {
 	return tu
 }
 
+// ClearBlob clears the value of the "blob" field.
+func (tu *TodoUpdate) ClearBlob() *TodoUpdate {
+	tu.mutation.ClearBlob()
+	return tu
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tu *TodoUpdate) SetParentID(id uuid.UUID) *TodoUpdate {
 	tu.mutation.SetParentID(id)
@@ -271,6 +277,12 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: todo.FieldBlob,
 		})
 	}
+	if tu.mutation.BlobCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBytes,
+			Column: todo.FieldBlob,
+		})
+	}
 	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -415,6 +427,12 @@ func (tuo *TodoUpdateOne) SetText(s string) *TodoUpdateOne {
 // SetBlob sets the "blob" field.
 func (tuo *TodoUpdateOne) SetBlob(b []byte) *TodoUpdateOne {
 	tuo.mutation.SetBlob(b)
+	return tuo
+}
+
+// ClearBlob clears the value of the "blob" field.
+func (tuo *TodoUpdateOne) ClearBlob() *TodoUpdateOne {
+	tuo.mutation.ClearBlob()
 	return tuo
 }
 
@@ -630,6 +648,12 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
 			Value:  value,
+			Column: todo.FieldBlob,
+		})
+	}
+	if tuo.mutation.BlobCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBytes,
 			Column: todo.FieldBlob,
 		})
 	}

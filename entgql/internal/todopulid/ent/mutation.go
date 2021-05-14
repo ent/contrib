@@ -344,9 +344,22 @@ func (m *TodoMutation) OldBlob(ctx context.Context) (v []byte, err error) {
 	return oldValue.Blob, nil
 }
 
+// ClearBlob clears the value of the "blob" field.
+func (m *TodoMutation) ClearBlob() {
+	m.blob = nil
+	m.clearedFields[todo.FieldBlob] = struct{}{}
+}
+
+// BlobCleared returns if the "blob" field was cleared in this mutation.
+func (m *TodoMutation) BlobCleared() bool {
+	_, ok := m.clearedFields[todo.FieldBlob]
+	return ok
+}
+
 // ResetBlob resets all changes to the "blob" field.
 func (m *TodoMutation) ResetBlob() {
 	m.blob = nil
+	delete(m.clearedFields, todo.FieldBlob)
 }
 
 // SetParentID sets the "parent" edge to the Todo entity by id.
@@ -596,7 +609,11 @@ func (m *TodoMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *TodoMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(todo.FieldBlob) {
+		fields = append(fields, todo.FieldBlob)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -609,6 +626,11 @@ func (m *TodoMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TodoMutation) ClearField(name string) error {
+	switch name {
+	case todo.FieldBlob:
+		m.ClearBlob()
+		return nil
+	}
 	return fmt.Errorf("unknown Todo nullable field %s", name)
 }
 

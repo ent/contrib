@@ -29,7 +29,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED"}},
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
-		{Name: "blob", Type: field.TypeBytes},
+		{Name: "blob", Type: field.TypeBytes, Nullable: true},
 		{Name: "todo_children", Type: field.TypeString, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.

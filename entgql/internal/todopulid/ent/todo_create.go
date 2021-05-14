@@ -219,9 +219,6 @@ func (tc *TodoCreate) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
-	if _, ok := tc.mutation.Blob(); !ok {
-		return &ValidationError{Name: "blob", err: errors.New("ent: missing required field \"blob\"")}
-	}
 	return nil
 }
 

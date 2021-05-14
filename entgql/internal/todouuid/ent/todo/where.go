@@ -523,6 +523,20 @@ func BlobLTE(v []byte) predicate.Todo {
 	})
 }
 
+// BlobIsNil applies the IsNil predicate on the "blob" field.
+func BlobIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldBlob)))
+	})
+}
+
+// BlobNotNil applies the NotNil predicate on the "blob" field.
+func BlobNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldBlob)))
+	})
+}
+
 // HasParent applies the HasEdge predicate on the "parent" edge.
 func HasParent() predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
