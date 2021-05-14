@@ -218,7 +218,7 @@ const (
 			{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
 		{{- end }}
 		{{- if $annotation.OrderField }}
-		{{ $orderFields = append $orderFields $f }}
+			{{ $orderFields = append $orderFields $f }}
 		{{- end }}
 	{{- end }}
 {{- end }}
