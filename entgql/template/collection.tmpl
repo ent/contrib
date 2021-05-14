@@ -13,7 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-{{ range $node := $.Nodes }}
+{{ range $node := filterNodes ($.Nodes) }}
 
 {{ $edges := dict }}
 {{ range $edge := $node.Edges }}

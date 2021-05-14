@@ -14,17 +14,22 @@
 
 package entgql
 
-import "entgo.io/ent/schema"
+import (
+	"encoding/json"
+	"entgo.io/ent/schema"
+)
 
 // Annotation annotates fields and edges with metadata for templates.
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
-	OrderField string
+	OrderField string `json:"OrderField,omitempty"`
 	// Bind implies the edge field name in graphql schema
 	// is equivalent to the name used in ent schema.
-	Bind bool
+	Bind bool `json:"Bind,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
-	Mapping []string
+	Mapping []string `json:"Mapping,omitempty"`
+	// Skip exclude the type
+	Skip bool `json:"Skip,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
@@ -45,6 +50,11 @@ func Bind() Annotation {
 // MapsTo returns a mapping annotation.
 func MapsTo(names ...string) Annotation {
 	return Annotation{Mapping: names}
+}
+
+// Skip returns a skip annotation.
+func Skip() Annotation {
+	return Annotation{Skip: true}
 }
 
 // Merge implements the schema.Merger interface.
@@ -69,7 +79,22 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if len(ant.Mapping) != 0 {
 		a.Mapping = ant.Mapping
 	}
+	if ant.Skip {
+		a.Skip = true
+	}
 	return a
+}
+
+// EntgqlAnnotate unmarshal annotation
+func EntgqlAnnotate(annotation map[string]interface{}) *Annotation {
+	annotate := &Annotation{}
+	if annotation == nil || annotation[annotate.Name()] == nil {
+		return nil
+	}
+	if buf, err := json.Marshal(annotation[annotate.Name()]); err == nil {
+		_ = json.Unmarshal(buf, &annotate)
+	}
+	return annotate
 }
 
 var (

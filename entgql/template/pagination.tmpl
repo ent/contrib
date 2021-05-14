@@ -15,8 +15,10 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "pagination requires field collection" }}
 {{- end }}
 
+{{ $GqlNodes := filterNodes ($.Nodes) }}
+
 import (
-	{{- range $n := $.Nodes }}
+	{{- range $n := $GqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
 )
@@ -210,7 +212,7 @@ const (
 	{{- end }}
 )
 
-{{ range $node := $.Nodes -}}
+{{ range $node := $GqlNodes -}}
 {{ $orderFields := list -}}
 {{- range $f := append $node.Fields $node.ID }}
 	{{- if $annotation := $f.Annotations.EntGQL }}

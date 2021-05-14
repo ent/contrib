@@ -16,6 +16,7 @@ package entgql
 
 import (
 	"entgo.io/contrib/entgql/internal"
+	"text/template"
 
 	"entgo.io/ent/entc/gen"
 	_ "github.com/go-bindata/go-bindata"
@@ -60,5 +61,8 @@ func parse(path string) *gen.Template {
 	text := string(internal.MustAsset(path))
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(gen.Funcs).
+		Funcs(template.FuncMap{
+			"filterNodes": filterNodes,
+		}).
 		Parse(text))
 }
