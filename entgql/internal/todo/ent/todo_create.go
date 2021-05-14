@@ -74,6 +74,12 @@ func (tc *TodoCreate) SetText(s string) *TodoCreate {
 	return tc
 }
 
+// SetBlob sets the "blob" field.
+func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
+	tc.mutation.SetBlob(b)
+	return tc
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tc *TodoCreate) SetParentID(id int) *TodoCreate {
 	tc.mutation.SetParentID(id)
@@ -252,6 +258,14 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Column: todo.FieldText,
 		})
 		_node.Text = value
+	}
+	if value, ok := tc.mutation.Blob(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBytes,
+			Value:  value,
+			Column: todo.FieldBlob,
+		})
+		_node.Blob = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

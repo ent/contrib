@@ -36,6 +36,8 @@ const (
 	FieldPriority = "priority"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
+	// FieldBlob holds the string denoting the blob field in the database.
+	FieldBlob = "blob"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -59,6 +61,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldPriority,
 	FieldText,
+	FieldBlob,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
