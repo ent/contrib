@@ -129,6 +129,13 @@ func Text(v string) predicate.Todo {
 	})
 }
 
+// Blob applies equality check predicate on the "blob" field. It's identical to BlobEQ.
+func Blob(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBlob), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
@@ -437,6 +444,82 @@ func TextEqualFold(v string) predicate.Todo {
 func TextContainsFold(v string) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldText), v))
+	})
+}
+
+// BlobEQ applies the EQ predicate on the "blob" field.
+func BlobEQ(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBlob), v))
+	})
+}
+
+// BlobNEQ applies the NEQ predicate on the "blob" field.
+func BlobNEQ(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBlob), v))
+	})
+}
+
+// BlobIn applies the In predicate on the "blob" field.
+func BlobIn(vs ...[]byte) predicate.Todo {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Todo(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldBlob), v...))
+	})
+}
+
+// BlobNotIn applies the NotIn predicate on the "blob" field.
+func BlobNotIn(vs ...[]byte) predicate.Todo {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Todo(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldBlob), v...))
+	})
+}
+
+// BlobGT applies the GT predicate on the "blob" field.
+func BlobGT(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldBlob), v))
+	})
+}
+
+// BlobGTE applies the GTE predicate on the "blob" field.
+func BlobGTE(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldBlob), v))
+	})
+}
+
+// BlobLT applies the LT predicate on the "blob" field.
+func BlobLT(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldBlob), v))
+	})
+}
+
+// BlobLTE applies the LTE predicate on the "blob" field.
+func BlobLTE(v []byte) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldBlob), v))
 	})
 }
 
