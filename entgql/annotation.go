@@ -22,14 +22,14 @@ import (
 // Annotation annotates fields and edges with metadata for templates.
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
-	OrderField string `json:"OrderField,omitempty"`
+	OrderField string `json:"order_field,omitempty"`
 	// Bind implies the edge field name in graphql schema
 	// is equivalent to the name used in ent schema.
-	Bind bool `json:"Bind,omitempty"`
+	Bind bool `json:"bind,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
-	Mapping []string `json:"Mapping,omitempty"`
+	Mapping []string `json:"mapping,omitempty"`
 	// Skip exclude the type
-	Skip bool `json:"Skip,omitempty"`
+	Skip bool `json:"skip,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
@@ -85,16 +85,13 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	return a
 }
 
-// EntgqlAnnotate unmarshal annotation
-func EntgqlAnnotate(annotation map[string]interface{}) *Annotation {
-	annotate := &Annotation{}
-	if annotation == nil || annotation[annotate.Name()] == nil {
-		return nil
+// Decode unmarshal annotation
+func (a *Annotation) Decode(annotation interface{}) error {
+	buf, err := json.Marshal(annotation)
+	if err != nil {
+		return err
 	}
-	if buf, err := json.Marshal(annotation[annotate.Name()]); err == nil {
-		_ = json.Unmarshal(buf, &annotate)
-	}
-	return annotate
+	return json.Unmarshal(buf, a)
 }
 
 var (

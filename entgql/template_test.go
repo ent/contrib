@@ -23,7 +23,7 @@ import (
 var annotationName = Annotation{}.Name()
 
 func TestFilterNodes(t *testing.T) {
-	nodes := filterNodes([]*gen.Type{
+	nodes, err := filterNodes([]*gen.Type{
 		{
 			Name: "Type1",
 			Annotations: map[string]interface{}{
@@ -41,6 +41,7 @@ func TestFilterNodes(t *testing.T) {
 			},
 		},
 	})
+	require.NoError(t, err)
 	require.Equal(t, []*gen.Type{
 		{
 			Name: "Type1",

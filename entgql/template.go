@@ -66,3 +66,20 @@ func parse(path string) *gen.Template {
 		}).
 		Parse(text))
 }
+
+func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
+	var filteredNodes []*gen.Type
+	for _, n := range nodes {
+		ant := &Annotation{}
+		if n.Annotations != nil && n.Annotations[ant.Name()] != nil {
+			if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+				return nil, err
+			}
+			if ant.Skip {
+				continue
+			}
+		}
+		filteredNodes = append(filteredNodes, n)
+	}
+	return filteredNodes, nil
+}

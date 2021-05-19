@@ -35,3 +35,27 @@ func TestAnnotation(t *testing.T) {
 	require.False(t, annotation.Bind)
 	require.ElementsMatch(t, names, annotation.Mapping)
 }
+
+func TestAnnotationDecode(t *testing.T) {
+	ann := &entgql.Annotation{}
+	err := ann.Decode(map[string]interface{}{})
+	require.NoError(t, err)
+	require.Equal(t, ann, &entgql.Annotation{})
+	ann = &entgql.Annotation{}
+	err = ann.Decode(map[string]interface{}{
+		"order_field": "NAME",
+		"bind":        true,
+		"mapping":     []string{"f1", "f2"},
+		"skip":        true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, ann, &entgql.Annotation{
+		OrderField: "NAME",
+		Bind:       true,
+		Mapping:    []string{"f1", "f2"},
+		Skip:       true,
+	})
+	err = ann.Decode("invalid")
+	require.NotNil(t, err)
+	require.Equal(t, err.Error(), "json: cannot unmarshal string into Go value of type entgql.Annotation")
+}

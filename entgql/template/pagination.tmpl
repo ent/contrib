@@ -15,10 +15,10 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "pagination requires field collection" }}
 {{- end }}
 
-{{ $GqlNodes := filterNodes ($.Nodes) }}
+{{ $gqlNodes := filterNodes $.Nodes }}
 
 import (
-	{{- range $n := $GqlNodes }}
+	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
 )
@@ -212,14 +212,14 @@ const (
 	{{- end }}
 )
 
-{{ range $node := $GqlNodes -}}
+{{ range $node := $gqlNodes -}}
 {{ $orderFields := list -}}
 {{- range $f := append $node.Fields $node.ID }}
 	{{- if $annotation := $f.Annotations.EntGQL }}
-		{{- if $annotation.OrderField }}
-			{{- if not $f.Type.Comparable }}
-				{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
-			{{- end }}
+		{{- if not $f.Type.Comparable }}
+			{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
+		{{- end }}
+		{{- if $annotation.order_field }}
 			{{ $orderFields = append $orderFields $f }}
 		{{- end }}
 	{{- end }}
@@ -454,7 +454,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 		switch f.field {
 			{{- range $f := $orderFields }}
 				case {{ $node.Package }}.{{ $f.Constant }}:
-					str = "{{ $f.Annotations.EntGQL.OrderField }}"
+					str = "{{ $f.Annotations.EntGQL.order_field }}"
 			{{- end }}
 		}
 		return str
@@ -473,7 +473,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 		}
 		switch str {
 			{{- range $f := $orderFields }}
-				case "{{ $f.Annotations.EntGQL.OrderField }}":
+				case "{{ $f.Annotations.EntGQL.order_field }}":
 					*f = *{{ print $orderField $f.StructField }}
 			{{- end }}
 		default:
