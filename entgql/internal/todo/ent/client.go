@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -37,6 +38,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
+	// VerySecret is the client for interacting with the VerySecret builders.
+	VerySecret *VerySecretClient
 	// additional fields for node api
 	tables tables
 }
@@ -53,6 +56,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Todo = NewTodoClient(c.config)
+	c.VerySecret = NewVerySecretClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -84,9 +88,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Todo:       NewTodoClient(cfg),
+		VerySecret: NewVerySecretClient(cfg),
 	}, nil
 }
 
@@ -104,8 +109,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		config:     cfg,
+		Todo:       NewTodoClient(cfg),
+		VerySecret: NewVerySecretClient(cfg),
 	}, nil
 }
 
@@ -136,6 +142,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Todo.Use(hooks...)
+	c.VerySecret.Use(hooks...)
 }
 
 // TodoClient is a client for the Todo schema.
@@ -258,4 +265,94 @@ func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 // Hooks returns the client hooks.
 func (c *TodoClient) Hooks() []Hook {
 	return c.hooks.Todo
+}
+
+// VerySecretClient is a client for the VerySecret schema.
+type VerySecretClient struct {
+	config
+}
+
+// NewVerySecretClient returns a client for the VerySecret from the given config.
+func NewVerySecretClient(c config) *VerySecretClient {
+	return &VerySecretClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `verysecret.Hooks(f(g(h())))`.
+func (c *VerySecretClient) Use(hooks ...Hook) {
+	c.hooks.VerySecret = append(c.hooks.VerySecret, hooks...)
+}
+
+// Create returns a create builder for VerySecret.
+func (c *VerySecretClient) Create() *VerySecretCreate {
+	mutation := newVerySecretMutation(c.config, OpCreate)
+	return &VerySecretCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of VerySecret entities.
+func (c *VerySecretClient) CreateBulk(builders ...*VerySecretCreate) *VerySecretCreateBulk {
+	return &VerySecretCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for VerySecret.
+func (c *VerySecretClient) Update() *VerySecretUpdate {
+	mutation := newVerySecretMutation(c.config, OpUpdate)
+	return &VerySecretUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VerySecretClient) UpdateOne(vs *VerySecret) *VerySecretUpdateOne {
+	mutation := newVerySecretMutation(c.config, OpUpdateOne, withVerySecret(vs))
+	return &VerySecretUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VerySecretClient) UpdateOneID(id int) *VerySecretUpdateOne {
+	mutation := newVerySecretMutation(c.config, OpUpdateOne, withVerySecretID(id))
+	return &VerySecretUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for VerySecret.
+func (c *VerySecretClient) Delete() *VerySecretDelete {
+	mutation := newVerySecretMutation(c.config, OpDelete)
+	return &VerySecretDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *VerySecretClient) DeleteOne(vs *VerySecret) *VerySecretDeleteOne {
+	return c.DeleteOneID(vs.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *VerySecretClient) DeleteOneID(id int) *VerySecretDeleteOne {
+	builder := c.Delete().Where(verysecret.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VerySecretDeleteOne{builder}
+}
+
+// Query returns a query builder for VerySecret.
+func (c *VerySecretClient) Query() *VerySecretQuery {
+	return &VerySecretQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a VerySecret entity by its id.
+func (c *VerySecretClient) Get(ctx context.Context, id int) (*VerySecret, error) {
+	return c.Query().Where(verysecret.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VerySecretClient) GetX(ctx context.Context, id int) *VerySecret {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *VerySecretClient) Hooks() []Hook {
+	return c.hooks.VerySecret
 }

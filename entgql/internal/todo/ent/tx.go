@@ -28,6 +28,8 @@ type Tx struct {
 	config
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
+	// VerySecret is the client for interacting with the VerySecret builders.
+	VerySecret *VerySecretClient
 
 	// lazily loaded.
 	client     *Client
@@ -164,6 +166,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Todo = NewTodoClient(tx.config)
+	tx.VerySecret = NewVerySecretClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

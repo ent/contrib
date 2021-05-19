@@ -12,10 +12,12 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "node requires SQL storage" }}
 {{ end }}
 
+{{ $gqlNodes := filterNodes $.Nodes }}
+
 {{/* Ensure all id types have the same type */}}
 {{ $idType := $.IDType }}
-{{ if gt (len $.Nodes) 0 }}
-	{{ $idType = (index $.Nodes 0).ID.Type }}
+{{ if gt (len $gqlNodes) 0 }}
+	{{ $idType = (index $gqlNodes 0).ID.Type }}
 	{{ range $n := (slice $.Nodes 1) }}
 		{{ if ne $idType.Type $n.ID.Type.Type }}
 			{{ fail "node does not support multiple id types" }}
@@ -69,7 +71,7 @@ type Edge struct {
 }
 
 {{/* loop over all types and add implement the Node interface. */}}
-{{ range $n := $.Nodes }}
+{{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		node = &Node{
@@ -187,7 +189,7 @@ func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption
 
 func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
-	{{- range $n := $.Nodes }}
+	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
 			n, err := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.ID(id)).
@@ -273,7 +275,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
-	{{- range $n := $.Nodes }}
+	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
 			nodes, err := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.IDIn(ids...)).
