@@ -216,10 +216,10 @@ const (
 {{ $orderFields := list -}}
 {{- range $f := append $node.Fields $node.ID }}
 	{{- if $annotation := $f.Annotations.EntGQL }}
-		{{- if not $f.Type.Comparable }}
-			{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
-		{{- end }}
 		{{- if $annotation.order_field }}
+			{{- if not $f.Type.Comparable }}
+				{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
+			{{- end }}
 			{{ $orderFields = append $orderFields $f }}
 		{{- end }}
 	{{- end }}
