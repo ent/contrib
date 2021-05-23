@@ -62,13 +62,8 @@ func (e *Entgqlgen) typeField(f *gen.Field, idField bool) (*ast.FieldDefinition,
 	return &ast.FieldDefinition{
 		Name:       camel(f.Name),
 		Type:       ft,
-		Directives: e.fieldDirectives(f),
+		Directives: e.directives(ann.GqlDirectives),
 	}, nil
-}
-
-func (e *Entgqlgen) fieldDirectives(*gen.Field) ast.DirectiveList {
-	// TODO
-	return nil
 }
 
 func namedType(name string, nillable bool) *ast.Type {

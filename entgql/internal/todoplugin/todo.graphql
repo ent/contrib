@@ -1,3 +1,7 @@
+directive @someDirective(stringArg: String, boolArg: Boolean) on OBJECT
+    | INPUT_OBJECT
+    | SCALAR
+
 extend type Todo {
   parent: Todo
   children: [Todo!]
