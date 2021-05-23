@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 
 	"entgo.io/ent/schema"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // Annotation annotates fields and edges with metadata for templates.
@@ -43,8 +44,21 @@ type Annotation struct {
 	GqlType string `json:"gql_type,omitempty"`
 	// GqlImplements extra interfaces that are implemented
 	GqlImplements []string `json:"gql_implements,omitempty"`
+	// GqlDirectives directives to add
+	GqlDirectives []Directive `json:"gql_directives,omitempty"`
 	// GqlScalarMappings defines custom scalars mappings, scalars will also be created automatically
 	GqlScalarMappings map[string]string `json:"gql_scalar_mappings,omitempty"`
+}
+
+type Directive struct {
+	Name      string              `json:"name,omitempty"`
+	Arguments []DirectiveArgument `json:"arguments,omitempty"`
+}
+
+type DirectiveArgument struct {
+	Name  string        `json:"name,omitempty"`
+	Value string        `json:"value,omitempty"`
+	Kind  ast.ValueKind `json:"kind,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
@@ -131,6 +145,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.GqlType != "" {
 		a.GqlType = ant.GqlType
+	}
+	if len(ant.GqlDirectives) > 0 {
+		a.GqlDirectives = ant.GqlDirectives
 	}
 	if len(ant.GqlImplements) > 0 {
 		a.GqlImplements = ant.GqlImplements

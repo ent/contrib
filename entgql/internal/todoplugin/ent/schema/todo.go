@@ -16,6 +16,7 @@ package schema
 
 import (
 	"entgo.io/ent/schema"
+	"github.com/vektah/gqlparser/v2/ast"
 	"time"
 
 	"entgo.io/contrib/entgql"
@@ -44,7 +45,26 @@ func (Todo) Fields() []ent.Field {
 				"Completed", "COMPLETED",
 			).
 			Annotations(
-				entgql.OrderField("STATUS"),
+				entgql.Annotation{
+					OrderField: "STATUS",
+					GqlDirectives: []entgql.Directive{
+						{
+							Name: "someDirective",
+							Arguments: []entgql.DirectiveArgument{
+								{
+									Name:  "stringArg",
+									Value: "someString",
+									Kind:  ast.StringValue,
+								},
+								{
+									Name:  "boolArg",
+									Value: "FALSE",
+									Kind:  ast.BooleanValue,
+								},
+							},
+						},
+					},
+				},
 			),
 		field.Int("priority").
 			Default(0).
@@ -75,6 +95,11 @@ func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.Annotation{
 			RelayConnection: true,
+			GqlDirectives: []entgql.Directive{
+				{
+					Name: "someDirective",
+				},
+			},
 		},
 	}
 }

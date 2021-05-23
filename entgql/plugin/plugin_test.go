@@ -114,10 +114,10 @@ enum Status {
 	COMPLETED
 }
 scalar Time
-type Todo implements Node {
+type Todo implements Node @someDirective {
 	id: ID!
 	createdAt: Time!
-	status: Status!
+	status: Status! @someDirective(stringArg: "someString", boolArg: FALSE)
 	priority: Int!
 	text: String!
 }

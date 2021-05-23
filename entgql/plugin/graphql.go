@@ -113,12 +113,34 @@ func (e *Entgqlgen) types() error {
 			Kind:       ast.Object,
 			Fields:     fields,
 			Interfaces: interfaces,
+			Directives: e.directives(ann.GqlDirectives),
 		})
 		if ann.RelayConnection {
 			e.relayConnection(t)
 		}
 	}
 	return nil
+}
+
+func (e *Entgqlgen) directives(directives []entgql.Directive) ast.DirectiveList {
+	var list ast.DirectiveList
+	for _, d := range directives {
+		var args ast.ArgumentList
+		for _, arg := range d.Arguments {
+			args = append(args, &ast.Argument{
+				Name: arg.Name,
+				Value: &ast.Value{
+					Raw:  arg.Value,
+					Kind: arg.Kind,
+				},
+			})
+		}
+		list = append(list, &ast.Directive{
+			Name:      d.Name,
+			Arguments: args,
+		})
+	}
+	return list
 }
 
 func (e *Entgqlgen) insertDefinitions(defs []*ast.Definition) {

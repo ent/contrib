@@ -45,6 +45,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	SomeDirective func(ctx context.Context, obj interface{}, next graphql.Resolver, stringArg *string, boolArg *bool) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -391,7 +392,11 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "todo.graphql", Input: `extend type Todo {
+	{Name: "todo.graphql", Input: `directive @someDirective(stringArg: String, boolArg: Boolean) on OBJECT
+    | INPUT_OBJECT
+    | SCALAR
+
+extend type Todo {
   parent: Todo
   children: [Todo!]
 }
@@ -443,10 +448,10 @@ enum Status {
 	COMPLETED
 }
 scalar Time
-type Todo implements Node {
+type Todo implements Node @someDirective {
 	id: ID!
 	createdAt: Time!
-	status: Status!
+	status: Status! @someDirective(stringArg: "someString", boolArg: FALSE)
 	priority: Int!
 	text: String!
 }
@@ -483,6 +488,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_someDirective_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["stringArg"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringArg"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["stringArg"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["boolArg"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("boolArg"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["boolArg"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -657,8 +686,28 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, args["todo"].(TodoInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTodo(rctx, args["todo"].(TodoInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.SomeDirective == nil {
+				return nil, errors.New("directive someDirective is not implemented")
+			}
+			return ec.directives.SomeDirective(ctx, nil, directive0, nil, nil)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*ent.Todo); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *entgo.io/contrib/entgql/internal/todoplugin/ent.Todo`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1122,8 +1171,36 @@ func (ec *executionContext) _Todo_status(ctx context.Context, field graphql.Coll
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.Status, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			stringArg, err := ec.unmarshalOString2ᚖstring(ctx, "someString")
+			if err != nil {
+				return nil, err
+			}
+			boolArg, err := ec.unmarshalOBoolean2ᚖbool(ctx, "FALSE")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.SomeDirective == nil {
+				return nil, errors.New("directive someDirective is not implemented")
+			}
+			return ec.directives.SomeDirective(ctx, obj, directive0, stringArg, boolArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(todo.Status); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1227,8 +1304,28 @@ func (ec *executionContext) _Todo_parent(ctx context.Context, field graphql.Coll
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Parent(ctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.Parent(ctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.SomeDirective == nil {
+				return nil, errors.New("directive someDirective is not implemented")
+			}
+			return ec.directives.SomeDirective(ctx, obj, directive0, nil, nil)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*ent.Todo); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *entgo.io/contrib/entgql/internal/todoplugin/ent.Todo`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1259,8 +1356,28 @@ func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.Co
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Children(ctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.Children(ctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.SomeDirective == nil {
+				return nil, errors.New("directive someDirective is not implemented")
+			}
+			return ec.directives.SomeDirective(ctx, obj, directive0, nil, nil)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*ent.Todo); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*entgo.io/contrib/entgql/internal/todoplugin/ent.Todo`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1393,8 +1510,28 @@ func (ec *executionContext) _TodoEdge_node(ctx context.Context, field graphql.Co
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Node, nil
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.Node, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.SomeDirective == nil {
+				return nil, errors.New("directive someDirective is not implemented")
+			}
+			return ec.directives.SomeDirective(ctx, obj, directive0, nil, nil)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*ent.Todo); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *entgo.io/contrib/entgql/internal/todoplugin/ent.Todo`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
