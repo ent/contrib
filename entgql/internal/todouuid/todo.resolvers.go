@@ -20,6 +20,7 @@ package todo
 import (
 	"context"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"github.com/google/uuid"
 )
@@ -43,11 +44,11 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 }
 
 func (r *queryResolver) Node(ctx context.Context, id uuid.UUID) (ent.Noder, error) {
-	return r.client.Noder(ctx, id)
+	return r.client.Noder(ctx, id, ent.WithFixedNodeType(todo.Table))
 }
 
 func (r *queryResolver) Nodes(ctx context.Context, ids []uuid.UUID) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids)
+	return r.client.Noders(ctx, ids, ent.WithFixedNodeType(todo.Table))
 }
 
 func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error) {
