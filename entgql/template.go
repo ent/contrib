@@ -53,6 +53,11 @@ var (
 		TransactionTemplate,
 		EdgeTemplate,
 	}
+
+	// TemplateFuncs contains the extra template functions used by entgql.
+	TemplateFuncs = template.FuncMap{
+		"filterNodes": filterNodes,
+	}
 )
 
 //go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
@@ -61,9 +66,7 @@ func parse(path string) *gen.Template {
 	text := string(internal.MustAsset(path))
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(gen.Funcs).
-		Funcs(template.FuncMap{
-			"filterNodes": filterNodes,
-		}).
+		Funcs(TemplateFuncs).
 		Parse(text))
 }
 
