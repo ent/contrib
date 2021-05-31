@@ -20,7 +20,7 @@ package todo
 import (
 	"context"
 
-	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"github.com/google/uuid"
 )
