@@ -22,14 +22,14 @@ import (
 // Annotation annotates fields and edges with metadata for templates.
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
-	OrderField string `json:"order_field,omitempty"`
+	OrderField string `json:"OrderField,omitempty"`
 	// Bind implies the edge field name in graphql schema
 	// is equivalent to the name used in ent schema.
-	Bind bool `json:"bind,omitempty"`
+	Bind bool `json:"Bind,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
-	Mapping []string `json:"mapping,omitempty"`
+	Mapping []string `json:"Mapping,omitempty"`
 	// Skip exclude the type
-	Skip bool `json:"skip,omitempty"`
+	Skip bool `json:"Skip,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
