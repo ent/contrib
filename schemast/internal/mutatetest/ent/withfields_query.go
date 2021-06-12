@@ -398,10 +398,14 @@ func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(wfq.driver.Dialect())
 	t1 := builder.Table(withfields.Table)
-	selector := builder.Select(t1.Columns(withfields.Columns...)...).From(t1)
+	columns := wfq.fields
+	if len(columns) == 0 {
+		columns = withfields.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if wfq.sql != nil {
 		selector = wfq.sql
-		selector.Select(selector.Columns(withfields.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range wfq.predicates {
 		p(selector)
@@ -669,13 +673,24 @@ func (wfgb *WithFieldsGroupBy) sqlScan(ctx context.Context, v interface{}) error
 }
 
 func (wfgb *WithFieldsGroupBy) sqlQuery() *sql.Selector {
-	selector := wfgb.sql
-	columns := make([]string, 0, len(wfgb.fields)+len(wfgb.fns))
-	columns = append(columns, wfgb.fields...)
+	selector := wfgb.sql.Select()
+	aggregation := make([]string, 0, len(wfgb.fns))
 	for _, fn := range wfgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(wfgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(wfgb.fields)+len(wfgb.fns))
+		for _, f := range wfgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(wfgb.fields...)...)
 }
 
 // WithFieldsSelect is the builder for selecting fields of WithFields entities.
@@ -891,16 +906,10 @@ func (wfs *WithFieldsSelect) BoolX(ctx context.Context) bool {
 
 func (wfs *WithFieldsSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := wfs.sqlQuery().Query()
+	query, args := wfs.sql.Query()
 	if err := wfs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (wfs *WithFieldsSelect) sqlQuery() sql.Querier {
-	selector := wfs.sql
-	selector.Select(selector.Columns(wfs.fields...)...)
-	return selector
 }

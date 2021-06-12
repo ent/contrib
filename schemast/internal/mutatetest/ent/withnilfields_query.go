@@ -374,10 +374,14 @@ func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 func (wnfq *WithNilFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(wnfq.driver.Dialect())
 	t1 := builder.Table(withnilfields.Table)
-	selector := builder.Select(t1.Columns(withnilfields.Columns...)...).From(t1)
+	columns := wnfq.fields
+	if len(columns) == 0 {
+		columns = withnilfields.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if wnfq.sql != nil {
 		selector = wnfq.sql
-		selector.Select(selector.Columns(withnilfields.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range wnfq.predicates {
 		p(selector)
@@ -645,13 +649,24 @@ func (wnfgb *WithNilFieldsGroupBy) sqlScan(ctx context.Context, v interface{}) e
 }
 
 func (wnfgb *WithNilFieldsGroupBy) sqlQuery() *sql.Selector {
-	selector := wnfgb.sql
-	columns := make([]string, 0, len(wnfgb.fields)+len(wnfgb.fns))
-	columns = append(columns, wnfgb.fields...)
+	selector := wnfgb.sql.Select()
+	aggregation := make([]string, 0, len(wnfgb.fns))
 	for _, fn := range wnfgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(wnfgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(wnfgb.fields)+len(wnfgb.fns))
+		for _, f := range wnfgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(wnfgb.fields...)...)
 }
 
 // WithNilFieldsSelect is the builder for selecting fields of WithNilFields entities.
@@ -867,16 +882,10 @@ func (wnfs *WithNilFieldsSelect) BoolX(ctx context.Context) bool {
 
 func (wnfs *WithNilFieldsSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := wnfs.sqlQuery().Query()
+	query, args := wnfs.sql.Query()
 	if err := wnfs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (wnfs *WithNilFieldsSelect) sqlQuery() sql.Querier {
-	selector := wnfs.sql
-	selector.Select(selector.Columns(wnfs.fields...)...)
-	return selector
 }

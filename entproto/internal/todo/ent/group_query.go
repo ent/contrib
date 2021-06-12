@@ -470,10 +470,14 @@ func (gq *GroupQuery) querySpec() *sqlgraph.QuerySpec {
 func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(gq.driver.Dialect())
 	t1 := builder.Table(group.Table)
-	selector := builder.Select(t1.Columns(group.Columns...)...).From(t1)
+	columns := gq.fields
+	if len(columns) == 0 {
+		columns = group.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if gq.sql != nil {
 		selector = gq.sql
-		selector.Select(selector.Columns(group.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range gq.predicates {
 		p(selector)
@@ -741,13 +745,24 @@ func (ggb *GroupGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ggb *GroupGroupBy) sqlQuery() *sql.Selector {
-	selector := ggb.sql
-	columns := make([]string, 0, len(ggb.fields)+len(ggb.fns))
-	columns = append(columns, ggb.fields...)
+	selector := ggb.sql.Select()
+	aggregation := make([]string, 0, len(ggb.fns))
 	for _, fn := range ggb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(ggb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(ggb.fields)+len(ggb.fns))
+		for _, f := range ggb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(ggb.fields...)...)
 }
 
 // GroupSelect is the builder for selecting fields of Group entities.
@@ -963,16 +978,10 @@ func (gs *GroupSelect) BoolX(ctx context.Context) bool {
 
 func (gs *GroupSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := gs.sqlQuery().Query()
+	query, args := gs.sql.Query()
 	if err := gs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (gs *GroupSelect) sqlQuery() sql.Querier {
-	selector := gs.sql
-	selector.Select(selector.Columns(gs.fields...)...)
-	return selector
 }

@@ -52,7 +52,10 @@ func (ifmc *InvalidFieldMessageCreate) Save(ctx context.Context) (*InvalidFieldM
 				return nil, err
 			}
 			ifmc.mutation = mutation
-			node, err = ifmc.sqlSave(ctx)
+			if node, err = ifmc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -153,10 +156,11 @@ func (ifmcb *InvalidFieldMessageCreateBulk) Save(ctx context.Context) ([]*Invali
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

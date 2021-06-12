@@ -374,10 +374,14 @@ func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwiq.driver.Dialect())
 	t1 := builder.Table(messagewithid.Table)
-	selector := builder.Select(t1.Columns(messagewithid.Columns...)...).From(t1)
+	columns := mwiq.fields
+	if len(columns) == 0 {
+		columns = messagewithid.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if mwiq.sql != nil {
 		selector = mwiq.sql
-		selector.Select(selector.Columns(messagewithid.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range mwiq.predicates {
 		p(selector)
@@ -645,13 +649,24 @@ func (mwigb *MessageWithIDGroupBy) sqlScan(ctx context.Context, v interface{}) e
 }
 
 func (mwigb *MessageWithIDGroupBy) sqlQuery() *sql.Selector {
-	selector := mwigb.sql
-	columns := make([]string, 0, len(mwigb.fields)+len(mwigb.fns))
-	columns = append(columns, mwigb.fields...)
+	selector := mwigb.sql.Select()
+	aggregation := make([]string, 0, len(mwigb.fns))
 	for _, fn := range mwigb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(mwigb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(mwigb.fields)+len(mwigb.fns))
+		for _, f := range mwigb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(mwigb.fields...)...)
 }
 
 // MessageWithIDSelect is the builder for selecting fields of MessageWithID entities.
@@ -867,16 +882,10 @@ func (mwis *MessageWithIDSelect) BoolX(ctx context.Context) bool {
 
 func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := mwis.sqlQuery().Query()
+	query, args := mwis.sql.Query()
 	if err := mwis.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (mwis *MessageWithIDSelect) sqlQuery() sql.Querier {
-	selector := mwis.sql
-	selector.Select(selector.Columns(mwis.fields...)...)
-	return selector
 }

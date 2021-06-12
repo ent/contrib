@@ -99,7 +99,10 @@ func (bpc *BlogPostCreate) Save(ctx context.Context) (*BlogPost, error) {
 				return nil, err
 			}
 			bpc.mutation = mutation
-			node, err = bpc.sqlSave(ctx)
+			if node, err = bpc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -261,10 +264,11 @@ func (bpcb *BlogPostCreateBulk) Save(ctx context.Context) ([]*BlogPost, error) {
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

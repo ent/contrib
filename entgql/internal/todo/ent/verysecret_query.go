@@ -412,10 +412,14 @@ func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
 func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(vsq.driver.Dialect())
 	t1 := builder.Table(verysecret.Table)
-	selector := builder.Select(t1.Columns(verysecret.Columns...)...).From(t1)
+	columns := vsq.fields
+	if len(columns) == 0 {
+		columns = verysecret.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if vsq.sql != nil {
 		selector = vsq.sql
-		selector.Select(selector.Columns(verysecret.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range vsq.predicates {
 		p(selector)
@@ -683,13 +687,24 @@ func (vsgb *VerySecretGroupBy) sqlScan(ctx context.Context, v interface{}) error
 }
 
 func (vsgb *VerySecretGroupBy) sqlQuery() *sql.Selector {
-	selector := vsgb.sql
-	columns := make([]string, 0, len(vsgb.fields)+len(vsgb.fns))
-	columns = append(columns, vsgb.fields...)
+	selector := vsgb.sql.Select()
+	aggregation := make([]string, 0, len(vsgb.fns))
 	for _, fn := range vsgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(vsgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(vsgb.fields)+len(vsgb.fns))
+		for _, f := range vsgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(vsgb.fields...)...)
 }
 
 // VerySecretSelect is the builder for selecting fields of VerySecret entities.
@@ -905,16 +920,10 @@ func (vss *VerySecretSelect) BoolX(ctx context.Context) bool {
 
 func (vss *VerySecretSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := vss.sqlQuery().Query()
+	query, args := vss.sql.Query()
 	if err := vss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (vss *VerySecretSelect) sqlQuery() sql.Querier {
-	selector := vss.sql
-	selector.Select(selector.Columns(vss.fields...)...)
-	return selector
 }

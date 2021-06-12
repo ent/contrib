@@ -97,7 +97,7 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		case todo.ForeignKeys[0]: // todo_children
-			values[i] = new(pulid.ID)
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
 		}
@@ -150,10 +150,11 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				t.Blob = *value
 			}
 		case todo.ForeignKeys[0]:
-			if value, ok := values[i].(*pulid.ID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
-			} else if value != nil {
-				t.todo_children = value
+			} else if value.Valid {
+				t.todo_children = new(pulid.ID)
+				*t.todo_children = *value.S.(*pulid.ID)
 			}
 		}
 	}

@@ -140,8 +140,8 @@ func (m *TodoMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *TodoMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return

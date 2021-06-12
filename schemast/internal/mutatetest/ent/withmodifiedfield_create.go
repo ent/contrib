@@ -71,7 +71,10 @@ func (wmfc *WithModifiedFieldCreate) Save(ctx context.Context) (*WithModifiedFie
 				return nil, err
 			}
 			wmfc.mutation = mutation
-			node, err = wmfc.sqlSave(ctx)
+			if node, err = wmfc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -197,10 +200,11 @@ func (wmfcb *WithModifiedFieldCreateBulk) Save(ctx context.Context) ([]*WithModi
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

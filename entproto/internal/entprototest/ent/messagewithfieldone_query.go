@@ -398,10 +398,14 @@ func (mwfoq *MessageWithFieldOneQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwfoq.driver.Dialect())
 	t1 := builder.Table(messagewithfieldone.Table)
-	selector := builder.Select(t1.Columns(messagewithfieldone.Columns...)...).From(t1)
+	columns := mwfoq.fields
+	if len(columns) == 0 {
+		columns = messagewithfieldone.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if mwfoq.sql != nil {
 		selector = mwfoq.sql
-		selector.Select(selector.Columns(messagewithfieldone.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range mwfoq.predicates {
 		p(selector)
@@ -669,13 +673,24 @@ func (mwfogb *MessageWithFieldOneGroupBy) sqlScan(ctx context.Context, v interfa
 }
 
 func (mwfogb *MessageWithFieldOneGroupBy) sqlQuery() *sql.Selector {
-	selector := mwfogb.sql
-	columns := make([]string, 0, len(mwfogb.fields)+len(mwfogb.fns))
-	columns = append(columns, mwfogb.fields...)
+	selector := mwfogb.sql.Select()
+	aggregation := make([]string, 0, len(mwfogb.fns))
 	for _, fn := range mwfogb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(mwfogb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(mwfogb.fields)+len(mwfogb.fns))
+		for _, f := range mwfogb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(mwfogb.fields...)...)
 }
 
 // MessageWithFieldOneSelect is the builder for selecting fields of MessageWithFieldOne entities.
@@ -891,16 +906,10 @@ func (mwfos *MessageWithFieldOneSelect) BoolX(ctx context.Context) bool {
 
 func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := mwfos.sqlQuery().Query()
+	query, args := mwfos.sql.Query()
 	if err := mwfos.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (mwfos *MessageWithFieldOneSelect) sqlQuery() sql.Querier {
-	selector := mwfos.sql
-	selector.Select(selector.Columns(mwfos.fields...)...)
-	return selector
 }

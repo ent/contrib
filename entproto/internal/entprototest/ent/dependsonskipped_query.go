@@ -470,10 +470,14 @@ func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
 func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(dosq.driver.Dialect())
 	t1 := builder.Table(dependsonskipped.Table)
-	selector := builder.Select(t1.Columns(dependsonskipped.Columns...)...).From(t1)
+	columns := dosq.fields
+	if len(columns) == 0 {
+		columns = dependsonskipped.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if dosq.sql != nil {
 		selector = dosq.sql
-		selector.Select(selector.Columns(dependsonskipped.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range dosq.predicates {
 		p(selector)
@@ -741,13 +745,24 @@ func (dosgb *DependsOnSkippedGroupBy) sqlScan(ctx context.Context, v interface{}
 }
 
 func (dosgb *DependsOnSkippedGroupBy) sqlQuery() *sql.Selector {
-	selector := dosgb.sql
-	columns := make([]string, 0, len(dosgb.fields)+len(dosgb.fns))
-	columns = append(columns, dosgb.fields...)
+	selector := dosgb.sql.Select()
+	aggregation := make([]string, 0, len(dosgb.fns))
 	for _, fn := range dosgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(dosgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(dosgb.fields)+len(dosgb.fns))
+		for _, f := range dosgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(dosgb.fields...)...)
 }
 
 // DependsOnSkippedSelect is the builder for selecting fields of DependsOnSkipped entities.
@@ -963,16 +978,10 @@ func (doss *DependsOnSkippedSelect) BoolX(ctx context.Context) bool {
 
 func (doss *DependsOnSkippedSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := doss.sqlQuery().Query()
+	query, args := doss.sql.Query()
 	if err := doss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (doss *DependsOnSkippedSelect) sqlQuery() sql.Querier {
-	selector := doss.sql
-	selector.Select(selector.Columns(doss.fields...)...)
-	return selector
 }

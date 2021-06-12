@@ -398,10 +398,14 @@ func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwpnq.driver.Dialect())
 	t1 := builder.Table(messagewithpackagename.Table)
-	selector := builder.Select(t1.Columns(messagewithpackagename.Columns...)...).From(t1)
+	columns := mwpnq.fields
+	if len(columns) == 0 {
+		columns = messagewithpackagename.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if mwpnq.sql != nil {
 		selector = mwpnq.sql
-		selector.Select(selector.Columns(messagewithpackagename.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range mwpnq.predicates {
 		p(selector)
@@ -669,13 +673,24 @@ func (mwpngb *MessageWithPackageNameGroupBy) sqlScan(ctx context.Context, v inte
 }
 
 func (mwpngb *MessageWithPackageNameGroupBy) sqlQuery() *sql.Selector {
-	selector := mwpngb.sql
-	columns := make([]string, 0, len(mwpngb.fields)+len(mwpngb.fns))
-	columns = append(columns, mwpngb.fields...)
+	selector := mwpngb.sql.Select()
+	aggregation := make([]string, 0, len(mwpngb.fns))
 	for _, fn := range mwpngb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(mwpngb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(mwpngb.fields)+len(mwpngb.fns))
+		for _, f := range mwpngb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(mwpngb.fields...)...)
 }
 
 // MessageWithPackageNameSelect is the builder for selecting fields of MessageWithPackageName entities.
@@ -891,16 +906,10 @@ func (mwpns *MessageWithPackageNameSelect) BoolX(ctx context.Context) bool {
 
 func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := mwpns.sqlQuery().Query()
+	query, args := mwpns.sql.Query()
 	if err := mwpns.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (mwpns *MessageWithPackageNameSelect) sqlQuery() sql.Querier {
-	selector := mwpns.sql
-	selector.Select(selector.Columns(mwpns.fields...)...)
-	return selector
 }

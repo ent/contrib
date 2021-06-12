@@ -73,7 +73,10 @@ func (cc *CategoryCreate) Save(ctx context.Context) (*Category, error) {
 				return nil, err
 			}
 			cc.mutation = mutation
-			node, err = cc.sqlSave(ctx)
+			if node, err = cc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -204,10 +207,11 @@ func (ccb *CategoryCreateBulk) Save(ctx context.Context) ([]*Category, error) {
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

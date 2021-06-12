@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.16
 
 require (
-	entgo.io/ent v0.8.0
+	entgo.io/ent v0.8.1-0.20210611070438-49d11cc774dc
 	github.com/99designs/gqlgen v0.13.0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
@@ -19,7 +19,7 @@ require (
 	github.com/jhump/protoreflect v1.8.2
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/mattn/go-sqlite3 v1.14.6
+	github.com/mattn/go-sqlite3 v1.14.7
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stretchr/objx v0.3.0 // indirect
@@ -29,11 +29,9 @@ require (
 	go.uber.org/multierr v1.6.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.5 // indirect
-	golang.org/x/tools v0.1.0
+	golang.org/x/tools v0.1.3
 	google.golang.org/genproto v0.0.0-20210303154014-9728d6b83eeb // indirect
 	google.golang.org/grpc v1.36.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect

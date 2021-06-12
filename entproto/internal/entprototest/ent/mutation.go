@@ -146,8 +146,8 @@ func (m BlogPostMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *BlogPostMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -724,8 +724,8 @@ func (m CategoryMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *CategoryMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -1156,8 +1156,8 @@ func (m DependsOnSkippedMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *DependsOnSkippedMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -1533,8 +1533,8 @@ func (m DuplicateNumberMessageMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *DuplicateNumberMessageMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -1872,8 +1872,8 @@ func (m ExplicitSkippedMessageMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *ExplicitSkippedMessageMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -2107,8 +2107,8 @@ func (m *ImageMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *ImageMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
@@ -2482,8 +2482,8 @@ func (m ImplicitSkippedMessageMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *ImplicitSkippedMessageMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -2708,8 +2708,8 @@ func (m InvalidFieldMessageMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *InvalidFieldMessageMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -2996,8 +2996,8 @@ func (m MessageWithEnumMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *MessageWithEnumMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -3337,8 +3337,8 @@ func (m MessageWithFieldOneMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *MessageWithFieldOneMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -3664,8 +3664,8 @@ func (m *MessageWithIDMutation) SetID(id int32) {
 	m.id = &id
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *MessageWithIDMutation) ID() (id int32, exists bool) {
 	if m.id == nil {
 		return
@@ -3900,8 +3900,8 @@ func (m MessageWithOptionalsMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *MessageWithOptionalsMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -4815,8 +4815,8 @@ func (m MessageWithPackageNameMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *MessageWithPackageNameMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -5105,8 +5105,8 @@ func (m PortalMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *PortalMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -5518,8 +5518,8 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *UserMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
@@ -6010,8 +6010,8 @@ func (m ValidMessageMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// ID returns the ID value in the mutation. Note that the ID
-// is only available if it was provided to the builder.
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
 func (m *ValidMessageMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return

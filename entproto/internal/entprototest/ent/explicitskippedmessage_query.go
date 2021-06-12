@@ -374,10 +374,14 @@ func (esmq *ExplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
 func (esmq *ExplicitSkippedMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(esmq.driver.Dialect())
 	t1 := builder.Table(explicitskippedmessage.Table)
-	selector := builder.Select(t1.Columns(explicitskippedmessage.Columns...)...).From(t1)
+	columns := esmq.fields
+	if len(columns) == 0 {
+		columns = explicitskippedmessage.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if esmq.sql != nil {
 		selector = esmq.sql
-		selector.Select(selector.Columns(explicitskippedmessage.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range esmq.predicates {
 		p(selector)
@@ -645,13 +649,24 @@ func (esmgb *ExplicitSkippedMessageGroupBy) sqlScan(ctx context.Context, v inter
 }
 
 func (esmgb *ExplicitSkippedMessageGroupBy) sqlQuery() *sql.Selector {
-	selector := esmgb.sql
-	columns := make([]string, 0, len(esmgb.fields)+len(esmgb.fns))
-	columns = append(columns, esmgb.fields...)
+	selector := esmgb.sql.Select()
+	aggregation := make([]string, 0, len(esmgb.fns))
 	for _, fn := range esmgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(esmgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(esmgb.fields)+len(esmgb.fns))
+		for _, f := range esmgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(esmgb.fields...)...)
 }
 
 // ExplicitSkippedMessageSelect is the builder for selecting fields of ExplicitSkippedMessage entities.
@@ -867,16 +882,10 @@ func (esms *ExplicitSkippedMessageSelect) BoolX(ctx context.Context) bool {
 
 func (esms *ExplicitSkippedMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := esms.sqlQuery().Query()
+	query, args := esms.sql.Query()
 	if err := esms.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (esms *ExplicitSkippedMessageSelect) sqlQuery() sql.Querier {
-	selector := esms.sql
-	selector.Select(selector.Columns(esms.fields...)...)
-	return selector
 }

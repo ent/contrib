@@ -72,7 +72,10 @@ func (ac *AttachmentCreate) Save(ctx context.Context) (*Attachment, error) {
 				return nil, err
 			}
 			ac.mutation = mutation
-			node, err = ac.sqlSave(ctx)
+			if node, err = ac.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -193,10 +196,11 @@ func (acb *AttachmentCreateBulk) Save(ctx context.Context) ([]*Attachment, error
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {

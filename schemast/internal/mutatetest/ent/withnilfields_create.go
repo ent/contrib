@@ -44,7 +44,10 @@ func (wnfc *WithNilFieldsCreate) Save(ctx context.Context) (*WithNilFields, erro
 				return nil, err
 			}
 			wnfc.mutation = mutation
-			node, err = wnfc.sqlSave(ctx)
+			if node, err = wnfc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -134,10 +137,11 @@ func (wnfcb *WithNilFieldsCreateBulk) Save(ctx context.Context) ([]*WithNilField
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

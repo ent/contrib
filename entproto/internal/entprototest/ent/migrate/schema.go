@@ -38,10 +38,9 @@ var (
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{
-		Name:        "categories",
-		Columns:     CategoriesColumns,
-		PrimaryKey:  []*schema.Column{CategoriesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "categories",
+		Columns:    CategoriesColumns,
+		PrimaryKey: []*schema.Column{CategoriesColumns[0]},
 	}
 	// DependsOnSkippedsColumns holds the columns for the "depends_on_skippeds" table.
 	DependsOnSkippedsColumns = []*schema.Column{
@@ -50,10 +49,9 @@ var (
 	}
 	// DependsOnSkippedsTable holds the schema information for the "depends_on_skippeds" table.
 	DependsOnSkippedsTable = &schema.Table{
-		Name:        "depends_on_skippeds",
-		Columns:     DependsOnSkippedsColumns,
-		PrimaryKey:  []*schema.Column{DependsOnSkippedsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "depends_on_skippeds",
+		Columns:    DependsOnSkippedsColumns,
+		PrimaryKey: []*schema.Column{DependsOnSkippedsColumns[0]},
 	}
 	// DuplicateNumberMessagesColumns holds the columns for the "duplicate_number_messages" table.
 	DuplicateNumberMessagesColumns = []*schema.Column{
@@ -63,10 +61,9 @@ var (
 	}
 	// DuplicateNumberMessagesTable holds the schema information for the "duplicate_number_messages" table.
 	DuplicateNumberMessagesTable = &schema.Table{
-		Name:        "duplicate_number_messages",
-		Columns:     DuplicateNumberMessagesColumns,
-		PrimaryKey:  []*schema.Column{DuplicateNumberMessagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "duplicate_number_messages",
+		Columns:    DuplicateNumberMessagesColumns,
+		PrimaryKey: []*schema.Column{DuplicateNumberMessagesColumns[0]},
 	}
 	// ExplicitSkippedMessagesColumns holds the columns for the "explicit_skipped_messages" table.
 	ExplicitSkippedMessagesColumns = []*schema.Column{
@@ -74,10 +71,9 @@ var (
 	}
 	// ExplicitSkippedMessagesTable holds the schema information for the "explicit_skipped_messages" table.
 	ExplicitSkippedMessagesTable = &schema.Table{
-		Name:        "explicit_skipped_messages",
-		Columns:     ExplicitSkippedMessagesColumns,
-		PrimaryKey:  []*schema.Column{ExplicitSkippedMessagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "explicit_skipped_messages",
+		Columns:    ExplicitSkippedMessagesColumns,
+		PrimaryKey: []*schema.Column{ExplicitSkippedMessagesColumns[0]},
 	}
 	// ImagesColumns holds the columns for the "images" table.
 	ImagesColumns = []*schema.Column{
@@ -86,10 +82,9 @@ var (
 	}
 	// ImagesTable holds the schema information for the "images" table.
 	ImagesTable = &schema.Table{
-		Name:        "images",
-		Columns:     ImagesColumns,
-		PrimaryKey:  []*schema.Column{ImagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "images",
+		Columns:    ImagesColumns,
+		PrimaryKey: []*schema.Column{ImagesColumns[0]},
 	}
 	// ImplicitSkippedMessagesColumns holds the columns for the "implicit_skipped_messages" table.
 	ImplicitSkippedMessagesColumns = []*schema.Column{
@@ -117,10 +112,9 @@ var (
 	}
 	// InvalidFieldMessagesTable holds the schema information for the "invalid_field_messages" table.
 	InvalidFieldMessagesTable = &schema.Table{
-		Name:        "invalid_field_messages",
-		Columns:     InvalidFieldMessagesColumns,
-		PrimaryKey:  []*schema.Column{InvalidFieldMessagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "invalid_field_messages",
+		Columns:    InvalidFieldMessagesColumns,
+		PrimaryKey: []*schema.Column{InvalidFieldMessagesColumns[0]},
 	}
 	// MessageWithEnumsColumns holds the columns for the "message_with_enums" table.
 	MessageWithEnumsColumns = []*schema.Column{
@@ -130,10 +124,9 @@ var (
 	}
 	// MessageWithEnumsTable holds the schema information for the "message_with_enums" table.
 	MessageWithEnumsTable = &schema.Table{
-		Name:        "message_with_enums",
-		Columns:     MessageWithEnumsColumns,
-		PrimaryKey:  []*schema.Column{MessageWithEnumsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "message_with_enums",
+		Columns:    MessageWithEnumsColumns,
+		PrimaryKey: []*schema.Column{MessageWithEnumsColumns[0]},
 	}
 	// MessageWithFieldOnesColumns holds the columns for the "message_with_field_ones" table.
 	MessageWithFieldOnesColumns = []*schema.Column{
@@ -142,10 +135,9 @@ var (
 	}
 	// MessageWithFieldOnesTable holds the schema information for the "message_with_field_ones" table.
 	MessageWithFieldOnesTable = &schema.Table{
-		Name:        "message_with_field_ones",
-		Columns:     MessageWithFieldOnesColumns,
-		PrimaryKey:  []*schema.Column{MessageWithFieldOnesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "message_with_field_ones",
+		Columns:    MessageWithFieldOnesColumns,
+		PrimaryKey: []*schema.Column{MessageWithFieldOnesColumns[0]},
 	}
 	// MessageWithIdsColumns holds the columns for the "message_with_ids" table.
 	MessageWithIdsColumns = []*schema.Column{
@@ -153,10 +145,9 @@ var (
 	}
 	// MessageWithIdsTable holds the schema information for the "message_with_ids" table.
 	MessageWithIdsTable = &schema.Table{
-		Name:        "message_with_ids",
-		Columns:     MessageWithIdsColumns,
-		PrimaryKey:  []*schema.Column{MessageWithIdsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "message_with_ids",
+		Columns:    MessageWithIdsColumns,
+		PrimaryKey: []*schema.Column{MessageWithIdsColumns[0]},
 	}
 	// MessageWithOptionalsColumns holds the columns for the "message_with_optionals" table.
 	MessageWithOptionalsColumns = []*schema.Column{
@@ -172,10 +163,9 @@ var (
 	}
 	// MessageWithOptionalsTable holds the schema information for the "message_with_optionals" table.
 	MessageWithOptionalsTable = &schema.Table{
-		Name:        "message_with_optionals",
-		Columns:     MessageWithOptionalsColumns,
-		PrimaryKey:  []*schema.Column{MessageWithOptionalsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "message_with_optionals",
+		Columns:    MessageWithOptionalsColumns,
+		PrimaryKey: []*schema.Column{MessageWithOptionalsColumns[0]},
 	}
 	// MessageWithPackageNamesColumns holds the columns for the "message_with_package_names" table.
 	MessageWithPackageNamesColumns = []*schema.Column{
@@ -184,10 +174,9 @@ var (
 	}
 	// MessageWithPackageNamesTable holds the schema information for the "message_with_package_names" table.
 	MessageWithPackageNamesTable = &schema.Table{
-		Name:        "message_with_package_names",
-		Columns:     MessageWithPackageNamesColumns,
-		PrimaryKey:  []*schema.Column{MessageWithPackageNamesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "message_with_package_names",
+		Columns:    MessageWithPackageNamesColumns,
+		PrimaryKey: []*schema.Column{MessageWithPackageNamesColumns[0]},
 	}
 	// PortalsColumns holds the columns for the "portals" table.
 	PortalsColumns = []*schema.Column{
@@ -242,10 +231,9 @@ var (
 	}
 	// ValidMessagesTable holds the schema information for the "valid_messages" table.
 	ValidMessagesTable = &schema.Table{
-		Name:        "valid_messages",
-		Columns:     ValidMessagesColumns,
-		PrimaryKey:  []*schema.Column{ValidMessagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "valid_messages",
+		Columns:    ValidMessagesColumns,
+		PrimaryKey: []*schema.Column{ValidMessagesColumns[0]},
 	}
 	// CategoryBlogPostsColumns holds the columns for the "category_blog_posts" table.
 	CategoryBlogPostsColumns = []*schema.Column{

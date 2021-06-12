@@ -141,7 +141,10 @@ func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
 				return nil, err
 			}
 			tc.mutation = mutation
-			node, err = tc.sqlSave(ctx)
+			if node, err = tc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -345,10 +348,11 @@ func (tcb *TodoCreateBulk) Save(ctx context.Context) ([]*Todo, error) {
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil
