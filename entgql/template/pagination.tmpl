@@ -216,7 +216,7 @@ const (
 {{ $orderFields := list -}}
 {{- range $f := append $node.Fields $node.ID }}
 	{{- if $annotation := $f.Annotations.EntGQL }}
-		{{- if $annotation.order_field }}
+		{{- if $annotation.OrderField }}
 			{{- if not $f.Type.Comparable }}
 				{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
 			{{- end }}
@@ -454,7 +454,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 		switch f.field {
 			{{- range $f := $orderFields }}
 				case {{ $node.Package }}.{{ $f.Constant }}:
-					str = "{{ $f.Annotations.EntGQL.order_field }}"
+					str = "{{ $f.Annotations.EntGQL.OrderField }}"
 			{{- end }}
 		}
 		return str
@@ -473,7 +473,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 		}
 		switch str {
 			{{- range $f := $orderFields }}
-				case "{{ $f.Annotations.EntGQL.order_field }}":
+				case "{{ $f.Annotations.EntGQL.OrderField }}":
 					*f = *{{ print $orderField $f.StructField }}
 			{{- end }}
 		default:

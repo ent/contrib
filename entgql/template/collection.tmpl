@@ -18,11 +18,11 @@ import (
 {{ $edges := dict }}
 {{ range $edge := $node.Edges }}
 	{{ if $annotation := $edge.Annotations.EntGQL }}
-		{{ if $annotation.bind }}
-			{{ if $annotation.mapping }}{{ fail "bind and mapping annotations are mutually exclusive" }}{{ end }}
+		{{ if $annotation.Bind }}
+			{{ if $annotation.Mapping }}{{ fail "bind and mapping annotations are mutually exclusive" }}{{ end }}
 			{{ $edges = set $edges $edge.Name (list $edge.Type.Name (list $edge.Name)) }}
 		{{ end }}
-		{{ if $mapping := $annotation.mapping }}
+		{{ if $mapping := $annotation.Mapping }}
 			{{ $edges = set $edges $edge.Name (list $edge.Type.Name $mapping) }}
 		{{ end }}
 	{{ end }}
