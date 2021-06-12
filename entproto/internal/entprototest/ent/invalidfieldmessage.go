@@ -52,7 +52,6 @@ func (ifm *InvalidFieldMessage) assignValues(columns []string, values []interfac
 			}
 			ifm.ID = int(value.Int64)
 		case invalidfieldmessage.FieldJSON:
-
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field json", values[i])
 			} else if value != nil && len(*value) > 0 {

@@ -22,7 +22,6 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/ent"
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -173,7 +172,7 @@ func (e *ValidationError) Unwrap() error {
 	return e.err
 }
 
-// IsValidationError returns a boolean indicating whether the error is a validaton error.
+// IsValidationError returns a boolean indicating whether the error is a validation error.
 func IsValidationError(err error) bool {
 	if err == nil {
 		return false
@@ -279,15 +278,4 @@ func isSQLConstraintError(err error) (*ConstraintError, bool) {
 		return &ConstraintError{err.Error(), err}, true
 	}
 	return nil, false
-}
-
-// rollback calls tx.Rollback and wraps the given error with the rollback error if present.
-func rollback(tx dialect.Tx, err error) error {
-	if rerr := tx.Rollback(); rerr != nil {
-		err = fmt.Errorf("%w: %v", err, rerr)
-	}
-	if err, ok := isSQLConstraintError(err); ok {
-		return err
-	}
-	return err
 }

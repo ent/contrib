@@ -15,10 +15,9 @@ var (
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
 	AttachmentsTable = &schema.Table{
-		Name:        "attachments",
-		Columns:     AttachmentsColumns,
-		PrimaryKey:  []*schema.Column{AttachmentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "attachments",
+		Columns:    AttachmentsColumns,
+		PrimaryKey: []*schema.Column{AttachmentsColumns[0]},
 	}
 	// FilesColumns holds the columns for the "files" table.
 	FilesColumns = []*schema.Column{
@@ -27,10 +26,9 @@ var (
 	}
 	// FilesTable holds the schema information for the "files" table.
 	FilesTable = &schema.Table{
-		Name:        "files",
-		Columns:     FilesColumns,
-		PrimaryKey:  []*schema.Column{FilesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "files",
+		Columns:    FilesColumns,
+		PrimaryKey: []*schema.Column{FilesColumns[0]},
 	}
 	// TasksColumns holds the columns for the "tasks" table.
 	TasksColumns = []*schema.Column{
@@ -42,10 +40,9 @@ var (
 	}
 	// TasksTable holds the schema information for the "tasks" table.
 	TasksTable = &schema.Table{
-		Name:        "tasks",
-		Columns:     TasksColumns,
-		PrimaryKey:  []*schema.Column{TasksColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "tasks",
+		Columns:    TasksColumns,
+		PrimaryKey: []*schema.Column{TasksColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -54,10 +51,9 @@ var (
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:        "users",
-		Columns:     UsersColumns,
-		PrimaryKey:  []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

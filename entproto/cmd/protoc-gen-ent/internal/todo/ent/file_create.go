@@ -57,7 +57,10 @@ func (fc *FileCreate) Save(ctx context.Context) (*File, error) {
 				return nil, err
 			}
 			fc.mutation = mutation
-			node, err = fc.sqlSave(ctx)
+			if node, err = fc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -160,10 +163,11 @@ func (fcb *FileCreateBulk) Save(ctx context.Context) ([]*File, error) {
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {

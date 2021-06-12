@@ -398,10 +398,14 @@ func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
 func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(vmq.driver.Dialect())
 	t1 := builder.Table(validmessage.Table)
-	selector := builder.Select(t1.Columns(validmessage.Columns...)...).From(t1)
+	columns := vmq.fields
+	if len(columns) == 0 {
+		columns = validmessage.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if vmq.sql != nil {
 		selector = vmq.sql
-		selector.Select(selector.Columns(validmessage.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range vmq.predicates {
 		p(selector)
@@ -669,13 +673,24 @@ func (vmgb *ValidMessageGroupBy) sqlScan(ctx context.Context, v interface{}) err
 }
 
 func (vmgb *ValidMessageGroupBy) sqlQuery() *sql.Selector {
-	selector := vmgb.sql
-	columns := make([]string, 0, len(vmgb.fields)+len(vmgb.fns))
-	columns = append(columns, vmgb.fields...)
+	selector := vmgb.sql.Select()
+	aggregation := make([]string, 0, len(vmgb.fns))
 	for _, fn := range vmgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(vmgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(vmgb.fields)+len(vmgb.fns))
+		for _, f := range vmgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(vmgb.fields...)...)
 }
 
 // ValidMessageSelect is the builder for selecting fields of ValidMessage entities.
@@ -891,16 +906,10 @@ func (vms *ValidMessageSelect) BoolX(ctx context.Context) bool {
 
 func (vms *ValidMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := vms.sqlQuery().Query()
+	query, args := vms.sql.Query()
 	if err := vms.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (vms *ValidMessageSelect) sqlQuery() sql.Querier {
-	selector := vms.sql
-	selector.Select(selector.Columns(vms.fields...)...)
-	return selector
 }

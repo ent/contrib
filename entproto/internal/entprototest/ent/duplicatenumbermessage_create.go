@@ -57,7 +57,10 @@ func (dnmc *DuplicateNumberMessageCreate) Save(ctx context.Context) (*DuplicateN
 				return nil, err
 			}
 			dnmc.mutation = mutation
-			node, err = dnmc.sqlSave(ctx)
+			if node, err = dnmc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -169,10 +172,11 @@ func (dnmcb *DuplicateNumberMessageCreateBulk) Save(ctx context.Context) ([]*Dup
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

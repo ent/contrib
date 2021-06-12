@@ -477,10 +477,14 @@ func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
 func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(wmfq.driver.Dialect())
 	t1 := builder.Table(withmodifiedfield.Table)
-	selector := builder.Select(t1.Columns(withmodifiedfield.Columns...)...).From(t1)
+	columns := wmfq.fields
+	if len(columns) == 0 {
+		columns = withmodifiedfield.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if wmfq.sql != nil {
 		selector = wmfq.sql
-		selector.Select(selector.Columns(withmodifiedfield.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range wmfq.predicates {
 		p(selector)
@@ -748,13 +752,24 @@ func (wmfgb *WithModifiedFieldGroupBy) sqlScan(ctx context.Context, v interface{
 }
 
 func (wmfgb *WithModifiedFieldGroupBy) sqlQuery() *sql.Selector {
-	selector := wmfgb.sql
-	columns := make([]string, 0, len(wmfgb.fields)+len(wmfgb.fns))
-	columns = append(columns, wmfgb.fields...)
+	selector := wmfgb.sql.Select()
+	aggregation := make([]string, 0, len(wmfgb.fns))
 	for _, fn := range wmfgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(wmfgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(wmfgb.fields)+len(wmfgb.fns))
+		for _, f := range wmfgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(wmfgb.fields...)...)
 }
 
 // WithModifiedFieldSelect is the builder for selecting fields of WithModifiedField entities.
@@ -970,16 +985,10 @@ func (wmfs *WithModifiedFieldSelect) BoolX(ctx context.Context) bool {
 
 func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := wmfs.sqlQuery().Query()
+	query, args := wmfs.sql.Query()
 	if err := wmfs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (wmfs *WithModifiedFieldSelect) sqlQuery() sql.Querier {
-	selector := wmfs.sql
-	selector.Select(selector.Columns(wmfs.fields...)...)
-	return selector
 }

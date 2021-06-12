@@ -14,10 +14,9 @@ var (
 	}
 	// MessagesTable holds the schema information for the "messages" table.
 	MessagesTable = &schema.Table{
-		Name:        "messages",
-		Columns:     MessagesColumns,
-		PrimaryKey:  []*schema.Column{MessagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "messages",
+		Columns:    MessagesColumns,
+		PrimaryKey: []*schema.Column{MessagesColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

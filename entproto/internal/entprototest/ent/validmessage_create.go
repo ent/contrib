@@ -85,7 +85,10 @@ func (vmc *ValidMessageCreate) Save(ctx context.Context) (*ValidMessage, error) 
 				return nil, err
 			}
 			vmc.mutation = mutation
-			node, err = vmc.sqlSave(ctx)
+			if node, err = vmc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -227,10 +230,11 @@ func (vmcb *ValidMessageCreateBulk) Save(ctx context.Context) ([]*ValidMessage, 
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

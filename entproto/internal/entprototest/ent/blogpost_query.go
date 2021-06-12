@@ -470,7 +470,7 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
 				s.Where(sql.InValues(blogpost.CategoriesPrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
 			},
 			Assign: func(out, in interface{}) error {
 				eout, ok := out.(*sql.NullInt64)
@@ -580,10 +580,14 @@ func (bpq *BlogPostQuery) querySpec() *sqlgraph.QuerySpec {
 func (bpq *BlogPostQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(bpq.driver.Dialect())
 	t1 := builder.Table(blogpost.Table)
-	selector := builder.Select(t1.Columns(blogpost.Columns...)...).From(t1)
+	columns := bpq.fields
+	if len(columns) == 0 {
+		columns = blogpost.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if bpq.sql != nil {
 		selector = bpq.sql
-		selector.Select(selector.Columns(blogpost.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range bpq.predicates {
 		p(selector)
@@ -851,13 +855,24 @@ func (bpgb *BlogPostGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (bpgb *BlogPostGroupBy) sqlQuery() *sql.Selector {
-	selector := bpgb.sql
-	columns := make([]string, 0, len(bpgb.fields)+len(bpgb.fns))
-	columns = append(columns, bpgb.fields...)
+	selector := bpgb.sql.Select()
+	aggregation := make([]string, 0, len(bpgb.fns))
 	for _, fn := range bpgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(bpgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(bpgb.fields)+len(bpgb.fns))
+		for _, f := range bpgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(bpgb.fields...)...)
 }
 
 // BlogPostSelect is the builder for selecting fields of BlogPost entities.
@@ -1073,16 +1088,10 @@ func (bps *BlogPostSelect) BoolX(ctx context.Context) bool {
 
 func (bps *BlogPostSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := bps.sqlQuery().Query()
+	query, args := bps.sql.Query()
 	if err := bps.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (bps *BlogPostSelect) sqlQuery() sql.Querier {
-	selector := bps.sql
-	selector.Select(selector.Columns(bps.fields...)...)
-	return selector
 }

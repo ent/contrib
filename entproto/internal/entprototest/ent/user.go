@@ -71,7 +71,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		case user.FieldUserName, user.FieldStatus:
 			values[i] = new(sql.NullString)
 		case user.ForeignKeys[0]: // user_profile_pic
-			values[i] = new(uuid.UUID)
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -106,10 +106,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				u.Status = user.Status(value.String)
 			}
 		case user.ForeignKeys[0]:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field user_profile_pic", values[i])
-			} else if value != nil {
-				u.user_profile_pic = value
+			} else if value.Valid {
+				u.user_profile_pic = new(uuid.UUID)
+				*u.user_profile_pic = *value.S.(*uuid.UUID)
 			}
 		}
 	}

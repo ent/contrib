@@ -44,7 +44,10 @@ func (esmc *ExplicitSkippedMessageCreate) Save(ctx context.Context) (*ExplicitSk
 				return nil, err
 			}
 			esmc.mutation = mutation
-			node, err = esmc.sqlSave(ctx)
+			if node, err = esmc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -134,10 +137,11 @@ func (esmcb *ExplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Exp
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

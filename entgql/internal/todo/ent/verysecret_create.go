@@ -65,7 +65,10 @@ func (vsc *VerySecretCreate) Save(ctx context.Context) (*VerySecret, error) {
 				return nil, err
 			}
 			vsc.mutation = mutation
-			node, err = vsc.sqlSave(ctx)
+			if node, err = vsc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -166,10 +169,11 @@ func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, erro
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

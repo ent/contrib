@@ -51,7 +51,10 @@ func (mwfoc *MessageWithFieldOneCreate) Save(ctx context.Context) (*MessageWithF
 				return nil, err
 			}
 			mwfoc.mutation = mutation
-			node, err = mwfoc.sqlSave(ctx)
+			if node, err = mwfoc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -152,10 +155,11 @@ func (mwfocb *MessageWithFieldOneCreateBulk) Save(ctx context.Context) ([]*Messa
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

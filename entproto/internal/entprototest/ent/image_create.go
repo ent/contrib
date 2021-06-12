@@ -74,7 +74,10 @@ func (ic *ImageCreate) Save(ctx context.Context) (*Image, error) {
 				return nil, err
 			}
 			ic.mutation = mutation
-			node, err = ic.sqlSave(ctx)
+			if node, err = ic.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -196,10 +199,11 @@ func (icb *ImageCreateBulk) Save(ctx context.Context) ([]*Image, error) {
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {

@@ -14,10 +14,9 @@ var (
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:        "users",
-		Columns:     UsersColumns,
-		PrimaryKey:  []*schema.Column{UsersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
 	// WithFieldsColumns holds the columns for the "with_fields" table.
 	WithFieldsColumns = []*schema.Column{
@@ -26,10 +25,9 @@ var (
 	}
 	// WithFieldsTable holds the schema information for the "with_fields" table.
 	WithFieldsTable = &schema.Table{
-		Name:        "with_fields",
-		Columns:     WithFieldsColumns,
-		PrimaryKey:  []*schema.Column{WithFieldsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "with_fields",
+		Columns:    WithFieldsColumns,
+		PrimaryKey: []*schema.Column{WithFieldsColumns[0]},
 	}
 	// WithModifiedFieldsColumns holds the columns for the "with_modified_fields" table.
 	WithModifiedFieldsColumns = []*schema.Column{
@@ -57,10 +55,9 @@ var (
 	}
 	// WithNilFieldsTable holds the schema information for the "with_nil_fields" table.
 	WithNilFieldsTable = &schema.Table{
-		Name:        "with_nil_fields",
-		Columns:     WithNilFieldsColumns,
-		PrimaryKey:  []*schema.Column{WithNilFieldsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "with_nil_fields",
+		Columns:    WithNilFieldsColumns,
+		PrimaryKey: []*schema.Column{WithNilFieldsColumns[0]},
 	}
 	// WithoutFieldsColumns holds the columns for the "without_fields" table.
 	WithoutFieldsColumns = []*schema.Column{
@@ -68,10 +65,9 @@ var (
 	}
 	// WithoutFieldsTable holds the schema information for the "without_fields" table.
 	WithoutFieldsTable = &schema.Table{
-		Name:        "without_fields",
-		Columns:     WithoutFieldsColumns,
-		PrimaryKey:  []*schema.Column{WithoutFieldsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "without_fields",
+		Columns:    WithoutFieldsColumns,
+		PrimaryKey: []*schema.Column{WithoutFieldsColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

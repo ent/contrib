@@ -398,10 +398,14 @@ func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
 func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mweq.driver.Dialect())
 	t1 := builder.Table(messagewithenum.Table)
-	selector := builder.Select(t1.Columns(messagewithenum.Columns...)...).From(t1)
+	columns := mweq.fields
+	if len(columns) == 0 {
+		columns = messagewithenum.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if mweq.sql != nil {
 		selector = mweq.sql
-		selector.Select(selector.Columns(messagewithenum.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range mweq.predicates {
 		p(selector)
@@ -669,13 +673,24 @@ func (mwegb *MessageWithEnumGroupBy) sqlScan(ctx context.Context, v interface{})
 }
 
 func (mwegb *MessageWithEnumGroupBy) sqlQuery() *sql.Selector {
-	selector := mwegb.sql
-	columns := make([]string, 0, len(mwegb.fields)+len(mwegb.fns))
-	columns = append(columns, mwegb.fields...)
+	selector := mwegb.sql.Select()
+	aggregation := make([]string, 0, len(mwegb.fns))
 	for _, fn := range mwegb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(mwegb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(mwegb.fields)+len(mwegb.fns))
+		for _, f := range mwegb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(mwegb.fields...)...)
 }
 
 // MessageWithEnumSelect is the builder for selecting fields of MessageWithEnum entities.
@@ -891,16 +906,10 @@ func (mwes *MessageWithEnumSelect) BoolX(ctx context.Context) bool {
 
 func (mwes *MessageWithEnumSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := mwes.sqlQuery().Query()
+	query, args := mwes.sql.Query()
 	if err := mwes.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (mwes *MessageWithEnumSelect) sqlQuery() sql.Querier {
-	selector := mwes.sql
-	selector.Select(selector.Columns(mwes.fields...)...)
-	return selector
 }

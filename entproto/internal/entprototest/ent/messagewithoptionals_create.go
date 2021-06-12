@@ -142,7 +142,10 @@ func (mwoc *MessageWithOptionalsCreate) Save(ctx context.Context) (*MessageWithO
 				return nil, err
 			}
 			mwoc.mutation = mutation
-			node, err = mwoc.sqlSave(ctx)
+			if node, err = mwoc.sqlSave(ctx); err != nil {
+				return nil, err
+			}
+			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
@@ -296,10 +299,11 @@ func (mwocb *MessageWithOptionalsCreateBulk) Save(ctx context.Context) ([]*Messa
 						}
 					}
 				}
-				mutation.done = true
 				if err != nil {
 					return nil, err
 				}
+				mutation.id = &nodes[i].ID
+				mutation.done = true
 				id := specs[i].ID.Value.(int64)
 				nodes[i].ID = int(id)
 				return nodes[i], nil

@@ -398,10 +398,14 @@ func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
 func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(dnmq.driver.Dialect())
 	t1 := builder.Table(duplicatenumbermessage.Table)
-	selector := builder.Select(t1.Columns(duplicatenumbermessage.Columns...)...).From(t1)
+	columns := dnmq.fields
+	if len(columns) == 0 {
+		columns = duplicatenumbermessage.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if dnmq.sql != nil {
 		selector = dnmq.sql
-		selector.Select(selector.Columns(duplicatenumbermessage.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range dnmq.predicates {
 		p(selector)
@@ -669,13 +673,24 @@ func (dnmgb *DuplicateNumberMessageGroupBy) sqlScan(ctx context.Context, v inter
 }
 
 func (dnmgb *DuplicateNumberMessageGroupBy) sqlQuery() *sql.Selector {
-	selector := dnmgb.sql
-	columns := make([]string, 0, len(dnmgb.fields)+len(dnmgb.fns))
-	columns = append(columns, dnmgb.fields...)
+	selector := dnmgb.sql.Select()
+	aggregation := make([]string, 0, len(dnmgb.fns))
 	for _, fn := range dnmgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(dnmgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(dnmgb.fields)+len(dnmgb.fns))
+		for _, f := range dnmgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(dnmgb.fields...)...)
 }
 
 // DuplicateNumberMessageSelect is the builder for selecting fields of DuplicateNumberMessage entities.
@@ -891,16 +906,10 @@ func (dnms *DuplicateNumberMessageSelect) BoolX(ctx context.Context) bool {
 
 func (dnms *DuplicateNumberMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := dnms.sqlQuery().Query()
+	query, args := dnms.sql.Query()
 	if err := dnms.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (dnms *DuplicateNumberMessageSelect) sqlQuery() sql.Querier {
-	selector := dnms.sql
-	selector.Select(selector.Columns(dnms.fields...)...)
-	return selector
 }

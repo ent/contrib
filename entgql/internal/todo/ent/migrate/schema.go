@@ -53,10 +53,9 @@ var (
 	}
 	// VerySecretsTable holds the schema information for the "very_secrets" table.
 	VerySecretsTable = &schema.Table{
-		Name:        "very_secrets",
-		Columns:     VerySecretsColumns,
-		PrimaryKey:  []*schema.Column{VerySecretsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "very_secrets",
+		Columns:    VerySecretsColumns,
+		PrimaryKey: []*schema.Column{VerySecretsColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

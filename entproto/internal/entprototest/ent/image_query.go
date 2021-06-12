@@ -471,10 +471,14 @@ func (iq *ImageQuery) querySpec() *sqlgraph.QuerySpec {
 func (iq *ImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(iq.driver.Dialect())
 	t1 := builder.Table(image.Table)
-	selector := builder.Select(t1.Columns(image.Columns...)...).From(t1)
+	columns := iq.fields
+	if len(columns) == 0 {
+		columns = image.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if iq.sql != nil {
 		selector = iq.sql
-		selector.Select(selector.Columns(image.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
 	}
 	for _, p := range iq.predicates {
 		p(selector)
@@ -742,13 +746,24 @@ func (igb *ImageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (igb *ImageGroupBy) sqlQuery() *sql.Selector {
-	selector := igb.sql
-	columns := make([]string, 0, len(igb.fields)+len(igb.fns))
-	columns = append(columns, igb.fields...)
+	selector := igb.sql.Select()
+	aggregation := make([]string, 0, len(igb.fns))
 	for _, fn := range igb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(igb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(igb.fields)+len(igb.fns))
+		for _, f := range igb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		for _, c := range aggregation {
+			columns = append(columns, c)
+		}
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(igb.fields...)...)
 }
 
 // ImageSelect is the builder for selecting fields of Image entities.
@@ -964,16 +979,10 @@ func (is *ImageSelect) BoolX(ctx context.Context) bool {
 
 func (is *ImageSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := is.sqlQuery().Query()
+	query, args := is.sql.Query()
 	if err := is.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (is *ImageSelect) sqlQuery() sql.Querier {
-	selector := is.sql
-	selector.Select(selector.Columns(is.fields...)...)
-	return selector
 }
