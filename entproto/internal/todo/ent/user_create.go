@@ -114,15 +114,15 @@ func (uc *UserCreate) SetNillableOptStr(s *string) *UserCreate {
 }
 
 // SetOptBool sets the "opt_bool" field.
-func (uc *UserCreate) SetOptBool(s string) *UserCreate {
-	uc.mutation.SetOptBool(s)
+func (uc *UserCreate) SetOptBool(b bool) *UserCreate {
+	uc.mutation.SetOptBool(b)
 	return uc
 }
 
 // SetNillableOptBool sets the "opt_bool" field if the given value is not nil.
-func (uc *UserCreate) SetNillableOptBool(s *string) *UserCreate {
-	if s != nil {
-		uc.SetOptBool(*s)
+func (uc *UserCreate) SetNillableOptBool(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetOptBool(*b)
 	}
 	return uc
 }
@@ -377,7 +377,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.OptBool(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Value:  value,
 			Column: user.FieldOptBool,
 		})

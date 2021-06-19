@@ -84,7 +84,7 @@ message User {
 
   google.protobuf.StringValue opt_str = 14;
 
-  google.protobuf.StringValue opt_bool = 15;
+  google.protobuf.BoolValue opt_bool = 15;
 
   Group group = 7;
 

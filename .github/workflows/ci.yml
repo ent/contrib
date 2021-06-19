@@ -54,7 +54,7 @@ jobs:
             ${{ runner.os }}-go-
       - uses: arduino/setup-protoc@v1
         with:
-          version: v3.15.8
+          version: v3.17.3
       - name: Install protoc plugins
         run: |
           go get google.golang.org/protobuf/cmd/protoc-gen-go

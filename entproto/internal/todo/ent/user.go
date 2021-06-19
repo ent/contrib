@@ -42,7 +42,7 @@ type User struct {
 	// OptStr holds the value of the "opt_str" field.
 	OptStr string `json:"opt_str,omitempty"`
 	// OptBool holds the value of the "opt_bool" field.
-	OptBool string `json:"opt_bool,omitempty"`
+	OptBool bool `json:"opt_bool,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -93,11 +93,11 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldBanned:
+		case user.FieldBanned, user.FieldOptBool:
 			values[i] = new(sql.NullBool)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldOptBool:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -193,10 +193,10 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				u.OptStr = value.String
 			}
 		case user.FieldOptBool:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field opt_bool", values[i])
 			} else if value.Valid {
-				u.OptBool = value.String
+				u.OptBool = value.Bool
 			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -266,7 +266,7 @@ func (u *User) String() string {
 	builder.WriteString(", opt_str=")
 	builder.WriteString(u.OptStr)
 	builder.WriteString(", opt_bool=")
-	builder.WriteString(u.OptBool)
+	builder.WriteString(fmt.Sprintf("%v", u.OptBool))
 	builder.WriteByte(')')
 	return builder.String()
 }

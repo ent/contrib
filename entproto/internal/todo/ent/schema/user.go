@@ -78,7 +78,7 @@ func (User) Fields() []ent.Field {
 		field.String("opt_str").
 			Optional().
 			Annotations(entproto.Field(14)),
-		field.String("opt_bool").
+		field.Bool("opt_bool").
 			Optional().
 			Annotations(entproto.Field(15)),
 	}

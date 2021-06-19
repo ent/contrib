@@ -1144,7 +1144,7 @@ type UserMutation struct {
 	opt_num           *int
 	addopt_num        *int
 	opt_str           *string
-	opt_bool          *string
+	opt_bool          *bool
 	clearedFields     map[string]struct{}
 	group             *int
 	clearedgroup      bool
@@ -1758,12 +1758,12 @@ func (m *UserMutation) ResetOptStr() {
 }
 
 // SetOptBool sets the "opt_bool" field.
-func (m *UserMutation) SetOptBool(s string) {
-	m.opt_bool = &s
+func (m *UserMutation) SetOptBool(b bool) {
+	m.opt_bool = &b
 }
 
 // OptBool returns the value of the "opt_bool" field in the mutation.
-func (m *UserMutation) OptBool() (r string, exists bool) {
+func (m *UserMutation) OptBool() (r bool, exists bool) {
 	v := m.opt_bool
 	if v == nil {
 		return
@@ -1774,7 +1774,7 @@ func (m *UserMutation) OptBool() (r string, exists bool) {
 // OldOptBool returns the old "opt_bool" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldOptBool(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldOptBool(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldOptBool is only allowed on UpdateOne operations")
 	}
@@ -2087,7 +2087,7 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetOptStr(v)
 		return nil
 	case user.FieldOptBool:
-		v, ok := value.(string)
+		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
