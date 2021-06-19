@@ -19,7 +19,6 @@ import (
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // ExtractTime returns the time.Time from a proto WKT Timestamp
@@ -51,18 +50,3 @@ func ValidateUUID(b []byte) error {
 	return err
 }
 
-// NillableBool converts a wrapperspb.BoolValue to a pointer to a boolean.
-func NillableBool(v *wrapperspb.BoolValue) *bool {
-	if v == nil {
-		return nil
-	}
-	return &v.Value
-}
-
-// NillableString converts a wrapperspb.StringValue to a pointer to a boolean.
-func NillableString(v *wrapperspb.StringValue) *string {
-	if v == nil {
-		return nil
-	}
-	return &v.Value
-}
