@@ -49,4 +49,3 @@ func ValidateUUID(b []byte) error {
 	_, err := uuid.FromBytes(b)
 	return err
 }
-
