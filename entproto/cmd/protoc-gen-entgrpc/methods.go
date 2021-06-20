@@ -96,14 +96,14 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	}
 	switch op {
 	case "create":
-		g.Tmpl("res, err := svc.client.%(typeName).Create().", g.withGlobals())
+		g.Tmpl("m := svc.client.%(typeName).Create()", g.withGlobals())
 	case "update":
 		idField := g.fieldMap.ID()
 		convert, err := g.newConverter(idField)
 		if err != nil {
 			return err
 		}
-		g.Tmpl(`res, err := svc.client.%(typeName).UpdateOneID(%(id)).`, g.withGlobals(tmplValues{
+		g.Tmpl(`m := svc.client.%(typeName).UpdateOneID(%(id))`, g.withGlobals(tmplValues{
 			"id":     g.renderToEnt(convert, fmt.Sprintf("%s.Get%s()", reqVar, idField.PbStructField())),
 			"reqVar": reqVar,
 		}))
@@ -118,10 +118,19 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 			return err
 		}
 		entField := fld.EntField.StructField()
-		g.Tmpl("Set%(entField)(%(converted)).", tmplValues{
+		if fld.EntField.Optional {
+			g.Tmpl("if %(reqVar).Get%(structField)() != nil {", tmplValues{
+				"reqVar":      reqVar,
+				"structField": fld.PbStructField(),
+			})
+		}
+		g.Tmpl("m.Set%(entField)(%(converted))", tmplValues{
 			"entField":  entField,
 			"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s()", reqVar, fld.PbStructField())),
 		})
+		if fld.EntField.Optional {
+			g.P("}")
+		}
 	}
 	for _, edg := range g.fieldMap.Edges() {
 		convert, err := g.newConverter(edg)
@@ -129,13 +138,13 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 			return err
 		}
 		if edg.EntEdge.Unique {
-			g.Tmpl("Set%(edgeName)ID(%(converted)).", tmplValues{
+			g.Tmpl("m.Set%(edgeName)ID(%(converted))", tmplValues{
 				"edgeName":  edg.EntEdge.StructField(),
 				"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
 			})
 		}
 	}
-	g.P("Save(ctx)")
+	g.P("res, err := m.Save(ctx)")
 
 	g.Tmpl(`
 	switch {

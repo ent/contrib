@@ -46,9 +46,9 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 	if err := validateAttachment(attachment, true); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	res, err := svc.client.Attachment.Create().
-		SetUserID(int(attachment.GetUser().GetId())).
-		Save(ctx)
+	m := svc.client.Attachment.Create()
+	m.SetUserID(int(attachment.GetUser().GetId()))
+	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
@@ -84,9 +84,9 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	if err := validateAttachment(attachment, false); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	res, err := svc.client.Attachment.UpdateOneID(runtime.MustBytesToUUID(attachment.GetId())).
-		SetUserID(int(attachment.GetUser().GetId())).
-		Save(ctx)
+	m := svc.client.Attachment.UpdateOneID(runtime.MustBytesToUUID(attachment.GetId()))
+	m.SetUserID(int(attachment.GetUser().GetId()))
+	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:

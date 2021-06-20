@@ -165,7 +165,7 @@ func OptStr(v string) predicate.User {
 }
 
 // OptBool applies equality check predicate on the "opt_bool" field. It's identical to OptBoolEQ.
-func OptBool(v string) predicate.User {
+func OptBool(v bool) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldOptBool), v))
 	})
@@ -1016,99 +1016,16 @@ func OptStrContainsFold(v string) predicate.User {
 }
 
 // OptBoolEQ applies the EQ predicate on the "opt_bool" field.
-func OptBoolEQ(v string) predicate.User {
+func OptBoolEQ(v bool) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldOptBool), v))
 	})
 }
 
 // OptBoolNEQ applies the NEQ predicate on the "opt_bool" field.
-func OptBoolNEQ(v string) predicate.User {
+func OptBoolNEQ(v bool) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolIn applies the In predicate on the "opt_bool" field.
-func OptBoolIn(vs ...string) predicate.User {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.User(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldOptBool), v...))
-	})
-}
-
-// OptBoolNotIn applies the NotIn predicate on the "opt_bool" field.
-func OptBoolNotIn(vs ...string) predicate.User {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.User(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldOptBool), v...))
-	})
-}
-
-// OptBoolGT applies the GT predicate on the "opt_bool" field.
-func OptBoolGT(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolGTE applies the GTE predicate on the "opt_bool" field.
-func OptBoolGTE(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolLT applies the LT predicate on the "opt_bool" field.
-func OptBoolLT(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolLTE applies the LTE predicate on the "opt_bool" field.
-func OptBoolLTE(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolContains applies the Contains predicate on the "opt_bool" field.
-func OptBoolContains(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolHasPrefix applies the HasPrefix predicate on the "opt_bool" field.
-func OptBoolHasPrefix(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolHasSuffix applies the HasSuffix predicate on the "opt_bool" field.
-func OptBoolHasSuffix(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldOptBool), v))
 	})
 }
 
@@ -1123,20 +1040,6 @@ func OptBoolIsNil() predicate.User {
 func OptBoolNotNil() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldOptBool)))
-	})
-}
-
-// OptBoolEqualFold applies the EqualFold predicate on the "opt_bool" field.
-func OptBoolEqualFold(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldOptBool), v))
-	})
-}
-
-// OptBoolContainsFold applies the ContainsFold predicate on the "opt_bool" field.
-func OptBoolContainsFold(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldOptBool), v))
 	})
 }
 

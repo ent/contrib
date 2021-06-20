@@ -161,15 +161,15 @@ func (uu *UserUpdate) ClearOptStr() *UserUpdate {
 }
 
 // SetOptBool sets the "opt_bool" field.
-func (uu *UserUpdate) SetOptBool(s string) *UserUpdate {
-	uu.mutation.SetOptBool(s)
+func (uu *UserUpdate) SetOptBool(b bool) *UserUpdate {
+	uu.mutation.SetOptBool(b)
 	return uu
 }
 
 // SetNillableOptBool sets the "opt_bool" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableOptBool(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetOptBool(*s)
+func (uu *UserUpdate) SetNillableOptBool(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetOptBool(*b)
 	}
 	return uu
 }
@@ -439,14 +439,14 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.OptBool(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Value:  value,
 			Column: user.FieldOptBool,
 		})
 	}
 	if uu.mutation.OptBoolCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Column: user.FieldOptBool,
 		})
 	}
@@ -671,15 +671,15 @@ func (uuo *UserUpdateOne) ClearOptStr() *UserUpdateOne {
 }
 
 // SetOptBool sets the "opt_bool" field.
-func (uuo *UserUpdateOne) SetOptBool(s string) *UserUpdateOne {
-	uuo.mutation.SetOptBool(s)
+func (uuo *UserUpdateOne) SetOptBool(b bool) *UserUpdateOne {
+	uuo.mutation.SetOptBool(b)
 	return uuo
 }
 
 // SetNillableOptBool sets the "opt_bool" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableOptBool(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetOptBool(*s)
+func (uuo *UserUpdateOne) SetNillableOptBool(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetOptBool(*b)
 	}
 	return uuo
 }
@@ -973,14 +973,14 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.OptBool(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Value:  value,
 			Column: user.FieldOptBool,
 		})
 	}
 	if uuo.mutation.OptBoolCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeBool,
 			Column: user.FieldOptBool,
 		})
 	}

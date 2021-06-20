@@ -52,7 +52,7 @@ func toProtoUser(e *ent.User) *User {
 		ExternalId: int32(e.ExternalID),
 		Id:         int32(e.ID),
 		Joined:     timestamppb.New(e.Joined),
-		OptBool:    wrapperspb.String(e.OptBool),
+		OptBool:    wrapperspb.Bool(e.OptBool),
 		OptNum:     wrapperspb.Int32(int32(e.OptNum)),
 		OptStr:     wrapperspb.String(e.OptStr),
 		Points:     uint32(e.Points),
@@ -79,22 +79,28 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	if err := validateUser(user, true); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	res, err := svc.client.User.Create().
-		SetBanned(user.GetBanned()).
-		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
-		SetCustomPb(uint8(user.GetCustomPb())).
-		SetExp(uint64(user.GetExp())).
-		SetExternalID(int(user.GetExternalId())).
-		SetJoined(runtime.ExtractTime(user.GetJoined())).
-		SetOptBool(user.GetOptBool().GetValue()).
-		SetOptNum(int(user.GetOptNum().GetValue())).
-		SetOptStr(user.GetOptStr().GetValue()).
-		SetPoints(uint(user.GetPoints())).
-		SetStatus(toEntUser_Status(user.GetStatus())).
-		SetUserName(user.GetUserName()).
-		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
-		SetGroupID(int(user.GetGroup().GetId())).
-		Save(ctx)
+	m := svc.client.User.Create()
+	m.SetBanned(user.GetBanned())
+	m.SetCrmID(runtime.MustBytesToUUID(user.GetCrmId()))
+	m.SetCustomPb(uint8(user.GetCustomPb()))
+	m.SetExp(uint64(user.GetExp()))
+	m.SetExternalID(int(user.GetExternalId()))
+	m.SetJoined(runtime.ExtractTime(user.GetJoined()))
+	if user.GetOptBool() != nil {
+		m.SetOptBool(user.GetOptBool().GetValue())
+	}
+	if user.GetOptNum() != nil {
+		m.SetOptNum(int(user.GetOptNum().GetValue()))
+	}
+	if user.GetOptStr() != nil {
+		m.SetOptStr(user.GetOptStr().GetValue())
+	}
+	m.SetPoints(uint(user.GetPoints()))
+	m.SetStatus(toEntUser_Status(user.GetStatus()))
+	m.SetUserName(user.GetUserName())
+	m.SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId()))
+	m.SetGroupID(int(user.GetGroup().GetId()))
+	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
@@ -127,21 +133,27 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	if err := validateUser(user, false); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	res, err := svc.client.User.UpdateOneID(int(user.GetId())).
-		SetBanned(user.GetBanned()).
-		SetCrmID(runtime.MustBytesToUUID(user.GetCrmId())).
-		SetCustomPb(uint8(user.GetCustomPb())).
-		SetExp(uint64(user.GetExp())).
-		SetExternalID(int(user.GetExternalId())).
-		SetOptBool(user.GetOptBool().GetValue()).
-		SetOptNum(int(user.GetOptNum().GetValue())).
-		SetOptStr(user.GetOptStr().GetValue()).
-		SetPoints(uint(user.GetPoints())).
-		SetStatus(toEntUser_Status(user.GetStatus())).
-		SetUserName(user.GetUserName()).
-		SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId())).
-		SetGroupID(int(user.GetGroup().GetId())).
-		Save(ctx)
+	m := svc.client.User.UpdateOneID(int(user.GetId()))
+	m.SetBanned(user.GetBanned())
+	m.SetCrmID(runtime.MustBytesToUUID(user.GetCrmId()))
+	m.SetCustomPb(uint8(user.GetCustomPb()))
+	m.SetExp(uint64(user.GetExp()))
+	m.SetExternalID(int(user.GetExternalId()))
+	if user.GetOptBool() != nil {
+		m.SetOptBool(user.GetOptBool().GetValue())
+	}
+	if user.GetOptNum() != nil {
+		m.SetOptNum(int(user.GetOptNum().GetValue()))
+	}
+	if user.GetOptStr() != nil {
+		m.SetOptStr(user.GetOptStr().GetValue())
+	}
+	m.SetPoints(uint(user.GetPoints()))
+	m.SetStatus(toEntUser_Status(user.GetStatus()))
+	m.SetUserName(user.GetUserName())
+	m.SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId()))
+	m.SetGroupID(int(user.GetGroup().GetId()))
+	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:

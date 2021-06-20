@@ -14,5 +14,5 @@
 
 package todopulid
 
-//go:generate go run github.com/99designs/gqlgen
-//go:generate go run github.com/google/addlicense -c Facebook -y 2019-present ./
+//go:generate go run -mod=mod github.com/99designs/gqlgen
+//go:generate go run -mod=mod github.com/google/addlicense -c Facebook -y 2019-present ./
