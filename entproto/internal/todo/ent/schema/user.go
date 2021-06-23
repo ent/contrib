@@ -96,6 +96,8 @@ func (User) Edges() []ent.Edge {
 			Annotations(
 				entproto.Field(11),
 			),
-		edge.From("received", Attachment.Type).Ref("recipients").Annotations(entproto.Field(16)),
+		edge.From("received", Attachment.Type).
+			Ref("recipients").
+			Annotations(entproto.Field(16)),
 	}
 }
