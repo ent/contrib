@@ -245,6 +245,22 @@ func (c *AttachmentClient) QueryUser(a *Attachment) *UserQuery {
 	return query
 }
 
+// QueryRecipients queries the recipients edge of a Attachment.
+func (c *AttachmentClient) QueryRecipients(a *Attachment) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attachment.Table, attachment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, attachment.RecipientsTable, attachment.RecipientsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AttachmentClient) Hooks() []Hook {
 	return c.hooks.Attachment
@@ -572,6 +588,22 @@ func (c *UserClient) QueryAttachment(u *User) *AttachmentQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.AttachmentTable, user.AttachmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReceived queries the received edge of a User.
+func (c *UserClient) QueryReceived(u *User) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.ReceivedTable, user.ReceivedPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

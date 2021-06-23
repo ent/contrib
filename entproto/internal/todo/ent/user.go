@@ -55,9 +55,11 @@ type UserEdges struct {
 	Group *Group `json:"group,omitempty"`
 	// Attachment holds the value of the attachment edge.
 	Attachment *Attachment `json:"attachment,omitempty"`
+	// Received holds the value of the received edge.
+	Received []*Attachment `json:"received,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -86,6 +88,15 @@ func (e UserEdges) AttachmentOrErr() (*Attachment, error) {
 		return e.Attachment, nil
 	}
 	return nil, &NotLoadedError{edge: "attachment"}
+}
+
+// ReceivedOrErr returns the Received value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReceivedOrErr() ([]*Attachment, error) {
+	if e.loadedTypes[2] {
+		return e.Received, nil
+	}
+	return nil, &NotLoadedError{edge: "received"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -218,6 +229,11 @@ func (u *User) QueryGroup() *GroupQuery {
 // QueryAttachment queries the "attachment" edge of the User entity.
 func (u *User) QueryAttachment() *AttachmentQuery {
 	return (&UserClient{config: u.config}).QueryAttachment(u)
+}
+
+// QueryReceived queries the "received" edge of the User entity.
+func (u *User) QueryReceived() *AttachmentQuery {
+	return (&UserClient{config: u.config}).QueryReceived(u)
 }
 
 // Update returns a builder for updating this User.

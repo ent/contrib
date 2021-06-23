@@ -23,7 +23,8 @@ import (
 )
 
 var (
-	camel = gen.Funcs["camel"].(func(string) string)
+	camel    = gen.Funcs["camel"].(func(string) string)
+	singular = gen.Funcs["singular"].(func(string) string)
 )
 
 func (g *serviceGenerator) generateGetMethod() error {
@@ -91,7 +92,7 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
 		}`, g.withGlobals(tmplValues{
 			"reqVar":      reqVar,
-			"checkIDFlag": strconv.FormatBool(op == "create"),
+			"checkIDFlag": strconv.FormatBool(op == "update"),
 		}))
 	}
 	switch op {
@@ -142,6 +143,16 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 				"edgeName":  edg.EntEdge.StructField(),
 				"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
 			})
+		} else {
+			g.Tmpl(`for _, item := range %(reqVar).Get%(edgeField)() {
+	m.Add%(edgeName)IDs(%(converted))
+}
+`, g.withGlobals(tmplValues{
+				"reqVar":    reqVar,
+				"edgeField": edg.PbStructField(),
+				"edgeName":  singular(edg.EntEdge.StructField()),
+				"converted": g.renderToEnt(convert, fmt.Sprintf("item.Get%s()", edg.EdgeIDPbStructField())),
+			}))
 		}
 	}
 	g.P("res, err := m.Save(ctx)")

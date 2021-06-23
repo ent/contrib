@@ -41,6 +41,8 @@ func (Attachment) Edges() []ent.Edge {
 			Ref("attachment").
 			Unique().
 			Annotations(entproto.Field(2)),
+		edge.To("recipients", User.Type).
+			Annotations(entproto.Field(3)),
 	}
 }
 

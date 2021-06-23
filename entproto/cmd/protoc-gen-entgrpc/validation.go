@@ -67,13 +67,25 @@ func (g *serviceGenerator) generateValidator() {
 		if fieldNeedsValidator(edg) {
 			f := edg.EntEdge.Type.ID
 			if f.IsUUID() {
-				g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)().Get%(edgeIdField)()); err != nil {
-					return err
-				}`, g.withGlobals(tmplValues{
+				vars := g.withGlobals(tmplValues{
 					"pbField":      edg.PbStructField(),
 					"edgeIdField":  edg.EdgeIDPbStructField(),
 					"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
-				}))
+				})
+				if !edg.EntEdge.Unique {
+					if !edg.EntEdge.Unique {
+						g.Tmpl(`for _, item := range x.Get%(pbField)() {
+	if err := %(validateUUID)(item.Get%(edgeIdField)()); err != nil {
+		return err
+	}
+}
+`, vars)
+					}
+				} else {
+					g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)().Get%(edgeIdField)()); err != nil {
+					return err
+				}`, vars)
+				}
 			}
 		}
 	}

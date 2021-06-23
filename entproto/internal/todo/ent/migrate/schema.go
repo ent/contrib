@@ -90,12 +90,38 @@ var (
 			},
 		},
 	}
+	// AttachmentRecipientsColumns holds the columns for the "attachment_recipients" table.
+	AttachmentRecipientsColumns = []*schema.Column{
+		{Name: "attachment_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// AttachmentRecipientsTable holds the schema information for the "attachment_recipients" table.
+	AttachmentRecipientsTable = &schema.Table{
+		Name:       "attachment_recipients",
+		Columns:    AttachmentRecipientsColumns,
+		PrimaryKey: []*schema.Column{AttachmentRecipientsColumns[0], AttachmentRecipientsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "attachment_recipients_attachment_id",
+				Columns:    []*schema.Column{AttachmentRecipientsColumns[0]},
+				RefColumns: []*schema.Column{AttachmentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "attachment_recipients_user_id",
+				Columns:    []*schema.Column{AttachmentRecipientsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AttachmentsTable,
 		GroupsTable,
 		TodosTable,
 		UsersTable,
+		AttachmentRecipientsTable,
 	}
 )
 
@@ -103,4 +129,6 @@ func init() {
 	AttachmentsTable.ForeignKeys[0].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable
+	AttachmentRecipientsTable.ForeignKeys[0].RefTable = AttachmentsTable
+	AttachmentRecipientsTable.ForeignKeys[1].RefTable = UsersTable
 }

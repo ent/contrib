@@ -165,6 +165,21 @@ func (uc *UserCreate) SetAttachment(a *Attachment) *UserCreate {
 	return uc.SetAttachmentID(a.ID)
 }
 
+// AddReceivedIDs adds the "received" edge to the Attachment entity by IDs.
+func (uc *UserCreate) AddReceivedIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddReceivedIDs(ids...)
+	return uc
+}
+
+// AddReceived adds the "received" edges to the Attachment entity.
+func (uc *UserCreate) AddReceived(a ...*Attachment) *UserCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddReceivedIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -409,6 +424,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Inverse: false,
 			Table:   user.AttachmentTable,
 			Columns: []string{user.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ReceivedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.ReceivedTable,
+			Columns: user.ReceivedPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
