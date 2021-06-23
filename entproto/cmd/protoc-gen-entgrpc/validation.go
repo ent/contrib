@@ -73,14 +73,12 @@ func (g *serviceGenerator) generateValidator() {
 					"validateUUID": protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ValidateUUID"),
 				})
 				if !edg.EntEdge.Unique {
-					if !edg.EntEdge.Unique {
-						g.Tmpl(`for _, item := range x.Get%(pbField)() {
+					g.Tmpl(`for _, item := range x.Get%(pbField)() {
 	if err := %(validateUUID)(item.Get%(edgeIdField)()); err != nil {
 		return err
 	}
 }
 `, vars)
-					}
 				} else {
 					g.Tmpl(`if err := %(validateUUID)(x.Get%(pbField)().Get%(edgeIdField)()); err != nil {
 					return err
