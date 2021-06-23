@@ -27,7 +27,7 @@ var (
 	singular = gen.Funcs["singular"].(func(string) string)
 )
 
-func (g *serviceGenerator) generateGetMethod() error {
+func (g *serviceGenerator) generateGetMethod(methodName string) error {
 	idField := g.fieldMap.ID()
 	convert, err := g.newConverter(idField)
 	if err != nil {
@@ -36,7 +36,33 @@ func (g *serviceGenerator) generateGetMethod() error {
 	if fieldNeedsValidator(idField) {
 		g.generateIDFieldValidator(idField)
 	}
-	g.Tmpl(`get, err := svc.client.%(typeName).Get(ctx, %(id))
+	vars := g.withGlobals(tmplValues{
+		"id":         g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"methodName": methodName,
+	})
+	g.Tmpl(`var (
+		err error
+		get *ent.%(typeName)
+	)
+	switch req.GetView() {
+		case %(methodName)_VIEW_UNSPECIFIED, %(methodName)_BASIC:
+			get, err = svc.client.%(typeName).Get(ctx, %(id))
+		case %(methodName)_WITH_EDGE_IDS:
+			get, err = svc.client.%(typeName).Query().
+`, vars)
+	for _, edg := range g.fieldMap.Edges() {
+		g.Tmpl(`With%(edgeName)(func(query *ent.%(otherType)Query) {
+	query.Select("id")
+}).`, g.withGlobals(tmplValues{
+			"edgeName":  edg.PbStructField(),
+			"otherType": edg.EntEdge.Type.Name,
+		}))
+	}
+	g.Tmpl(`
+			First(ctx)
+		default:
+			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProto%(typeName)(get), nil
@@ -44,9 +70,8 @@ func (g *serviceGenerator) generateGetMethod() error {
 		return nil, %(statusErrf)(%(notFound), "not found: %s", err)
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
-	}`, g.withGlobals(tmplValues{
-		"id": g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
-	}))
+	}`, vars)
+	g.Tmpl(``, vars)
 	return nil
 }
 

@@ -126,7 +126,28 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 
 // Get implements UserServiceServer.Get
 func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, error) {
-	get, err := svc.client.User.Get(ctx, int(req.GetId()))
+	var (
+		err error
+		get *ent.User
+	)
+	switch req.GetView() {
+	case GetUserRequest_VIEW_UNSPECIFIED, GetUserRequest_BASIC:
+		get, err = svc.client.User.Get(ctx, int(req.GetId()))
+	case GetUserRequest_WITH_EDGE_IDS:
+		get, err = svc.client.User.Query().
+			WithAttachment(func(query *ent.AttachmentQuery) {
+				query.Select("id")
+			}).
+			WithGroup(func(query *ent.GroupQuery) {
+				query.Select("id")
+			}).
+			WithReceived(func(query *ent.AttachmentQuery) {
+				query.Select("id")
+			}).
+			First(ctx)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProtoUser(get), nil
@@ -135,6 +156,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Update implements UserServiceServer.Update

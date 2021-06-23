@@ -234,7 +234,7 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 			return err
 		}
 	case "Get":
-		if err := g.generateGetMethod(); err != nil {
+		if err := g.generateGetMethod(me.Input.GoIdent.GoName); err != nil {
 			return err
 		}
 	case "Delete":

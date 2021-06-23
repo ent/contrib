@@ -71,7 +71,25 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	if err := runtime.ValidateUUID(req.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	get, err := svc.client.Attachment.Get(ctx, runtime.MustBytesToUUID(req.GetId()))
+	var (
+		err error
+		get *ent.Attachment
+	)
+	switch req.GetView() {
+	case GetAttachmentRequest_VIEW_UNSPECIFIED, GetAttachmentRequest_BASIC:
+		get, err = svc.client.Attachment.Get(ctx, runtime.MustBytesToUUID(req.GetId()))
+	case GetAttachmentRequest_WITH_EDGE_IDS:
+		get, err = svc.client.Attachment.Query().
+			WithRecipients(func(query *ent.UserQuery) {
+				query.Select("id")
+			}).
+			WithUser(func(query *ent.UserQuery) {
+				query.Select("id")
+			}).
+			First(ctx)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProtoAttachment(get), nil
@@ -80,6 +98,7 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Update implements AttachmentServiceServer.Update
