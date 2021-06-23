@@ -15,6 +15,8 @@ message Attachment {
   bytes id = 1;
 
   User user = 2;
+
+  repeated User recipients = 3;
 }
 
 message CreateAttachmentRequest {
@@ -89,6 +91,8 @@ message User {
   Group group = 7;
 
   Attachment attachment = 11;
+
+  repeated Attachment received = 16;
 
   enum Status {
     STATUS_UNSPECIFIED = 0;

@@ -18,12 +18,14 @@ import (
 	"fmt"
 	"strconv"
 
+	"entgo.io/ent"
 	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 var (
-	camel = gen.Funcs["camel"].(func(string) string)
+	camel    = gen.Funcs["camel"].(func(string) string)
+	singular = gen.Funcs["singular"].(func(string) string)
 )
 
 func (g *serviceGenerator) generateGetMethod() error {
@@ -74,14 +76,14 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 }
 
 func (g *serviceGenerator) generateUpdateMethod() error {
-	return g.generateMutationMethod("update")
+	return g.generateMutationMethod(ent.OpUpdateOne)
 }
 
 func (g *serviceGenerator) generateCreateMethod() error {
-	return g.generateMutationMethod("create")
+	return g.generateMutationMethod(ent.OpCreate)
 }
 
-func (g *serviceGenerator) generateMutationMethod(op string) error {
+func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 	reqVar := camel(g.typeName)
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
@@ -91,13 +93,13 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
 		}`, g.withGlobals(tmplValues{
 			"reqVar":      reqVar,
-			"checkIDFlag": strconv.FormatBool(op == "create"),
+			"checkIDFlag": strconv.FormatBool(op.Is(ent.OpUpdateOne)),
 		}))
 	}
 	switch op {
-	case "create":
+	case ent.OpCreate:
 		g.Tmpl("m := svc.client.%(typeName).Create()", g.withGlobals())
-	case "update":
+	case ent.OpUpdateOne:
 		idField := g.fieldMap.ID()
 		convert, err := g.newConverter(idField)
 		if err != nil {
@@ -110,7 +112,7 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 	}
 
 	for _, fld := range g.fieldMap.Fields() {
-		if fld.IsIDField || (op == "update" && fld.EntField.Immutable) {
+		if fld.IsIDField || (op.Is(ent.OpUpdateOne) && fld.EntField.Immutable) {
 			continue
 		}
 		convert, err := g.newConverter(fld)
@@ -142,6 +144,16 @@ func (g *serviceGenerator) generateMutationMethod(op string) error {
 				"edgeName":  edg.EntEdge.StructField(),
 				"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
 			})
+		} else {
+			g.Tmpl(`for _, item := range %(reqVar).Get%(edgeField)() {
+	m.Add%(edgeName)IDs(%(converted))
+}
+`, g.withGlobals(tmplValues{
+				"reqVar":    reqVar,
+				"edgeField": edg.PbStructField(),
+				"edgeName":  singular(edg.EntEdge.StructField()),
+				"converted": g.renderToEnt(convert, fmt.Sprintf("item.Get%s()", edg.EdgeIDPbStructField())),
+			}))
 		}
 	}
 	g.P("res, err := m.Save(ctx)")

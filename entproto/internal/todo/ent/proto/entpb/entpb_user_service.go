@@ -70,13 +70,19 @@ func validateUser(x *User, checkId bool) error {
 	if err := runtime.ValidateUUID(x.GetAttachment().GetId()); err != nil {
 		return err
 	}
+	for _, item := range x.GetReceived() {
+		if err := runtime.ValidateUUID(item.GetId()); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user, true); err != nil {
+	if err := validateUser(user, false); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m := svc.client.User.Create()
@@ -100,6 +106,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetUserName(user.GetUserName())
 	m.SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId()))
 	m.SetGroupID(int(user.GetGroup().GetId()))
+	for _, item := range user.GetReceived() {
+		m.AddReceivedIDs(runtime.MustBytesToUUID(item.GetId()))
+	}
+
 	res, err := m.Save(ctx)
 
 	switch {
@@ -130,7 +140,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user, false); err != nil {
+	if err := validateUser(user, true); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m := svc.client.User.UpdateOneID(int(user.GetId()))
@@ -153,6 +163,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetUserName(user.GetUserName())
 	m.SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId()))
 	m.SetGroupID(int(user.GetGroup().GetId()))
+	for _, item := range user.GetReceived() {
+		m.AddReceivedIDs(runtime.MustBytesToUUID(item.GetId()))
+	}
+
 	res, err := m.Save(ctx)
 
 	switch {

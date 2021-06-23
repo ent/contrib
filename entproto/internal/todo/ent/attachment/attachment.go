@@ -13,6 +13,8 @@ const (
 	FieldID = "id"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeRecipients holds the string denoting the recipients edge name in mutations.
+	EdgeRecipients = "recipients"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
 	// UserTable is the table the holds the user relation/edge.
@@ -22,6 +24,11 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_attachment"
+	// RecipientsTable is the table the holds the recipients relation/edge. The primary key declared below.
+	RecipientsTable = "attachment_recipients"
+	// RecipientsInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	RecipientsInverseTable = "users"
 )
 
 // Columns holds all SQL columns for attachment fields.
@@ -34,6 +41,12 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"user_attachment",
 }
+
+var (
+	// RecipientsPrimaryKey and RecipientsColumn2 are the table columns denoting the
+	// primary key for the recipients relation (M2M).
+	RecipientsPrimaryKey = []string{"attachment_id", "user_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

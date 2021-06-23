@@ -36,15 +36,18 @@ const (
 // AttachmentMutation represents an operation that mutates the Attachment nodes in the graph.
 type AttachmentMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	done          bool
-	oldValue      func(context.Context) (*Attachment, error)
-	predicates    []predicate.Attachment
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	clearedFields     map[string]struct{}
+	user              *int
+	cleareduser       bool
+	recipients        map[int]struct{}
+	removedrecipients map[int]struct{}
+	clearedrecipients bool
+	done              bool
+	oldValue          func(context.Context) (*Attachment, error)
+	predicates        []predicate.Attachment
 }
 
 var _ ent.Mutation = (*AttachmentMutation)(nil)
@@ -171,6 +174,59 @@ func (m *AttachmentMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddRecipientIDs adds the "recipients" edge to the User entity by ids.
+func (m *AttachmentMutation) AddRecipientIDs(ids ...int) {
+	if m.recipients == nil {
+		m.recipients = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.recipients[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRecipients clears the "recipients" edge to the User entity.
+func (m *AttachmentMutation) ClearRecipients() {
+	m.clearedrecipients = true
+}
+
+// RecipientsCleared reports if the "recipients" edge to the User entity was cleared.
+func (m *AttachmentMutation) RecipientsCleared() bool {
+	return m.clearedrecipients
+}
+
+// RemoveRecipientIDs removes the "recipients" edge to the User entity by IDs.
+func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
+	if m.removedrecipients == nil {
+		m.removedrecipients = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedrecipients[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRecipients returns the removed IDs of the "recipients" edge to the User entity.
+func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
+	for id := range m.removedrecipients {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RecipientsIDs returns the "recipients" edge IDs in the mutation.
+func (m *AttachmentMutation) RecipientsIDs() (ids []int) {
+	for id := range m.recipients {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRecipients resets all changes to the "recipients" edge.
+func (m *AttachmentMutation) ResetRecipients() {
+	m.recipients = nil
+	m.clearedrecipients = false
+	m.removedrecipients = nil
+}
+
 // Op returns the operation name.
 func (m *AttachmentMutation) Op() Op {
 	return m.op
@@ -259,9 +315,12 @@ func (m *AttachmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, attachment.EdgeUser)
+	}
+	if m.recipients != nil {
+		edges = append(edges, attachment.EdgeRecipients)
 	}
 	return edges
 }
@@ -274,13 +333,22 @@ func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case attachment.EdgeRecipients:
+		ids := make([]ent.Value, 0, len(m.recipients))
+		for id := range m.recipients {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedrecipients != nil {
+		edges = append(edges, attachment.EdgeRecipients)
+	}
 	return edges
 }
 
@@ -288,15 +356,24 @@ func (m *AttachmentMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case attachment.EdgeRecipients:
+		ids := make([]ent.Value, 0, len(m.removedrecipients))
+		for id := range m.removedrecipients {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, attachment.EdgeUser)
+	}
+	if m.clearedrecipients {
+		edges = append(edges, attachment.EdgeRecipients)
 	}
 	return edges
 }
@@ -307,6 +384,8 @@ func (m *AttachmentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case attachment.EdgeUser:
 		return m.cleareduser
+	case attachment.EdgeRecipients:
+		return m.clearedrecipients
 	}
 	return false
 }
@@ -328,6 +407,9 @@ func (m *AttachmentMutation) ResetEdge(name string) error {
 	switch name {
 	case attachment.EdgeUser:
 		m.ResetUser()
+		return nil
+	case attachment.EdgeRecipients:
+		m.ResetRecipients()
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
@@ -1150,6 +1232,9 @@ type UserMutation struct {
 	clearedgroup      bool
 	attachment        *uuid.UUID
 	clearedattachment bool
+	received          map[uuid.UUID]struct{}
+	removedreceived   map[uuid.UUID]struct{}
+	clearedreceived   bool
 	done              bool
 	oldValue          func(context.Context) (*User, error)
 	predicates        []predicate.User
@@ -1884,6 +1969,59 @@ func (m *UserMutation) ResetAttachment() {
 	m.clearedattachment = false
 }
 
+// AddReceivedIDs adds the "received" edge to the Attachment entity by ids.
+func (m *UserMutation) AddReceivedIDs(ids ...uuid.UUID) {
+	if m.received == nil {
+		m.received = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.received[ids[i]] = struct{}{}
+	}
+}
+
+// ClearReceived clears the "received" edge to the Attachment entity.
+func (m *UserMutation) ClearReceived() {
+	m.clearedreceived = true
+}
+
+// ReceivedCleared reports if the "received" edge to the Attachment entity was cleared.
+func (m *UserMutation) ReceivedCleared() bool {
+	return m.clearedreceived
+}
+
+// RemoveReceivedIDs removes the "received" edge to the Attachment entity by IDs.
+func (m *UserMutation) RemoveReceivedIDs(ids ...uuid.UUID) {
+	if m.removedreceived == nil {
+		m.removedreceived = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.removedreceived[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedReceived returns the removed IDs of the "received" edge to the Attachment entity.
+func (m *UserMutation) RemovedReceivedIDs() (ids []uuid.UUID) {
+	for id := range m.removedreceived {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ReceivedIDs returns the "received" edge IDs in the mutation.
+func (m *UserMutation) ReceivedIDs() (ids []uuid.UUID) {
+	for id := range m.received {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetReceived resets all changes to the "received" edge.
+func (m *UserMutation) ResetReceived() {
+	m.received = nil
+	m.clearedreceived = false
+	m.removedreceived = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -2268,12 +2406,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.group != nil {
 		edges = append(edges, user.EdgeGroup)
 	}
 	if m.attachment != nil {
 		edges = append(edges, user.EdgeAttachment)
+	}
+	if m.received != nil {
+		edges = append(edges, user.EdgeReceived)
 	}
 	return edges
 }
@@ -2290,13 +2431,22 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.attachment; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeReceived:
+		ids := make([]ent.Value, 0, len(m.received))
+		for id := range m.received {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedreceived != nil {
+		edges = append(edges, user.EdgeReceived)
+	}
 	return edges
 }
 
@@ -2304,18 +2454,27 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case user.EdgeReceived:
+		ids := make([]ent.Value, 0, len(m.removedreceived))
+		for id := range m.removedreceived {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedgroup {
 		edges = append(edges, user.EdgeGroup)
 	}
 	if m.clearedattachment {
 		edges = append(edges, user.EdgeAttachment)
+	}
+	if m.clearedreceived {
+		edges = append(edges, user.EdgeReceived)
 	}
 	return edges
 }
@@ -2328,6 +2487,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedgroup
 	case user.EdgeAttachment:
 		return m.clearedattachment
+	case user.EdgeReceived:
+		return m.clearedreceived
 	}
 	return false
 }
@@ -2355,6 +2516,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeAttachment:
 		m.ResetAttachment()
+		return nil
+	case user.EdgeReceived:
+		m.ResetReceived()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

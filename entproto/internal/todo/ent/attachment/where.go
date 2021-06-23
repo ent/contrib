@@ -120,6 +120,34 @@ func HasUserWith(preds ...predicate.User) predicate.Attachment {
 	})
 }
 
+// HasRecipients applies the HasEdge predicate on the "recipients" edge.
+func HasRecipients() predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecipientsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RecipientsTable, RecipientsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecipientsWith applies the HasEdge predicate on the "recipients" edge with a given conditions (other predicates).
+func HasRecipientsWith(preds ...predicate.User) predicate.Attachment {
+	return predicate.Attachment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecipientsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RecipientsTable, RecipientsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Attachment) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {

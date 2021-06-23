@@ -45,6 +45,21 @@ func (ac *AttachmentCreate) SetUser(u *User) *AttachmentCreate {
 	return ac.SetUserID(u.ID)
 }
 
+// AddRecipientIDs adds the "recipients" edge to the User entity by IDs.
+func (ac *AttachmentCreate) AddRecipientIDs(ids ...int) *AttachmentCreate {
+	ac.mutation.AddRecipientIDs(ids...)
+	return ac
+}
+
+// AddRecipients adds the "recipients" edges to the User entity.
+func (ac *AttachmentCreate) AddRecipients(u ...*User) *AttachmentCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return ac.AddRecipientIDs(ids...)
+}
+
 // Mutation returns the AttachmentMutation object of the builder.
 func (ac *AttachmentCreate) Mutation() *AttachmentMutation {
 	return ac.mutation
@@ -155,6 +170,25 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_attachment = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.RecipientsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   attachment.RecipientsTable,
+			Columns: attachment.RecipientsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
