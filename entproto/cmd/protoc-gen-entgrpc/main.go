@@ -181,11 +181,10 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 	g.Tmpl(`
 	// toProto%(typeName) transforms the ent type to the pb type
 	func toProto%(typeName)(e *%(entTypeIdent)) *%(typeName){
-		return &%(typeName) {`, tmplValues{
+		v := &%(typeName){`, tmplValues{
 		"typeName":     g.typeName,
 		"entTypeIdent": g.entPackage.Ident(g.typeName),
 	})
-
 	for _, fld := range g.fieldMap.Fields() {
 		conv, err := g.newConverter(fld)
 		if err != nil {
@@ -198,6 +197,34 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 		})
 	}
 	g.P("	}")
+	for _, edg := range g.fieldMap.Edges() {
+		conv, err := g.newConverter(edg)
+		if err != nil {
+			return err
+		}
+		g.Tmpl(``, g.withGlobals(tmplValues{"edgeName": edg.EntEdge.StructField()}))
+		vars := g.withGlobals(tmplValues{
+			"edgeName":   edg.EntEdge.StructField(),
+			"refType":    edg.EntEdge.Type.Name,
+			"pbIdField":  edg.EdgeIDPbStructField(),
+			"entIdField": edg.EntEdge.Type.ID.StructField(),
+			"converted":  g.renderToProto(conv, "edg."+edg.EntEdge.Type.ID.StructField()),
+		})
+		if edg.EntEdge.Unique {
+			g.Tmpl(`if edg := e.Edges.%(edgeName); edg != nil {
+							v.%(edgeName) = &%(refType){
+								%(pbIdField): %(converted),
+							}
+						}`, vars)
+		} else {
+			g.Tmpl(`for _, edg := range e.Edges.%(edgeName) {
+							v.%(edgeName) = append(v.%(edgeName), &%(refType){
+								%(pbIdField): %(converted),					
+							})
+						}`, vars)
+		}
+	}
+	g.P("  return v")
 	g.P("}")
 	return nil
 }

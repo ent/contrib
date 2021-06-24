@@ -73,3 +73,19 @@ func (suite *AdapterTestSuite) TestExternalId() {
 	require.True(ok)
 	assert.EqualValues("ExternalId", eid.PbStructField())
 }
+
+func (suite *AdapterTestSuite) TestReferenced() {
+	require := suite.Require()
+
+	mp, err := suite.adapter.FieldMap("BlogPost")
+	require.NoError(err)
+	require.NotNil(mp)
+	cats, ok := mp["categories"]
+	require.True(ok)
+	require.NotNil(cats)
+	require.EqualValues(cats.ReferencedPbType.GetName(), "Category")
+	auth, ok := mp["author"]
+	require.True(ok)
+	require.NotNil(auth)
+	require.EqualValues(auth.ReferencedPbType.GetName(), "User")
+}

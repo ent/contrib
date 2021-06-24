@@ -26,9 +26,22 @@ func NewAttachmentService(client *ent.Client) *AttachmentService {
 
 // toProtoAttachment transforms the ent type to the pb type
 func toProtoAttachment(e *ent.Attachment) *Attachment {
-	return &Attachment{
+	v := &Attachment{
 		Id: runtime.MustExtractUUIDBytes(e.ID),
 	}
+
+	for _, edg := range e.Edges.Recipients {
+		v.Recipients = append(v.Recipients, &User{
+			Id: int32(edg.ID),
+		})
+	}
+
+	if edg := e.Edges.User; edg != nil {
+		v.User = &User{
+			Id: int32(edg.ID),
+		}
+	}
+	return v
 }
 
 // validateAttachment validates that all fields are encoded properly and are safe to pass

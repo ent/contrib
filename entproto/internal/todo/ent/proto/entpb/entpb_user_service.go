@@ -44,7 +44,7 @@ func toEntUser_Status(e User_Status) user.Status {
 
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
-	return &User{
+	v := &User{
 		Banned:     e.Banned,
 		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
 		CustomPb:   uint64(e.CustomPb),
@@ -59,6 +59,25 @@ func toProtoUser(e *ent.User) *User {
 		Status:     toProtoUser_Status(e.Status),
 		UserName:   e.UserName,
 	}
+
+	if edg := e.Edges.Attachment; edg != nil {
+		v.Attachment = &Attachment{
+			Id: runtime.MustExtractUUIDBytes(edg.ID),
+		}
+	}
+
+	if edg := e.Edges.Group; edg != nil {
+		v.Group = &Group{
+			Id: int32(edg.ID),
+		}
+	}
+
+	for _, edg := range e.Edges.Received {
+		v.Received = append(v.Received, &Attachment{
+			Id: runtime.MustExtractUUIDBytes(edg.ID),
+		})
+	}
+	return v
 }
 
 // validateUser validates that all fields are encoded properly and are safe to pass

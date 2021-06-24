@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto"
+	"entgo.io/ent/entc/gen"
 	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
@@ -36,26 +37,12 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	out := &converter{}
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
-	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING:
-	case dpb.FieldDescriptorProto_TYPE_BYTES:
-		if fld.EntField != nil && fld.EntField.IsUUID() {
-			out.toProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes")
-		}
-	case dpb.FieldDescriptorProto_TYPE_INT32:
-		if fld.EntField.Type.String() != "int32" {
-			out.toProtoConversion = "int32"
-		}
-	case dpb.FieldDescriptorProto_TYPE_INT64:
-		if fld.EntField.Type.String() != "int64" {
-			out.toProtoConversion = "int64"
-		}
-	case dpb.FieldDescriptorProto_TYPE_UINT32:
-		if fld.EntField.Type.String() != "uint32" {
-			out.toProtoConversion = "uint32"
-		}
-	case dpb.FieldDescriptorProto_TYPE_UINT64:
-		if fld.EntField.Type.String() != "uint64" {
-			out.toProtoConversion = "uint64"
+	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING,
+		dpb.FieldDescriptorProto_TYPE_BYTES, dpb.FieldDescriptorProto_TYPE_INT32,
+		dpb.FieldDescriptorProto_TYPE_INT64, dpb.FieldDescriptorProto_TYPE_UINT32,
+		dpb.FieldDescriptorProto_TYPE_UINT64:
+		if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
+			return nil, err
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
@@ -63,11 +50,14 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		out.toProtoConstructor = g.file.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
-			break
-		}
-		md := pbd.GetMessageType()
-		if err := convertPbMessageType(md, fld.EntField.Type.String(), out); err != nil {
-			return nil, err
+			if err := basicTypeConversion(fld.EdgeIDPbStructFieldDesc(), fld.EntEdge.Type.ID, out); err != nil {
+				return nil, err
+			}
+		} else {
+			md := pbd.GetMessageType()
+			if err := convertPbMessageType(md, fld.EntField.Type.String(), out); err != nil {
+				return nil, err
+			}
 		}
 	default:
 		return nil, fmt.Errorf("entproto: no mapping for pb field type %q", pbd.GetType())
@@ -92,6 +82,33 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}
 	return out, nil
+}
+
+func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *converter) error {
+	switch md.GetType() {
+	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING:
+	case dpb.FieldDescriptorProto_TYPE_BYTES:
+		if entField != nil && entField.IsUUID() {
+			conv.toProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes")
+		}
+	case dpb.FieldDescriptorProto_TYPE_INT32:
+		if entField.Type.String() != "int32" {
+			conv.toProtoConversion = "int32"
+		}
+	case dpb.FieldDescriptorProto_TYPE_INT64:
+		if entField.Type.String() != "int64" {
+			conv.toProtoConversion = "int64"
+		}
+	case dpb.FieldDescriptorProto_TYPE_UINT32:
+		if entField.Type.String() != "uint32" {
+			conv.toProtoConversion = "uint32"
+		}
+	case dpb.FieldDescriptorProto_TYPE_UINT64:
+		if entField.Type.String() != "uint64" {
+			conv.toProtoConversion = "uint64"
+		}
+	}
+	return nil
 }
 
 func convertPbMessageType(md *desc.MessageDescriptor, entFieldType string, conv *converter) error {

@@ -139,7 +139,7 @@ func (a *Adapter) mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (
 				return nil, err
 			}
 			fd.EntEdge = edg
-			referenced, err := a.GetMessageDescriptor(edg.Ref.Type.Name)
+			referenced, err := a.GetMessageDescriptor(edg.Type.Name)
 			if err != nil {
 				return nil, err
 			}
