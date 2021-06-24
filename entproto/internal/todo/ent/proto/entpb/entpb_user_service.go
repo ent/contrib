@@ -4,6 +4,8 @@ package entpb
 import (
 	context "context"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	group "entgo.io/contrib/entproto/internal/todo/ent/group"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
@@ -155,13 +157,13 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	case GetUserRequest_WITH_EDGE_IDS:
 		get, err = svc.client.User.Query().
 			WithAttachment(func(query *ent.AttachmentQuery) {
-				query.Select("id")
+				query.Select(attachment.FieldID)
 			}).
 			WithGroup(func(query *ent.GroupQuery) {
-				query.Select("id")
+				query.Select(group.FieldID)
 			}).
 			WithReceived(func(query *ent.AttachmentQuery) {
-				query.Select("id")
+				query.Select(attachment.FieldID)
 			}).
 			First(ctx)
 	default:

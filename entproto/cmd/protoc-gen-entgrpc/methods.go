@@ -52,11 +52,13 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 			get, err = svc.client.%(typeName).Query().
 `, vars)
 	for _, edg := range g.fieldMap.Edges() {
+		et := edg.EntEdge.Type
 		g.Tmpl(`With%(edgeName)(func(query *ent.%(otherType)Query) {
-	query.Select("id")
+	query.Select(%(fieldID))
 }).`, g.withGlobals(tmplValues{
 			"edgeName":  edg.PbStructField(),
-			"otherType": edg.EntEdge.Type.Name,
+			"otherType": et.Name,
+			"fieldID":   protogen.GoImportPath(string(g.entPackage) + "/" + et.Package()).Ident(et.ID.Constant()),
 		}))
 	}
 	g.Tmpl(`

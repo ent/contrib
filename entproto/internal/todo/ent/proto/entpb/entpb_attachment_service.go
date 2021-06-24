@@ -4,6 +4,7 @@ package entpb
 import (
 	context "context"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	codes "google.golang.org/grpc/codes"
@@ -94,10 +95,10 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	case GetAttachmentRequest_WITH_EDGE_IDS:
 		get, err = svc.client.Attachment.Query().
 			WithRecipients(func(query *ent.UserQuery) {
-				query.Select("id")
+				query.Select(user.FieldID)
 			}).
 			WithUser(func(query *ent.UserQuery) {
-				query.Select("id")
+				query.Select(user.FieldID)
 			}).
 			First(ctx)
 	default:
