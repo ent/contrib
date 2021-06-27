@@ -202,27 +202,25 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 		if err != nil {
 			return err
 		}
-		g.Tmpl(``, g.withGlobals(tmplValues{"edgeName": edg.EntEdge.StructField()}))
-		vars := g.withGlobals(tmplValues{
+		tmpl := `for _, edg := range e.Edges.%(edgeName) {
+					v.%(edgeName) = append(v.%(edgeName), &%(refType){
+						%(pbIdField): %(converted),					
+					})
+				 }`
+		if edg.EntEdge.Unique {
+			tmpl = `if edg := e.Edges.%(edgeName); edg != nil {
+						v.%(edgeName) = &%(refType){
+							%(pbIdField): %(converted),
+						}
+					}`
+		}
+		g.Tmpl(tmpl, g.withGlobals(tmplValues{
 			"edgeName":   edg.EntEdge.StructField(),
 			"refType":    edg.EntEdge.Type.Name,
 			"pbIdField":  edg.EdgeIDPbStructField(),
 			"entIdField": edg.EntEdge.Type.ID.StructField(),
 			"converted":  g.renderToProto(conv, "edg."+edg.EntEdge.Type.ID.StructField()),
-		})
-		if edg.EntEdge.Unique {
-			g.Tmpl(`if edg := e.Edges.%(edgeName); edg != nil {
-							v.%(edgeName) = &%(refType){
-								%(pbIdField): %(converted),
-							}
-						}`, vars)
-		} else {
-			g.Tmpl(`for _, edg := range e.Edges.%(edgeName) {
-							v.%(edgeName) = append(v.%(edgeName), &%(refType){
-								%(pbIdField): %(converted),					
-							})
-						}`, vars)
-		}
+		}))
 	}
 	g.P("  return v")
 	g.P("}")

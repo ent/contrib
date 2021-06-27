@@ -31,13 +31,11 @@ func toProtoAttachment(e *ent.Attachment) *Attachment {
 	v := &Attachment{
 		Id: runtime.MustExtractUUIDBytes(e.ID),
 	}
-
 	for _, edg := range e.Edges.Recipients {
 		v.Recipients = append(v.Recipients, &User{
 			Id: int32(edg.ID),
 		})
 	}
-
 	if edg := e.Edges.User; edg != nil {
 		v.User = &User{
 			Id: int32(edg.ID),

@@ -53,11 +53,8 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 			if err := basicTypeConversion(fld.EdgeIDPbStructFieldDesc(), fld.EntEdge.Type.ID, out); err != nil {
 				return nil, err
 			}
-		} else {
-			md := pbd.GetMessageType()
-			if err := convertPbMessageType(md, fld.EntField.Type.String(), out); err != nil {
-				return nil, err
-			}
+		} else if err := convertPbMessageType(pbd.GetMessageType(), fld.EntField.Type.String(), out); err != nil {
+			return nil, err
 		}
 	default:
 		return nil, fmt.Errorf("entproto: no mapping for pb field type %q", pbd.GetType())
