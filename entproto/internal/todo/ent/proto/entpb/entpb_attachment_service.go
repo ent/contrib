@@ -4,6 +4,7 @@ package entpb
 import (
 	context "context"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
@@ -94,13 +95,14 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 		get, err = svc.client.Attachment.Get(ctx, runtime.MustBytesToUUID(req.GetId()))
 	case GetAttachmentRequest_WITH_EDGE_IDS:
 		get, err = svc.client.Attachment.Query().
+			Where(attachment.ID(runtime.MustBytesToUUID(req.GetId()))).
 			WithRecipients(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
 			WithUser(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
-			First(ctx)
+			Only(ctx)
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
 	}
@@ -112,7 +114,6 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
 
 // Update implements AttachmentServiceServer.Update

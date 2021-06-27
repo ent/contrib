@@ -38,8 +38,9 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 		g.generateIDFieldValidator(idField)
 	}
 	vars := g.withGlobals(tmplValues{
-		"id":         g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
-		"methodName": methodName,
+		"id":          g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"methodName":  methodName,
+		"idPredicate": protogen.GoImportPath(string(g.entPackage) + "/" + g.entType.Package()).Ident("ID"),
 	})
 	g.Tmpl(`var (
 		err error
@@ -50,6 +51,7 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 			get, err = svc.client.%(typeName).Get(ctx, %(id))
 		case %(methodName)_WITH_EDGE_IDS:
 			get, err = svc.client.%(typeName).Query().
+				Where(%(idPredicate)(%(id))).
 `, vars)
 	for _, edg := range g.fieldMap.Edges() {
 		et := edg.EntEdge.Type
@@ -62,7 +64,7 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 		}))
 	}
 	g.Tmpl(`
-			First(ctx)
+			Only(ctx)
 		default:
 			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: unknown view")
 	}
@@ -74,7 +76,7 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
 	}`, vars)
-	g.Tmpl(``, vars)
+
 	return nil
 }
 
@@ -111,7 +113,7 @@ func (g *serviceGenerator) generateCreateMethod() error {
 }
 
 func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
-	reqVar := camel(g.typeName)
+	reqVar := camel(g.entType.Name)
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
@@ -210,7 +212,7 @@ func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
 		"invalidArgument":   codes.Ident("InvalidArgument"),
 		"notFound":          codes.Ident("NotFound"),
 		"internal":          codes.Ident("Internal"),
-		"typeName":          g.typeName,
+		"typeName":          g.entType.Name,
 		"fmtErr":            protogen.GoImportPath("fmt").Ident("Errorf"),
 	}
 	for _, additional := range additionals {

@@ -156,6 +156,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 		get, err = svc.client.User.Get(ctx, int(req.GetId()))
 	case GetUserRequest_WITH_EDGE_IDS:
 		get, err = svc.client.User.Query().
+			Where(user.ID(int(req.GetId()))).
 			WithAttachment(func(query *ent.AttachmentQuery) {
 				query.Select(attachment.FieldID)
 			}).
@@ -165,7 +166,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 			WithReceived(func(query *ent.AttachmentQuery) {
 				query.Select(attachment.FieldID)
 			}).
-			First(ctx)
+			Only(ctx)
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
 	}
@@ -177,7 +178,6 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
 
 // Update implements UserServiceServer.Update

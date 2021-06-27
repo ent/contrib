@@ -78,13 +78,13 @@ func newServiceGenerator(plugin *protogen.Plugin, file *protogen.File, graph *ge
 	if err != nil {
 		return nil, err
 	}
-	typeName, err := extractEntTypeName(service, graph)
+	typ, err := extractEntTypeName(service, graph)
 	if err != nil {
 		return nil, err
 	}
 	filename := file.GeneratedFilenamePrefix + "_" + snake(service.GoName) + ".go"
 	g := plugin.NewGeneratedFile(filename, file.GoImportPath)
-	fieldMap, err := adapter.FieldMap(typeName)
+	fieldMap, err := adapter.FieldMap(typ.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func newServiceGenerator(plugin *protogen.Plugin, file *protogen.File, graph *ge
 		entPackage:    protogen.GoImportPath(graph.Config.Package),
 		file:          file,
 		service:       service,
-		typeName:      typeName,
+		entType:       typ,
 		fieldMap:      fieldMap,
 	}, nil
 }
@@ -160,9 +160,9 @@ func (g *serviceGenerator) generateEnumConvertFuncs() error {
 			return ""
 		}
 `, tmplValues{
-			"typeName":     g.typeName,
+			"typeName":     g.entType.Name,
 			"enumTypeName": pbEnumIdent.GoName,
-			"entEnumIdent": g.entIdent(snake(g.typeName), ef.EntField.StructField()),
+			"entEnumIdent": g.entIdent(snake(g.entType.Name), ef.EntField.StructField()),
 			"pbEnumIdent":  g.pbEnumIdent(ef),
 			"toUpper":      protogen.GoImportPath("strings").Ident("ToUpper"),
 			"toLower":      protogen.GoImportPath("strings").Ident("ToLower"),
@@ -173,7 +173,7 @@ func (g *serviceGenerator) generateEnumConvertFuncs() error {
 
 func (g *serviceGenerator) pbEnumIdent(fld *entproto.FieldMappingDescriptor) protogen.GoIdent {
 	enumTypeName := fld.PbFieldDescriptor.GetEnumType().GetName()
-	return g.file.GoImportPath.Ident(g.typeName + "_" + enumTypeName)
+	return g.file.GoImportPath.Ident(g.entType.Name + "_" + enumTypeName)
 }
 
 func (g *serviceGenerator) generateToProtoFunc() error {
@@ -182,8 +182,8 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 	// toProto%(typeName) transforms the ent type to the pb type
 	func toProto%(typeName)(e *%(entTypeIdent)) *%(typeName){
 		v := &%(typeName){`, tmplValues{
-		"typeName":     g.typeName,
-		"entTypeIdent": g.entPackage.Ident(g.typeName),
+		"typeName":     g.entType.Name,
+		"entTypeIdent": g.entPackage.Ident(g.entType.Name),
 	})
 	for _, fld := range g.fieldMap.Fields() {
 		conv, err := g.newConverter(fld)
@@ -234,7 +234,7 @@ type serviceGenerator struct {
 	entPackage protogen.GoImportPath
 	file       *protogen.File
 	service    *protogen.Service
-	typeName   string
+	entType    *gen.Type
 	fieldMap   entproto.FieldMap
 }
 
@@ -282,14 +282,14 @@ func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 	return nil
 }
 
-func extractEntTypeName(s *protogen.Service, g *gen.Graph) (string, error) {
+func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
 	typeName := strings.TrimSuffix(s.GoName, "Service")
 	for _, gt := range g.Nodes {
 		if gt.Name == typeName {
-			return typeName, nil
+			return gt, nil
 		}
 	}
-	return "", fmt.Errorf("entproto: type %q of service %q not found in graph", typeName, s.GoName)
+	return nil, fmt.Errorf("entproto: type %q of service %q not found in graph", typeName, s.GoName)
 }
 
 func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {

@@ -46,7 +46,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		method := fmt.Sprintf("toProto%s_%s", g.typeName, enumName)
+		method := fmt.Sprintf("toProto%s_%s", g.entType.Name, enumName)
 		out.toProtoConstructor = g.file.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
@@ -74,7 +74,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime")
 	case efld.IsEnum():
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		method := fmt.Sprintf("toEnt%s_%s", g.typeName, enumName)
+		method := fmt.Sprintf("toEnt%s_%s", g.entType.Name, enumName)
 		out.toEntConstructor = g.file.GoImportPath.Ident(method)
 	case efld.IsUUID():
 		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustBytesToUUID")
