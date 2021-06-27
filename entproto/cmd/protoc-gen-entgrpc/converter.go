@@ -85,7 +85,7 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 	switch md.GetType() {
 	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING:
 	case dpb.FieldDescriptorProto_TYPE_BYTES:
-		if entField != nil && entField.IsUUID() {
+		if entField.IsUUID() {
 			conv.toProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes")
 		}
 	case dpb.FieldDescriptorProto_TYPE_INT32:
