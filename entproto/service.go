@@ -82,6 +82,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources,
 		return methodResources{}, err
 	}
 	protoMessageFieldType := descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
+	protoEnumFieldType := descriptorpb.FieldDescriptorProto_TYPE_ENUM
 	singleMessageField := &descriptorpb.FieldDescriptorProto{
 		Name:     strptr(snake(genType.Name)),
 		Number:   int32ptr(1),
@@ -91,7 +92,23 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources,
 	var output string
 	switch m {
 	case get:
-		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
+		input.Field = []*descriptorpb.FieldDescriptorProto{
+			idField,
+			{
+				Name:     strptr("view"),
+				Number:   int32ptr(2),
+				Type:     &protoEnumFieldType,
+				TypeName: strptr("View"),
+			},
+		}
+		input.EnumType = append(input.EnumType, &descriptorpb.EnumDescriptorProto{
+			Name: strptr("View"),
+			Value: []*descriptorpb.EnumValueDescriptorProto{
+				{Number: int32ptr(0), Name: strptr("VIEW_UNSPECIFIED")},
+				{Number: int32ptr(1), Name: strptr("BASIC")},
+				{Number: int32ptr(2), Name: strptr("WITH_EDGE_IDS")},
+			},
+		})
 		output = genType.Name
 	case create:
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}

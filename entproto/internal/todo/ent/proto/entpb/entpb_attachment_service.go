@@ -4,6 +4,8 @@ package entpb
 import (
 	context "context"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	codes "google.golang.org/grpc/codes"
@@ -26,9 +28,20 @@ func NewAttachmentService(client *ent.Client) *AttachmentService {
 
 // toProtoAttachment transforms the ent type to the pb type
 func toProtoAttachment(e *ent.Attachment) *Attachment {
-	return &Attachment{
+	v := &Attachment{
 		Id: runtime.MustExtractUUIDBytes(e.ID),
 	}
+	for _, edg := range e.Edges.Recipients {
+		v.Recipients = append(v.Recipients, &User{
+			Id: int32(edg.ID),
+		})
+	}
+	if edg := e.Edges.User; edg != nil {
+		v.User = &User{
+			Id: int32(edg.ID),
+		}
+	}
+	return v
 }
 
 // validateAttachment validates that all fields are encoded properly and are safe to pass
@@ -71,7 +84,26 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	if err := runtime.ValidateUUID(req.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	get, err := svc.client.Attachment.Get(ctx, runtime.MustBytesToUUID(req.GetId()))
+	var (
+		err error
+		get *ent.Attachment
+	)
+	switch req.GetView() {
+	case GetAttachmentRequest_VIEW_UNSPECIFIED, GetAttachmentRequest_BASIC:
+		get, err = svc.client.Attachment.Get(ctx, runtime.MustBytesToUUID(req.GetId()))
+	case GetAttachmentRequest_WITH_EDGE_IDS:
+		get, err = svc.client.Attachment.Query().
+			Where(attachment.ID(runtime.MustBytesToUUID(req.GetId()))).
+			WithRecipients(func(query *ent.UserQuery) {
+				query.Select(user.FieldID)
+			}).
+			WithUser(func(query *ent.UserQuery) {
+				query.Select(user.FieldID)
+			}).
+			Only(ctx)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProtoAttachment(get), nil

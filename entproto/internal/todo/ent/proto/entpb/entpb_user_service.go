@@ -4,6 +4,8 @@ package entpb
 import (
 	context "context"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	group "entgo.io/contrib/entproto/internal/todo/ent/group"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
@@ -44,7 +46,7 @@ func toEntUser_Status(e User_Status) user.Status {
 
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) *User {
-	return &User{
+	v := &User{
 		Banned:     e.Banned,
 		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
 		CustomPb:   uint64(e.CustomPb),
@@ -59,6 +61,22 @@ func toProtoUser(e *ent.User) *User {
 		Status:     toProtoUser_Status(e.Status),
 		UserName:   e.UserName,
 	}
+	if edg := e.Edges.Attachment; edg != nil {
+		v.Attachment = &Attachment{
+			Id: runtime.MustExtractUUIDBytes(edg.ID),
+		}
+	}
+	if edg := e.Edges.Group; edg != nil {
+		v.Group = &Group{
+			Id: int32(edg.ID),
+		}
+	}
+	for _, edg := range e.Edges.Received {
+		v.Received = append(v.Received, &Attachment{
+			Id: runtime.MustExtractUUIDBytes(edg.ID),
+		})
+	}
+	return v
 }
 
 // validateUser validates that all fields are encoded properly and are safe to pass
@@ -126,7 +144,29 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 
 // Get implements UserServiceServer.Get
 func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, error) {
-	get, err := svc.client.User.Get(ctx, int(req.GetId()))
+	var (
+		err error
+		get *ent.User
+	)
+	switch req.GetView() {
+	case GetUserRequest_VIEW_UNSPECIFIED, GetUserRequest_BASIC:
+		get, err = svc.client.User.Get(ctx, int(req.GetId()))
+	case GetUserRequest_WITH_EDGE_IDS:
+		get, err = svc.client.User.Query().
+			Where(user.ID(int(req.GetId()))).
+			WithAttachment(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
+			WithGroup(func(query *ent.GroupQuery) {
+				query.Select(group.FieldID)
+			}).
+			WithReceived(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
+			Only(ctx)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProtoUser(get), nil

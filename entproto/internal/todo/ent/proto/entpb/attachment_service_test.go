@@ -23,7 +23,6 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -71,7 +70,7 @@ func TestAttachmentService_MultiEdge(t *testing.T) {
 			SetCustomPb(1).
 			SaveX(ctx))
 	}
-	_, err := svc.Create(ctx, &CreateAttachmentRequest{Attachment: &Attachment{
+	att, err := svc.Create(ctx, &CreateAttachmentRequest{Attachment: &Attachment{
 		User: &User{
 			Id: int32(users[0].ID),
 		},
@@ -88,4 +87,12 @@ func TestAttachmentService_MultiEdge(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, all, 1)
 	require.Len(t, all[0].Edges.Recipients, 4)
+
+	get, err := svc.Get(ctx, &GetAttachmentRequest{
+		Id:   att.GetId(),
+		View: GetAttachmentRequest_WITH_EDGE_IDS,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, get.User)
+	require.Len(t, get.Recipients, 4)
 }

@@ -28,7 +28,7 @@ var (
 	singular = gen.Funcs["singular"].(func(string) string)
 )
 
-func (g *serviceGenerator) generateGetMethod() error {
+func (g *serviceGenerator) generateGetMethod(methodName string) error {
 	idField := g.fieldMap.ID()
 	convert, err := g.newConverter(idField)
 	if err != nil {
@@ -37,7 +37,37 @@ func (g *serviceGenerator) generateGetMethod() error {
 	if fieldNeedsValidator(idField) {
 		g.generateIDFieldValidator(idField)
 	}
-	g.Tmpl(`get, err := svc.client.%(typeName).Get(ctx, %(id))
+	vars := g.withGlobals(tmplValues{
+		"id":          g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"methodName":  methodName,
+		"idPredicate": protogen.GoImportPath(string(g.entPackage) + "/" + g.entType.Package()).Ident("ID"),
+	})
+	g.Tmpl(`var (
+		err error
+		get *ent.%(typeName)
+	)
+	switch req.GetView() {
+		case %(methodName)_VIEW_UNSPECIFIED, %(methodName)_BASIC:
+			get, err = svc.client.%(typeName).Get(ctx, %(id))
+		case %(methodName)_WITH_EDGE_IDS:
+			get, err = svc.client.%(typeName).Query().
+				Where(%(idPredicate)(%(id))).
+`, vars)
+	for _, edg := range g.fieldMap.Edges() {
+		et := edg.EntEdge.Type
+		g.Tmpl(`With%(edgeName)(func(query *ent.%(otherType)Query) {
+	query.Select(%(fieldID))
+}).`, g.withGlobals(tmplValues{
+			"edgeName":  edg.PbStructField(),
+			"otherType": et.Name,
+			"fieldID":   protogen.GoImportPath(string(g.entPackage) + "/" + et.Package()).Ident(et.ID.Constant()),
+		}))
+	}
+	g.Tmpl(`
+			Only(ctx)
+		default:
+			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: unknown view")
+	}
 	switch {
 	case err == nil:
 		return toProto%(typeName)(get), nil
@@ -45,9 +75,8 @@ func (g *serviceGenerator) generateGetMethod() error {
 		return nil, %(statusErrf)(%(notFound), "not found: %s", err)
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
-	}`, g.withGlobals(tmplValues{
-		"id": g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
-	}))
+	}`, vars)
+
 	return nil
 }
 
@@ -84,7 +113,7 @@ func (g *serviceGenerator) generateCreateMethod() error {
 }
 
 func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
-	reqVar := camel(g.typeName)
+	reqVar := camel(g.entType.Name)
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
@@ -183,7 +212,7 @@ func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
 		"invalidArgument":   codes.Ident("InvalidArgument"),
 		"notFound":          codes.Ident("NotFound"),
 		"internal":          codes.Ident("Internal"),
-		"typeName":          g.typeName,
+		"typeName":          g.entType.Name,
 		"fmtErr":            protogen.GoImportPath("fmt").Ident("Errorf"),
 	}
 	for _, additional := range additionals {
