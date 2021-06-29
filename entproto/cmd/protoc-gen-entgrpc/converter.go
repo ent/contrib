@@ -37,8 +37,14 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	out := &converter{}
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
+	case dpb.FieldDescriptorProto_TYPE_BYTES:
+		if fld.EntField.Type.Valuer() {
+			out.toProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustValueToBytes")
+		} else if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
+			return nil, err
+		}
 	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING,
-		dpb.FieldDescriptorProto_TYPE_BYTES, dpb.FieldDescriptorProto_TYPE_INT32,
+		dpb.FieldDescriptorProto_TYPE_INT32,
 		dpb.FieldDescriptorProto_TYPE_INT64, dpb.FieldDescriptorProto_TYPE_UINT32,
 		dpb.FieldDescriptorProto_TYPE_UINT64:
 		if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {

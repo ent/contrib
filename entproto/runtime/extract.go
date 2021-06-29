@@ -15,6 +15,8 @@
 package runtime
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,4 +50,18 @@ func MustBytesToUUID(b []byte) uuid.UUID {
 func ValidateUUID(b []byte) error {
 	_, err := uuid.FromBytes(b)
 	return err
+}
+
+func MustValueToBytes(in driver.Valuer) []byte {
+	v, err := in.Value()
+	if err != nil {
+		panic(fmt.Sprintf("entproto: cannot evaluate valuer: %v", err))
+	}
+
+	out, ok := v.([]byte)
+	if !ok {
+		panic("entproto: cannot evaluate valuer: type not bytes")
+	}
+
+	return out
 }
