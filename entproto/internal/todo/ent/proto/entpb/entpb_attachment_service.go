@@ -27,49 +27,50 @@ func NewAttachmentService(client *ent.Client) *AttachmentService {
 }
 
 // toProtoAttachment transforms the ent type to the pb type
-func toProtoAttachment(e *ent.Attachment) *Attachment {
-	v := &Attachment{
-		Id: runtime.MustExtractUUIDBytes(e.ID),
+func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
+	v := &Attachment{}
+
+	id, err := runtime.UUIDToBytes(e.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	v.Id = id
 	for _, edg := range e.Edges.Recipients {
+		id := int32(edg.ID)
 		v.Recipients = append(v.Recipients, &User{
-			Id: int32(edg.ID),
+			Id: id,
 		})
 	}
 	if edg := e.Edges.User; edg != nil {
+		id := int32(edg.ID)
 		v.User = &User{
-			Id: int32(edg.ID),
+			Id: id,
 		}
 	}
-	return v
-}
-
-// validateAttachment validates that all fields are encoded properly and are safe to pass
-// to the ent entity builder.
-func validateAttachment(x *Attachment, checkId bool) error {
-	if err := runtime.ValidateUUID(x.GetId()); err != nil && checkId {
-		return err
-	}
-	return nil
+	return v, nil
 }
 
 // Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	if err := validateAttachment(attachment, false); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-	}
 	m := svc.client.Attachment.Create()
 	for _, item := range attachment.GetRecipients() {
-		m.AddRecipientIDs(int(item.GetId()))
+		recipients := int(item.GetId())
+		m.AddRecipientIDs(recipients)
 	}
 
-	m.SetUserID(int(attachment.GetUser().GetId()))
+	attachmentUser := int(attachment.GetUser().GetId())
+	m.SetUserID(attachmentUser)
 	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
-		return toProtoAttachment(res), nil
+		proto, err := toProtoAttachment(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		}
+		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
 	case ent.IsConstraintError(err):
@@ -81,19 +82,21 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 
 // Get implements AttachmentServiceServer.Get
 func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest) (*Attachment, error) {
-	if err := runtime.ValidateUUID(req.GetId()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-	}
 	var (
 		err error
 		get *ent.Attachment
 	)
+	id, err := runtime.BytesToUUID(req.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+
 	switch req.GetView() {
 	case GetAttachmentRequest_VIEW_UNSPECIFIED, GetAttachmentRequest_BASIC:
-		get, err = svc.client.Attachment.Get(ctx, runtime.MustBytesToUUID(req.GetId()))
+		get, err = svc.client.Attachment.Get(ctx, id)
 	case GetAttachmentRequest_WITH_EDGE_IDS:
 		get, err = svc.client.Attachment.Query().
-			Where(attachment.ID(runtime.MustBytesToUUID(req.GetId()))).
+			Where(attachment.ID(id)).
 			WithRecipients(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
@@ -106,7 +109,7 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	}
 	switch {
 	case err == nil:
-		return toProtoAttachment(get), nil
+		return toProtoAttachment(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -117,20 +120,28 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 // Update implements AttachmentServiceServer.Update
 func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	if err := validateAttachment(attachment, true); err != nil {
+	attachmentID, err := runtime.BytesToUUID(attachment.GetId())
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	m := svc.client.Attachment.UpdateOneID(runtime.MustBytesToUUID(attachment.GetId()))
+
+	m := svc.client.Attachment.UpdateOneID(attachmentID)
 	for _, item := range attachment.GetRecipients() {
-		m.AddRecipientIDs(int(item.GetId()))
+		recipients := int(item.GetId())
+		m.AddRecipientIDs(recipients)
 	}
 
-	m.SetUserID(int(attachment.GetUser().GetId()))
+	attachmentUser := int(attachment.GetUser().GetId())
+	m.SetUserID(attachmentUser)
 	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
-		return toProtoAttachment(res), nil
+		proto, err := toProtoAttachment(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		}
+		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
 	case ent.IsConstraintError(err):
@@ -142,10 +153,13 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 
 // Delete implements AttachmentServiceServer.Delete
 func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentRequest) (*emptypb.Empty, error) {
-	if err := runtime.ValidateUUID(req.GetId()); err != nil {
+	var err error
+	id, err := runtime.BytesToUUID(req.GetId())
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	err := svc.client.Attachment.DeleteOneID(runtime.MustBytesToUUID(req.GetId())).Exec(ctx)
+
+	err = svc.client.Attachment.DeleteOneID(id).Exec(ctx)
 	switch {
 	case err == nil:
 		return &emptypb.Empty{}, nil

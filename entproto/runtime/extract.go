@@ -26,26 +26,20 @@ func ExtractTime(t *timestamppb.Timestamp) time.Time {
 	return t.AsTime()
 }
 
-// MustExtractUUIDBytes returns the []byte representation of the uuid.UUID, if it fails it panics.
-func MustExtractUUIDBytes(u uuid.UUID) []byte {
+// UUIDToBytes returns the []byte representation of the uuid.UUID or an error.
+func UUIDToBytes(u uuid.UUID) ([]byte, error) {
 	b, err := u.MarshalBinary()
 	if err != nil {
-		panic("entproto: cannot marshal UUID to byte slice")
+		return nil, err
 	}
-	return b
+	return b, nil
 }
 
-// MustBytesToUUID returns a uuid.UUID from byte-slice b, if it fails it panics.
-func MustBytesToUUID(b []byte) uuid.UUID {
+// BytesToUUID returns a uuid.UUID from byte-slice b or an error.
+func BytesToUUID(b []byte) (uuid.UUID, error) {
 	u, err := uuid.FromBytes(b)
 	if err != nil {
-		panic("entproto: cannot unmarshal UUID from bytes")
+		return uuid.UUID{}, err
 	}
-	return u
-}
-
-// ValidateUUID returns an error if b is not a valid UUID.
-func ValidateUUID(b []byte) error {
-	_, err := uuid.FromBytes(b)
-	return err
+	return u, nil
 }

@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
 	"entgo.io/ent"
 	"entgo.io/ent/entc/gen"
@@ -34,11 +33,10 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 	if err != nil {
 		return err
 	}
-	if fieldNeedsValidator(idField) {
-		g.generateIDFieldValidator(idField)
-	}
+
 	vars := g.withGlobals(tmplValues{
-		"id":          g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"varName":     idField.EntField.Name,
+		"extract":     g.renderToEnt(convert, idField.EntField.Name, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
 		"methodName":  methodName,
 		"idPredicate": protogen.GoImportPath(string(g.entPackage) + "/" + g.entType.Package()).Ident("ID"),
 	})
@@ -46,12 +44,13 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 		err error
 		get *ent.%(typeName)
 	)
+	%(extract)
 	switch req.GetView() {
 		case %(methodName)_VIEW_UNSPECIFIED, %(methodName)_BASIC:
-			get, err = svc.client.%(typeName).Get(ctx, %(id))
+			get, err = svc.client.%(typeName).Get(ctx, %(varName))
 		case %(methodName)_WITH_EDGE_IDS:
 			get, err = svc.client.%(typeName).Query().
-				Where(%(idPredicate)(%(id))).
+				Where(%(idPredicate)(%(varName))).
 `, vars)
 	for _, edg := range g.fieldMap.Edges() {
 		et := edg.EntEdge.Type
@@ -70,7 +69,7 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 	}
 	switch {
 	case err == nil:
-		return toProto%(typeName)(get), nil
+		return toProto%(typeName)(get)
 	case %(isNotFound)(err):
 		return nil, %(statusErrf)(%(notFound), "not found: %s", err)
 	default:
@@ -86,10 +85,10 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 	if err != nil {
 		return err
 	}
-	if fieldNeedsValidator(idField) {
-		g.generateIDFieldValidator(idField)
-	}
-	g.Tmpl(`err := svc.client.%(typeName).DeleteOneID(%(id)).Exec(ctx)
+
+	g.Tmpl(`var err error
+	%(extract)
+	err = svc.client.%(typeName).DeleteOneID(%(varName)).Exec(ctx)
 	switch {
 	case err == nil:
 		return &%(empty){}, nil
@@ -98,8 +97,9 @@ func (g *serviceGenerator) generateDeleteMethod() error {
 	default:
 		return nil, %(statusErrf)(%(internal), "internal error: %s", err)
 	}`, g.withGlobals(tmplValues{
-		"id":    g.renderToEnt(convert, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
-		"empty": protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb").Ident("Empty"),
+		"varName": idField.EntField.Name,
+		"extract": g.renderToEnt(convert, idField.EntField.Name, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
+		"empty":   protogen.GoImportPath("google.golang.org/protobuf/types/known/emptypb").Ident("Empty"),
 	}))
 	return nil
 }
@@ -117,26 +117,22 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
-	if typeNeedsValidator(g.fieldMap) {
-		g.Tmpl(`if err := validate%(typeName)(%(reqVar), %(checkIDFlag)); err != nil {
-			return nil, %(statusErrf)(%(invalidArgument), "invalid argument: %s", err)
-		}`, g.withGlobals(tmplValues{
-			"reqVar":      reqVar,
-			"checkIDFlag": strconv.FormatBool(op.Is(ent.OpUpdateOne)),
-		}))
-	}
+
 	switch op {
 	case ent.OpCreate:
 		g.Tmpl("m := svc.client.%(typeName).Create()", g.withGlobals())
 	case ent.OpUpdateOne:
 		idField := g.fieldMap.ID()
+		varName := camel(reqVar + "_" + idField.EntField.Name)
 		convert, err := g.newConverter(idField)
 		if err != nil {
 			return err
 		}
-		g.Tmpl(`m := svc.client.%(typeName).UpdateOneID(%(id))`, g.withGlobals(tmplValues{
-			"id":     g.renderToEnt(convert, fmt.Sprintf("%s.Get%s()", reqVar, idField.PbStructField())),
-			"reqVar": reqVar,
+		g.Tmpl(`%(extract)
+		m := svc.client.%(typeName).UpdateOneID(%(varName))`, g.withGlobals(tmplValues{
+			"varName": varName,
+			"extract": g.renderToEnt(convert, varName, fmt.Sprintf("%s.Get%s()", reqVar, idField.PbStructField())),
+			"reqVar":  reqVar,
 		}))
 	}
 
@@ -155,10 +151,13 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 				"structField": fld.PbStructField(),
 			})
 		}
-		g.Tmpl("m.Set%(entField)(%(converted))", tmplValues{
-			"entField":  entField,
-			"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s()", reqVar, fld.PbStructField())),
-		})
+		varName := camel(reqVar + "_" + fld.EntField.Name)
+		g.Tmpl(`%(extract)
+		m.Set%(entField)(%(varName))`, g.withGlobals(tmplValues{
+			"entField": entField,
+			"varName":  varName,
+			"extract":  g.renderToEnt(convert, varName, fmt.Sprintf("%s.Get%s()", reqVar, fld.PbStructField())),
+		}))
 		if fld.EntField.Optional {
 			g.P("}")
 		}
@@ -169,19 +168,25 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 			return err
 		}
 		if edg.EntEdge.Unique {
-			g.Tmpl("m.Set%(edgeName)ID(%(converted))", tmplValues{
-				"edgeName":  edg.EntEdge.StructField(),
-				"converted": g.renderToEnt(convert, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
-			})
+			varName := camel(reqVar + "_" + edg.EntEdge.StructField())
+			g.Tmpl(`%(extract)
+			m.Set%(edgeName)ID(%(varName))`, g.withGlobals(tmplValues{
+				"edgeName": edg.EntEdge.StructField(),
+				"varName":  varName,
+				"extract":  g.renderToEnt(convert, varName, fmt.Sprintf("%s.Get%s().Get%s()", reqVar, edg.PbStructField(), edg.EdgeIDPbStructField())),
+			}))
 		} else {
+			varName := camel(edg.EntEdge.StructField())
 			g.Tmpl(`for _, item := range %(reqVar).Get%(edgeField)() {
-	m.Add%(edgeName)IDs(%(converted))
+	%(extract)
+	m.Add%(edgeName)IDs(%(varName))
 }
 `, g.withGlobals(tmplValues{
 				"reqVar":    reqVar,
 				"edgeField": edg.PbStructField(),
 				"edgeName":  singular(edg.EntEdge.StructField()),
-				"converted": g.renderToEnt(convert, fmt.Sprintf("item.Get%s()", edg.EdgeIDPbStructField())),
+				"varName":   varName,
+				"extract":   g.renderToEnt(convert, varName, fmt.Sprintf("item.Get%s()", edg.EdgeIDPbStructField())),
 			}))
 		}
 	}
@@ -190,7 +195,11 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 	g.Tmpl(`
 	switch {
 	case err == nil:
-		return toProto%(typeName)(res), nil
+		proto, err := toProto%(typeName)(res)
+		if err != nil {
+			return nil, %(statusErrf)(%(internal), "internal: %s", err)
+		}
+		return proto, nil
 	case %(uniqConstraintErr)(err):
 		return nil, %(statusErrf)(%(alreadyExists), "already exists: %s", err)
 	case %(constraintErr)(err):

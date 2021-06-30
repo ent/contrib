@@ -45,94 +45,144 @@ func toEntUser_Status(e User_Status) user.Status {
 }
 
 // toProtoUser transforms the ent type to the pb type
-func toProtoUser(e *ent.User) *User {
-	v := &User{
-		Banned:     e.Banned,
-		CrmId:      runtime.MustExtractUUIDBytes(e.CrmID),
-		CustomPb:   uint64(e.CustomPb),
-		Exp:        e.Exp,
-		ExternalId: int32(e.ExternalID),
-		Id:         int32(e.ID),
-		Joined:     timestamppb.New(e.Joined),
-		OptBool:    wrapperspb.Bool(e.OptBool),
-		OptNum:     wrapperspb.Int32(int32(e.OptNum)),
-		OptStr:     wrapperspb.String(e.OptStr),
-		Points:     uint32(e.Points),
-		Status:     toProtoUser_Status(e.Status),
-		UserName:   e.UserName,
+func toProtoUser(e *ent.User) (*User, error) {
+	v := &User{}
+
+	banned := e.Banned
+	v.Banned = banned
+
+	crmid, err := runtime.UUIDToBytes(e.CrmID)
+	if err != nil {
+		return nil, err
 	}
+
+	v.CrmId = crmid
+
+	custompb := uint64(e.CustomPb)
+	v.CustomPb = custompb
+
+	exp := e.Exp
+	v.Exp = exp
+
+	externalid := int32(e.ExternalID)
+	v.ExternalId = externalid
+
+	id := int32(e.ID)
+	v.Id = id
+
+	joined := timestamppb.New(e.Joined)
+	v.Joined = joined
+
+	optbool := wrapperspb.Bool(e.OptBool)
+	v.OptBool = optbool
+
+	optnum := wrapperspb.Int32(int32(e.OptNum))
+	v.OptNum = optnum
+
+	optstr := wrapperspb.String(e.OptStr)
+	v.OptStr = optstr
+
+	points := uint32(e.Points)
+	v.Points = points
+
+	status := toProtoUser_Status(e.Status)
+	v.Status = status
+
+	username := e.UserName
+	v.UserName = username
 	if edg := e.Edges.Attachment; edg != nil {
+		id, err := runtime.UUIDToBytes(edg.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		v.Attachment = &Attachment{
-			Id: runtime.MustExtractUUIDBytes(edg.ID),
+			Id: id,
 		}
 	}
 	if edg := e.Edges.Group; edg != nil {
+		id := int32(edg.ID)
 		v.Group = &Group{
-			Id: int32(edg.ID),
+			Id: id,
 		}
 	}
 	for _, edg := range e.Edges.Received {
+		id, err := runtime.UUIDToBytes(edg.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		v.Received = append(v.Received, &Attachment{
-			Id: runtime.MustExtractUUIDBytes(edg.ID),
+			Id: id,
 		})
 	}
-	return v
-}
-
-// validateUser validates that all fields are encoded properly and are safe to pass
-// to the ent entity builder.
-func validateUser(x *User, checkId bool) error {
-	if err := runtime.ValidateUUID(x.GetCrmId()); err != nil {
-		return err
-	}
-	if err := runtime.ValidateUUID(x.GetAttachment().GetId()); err != nil {
-		return err
-	}
-	for _, item := range x.GetReceived() {
-		if err := runtime.ValidateUUID(item.GetId()); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return v, nil
 }
 
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user, false); err != nil {
+	m := svc.client.User.Create()
+	userBanned := user.GetBanned()
+	m.SetBanned(userBanned)
+	userCrmID, err := runtime.BytesToUUID(user.GetCrmId())
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	m := svc.client.User.Create()
-	m.SetBanned(user.GetBanned())
-	m.SetCrmID(runtime.MustBytesToUUID(user.GetCrmId()))
-	m.SetCustomPb(uint8(user.GetCustomPb()))
-	m.SetExp(uint64(user.GetExp()))
-	m.SetExternalID(int(user.GetExternalId()))
-	m.SetJoined(runtime.ExtractTime(user.GetJoined()))
+
+	m.SetCrmID(userCrmID)
+	userCustomPb := uint8(user.GetCustomPb())
+	m.SetCustomPb(userCustomPb)
+	userExp := uint64(user.GetExp())
+	m.SetExp(userExp)
+	userExternalID := int(user.GetExternalId())
+	m.SetExternalID(userExternalID)
+	userJoined := runtime.ExtractTime(user.GetJoined())
+	m.SetJoined(userJoined)
 	if user.GetOptBool() != nil {
-		m.SetOptBool(user.GetOptBool().GetValue())
+		userOptBool := user.GetOptBool().GetValue()
+		m.SetOptBool(userOptBool)
 	}
 	if user.GetOptNum() != nil {
-		m.SetOptNum(int(user.GetOptNum().GetValue()))
+		userOptNum := int(user.GetOptNum().GetValue())
+		m.SetOptNum(userOptNum)
 	}
 	if user.GetOptStr() != nil {
-		m.SetOptStr(user.GetOptStr().GetValue())
+		userOptStr := user.GetOptStr().GetValue()
+		m.SetOptStr(userOptStr)
 	}
-	m.SetPoints(uint(user.GetPoints()))
-	m.SetStatus(toEntUser_Status(user.GetStatus()))
-	m.SetUserName(user.GetUserName())
-	m.SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId()))
-	m.SetGroupID(int(user.GetGroup().GetId()))
+	userPoints := uint(user.GetPoints())
+	m.SetPoints(userPoints)
+	userStatus := toEntUser_Status(user.GetStatus())
+	m.SetStatus(userStatus)
+	userUserName := user.GetUserName()
+	m.SetUserName(userUserName)
+	userAttachment, err := runtime.BytesToUUID(user.GetAttachment().GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+
+	m.SetAttachmentID(userAttachment)
+	userGroup := int(user.GetGroup().GetId())
+	m.SetGroupID(userGroup)
 	for _, item := range user.GetReceived() {
-		m.AddReceivedIDs(runtime.MustBytesToUUID(item.GetId()))
+		received, err := runtime.BytesToUUID(item.GetId())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+
+		m.AddReceivedIDs(received)
 	}
 
 	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
-		return toProtoUser(res), nil
+		proto, err := toProtoUser(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		}
+		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
 	case ent.IsConstraintError(err):
@@ -148,12 +198,13 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 		err error
 		get *ent.User
 	)
+	id := int(req.GetId())
 	switch req.GetView() {
 	case GetUserRequest_VIEW_UNSPECIFIED, GetUserRequest_BASIC:
-		get, err = svc.client.User.Get(ctx, int(req.GetId()))
+		get, err = svc.client.User.Get(ctx, id)
 	case GetUserRequest_WITH_EDGE_IDS:
 		get, err = svc.client.User.Query().
-			Where(user.ID(int(req.GetId()))).
+			Where(user.ID(id)).
 			WithAttachment(func(query *ent.AttachmentQuery) {
 				query.Select(attachment.FieldID)
 			}).
@@ -169,7 +220,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	}
 	switch {
 	case err == nil:
-		return toProtoUser(get), nil
+		return toProtoUser(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -180,38 +231,66 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
-	if err := validateUser(user, true); err != nil {
+	userID := int(user.GetId())
+	m := svc.client.User.UpdateOneID(userID)
+	userBanned := user.GetBanned()
+	m.SetBanned(userBanned)
+	userCrmID, err := runtime.BytesToUUID(user.GetCrmId())
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-	m := svc.client.User.UpdateOneID(int(user.GetId()))
-	m.SetBanned(user.GetBanned())
-	m.SetCrmID(runtime.MustBytesToUUID(user.GetCrmId()))
-	m.SetCustomPb(uint8(user.GetCustomPb()))
-	m.SetExp(uint64(user.GetExp()))
-	m.SetExternalID(int(user.GetExternalId()))
+
+	m.SetCrmID(userCrmID)
+	userCustomPb := uint8(user.GetCustomPb())
+	m.SetCustomPb(userCustomPb)
+	userExp := uint64(user.GetExp())
+	m.SetExp(userExp)
+	userExternalID := int(user.GetExternalId())
+	m.SetExternalID(userExternalID)
 	if user.GetOptBool() != nil {
-		m.SetOptBool(user.GetOptBool().GetValue())
+		userOptBool := user.GetOptBool().GetValue()
+		m.SetOptBool(userOptBool)
 	}
 	if user.GetOptNum() != nil {
-		m.SetOptNum(int(user.GetOptNum().GetValue()))
+		userOptNum := int(user.GetOptNum().GetValue())
+		m.SetOptNum(userOptNum)
 	}
 	if user.GetOptStr() != nil {
-		m.SetOptStr(user.GetOptStr().GetValue())
+		userOptStr := user.GetOptStr().GetValue()
+		m.SetOptStr(userOptStr)
 	}
-	m.SetPoints(uint(user.GetPoints()))
-	m.SetStatus(toEntUser_Status(user.GetStatus()))
-	m.SetUserName(user.GetUserName())
-	m.SetAttachmentID(runtime.MustBytesToUUID(user.GetAttachment().GetId()))
-	m.SetGroupID(int(user.GetGroup().GetId()))
+	userPoints := uint(user.GetPoints())
+	m.SetPoints(userPoints)
+	userStatus := toEntUser_Status(user.GetStatus())
+	m.SetStatus(userStatus)
+	userUserName := user.GetUserName()
+	m.SetUserName(userUserName)
+	userAttachment, err := runtime.BytesToUUID(user.GetAttachment().GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+
+	m.SetAttachmentID(userAttachment)
+	userGroup := int(user.GetGroup().GetId())
+	m.SetGroupID(userGroup)
 	for _, item := range user.GetReceived() {
-		m.AddReceivedIDs(runtime.MustBytesToUUID(item.GetId()))
+		received, err := runtime.BytesToUUID(item.GetId())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+
+		m.AddReceivedIDs(received)
 	}
 
 	res, err := m.Save(ctx)
 
 	switch {
 	case err == nil:
-		return toProtoUser(res), nil
+		proto, err := toProtoUser(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		}
+		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
 	case ent.IsConstraintError(err):
@@ -223,7 +302,9 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 
 // Delete implements UserServiceServer.Delete
 func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
-	err := svc.client.User.DeleteOneID(int(req.GetId())).Exec(ctx)
+	var err error
+	id := int(req.GetId())
+	err = svc.client.User.DeleteOneID(id).Exec(ctx)
 	switch {
 	case err == nil:
 		return &emptypb.Empty{}, nil

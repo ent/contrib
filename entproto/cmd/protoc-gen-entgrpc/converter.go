@@ -26,11 +26,13 @@ import (
 )
 
 type converter struct {
-	toEntConversion    string
-	toEntConstructor   protogen.GoIdent
-	toEntModifier      string
-	toProtoConversion  string
-	toProtoConstructor protogen.GoIdent
+	toEntConversion       string
+	toEntConstructor      protogen.GoIdent
+	toEntTryConstructor   protogen.GoIdent
+	toEntModifier         string
+	toProtoConversion     string
+	toProtoConstructor    protogen.GoIdent
+	toProtoTryConstructor protogen.GoIdent
 }
 
 func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*converter, error) {
@@ -74,7 +76,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		method := fmt.Sprintf("toEnt%s_%s", g.entType.Name, enumName)
 		out.toEntConstructor = g.file.GoImportPath.Ident(method)
 	case efld.IsUUID():
-		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustBytesToUUID")
+		out.toEntTryConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("BytesToUUID")
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}
@@ -86,7 +88,7 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING:
 	case dpb.FieldDescriptorProto_TYPE_BYTES:
 		if entField.IsUUID() {
-			conv.toProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("MustExtractUUIDBytes")
+			conv.toProtoTryConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("UUIDToBytes")
 		}
 	case dpb.FieldDescriptorProto_TYPE_INT32:
 		if entField.Type.String() != "int32" {
@@ -127,33 +129,53 @@ func convertPbMessageType(md *desc.MessageDescriptor, entFieldType string, conv 
 	return nil
 }
 
-func (g *serviceGenerator) renderToProto(conv *converter, ident string) string {
-	var left, right string
-	if conv.toProtoConstructor.GoName != "" {
-		left += g.QualifiedGoIdent(conv.toProtoConstructor) + "("
-		right += ")"
-	}
+func (g *serviceGenerator) renderToProto(conv *converter, varName, ident string) string {
+	// If we are going to cast to a GoType, wrap it first. i.e. int64(entMember)
 	if conv.toProtoConversion != "" {
-		left += conv.toProtoConversion + "("
-		right += ")"
+		ident = fmt.Sprintf("%s(%s)", conv.toProtoConversion, ident)
 	}
-	return left + ident + right
+
+	switch {
+	case conv.toProtoTryConstructor.GoName != "":
+		// Returns: varName, err := ProtcoConstructor(entMember) with error handler
+		return fmt.Sprintf(`%s, err := %s(%s)
+		if err != nil {
+			return nil, err
+		}
+		`, varName, g.QualifiedGoIdent(conv.toProtoTryConstructor), ident)
+	case conv.toProtoConstructor.GoName != "":
+		// Returns: varName := ProtcoConstructor(entMember)
+		return fmt.Sprintf("%s := %s(%s)", varName, g.QualifiedGoIdent(conv.toProtoConstructor), ident)
+	default:
+		// Returns: varName := entMember
+		return fmt.Sprintf("%s := %s", varName, ident)
+	}
 }
 
-func (g *serviceGenerator) renderToEnt(conv *converter, ident string) string {
-	var left, right string
-	if conv.toEntConstructor.GoName != "" {
-		left += g.QualifiedGoIdent(conv.toEntConstructor) + "("
-		right += ")"
-	}
-	if conv.toEntConversion != "" {
-		left += conv.toEntConversion + "("
-		right += ")"
-	}
+func (g *serviceGenerator) renderToEnt(conv *converter, varName, ident string) string {
+	// Attach a modifer to ident (i.e. .GetValue())
 	if conv.toEntModifier != "" {
 		ident += conv.toEntModifier
 	}
-	return left + ident + right
+
+	switch {
+	case conv.toEntTryConstructor.GoName != "":
+		// Returns: varName, err := EntConstructor(protoMember) with error handler
+		return fmt.Sprintf(`%s, err := %s(%s)
+		if err != nil {
+			return nil, %s
+		}
+		`, varName, g.QualifiedGoIdent(conv.toEntTryConstructor), ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
+	case conv.toEntConstructor.GoName != "":
+		// Returns: varName := EntConstructor(protoMember)
+		return fmt.Sprintf("%s := %s(%s)", varName, g.QualifiedGoIdent(conv.toEntConstructor), ident)
+	case conv.toEntConversion != "":
+		// Returns: varName := EntConversion(protoMember)
+		return fmt.Sprintf("%s := %s(%s)", varName, conv.toEntConversion, ident)
+	default:
+		// Returns: varName := protoMember
+		return fmt.Sprintf("%s := %s", varName, ident)
+	}
 }
 
 func isWrapperType(md *desc.MessageDescriptor) bool {

@@ -163,6 +163,9 @@ func TestUserService_Update(t *testing.T) {
 	attachmentID, err := attachment.ID.MarshalBinary()
 	require.NoError(t, err)
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
+	crmID, err := runtime.UUIDToBytes(created.CrmID)
+	require.NoError(t, err, "Converting UUID to Bytes: %v", crmID)
+
 	inputUser := &User{
 		Id:         int32(created.ID),
 		UserName:   "rotemtam",
@@ -177,7 +180,7 @@ func TestUserService_Update(t *testing.T) {
 		Attachment: &Attachment{
 			Id: attachmentID,
 		},
-		CrmId: runtime.MustExtractUUIDBytes(created.CrmID),
+		CrmId: crmID,
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,
