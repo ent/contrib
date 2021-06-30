@@ -131,6 +131,9 @@ type response struct {
 				Priority  int
 				Status    todo.Status
 				Text      string
+				Parent    struct {
+					ID string
+				}
 			}
 			Cursor string
 		}
@@ -506,6 +509,81 @@ func (s *todoTestSuite) TestPaginationOrder() {
 			}
 			startCreatedAt, _ = time.Parse(time.RFC3339, start.Node.CreatedAt)
 		}
+	})
+}
+
+func (s *todoTestSuite) TestPaginationFiltering() {
+	const (
+		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $status: Status, $has_parent: Boolean) {
+			todos(after: $after, first: $first, before: $before, last: $last, where: {status: $status, has_parent: $has_parent}) {
+				totalCount
+				edges {
+					node {
+						id
+						parent {
+							id
+						}
+					}
+					cursor
+				}
+				pageInfo {
+					hasNextPage
+					hasPreviousPage
+					startCursor
+					endCursor
+				}
+			}
+		}`
+		step  = 5
+		steps = maxTodos/step + 1
+	)
+	s.Run("StatusInProgress", func() {
+		var rsp response
+		err := s.Post(query, &rsp,
+			client.Var("first", step),
+			client.Var("status", todo.StatusInProgress),
+		)
+		s.NoError(err)
+		s.Zero(rsp.Todos.TotalCount)
+	})
+	s.Run("StatusCompleted", func() {
+		var rsp response
+		for i := 0; i < steps; i++ {
+			err := s.Post(query, &rsp,
+				client.Var("after", rsp.Todos.PageInfo.EndCursor),
+				client.Var("first", step),
+				client.Var("status", todo.StatusCompleted),
+			)
+			s.Require().NoError(err)
+			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
+			if i < steps-1 {
+				s.Require().Len(rsp.Todos.Edges, step)
+				s.Require().True(rsp.Todos.PageInfo.HasNextPage)
+			} else {
+				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
+				s.Require().False(rsp.Todos.PageInfo.HasNextPage)
+			}
+		}
+	})
+	s.Run("WithParent", func() {
+		var rsp response
+		err := s.Post(query, &rsp,
+			client.Var("first", step),
+			client.Var("status", todo.StatusCompleted),
+			client.Var("has_parent", true),
+		)
+		s.Require().NoError(err)
+		s.Require().Equal(maxTodos-1, rsp.Todos.TotalCount, "All todo items without the root")
+	})
+	s.Run("WithoutParent", func() {
+		var rsp response
+		err := s.Post(query, &rsp,
+			client.Var("first", step),
+			client.Var("status", todo.StatusCompleted),
+			client.Var("has_parent", false),
+		)
+		s.Require().NoError(err)
+		s.Require().Equal(1, rsp.Todos.TotalCount, "Only the root item")
 	})
 }
 

@@ -15,8 +15,9 @@
 package entgql
 
 import (
-	"entgo.io/contrib/entgql/internal"
 	"text/template"
+
+	"entgo.io/contrib/entgql/internal"
 
 	"entgo.io/ent/entc/gen"
 	_ "github.com/go-bindata/go-bindata"
@@ -43,6 +44,9 @@ var (
 
 	// EdgeTemplate adds edge resolution using eager-loading with a query fallback.
 	EdgeTemplate = parse("template/edge.tmpl")
+
+	// WhereTemplate adds a template for generating <T>WhereInput filters for each schema type.
+	WhereTemplate = parse("template/where_input.tmpl")
 
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{

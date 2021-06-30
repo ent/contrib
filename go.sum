@@ -21,6 +21,8 @@ entgo.io/ent v0.8.1-0.20210611070438-49d11cc774dc h1:AOQG3xI0LZzafq8Q7cYWNh8U3kl
 entgo.io/ent v0.8.1-0.20210611070438-49d11cc774dc/go.mod h1:SJjBmzwzo8UJo2bMoMw1bAstexzGcwfnIHeB+Rzr4p8=
 entgo.io/ent v0.8.1-0.20210630093927-52663a4df11c h1:T4mZZNJeaB6aXWrvjbXlQ32bV7vRIiWteJasuKZmU58=
 entgo.io/ent v0.8.1-0.20210630093927-52663a4df11c/go.mod h1:sP6mGLcM9h6HvJWMb2G+g5eQ8oGklKhOa/0z0Pt/0WI=
+entgo.io/ent v0.8.1-0.20210630104730-a19a89a141cf h1:pBl2eaSsIfQRT+8985JhMWekzeO+MwpX5Sc/hvQHCq8=
+entgo.io/ent v0.8.1-0.20210630104730-a19a89a141cf/go.mod h1:sP6mGLcM9h6HvJWMb2G+g5eQ8oGklKhOa/0z0Pt/0WI=
 github.com/99designs/gqlgen v0.13.0 h1:haLTcUp3Vwp80xMVEg5KRNwzfUrgFdRmtBY8fuB8scA=
 github.com/99designs/gqlgen v0.13.0/go.mod h1:NV130r6f4tpRWuAI+zsrSdooO/eWUv+Gyyoi3rEfXIk=
 github.com/AlekSi/pointer v1.1.0 h1:SSDMPcXD9jSl8FPy9cRzoRaMJtm9g9ggGTxecRUbQoI=
@@ -143,6 +145,8 @@ github.com/gorilla/context v0.0.0-20160226214623-1ea25387ff6f/go.mod h1:kBGZzfjB
 github.com/gorilla/mux v1.6.1/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b h1:pFOI7cDz2wI+MwaoDqqrhFCXkwvpvkWpYQCXvQVAlfs=
+github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b/go.mod h1:k6yrAYQaSP59DC5UVxbgxESlmVyojThKdORUqGDGmrI=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
