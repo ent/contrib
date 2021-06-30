@@ -116,8 +116,8 @@ func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, 
 	if n, err = sqlgraph.UpdateNodes(ctx, mwpnu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{messagewithpackagename.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -249,8 +249,8 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_no
 	if err = sqlgraph.UpdateNode(ctx, mwpnuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{messagewithpackagename.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

@@ -104,8 +104,8 @@ func (dosc *DependsOnSkippedCreate) check() error {
 func (dosc *DependsOnSkippedCreate) sqlSave(ctx context.Context) (*DependsOnSkipped, error) {
 	_node, _spec := dosc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, dosc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -185,8 +185,8 @@ func (doscb *DependsOnSkippedCreateBulk) Save(ctx context.Context) ([]*DependsOn
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, doscb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

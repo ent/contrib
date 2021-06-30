@@ -24,7 +24,6 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -287,11 +286,4 @@ func IsConstraintError(err error) bool {
 	}
 	var e *ConstraintError
 	return errors.As(err, &e)
-}
-
-func isSQLConstraintError(err error) (*ConstraintError, bool) {
-	if sqlgraph.IsConstraintError(err) {
-		return &ConstraintError{err.Error(), err}, true
-	}
-	return nil, false
 }

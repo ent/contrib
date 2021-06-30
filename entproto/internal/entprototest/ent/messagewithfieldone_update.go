@@ -130,8 +130,8 @@ func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err
 	if n, err = sqlgraph.UpdateNodes(ctx, mwfou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{messagewithfieldone.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -277,8 +277,8 @@ func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node 
 	if err = sqlgraph.UpdateNode(ctx, mwfouo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{messagewithfieldone.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

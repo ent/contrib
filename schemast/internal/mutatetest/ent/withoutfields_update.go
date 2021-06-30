@@ -103,8 +103,8 @@ func (wfu *WithoutFieldsUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if n, err = sqlgraph.UpdateNodes(ctx, wfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{withoutfields.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -223,8 +223,8 @@ func (wfuo *WithoutFieldsUpdateOne) sqlSave(ctx context.Context) (_node *Without
 	if err = sqlgraph.UpdateNode(ctx, wfuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{withoutfields.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

@@ -78,8 +78,8 @@ func (esmc *ExplicitSkippedMessageCreate) check() error {
 func (esmc *ExplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*ExplicitSkippedMessage, error) {
 	_node, _spec := esmc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, esmc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -132,8 +132,8 @@ func (esmcb *ExplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Exp
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, esmcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

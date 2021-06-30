@@ -111,8 +111,8 @@ func (ic *ImageCreate) check() error {
 func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
 	_node, _spec := ic.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ic.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -194,8 +194,8 @@ func (icb *ImageCreateBulk) Save(ctx context.Context) ([]*Image, error) {
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, icb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

@@ -88,8 +88,8 @@ func (wfc *WithFieldsCreate) check() error {
 func (wfc *WithFieldsCreate) sqlSave(ctx context.Context) (*WithFields, error) {
 	_node, _spec := wfc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, wfc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -150,8 +150,8 @@ func (wfcb *WithFieldsCreateBulk) Save(ctx context.Context) ([]*WithFields, erro
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, wfcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

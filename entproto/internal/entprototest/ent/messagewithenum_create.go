@@ -124,8 +124,8 @@ func (mwec *MessageWithEnumCreate) check() error {
 func (mwec *MessageWithEnumCreate) sqlSave(ctx context.Context) (*MessageWithEnum, error) {
 	_node, _spec := mwec.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwec.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -195,8 +195,8 @@ func (mwecb *MessageWithEnumCreateBulk) Save(ctx context.Context) ([]*MessageWit
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, mwecb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

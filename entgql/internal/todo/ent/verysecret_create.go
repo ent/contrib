@@ -102,8 +102,8 @@ func (vsc *VerySecretCreate) check() error {
 func (vsc *VerySecretCreate) sqlSave(ctx context.Context) (*VerySecret, error) {
 	_node, _spec := vsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, vsc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -164,8 +164,8 @@ func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, erro
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, vscb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

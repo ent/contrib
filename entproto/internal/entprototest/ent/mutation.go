@@ -348,6 +348,7 @@ func (m *BlogPostMutation) RemoveCategoryIDs(ids ...int) {
 		m.removedcategories = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.categories, ids[i])
 		m.removedcategories[ids[i]] = struct{}{}
 	}
 }
@@ -831,6 +832,7 @@ func (m *CategoryMutation) RemoveBlogPostIDs(ids ...int) {
 		m.removedblog_posts = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.blog_posts, ids[i])
 		m.removedblog_posts[ids[i]] = struct{}{}
 	}
 }
@@ -1227,6 +1229,7 @@ func (m *DependsOnSkippedMutation) RemoveSkippedIDs(ids ...int) {
 		m.removedskipped = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.skipped, ids[i])
 		m.removedskipped[ids[i]] = struct{}{}
 	}
 }
@@ -2178,6 +2181,7 @@ func (m *ImageMutation) RemoveUserProfilePicIDs(ids ...int) {
 		m.removeduser_profile_pic = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.user_profile_pic, ids[i])
 		m.removeduser_profile_pic[ids[i]] = struct{}{}
 	}
 }
@@ -5625,6 +5629,7 @@ func (m *UserMutation) RemoveBlogPostIDs(ids ...int) {
 		m.removedblog_posts = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.blog_posts, ids[i])
 		m.removedblog_posts[ids[i]] = struct{}{}
 	}
 }

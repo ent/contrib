@@ -164,8 +164,8 @@ func (wmfu *WithModifiedFieldUpdate) sqlSave(ctx context.Context) (n int, err er
 	if n, err = sqlgraph.UpdateNodes(ctx, wmfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{withmodifiedfield.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -344,8 +344,8 @@ func (wmfuo *WithModifiedFieldUpdateOne) sqlSave(ctx context.Context) (_node *Wi
 	if err = sqlgraph.UpdateNode(ctx, wmfuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{withmodifiedfield.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

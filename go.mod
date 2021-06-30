@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.16
 
 require (
-	entgo.io/ent v0.8.1-0.20210611070438-49d11cc774dc
+	entgo.io/ent v0.8.1-0.20210630093927-52663a4df11c
 	github.com/99designs/gqlgen v0.13.0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
@@ -31,10 +31,10 @@ require (
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.5 // indirect
-	golang.org/x/tools v0.1.3
+	golang.org/x/tools v0.1.4
 	google.golang.org/genproto v0.0.0-20210303154014-9728d6b83eeb // indirect
 	google.golang.org/grpc v1.36.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
-	google.golang.org/protobuf v1.27.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )

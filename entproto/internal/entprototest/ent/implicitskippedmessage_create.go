@@ -78,8 +78,8 @@ func (ismc *ImplicitSkippedMessageCreate) check() error {
 func (ismc *ImplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*ImplicitSkippedMessage, error) {
 	_node, _spec := ismc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ismc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -132,8 +132,8 @@ func (ismcb *ImplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Imp
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ismcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

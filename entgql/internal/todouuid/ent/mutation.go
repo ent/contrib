@@ -427,6 +427,7 @@ func (m *TodoMutation) RemoveChildIDs(ids ...uuid.UUID) {
 		m.removedchildren = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
+		delete(m.children, ids[i])
 		m.removedchildren[ids[i]] = struct{}{}
 	}
 }
