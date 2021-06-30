@@ -88,8 +88,8 @@ func (mwpnc *MessageWithPackageNameCreate) check() error {
 func (mwpnc *MessageWithPackageNameCreate) sqlSave(ctx context.Context) (*MessageWithPackageName, error) {
 	_node, _spec := mwpnc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwpnc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -150,8 +150,8 @@ func (mwpncb *MessageWithPackageNameCreateBulk) Save(ctx context.Context) ([]*Me
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, mwpncb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

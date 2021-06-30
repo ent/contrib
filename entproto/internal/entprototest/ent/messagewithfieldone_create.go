@@ -88,8 +88,8 @@ func (mwfoc *MessageWithFieldOneCreate) check() error {
 func (mwfoc *MessageWithFieldOneCreate) sqlSave(ctx context.Context) (*MessageWithFieldOne, error) {
 	_node, _spec := mwfoc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwfoc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -150,8 +150,8 @@ func (mwfocb *MessageWithFieldOneCreateBulk) Save(ctx context.Context) ([]*Messa
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, mwfocb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

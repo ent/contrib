@@ -142,8 +142,8 @@ func (bpc *BlogPostCreate) check() error {
 func (bpc *BlogPostCreate) sqlSave(ctx context.Context) (*BlogPost, error) {
 	_node, _spec := bpc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, bpc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -259,8 +259,8 @@ func (bpcb *BlogPostCreateBulk) Save(ctx context.Context) ([]*BlogPost, error) {
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, bpcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

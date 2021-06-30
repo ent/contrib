@@ -200,6 +200,7 @@ func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
 		m.removedrecipients = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.recipients, ids[i])
 		m.removedrecipients[ids[i]] = struct{}{}
 	}
 }
@@ -572,6 +573,7 @@ func (m *GroupMutation) RemoveUserIDs(ids ...int) {
 		m.removedusers = make(map[int]struct{})
 	}
 	for i := range ids {
+		delete(m.users, ids[i])
 		m.removedusers[ids[i]] = struct{}{}
 	}
 }
@@ -1995,6 +1997,7 @@ func (m *UserMutation) RemoveReceivedIDs(ids ...uuid.UUID) {
 		m.removedreceived = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
+		delete(m.received, ids[i])
 		m.removedreceived[ids[i]] = struct{}{}
 	}
 }

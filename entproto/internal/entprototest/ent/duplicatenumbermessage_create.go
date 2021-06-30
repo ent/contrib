@@ -97,8 +97,8 @@ func (dnmc *DuplicateNumberMessageCreate) check() error {
 func (dnmc *DuplicateNumberMessageCreate) sqlSave(ctx context.Context) (*DuplicateNumberMessage, error) {
 	_node, _spec := dnmc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, dnmc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -167,8 +167,8 @@ func (dnmcb *DuplicateNumberMessageCreateBulk) Save(ctx context.Context) ([]*Dup
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, dnmcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

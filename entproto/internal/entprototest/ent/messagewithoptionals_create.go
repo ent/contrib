@@ -176,8 +176,8 @@ func (mwoc *MessageWithOptionalsCreate) check() error {
 func (mwoc *MessageWithOptionalsCreate) sqlSave(ctx context.Context) (*MessageWithOptionals, error) {
 	_node, _spec := mwoc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwoc.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
@@ -294,8 +294,8 @@ func (mwocb *MessageWithOptionalsCreateBulk) Save(ctx context.Context) ([]*Messa
 				} else {
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, mwocb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
-						if cerr, ok := isSQLConstraintError(err); ok {
-							err = cerr
+						if sqlgraph.IsConstraintError(err) {
+							err = &ConstraintError{err.Error(), err}
 						}
 					}
 				}

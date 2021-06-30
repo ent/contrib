@@ -103,8 +103,8 @@ func (ismu *ImplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, e
 	if n, err = sqlgraph.UpdateNodes(ctx, ismu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{implicitskippedmessage.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -223,8 +223,8 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 	if err = sqlgraph.UpdateNode(ctx, ismuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{implicitskippedmessage.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}

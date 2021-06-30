@@ -103,8 +103,8 @@ func (esmu *ExplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, e
 	if n, err = sqlgraph.UpdateNodes(ctx, esmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{explicitskippedmessage.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return 0, err
 	}
@@ -223,8 +223,8 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 	if err = sqlgraph.UpdateNode(ctx, esmuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{explicitskippedmessage.Label}
-		} else if cerr, ok := isSQLConstraintError(err); ok {
-			err = cerr
+		} else if sqlgraph.IsConstraintError(err) {
+			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
 	}
