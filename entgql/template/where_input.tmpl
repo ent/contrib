@@ -1,0 +1,170 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "where_input" }}
+
+{{- /*gotype: entgo.io/ent/entc/gen.Graph*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{- with extend $ "Package" $pkg }}
+        {{ template "header" . }}
+{{- end }}
+
+{{ template "import" $ }}
+
+{{- range $n := filterNodes $.Nodes }}
+    {{ $comparableFields := list }}
+    {{ range $f := $n.Fields }}
+        {{ if $f.Type.Comparable }}
+            {{ $comparableFields = append $comparableFields $f }}
+        {{ end }}
+    {{ end }}
+    {{ $input := print $n.Name "WhereInput" }}
+    // {{ $input }} represents a where input for filtering {{ $n.Name }} queries.
+    type {{ $input }} struct {
+        Not *{{ $input }} `json:"not,omitempty"`
+        Or  []*{{ $input }} `json:"or,omitempty"`
+        And []*{{ $input }} `json:"and,omitempty"`
+        {{- range $f := $comparableFields }}
+
+            // "{{ $f.Name }}" field predicates.
+            {{- range $op := $f.Ops }}
+                {{- $field := print $f.StructField $op.Name }}
+                {{- /* We name the field filter "<Field>EQ()" as "<Field>()", because it's cleaner (e.g. "name_eq" -> "name") */}}
+                {{- if eq $op.Name "EQ" }}
+                    {{- $field = $f.StructField }}
+                {{- end }}
+                {{ $field }} {{ if $op.Niladic }}bool{{ else }}{{ if $op.Variadic }}[]{{ else }}*{{ end }}{{ $f.Type }}{{ end }} `json:"{{ snake $field }},omitempty"`
+            {{- end }}
+        {{- end }}
+
+        {{ range $e := $n.Edges }}
+
+            // "{{ $e.Name }}" edge predicates.
+            {{- $func := print "Has" $e.StructField }}
+            {{ $func }} *bool `json:"{{ snake $func }},omitempty"`
+            {{- $func = print $func "With" }}
+            {{ $func }} []*{{ print $e.Type.Name "WhereInput" }} `json:"{{ snake $func }},omitempty"`
+        {{- end }}
+    }
+
+    // Filter applies the {{ $input }} filter on the {{ $n.QueryName }} builder.
+    func (i *{{ $input }}) Filter(q *{{ $n.QueryName }}) (*{{ $n.QueryName }}, error) {
+        if i == nil {
+            return q, nil
+        }
+        p, err := i.P()
+        if err != nil {
+            return nil, err
+        }
+        return q.Where(p), nil
+    }
+
+    // P returns a predicate for filtering {{ plural $n.Name | lower }}.
+    // An error is returned if the input is empty or invalid.
+    func (i *{{ $input }}) P() (predicate.{{ $n.Name }}, error) {
+        var predicates []predicate.{{ $n.Name }}
+        if i.Not != nil {
+            p, err := i.Not.P()
+            if err != nil {
+                return nil, err
+            }
+            predicates = append(predicates, {{ $n.Package }}.Not(p))
+        }
+        switch n := len(i.Or); {
+        case n == 1:
+            p, err := i.Or[0].P()
+            if err != nil {
+                return nil, err
+            }
+            predicates = append(predicates, p)
+        case n > 1:
+            or := make([]predicate.{{ $n.Name }}, 0, n)
+            for _, w := range i.Or {
+                p, err := w.P()
+                if err != nil {
+                    return nil, err
+                }
+                or = append(or, p)
+            }
+            predicates = append(predicates, {{ $n.Package }}.Or(or...))
+        }
+        switch n := len(i.And); {
+        case n == 1:
+            p, err := i.And[0].P()
+            if err != nil {
+                return nil, err
+            }
+            predicates = append(predicates, p)
+        case n > 1:
+            and := make([]predicate.{{ $n.Name }}, 0, n)
+            for _, w := range i.And {
+                p, err := w.P()
+                if err != nil {
+                    return nil, err
+                }
+                and = append(and, p)
+            }
+            predicates = append(predicates, {{ $n.Package }}.And(and...))
+        }
+        {{- range $f := $comparableFields }}
+            {{- range $op := $f.Ops }}
+                {{- $func := print $f.StructField $op.Name }}
+                {{- $field := $func }}
+                {{- /* We name the <Field>EQ() filter as <Field>(), because it's nicer (e.g. "name_eq" -> "name") */}}
+                {{- if eq $op.Name "EQ" }}
+                    {{- $field = $f.StructField }}
+                {{- end }}
+                {{- if $op.Niladic }}
+                    if i.{{ $field }} {
+                        predicates = append(predicates, {{ $n.Package }}.{{ $func }}())
+                    }
+                {{- else }}
+                    {{- if $op.Variadic }}
+                        if len(i.{{ $field }}) > 0 {
+                            predicates = append(predicates, {{ $n.Package }}.{{ $func }}(i.{{ $field }}...))
+                        }
+                    {{- else }}
+                        if i.{{ $field }} != nil {
+                            predicates = append(predicates, {{ $n.Package }}.{{ $func }}(*i.{{ $field }}))
+                        }
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        {{- end }}
+        {{ range $e := $n.Edges }}
+            {{- $func := print "Has" $e.StructField }}
+            if i.{{ $func }} != nil {
+                p := {{ $n.Package }}.{{ $func }}()
+                if !*i.{{ $func }} {
+                    p = {{ $n.Package }}.Not(p)
+                }
+                predicates = append(predicates, p)
+            }
+            {{- $func = print $func "With" }}
+            if len(i.{{ $func }}) > 0 {
+                with := make([]predicate.{{ $e.Type.Name }}, 0, len(i.{{ $func }}))
+                for _, w := range i.{{ $func }} {
+                    p, err := w.P()
+                    if err != nil {
+                        return nil, err
+                    }
+                    with = append(with, p)
+                }
+                predicates = append(predicates, {{ $n.Package }}.{{ $func }}(with...))
+            }
+        {{- end }}
+        switch len(predicates) {
+        case 0:
+            return nil, fmt.Errorf("{{ $.Config.Package }}: empty predicate {{ $input }}")
+        case 1:
+            return predicates[0], nil
+        default:
+            return {{ $n.Package }}.And(predicates...), nil
+        }
+    }
+{{- end }}
+{{ end }}

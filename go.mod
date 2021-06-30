@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.16
 
 require (
-	entgo.io/ent v0.8.1-0.20210630093927-52663a4df11c
+	entgo.io/ent v0.8.1-0.20210630104730-a19a89a141cf
 	github.com/99designs/gqlgen v0.13.0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
@@ -13,6 +13,7 @@ require (
 	github.com/golang/protobuf v1.5.1
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76 // indirect
 	github.com/google/uuid v1.2.0
+	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4 // indirect

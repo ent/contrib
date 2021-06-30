@@ -19,7 +19,7 @@ jobs:
       - name: Run linters
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.33
+          version: v1.41.1
           args: --timeout 3m
   test:
     runs-on: ubuntu-latest
