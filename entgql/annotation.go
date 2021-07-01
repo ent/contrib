@@ -16,6 +16,7 @@ package entgql
 
 import (
 	"encoding/json"
+
 	"entgo.io/ent/schema"
 )
 
@@ -28,6 +29,8 @@ type Annotation struct {
 	Bind bool `json:"Bind,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string `json:"Mapping,omitempty"`
+	// Type is the underlying GraphQL type name (e.g. Boolean).
+	Type string `json:"Type,omitempty"`
 	// Skip exclude the type
 	Skip bool `json:"Skip,omitempty"`
 }
@@ -50,6 +53,11 @@ func Bind() Annotation {
 // MapsTo returns a mapping annotation.
 func MapsTo(names ...string) Annotation {
 	return Annotation{Mapping: names}
+}
+
+// Type returns a type mapping annotation.
+func Type(name string) Annotation {
+	return Annotation{Type: name}
 }
 
 // Skip returns a skip annotation.
@@ -78,6 +86,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if len(ant.Mapping) != 0 {
 		a.Mapping = ant.Mapping
+	}
+	if ant.Type != "" {
+		a.Type = ant.Type
 	}
 	if ant.Skip {
 		a.Skip = true

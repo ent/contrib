@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"github.com/99designs/gqlgen/graphql"
@@ -374,6 +375,11 @@ var sources = []*ast.Source{
   id: ID!
 }
 
+enum CategoryStatus {
+  ENABLED
+  DISABLED
+}
+
 enum Status {
   IN_PROGRESS
   COMPLETED
@@ -539,6 +545,12 @@ input CategoryWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
+  
+  """status field predicates"""
+  status: CategoryStatus
+  statusNEQ: CategoryStatus
+  statusIn: [CategoryStatus!]
+  statusNotIn: [CategoryStatus!]
   
   """todos edge predicates"""
   hasTodos: Boolean
@@ -2840,6 +2852,38 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "statusNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
+			it.StatusNEQ, err = ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "statusIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
+			it.StatusIn, err = ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "statusNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
+			it.StatusNotIn, err = ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "hasTodos":
 			var err error
 
@@ -3891,6 +3935,16 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx context.Context, v interface{}) (category.Status, error) {
+	var res category.Status
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx context.Context, sel ast.SelectionSet, v category.Status) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNCategoryWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategoryWhereInput(ctx context.Context, v interface{}) (*ent.CategoryWhereInput, error) {
 	res, err := ec.unmarshalInputCategoryWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -4334,6 +4388,86 @@ func (ec *executionContext) marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋ
 		return graphql.Null
 	}
 	return ec._Category(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatusᚄ(ctx context.Context, v interface{}) ([]category.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]category.Status, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []category.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx context.Context, v interface{}) (*category.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(category.Status)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx context.Context, sel ast.SelectionSet, v *category.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategoryWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.CategoryWhereInput, error) {

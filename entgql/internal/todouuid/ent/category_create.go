@@ -41,6 +41,12 @@ func (cc *CategoryCreate) SetText(s string) *CategoryCreate {
 	return cc
 }
 
+// SetStatus sets the "status" field.
+func (cc *CategoryCreate) SetStatus(c category.Status) *CategoryCreate {
+	cc.mutation.SetStatus(c)
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CategoryCreate) SetID(u uuid.UUID) *CategoryCreate {
 	cc.mutation.SetID(u)
@@ -133,6 +139,14 @@ func (cc *CategoryCreate) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
+	if _, ok := cc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+	}
+	if v, ok := cc.mutation.Status(); ok {
+		if err := category.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -169,6 +183,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldText,
 		})
 		_node.Text = value
+	}
+	if value, ok := cc.mutation.Status(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: category.FieldStatus,
+		})
+		_node.Status = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
