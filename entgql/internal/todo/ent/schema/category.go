@@ -34,6 +34,11 @@ func (Category) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("TEXT"),
 			),
+		field.Enum("status").
+			NamedValues(
+				"Enabled", "ENABLED",
+				"Disabled", "DISABLED",
+			),
 	}
 }
 

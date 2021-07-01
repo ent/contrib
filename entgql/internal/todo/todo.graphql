@@ -2,6 +2,11 @@ interface Node {
   id: ID!
 }
 
+enum CategoryStatus {
+  ENABLED
+  DISABLED
+}
+
 enum Status {
   IN_PROGRESS
   COMPLETED
@@ -167,6 +172,12 @@ input CategoryWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
+  
+  """status field predicates"""
+  status: CategoryStatus
+  statusNEQ: CategoryStatus
+  statusIn: [CategoryStatus!]
+  statusNotIn: [CategoryStatus!]
   
   """todos edge predicates"""
   hasTodos: Boolean

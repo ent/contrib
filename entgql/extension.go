@@ -23,6 +23,7 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/kinds"
@@ -38,6 +39,7 @@ type (
 		entc.DefaultExtension
 		path       string
 		doc        *ast.Document
+		cfg        *config.Config
 		hooks      []gen.Hook
 		templates  []*gen.Template
 		scalarFunc func(*gen.Field, gen.Op) string
@@ -52,7 +54,8 @@ type (
 // It fails if the schema can't be opened or is not parsable.
 //
 // Note that, if this option was provided, the extension appends
-// or updates the GraphQL schema with the generated input types.
+// or updates the GraphQL schema with the generated input types,
+// and injects its parsed schema to the global annotations.
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		buf, err := ioutil.ReadFile(path)
@@ -73,6 +76,31 @@ func WithSchemaPath(path string) ExtensionOption {
 		return nil
 	}
 }
+
+// WithConfigPath sets the filepath to gqlgen.yml configuration file
+// and injects its parsed version to the global annotations.
+//
+// Note that, enabling this option is recommended as it improves the
+// GraphQL integration,
+func WithConfigPath(path string) ExtensionOption {
+	return func(ex *Extension) error {
+		cfg, err := config.LoadConfig(path)
+		if err != nil {
+			return err
+		}
+		ex.cfg = cfg
+		return nil
+	}
+}
+
+const (
+	// GQLConfigAnnotation is the annotation key/name that holds gqlgen
+	// configuration if it was provided by the `WithConfigPath` option.
+	GQLConfigAnnotation = "GQLConfig"
+	// GQLSchemaAnnotation is the annotation key/name that holds parsed
+	// GraphQL schema if it was provided by the `WithSchemaPath` option.
+	GQLSchemaAnnotation = "GQLSchema"
+)
 
 // WithTemplates overrides the default templates (entgql.AllTemplates)
 // with specific templates.
@@ -99,13 +127,18 @@ func WithWhereFilters(b bool) ExtensionOption {
 	}
 }
 
-// WithMapScalarFunc allows users to provides a custom function
-// that maps an ent.Field (*gen.Field) into its GraphQL scalar type.
+// WithMapScalarFunc allows users to provides a custom function that
+// maps an ent.Field (*gen.Field) into its GraphQL scalar type. If the
+// function returns an empty string, the extension fallbacks to the its
+// default mapping.
 //
 //	ex, err := entgql.NewExtension(
 //		entgql.WithMapScalarFunc(func(f *gen.Field, op gen.Op) string {
-//			// Custom code, or fallback to DefaultMapScalar.
-//			return entgql.DefaultMapScalar(f, op)
+//			if t, ok := knowType(f, op); ok {
+//				return t
+//			}
+//			// Fallback to the default mapping.
+//			return ""
 //		}),
 //	)
 //
@@ -124,7 +157,7 @@ func WithMapScalarFunc(scalarFunc func(*gen.Field, gen.Op) string) ExtensionOpti
 //	)
 //
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
-	ex := &Extension{templates: AllTemplates, scalarFunc: DefaultMapScalar}
+	ex := &Extension{templates: AllTemplates}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
 			return nil, err
@@ -140,12 +173,34 @@ func (e *Extension) Templates() []*gen.Template {
 
 // Hooks of the extension.
 func (e *Extension) Hooks() []gen.Hook {
-	return e.hooks
+	var hooks []gen.Hook
+	if e.cfg != nil || e.doc != nil {
+		hooks = append(hooks, func(next gen.Generator) gen.Generator {
+			return gen.GenerateFunc(func(g *gen.Graph) error {
+				if g.Annotations == nil {
+					g.Annotations = gen.Annotations{}
+				}
+				if e.cfg != nil {
+					g.Annotations[GQLConfigAnnotation] = e.cfg
+				}
+				if e.doc != nil {
+					g.Annotations[GQLSchemaAnnotation] = e.doc
+				}
+				return next.Generate(g)
+			})
+		})
+	}
+	return append(hooks, e.hooks...)
 }
 
-// DefaultMapScalar provides the default mapping from ent.Schema type into GraphQL
-// scalar type. In order to override this function, use the WithMapScalarFunc option.
-func DefaultMapScalar(f *gen.Field, op gen.Op) string {
+// mapScalar provides maps an ent.Schema type into GraphQL scalar type.
+// In order to override this function, use the WithMapScalarFunc option.
+func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
+	if e.scalarFunc != nil {
+		if t := e.scalarFunc(f, op); t != "" {
+			return t
+		}
+	}
 	scalar := f.Type.String()
 	switch t := f.Type.Type; {
 	case op.Niladic() || t == field.TypeBool:
@@ -159,9 +214,50 @@ func DefaultMapScalar(f *gen.Field, op gen.Op) string {
 	case t == field.TypeString:
 		scalar = graphql.String.Name()
 	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		if typ, ok := e.hasMapping(f); ok {
+			scalar = typ
+		} else {
+			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		}
 	}
 	return scalar
+}
+
+// hasMapping reports if the gqlgen.yml has custom mapping for
+// the given field type and returns its GraphQL name if exists.
+func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
+	var ant Annotation
+	// If the field was defined with a `entgql.Type` option (e.g. `entgql.Type("Boolean")`).
+	if i, ok := f.Annotations[ant.Name()]; ok && ant.Decode(i) == nil && ant.Type != "" {
+		return ant.Type, true
+	}
+	if e.cfg == nil {
+		return "", false
+	}
+	for t, v := range e.cfg.Models {
+		// The string representation uses shortened package
+		// names, and we override it for custom Go types.
+		ident := f.Type.String()
+		if idx := strings.IndexByte(ident, '.'); idx != -1 && f.HasGoType() && f.Type.PkgPath != "" {
+			ident = f.Type.PkgPath + ident[idx:]
+		}
+		for _, m := range v.Model {
+			// A mapping was found from GraphQL name to field type.
+			if strings.HasSuffix(m, ident) {
+				return t, true
+			}
+		}
+	}
+	// If no custom mapping was found, fallback to the builtin scalar
+	// types as mentioned in https://gqlgen.com/reference/scalars
+	switch f.Type.String() {
+	case "time.Time":
+		return "Time", true
+	case "map[string]interface{}":
+		return "Map", true
+	default:
+		return "", false
+	}
 }
 
 // genWhereInputs returns a new hook for generating
@@ -331,7 +427,7 @@ func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefi
 		}),
 		Type: ast.NewNamed(&ast.Named{
 			Name: ast.NewName(&ast.Name{
-				Value: e.scalarFunc(f, op),
+				Value: e.mapScalar(f, op),
 			}),
 		}),
 	})

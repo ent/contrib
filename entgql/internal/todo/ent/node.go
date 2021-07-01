@@ -65,7 +65,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Category",
-		Fields: make([]*Field, 1),
+		Fields: make([]*Field, 2),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -75,6 +75,14 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[0] = &Field{
 		Type:  "string",
 		Name:  "text",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "category.Status",
+		Name:  "status",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

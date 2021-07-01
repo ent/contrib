@@ -33,25 +33,25 @@ in the LICENSE file in the root directory of this source tree.
             // "{{ $f.Name }}" field predicates.
             {{- range $op := $f.Ops }}
                 {{- $field := print $f.StructField $op.Name }}
-                {{- $fieldJSON := print $f.Name "_" $op.Name }}
+                {{- $jsonTag := print $f.Name "_" $op.Name }}
                 {{- /* We name the field filter "<Field>EQ()" as "<Field>()", because it's cleaner (e.g. "name_eq" -> "name") */}}
                 {{- if eq $op.Name "EQ" }}
                     {{- $field = $f.StructField }}
-                    {{- $fieldJSON = $f.Name }}
+                    {{- $jsonTag = $f.Name }}
                 {{- end }}
-                {{ $field }} {{ if $op.Niladic }}bool{{ else }}{{ if $op.Variadic }}[]{{ else }}*{{ end }}{{ $f.Type }}{{ end }} `json:"{{ camel $fieldJSON }},omitempty"`
+                {{ $field }} {{ if $op.Niladic }}bool{{ else }}{{ if $op.Variadic }}[]{{ else }}*{{ end }}{{ $f.Type }}{{ end }} `json:"{{ camel $jsonTag }},omitempty"`
             {{- end }}
         {{- end }}
 
         {{ range $e := filterEdges $n.Edges }}
 
             // "{{ $e.Name }}" edge predicates.
-            {{- $func := print "Has" $e.StructField }}
-            {{- $funcJSON := print "has_" $e.Name }}
-            {{ $func }} *bool `json:"{{ camel $funcJSON }},omitempty"`
-            {{- $func = print $func "With" }}
-            {{- $funcJSON := print $funcJSON "_with" }}
-            {{ $func }} []*{{ print $e.Type.Name "WhereInput" }} `json:"{{ camel $funcJSON }},omitempty"`
+            {{- $field := print "Has" $e.StructField }}
+            {{- $jsonTag := print "has_" $e.Name }}
+            {{ $field }} *bool `json:"{{ camel $jsonTag }},omitempty"`
+            {{- $field = print $field "With" }}
+            {{- $jsonTag = print $jsonTag "_with" }}
+            {{ $field }} []*{{ print $e.Type.Name "WhereInput" }} `json:"{{ camel $jsonTag }},omitempty"`
         {{- end }}
     }
 

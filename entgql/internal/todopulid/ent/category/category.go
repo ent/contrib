@@ -17,6 +17,10 @@
 package category
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
@@ -27,6 +31,8 @@ const (
 	FieldID = "id"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 	// EdgeTodos holds the string denoting the todos edge name in mutations.
 	EdgeTodos = "todos"
 	// Table holds the table name of the category in the database.
@@ -44,6 +50,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldText,
+	FieldStatus,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -62,3 +69,44 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() pulid.ID
 )
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// Status values.
+const (
+	StatusEnabled  Status = "ENABLED"
+	StatusDisabled Status = "DISABLED"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusEnabled, StatusDisabled:
+		return nil
+	default:
+		return fmt.Errorf("category: invalid enum value for status field: %q", s)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(s.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}

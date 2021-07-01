@@ -48,6 +48,12 @@ func (cu *CategoryUpdate) SetText(s string) *CategoryUpdate {
 	return cu
 }
 
+// SetStatus sets the "status" field.
+func (cu *CategoryUpdate) SetStatus(c category.Status) *CategoryUpdate {
+	cu.mutation.SetStatus(c)
+	return cu
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cu *CategoryUpdate) AddTodoIDs(ids ...uuid.UUID) *CategoryUpdate {
 	cu.mutation.AddTodoIDs(ids...)
@@ -153,6 +159,11 @@ func (cu *CategoryUpdate) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
+	if v, ok := cu.mutation.Status(); ok {
+		if err := category.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -179,6 +190,13 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: category.FieldText,
+		})
+	}
+	if value, ok := cu.mutation.Status(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: category.FieldStatus,
 		})
 	}
 	if cu.mutation.TodosCleared() {
@@ -257,6 +275,12 @@ type CategoryUpdateOne struct {
 // SetText sets the "text" field.
 func (cuo *CategoryUpdateOne) SetText(s string) *CategoryUpdateOne {
 	cuo.mutation.SetText(s)
+	return cuo
+}
+
+// SetStatus sets the "status" field.
+func (cuo *CategoryUpdateOne) SetStatus(c category.Status) *CategoryUpdateOne {
+	cuo.mutation.SetStatus(c)
 	return cuo
 }
 
@@ -372,6 +396,11 @@ func (cuo *CategoryUpdateOne) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
+	if v, ok := cuo.mutation.Status(); ok {
+		if err := category.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -415,6 +444,13 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			Type:   field.TypeString,
 			Value:  value,
 			Column: category.FieldText,
+		})
+	}
+	if value, ok := cuo.mutation.Status(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: category.FieldStatus,
 		})
 	}
 	if cuo.mutation.TodosCleared() {

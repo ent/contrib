@@ -46,6 +46,12 @@ type CategoryWhereInput struct {
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
+	// "status" field predicates.
+	Status      *category.Status  `json:"status,omitempty"`
+	StatusNEQ   *category.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []category.Status `json:"statusIn,omitempty"`
+	StatusNotIn []category.Status `json:"statusNotIn,omitempty"`
+
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
@@ -148,6 +154,18 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, category.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.Status != nil {
+		predicates = append(predicates, category.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, category.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, category.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, category.StatusNotIn(i.StatusNotIn...))
 	}
 
 	if i.HasTodos != nil {

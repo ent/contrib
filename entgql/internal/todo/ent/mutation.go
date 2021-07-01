@@ -51,6 +51,7 @@ type CategoryMutation struct {
 	typ           string
 	id            *int
 	text          *string
+	status        *category.Status
 	clearedFields map[string]struct{}
 	todos         map[int]struct{}
 	removedtodos  map[int]struct{}
@@ -175,6 +176,42 @@ func (m *CategoryMutation) ResetText() {
 	m.text = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *CategoryMutation) SetStatus(c category.Status) {
+	m.status = &c
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *CategoryMutation) Status() (r category.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldStatus(ctx context.Context) (v category.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *CategoryMutation) ResetStatus() {
+	m.status = nil
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by ids.
 func (m *CategoryMutation) AddTodoIDs(ids ...int) {
 	if m.todos == nil {
@@ -243,9 +280,12 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
+	}
+	if m.status != nil {
+		fields = append(fields, category.FieldStatus)
 	}
 	return fields
 }
@@ -257,6 +297,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case category.FieldText:
 		return m.Text()
+	case category.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -268,6 +310,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case category.FieldText:
 		return m.OldText(ctx)
+	case category.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -283,6 +327,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetText(v)
+		return nil
+	case category.FieldStatus:
+		v, ok := value.(category.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
@@ -335,6 +386,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 	switch name {
 	case category.FieldText:
 		m.ResetText()
+		return nil
+	case category.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

@@ -11,6 +11,8 @@ resolver:
 
 autobind:
   - entgo.io/contrib/entgql/internal/todouuid/ent
+  # Auto-bind the generated `Status` enum to GraphQL.
+  - entgo.io/contrib/entgql/internal/todouuid/ent/todo
 
 models:
   ID:
@@ -19,6 +21,8 @@ models:
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todouuid/ent.Noder
-  Status:
+  # Custom mapping from GraphQL `CategoryStatus`
+  # to the generated `category.Status` enum type.
+  CategoryStatus:
     model:
-      - entgo.io/contrib/entgql/internal/todouuid/ent/todo.Status
+      - entgo.io/contrib/entgql/internal/todouuid/ent/category.Status
