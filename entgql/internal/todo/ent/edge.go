@@ -18,6 +18,14 @@ package ent
 
 import "context"
 
+func (c *Category) Todos(ctx context.Context) ([]*Todo, error) {
+	result, err := c.Edges.TodosOrErr()
+	if IsNotLoaded(err) {
+		result, err = c.QueryTodos().All(ctx)
+	}
+	return result, err
+}
+
 func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 	result, err := t.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
@@ -32,4 +40,12 @@ func (t *Todo) Children(ctx context.Context) ([]*Todo, error) {
 		result, err = t.QueryChildren().All(ctx)
 	}
 	return result, err
+}
+
+func (t *Todo) Category(ctx context.Context) (*Category, error) {
+	result, err := t.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }

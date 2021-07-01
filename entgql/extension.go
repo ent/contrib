@@ -299,7 +299,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 				Type: ast.NewNonNull(&ast.NonNull{
 					Type: ast.NewNamed(&ast.Named{
 						Name: ast.NewName(&ast.Name{
-							Value: name,
+							Value: e.Type.Name + "WhereInput",
 						}),
 					}),
 				}),

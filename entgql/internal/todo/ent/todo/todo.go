@@ -38,10 +38,14 @@ const (
 	FieldText = "text"
 	// FieldBlob holds the string denoting the blob field in the database.
 	FieldBlob = "blob"
+	// FieldCategoryID holds the string denoting the category_id field in the database.
+	FieldCategoryID = "category_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
 	EdgeChildren = "children"
+	// EdgeCategory holds the string denoting the category edge name in mutations.
+	EdgeCategory = "category"
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
 	// ParentTable is the table the holds the parent relation/edge.
@@ -52,6 +56,13 @@ const (
 	ChildrenTable = "todos"
 	// ChildrenColumn is the table column denoting the children relation/edge.
 	ChildrenColumn = "todo_children"
+	// CategoryTable is the table the holds the category relation/edge.
+	CategoryTable = "todos"
+	// CategoryInverseTable is the table name for the Category entity.
+	// It exists in this package in order to avoid circular dependency with the "category" package.
+	CategoryInverseTable = "categories"
+	// CategoryColumn is the table column denoting the category relation/edge.
+	CategoryColumn = "category_id"
 )
 
 // Columns holds all SQL columns for todo fields.
@@ -62,6 +73,7 @@ var Columns = []string{
 	FieldPriority,
 	FieldText,
 	FieldBlob,
+	FieldCategoryID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"

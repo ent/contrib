@@ -56,6 +56,8 @@ func (Todo) Fields() []ent.Field {
 				entgql.OrderField("TEXT"),
 			),
 		field.Bytes("blob").Optional(),
+		field.Int("category_id").
+			Optional(),
 	}
 }
 
@@ -67,5 +69,10 @@ func (Todo) Edges() []ent.Edge {
 			From("parent").
 			Annotations(entgql.Bind()).
 			Unique(),
+
+		edge.From("category", Category.Type).
+			Ref("todos").
+			Unique().
+			Field("category_id"),
 	}
 }

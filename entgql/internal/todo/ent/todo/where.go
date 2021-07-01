@@ -135,6 +135,13 @@ func Blob(v []byte) predicate.Todo {
 	})
 }
 
+// CategoryID applies equality check predicate on the "category_id" field. It's identical to CategoryIDEQ.
+func CategoryID(v int) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCategoryID), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
@@ -536,6 +543,68 @@ func BlobNotNil() predicate.Todo {
 	})
 }
 
+// CategoryIDEQ applies the EQ predicate on the "category_id" field.
+func CategoryIDEQ(v int) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCategoryID), v))
+	})
+}
+
+// CategoryIDNEQ applies the NEQ predicate on the "category_id" field.
+func CategoryIDNEQ(v int) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCategoryID), v))
+	})
+}
+
+// CategoryIDIn applies the In predicate on the "category_id" field.
+func CategoryIDIn(vs ...int) predicate.Todo {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Todo(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCategoryID), v...))
+	})
+}
+
+// CategoryIDNotIn applies the NotIn predicate on the "category_id" field.
+func CategoryIDNotIn(vs ...int) predicate.Todo {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Todo(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCategoryID), v...))
+	})
+}
+
+// CategoryIDIsNil applies the IsNil predicate on the "category_id" field.
+func CategoryIDIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCategoryID)))
+	})
+}
+
+// CategoryIDNotNil applies the NotNil predicate on the "category_id" field.
+func CategoryIDNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCategoryID)))
+	})
+}
+
 // HasParent applies the HasEdge predicate on the "parent" edge.
 func HasParent() predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
@@ -583,6 +652,34 @@ func HasChildrenWith(preds ...predicate.Todo) predicate.Todo {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(Table, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCategory applies the HasEdge predicate on the "category" edge.
+func HasCategory() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CategoryTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
+func HasCategoryWith(preds ...predicate.Category) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CategoryInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

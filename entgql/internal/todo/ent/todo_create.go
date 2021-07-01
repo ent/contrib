@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -80,6 +81,20 @@ func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
 	return tc
 }
 
+// SetCategoryID sets the "category_id" field.
+func (tc *TodoCreate) SetCategoryID(i int) *TodoCreate {
+	tc.mutation.SetCategoryID(i)
+	return tc
+}
+
+// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableCategoryID(i *int) *TodoCreate {
+	if i != nil {
+		tc.SetCategoryID(*i)
+	}
+	return tc
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tc *TodoCreate) SetParentID(id int) *TodoCreate {
 	tc.mutation.SetParentID(id)
@@ -112,6 +127,11 @@ func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
 		ids[i] = t[i].ID
 	}
 	return tc.AddChildIDs(ids...)
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (tc *TodoCreate) SetCategory(c *Category) *TodoCreate {
+	return tc.SetCategoryID(c.ID)
 }
 
 // Mutation returns the TodoMutation object of the builder.
@@ -307,6 +327,26 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   todo.CategoryTable,
+			Columns: []string{todo.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CategoryID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
