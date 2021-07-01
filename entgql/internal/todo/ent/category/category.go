@@ -33,7 +33,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "todo" package.
 	TodosInverseTable = "todos"
 	// TodosColumn is the table column denoting the todos relation/edge.
-	TodosColumn = "category_id"
+	TodosColumn = "category_todos"
 )
 
 // Columns holds all SQL columns for category fields.

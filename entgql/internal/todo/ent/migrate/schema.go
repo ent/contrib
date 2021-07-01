@@ -41,7 +41,7 @@ var (
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
-		{Name: "category_id", Type: field.TypeInt, Nullable: true},
+		{Name: "category_todos", Type: field.TypeInt, Nullable: true},
 		{Name: "todo_children", Type: field.TypeInt, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.

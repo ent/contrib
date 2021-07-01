@@ -41,12 +41,11 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 	// Blob holds the value of the "blob" field.
 	Blob []byte `json:"blob,omitempty"`
-	// CategoryID holds the value of the "category_id" field.
-	CategoryID int `json:"category_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
-	Edges         TodoEdges `json:"edges"`
-	todo_children *int
+	Edges          TodoEdges `json:"edges"`
+	category_todos *int
+	todo_children  *int
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -106,13 +105,15 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case todo.FieldBlob:
 			values[i] = new([]byte)
-		case todo.FieldID, todo.FieldPriority, todo.FieldCategoryID:
+		case todo.FieldID, todo.FieldPriority:
 			values[i] = new(sql.NullInt64)
 		case todo.FieldStatus, todo.FieldText:
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case todo.ForeignKeys[0]: // todo_children
+		case todo.ForeignKeys[0]: // category_todos
+			values[i] = new(sql.NullInt64)
+		case todo.ForeignKeys[1]: // todo_children
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
@@ -165,13 +166,14 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 			} else if value != nil {
 				t.Blob = *value
 			}
-		case todo.FieldCategoryID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field category_id", values[i])
-			} else if value.Valid {
-				t.CategoryID = int(value.Int64)
-			}
 		case todo.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field category_todos", value)
+			} else if value.Valid {
+				t.category_todos = new(int)
+				*t.category_todos = int(value.Int64)
+			}
+		case todo.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field todo_children", value)
 			} else if value.Valid {
@@ -231,8 +233,6 @@ func (t *Todo) String() string {
 	builder.WriteString(t.Text)
 	builder.WriteString(", blob=")
 	builder.WriteString(fmt.Sprintf("%v", t.Blob))
-	builder.WriteString(", category_id=")
-	builder.WriteString(fmt.Sprintf("%v", t.CategoryID))
 	builder.WriteByte(')')
 	return builder.String()
 }

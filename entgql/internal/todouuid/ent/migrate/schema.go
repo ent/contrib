@@ -22,6 +22,17 @@ import (
 )
 
 var (
+	// CategoriesColumns holds the columns for the "categories" table.
+	CategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+	}
+	// CategoriesTable holds the schema information for the "categories" table.
+	CategoriesTable = &schema.Table{
+		Name:       "categories",
+		Columns:    CategoriesColumns,
+		PrimaryKey: []*schema.Column{CategoriesColumns[0]},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -30,6 +41,7 @@ var (
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
+		{Name: "category_todos", Type: field.TypeUUID, Nullable: true},
 		{Name: "todo_children", Type: field.TypeUUID, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
@@ -39,8 +51,14 @@ var (
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "todos_todos_children",
+				Symbol:     "todos_categories_todos",
 				Columns:    []*schema.Column{TodosColumns[6]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "todos_todos_children",
+				Columns:    []*schema.Column{TodosColumns[7]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -48,10 +66,12 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CategoriesTable,
 		TodosTable,
 	}
 )
 
 func init() {
-	TodosTable.ForeignKeys[0].RefTable = TodosTable
+	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
+	TodosTable.ForeignKeys[1].RefTable = TodosTable
 }

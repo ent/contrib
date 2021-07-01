@@ -460,7 +460,7 @@ input TodoWhereInput {
   not: TodoWhereInput
   and: [TodoWhereInput!]
   or: [TodoWhereInput!]
-
+  
   """created_at field predicates"""
   created_at: Time
   created_at_neq: Time
@@ -470,13 +470,13 @@ input TodoWhereInput {
   created_at_gte: Time
   created_at_lt: Time
   created_at_lte: Time
-
+  
   """status field predicates"""
   status: Status
   status_neq: Status
   status_in: [Status!]
   status_not_in: [Status!]
-
+  
   """priority field predicates"""
   priority: Int
   priority_neq: Int
@@ -486,7 +486,7 @@ input TodoWhereInput {
   priority_gte: Int
   priority_lt: Int
   priority_lte: Int
-
+  
   """text field predicates"""
   text: String
   text_neq: String
@@ -501,23 +501,15 @@ input TodoWhereInput {
   text_has_suffix: String
   text_equal_fold: String
   text_contains_fold: String
-
-  """category_id field predicates"""
-  category_id: ID
-  category_id_neq: ID
-  category_id_in: [ID!]
-  category_id_not_in: [ID!]
-  category_id_is_nil: Boolean
-  category_id_not_nil: Boolean
-
+  
   """parent edge predicates"""
   has_parent: Boolean
   has_parent_with: [TodoWhereInput!]
-
+  
   """children edge predicates"""
   has_children: Boolean
   has_children_with: [TodoWhereInput!]
-
+  
   """category edge predicates"""
   has_category: Boolean
   has_category_with: [CategoryWhereInput!]
@@ -531,7 +523,7 @@ input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
   or: [CategoryWhereInput!]
-
+  
   """text field predicates"""
   text: String
   text_neq: String
@@ -546,7 +538,7 @@ input CategoryWhereInput {
   text_has_suffix: String
   text_equal_fold: String
   text_contains_fold: String
-
+  
   """todos edge predicates"""
   has_todos: Boolean
   has_todos_with: [TodoWhereInput!]
@@ -3247,54 +3239,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "category_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id"))
-			it.CategoryID, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "category_id_neq":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id_neq"))
-			it.CategoryIDNEQ, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "category_id_in":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id_in"))
-			it.CategoryIDIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "category_id_not_in":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id_not_in"))
-			it.CategoryIDNotIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "category_id_is_nil":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id_is_nil"))
-			it.CategoryIDIsNil, err = ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "category_id_not_nil":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id_not_nil"))
-			it.CategoryIDNotNil, err = ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "has_parent":
 			var err error
 
@@ -4442,42 +4386,6 @@ func (ec *executionContext) marshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚋin
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]int, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

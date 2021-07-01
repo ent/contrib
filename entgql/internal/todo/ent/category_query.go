@@ -405,10 +405,13 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.CategoryID
-			node, ok := nodeids[fk]
+			fk := n.category_todos
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "category_todos" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "category_todos" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Todos = append(node.Edges.Todos, n)
 		}

@@ -131,14 +131,6 @@ input TodoWhereInput {
   text_equal_fold: String
   text_contains_fold: String
   
-  """category_id field predicates"""
-  category_id: ID
-  category_id_neq: ID
-  category_id_in: [ID!]
-  category_id_not_in: [ID!]
-  category_id_is_nil: Boolean
-  category_id_not_nil: Boolean
-  
   """parent edge predicates"""
   has_parent: Boolean
   has_parent_with: [TodoWhereInput!]

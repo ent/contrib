@@ -741,55 +741,6 @@ func (m *TodoMutation) ResetBlob() {
 	delete(m.clearedFields, todo.FieldBlob)
 }
 
-// SetCategoryID sets the "category_id" field.
-func (m *TodoMutation) SetCategoryID(i int) {
-	m.category = &i
-}
-
-// CategoryID returns the value of the "category_id" field in the mutation.
-func (m *TodoMutation) CategoryID() (r int, exists bool) {
-	v := m.category
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCategoryID returns the old "category_id" field's value of the Todo entity.
-// If the Todo object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TodoMutation) OldCategoryID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldCategoryID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldCategoryID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCategoryID: %w", err)
-	}
-	return oldValue.CategoryID, nil
-}
-
-// ClearCategoryID clears the value of the "category_id" field.
-func (m *TodoMutation) ClearCategoryID() {
-	m.category = nil
-	m.clearedFields[todo.FieldCategoryID] = struct{}{}
-}
-
-// CategoryIDCleared returns if the "category_id" field was cleared in this mutation.
-func (m *TodoMutation) CategoryIDCleared() bool {
-	_, ok := m.clearedFields[todo.FieldCategoryID]
-	return ok
-}
-
-// ResetCategoryID resets all changes to the "category_id" field.
-func (m *TodoMutation) ResetCategoryID() {
-	m.category = nil
-	delete(m.clearedFields, todo.FieldCategoryID)
-}
-
 // SetParentID sets the "parent" edge to the Todo entity by id.
 func (m *TodoMutation) SetParentID(id int) {
 	m.parent = &id
@@ -883,6 +834,11 @@ func (m *TodoMutation) ResetChildren() {
 	m.removedchildren = nil
 }
 
+// SetCategoryID sets the "category" edge to the Category entity by id.
+func (m *TodoMutation) SetCategoryID(id int) {
+	m.category = &id
+}
+
 // ClearCategory clears the "category" edge to the Category entity.
 func (m *TodoMutation) ClearCategory() {
 	m.clearedcategory = true
@@ -890,7 +846,15 @@ func (m *TodoMutation) ClearCategory() {
 
 // CategoryCleared reports if the "category" edge to the Category entity was cleared.
 func (m *TodoMutation) CategoryCleared() bool {
-	return m.CategoryIDCleared() || m.clearedcategory
+	return m.clearedcategory
+}
+
+// CategoryID returns the "category" edge ID in the mutation.
+func (m *TodoMutation) CategoryID() (id int, exists bool) {
+	if m.category != nil {
+		return *m.category, true
+	}
+	return
 }
 
 // CategoryIDs returns the "category" edge IDs in the mutation.
@@ -923,7 +887,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -938,9 +902,6 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.blob != nil {
 		fields = append(fields, todo.FieldBlob)
-	}
-	if m.category != nil {
-		fields = append(fields, todo.FieldCategoryID)
 	}
 	return fields
 }
@@ -960,8 +921,6 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	case todo.FieldBlob:
 		return m.Blob()
-	case todo.FieldCategoryID:
-		return m.CategoryID()
 	}
 	return nil, false
 }
@@ -981,8 +940,6 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldText(ctx)
 	case todo.FieldBlob:
 		return m.OldBlob(ctx)
-	case todo.FieldCategoryID:
-		return m.OldCategoryID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -1026,13 +983,6 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBlob(v)
-		return nil
-	case todo.FieldCategoryID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCategoryID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
@@ -1082,9 +1032,6 @@ func (m *TodoMutation) ClearedFields() []string {
 	if m.FieldCleared(todo.FieldBlob) {
 		fields = append(fields, todo.FieldBlob)
 	}
-	if m.FieldCleared(todo.FieldCategoryID) {
-		fields = append(fields, todo.FieldCategoryID)
-	}
 	return fields
 }
 
@@ -1101,9 +1048,6 @@ func (m *TodoMutation) ClearField(name string) error {
 	switch name {
 	case todo.FieldBlob:
 		m.ClearBlob()
-		return nil
-	case todo.FieldCategoryID:
-		m.ClearCategoryID()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo nullable field %s", name)
@@ -1127,9 +1071,6 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldBlob:
 		m.ResetBlob()
-		return nil
-	case todo.FieldCategoryID:
-		m.ResetCategoryID()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
