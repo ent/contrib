@@ -113,7 +113,7 @@ func (s *todoTestSuite) SetupTest() {
 			client.Var("parent", parent),
 		)
 		s.Require().NoError(err)
-		// s.Require().Equal(id, rsp.CreateTodo.ID)
+		s.Require().Equal(id, rsp.CreateTodo.ID)
 	}
 }
 

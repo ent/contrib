@@ -17,6 +17,12 @@ type Todo implements Node {
   text: String!
   parent: Todo
   children: [Todo!]
+  category: Category
+}
+
+type Category implements Node {
+  id: ID!
+  text: String!
 }
 
 input TodoInput {
@@ -24,6 +30,7 @@ input TodoInput {
   priority: Int
   text: String!
   parent: ID
+  category_id: ID
 }
 
 scalar Cursor
