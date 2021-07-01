@@ -24,6 +24,7 @@ import (
 	"sync/atomic"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -60,12 +61,41 @@ type Edge struct {
 	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
+func (c *Category) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     c.ID,
+		Type:   "Category",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(c.Text); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "text",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Todo",
+		Name: "todos",
+	}
+	node.Edges[0].IDs, err = c.QueryTodos().
+		Select(todo.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Todo",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(t.CreatedAt); err != nil {
@@ -124,6 +154,16 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[1].IDs, err = t.QueryChildren().
 		Select(todo.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Category",
+		Name: "category",
+	}
+	node.Edges[2].IDs, err = t.QueryCategory().
+		Select(category.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
@@ -198,6 +238,15 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
+	case category.Table:
+		n, err := c.Category.Query().
+			Where(category.ID(id)).
+			CollectFields(ctx, "Category").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case todo.Table:
 		n, err := c.Todo.Query().
 			Where(todo.ID(id)).
@@ -280,6 +329,19 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case category.Table:
+		nodes, err := c.Category.Query().
+			Where(category.IDIn(ids...)).
+			CollectFields(ctx, "Category").
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case todo.Table:
 		nodes, err := c.Todo.Query().
 			Where(todo.IDIn(ids...)).

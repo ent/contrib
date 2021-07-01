@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/ent/dialect/sql"
@@ -43,8 +44,9 @@ type Todo struct {
 	Blob []byte `json:"blob,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
-	Edges         TodoEdges `json:"edges"`
-	todo_children *pulid.ID
+	Edges          TodoEdges `json:"edges"`
+	category_todos *pulid.ID
+	todo_children  *pulid.ID
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -53,9 +55,11 @@ type TodoEdges struct {
 	Parent *Todo `json:"parent,omitempty"`
 	// Children holds the value of the children edge.
 	Children []*Todo `json:"children,omitempty"`
+	// Category holds the value of the category edge.
+	Category *Category `json:"category,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -81,6 +85,20 @@ func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
 	return nil, &NotLoadedError{edge: "children"}
 }
 
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TodoEdges) CategoryOrErr() (*Category, error) {
+	if e.loadedTypes[2] {
+		if e.Category == nil {
+			// The edge category was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: category.Label}
+		}
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -96,7 +114,9 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case todo.ForeignKeys[0]: // todo_children
+		case todo.ForeignKeys[0]: // category_todos
+			values[i] = &sql.NullScanner{S: new(pulid.ID)}
+		case todo.ForeignKeys[1]: // todo_children
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
@@ -151,6 +171,13 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 			}
 		case todo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field category_todos", values[i])
+			} else if value.Valid {
+				t.category_todos = new(pulid.ID)
+				*t.category_todos = *value.S.(*pulid.ID)
+			}
+		case todo.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
 			} else if value.Valid {
 				t.todo_children = new(pulid.ID)
@@ -169,6 +196,11 @@ func (t *Todo) QueryParent() *TodoQuery {
 // QueryChildren queries the "children" edge of the Todo entity.
 func (t *Todo) QueryChildren() *TodoQuery {
 	return (&TodoClient{config: t.config}).QueryChildren(t)
+}
+
+// QueryCategory queries the "category" edge of the Todo entity.
+func (t *Todo) QueryCategory() *CategoryQuery {
+	return (&TodoClient{config: t.config}).QueryCategory(t)
 }
 
 // Update returns a builder for updating this Todo.

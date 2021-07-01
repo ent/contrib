@@ -19,6 +19,7 @@ package ent
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
@@ -28,6 +29,19 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	categoryMixin := schema.Category{}.Mixin()
+	categoryMixinFields0 := categoryMixin[0].Fields()
+	_ = categoryMixinFields0
+	categoryFields := schema.Category{}.Fields()
+	_ = categoryFields
+	// categoryDescText is the schema descriptor for text field.
+	categoryDescText := categoryMixinFields0[0].Descriptor()
+	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
+	// categoryDescID is the schema descriptor for id field.
+	categoryDescID := categoryFields[0].Descriptor()
+	// category.DefaultID holds the default value on creation for the id field.
+	category.DefaultID = categoryDescID.Default.(func() uuid.UUID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0

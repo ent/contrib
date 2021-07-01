@@ -20,9 +20,163 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 )
+
+// CategoryWhereInput represents a where input for filtering Category queries.
+type CategoryWhereInput struct {
+	Not *CategoryWhereInput   `json:"not,omitempty"`
+	Or  []*CategoryWhereInput `json:"or,omitempty"`
+	And []*CategoryWhereInput `json:"and,omitempty"`
+
+	// "text" field predicates.
+	Text             *string  `json:"text,omitempty"`
+	TextNEQ          *string  `json:"text_neq,omitempty"`
+	TextIn           []string `json:"text_in,omitempty"`
+	TextNotIn        []string `json:"text_not_in,omitempty"`
+	TextGT           *string  `json:"text_gt,omitempty"`
+	TextGTE          *string  `json:"text_gte,omitempty"`
+	TextLT           *string  `json:"text_lt,omitempty"`
+	TextLTE          *string  `json:"text_lte,omitempty"`
+	TextContains     *string  `json:"text_contains,omitempty"`
+	TextHasPrefix    *string  `json:"text_has_prefix,omitempty"`
+	TextHasSuffix    *string  `json:"text_has_suffix,omitempty"`
+	TextEqualFold    *string  `json:"text_equal_fold,omitempty"`
+	TextContainsFold *string  `json:"text_contains_fold,omitempty"`
+
+	// "todos" edge predicates.
+	HasTodos     *bool             `json:"has_todos,omitempty"`
+	HasTodosWith []*TodoWhereInput `json:"has_todos_with,omitempty"`
+}
+
+// Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
+func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// P returns a predicate for filtering categories.
+// An error is returned if the input is empty or invalid.
+func (i *CategoryWhereInput) P() (predicate.Category, error) {
+	var predicates []predicate.Category
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, category.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Category, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, category.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, err
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Category, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, category.And(and...))
+	}
+	if i.Text != nil {
+		predicates = append(predicates, category.TextEQ(*i.Text))
+	}
+	if i.TextNEQ != nil {
+		predicates = append(predicates, category.TextNEQ(*i.TextNEQ))
+	}
+	if len(i.TextIn) > 0 {
+		predicates = append(predicates, category.TextIn(i.TextIn...))
+	}
+	if len(i.TextNotIn) > 0 {
+		predicates = append(predicates, category.TextNotIn(i.TextNotIn...))
+	}
+	if i.TextGT != nil {
+		predicates = append(predicates, category.TextGT(*i.TextGT))
+	}
+	if i.TextGTE != nil {
+		predicates = append(predicates, category.TextGTE(*i.TextGTE))
+	}
+	if i.TextLT != nil {
+		predicates = append(predicates, category.TextLT(*i.TextLT))
+	}
+	if i.TextLTE != nil {
+		predicates = append(predicates, category.TextLTE(*i.TextLTE))
+	}
+	if i.TextContains != nil {
+		predicates = append(predicates, category.TextContains(*i.TextContains))
+	}
+	if i.TextHasPrefix != nil {
+		predicates = append(predicates, category.TextHasPrefix(*i.TextHasPrefix))
+	}
+	if i.TextHasSuffix != nil {
+		predicates = append(predicates, category.TextHasSuffix(*i.TextHasSuffix))
+	}
+	if i.TextEqualFold != nil {
+		predicates = append(predicates, category.TextEqualFold(*i.TextEqualFold))
+	}
+	if i.TextContainsFold != nil {
+		predicates = append(predicates, category.TextContainsFold(*i.TextContainsFold))
+	}
+
+	if i.HasTodos != nil {
+		p := category.HasTodos()
+		if !*i.HasTodos {
+			p = category.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasTodosWith) > 0 {
+		with := make([]predicate.Todo, 0, len(i.HasTodosWith))
+		for _, w := range i.HasTodosWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, category.HasTodosWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todo/ent: empty predicate CategoryWhereInput")
+	case 1:
+		return predicates[0], nil
+	default:
+		return category.And(predicates...), nil
+	}
+}
 
 // TodoWhereInput represents a where input for filtering Todo queries.
 type TodoWhereInput struct {
@@ -78,6 +232,10 @@ type TodoWhereInput struct {
 	// "children" edge predicates.
 	HasChildren     *bool             `json:"has_children,omitempty"`
 	HasChildrenWith []*TodoWhereInput `json:"has_children_with,omitempty"`
+
+	// "category" edge predicates.
+	HasCategory     *bool                 `json:"has_category,omitempty"`
+	HasCategoryWith []*CategoryWhereInput `json:"has_category_with,omitempty"`
 }
 
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
@@ -274,6 +432,24 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, todo.HasChildrenWith(with...))
+	}
+	if i.HasCategory != nil {
+		p := todo.HasCategory()
+		if !*i.HasCategory {
+			p = todo.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasCategoryWith) > 0 {
+		with := make([]predicate.Category, 0, len(i.HasCategoryWith))
+		for _, w := range i.HasCategoryWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, todo.HasCategoryWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

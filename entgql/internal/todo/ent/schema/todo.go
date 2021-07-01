@@ -67,5 +67,8 @@ func (Todo) Edges() []ent.Edge {
 			From("parent").
 			Annotations(entgql.Bind()).
 			Unique(),
+		edge.From("category", Category.Type).
+			Ref("todos").
+			Unique(),
 	}
 }

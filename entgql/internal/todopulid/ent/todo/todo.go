@@ -44,6 +44,8 @@ const (
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
 	EdgeChildren = "children"
+	// EdgeCategory holds the string denoting the category edge name in mutations.
+	EdgeCategory = "category"
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
 	// ParentTable is the table the holds the parent relation/edge.
@@ -54,6 +56,13 @@ const (
 	ChildrenTable = "todos"
 	// ChildrenColumn is the table column denoting the children relation/edge.
 	ChildrenColumn = "todo_children"
+	// CategoryTable is the table the holds the category relation/edge.
+	CategoryTable = "todos"
+	// CategoryInverseTable is the table name for the Category entity.
+	// It exists in this package in order to avoid circular dependency with the "category" package.
+	CategoryInverseTable = "categories"
+	// CategoryColumn is the table column denoting the category relation/edge.
+	CategoryColumn = "category_todos"
 )
 
 // Columns holds all SQL columns for todo fields.
@@ -69,6 +78,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"category_todos",
 	"todo_children",
 }
 

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql"
@@ -42,6 +43,7 @@ type TodoQuery struct {
 	// eager-loading edges.
 	withParent   *TodoQuery
 	withChildren *TodoQuery
+	withCategory *CategoryQuery
 	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -116,6 +118,28 @@ func (tq *TodoQuery) QueryChildren() *TodoQuery {
 			sqlgraph.From(todo.Table, todo.FieldID, selector),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCategory chains the current query on the "category" edge.
+func (tq *TodoQuery) QueryCategory() *CategoryQuery {
+	query := &CategoryQuery{config: tq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, selector),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, todo.CategoryTable, todo.CategoryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -306,6 +330,7 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		predicates:   append([]predicate.Todo{}, tq.predicates...),
 		withParent:   tq.withParent.Clone(),
 		withChildren: tq.withChildren.Clone(),
+		withCategory: tq.withCategory.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -331,6 +356,17 @@ func (tq *TodoQuery) WithChildren(opts ...func(*TodoQuery)) *TodoQuery {
 		opt(query)
 	}
 	tq.withChildren = query
+	return tq
+}
+
+// WithCategory tells the query-builder to eager-load the nodes that are connected to
+// the "category" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TodoQuery) WithCategory(opts ...func(*CategoryQuery)) *TodoQuery {
+	query := &CategoryQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withCategory = query
 	return tq
 }
 
@@ -400,12 +436,13 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 		nodes       = []*Todo{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			tq.withParent != nil,
 			tq.withChildren != nil,
+			tq.withCategory != nil,
 		}
 	)
-	if tq.withParent != nil {
+	if tq.withParent != nil || tq.withCategory != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -486,6 +523,35 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "todo_children" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Children = append(node.Edges.Children, n)
+		}
+	}
+
+	if query := tq.withCategory; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Todo)
+		for i := range nodes {
+			if nodes[i].category_todos == nil {
+				continue
+			}
+			fk := *nodes[i].category_todos
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(category.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "category_todos" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Category = n
+			}
 		}
 	}
 

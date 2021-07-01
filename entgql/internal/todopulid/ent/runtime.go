@@ -19,6 +19,7 @@ package ent
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
@@ -28,6 +29,21 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	categoryMixin := schema.Category{}.Mixin()
+	categoryMixinFields0 := categoryMixin[0].Fields()
+	_ = categoryMixinFields0
+	categoryMixinFields1 := categoryMixin[1].Fields()
+	_ = categoryMixinFields1
+	categoryFields := schema.Category{}.Fields()
+	_ = categoryFields
+	// categoryDescText is the schema descriptor for text field.
+	categoryDescText := categoryMixinFields1[0].Descriptor()
+	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
+	// categoryDescID is the schema descriptor for id field.
+	categoryDescID := categoryMixinFields0[0].Descriptor()
+	// category.DefaultID holds the default value on creation for the id field.
+	category.DefaultID = categoryDescID.Default.(func() pulid.ID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0
