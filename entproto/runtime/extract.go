@@ -17,29 +17,10 @@ package runtime
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ExtractTime returns the time.Time from a proto WKT Timestamp
 func ExtractTime(t *timestamppb.Timestamp) time.Time {
 	return t.AsTime()
-}
-
-// UUIDToBytes returns the []byte representation of the uuid.UUID or an error.
-func UUIDToBytes(u uuid.UUID) ([]byte, error) {
-	b, err := u.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-// BytesToUUID returns a uuid.UUID from byte-slice b or an error.
-func BytesToUUID(b []byte) (uuid.UUID, error) {
-	u, err := uuid.FromBytes(b)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-	return u, nil
 }

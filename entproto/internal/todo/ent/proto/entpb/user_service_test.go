@@ -22,7 +22,6 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
-	"entgo.io/contrib/entproto/runtime"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -42,6 +41,7 @@ func TestUserService_Create(t *testing.T) {
 	require.NoError(t, err)
 	attachmentID, err := attachment.ID.MarshalBinary()
 	require.NoError(t, err)
+
 	inputUser := &User{
 		UserName:   "rotemtam",
 		Joined:     timestamppb.Now(),
@@ -163,7 +163,7 @@ func TestUserService_Update(t *testing.T) {
 	attachmentID, err := attachment.ID.MarshalBinary()
 	require.NoError(t, err)
 	group := client.Group.Create().SetName("managers").SaveX(ctx)
-	crmID, err := runtime.UUIDToBytes(created.CrmID)
+	crmID, err := created.CrmID.MarshalBinary()
 	require.NoError(t, err, "Converting UUID to Bytes: %v", crmID)
 
 	inputUser := &User{

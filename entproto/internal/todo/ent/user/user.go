@@ -35,6 +35,8 @@ const (
 	FieldOptStr = "opt_str"
 	// FieldOptBool holds the string denoting the opt_bool field in the database.
 	FieldOptBool = "opt_bool"
+	// FieldBigInt holds the string denoting the big_int field in the database.
+	FieldBigInt = "big_int"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -79,6 +81,7 @@ var Columns = []string{
 	FieldOptNum,
 	FieldOptStr,
 	FieldOptBool,
+	FieldBigInt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

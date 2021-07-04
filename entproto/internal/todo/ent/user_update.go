@@ -9,6 +9,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
+	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -177,6 +178,26 @@ func (uu *UserUpdate) SetNillableOptBool(b *bool) *UserUpdate {
 // ClearOptBool clears the value of the "opt_bool" field.
 func (uu *UserUpdate) ClearOptBool() *UserUpdate {
 	uu.mutation.ClearOptBool()
+	return uu
+}
+
+// SetBigInt sets the "big_int" field.
+func (uu *UserUpdate) SetBigInt(si schema.BigInt) *UserUpdate {
+	uu.mutation.SetBigInt(si)
+	return uu
+}
+
+// SetNillableBigInt sets the "big_int" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableBigInt(si *schema.BigInt) *UserUpdate {
+	if si != nil {
+		uu.SetBigInt(*si)
+	}
+	return uu
+}
+
+// ClearBigInt clears the value of the "big_int" field.
+func (uu *UserUpdate) ClearBigInt() *UserUpdate {
+	uu.mutation.ClearBigInt()
 	return uu
 }
 
@@ -486,6 +507,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldOptBool,
 		})
 	}
+	if value, ok := uu.mutation.BigInt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBigInt,
+		})
+	}
+	if uu.mutation.BigIntCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: user.FieldBigInt,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -777,6 +811,26 @@ func (uuo *UserUpdateOne) SetNillableOptBool(b *bool) *UserUpdateOne {
 // ClearOptBool clears the value of the "opt_bool" field.
 func (uuo *UserUpdateOne) ClearOptBool() *UserUpdateOne {
 	uuo.mutation.ClearOptBool()
+	return uuo
+}
+
+// SetBigInt sets the "big_int" field.
+func (uuo *UserUpdateOne) SetBigInt(si schema.BigInt) *UserUpdateOne {
+	uuo.mutation.SetBigInt(si)
+	return uuo
+}
+
+// SetNillableBigInt sets the "big_int" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableBigInt(si *schema.BigInt) *UserUpdateOne {
+	if si != nil {
+		uuo.SetBigInt(*si)
+	}
+	return uuo
+}
+
+// ClearBigInt clears the value of the "big_int" field.
+func (uuo *UserUpdateOne) ClearBigInt() *UserUpdateOne {
+	uuo.mutation.ClearBigInt()
 	return uuo
 }
 
@@ -1108,6 +1162,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: user.FieldOptBool,
+		})
+	}
+	if value, ok := uuo.mutation.BigInt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBigInt,
+		})
+	}
+	if uuo.mutation.BigIntCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: user.FieldBigInt,
 		})
 	}
 	if uuo.mutation.GroupCleared() {
