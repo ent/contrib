@@ -110,9 +110,7 @@ func (g *serviceGenerator) generate() error {
 	if err := g.generateToProtoFunc(); err != nil {
 		return err
 	}
-	if typeNeedsValidator(g.fieldMap) {
-		g.generateValidator()
-	}
+
 	g.P()
 
 	for _, method := range g.service.Methods {
@@ -180,8 +178,8 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 	// Mapper from the ent type to the proto type.
 	g.Tmpl(`
 	// toProto%(typeName) transforms the ent type to the pb type
-	func toProto%(typeName)(e *%(entTypeIdent)) *%(typeName){
-		v := &%(typeName){`, tmplValues{
+	func toProto%(typeName)(e *%(entTypeIdent)) (*%(typeName), error) {
+		v := &%(typeName){}`, tmplValues{
 		"typeName":     g.entType.Name,
 		"entTypeIdent": g.entPackage.Ident(g.entType.Name),
 	})
@@ -190,39 +188,47 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 		if err != nil {
 			return err
 		}
-		g.Tmpl("%(pbStructField): %(toProto),", tmplValues{
+		varName := camel(fld.EntField.StructField())
+		g.Tmpl(`
+		%(toProto)
+		v.%(pbStructField) = %(varName)`, tmplValues{
 			"pbStructField": fld.PbStructField(),
-			"toProto":       g.renderToProto(conv, "e."+fld.EntField.StructField()),
+			"varName":       varName,
+			"toProto":       g.renderToProto(conv, varName, "e."+fld.EntField.StructField()),
 			"conv":          conv,
 		})
 	}
-	g.P("	}")
+
 	for _, edg := range g.fieldMap.Edges() {
 		conv, err := g.newConverter(edg)
 		if err != nil {
 			return err
 		}
 		tmpl := `for _, edg := range e.Edges.%(edgeName) {
+					%(converted)
 					v.%(edgeName) = append(v.%(edgeName), &%(refType){
-						%(pbIdField): %(converted),					
+						%(pbIdField): %(varName),					
 					})
 				 }`
 		if edg.EntEdge.Unique {
 			tmpl = `if edg := e.Edges.%(edgeName); edg != nil {
+						%(converted)
 						v.%(edgeName) = &%(refType){
-							%(pbIdField): %(converted),
+							%(pbIdField): %(varName),
 						}
 					}`
 		}
+		varName := camel(edg.EntEdge.Type.ID.StructField())
 		g.Tmpl(tmpl, g.withGlobals(tmplValues{
 			"edgeName":   edg.EntEdge.StructField(),
 			"refType":    edg.EntEdge.Type.Name,
 			"pbIdField":  edg.EdgeIDPbStructField(),
 			"entIdField": edg.EntEdge.Type.ID.StructField(),
-			"converted":  g.renderToProto(conv, "edg."+edg.EntEdge.Type.ID.StructField()),
+			"varName":    varName,
+			"converted":  g.renderToProto(conv, varName, "edg."+edg.EntEdge.Type.ID.StructField()),
 		}))
 	}
-	g.P("  return v")
+	g.P("  return v, nil")
 	g.P("}")
 	return nil
 }
