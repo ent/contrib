@@ -462,57 +462,57 @@ input TodoWhereInput {
   or: [TodoWhereInput!]
   
   """created_at field predicates"""
-  created_at: Time
-  created_at_neq: Time
-  created_at_in: [Time!]
-  created_at_not_in: [Time!]
-  created_at_gt: Time
-  created_at_gte: Time
-  created_at_lt: Time
-  created_at_lte: Time
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
   
   """status field predicates"""
   status: Status
-  status_neq: Status
-  status_in: [Status!]
-  status_not_in: [Status!]
+  statusNEQ: Status
+  statusIn: [Status!]
+  statusNotIn: [Status!]
   
   """priority field predicates"""
   priority: Int
-  priority_neq: Int
-  priority_in: [Int!]
-  priority_not_in: [Int!]
-  priority_gt: Int
-  priority_gte: Int
-  priority_lt: Int
-  priority_lte: Int
+  priorityNEQ: Int
+  priorityIn: [Int!]
+  priorityNotIn: [Int!]
+  priorityGT: Int
+  priorityGTE: Int
+  priorityLT: Int
+  priorityLTE: Int
   
   """text field predicates"""
   text: String
-  text_neq: String
-  text_in: [String!]
-  text_not_in: [String!]
-  text_gt: String
-  text_gte: String
-  text_lt: String
-  text_lte: String
-  text_contains: String
-  text_has_prefix: String
-  text_has_suffix: String
-  text_equal_fold: String
-  text_contains_fold: String
+  textNEQ: String
+  textIn: [String!]
+  textNotIn: [String!]
+  textGT: String
+  textGTE: String
+  textLT: String
+  textLTE: String
+  textContains: String
+  textHasPrefix: String
+  textHasSuffix: String
+  textEqualFold: String
+  textContainsFold: String
   
   """parent edge predicates"""
-  has_parent: Boolean
-  has_parent_with: [TodoWhereInput!]
+  hasParent: Boolean
+  hasParentWith: [TodoWhereInput!]
   
   """children edge predicates"""
-  has_children: Boolean
-  has_children_with: [TodoWhereInput!]
+  hasChildren: Boolean
+  hasChildrenWith: [TodoWhereInput!]
   
   """category edge predicates"""
-  has_category: Boolean
-  has_category_with: [CategoryWhereInput!]
+  hasCategory: Boolean
+  hasCategoryWith: [CategoryWhereInput!]
 }
 
 """
@@ -526,22 +526,22 @@ input CategoryWhereInput {
   
   """text field predicates"""
   text: String
-  text_neq: String
-  text_in: [String!]
-  text_not_in: [String!]
-  text_gt: String
-  text_gte: String
-  text_lt: String
-  text_lte: String
-  text_contains: String
-  text_has_prefix: String
-  text_has_suffix: String
-  text_equal_fold: String
-  text_contains_fold: String
+  textNEQ: String
+  textIn: [String!]
+  textNotIn: [String!]
+  textGT: String
+  textGTE: String
+  textLT: String
+  textLTE: String
+  textContains: String
+  textHasPrefix: String
+  textHasSuffix: String
+  textEqualFold: String
+  textContainsFold: String
   
   """todos edge predicates"""
-  has_todos: Boolean
-  has_todos_with: [TodoWhereInput!]
+  hasTodos: Boolean
+  hasTodosWith: [TodoWhereInput!]
 }
 `, BuiltIn: false},
 }
@@ -2743,114 +2743,114 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "text_neq":
+		case "textNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_neq"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNEQ"))
 			it.TextNEQ, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_in":
+		case "textIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textIn"))
 			it.TextIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_not_in":
+		case "textNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_not_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNotIn"))
 			it.TextNotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_gt":
+		case "textGT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_gt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGT"))
 			it.TextGT, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_gte":
+		case "textGTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_gte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGTE"))
 			it.TextGTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_lt":
+		case "textLT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_lt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLT"))
 			it.TextLT, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_lte":
+		case "textLTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_lte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLTE"))
 			it.TextLTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_contains":
+		case "textContains":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_contains"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContains"))
 			it.TextContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_has_prefix":
+		case "textHasPrefix":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_has_prefix"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasPrefix"))
 			it.TextHasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_has_suffix":
+		case "textHasSuffix":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_has_suffix"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasSuffix"))
 			it.TextHasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_equal_fold":
+		case "textEqualFold":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_equal_fold"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textEqualFold"))
 			it.TextEqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_contains_fold":
+		case "textContainsFold":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_contains_fold"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContainsFold"))
 			it.TextContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_todos":
+		case "hasTodos":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_todos"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodos"))
 			it.HasTodos, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_todos_with":
+		case "hasTodosWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_todos_with"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodosWith"))
 			it.HasTodosWith, err = ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
@@ -2975,66 +2975,66 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "created_at":
+		case "createdAt":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
 			it.CreatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_neq":
+		case "createdAtNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_neq"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
 			it.CreatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_in":
+		case "createdAtIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
 			it.CreatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_not_in":
+		case "createdAtNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_not_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
 			it.CreatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_gt":
+		case "createdAtGT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_gt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
 			it.CreatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_gte":
+		case "createdAtGTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_gte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
 			it.CreatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_lt":
+		case "createdAtLT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_lt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
 			it.CreatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "created_at_lte":
+		case "createdAtLTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_at_lte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
 			it.CreatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
@@ -3047,26 +3047,26 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "status_neq":
+		case "statusNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status_neq"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
 			it.StatusNEQ, err = ec.unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "status_in":
+		case "statusIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
 			it.StatusIn, err = ec.unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "status_not_in":
+		case "statusNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status_not_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
 			it.StatusNotIn, err = ec.unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
@@ -3079,58 +3079,58 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "priority_neq":
+		case "priorityNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_neq"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityNEQ"))
 			it.PriorityNEQ, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "priority_in":
+		case "priorityIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityIn"))
 			it.PriorityIn, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "priority_not_in":
+		case "priorityNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_not_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityNotIn"))
 			it.PriorityNotIn, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "priority_gt":
+		case "priorityGT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_gt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityGT"))
 			it.PriorityGT, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "priority_gte":
+		case "priorityGTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_gte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityGTE"))
 			it.PriorityGTE, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "priority_lt":
+		case "priorityLT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_lt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityLT"))
 			it.PriorityLT, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "priority_lte":
+		case "priorityLTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority_lte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityLTE"))
 			it.PriorityLTE, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
@@ -3143,146 +3143,146 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
-		case "text_neq":
+		case "textNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_neq"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNEQ"))
 			it.TextNEQ, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_in":
+		case "textIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textIn"))
 			it.TextIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_not_in":
+		case "textNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_not_in"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNotIn"))
 			it.TextNotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_gt":
+		case "textGT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_gt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGT"))
 			it.TextGT, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_gte":
+		case "textGTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_gte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGTE"))
 			it.TextGTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_lt":
+		case "textLT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_lt"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLT"))
 			it.TextLT, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_lte":
+		case "textLTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_lte"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLTE"))
 			it.TextLTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_contains":
+		case "textContains":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_contains"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContains"))
 			it.TextContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_has_prefix":
+		case "textHasPrefix":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_has_prefix"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasPrefix"))
 			it.TextHasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_has_suffix":
+		case "textHasSuffix":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_has_suffix"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasSuffix"))
 			it.TextHasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_equal_fold":
+		case "textEqualFold":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_equal_fold"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textEqualFold"))
 			it.TextEqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "text_contains_fold":
+		case "textContainsFold":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_contains_fold"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContainsFold"))
 			it.TextContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_parent":
+		case "hasParent":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_parent"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParent"))
 			it.HasParent, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_parent_with":
+		case "hasParentWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_parent_with"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParentWith"))
 			it.HasParentWith, err = ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_children":
+		case "hasChildren":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_children"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasChildren"))
 			it.HasChildren, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_children_with":
+		case "hasChildrenWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_children_with"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasChildrenWith"))
 			it.HasChildrenWith, err = ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_category":
+		case "hasCategory":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_category"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCategory"))
 			it.HasCategory, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "has_category_with":
+		case "hasCategoryWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_category_with"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCategoryWith"))
 			it.HasCategoryWith, err = ec.unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
