@@ -32,23 +32,23 @@ type CategoryWhereInput struct {
 	And []*CategoryWhereInput `json:"and,omitempty"`
 
 	// "text" field predicates.
-	Text             *string  `json:"text,omitempty"`
-	TextNEQ          *string  `json:"text_neq,omitempty"`
-	TextIn           []string `json:"text_in,omitempty"`
-	TextNotIn        []string `json:"text_not_in,omitempty"`
-	TextGT           *string  `json:"text_gt,omitempty"`
-	TextGTE          *string  `json:"text_gte,omitempty"`
-	TextLT           *string  `json:"text_lt,omitempty"`
-	TextLTE          *string  `json:"text_lte,omitempty"`
-	TextContains     *string  `json:"text_contains,omitempty"`
-	TextHasPrefix    *string  `json:"text_has_prefix,omitempty"`
-	TextHasSuffix    *string  `json:"text_has_suffix,omitempty"`
-	TextEqualFold    *string  `json:"text_equal_fold,omitempty"`
-	TextContainsFold *string  `json:"text_contains_fold,omitempty"`
+	Text             *string  `json:"textEQ,omitempty"`
+	TextNEQ          *string  `json:"textNEQ,omitempty"`
+	TextIn           []string `json:"textIn,omitempty"`
+	TextNotIn        []string `json:"textNotIn,omitempty"`
+	TextGT           *string  `json:"textGT,omitempty"`
+	TextGTE          *string  `json:"textGTE,omitempty"`
+	TextLT           *string  `json:"textLT,omitempty"`
+	TextLTE          *string  `json:"textLTE,omitempty"`
+	TextContains     *string  `json:"textContains,omitempty"`
+	TextHasPrefix    *string  `json:"textHasPrefix,omitempty"`
+	TextHasSuffix    *string  `json:"textHasSuffix,omitempty"`
+	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
+	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
 	// "todos" edge predicates.
-	HasTodos     *bool             `json:"has_todos,omitempty"`
-	HasTodosWith []*TodoWhereInput `json:"has_todos_with,omitempty"`
+	HasTodos     *bool             `json:"hasTodos,omitempty"`
+	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
 }
 
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
@@ -185,57 +185,57 @@ type TodoWhereInput struct {
 	And []*TodoWhereInput `json:"and,omitempty"`
 
 	// "created_at" field predicates.
-	CreatedAt      *time.Time  `json:"created_at,omitempty"`
-	CreatedAtNEQ   *time.Time  `json:"created_at_neq,omitempty"`
-	CreatedAtIn    []time.Time `json:"created_at_in,omitempty"`
-	CreatedAtNotIn []time.Time `json:"created_at_not_in,omitempty"`
-	CreatedAtGT    *time.Time  `json:"created_at_gt,omitempty"`
-	CreatedAtGTE   *time.Time  `json:"created_at_gte,omitempty"`
-	CreatedAtLT    *time.Time  `json:"created_at_lt,omitempty"`
-	CreatedAtLTE   *time.Time  `json:"created_at_lte,omitempty"`
+	CreatedAt      *time.Time  `json:"createdatEQ,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdatNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdatIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdatNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdatGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdatGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdatLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdatLTE,omitempty"`
 
 	// "status" field predicates.
-	Status      *todo.Status  `json:"status,omitempty"`
-	StatusNEQ   *todo.Status  `json:"status_neq,omitempty"`
-	StatusIn    []todo.Status `json:"status_in,omitempty"`
-	StatusNotIn []todo.Status `json:"status_not_in,omitempty"`
+	Status      *todo.Status  `json:"statusEQ,omitempty"`
+	StatusNEQ   *todo.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []todo.Status `json:"statusIn,omitempty"`
+	StatusNotIn []todo.Status `json:"statusNotIn,omitempty"`
 
 	// "priority" field predicates.
-	Priority      *int  `json:"priority,omitempty"`
-	PriorityNEQ   *int  `json:"priority_neq,omitempty"`
-	PriorityIn    []int `json:"priority_in,omitempty"`
-	PriorityNotIn []int `json:"priority_not_in,omitempty"`
-	PriorityGT    *int  `json:"priority_gt,omitempty"`
-	PriorityGTE   *int  `json:"priority_gte,omitempty"`
-	PriorityLT    *int  `json:"priority_lt,omitempty"`
-	PriorityLTE   *int  `json:"priority_lte,omitempty"`
+	Priority      *int  `json:"priorityEQ,omitempty"`
+	PriorityNEQ   *int  `json:"priorityNEQ,omitempty"`
+	PriorityIn    []int `json:"priorityIn,omitempty"`
+	PriorityNotIn []int `json:"priorityNotIn,omitempty"`
+	PriorityGT    *int  `json:"priorityGT,omitempty"`
+	PriorityGTE   *int  `json:"priorityGTE,omitempty"`
+	PriorityLT    *int  `json:"priorityLT,omitempty"`
+	PriorityLTE   *int  `json:"priorityLTE,omitempty"`
 
 	// "text" field predicates.
-	Text             *string  `json:"text,omitempty"`
-	TextNEQ          *string  `json:"text_neq,omitempty"`
-	TextIn           []string `json:"text_in,omitempty"`
-	TextNotIn        []string `json:"text_not_in,omitempty"`
-	TextGT           *string  `json:"text_gt,omitempty"`
-	TextGTE          *string  `json:"text_gte,omitempty"`
-	TextLT           *string  `json:"text_lt,omitempty"`
-	TextLTE          *string  `json:"text_lte,omitempty"`
-	TextContains     *string  `json:"text_contains,omitempty"`
-	TextHasPrefix    *string  `json:"text_has_prefix,omitempty"`
-	TextHasSuffix    *string  `json:"text_has_suffix,omitempty"`
-	TextEqualFold    *string  `json:"text_equal_fold,omitempty"`
-	TextContainsFold *string  `json:"text_contains_fold,omitempty"`
+	Text             *string  `json:"textEQ,omitempty"`
+	TextNEQ          *string  `json:"textNEQ,omitempty"`
+	TextIn           []string `json:"textIn,omitempty"`
+	TextNotIn        []string `json:"textNotIn,omitempty"`
+	TextGT           *string  `json:"textGT,omitempty"`
+	TextGTE          *string  `json:"textGTE,omitempty"`
+	TextLT           *string  `json:"textLT,omitempty"`
+	TextLTE          *string  `json:"textLTE,omitempty"`
+	TextContains     *string  `json:"textContains,omitempty"`
+	TextHasPrefix    *string  `json:"textHasPrefix,omitempty"`
+	TextHasSuffix    *string  `json:"textHasSuffix,omitempty"`
+	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
+	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
 	// "parent" edge predicates.
-	HasParent     *bool             `json:"has_parent,omitempty"`
-	HasParentWith []*TodoWhereInput `json:"has_parent_with,omitempty"`
+	HasParent     *bool             `json:"hasParent,omitempty"`
+	HasParentWith []*TodoWhereInput `json:"hasParentWith,omitempty"`
 
 	// "children" edge predicates.
-	HasChildren     *bool             `json:"has_children,omitempty"`
-	HasChildrenWith []*TodoWhereInput `json:"has_children_with,omitempty"`
+	HasChildren     *bool             `json:"hasChildren,omitempty"`
+	HasChildrenWith []*TodoWhereInput `json:"hasChildrenWith,omitempty"`
 
 	// "category" edge predicates.
-	HasCategory     *bool                 `json:"has_category,omitempty"`
-	HasCategoryWith []*CategoryWhereInput `json:"has_category_with,omitempty"`
+	HasCategory     *bool                 `json:"hasCategory,omitempty"`
+	HasCategoryWith []*CategoryWhereInput `json:"hasCategoryWith,omitempty"`
 }
 
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
