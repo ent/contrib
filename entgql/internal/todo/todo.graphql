@@ -91,57 +91,57 @@ input TodoWhereInput {
   or: [TodoWhereInput!]
   
   """created_at field predicates"""
-  created_at: Time
-  created_at_neq: Time
-  created_at_in: [Time!]
-  created_at_not_in: [Time!]
-  created_at_gt: Time
-  created_at_gte: Time
-  created_at_lt: Time
-  created_at_lte: Time
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
   
   """status field predicates"""
   status: Status
-  status_neq: Status
-  status_in: [Status!]
-  status_not_in: [Status!]
+  statusNEQ: Status
+  statusIn: [Status!]
+  statusNotIn: [Status!]
   
   """priority field predicates"""
   priority: Int
-  priority_neq: Int
-  priority_in: [Int!]
-  priority_not_in: [Int!]
-  priority_gt: Int
-  priority_gte: Int
-  priority_lt: Int
-  priority_lte: Int
+  priorityNEQ: Int
+  priorityIn: [Int!]
+  priorityNotIn: [Int!]
+  priorityGT: Int
+  priorityGTE: Int
+  priorityLT: Int
+  priorityLTE: Int
   
   """text field predicates"""
   text: String
-  text_neq: String
-  text_in: [String!]
-  text_not_in: [String!]
-  text_gt: String
-  text_gte: String
-  text_lt: String
-  text_lte: String
-  text_contains: String
-  text_has_prefix: String
-  text_has_suffix: String
-  text_equal_fold: String
-  text_contains_fold: String
+  textNEQ: String
+  textIn: [String!]
+  textNotIn: [String!]
+  textGT: String
+  textGTE: String
+  textLT: String
+  textLTE: String
+  textContains: String
+  textHasPrefix: String
+  textHasSuffix: String
+  textEqualFold: String
+  textContainsFold: String
   
   """parent edge predicates"""
-  has_parent: Boolean
-  has_parent_with: [TodoWhereInput!]
+  hasParent: Boolean
+  hasParentWith: [TodoWhereInput!]
   
   """children edge predicates"""
-  has_children: Boolean
-  has_children_with: [TodoWhereInput!]
+  hasChildren: Boolean
+  hasChildrenWith: [TodoWhereInput!]
   
   """category edge predicates"""
-  has_category: Boolean
-  has_category_with: [CategoryWhereInput!]
+  hasCategory: Boolean
+  hasCategoryWith: [CategoryWhereInput!]
 }
 
 """
@@ -155,20 +155,20 @@ input CategoryWhereInput {
   
   """text field predicates"""
   text: String
-  text_neq: String
-  text_in: [String!]
-  text_not_in: [String!]
-  text_gt: String
-  text_gte: String
-  text_lt: String
-  text_lte: String
-  text_contains: String
-  text_has_prefix: String
-  text_has_suffix: String
-  text_equal_fold: String
-  text_contains_fold: String
+  textNEQ: String
+  textIn: [String!]
+  textNotIn: [String!]
+  textGT: String
+  textGTE: String
+  textLT: String
+  textLTE: String
+  textContains: String
+  textHasPrefix: String
+  textHasSuffix: String
+  textEqualFold: String
+  textContainsFold: String
   
   """todos edge predicates"""
-  has_todos: Boolean
-  has_todos_with: [TodoWhereInput!]
+  hasTodos: Boolean
+  hasTodosWith: [TodoWhereInput!]
 }

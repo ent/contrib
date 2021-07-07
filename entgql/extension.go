@@ -281,7 +281,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 	for _, e := range t.Edges {
 		input.Fields = append(input.Fields, ast.NewInputValueDefinition(&ast.InputValueDefinition{
 			Name: ast.NewName(&ast.Name{
-				Value: snake("has_" + e.Name),
+				Value: camel("has_" + e.Name),
 			}),
 			Type: ast.NewNamed(&ast.Named{
 				Name: ast.NewName(&ast.Name{
@@ -293,7 +293,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 			}),
 		}), ast.NewInputValueDefinition(&ast.InputValueDefinition{
 			Name: ast.NewName(&ast.Name{
-				Value: snake("has_" + e.Name + "_with"),
+				Value: camel("has_" + e.Name + "_with"),
 			}),
 			Type: ast.NewList(&ast.List{
 				Type: ast.NewNonNull(&ast.NonNull{
@@ -310,9 +310,9 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 }
 
 func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefinition {
-	name := snake(f.Name + op.Name())
+	name := camel(f.Name + "_" + op.Name())
 	if op == gen.EQ {
-		name = snake(f.Name)
+		name = camel(f.Name)
 	}
 	def := ast.NewInputValueDefinition(&ast.InputValueDefinition{
 		Name: ast.NewName(&ast.Name{
@@ -336,5 +336,5 @@ func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefi
 
 var (
 	_     entc.Extension = (*Extension)(nil)
-	snake                = gen.Funcs["snake"].(func(string) string)
+	camel                = gen.Funcs["camel"].(func(string) string)
 )
