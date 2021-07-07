@@ -25,3 +25,6 @@ type Category func(*sql.Selector)
 
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
+
+// VerySecret is the predicate function for verysecret builders.
+type VerySecret func(*sql.Selector)

@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -67,4 +68,13 @@ func init() {
 	todoDescID := todoMixinFields0[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
 	todo.DefaultID = todoDescID.Default.(func() pulid.ID)
+	verysecretMixin := schema.VerySecret{}.Mixin()
+	verysecretMixinFields0 := verysecretMixin[0].Fields()
+	_ = verysecretMixinFields0
+	verysecretFields := schema.VerySecret{}.Fields()
+	_ = verysecretFields
+	// verysecretDescID is the schema descriptor for id field.
+	verysecretDescID := verysecretMixinFields0[0].Descriptor()
+	// verysecret.DefaultID holds the default value on creation for the id field.
+	verysecret.DefaultID = verysecretDescID.Default.(func() pulid.ID)
 }

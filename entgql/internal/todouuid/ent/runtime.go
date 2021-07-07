@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
 	"github.com/google/uuid"
 )
 
@@ -63,4 +64,10 @@ func init() {
 	todoDescID := todoFields[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
 	todo.DefaultID = todoDescID.Default.(func() uuid.UUID)
+	verysecretFields := schema.VerySecret{}.Fields()
+	_ = verysecretFields
+	// verysecretDescID is the schema descriptor for id field.
+	verysecretDescID := verysecretFields[0].Descriptor()
+	// verysecret.DefaultID holds the default value on creation for the id field.
+	verysecret.DefaultID = verysecretDescID.Default.(func() uuid.UUID)
 }

@@ -64,10 +64,22 @@ var (
 			},
 		},
 	}
+	// VerySecretsColumns holds the columns for the "very_secrets" table.
+	VerySecretsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "password", Type: field.TypeString},
+	}
+	// VerySecretsTable holds the schema information for the "very_secrets" table.
+	VerySecretsTable = &schema.Table{
+		Name:       "very_secrets",
+		Columns:    VerySecretsColumns,
+		PrimaryKey: []*schema.Column{VerySecretsColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CategoriesTable,
 		TodosTable,
+		VerySecretsTable,
 	}
 )
 
