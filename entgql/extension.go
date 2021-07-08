@@ -17,6 +17,7 @@ package entgql
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -31,7 +32,6 @@ import (
 	"github.com/graphql-go/graphql/language/printer"
 	"github.com/graphql-go/graphql/language/source"
 	"github.com/graphql-go/graphql/language/visitor"
-	gqlparserast "github.com/vektah/gqlparser/v2/ast"
 )
 
 type (
@@ -51,16 +51,19 @@ type (
 	ExtensionOption func(*Extension) error
 )
 
-// WithSchemaPath sets the filepath to load the GraphQL schema from.
-// It fails if the schema can't be opened or is not parsable.
+// WithSchemaPath sets the filepath to the GraphQL schema to write the
+// generated Ent types. If the file does not exist, it will generate a
+// new schema. Please note, that your gqlgen.yml config file should be
+// updated as follows to support multiple schema files:
 //
-// Note that, if this option was provided, the extension appends
-// or updates the GraphQL schema with the generated input types,
-// and injects its parsed schema to the global annotations.
+//	schema:
+//	 - schema.graphql // existing schema.
+//	 - ent.graphql	  // generated schema.
+//
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		buf, err := ioutil.ReadFile(path)
-		if err != nil {
+		if err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("reading graphql schema %q: %w", path, err)
 		}
 		ex.doc, err = parser.Parse(parser.ParseParams{
@@ -78,37 +81,51 @@ func WithSchemaPath(path string) ExtensionOption {
 	}
 }
 
+// GQLConfigAnnotation is the annotation key/name that holds gqlgen
+// configuration if it was provided by the `WithConfigPath` option.
+const GQLConfigAnnotation = "GQLConfig"
+
 // WithConfigPath sets the filepath to gqlgen.yml configuration file
 // and injects its parsed version to the global annotations.
 //
 // Note that, enabling this option is recommended as it improves the
 // GraphQL integration,
 func WithConfigPath(path string) ExtensionOption {
-	return func(ex *Extension) error {
-		cfg, err := config.LoadConfig(path)
+	return func(ex *Extension) (err error) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("unable to get working directory: %w", err)
+		}
+		if err := os.Chdir(filepath.Dir(path)); err != nil {
+			return fmt.Errorf("unable to enter config dir: %w", err)
+		}
+		defer func() {
+			if cerr := os.Chdir(cwd); cerr != nil {
+				err = fmt.Errorf("unable to restore working directory: %w", cerr)
+			}
+		}()
+		cfg, err := config.LoadConfig(filepath.Base(path))
 		if err != nil {
 			return err
 		}
-
 		if cfg.Schema == nil {
 			if err := cfg.LoadSchema(); err != nil {
 				return err
 			}
 		}
-
 		ex.cfg = cfg
+		ex.hooks = append(ex.hooks, func(next gen.Generator) gen.Generator {
+			return gen.GenerateFunc(func(g *gen.Graph) error {
+				if g.Annotations == nil {
+					g.Annotations = gen.Annotations{}
+				}
+				g.Annotations[GQLConfigAnnotation] = cfg
+				return next.Generate(g)
+			})
+		})
 		return nil
 	}
 }
-
-const (
-	// GQLConfigAnnotation is the annotation key/name that holds gqlgen
-	// configuration if it was provided by the `WithConfigPath` option.
-	GQLConfigAnnotation = "GQLConfig"
-	// GQLSchemaAnnotation is the annotation key/name that holds parsed
-	// GraphQL schema if it was provided by the `WithSchemaPath` option.
-	GQLSchemaAnnotation = "GQLSchema"
-)
 
 // WithTemplates overrides the default templates (entgql.AllTemplates)
 // with specific templates.
@@ -181,24 +198,7 @@ func (e *Extension) Templates() []*gen.Template {
 
 // Hooks of the extension.
 func (e *Extension) Hooks() []gen.Hook {
-	var hooks []gen.Hook
-	if e.cfg != nil || e.doc != nil {
-		hooks = append(hooks, func(next gen.Generator) gen.Generator {
-			return gen.GenerateFunc(func(g *gen.Graph) error {
-				if g.Annotations == nil {
-					g.Annotations = gen.Annotations{}
-				}
-				if e.cfg != nil {
-					g.Annotations[GQLConfigAnnotation] = e.cfg
-				}
-				if e.doc != nil {
-					g.Annotations[GQLSchemaAnnotation] = e.doc
-				}
-				return next.Generate(g)
-			})
-		})
-	}
-	return append(hooks, e.hooks...)
+	return e.hooks
 }
 
 // mapScalar provides maps an ent.Schema type into GraphQL scalar type.
@@ -271,11 +271,8 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 // isInput reports if the given type is an input object.
 func (e *Extension) isInput(name string) bool {
 	if t, ok := e.cfg.Schema.Types[name]; ok && t != nil {
-		return t.Kind == gqlparserast.Enum ||
-			t.Kind == gqlparserast.Scalar ||
-			t.Kind == gqlparserast.InputObject
+		return t.IsInputType()
 	}
-
 	return false
 }
 
