@@ -444,6 +444,8 @@ type TodoMutation struct {
 	clearedchildren bool
 	category        *int
 	clearedcategory bool
+	secret          *int
+	clearedsecret   bool
 	done            bool
 	oldValue        func(context.Context) (*Todo, error)
 	predicates      []predicate.Todo
@@ -873,6 +875,45 @@ func (m *TodoMutation) ResetCategory() {
 	m.clearedcategory = false
 }
 
+// SetSecretID sets the "secret" edge to the VerySecret entity by id.
+func (m *TodoMutation) SetSecretID(id int) {
+	m.secret = &id
+}
+
+// ClearSecret clears the "secret" edge to the VerySecret entity.
+func (m *TodoMutation) ClearSecret() {
+	m.clearedsecret = true
+}
+
+// SecretCleared reports if the "secret" edge to the VerySecret entity was cleared.
+func (m *TodoMutation) SecretCleared() bool {
+	return m.clearedsecret
+}
+
+// SecretID returns the "secret" edge ID in the mutation.
+func (m *TodoMutation) SecretID() (id int, exists bool) {
+	if m.secret != nil {
+		return *m.secret, true
+	}
+	return
+}
+
+// SecretIDs returns the "secret" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SecretID instead. It exists only for internal usage by the builders.
+func (m *TodoMutation) SecretIDs() (ids []int) {
+	if id := m.secret; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSecret resets all changes to the "secret" edge.
+func (m *TodoMutation) ResetSecret() {
+	m.secret = nil
+	m.clearedsecret = false
+}
+
 // Op returns the operation name.
 func (m *TodoMutation) Op() Op {
 	return m.op
@@ -1078,7 +1119,7 @@ func (m *TodoMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TodoMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.parent != nil {
 		edges = append(edges, todo.EdgeParent)
 	}
@@ -1087,6 +1128,9 @@ func (m *TodoMutation) AddedEdges() []string {
 	}
 	if m.category != nil {
 		edges = append(edges, todo.EdgeCategory)
+	}
+	if m.secret != nil {
+		edges = append(edges, todo.EdgeSecret)
 	}
 	return edges
 }
@@ -1109,13 +1153,17 @@ func (m *TodoMutation) AddedIDs(name string) []ent.Value {
 		if id := m.category; id != nil {
 			return []ent.Value{*id}
 		}
+	case todo.EdgeSecret:
+		if id := m.secret; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TodoMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedchildren != nil {
 		edges = append(edges, todo.EdgeChildren)
 	}
@@ -1138,7 +1186,7 @@ func (m *TodoMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TodoMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedparent {
 		edges = append(edges, todo.EdgeParent)
 	}
@@ -1147,6 +1195,9 @@ func (m *TodoMutation) ClearedEdges() []string {
 	}
 	if m.clearedcategory {
 		edges = append(edges, todo.EdgeCategory)
+	}
+	if m.clearedsecret {
+		edges = append(edges, todo.EdgeSecret)
 	}
 	return edges
 }
@@ -1161,6 +1212,8 @@ func (m *TodoMutation) EdgeCleared(name string) bool {
 		return m.clearedchildren
 	case todo.EdgeCategory:
 		return m.clearedcategory
+	case todo.EdgeSecret:
+		return m.clearedsecret
 	}
 	return false
 }
@@ -1174,6 +1227,9 @@ func (m *TodoMutation) ClearEdge(name string) error {
 		return nil
 	case todo.EdgeCategory:
 		m.ClearCategory()
+		return nil
+	case todo.EdgeSecret:
+		m.ClearSecret()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo unique edge %s", name)
@@ -1191,6 +1247,9 @@ func (m *TodoMutation) ResetEdge(name string) error {
 		return nil
 	case todo.EdgeCategory:
 		m.ResetCategory()
+		return nil
+	case todo.EdgeSecret:
+		m.ResetSecret()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo edge %s", name)

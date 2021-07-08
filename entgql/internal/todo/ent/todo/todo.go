@@ -44,6 +44,8 @@ const (
 	EdgeChildren = "children"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
+	// EdgeSecret holds the string denoting the secret edge name in mutations.
+	EdgeSecret = "secret"
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
 	// ParentTable is the table the holds the parent relation/edge.
@@ -61,6 +63,13 @@ const (
 	CategoryInverseTable = "categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
 	CategoryColumn = "category_todos"
+	// SecretTable is the table the holds the secret relation/edge.
+	SecretTable = "todos"
+	// SecretInverseTable is the table name for the VerySecret entity.
+	// It exists in this package in order to avoid circular dependency with the "verysecret" package.
+	SecretInverseTable = "very_secrets"
+	// SecretColumn is the table column denoting the secret relation/edge.
+	SecretColumn = "todo_secret"
 )
 
 // Columns holds all SQL columns for todo fields.
@@ -78,6 +87,7 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"category_todos",
 	"todo_children",
+	"todo_secret",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

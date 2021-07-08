@@ -80,11 +80,11 @@ type Edge struct {
 			ID: {{ $receiver }}.ID,
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $n.Fields }}),
-			Edges: make([]*Edge, {{ len $n.Edges }}),
+			Edges: make([]*Edge, {{ len (filterEdges $n.Edges) }}),
 		}
-		{{- with $n.Fields }}
+		{{- with filterFields $n.Fields }}
 			var buf []byte
-			{{- range $i, $f := $n.Fields }}
+			{{- range $i, $f := filterFields $n.Fields }}
 				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
 					return nil, err
 				}
@@ -95,8 +95,8 @@ type Edge struct {
 				}
 			{{- end }}
 		{{- end }}
-		{{- with $n.Edges }}
-			{{- range $i, $e := $n.Edges }}
+		{{- with filterEdges $n.Edges }}
+			{{- range $i, $e := filterEdges $n.Edges }}
 				node.Edges[{{ $i }}] = &Edge{
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",

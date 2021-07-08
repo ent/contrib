@@ -181,7 +181,10 @@ func (e *Extension) genWhereInputs() gen.Hook {
 				return err
 			}
 			for _, node := range nodes {
-				name, input := e.whereType(node)
+				name, input, err := e.whereType(node)
+				if err != nil {
+					return err
+				}
 				inputs[name] = input
 			}
 			return e.updateSchema(inputs)
@@ -224,7 +227,7 @@ func (e *Extension) updateSchema(inputs map[string]*ast.InputObjectDefinition) e
 }
 
 // addWhereType returns the a <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
-func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) {
+func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition, error) {
 	var (
 		name  = t.Name + "WhereInput"
 		input = ast.NewInputObjectDefinition(&ast.InputObjectDefinition{
@@ -264,7 +267,11 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 			}),
 		}))
 	}
-	for _, f := range t.Fields {
+	fields, err := filterFields(t.Fields)
+	if err != nil {
+		return "", nil, err
+	}
+	for _, f := range fields {
 		if !f.Type.Comparable() {
 			continue
 		}
@@ -278,7 +285,11 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 			input.Fields = append(input.Fields, fd)
 		}
 	}
-	for _, e := range t.Edges {
+	edges, err := filterEdges(t.Edges)
+	if err != nil {
+		return "", nil, err
+	}
+	for _, e := range edges {
 		input.Fields = append(input.Fields, ast.NewInputValueDefinition(&ast.InputValueDefinition{
 			Name: ast.NewName(&ast.Name{
 				Value: camel("has_" + e.Name),
@@ -306,7 +317,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 			}),
 		}))
 	}
-	return name, input
+	return name, input, nil
 }
 
 func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefinition {

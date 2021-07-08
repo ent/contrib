@@ -391,6 +391,22 @@ func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
 	return query
 }
 
+// QuerySecret queries the secret edge of a Todo.
+func (c *TodoClient) QuerySecret(t *Todo) *VerySecretQuery {
+	query := &VerySecretQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, id),
+			sqlgraph.To(verysecret.Table, verysecret.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, todo.SecretTable, todo.SecretColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TodoClient) Hooks() []Hook {
 	return c.hooks.Todo

@@ -70,5 +70,7 @@ func (Todo) Edges() []ent.Edge {
 		edge.From("category", Category.Type).
 			Ref("todos").
 			Unique(),
+		edge.To("secret", VerySecret.Type).
+			Unique(),
 	}
 }

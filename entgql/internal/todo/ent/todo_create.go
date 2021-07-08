@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -132,6 +133,25 @@ func (tc *TodoCreate) SetNillableCategoryID(id *int) *TodoCreate {
 // SetCategory sets the "category" edge to the Category entity.
 func (tc *TodoCreate) SetCategory(c *Category) *TodoCreate {
 	return tc.SetCategoryID(c.ID)
+}
+
+// SetSecretID sets the "secret" edge to the VerySecret entity by ID.
+func (tc *TodoCreate) SetSecretID(id int) *TodoCreate {
+	tc.mutation.SetSecretID(id)
+	return tc
+}
+
+// SetNillableSecretID sets the "secret" edge to the VerySecret entity by ID if the given value is not nil.
+func (tc *TodoCreate) SetNillableSecretID(id *int) *TodoCreate {
+	if id != nil {
+		tc = tc.SetSecretID(*id)
+	}
+	return tc
+}
+
+// SetSecret sets the "secret" edge to the VerySecret entity.
+func (tc *TodoCreate) SetSecret(v *VerySecret) *TodoCreate {
+	return tc.SetSecretID(v.ID)
 }
 
 // Mutation returns the TodoMutation object of the builder.
@@ -347,6 +367,26 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.category_todos = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.SecretIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   todo.SecretTable,
+			Columns: []string{todo.SecretColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: verysecret.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.todo_secret = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
