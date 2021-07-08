@@ -31,6 +31,7 @@ import (
 	"github.com/graphql-go/graphql/language/printer"
 	"github.com/graphql-go/graphql/language/source"
 	"github.com/graphql-go/graphql/language/visitor"
+	gqlparserast "github.com/vektah/gqlparser/v2/ast"
 )
 
 type (
@@ -88,6 +89,13 @@ func WithConfigPath(path string) ExtensionOption {
 		if err != nil {
 			return err
 		}
+
+		if cfg.Schema == nil {
+			if err := cfg.LoadSchema(); err != nil {
+				return err
+			}
+		}
+
 		ex.cfg = cfg
 		return nil
 	}
@@ -243,7 +251,7 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 		}
 		for _, m := range v.Model {
 			// A mapping was found from GraphQL name to field type.
-			if strings.HasSuffix(m, ident) && (e.doc == nil || e.isInput(t)) {
+			if strings.HasSuffix(m, ident) && e.isInput(t) {
 				return t, true
 			}
 		}
@@ -262,23 +270,13 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 
 // isInput reports if the given type is an input object.
 func (e *Extension) isInput(name string) bool {
-	var (
-		found bool
-		visit = func(p visitor.VisitFuncParams) (string, interface{}) {
-			if n, ok := p.Node.(interface{ GetName() *ast.Name }); ok && n.GetName().Value == name {
-				found = true
-			}
-			return visitor.ActionNoChange, nil
-		}
-	)
-	visitor.Visit(e.doc, &visitor.VisitorOptions{
-		LeaveKindMap: map[string]visitor.VisitFunc{
-			kinds.EnumDefinition:        visit,
-			kinds.ScalarDefinition:      visit,
-			kinds.InputObjectDefinition: visit,
-		},
-	}, nil)
-	return found
+	if t, ok := e.cfg.Schema.Types[name]; ok && t != nil {
+		return t.Kind == gqlparserast.Enum ||
+			t.Kind == gqlparserast.Scalar ||
+			t.Kind == gqlparserast.InputObject
+	}
+
+	return false
 }
 
 // genWhereInputs returns a new hook for generating
