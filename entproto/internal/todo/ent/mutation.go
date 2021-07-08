@@ -11,6 +11,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
+	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"github.com/google/uuid"
@@ -1229,6 +1230,7 @@ type UserMutation struct {
 	addopt_num        *int
 	opt_str           *string
 	opt_bool          *bool
+	big_int           *schema.BigInt
 	clearedFields     map[string]struct{}
 	group             *int
 	clearedgroup      bool
@@ -1893,6 +1895,55 @@ func (m *UserMutation) ResetOptBool() {
 	delete(m.clearedFields, user.FieldOptBool)
 }
 
+// SetBigInt sets the "big_int" field.
+func (m *UserMutation) SetBigInt(si schema.BigInt) {
+	m.big_int = &si
+}
+
+// BigInt returns the value of the "big_int" field in the mutation.
+func (m *UserMutation) BigInt() (r schema.BigInt, exists bool) {
+	v := m.big_int
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBigInt returns the old "big_int" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldBigInt(ctx context.Context) (v schema.BigInt, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldBigInt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldBigInt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBigInt: %w", err)
+	}
+	return oldValue.BigInt, nil
+}
+
+// ClearBigInt clears the value of the "big_int" field.
+func (m *UserMutation) ClearBigInt() {
+	m.big_int = nil
+	m.clearedFields[user.FieldBigInt] = struct{}{}
+}
+
+// BigIntCleared returns if the "big_int" field was cleared in this mutation.
+func (m *UserMutation) BigIntCleared() bool {
+	_, ok := m.clearedFields[user.FieldBigInt]
+	return ok
+}
+
+// ResetBigInt resets all changes to the "big_int" field.
+func (m *UserMutation) ResetBigInt() {
+	m.big_int = nil
+	delete(m.clearedFields, user.FieldBigInt)
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -2039,7 +2090,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -2076,6 +2127,9 @@ func (m *UserMutation) Fields() []string {
 	if m.opt_bool != nil {
 		fields = append(fields, user.FieldOptBool)
 	}
+	if m.big_int != nil {
+		fields = append(fields, user.FieldBigInt)
+	}
 	return fields
 }
 
@@ -2108,6 +2162,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.OptStr()
 	case user.FieldOptBool:
 		return m.OptBool()
+	case user.FieldBigInt:
+		return m.BigInt()
 	}
 	return nil, false
 }
@@ -2141,6 +2197,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldOptStr(ctx)
 	case user.FieldOptBool:
 		return m.OldOptBool(ctx)
+	case user.FieldBigInt:
+		return m.OldBigInt(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -2233,6 +2291,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOptBool(v)
+		return nil
+	case user.FieldBigInt:
+		v, ok := value.(schema.BigInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBigInt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -2336,6 +2401,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldOptBool) {
 		fields = append(fields, user.FieldOptBool)
 	}
+	if m.FieldCleared(user.FieldBigInt) {
+		fields = append(fields, user.FieldBigInt)
+	}
 	return fields
 }
 
@@ -2358,6 +2426,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldOptBool:
 		m.ClearOptBool()
+		return nil
+	case user.FieldBigInt:
+		m.ClearBigInt()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -2402,6 +2473,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldOptBool:
 		m.ResetOptBool()
+		return nil
+	case user.FieldBigInt:
+		m.ResetBigInt()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

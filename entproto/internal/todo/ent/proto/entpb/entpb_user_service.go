@@ -6,9 +6,12 @@ import (
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	group "entgo.io/contrib/entproto/internal/todo/ent/group"
+	schema "entgo.io/contrib/entproto/internal/todo/ent/schema"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
+	errors "errors"
+	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -51,7 +54,21 @@ func toProtoUser(e *ent.User) (*User, error) {
 	banned := e.Banned
 	v.Banned = banned
 
-	crmid, err := runtime.UUIDToBytes(e.CrmID)
+	bigintValue, err := e.BigInt.Value()
+	if err != nil {
+		return nil, err
+	}
+
+	bigintTyped, ok := bigintValue.(string)
+	if !ok {
+		return nil, errors.New("casting value to string")
+	}
+
+	bigint := wrapperspb.String(bigintTyped)
+
+	v.BigInt = bigint
+
+	crmid, err := e.CrmID.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +108,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 	username := e.UserName
 	v.UserName = username
 	if edg := e.Edges.Attachment; edg != nil {
-		id, err := runtime.UUIDToBytes(edg.ID)
+		id, err := edg.ID.MarshalBinary()
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +124,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 		}
 	}
 	for _, edg := range e.Edges.Received {
-		id, err := runtime.UUIDToBytes(edg.ID)
+		id, err := edg.ID.MarshalBinary()
 		if err != nil {
 			return nil, err
 		}
@@ -125,8 +142,16 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m := svc.client.User.Create()
 	userBanned := user.GetBanned()
 	m.SetBanned(userBanned)
-	userCrmID, err := runtime.BytesToUUID(user.GetCrmId())
-	if err != nil {
+	if user.GetBigInt() != nil {
+		userBigInt := schema.BigInt{}
+		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+
+		m.SetBigInt(userBigInt)
+	}
+	var userCrmID uuid.UUID
+	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
@@ -157,8 +182,8 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetStatus(userStatus)
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
-	userAttachment, err := runtime.BytesToUUID(user.GetAttachment().GetId())
-	if err != nil {
+	var userAttachment uuid.UUID
+	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
@@ -166,8 +191,8 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
 	for _, item := range user.GetReceived() {
-		received, err := runtime.BytesToUUID(item.GetId())
-		if err != nil {
+		var received uuid.UUID
+		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
 
@@ -235,8 +260,16 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m := svc.client.User.UpdateOneID(userID)
 	userBanned := user.GetBanned()
 	m.SetBanned(userBanned)
-	userCrmID, err := runtime.BytesToUUID(user.GetCrmId())
-	if err != nil {
+	if user.GetBigInt() != nil {
+		userBigInt := schema.BigInt{}
+		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+
+		m.SetBigInt(userBigInt)
+	}
+	var userCrmID uuid.UUID
+	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
@@ -265,8 +298,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetStatus(userStatus)
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
-	userAttachment, err := runtime.BytesToUUID(user.GetAttachment().GetId())
-	if err != nil {
+	var userAttachment uuid.UUID
+	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
@@ -274,8 +307,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
 	for _, item := range user.GetReceived() {
-		received, err := runtime.BytesToUUID(item.GetId())
-		if err != nil {
+		var received uuid.UUID
+		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
 

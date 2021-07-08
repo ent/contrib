@@ -6,8 +6,8 @@ import (
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
-	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
+	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -30,7 +30,7 @@ func NewAttachmentService(client *ent.Client) *AttachmentService {
 func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	v := &Attachment{}
 
-	id, err := runtime.UUIDToBytes(e.ID)
+	id, err := e.ID.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +86,8 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 		err error
 		get *ent.Attachment
 	)
-	id, err := runtime.BytesToUUID(req.GetId())
-	if err != nil {
+	var id uuid.UUID
+	if err := (&id).UnmarshalBinary(req.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
@@ -120,8 +120,8 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 // Update implements AttachmentServiceServer.Update
 func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	attachmentID, err := runtime.BytesToUUID(attachment.GetId())
-	if err != nil {
+	var attachmentID uuid.UUID
+	if err := (&attachmentID).UnmarshalBinary(attachment.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
@@ -154,8 +154,8 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 // Delete implements AttachmentServiceServer.Delete
 func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentRequest) (*emptypb.Empty, error) {
 	var err error
-	id, err := runtime.BytesToUUID(req.GetId())
-	if err != nil {
+	var id uuid.UUID
+	if err := (&id).UnmarshalBinary(req.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 
