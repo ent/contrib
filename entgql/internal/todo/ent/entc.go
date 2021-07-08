@@ -17,7 +17,7 @@ import (
 func main() {
 	ex, err := entgql.NewExtension(
 		entgql.WithWhereFilters(true),
-		entgql.WithSchemaPath("../todo.graphql"),
+		entgql.WithSchemaPath("../ent.graphql"),
 		entgql.WithConfigPath("../gqlgen.yml"),
 	)
 	if err != nil {
