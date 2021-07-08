@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -140,6 +141,25 @@ func (tu *TodoUpdate) SetCategory(c *Category) *TodoUpdate {
 	return tu.SetCategoryID(c.ID)
 }
 
+// SetSecretID sets the "secret" edge to the VerySecret entity by ID.
+func (tu *TodoUpdate) SetSecretID(id uuid.UUID) *TodoUpdate {
+	tu.mutation.SetSecretID(id)
+	return tu
+}
+
+// SetNillableSecretID sets the "secret" edge to the VerySecret entity by ID if the given value is not nil.
+func (tu *TodoUpdate) SetNillableSecretID(id *uuid.UUID) *TodoUpdate {
+	if id != nil {
+		tu = tu.SetSecretID(*id)
+	}
+	return tu
+}
+
+// SetSecret sets the "secret" edge to the VerySecret entity.
+func (tu *TodoUpdate) SetSecret(v *VerySecret) *TodoUpdate {
+	return tu.SetSecretID(v.ID)
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (tu *TodoUpdate) Mutation() *TodoMutation {
 	return tu.mutation
@@ -175,6 +195,12 @@ func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 // ClearCategory clears the "category" edge to the Category entity.
 func (tu *TodoUpdate) ClearCategory() *TodoUpdate {
 	tu.mutation.ClearCategory()
+	return tu
+}
+
+// ClearSecret clears the "secret" edge to the VerySecret entity.
+func (tu *TodoUpdate) ClearSecret() *TodoUpdate {
+	tu.mutation.ClearSecret()
 	return tu
 }
 
@@ -433,6 +459,41 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.SecretCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   todo.SecretTable,
+			Columns: []string{todo.SecretColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: verysecret.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.SecretIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   todo.SecretTable,
+			Columns: []string{todo.SecretColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: verysecret.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{todo.Label}
@@ -550,6 +611,25 @@ func (tuo *TodoUpdateOne) SetCategory(c *Category) *TodoUpdateOne {
 	return tuo.SetCategoryID(c.ID)
 }
 
+// SetSecretID sets the "secret" edge to the VerySecret entity by ID.
+func (tuo *TodoUpdateOne) SetSecretID(id uuid.UUID) *TodoUpdateOne {
+	tuo.mutation.SetSecretID(id)
+	return tuo
+}
+
+// SetNillableSecretID sets the "secret" edge to the VerySecret entity by ID if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableSecretID(id *uuid.UUID) *TodoUpdateOne {
+	if id != nil {
+		tuo = tuo.SetSecretID(*id)
+	}
+	return tuo
+}
+
+// SetSecret sets the "secret" edge to the VerySecret entity.
+func (tuo *TodoUpdateOne) SetSecret(v *VerySecret) *TodoUpdateOne {
+	return tuo.SetSecretID(v.ID)
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (tuo *TodoUpdateOne) Mutation() *TodoMutation {
 	return tuo.mutation
@@ -585,6 +665,12 @@ func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 // ClearCategory clears the "category" edge to the Category entity.
 func (tuo *TodoUpdateOne) ClearCategory() *TodoUpdateOne {
 	tuo.mutation.ClearCategory()
+	return tuo
+}
+
+// ClearSecret clears the "secret" edge to the VerySecret entity.
+func (tuo *TodoUpdateOne) ClearSecret() *TodoUpdateOne {
+	tuo.mutation.ClearSecret()
 	return tuo
 }
 
@@ -859,6 +945,41 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.SecretCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   todo.SecretTable,
+			Columns: []string{todo.SecretColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: verysecret.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.SecretIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   todo.SecretTable,
+			Columns: []string{todo.SecretColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: verysecret.FieldID,
 				},
 			},
 		}

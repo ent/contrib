@@ -27,6 +27,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -45,6 +46,7 @@ type TodoQuery struct {
 	withParent   *TodoQuery
 	withChildren *TodoQuery
 	withCategory *CategoryQuery
+	withSecret   *VerySecretQuery
 	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -141,6 +143,28 @@ func (tq *TodoQuery) QueryCategory() *CategoryQuery {
 			sqlgraph.From(todo.Table, todo.FieldID, selector),
 			sqlgraph.To(category.Table, category.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, todo.CategoryTable, todo.CategoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySecret chains the current query on the "secret" edge.
+func (tq *TodoQuery) QuerySecret() *VerySecretQuery {
+	query := &VerySecretQuery{config: tq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, selector),
+			sqlgraph.To(verysecret.Table, verysecret.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, todo.SecretTable, todo.SecretColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -332,6 +356,7 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		withParent:   tq.withParent.Clone(),
 		withChildren: tq.withChildren.Clone(),
 		withCategory: tq.withCategory.Clone(),
+		withSecret:   tq.withSecret.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -368,6 +393,17 @@ func (tq *TodoQuery) WithCategory(opts ...func(*CategoryQuery)) *TodoQuery {
 		opt(query)
 	}
 	tq.withCategory = query
+	return tq
+}
+
+// WithSecret tells the query-builder to eager-load the nodes that are connected to
+// the "secret" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TodoQuery) WithSecret(opts ...func(*VerySecretQuery)) *TodoQuery {
+	query := &VerySecretQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withSecret = query
 	return tq
 }
 
@@ -437,13 +473,14 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 		nodes       = []*Todo{}
 		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			tq.withParent != nil,
 			tq.withChildren != nil,
 			tq.withCategory != nil,
+			tq.withSecret != nil,
 		}
 	)
-	if tq.withParent != nil || tq.withCategory != nil {
+	if tq.withParent != nil || tq.withCategory != nil || tq.withSecret != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -552,6 +589,35 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Category = n
+			}
+		}
+	}
+
+	if query := tq.withSecret; query != nil {
+		ids := make([]pulid.ID, 0, len(nodes))
+		nodeids := make(map[pulid.ID][]*Todo)
+		for i := range nodes {
+			if nodes[i].todo_secret == nil {
+				continue
+			}
+			fk := *nodes[i].todo_secret
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(verysecret.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "todo_secret" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Secret = n
 			}
 		}
 	}

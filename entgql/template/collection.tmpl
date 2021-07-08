@@ -18,7 +18,7 @@ import (
 {{ range $node := filterNodes $.Nodes }}
 
 {{ $edges := dict }}
-{{ range $edge := $node.Edges }}
+{{ range $edge := filterEdges $node.Edges }}
 	{{ if $annotation := $edge.Annotations.EntGQL }}
 		{{ if $annotation.Bind }}
 			{{ if $annotation.Mapping }}{{ fail "bind and mapping annotations are mutually exclusive" }}{{ end }}

@@ -620,6 +620,34 @@ func HasCategoryWith(preds ...predicate.Category) predicate.Todo {
 	})
 }
 
+// HasSecret applies the HasEdge predicate on the "secret" edge.
+func HasSecret() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SecretTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, SecretTable, SecretColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSecretWith applies the HasEdge predicate on the "secret" edge with a given conditions (other predicates).
+func HasSecretWith(preds ...predicate.VerySecret) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SecretInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, SecretTable, SecretColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Todo) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {

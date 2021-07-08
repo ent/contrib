@@ -13,7 +13,7 @@ import "context"
 
 {{ range $n := filterNodes $.Nodes }}
 	{{ $r := $n.Receiver }}
-	{{ range $e := $n.Edges }}
+	{{ range $e := filterEdges $n.Edges }}
 		func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
 			result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
 			if IsNotLoaded(err) {

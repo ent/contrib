@@ -216,7 +216,7 @@ const (
 
 {{ range $node := $gqlNodes -}}
 {{ $orderFields := list -}}
-{{- range $f := append $node.Fields $node.ID }}
+{{- range $f := append (filterFields $node.Fields) $node.ID }}
 	{{- if $annotation := $f.Annotations.EntGQL }}
 		{{- if $annotation.OrderField }}
 			{{- if not $f.Type.Comparable }}
