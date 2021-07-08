@@ -251,7 +251,7 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 		}
 		for _, m := range v.Model {
 			// A mapping was found from GraphQL name to field type.
-			if strings.HasSuffix(m, ident) && (e.doc == nil || e.isInput(t)) {
+			if strings.HasSuffix(m, ident) && e.isInput(t) {
 				return t, true
 			}
 		}
