@@ -243,7 +243,7 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 		}
 		for _, m := range v.Model {
 			// A mapping was found from GraphQL name to field type.
-			if strings.HasSuffix(m, ident) {
+			if strings.HasSuffix(m, ident) && (e.doc == nil || e.isInput(t)) {
 				return t, true
 			}
 		}
@@ -258,6 +258,27 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 	default:
 		return "", false
 	}
+}
+
+// isInput reports if the given type is an input object.
+func (e *Extension) isInput(name string) bool {
+	var (
+		found bool
+		visit = func(p visitor.VisitFuncParams) (string, interface{}) {
+			if n, ok := p.Node.(interface{ GetName() *ast.Name }); ok && n.GetName().Value == name {
+				found = true
+			}
+			return visitor.ActionNoChange, nil
+		}
+	)
+	visitor.Visit(e.doc, &visitor.VisitorOptions{
+		LeaveKindMap: map[string]visitor.VisitFunc{
+			kinds.EnumDefinition:        visit,
+			kinds.ScalarDefinition:      visit,
+			kinds.InputObjectDefinition: visit,
+		},
+	}, nil)
+	return found
 }
 
 // genWhereInputs returns a new hook for generating
