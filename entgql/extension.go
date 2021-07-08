@@ -17,6 +17,7 @@ package entgql
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -85,7 +86,21 @@ func WithSchemaPath(path string) ExtensionOption {
 // GraphQL integration,
 func WithConfigPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
-		cfg, err := config.LoadConfig(path)
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("unable to get working directory: %w", err)
+		}
+		err = os.Chdir(filepath.Dir(path))
+		if err != nil {
+			return fmt.Errorf("unable to enter config dir: %w", err)
+		}
+		defer func() {
+			if cerr := os.Chdir(cwd); cerr != nil {
+				err = fmt.Errorf("unable to restore working directory: %w", cerr)
+			}
+		}()
+
+		cfg, err := config.LoadConfig(filepath.Base(path))
 		if err != nil {
 			return err
 		}
