@@ -265,14 +265,16 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 		}))
 	}
 
-	for i, op := range t.ID.Ops() {
-		fd := e.fieldDefinition(t.ID, op)
-		if i == 0 {
-			fd.Description = ast.NewStringValue(&ast.StringValue{
-				Value: t.ID.Name + " field predicates",
-			})
+	if t.ID != nil {
+		for i, op := range t.ID.Ops() {
+			fd := e.fieldDefinition(t.ID, true, op)
+			if i == 0 {
+				fd.Description = ast.NewStringValue(&ast.StringValue{
+					Value: t.ID.Name + " field predicates",
+				})
+			}
+			input.Fields = append(input.Fields, fd)
 		}
-		input.Fields = append(input.Fields, fd)
 	}
 
 	for _, f := range t.Fields {
@@ -280,7 +282,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 			continue
 		}
 		for i, op := range f.Ops() {
-			fd := e.fieldDefinition(f, op)
+			fd := e.fieldDefinition(f, false, op)
 			if i == 0 {
 				fd.Description = ast.NewStringValue(&ast.StringValue{
 					Value: f.Name + " field predicates",
@@ -320,7 +322,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 	return name, input
 }
 
-func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefinition {
+func (e *Extension) fieldDefinition(f *gen.Field, idField bool, op gen.Op) *ast.InputValueDefinition {
 	name := camel(f.Name + "_" + op.Name())
 	if op == gen.EQ {
 		name = camel(f.Name)
@@ -335,6 +337,15 @@ func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefi
 			}),
 		}),
 	})
+
+	if idField {
+		def.Type = ast.NewNamed(&ast.Named{
+			Name: ast.NewName(&ast.Name{
+				Value: graphql.ID.Name(),
+			}),
+		})
+	}
+
 	if op.Variadic() {
 		def.Type = ast.NewList(&ast.List{
 			Type: ast.NewNonNull(&ast.NonNull{
