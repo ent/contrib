@@ -264,6 +264,17 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition) 
 			}),
 		}))
 	}
+
+	for i, op := range t.ID.Ops() {
+		fd := e.fieldDefinition(t.ID, op)
+		if i == 0 {
+			fd.Description = ast.NewStringValue(&ast.StringValue{
+				Value: t.ID.Name + " field predicates",
+			})
+		}
+		input.Fields = append(input.Fields, fd)
+	}
+
 	for _, f := range t.Fields {
 		if !f.Type.Comparable() {
 			continue

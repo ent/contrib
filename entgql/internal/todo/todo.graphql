@@ -90,6 +90,16 @@ input TodoWhereInput {
   and: [TodoWhereInput!]
   or: [TodoWhereInput!]
   
+  """id field predicates"""
+  id: Int
+  idNEQ: Int
+  idIn: [Int!]
+  idNotIn: [Int!]
+  idGT: Int
+  idGTE: Int
+  idLT: Int
+  idLTE: Int
+  
   """created_at field predicates"""
   createdAt: Time
   createdAtNEQ: Time
@@ -152,6 +162,16 @@ input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
   or: [CategoryWhereInput!]
+  
+  """id field predicates"""
+  id: Int
+  idNEQ: Int
+  idIn: [Int!]
+  idNotIn: [Int!]
+  idGT: Int
+  idGTE: Int
+  idLT: Int
+  idLTE: Int
   
   """text field predicates"""
   text: String
