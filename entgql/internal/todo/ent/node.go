@@ -414,7 +414,7 @@ func (t *tables) Load(ctx context.Context, drv dialect.Driver) ([]string, error)
 	return tables, err
 }
 
-func (tables) load(ctx context.Context, drv dialect.Driver) ([]string, error) {
+func (*tables) load(ctx context.Context, drv dialect.Driver) ([]string, error) {
 	rows := &sql.Rows{}
 	query, args := sql.Dialect(drv.Dialect()).
 		Select("type").
