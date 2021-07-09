@@ -39,7 +39,15 @@ in the LICENSE file in the root directory of this source tree.
                     {{- $field = $f.StructField }}
                     {{- $jsonTag = $f.Name }}
                 {{- end }}
-                {{ $field }} {{ if $op.Niladic }}bool{{ else }}{{ if $op.Variadic }}[]{{ else }}*{{ end }}{{ $f.Type }}{{ end }} `json:"{{ camel $jsonTag }},omitempty"`
+                {{- $type := $f.Type }}
+                {{- if $op.Niladic }}
+                    {{- $type = "bool" }}
+                {{- else if $op.Variadic }}
+                    {{- $type = print "[]" $type }}
+                {{- else if not $f.Type.RType.IsPtr }}
+                    {{- $type = print "*" $type }}
+                {{- end }}
+                {{ $field }} {{ $type }} `json:"{{ camel $jsonTag }},omitempty"`
             {{- end }}
         {{- end }}
 
@@ -133,7 +141,7 @@ in the LICENSE file in the root directory of this source tree.
                         }
                     {{- else }}
                         if i.{{ $field }} != nil {
-                            predicates = append(predicates, {{ $n.Package }}.{{ $func }}(*i.{{ $field }}))
+                            predicates = append(predicates, {{ $n.Package }}.{{ $func }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}i.{{ $field }}))
                         }
                     {{- end }}
                 {{- end }}

@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
@@ -53,6 +54,7 @@ type CategoryMutation struct {
 	id            *pulid.ID
 	text          *string
 	status        *category.Status
+	_config       **schematype.CategoryConfig
 	clearedFields map[string]struct{}
 	todos         map[pulid.ID]struct{}
 	removedtodos  map[pulid.ID]struct{}
@@ -219,6 +221,55 @@ func (m *CategoryMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetConfig sets the "config" field.
+func (m *CategoryMutation) SetConfig(sc *schematype.CategoryConfig) {
+	m._config = &sc
+}
+
+// Config returns the value of the "config" field in the mutation.
+func (m *CategoryMutation) Config() (r *schematype.CategoryConfig, exists bool) {
+	v := m._config
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfig returns the old "config" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldConfig(ctx context.Context) (v *schematype.CategoryConfig, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldConfig is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldConfig requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfig: %w", err)
+	}
+	return oldValue.Config, nil
+}
+
+// ClearConfig clears the value of the "config" field.
+func (m *CategoryMutation) ClearConfig() {
+	m._config = nil
+	m.clearedFields[category.FieldConfig] = struct{}{}
+}
+
+// ConfigCleared returns if the "config" field was cleared in this mutation.
+func (m *CategoryMutation) ConfigCleared() bool {
+	_, ok := m.clearedFields[category.FieldConfig]
+	return ok
+}
+
+// ResetConfig resets all changes to the "config" field.
+func (m *CategoryMutation) ResetConfig() {
+	m._config = nil
+	delete(m.clearedFields, category.FieldConfig)
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by ids.
 func (m *CategoryMutation) AddTodoIDs(ids ...pulid.ID) {
 	if m.todos == nil {
@@ -287,12 +338,15 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
 	}
 	if m.status != nil {
 		fields = append(fields, category.FieldStatus)
+	}
+	if m._config != nil {
+		fields = append(fields, category.FieldConfig)
 	}
 	return fields
 }
@@ -306,6 +360,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	case category.FieldStatus:
 		return m.Status()
+	case category.FieldConfig:
+		return m.Config()
 	}
 	return nil, false
 }
@@ -319,6 +375,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldText(ctx)
 	case category.FieldStatus:
 		return m.OldStatus(ctx)
+	case category.FieldConfig:
+		return m.OldConfig(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -341,6 +399,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case category.FieldConfig:
+		v, ok := value.(*schematype.CategoryConfig)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfig(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
@@ -371,7 +436,11 @@ func (m *CategoryMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *CategoryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(category.FieldConfig) {
+		fields = append(fields, category.FieldConfig)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -384,6 +453,11 @@ func (m *CategoryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *CategoryMutation) ClearField(name string) error {
+	switch name {
+	case category.FieldConfig:
+		m.ClearConfig()
+		return nil
+	}
 	return fmt.Errorf("unknown Category nullable field %s", name)
 }
 
@@ -396,6 +470,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 		return nil
 	case category.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case category.FieldConfig:
+		m.ResetConfig()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

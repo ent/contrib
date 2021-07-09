@@ -2,6 +2,14 @@ interface Node {
   id: ID!
 }
 
+type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
 enum CategoryStatus {
   ENABLED
   DISABLED

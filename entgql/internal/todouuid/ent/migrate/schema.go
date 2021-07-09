@@ -27,6 +27,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ENABLED", "DISABLED"}},
+		{Name: "config", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"sqlite3": "json"}},
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{

@@ -28,3 +28,11 @@ models:
   CategoryStatus:
     model:
       - entgo.io/contrib/entgql/internal/todopulid/ent/category.Status
+  # Custom mapping from GraphQL `CategoryConfig` and
+  # `CategoryConfigInput` to `schematype.CategoryConfig`.
+  CategoryConfig:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  CategoryConfigInput:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
