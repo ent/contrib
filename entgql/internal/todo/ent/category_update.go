@@ -22,6 +22,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -50,6 +51,18 @@ func (cu *CategoryUpdate) SetText(s string) *CategoryUpdate {
 // SetStatus sets the "status" field.
 func (cu *CategoryUpdate) SetStatus(c category.Status) *CategoryUpdate {
 	cu.mutation.SetStatus(c)
+	return cu
+}
+
+// SetConfig sets the "config" field.
+func (cu *CategoryUpdate) SetConfig(sc *schematype.CategoryConfig) *CategoryUpdate {
+	cu.mutation.SetConfig(sc)
+	return cu
+}
+
+// ClearConfig clears the value of the "config" field.
+func (cu *CategoryUpdate) ClearConfig() *CategoryUpdate {
+	cu.mutation.ClearConfig()
 	return cu
 }
 
@@ -198,6 +211,19 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldStatus,
 		})
 	}
+	if value, ok := cu.mutation.Config(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: category.FieldConfig,
+		})
+	}
+	if cu.mutation.ConfigCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Column: category.FieldConfig,
+		})
+	}
 	if cu.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -280,6 +306,18 @@ func (cuo *CategoryUpdateOne) SetText(s string) *CategoryUpdateOne {
 // SetStatus sets the "status" field.
 func (cuo *CategoryUpdateOne) SetStatus(c category.Status) *CategoryUpdateOne {
 	cuo.mutation.SetStatus(c)
+	return cuo
+}
+
+// SetConfig sets the "config" field.
+func (cuo *CategoryUpdateOne) SetConfig(sc *schematype.CategoryConfig) *CategoryUpdateOne {
+	cuo.mutation.SetConfig(sc)
+	return cuo
+}
+
+// ClearConfig clears the value of the "config" field.
+func (cuo *CategoryUpdateOne) ClearConfig() *CategoryUpdateOne {
+	cuo.mutation.ClearConfig()
 	return cuo
 }
 
@@ -450,6 +488,19 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			Type:   field.TypeEnum,
 			Value:  value,
 			Column: category.FieldStatus,
+		})
+	}
+	if value, ok := cuo.mutation.Config(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: category.FieldConfig,
+		})
+	}
+	if cuo.mutation.ConfigCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Column: category.FieldConfig,
 		})
 	}
 	if cuo.mutation.TodosCleared() {

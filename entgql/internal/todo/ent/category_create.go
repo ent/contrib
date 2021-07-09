@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -43,6 +44,12 @@ func (cc *CategoryCreate) SetText(s string) *CategoryCreate {
 // SetStatus sets the "status" field.
 func (cc *CategoryCreate) SetStatus(c category.Status) *CategoryCreate {
 	cc.mutation.SetStatus(c)
+	return cc
+}
+
+// SetConfig sets the "config" field.
+func (cc *CategoryCreate) SetConfig(sc *schematype.CategoryConfig) *CategoryCreate {
+	cc.mutation.SetConfig(sc)
 	return cc
 }
 
@@ -173,6 +180,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldStatus,
 		})
 		_node.Status = value
+	}
+	if value, ok := cc.mutation.Config(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: category.FieldConfig,
+		})
+		_node.Config = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

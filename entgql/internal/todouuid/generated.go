@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql"
@@ -52,6 +53,10 @@ type ComplexityRoot struct {
 	Category struct {
 		ID   func(childComplexity int) int
 		Text func(childComplexity int) int
+	}
+
+	CategoryConfig struct {
+		MaxMembers func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -133,6 +138,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Category.Text(childComplexity), true
+
+	case "CategoryConfig.maxMembers":
+		if e.complexity.CategoryConfig.MaxMembers == nil {
+			break
+		}
+
+		return e.complexity.CategoryConfig.MaxMembers(childComplexity), true
 
 	case "Mutation.clearTodos":
 		if e.complexity.Mutation.ClearTodos == nil {
@@ -376,6 +388,14 @@ var sources = []*ast.Source{
   id: ID!
 }
 
+type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
 enum CategoryStatus {
   ENABLED
   DISABLED
@@ -488,6 +508,18 @@ input CategoryWhereInput {
   statusNEQ: CategoryStatus
   statusIn: [CategoryStatus!]
   statusNotIn: [CategoryStatus!]
+  
+  """config field predicates"""
+  config: CategoryConfigInput
+  configNEQ: CategoryConfigInput
+  configIn: [CategoryConfigInput!]
+  configNotIn: [CategoryConfigInput!]
+  configGT: CategoryConfigInput
+  configGTE: CategoryConfigInput
+  configLT: CategoryConfigInput
+  configLTE: CategoryConfigInput
+  configIsNil: Boolean
+  configNotNil: Boolean
   
   """todos edge predicates"""
   hasTodos: Boolean
@@ -790,6 +822,38 @@ func (ec *executionContext) _Category_text(ctx context.Context, field graphql.Co
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryConfig_maxMembers(ctx context.Context, field graphql.CollectedField, obj *schematype.CategoryConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CategoryConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxMembers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2718,6 +2782,26 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCategoryConfigInput(ctx context.Context, obj interface{}) (schematype.CategoryConfig, error) {
+	var it schematype.CategoryConfig
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "maxMembers":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxMembers"))
+			it.MaxMembers, err = ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context, obj interface{}) (ent.CategoryWhereInput, error) {
 	var it ent.CategoryWhereInput
 	var asMap = obj.(map[string]interface{})
@@ -2881,6 +2965,86 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
 			it.StatusNotIn, err = ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "config":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+			it.Config, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNEQ"))
+			it.ConfigNEQ, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configIn"))
+			it.ConfigIn, err = ec.unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNotIn"))
+			it.ConfigNotIn, err = ec.unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configGT"))
+			it.ConfigGT, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configGTE"))
+			it.ConfigGTE, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configLT"))
+			it.ConfigLT, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configLTE"))
+			it.ConfigLTE, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configIsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configIsNil"))
+			it.ConfigIsNil, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "configNotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNotNil"))
+			it.ConfigNotNil, err = ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3386,6 +3550,30 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var categoryConfigImplementors = []string{"CategoryConfig"}
+
+func (ec *executionContext) _CategoryConfig(ctx context.Context, sel ast.SelectionSet, obj *schematype.CategoryConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, categoryConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CategoryConfig")
+		case "maxMembers":
+			out.Values[i] = ec._CategoryConfig_maxMembers(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3935,6 +4123,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, v interface{}) (*schematype.CategoryConfig, error) {
+	res, err := ec.unmarshalInputCategoryConfigInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatus(ctx context.Context, v interface{}) (category.Status, error) {
 	var res category.Status
 	err := res.UnmarshalGQL(v)
@@ -4395,6 +4588,38 @@ func (ec *executionContext) marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋ
 	return ec._Category(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx context.Context, v interface{}) ([]*schematype.CategoryConfig, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*schematype.CategoryConfig, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, v interface{}) (*schematype.CategoryConfig, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCategoryConfigInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatusᚄ(ctx context.Context, v interface{}) ([]category.Status, error) {
 	if v == nil {
 		return nil, nil
@@ -4536,6 +4761,15 @@ func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ct
 		return graphql.Null
 	}
 	return uuidgql.MarshalUUID(*v)
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {

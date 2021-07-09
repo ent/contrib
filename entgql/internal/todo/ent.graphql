@@ -28,6 +28,18 @@ input CategoryWhereInput {
   statusIn: [CategoryStatus!]
   statusNotIn: [CategoryStatus!]
   
+  """config field predicates"""
+  config: CategoryConfigInput
+  configNEQ: CategoryConfigInput
+  configIn: [CategoryConfigInput!]
+  configNotIn: [CategoryConfigInput!]
+  configGT: CategoryConfigInput
+  configGTE: CategoryConfigInput
+  configLT: CategoryConfigInput
+  configLTE: CategoryConfigInput
+  configIsNil: Boolean
+  configNotNil: Boolean
+  
   """todos edge predicates"""
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]

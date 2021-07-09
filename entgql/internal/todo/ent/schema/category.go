@@ -15,6 +15,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
+	"entgo.io/ent/dialect"
+
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
@@ -39,6 +42,11 @@ func (Category) Fields() []ent.Field {
 				"Enabled", "ENABLED",
 				"Disabled", "DISABLED",
 			),
+		field.Other("config", &schematype.CategoryConfig{}).
+			SchemaType(map[string]string{
+				dialect.SQLite: "json",
+			}).
+			Optional(),
 	}
 }
 
