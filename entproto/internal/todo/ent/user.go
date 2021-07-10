@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -43,6 +44,8 @@ type User struct {
 	OptStr string `json:"opt_str,omitempty"`
 	// OptBool holds the value of the "opt_bool" field.
 	OptBool bool `json:"opt_bool,omitempty"`
+	// BigInt holds the value of the "big_int" field.
+	BigInt schema.BigInt `json:"big_int,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -104,6 +107,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldBigInt:
+			values[i] = new(schema.BigInt)
 		case user.FieldBanned, user.FieldOptBool:
 			values[i] = new(sql.NullBool)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum:
@@ -209,6 +214,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.OptBool = value.Bool
 			}
+		case user.FieldBigInt:
+			if value, ok := values[i].(*schema.BigInt); !ok {
+				return fmt.Errorf("unexpected type %T for field big_int", values[i])
+			} else if value != nil {
+				u.BigInt = *value
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -283,6 +294,8 @@ func (u *User) String() string {
 	builder.WriteString(u.OptStr)
 	builder.WriteString(", opt_bool=")
 	builder.WriteString(fmt.Sprintf("%v", u.OptBool))
+	builder.WriteString(", big_int=")
+	builder.WriteString(fmt.Sprintf("%v", u.BigInt))
 	builder.WriteByte(')')
 	return builder.String()
 }

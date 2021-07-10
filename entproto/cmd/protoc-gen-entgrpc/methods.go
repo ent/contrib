@@ -222,7 +222,7 @@ func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
 		"notFound":          codes.Ident("NotFound"),
 		"internal":          codes.Ident("Internal"),
 		"typeName":          g.entType.Name,
-		"fmtErr":            protogen.GoImportPath("fmt").Ident("Errorf"),
+		"newError":          protogen.GoImportPath("errors").Ident("New"),
 	}
 	for _, additional := range additionals {
 		for k, v := range additional {

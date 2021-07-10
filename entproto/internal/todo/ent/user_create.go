@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -123,6 +124,20 @@ func (uc *UserCreate) SetOptBool(b bool) *UserCreate {
 func (uc *UserCreate) SetNillableOptBool(b *bool) *UserCreate {
 	if b != nil {
 		uc.SetOptBool(*b)
+	}
+	return uc
+}
+
+// SetBigInt sets the "big_int" field.
+func (uc *UserCreate) SetBigInt(si schema.BigInt) *UserCreate {
+	uc.mutation.SetBigInt(si)
+	return uc
+}
+
+// SetNillableBigInt sets the "big_int" field if the given value is not nil.
+func (uc *UserCreate) SetNillableBigInt(si *schema.BigInt) *UserCreate {
+	if si != nil {
+		uc.SetBigInt(*si)
 	}
 	return uc
 }
@@ -397,6 +412,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldOptBool,
 		})
 		_node.OptBool = value
+	}
+	if value, ok := uc.mutation.BigInt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBigInt,
+		})
+		_node.BigInt = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

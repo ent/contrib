@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
@@ -56,6 +57,24 @@ type CategoryWhereInput struct {
 	TextHasSuffix    *string  `json:"textHasSuffix,omitempty"`
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
+
+	// "status" field predicates.
+	Status      *category.Status  `json:"status,omitempty"`
+	StatusNEQ   *category.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []category.Status `json:"statusIn,omitempty"`
+	StatusNotIn []category.Status `json:"statusNotIn,omitempty"`
+
+	// "config" field predicates.
+	Config       *schematype.CategoryConfig   `json:"config,omitempty"`
+	ConfigNEQ    *schematype.CategoryConfig   `json:"configNEQ,omitempty"`
+	ConfigIn     []*schematype.CategoryConfig `json:"configIn,omitempty"`
+	ConfigNotIn  []*schematype.CategoryConfig `json:"configNotIn,omitempty"`
+	ConfigGT     *schematype.CategoryConfig   `json:"configGT,omitempty"`
+	ConfigGTE    *schematype.CategoryConfig   `json:"configGTE,omitempty"`
+	ConfigLT     *schematype.CategoryConfig   `json:"configLT,omitempty"`
+	ConfigLTE    *schematype.CategoryConfig   `json:"configLTE,omitempty"`
+	ConfigIsNil  bool                         `json:"configIsNil,omitempty"`
+	ConfigNotNil bool                         `json:"configNotNil,omitempty"`
 
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
@@ -183,6 +202,48 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, category.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.Status != nil {
+		predicates = append(predicates, category.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, category.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, category.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, category.StatusNotIn(i.StatusNotIn...))
+	}
+	if i.Config != nil {
+		predicates = append(predicates, category.ConfigEQ(i.Config))
+	}
+	if i.ConfigNEQ != nil {
+		predicates = append(predicates, category.ConfigNEQ(i.ConfigNEQ))
+	}
+	if len(i.ConfigIn) > 0 {
+		predicates = append(predicates, category.ConfigIn(i.ConfigIn...))
+	}
+	if len(i.ConfigNotIn) > 0 {
+		predicates = append(predicates, category.ConfigNotIn(i.ConfigNotIn...))
+	}
+	if i.ConfigGT != nil {
+		predicates = append(predicates, category.ConfigGT(i.ConfigGT))
+	}
+	if i.ConfigGTE != nil {
+		predicates = append(predicates, category.ConfigGTE(i.ConfigGTE))
+	}
+	if i.ConfigLT != nil {
+		predicates = append(predicates, category.ConfigLT(i.ConfigLT))
+	}
+	if i.ConfigLTE != nil {
+		predicates = append(predicates, category.ConfigLTE(i.ConfigLTE))
+	}
+	if i.ConfigIsNil {
+		predicates = append(predicates, category.ConfigIsNil())
+	}
+	if i.ConfigNotNil {
+		predicates = append(predicates, category.ConfigNotNil())
 	}
 
 	if i.HasTodos != nil {

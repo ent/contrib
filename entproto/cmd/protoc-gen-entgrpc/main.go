@@ -191,12 +191,12 @@ func (g *serviceGenerator) generateToProtoFunc() error {
 		varName := camel(fld.EntField.StructField())
 		g.Tmpl(`
 		%(toProto)
-		v.%(pbStructField) = %(varName)`, tmplValues{
+		v.%(pbStructField) = %(varName)`, g.withGlobals(tmplValues{
 			"pbStructField": fld.PbStructField(),
 			"varName":       varName,
 			"toProto":       g.renderToProto(conv, varName, "e."+fld.EntField.StructField()),
 			"conv":          conv,
-		})
+		}))
 	}
 
 	for _, edg := range g.fieldMap.Edges() {

@@ -55,3 +55,80 @@ func TestFilterNodes(t *testing.T) {
 		},
 	}, nodes)
 }
+
+func TestFilterEdges(t *testing.T) {
+	edges, err := filterEdges([]*gen.Edge{
+		{
+			Name: "Edge1",
+			Type: &gen.Type{},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{},
+			},
+		},
+		{
+			Name: "Edge2",
+			Type: &gen.Type{},
+		},
+		{
+			Name: "SkippedEdge",
+			Type: &gen.Type{},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{"Skip": true},
+			},
+		},
+		{
+			Name: "SkippedEdgeType",
+			Type: &gen.Type{
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{"Skip": true},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, []*gen.Edge{
+		{
+			Name: "Edge1",
+			Type: &gen.Type{},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{},
+			},
+		},
+		{
+			Name: "Edge2",
+			Type: &gen.Type{},
+		},
+	}, edges)
+}
+
+func TestFilterFields(t *testing.T) {
+	fields, err := filterFields([]*gen.Field{
+		{
+			Name: "Field1",
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{},
+			},
+		},
+		{
+			Name: "Field2",
+		},
+		{
+			Name: "SkippedField",
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{"Skip": true},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, []*gen.Field{
+		{
+			Name: "Field1",
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{},
+			},
+		},
+		{
+			Name: "Field2",
+		},
+	}, fields)
+}

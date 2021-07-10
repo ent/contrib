@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -46,6 +47,7 @@ type Todo struct {
 	Edges          TodoEdges `json:"edges"`
 	category_todos *int
 	todo_children  *int
+	todo_secret    *int
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -56,9 +58,11 @@ type TodoEdges struct {
 	Children []*Todo `json:"children,omitempty"`
 	// Category holds the value of the category edge.
 	Category *Category `json:"category,omitempty"`
+	// Secret holds the value of the secret edge.
+	Secret *VerySecret `json:"secret,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -98,6 +102,20 @@ func (e TodoEdges) CategoryOrErr() (*Category, error) {
 	return nil, &NotLoadedError{edge: "category"}
 }
 
+// SecretOrErr returns the Secret value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TodoEdges) SecretOrErr() (*VerySecret, error) {
+	if e.loadedTypes[3] {
+		if e.Secret == nil {
+			// The edge secret was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: verysecret.Label}
+		}
+		return e.Secret, nil
+	}
+	return nil, &NotLoadedError{edge: "secret"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -114,6 +132,8 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 		case todo.ForeignKeys[0]: // category_todos
 			values[i] = new(sql.NullInt64)
 		case todo.ForeignKeys[1]: // todo_children
+			values[i] = new(sql.NullInt64)
+		case todo.ForeignKeys[2]: // todo_secret
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
@@ -180,6 +200,13 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				t.todo_children = new(int)
 				*t.todo_children = int(value.Int64)
 			}
+		case todo.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field todo_secret", value)
+			} else if value.Valid {
+				t.todo_secret = new(int)
+				*t.todo_secret = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -198,6 +225,11 @@ func (t *Todo) QueryChildren() *TodoQuery {
 // QueryCategory queries the "category" edge of the Todo entity.
 func (t *Todo) QueryCategory() *CategoryQuery {
 	return (&TodoClient{config: t.config}).QueryCategory(t)
+}
+
+// QuerySecret queries the "secret" edge of the Todo entity.
+func (t *Todo) QuerySecret() *VerySecretQuery {
+	return (&TodoClient{config: t.config}).QuerySecret(t)
 }
 
 // Update returns a builder for updating this Todo.

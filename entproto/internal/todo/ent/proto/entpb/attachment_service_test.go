@@ -40,6 +40,7 @@ func TestAttachmentService_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	get, err := svc.Get(ctx, &GetAttachmentRequest{Id: id})
+	require.NoError(t, err)
 	require.EqualValues(t, get.Id, id)
 	respStatus, ok := status.FromError(err)
 	require.True(t, ok, "expected a gRPC status error")

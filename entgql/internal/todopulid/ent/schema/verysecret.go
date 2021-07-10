@@ -28,7 +28,7 @@ type VerySecret struct {
 // Mixin returns todo mixed-in schema.
 func (VerySecret) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		// "TD" declared once.
+		// "VR" declared once.
 		pulid.MixinWithPrefix("VR"),
 		// Reuse the fields and edges from base example.
 		schema.VerySecret{},

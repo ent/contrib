@@ -18,7 +18,7 @@ in the LICENSE file in the root directory of this source tree.
 {{- range $n := filterNodes $.Nodes }}
     {{ $comparableFields := list }}
     {{ $comparableFields = append $comparableFields $n.ID }}
-    {{ range $f := $n.Fields }}
+    {{ range $f := filterFields $n.Fields }}
         {{ if $f.Type.Comparable }}
             {{ $comparableFields = append $comparableFields $f }}
         {{ end }}
@@ -34,25 +34,33 @@ in the LICENSE file in the root directory of this source tree.
             // "{{ $f.Name }}" field predicates.
             {{- range $op := $f.Ops }}
                 {{- $field := print $f.StructField $op.Name }}
-                {{- $fieldJSON := print $f.Name "_" $op.Name }}
+                {{- $jsonTag := print $f.Name "_" $op.Name }}
                 {{- /* We name the field filter "<Field>EQ()" as "<Field>()", because it's cleaner (e.g. "name_eq" -> "name") */}}
                 {{- if eq $op.Name "EQ" }}
                     {{- $field = $f.StructField }}
-                    {{- $fieldJSON = $f.Name }}
+                    {{- $jsonTag = $f.Name }}
                 {{- end }}
-                {{ $field }} {{ if $op.Niladic }}bool{{ else }}{{ if $op.Variadic }}[]{{ else }}*{{ end }}{{ $f.Type }}{{ end }} `json:"{{ camel $fieldJSON }},omitempty"`
+                {{- $type := $f.Type }}
+                {{- if $op.Niladic }}
+                    {{- $type = "bool" }}
+                {{- else if $op.Variadic }}
+                    {{- $type = print "[]" $type }}
+                {{- else if not $f.Type.RType.IsPtr }}
+                    {{- $type = print "*" $type }}
+                {{- end }}
+                {{ $field }} {{ $type }} `json:"{{ camel $jsonTag }},omitempty"`
             {{- end }}
         {{- end }}
 
-        {{ range $e := $n.Edges }}
+        {{ range $e := filterEdges $n.Edges }}
 
             // "{{ $e.Name }}" edge predicates.
-            {{- $func := print "Has" $e.StructField }}
-            {{- $funcJSON := print "has_" $e.Name }}
-            {{ $func }} *bool `json:"{{ camel $funcJSON }},omitempty"`
-            {{- $func = print $func "With" }}
-            {{- $funcJSON := print $funcJSON "_with" }}
-            {{ $func }} []*{{ print $e.Type.Name "WhereInput" }} `json:"{{ camel $funcJSON }},omitempty"`
+            {{- $field := print "Has" $e.StructField }}
+            {{- $jsonTag := print "has_" $e.Name }}
+            {{ $field }} *bool `json:"{{ camel $jsonTag }},omitempty"`
+            {{- $field = print $field "With" }}
+            {{- $jsonTag = print $jsonTag "_with" }}
+            {{ $field }} []*{{ print $e.Type.Name "WhereInput" }} `json:"{{ camel $jsonTag }},omitempty"`
         {{- end }}
     }
 
@@ -134,13 +142,13 @@ in the LICENSE file in the root directory of this source tree.
                         }
                     {{- else }}
                         if i.{{ $field }} != nil {
-                            predicates = append(predicates, {{ $n.Package }}.{{ $func }}(*i.{{ $field }}))
+                            predicates = append(predicates, {{ $n.Package }}.{{ $func }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}i.{{ $field }}))
                         }
                     {{- end }}
                 {{- end }}
             {{- end }}
         {{- end }}
-        {{ range $e := $n.Edges }}
+        {{ range $e := filterEdges $n.Edges }}
             {{- $func := print "Has" $e.StructField }}
             if i.{{ $func }} != nil {
                 p := {{ $n.Package }}.{{ $func }}()

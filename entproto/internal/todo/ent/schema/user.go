@@ -15,6 +15,12 @@
 package schema
 
 import (
+	"database/sql"
+	"database/sql/driver"
+	"fmt"
+	"math/big"
+	"strings"
+
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
@@ -81,6 +87,14 @@ func (User) Fields() []ent.Field {
 		field.Bool("opt_bool").
 			Optional().
 			Annotations(entproto.Field(15)),
+		field.Int("big_int").
+			Optional().
+			GoType(BigInt{}).
+			Annotations(entproto.Field(
+				17,
+				entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
+				entproto.TypeName("google.protobuf.StringValue"),
+			)),
 	}
 }
 
@@ -100,4 +114,40 @@ func (User) Edges() []ent.Edge {
 			Ref("recipients").
 			Annotations(entproto.Field(16)),
 	}
+}
+
+type BigInt struct {
+	*big.Int
+}
+
+func NewBigInt(i int64) BigInt {
+	return BigInt{Int: big.NewInt(i)}
+}
+
+func (b *BigInt) Scan(src interface{}) error {
+	var i sql.NullString
+	if err := i.Scan(src); err != nil {
+		return err
+	}
+	if !i.Valid {
+		return nil
+	}
+	if b.Int == nil {
+		b.Int = big.NewInt(0)
+	}
+	// Value came in a floating point format.
+	if strings.ContainsAny(i.String, ".+e") {
+		f := big.NewFloat(0)
+		if _, err := fmt.Sscan(i.String, f); err != nil {
+			return err
+		}
+		b.Int, _ = f.Int(b.Int)
+	} else if _, err := fmt.Sscan(i.String, b.Int); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (b BigInt) Value() (driver.Value, error) {
+	return b.String(), nil
 }

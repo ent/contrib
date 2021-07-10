@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
@@ -38,6 +39,18 @@ type CategoryCreate struct {
 // SetText sets the "text" field.
 func (cc *CategoryCreate) SetText(s string) *CategoryCreate {
 	cc.mutation.SetText(s)
+	return cc
+}
+
+// SetStatus sets the "status" field.
+func (cc *CategoryCreate) SetStatus(c category.Status) *CategoryCreate {
+	cc.mutation.SetStatus(c)
+	return cc
+}
+
+// SetConfig sets the "config" field.
+func (cc *CategoryCreate) SetConfig(sc *schematype.CategoryConfig) *CategoryCreate {
+	cc.mutation.SetConfig(sc)
 	return cc
 }
 
@@ -141,6 +154,14 @@ func (cc *CategoryCreate) check() error {
 			return &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
+	if _, ok := cc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+	}
+	if v, ok := cc.mutation.Status(); ok {
+		if err := category.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -177,6 +198,22 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldText,
 		})
 		_node.Text = value
+	}
+	if value, ok := cc.mutation.Status(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: category.FieldStatus,
+		})
+		_node.Status = value
+	}
+	if value, ok := cc.mutation.Config(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeOther,
+			Value:  value,
+			Column: category.FieldConfig,
+		})
+		_node.Config = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

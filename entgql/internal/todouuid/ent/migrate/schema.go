@@ -26,6 +26,8 @@ var (
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ENABLED", "DISABLED"}},
+		{Name: "config", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"sqlite3": "json"}},
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{
@@ -43,6 +45,7 @@ var (
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
 		{Name: "category_todos", Type: field.TypeUUID, Nullable: true},
 		{Name: "todo_children", Type: field.TypeUUID, Nullable: true},
+		{Name: "todo_secret", Type: field.TypeUUID, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{
@@ -60,6 +63,12 @@ var (
 				Symbol:     "todos_todos_children",
 				Columns:    []*schema.Column{TodosColumns[7]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "todos_very_secrets_secret",
+				Columns:    []*schema.Column{TodosColumns[8]},
+				RefColumns: []*schema.Column{VerySecretsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -86,4 +95,5 @@ var (
 func init() {
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = TodosTable
+	TodosTable.ForeignKeys[2].RefTable = VerySecretsTable
 }

@@ -12,15 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runtime
+// Package schematype provides custom types for ent/schema.
+package schematype
 
 import (
-	"time"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"database/sql/driver"
+	"encoding/json"
 )
 
-// ExtractTime returns the time.Time from a proto WKT Timestamp
-func ExtractTime(t *timestamppb.Timestamp) time.Time {
-	return t.AsTime()
+// CategoryConfig implements the field.ValueScanner interface.
+type CategoryConfig struct {
+	MaxMembers int `json:"maxMembers,omitempty"`
+}
+
+func (t *CategoryConfig) Scan(v interface{}) (err error) {
+	switch v := v.(type) {
+	case string:
+		err = json.Unmarshal([]byte(v), t)
+	case []byte:
+		err = json.Unmarshal(v, t)
+	}
+	return
+}
+
+func (t *CategoryConfig) Value() (driver.Value, error) {
+	return json.Marshal(t)
 }

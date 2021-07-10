@@ -60,7 +60,9 @@ var (
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"filterNodes": filterNodes,
+		"filterNodes":  filterNodes,
+		"filterEdges":  filterEdges,
+		"filterFields": filterFields,
 	}
 )
 
@@ -89,4 +91,47 @@ func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 		filteredNodes = append(filteredNodes, n)
 	}
 	return filteredNodes, nil
+}
+
+func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
+	var filteredEdges []*gen.Edge
+	for _, e := range edges {
+		ant := &Annotation{}
+		if e.Annotations != nil && e.Annotations[ant.Name()] != nil {
+			if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
+				return nil, err
+			}
+			if ant.Skip {
+				continue
+			}
+		}
+		// Check if type is skipped
+		if e.Type.Annotations != nil && e.Type.Annotations[ant.Name()] != nil {
+			if err := ant.Decode(e.Type.Annotations[ant.Name()]); err != nil {
+				return nil, err
+			}
+			if ant.Skip {
+				continue
+			}
+		}
+		filteredEdges = append(filteredEdges, e)
+	}
+	return filteredEdges, nil
+}
+
+func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
+	var filteredFields []*gen.Field
+	for _, f := range fields {
+		ant := &Annotation{}
+		if f.Annotations != nil && f.Annotations[ant.Name()] != nil {
+			if err := ant.Decode(f.Annotations[ant.Name()]); err != nil {
+				return nil, err
+			}
+			if ant.Skip {
+				continue
+			}
+		}
+		filteredFields = append(filteredFields, f)
+	}
+	return filteredFields, nil
 }
