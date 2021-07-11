@@ -251,7 +251,7 @@ func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
 			return gt, nil
 		}
 	}
-	return nil, fmt.Errorf("entproto: type %q of Service %q not found in graph", typeName, s.GoName)
+	return nil, fmt.Errorf("entproto: type %q of service %q not found in graph", typeName, s.GoName)
 }
 
 func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {
