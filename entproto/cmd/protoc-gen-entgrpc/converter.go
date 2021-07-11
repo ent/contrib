@@ -63,8 +63,8 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		method := fmt.Sprintf("toProto%s_%s", g.entType.Name, enumName)
-		out.toProtoConstructor = g.file.GoImportPath.Ident(method)
+		method := fmt.Sprintf("toProto%s_%s", g.EntType.Name, enumName)
+		out.toProtoConstructor = g.File.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
 			if err := basicTypeConversion(fld.EdgeIDPbStructFieldDesc(), fld.EntEdge.Type.ID, out); err != nil {
@@ -108,8 +108,8 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime")
 	case efld.IsEnum():
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		method := fmt.Sprintf("toEnt%s_%s", g.entType.Name, enumName)
-		out.toEntConstructor = g.file.GoImportPath.Ident(method)
+		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
+		out.toEntConstructor = g.File.GoImportPath.Ident(method)
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}

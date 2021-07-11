@@ -1,0 +1,23 @@
+{{ define "enums" }}
+    {{- $root := . -}}
+    {{ range .FieldMap.Enums }}
+        {{- $enumType := .PbFieldDescriptor.GetEnumType -}}
+        {{- $enumName := print $root.EntType.Name "_" $enumType.GetName -}}
+        {{- $pbEnumIdent := $root.File.GoImportPath.Ident $enumName   -}}
+        {{- $entLcase := snake $root.EntType.Name -}}
+        {{- $entEnumIdent := entIdent $entLcase .PbStructField -}}
+        func toProto{{ $pbEnumIdent.GoName }} (e {{ $entEnumIdent | ident }}) {{ $pbEnumIdent | ident }} {
+            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper"}}(string(e))]; ok {
+                return {{ $pbEnumIdent | ident }}(v)
+            }
+            return {{ $pbEnumIdent | ident }}(0)
+        }
+
+        func toEnt{{ $pbEnumIdent.GoName }}(e {{$pbEnumIdent | ident}}) {{ $entEnumIdent | ident }} {
+            if v, ok := {{ $pbEnumIdent.GoName }}_name[int32(e)]; ok {
+                return {{ $entEnumIdent | ident }}({{ qualify "strings" "ToLower" }}(v))
+            }
+            return ""
+        }
+    {{ end}}
+{{ end }}

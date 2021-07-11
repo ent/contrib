@@ -28,7 +28,7 @@ var (
 )
 
 func (g *serviceGenerator) generateGetMethod(methodName string) error {
-	idField := g.fieldMap.ID()
+	idField := g.FieldMap.ID()
 	convert, err := g.newConverter(idField)
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 		"varName":     idField.EntField.Name,
 		"extract":     g.renderToEnt(convert, idField.EntField.Name, fmt.Sprintf("req.Get%s()", idField.PbStructField())),
 		"methodName":  methodName,
-		"idPredicate": protogen.GoImportPath(string(g.entPackage) + "/" + g.entType.Package()).Ident("ID"),
+		"idPredicate": protogen.GoImportPath(string(g.EntPackage) + "/" + g.EntType.Package()).Ident("ID"),
 	})
 	g.Tmpl(`var (
 		err error
@@ -52,14 +52,14 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 			get, err = svc.client.%(typeName).Query().
 				Where(%(idPredicate)(%(varName))).
 `, vars)
-	for _, edg := range g.fieldMap.Edges() {
+	for _, edg := range g.FieldMap.Edges() {
 		et := edg.EntEdge.Type
 		g.Tmpl(`With%(edgeName)(func(query *ent.%(otherType)Query) {
 	query.Select(%(fieldID))
 }).`, g.withGlobals(tmplValues{
 			"edgeName":  edg.PbStructField(),
 			"otherType": et.Name,
-			"fieldID":   protogen.GoImportPath(string(g.entPackage) + "/" + et.Package()).Ident(et.ID.Constant()),
+			"fieldID":   protogen.GoImportPath(string(g.EntPackage) + "/" + et.Package()).Ident(et.ID.Constant()),
 		}))
 	}
 	g.Tmpl(`
@@ -80,7 +80,7 @@ func (g *serviceGenerator) generateGetMethod(methodName string) error {
 }
 
 func (g *serviceGenerator) generateDeleteMethod() error {
-	idField := g.fieldMap.ID()
+	idField := g.FieldMap.ID()
 	convert, err := g.newConverter(idField)
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func (g *serviceGenerator) generateCreateMethod() error {
 }
 
 func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
-	reqVar := camel(g.entType.Name)
+	reqVar := camel(g.EntType.Name)
 	g.Tmpl("%(reqVar) := req.Get%(typeName)()", g.withGlobals(tmplValues{
 		"reqVar": reqVar,
 	}))
@@ -122,7 +122,7 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 	case ent.OpCreate:
 		g.Tmpl("m := svc.client.%(typeName).Create()", g.withGlobals())
 	case ent.OpUpdateOne:
-		idField := g.fieldMap.ID()
+		idField := g.FieldMap.ID()
 		varName := camel(reqVar + "_" + idField.EntField.Name)
 		convert, err := g.newConverter(idField)
 		if err != nil {
@@ -136,7 +136,7 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 		}))
 	}
 
-	for _, fld := range g.fieldMap.Fields() {
+	for _, fld := range g.FieldMap.Fields() {
 		if fld.IsIDField || (op.Is(ent.OpUpdateOne) && fld.EntField.Immutable) {
 			continue
 		}
@@ -162,7 +162,7 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 			g.P("}")
 		}
 	}
-	for _, edg := range g.fieldMap.Edges() {
+	for _, edg := range g.FieldMap.Edges() {
 		convert, err := g.newConverter(edg)
 		if err != nil {
 			return err
@@ -214,14 +214,14 @@ func (g *serviceGenerator) generateMutationMethod(op ent.Op) error {
 func (g *serviceGenerator) withGlobals(additionals ...tmplValues) tmplValues {
 	m := tmplValues{
 		"uniqConstraintErr": protogen.GoImportPath("entgo.io/ent/dialect/sql/sqlgraph").Ident("IsUniqueConstraintError"),
-		"constraintErr":     g.entPackage.Ident("IsConstraintError"),
-		"isNotFound":        g.entPackage.Ident("IsNotFound"),
+		"constraintErr":     g.EntPackage.Ident("IsConstraintError"),
+		"isNotFound":        g.EntPackage.Ident("IsNotFound"),
 		"statusErrf":        status.Ident("Errorf"),
 		"alreadyExists":     codes.Ident("AlreadyExists"),
 		"invalidArgument":   codes.Ident("InvalidArgument"),
 		"notFound":          codes.Ident("NotFound"),
 		"internal":          codes.Ident("Internal"),
-		"typeName":          g.entType.Name,
+		"typeName":          g.EntType.Name,
 		"newError":          protogen.GoImportPath("errors").Ident("New"),
 	}
 	for _, additional := range additionals {
