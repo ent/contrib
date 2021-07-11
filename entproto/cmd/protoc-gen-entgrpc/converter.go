@@ -41,13 +41,13 @@ type converter struct {
 	toEntConversion              string
 	toEntScannerConversion       string
 	toEntConstructor             protogen.GoIdent
-	toEntMarshallerConstructor   protogen.GoIdent
+	ToEntMarshallerConstructor   protogen.GoIdent
 	toEntScannerConstructor      protogen.GoIdent
 	toEntModifier                string
-	toProtoConversion            string
-	toProtoConstructor           protogen.GoIdent
+	ToProtoConversion            string
+	ToProtoConstructor           protogen.GoIdent
 	toProtoMarshallerConstructor protogen.GoIdent
-	toProtoValuer                string
+	ToProtoValuer                string
 }
 
 func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*converter, error) {
@@ -64,7 +64,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toProto%s_%s", g.EntType.Name, enumName)
-		out.toProtoConstructor = g.File.GoImportPath.Ident(method)
+		out.ToProtoConstructor = g.File.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
 			if err := basicTypeConversion(fld.EdgeIDPbStructFieldDesc(), fld.EntEdge.Type.ID, out); err != nil {
@@ -86,7 +86,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		// Ident returned from ent already has the packagename prefixed. Strip it since `g.QualifiedGoIdent`
 		// adds it back.
 		split := strings.Split(efld.Type.Ident, ".")
-		out.toEntMarshallerConstructor = protogen.GoImportPath(efld.Type.PkgPath).Ident(split[1])
+		out.ToEntMarshallerConstructor = protogen.GoImportPath(efld.Type.PkgPath).Ident(split[1])
 	case efld.Type.ValueScanner():
 		switch {
 		case efld.HasGoType():
@@ -121,11 +121,11 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 	switch md.GetType() {
 	case dpb.FieldDescriptorProto_TYPE_BOOL:
 		if entField.Type.Valuer() {
-			conv.toProtoValuer = "bool"
+			conv.ToProtoValuer = "bool"
 		}
 	case dpb.FieldDescriptorProto_TYPE_STRING:
 		if entField.Type.Valuer() {
-			conv.toProtoValuer = "string"
+			conv.ToProtoValuer = "string"
 		}
 	case dpb.FieldDescriptorProto_TYPE_BYTES:
 		if implements(entField.Type.RType, binaryMarshallerUnmarshallerType) {
@@ -134,25 +134,25 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 			split := strings.Split(entField.Type.Ident, ".")
 			conv.toProtoMarshallerConstructor = protogen.GoImportPath(entField.Type.PkgPath).Ident(split[1])
 		} else if entField.Type.Valuer() {
-			conv.toProtoValuer = "[]byte"
+			conv.ToProtoValuer = "[]byte"
 		}
 	case dpb.FieldDescriptorProto_TYPE_INT32:
 		if entField.Type.String() != "int32" {
-			conv.toProtoConversion = "int32"
+			conv.ToProtoConversion = "int32"
 		}
 	case dpb.FieldDescriptorProto_TYPE_INT64:
 		if entField.Type.Valuer() {
-			conv.toProtoValuer = "int64"
+			conv.ToProtoValuer = "int64"
 		} else if entField.Type.String() != "int64" {
-			conv.toProtoConversion = "int64"
+			conv.ToProtoConversion = "int64"
 		}
 	case dpb.FieldDescriptorProto_TYPE_UINT32:
 		if entField.Type.String() != "uint32" {
-			conv.toProtoConversion = "uint32"
+			conv.ToProtoConversion = "uint32"
 		}
 	case dpb.FieldDescriptorProto_TYPE_UINT64:
 		if entField.Type.String() != "uint64" {
-			conv.toProtoConversion = "uint64"
+			conv.ToProtoConversion = "uint64"
 		}
 	}
 	return nil
@@ -161,72 +161,24 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 func convertPbMessageType(md *desc.MessageDescriptor, entField *gen.Field, conv *converter) error {
 	switch {
 	case md.GetFullyQualifiedName() == "google.protobuf.Timestamp":
-		conv.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
+		conv.ToProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
 	case isWrapperType(md):
 		fqn := md.GetFullyQualifiedName()
 		typ := strings.Split(fqn, ".")[2]
 		constructor := strings.TrimSuffix(typ, "Value")
-		conv.toProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/wrapperspb").Ident(constructor)
+		conv.ToProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/wrapperspb").Ident(constructor)
 
 		goType := wrapperPrimitives[fqn]
 		if entField.Type.Valuer() {
-			conv.toProtoValuer = goType
+			conv.ToProtoValuer = goType
 		} else if entField.Type.String() != goType {
-			conv.toProtoConversion = goType
+			conv.ToProtoConversion = goType
 		}
 		conv.toEntModifier = ".GetValue()"
 	default:
 		return fmt.Errorf("entproto: no mapping for pb field type %q", md.GetFullyQualifiedName())
 	}
 	return nil
-}
-
-func (g *serviceGenerator) renderToProto(conv *converter, varName, ident string) string {
-	// If we are going to cast to a GoType, wrap it first. i.e. int64(entMember)
-	if conv.toProtoConversion != "" {
-		ident = fmt.Sprintf("%s(%s)", conv.toProtoConversion, ident)
-	}
-
-	switch {
-	case conv.toEntMarshallerConstructor.GoName != "":
-		return fmt.Sprintf(`%s, err := %s.MarshalBinary()
-		if err != nil {
-			return nil, err
-		}
-		`, varName, ident)
-	case conv.toProtoValuer != "" && conv.toProtoConstructor.GoName != "":
-		// Returns logic to extract a valuers value, cast it to the appropriate go type, and pass it to the proto constructor.
-		return fmt.Sprintf(`%sValue, err := %s.Value()
-		if err != nil {
-			return nil, err
-		}
-
-		%sTyped, ok := %sValue.(%s)
-		if !ok {
-			return nil, %s("casting value to %s")
-		}
-
-		%s := %s(%sTyped)
-		`, varName, ident, varName, varName, conv.toProtoValuer, "%(newError)", conv.toProtoValuer, varName, g.QualifiedGoIdent(conv.toProtoConstructor), varName)
-	case conv.toProtoValuer != "":
-		// Returns logic to extract a valuers value and cast it to the appropriate go type
-		return fmt.Sprintf(`%sValue, err := %s.Value()
-		if err != nil {
-			return nil, err
-		}
-
-		%s, ok := %sValue.(%s)
-		if !ok {
-			return nil, %s("casting value to %s")
-		}
-		`, varName, ident, varName, varName, conv.toProtoValuer, "%(newError)", conv.toProtoValuer)
-	case conv.toProtoConstructor.GoName != "":
-		// Returns: varName := ProtcoConstructor(entMember)
-		return fmt.Sprintf("%s := %s(%s)", varName, g.QualifiedGoIdent(conv.toProtoConstructor), ident)
-	default:
-		// Returns: varName := entMember
-		return fmt.Sprintf("%s := %s", varName, ident)
-	}
 }
 
 func (g *serviceGenerator) renderToEnt(conv *converter, varName, ident string) string {
@@ -236,12 +188,12 @@ func (g *serviceGenerator) renderToEnt(conv *converter, varName, ident string) s
 	}
 
 	switch {
-	case conv.toEntMarshallerConstructor.GoName != "":
+	case conv.ToEntMarshallerConstructor.GoName != "":
 		return fmt.Sprintf(`var %s %s
 		if err := (&%s).UnmarshalBinary(%s); err != nil {
 			return nil, %s
 		}
-		`, varName, g.QualifiedGoIdent(conv.toEntMarshallerConstructor), varName, ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
+		`, varName, g.QualifiedGoIdent(conv.ToEntMarshallerConstructor), varName, ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
 	case conv.toEntScannerConstructor.GoName != "":
 		// Returns: varName, err := EntConstructor(protoMember) with error handler
 		return fmt.Sprintf(`%s := %s{}

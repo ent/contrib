@@ -1,0 +1,78 @@
+{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.serviceGenerator*/ -}}
+{{ define "to_proto_func" }}
+    // toProto{{ .EntType.Name }} transforms the ent type to the pb type
+    func toProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
+        v := &{{ .EntType.Name }}{}
+        {{ range .FieldMap.Fields }}
+            {{ $varName := camel .EntField.StructField }}
+            {{ $id := print "e." .EntField.StructField }}
+            {{ template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
+            v.{{ .PbStructField }} = {{ $varName }}
+        {{ end }}
+        {{ range .FieldMap.Edges }}
+            {{ $varName := camel .EntEdge.Type.ID.StructField }}
+            {{ $id := print "edg." .EntEdge.Type.ID.StructField }}
+            {{ $name := .EntEdge.StructField}}
+            {{ if .EntEdge.Unique }}
+                if edg := e.Edges.{{ $name }}; edg != nil {
+                    {{ template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
+                    v.{{ $name }} = &{{ .EntEdge.Type.Name }}{
+                        {{ .EdgeIDPbStructField }}: {{ $varName }},
+                    }
+                }
+            {{ else }}
+                for _, edg := range e.Edges.{{ $name }} {
+                    {{ template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
+                    v.{{ $name }} = append(v.{{ $name }}, &{{ .EntEdge.Type.Name }}{
+                        {{ .EdgeIDPbStructField }}: {{ $varName }},
+                    })
+                }
+            {{ end }}
+        {{ end }}
+        return v, nil
+    }
+{{ end }}
+
+{{ define "field_to_proto" }}
+    {{ $id := .Ident }} 
+    {{ $conv := newConverter .Field }}
+    
+    {{ if $conv.ToProtoConversion }}
+        {{ $id = print $conv.ToProtoConversion "(" $id ")" }}
+    {{ end }}
+    {{ if $conv.ToEntMarshallerConstructor.GoName }}
+        {{ .VarName }}, err := {{ $id }}.MarshalBinary()
+        if err != nil {
+            return nil, err
+        }
+    {{ else if and $conv.ToProtoValuer $conv.ToProtoConstructor.GoName }}
+        {{ .VarName }}Value, err := {{$id}}.Value()
+        if err != nil {
+            return nil, err
+        }
+        {{ .VarName }}Typed, ok := {{ .VarName }}Value.({{ $conv.ToProtoValuer }})
+        if !ok {
+            return nil, {{ qualify "errors" "New" }}("casting value to {{ $conv.ToProtoValuer }}")
+        }
+        {{ .VarName}} := {{ ident $conv.ToProtoConstructor }}({{ .VarName}}Typed)
+    {{ else if $conv.ToProtoValuer }}
+        {{ .VarName }}Value, err := {{ $id }}.Value()
+        if err != nil {
+            return nil, err
+        }
+        {{ .VarName }}, ok := {{ .VarName }}Value.({{ $conv.ToProtoValuer }})
+        if !ok {
+            return nil, {{ qualify "errors" "New" }}("casting value to {{ $conv.ToProtoValuer }}")
+        }
+    {{ else if $conv.ToProtoConstructor.GoName}}
+        {{ .VarName }} := {{ ident $conv.ToProtoConstructor }}({{ $id }})
+    {{ else }}
+        {{ .VarName }} := {{ $id }}
+    {{ end }}
+{{ end }}
+
+{{ define "edge_to_proto "}}
+{{ end }}
+
+{{ define "to_proto_conversion "}}
+{{ end }}
