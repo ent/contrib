@@ -104,9 +104,7 @@ func (g *serviceGenerator) generate() error {
 	tmpl := template.New("").
 		Funcs(gen.Funcs).
 		Funcs(template.FuncMap{
-			"ident": func(ident protogen.GoIdent) string {
-				return g.QualifiedGoIdent(ident)
-			},
+			"ident":    g.QualifiedGoIdent,
 			"entIdent": g.entIdent,
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
@@ -206,6 +204,12 @@ func (g *serviceGenerator) Tmpl(s string, values tmplValues) {
 	}
 }
 
+//go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
+var templates = [][]byte{
+	internal.MustAsset("template/service.tmpl"),
+	internal.MustAsset("template/enums.tmpl"),
+}
+
 func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
 	g.Tmpl(`
 	// %(name) implements %(svcName)Server.%(name)
@@ -258,10 +262,3 @@ func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIde
 	ip := path.Join(string(g.EntPackage), subpath)
 	return protogen.GoImportPath(ip).Ident(ident)
 }
-
-var (
-	templates = [][]byte{
-		internal.MustAsset("template/service.tmpl"),
-		internal.MustAsset("template/enums.tmpl"),
-	}
-)

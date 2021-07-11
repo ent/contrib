@@ -6,16 +6,16 @@
         {{- $pbEnumIdent := $root.File.GoImportPath.Ident $enumName   -}}
         {{- $entLcase := snake $root.EntType.Name -}}
         {{- $entEnumIdent := entIdent $entLcase .PbStructField -}}
-        func toProto{{ $pbEnumIdent.GoName }} (e {{ $entEnumIdent | ident }}) {{ $pbEnumIdent | ident }} {
+        func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
             if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper"}}(string(e))]; ok {
                 return {{ $pbEnumIdent | ident }}(v)
             }
             return {{ $pbEnumIdent | ident }}(0)
         }
 
-        func toEnt{{ $pbEnumIdent.GoName }}(e {{$pbEnumIdent | ident}}) {{ $entEnumIdent | ident }} {
+        func toEnt{{ $pbEnumIdent.GoName }}(e {{ ident $pbEnumIdent }}) {{ ident $entEnumIdent  }} {
             if v, ok := {{ $pbEnumIdent.GoName }}_name[int32(e)]; ok {
-                return {{ $entEnumIdent | ident }}({{ qualify "strings" "ToLower" }}(v))
+                return {{ ident $entEnumIdent }}({{ qualify "strings" "ToLower" }}(v))
             }
             return ""
         }
