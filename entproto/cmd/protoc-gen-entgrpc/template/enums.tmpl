@@ -7,7 +7,7 @@
         {{- $entLcase := snake $root.EntType.Name -}}
         {{- $entEnumIdent := entIdent $entLcase .PbStructField -}}
         func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
-            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper"}}(string(e))]; ok {
+            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}(string(e))]; ok {
                 return {{ $pbEnumIdent | ident }}(v)
             }
             return {{ $pbEnumIdent | ident }}(0)
