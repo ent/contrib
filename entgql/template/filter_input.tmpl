@@ -1,0 +1,68 @@
+
+{{ define "filter_input" }}
+
+{{- /*gotype: entgo.io/ent/entc/gen.Graph*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{- with extend $ "Package" $pkg }}
+        {{ template "header" . }}
+{{- end }}
+
+{{ template "import" $ }}
+
+{{ $gqlNodes := filterNodes $.Nodes }}
+
+import (
+    "context"
+
+	{{- range $n := $gqlNodes }}
+		"{{ $.Config.Package }}/{{ $n.Package }}"
+	{{- end }}
+)
+
+{{- range $n := filterNodes $.Nodes }}
+    {{ $receiver := $n.Receiver }}
+    func ({{ $receiver }} *{{ $n.QueryName }}) Filter(
+        ctx context.Context, first *int, last *int,
+        orderBy *{{ $n.Name }}Order, where *{{ $n.Name }}WhereInput,
+    ) ([]*{{ $n.Name }}, error) {
+        if err := validateFirstLast(first, last); err != nil {
+            return nil, err
+        }
+        if err := orderBy.Direction.Validate(); err != nil {
+            return nil, err
+        }
+        if orderBy.Field == nil {
+            orderBy.Field = Default{{ $n.Name }}Order.Field
+        }
+
+        {{ $receiver }}, err := where.Filter({{ $receiver }})
+        if err != nil {
+            return nil, err
+        }
+
+        // If getting last then reverse the direction
+        if last != nil {
+            orderBy.Direction = orderBy.Direction.reverse()
+        }
+        {{ $receiver }} = {{ $receiver }}.Order(orderBy.Direction.orderFunc(orderBy.Field.field))
+        // If a custom order was given, also apply the default order
+        if orderBy.Field != Default{{ $n.Name }}Order.Field {
+            {{ $receiver }} = {{ $receiver }}.Order(orderBy.Direction.orderFunc(Default{{ $n.Name }}Order.Field.field))
+        }
+
+        var limit int
+        if first != nil {
+            limit = *first + 1
+        } else if last != nil {
+            limit = *last + 1
+        }
+        if limit > 0 {
+            {{ $receiver }} = {{ $receiver }}.Limit(limit)
+        }
+
+        return {{ $receiver }}.All(ctx)
+    }
+{{- end }}
+
+{{ end }}
