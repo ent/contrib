@@ -29,27 +29,21 @@ func NewAttachmentService(client *ent.Client) *AttachmentService {
 // toProtoAttachment transforms the ent type to the pb type
 func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	v := &Attachment{}
-
 	id, err := e.ID.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
-
 	v.Id = id
 
 	for _, edg := range e.Edges.Recipients {
-
 		id := int32(edg.ID)
-
 		v.Recipients = append(v.Recipients, &User{
 			Id: id,
 		})
 	}
 
 	if edg := e.Edges.User; edg != nil {
-
 		id := int32(edg.ID)
-
 		v.User = &User{
 			Id: id,
 		}
