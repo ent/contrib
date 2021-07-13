@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -107,8 +108,25 @@ func (g *serviceGenerator) generate() error {
 			"ident":        g.QualifiedGoIdent,
 			"entIdent":     g.entIdent,
 			"newConverter": g.newConverter,
+			"unquote":      strconv.Unquote,
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
+			},
+			"statusErr": func(code, msg string) string {
+				msg = strconv.Quote(msg)
+				return fmt.Sprintf("%s(%s, %s)",
+					g.QualifiedGoIdent(status.Ident("Error")),
+					g.QualifiedGoIdent(codes.Ident(code)),
+					msg,
+				)
+			},
+			"statusErrf": func(code, format string, args ...string) string {
+				return fmt.Sprintf("%s(%s, %s, %s)",
+					g.QualifiedGoIdent(status.Ident("Errorf")),
+					g.QualifiedGoIdent(codes.Ident(code)),
+					strconv.Quote(format),
+					strings.Join(args, ","),
+				)
 			},
 		})
 	for _, t := range templates {
@@ -120,11 +138,11 @@ func (g *serviceGenerator) generate() error {
 		return err
 	}
 	g.P()
-	for _, method := range g.Service.Methods {
-		if err := g.generateMethod(method); err != nil {
-			return err
-		}
-	}
+	//for _, method := range g.Service.Methods {
+	//	if err := g.generateMethod(method); err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }
 
@@ -148,6 +166,7 @@ var templates = [][]byte{
 	internal.MustAsset("template/service.tmpl"),
 	internal.MustAsset("template/enums.tmpl"),
 	internal.MustAsset("template/to_proto.tmpl"),
+	internal.MustAsset("template/to_ent.tmpl"),
 }
 
 func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
