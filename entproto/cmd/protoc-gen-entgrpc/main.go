@@ -104,8 +104,9 @@ func (g *serviceGenerator) generate() error {
 	tmpl := template.New("").
 		Funcs(gen.Funcs).
 		Funcs(template.FuncMap{
-			"ident":    g.QualifiedGoIdent,
-			"entIdent": g.entIdent,
+			"ident":        g.QualifiedGoIdent,
+			"entIdent":     g.entIdent,
+			"newConverter": g.newConverter,
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
 			},
@@ -118,74 +119,12 @@ func (g *serviceGenerator) generate() error {
 	if err := tmpl.Execute(g, g); err != nil {
 		return err
 	}
-	if err := g.generateToProtoFunc(); err != nil {
-		return err
-	}
 	g.P()
 	for _, method := range g.Service.Methods {
 		if err := g.generateMethod(method); err != nil {
 			return err
 		}
 	}
-	return nil
-}
-
-func (g *serviceGenerator) generateToProtoFunc() error {
-	// Mapper from the ent type to the proto type.
-	g.Tmpl(`
-	// toProto%(typeName) transforms the ent type to the pb type
-	func toProto%(typeName)(e *%(entTypeIdent)) (*%(typeName), error) {
-		v := &%(typeName){}`, tmplValues{
-		"typeName":     g.EntType.Name,
-		"entTypeIdent": g.EntPackage.Ident(g.EntType.Name),
-	})
-	for _, fld := range g.FieldMap.Fields() {
-		conv, err := g.newConverter(fld)
-		if err != nil {
-			return err
-		}
-		varName := camel(fld.EntField.StructField())
-		g.Tmpl(`
-		%(toProto)
-		v.%(pbStructField) = %(varName)`, g.withGlobals(tmplValues{
-			"pbStructField": fld.PbStructField(),
-			"varName":       varName,
-			"toProto":       g.renderToProto(conv, varName, "e."+fld.EntField.StructField()),
-			"conv":          conv,
-		}))
-	}
-
-	for _, edg := range g.FieldMap.Edges() {
-		conv, err := g.newConverter(edg)
-		if err != nil {
-			return err
-		}
-		tmpl := `for _, edg := range e.Edges.%(edgeName) {
-					%(converted)
-					v.%(edgeName) = append(v.%(edgeName), &%(refType){
-						%(pbIdField): %(varName),					
-					})
-				 }`
-		if edg.EntEdge.Unique {
-			tmpl = `if edg := e.Edges.%(edgeName); edg != nil {
-						%(converted)
-						v.%(edgeName) = &%(refType){
-							%(pbIdField): %(varName),
-						}
-					}`
-		}
-		varName := camel(edg.EntEdge.Type.ID.StructField())
-		g.Tmpl(tmpl, g.withGlobals(tmplValues{
-			"edgeName":   edg.EntEdge.StructField(),
-			"refType":    edg.EntEdge.Type.Name,
-			"pbIdField":  edg.EdgeIDPbStructField(),
-			"entIdField": edg.EntEdge.Type.ID.StructField(),
-			"varName":    varName,
-			"converted":  g.renderToProto(conv, varName, "edg."+edg.EntEdge.Type.ID.StructField()),
-		}))
-	}
-	g.P("  return v, nil")
-	g.P("}")
 	return nil
 }
 
@@ -208,6 +147,7 @@ func (g *serviceGenerator) Tmpl(s string, values tmplValues) {
 var templates = [][]byte{
 	internal.MustAsset("template/service.tmpl"),
 	internal.MustAsset("template/enums.tmpl"),
+	internal.MustAsset("template/to_proto.tmpl"),
 }
 
 func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
