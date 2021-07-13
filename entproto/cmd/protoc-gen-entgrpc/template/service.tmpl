@@ -26,14 +26,14 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
     {{- $methodName := .GoName -}}
     {{- $inputName := .Input.GoIdent.GoName -}}
 
-    // {{ .GoName }} implements {{ $.Service.GoName }}Server{{ .GoName }}
+    // {{ .GoName }} implements {{ $.Service.GoName }}Server.{{ .GoName }}
     func (svc *{{ $.Service.GoName }}) {{ .GoName }}(ctx {{ qualify "context" "Context" }}, req *{{ ident .Input.GoIdent }}) (*{{ ident .Output.GoIdent }}, error) {
-        {{ if eq $methodName "Get" }}
+        {{- if eq $methodName "Get" }}
             var (
                 err error
                 get *{{ $.EntPackage.Ident $.EntType.Name | ident }}
             )
-            {{ template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
+            {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
             switch req.GetView() {
                 case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
                     get, err = svc.client.{{ $.EntType.Name }}.Get(ctx, {{ $varName }})
@@ -60,9 +60,9 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
                     return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
             }
             return nil, nil
-        {{ else if eq $methodName "Delete" }}
+        {{- else if eq $methodName "Delete" }}
             var err error
-            {{ template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
+            {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
             err = svc.client.{{ $.EntType.Name }}.DeleteOneID({{ $varName }}).Exec(ctx)
             switch {
                 case err == nil:
@@ -72,48 +72,48 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
                 default:
                     return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
             }
-        {{ else if or (eq $methodName "Create") (eq $methodName "Update") }}
+        {{- else if or (eq $methodName "Create") (eq $methodName "Update") }}
             {{- $reqVar := camel $.EntType.Name -}}
             {{ $reqVar }} := req.Get{{ $.EntType.Name }}()
-            {{ if eq $methodName "Create" }}
+            {{- if eq $methodName "Create" }}
                 m := svc.client.{{ $.EntType.Name }}.Create()
-            {{ else }}
+            {{- else }}
                 {{- $varName := camel (print $reqVar "_" $idField.EntField.Name) -}}
                 {{- $id := print $reqVar ".Get" $idField.PbStructField "() " -}}
-                {{ template "field_to_ent" dict "Field" $idField "VarName" $varName "Ident" $id }}
+                {{- template "field_to_ent" dict "Field" $idField "VarName" $varName "Ident" $id }}
                 m := svc.client.{{ $.EntType.Name }}.UpdateOneID({{ $varName }})
-            {{ end }}
-            {{ range $.FieldMap.Fields }}
+            {{- end }}
+            {{- range $.FieldMap.Fields }}
                 {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
                 {{- $skip := or .IsIDField $skipImmutable -}}
-                {{ if not $skip }}
+                {{- if not $skip }}
                     {{- $varName := camel (print $reqVar  "_"  .EntField.Name) -}}
                     {{- $id := print $reqVar ".Get" .PbStructField "() " -}}
-                    {{ if .EntField.Optional }}
+                    {{- if .EntField.Optional }}
                         if {{ $id }} != nil {
-                    {{ end }}
-                    {{ template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                    {{- end }}
+                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
                     m.Set{{ .EntField.StructField }}({{ $varName }})
-                    {{ if .EntField.Optional }}
+                    {{- if .EntField.Optional }}
                         }
-                    {{ end }}
-                {{ end }}
-            {{ end }}
-            {{ range $.FieldMap.Edges }}
-                {{ if .EntEdge.Unique }}
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+            {{- range $.FieldMap.Edges }}
+                {{- if .EntEdge.Unique }}
                     {{- $varName := camel (print $reqVar  "_"  .EntEdge.Name) -}}
                     {{- $id := print $reqVar ".Get" .PbStructField "().Get" .EdgeIDPbStructField "()" -}}
-                    {{ template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
                     m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
-                {{ else }}
+                {{- else }}
                     for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
                         {{- $varName  := camel .EntEdge.StructField }}
                         {{- $id := print "item.Get" .EdgeIDPbStructField "()"}}
-                        {{ template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                        {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
                         m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
                     }
-                {{ end }}
-            {{ end }}
+                {{- end }}
+            {{- end }}
             res, err := m.Save(ctx)
             switch {
                 case err == nil:
@@ -129,6 +129,6 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
                 default:
                     return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
             }
-        {{ end }}
+        {{- end }}
     }
 {{ end }}

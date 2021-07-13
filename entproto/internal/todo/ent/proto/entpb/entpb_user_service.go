@@ -89,7 +89,6 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Status = status
 	username := e.UserName
 	v.UserName = username
-
 	if edg := e.Edges.Attachment; edg != nil {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -99,14 +98,12 @@ func toProtoUser(e *ent.User) (*User, error) {
 			Id: id,
 		}
 	}
-
 	if edg := e.Edges.Group; edg != nil {
 		id := int32(edg.ID)
 		v.Group = &Group{
 			Id: id,
 		}
 	}
-
 	for _, edg := range e.Edges.Received {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -116,86 +113,60 @@ func toProtoUser(e *ent.User) (*User, error) {
 			Id: id,
 		})
 	}
-
 	return v, nil
 }
 
-// Create implements UserServiceServerCreate
+// Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-
 	m := svc.client.User.Create()
-
 	userBanned := user.GetBanned()
 	m.SetBanned(userBanned)
-
 	if user.GetBigInt() != nil {
-
 		userBigInt := schema.BigInt{}
 		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
 		m.SetBigInt(userBigInt)
-
 	}
-
 	var userCrmID uuid.UUID
 	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m.SetCrmID(userCrmID)
-
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
-
 	userExp := uint64(user.GetExp())
 	m.SetExp(userExp)
-
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
-
 	userJoined := runtime.ExtractTime(user.GetJoined())
 	m.SetJoined(userJoined)
-
 	if user.GetOptBool() != nil {
-
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)
-
 	}
-
 	if user.GetOptNum() != nil {
-
 		userOptNum := int(user.GetOptNum().GetValue())
 		m.SetOptNum(userOptNum)
-
 	}
-
 	if user.GetOptStr() != nil {
-
 		userOptStr := user.GetOptStr().GetValue()
 		m.SetOptStr(userOptStr)
-
 	}
-
 	userPoints := uint(user.GetPoints())
 	m.SetPoints(userPoints)
-
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
-
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
-
 	var userAttachment uuid.UUID
 	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m.SetAttachmentID(userAttachment)
-
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
-
 	for _, item := range user.GetReceived() {
 		var received uuid.UUID
 		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
@@ -203,7 +174,6 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		}
 		m.AddReceivedIDs(received)
 	}
-
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -219,12 +189,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
 
-// Get implements UserServiceServerGet
+// Get implements UserServiceServer.Get
 func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, error) {
-
 	var (
 		err error
 		get *ent.User
@@ -259,82 +227,58 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 	return nil, nil
-
 }
 
-// Update implements UserServiceServerUpdate
+// Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
 	userID := int(user.GetId())
 	m := svc.client.User.UpdateOneID(userID)
-
 	userBanned := user.GetBanned()
 	m.SetBanned(userBanned)
-
 	if user.GetBigInt() != nil {
-
 		userBigInt := schema.BigInt{}
 		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
 		m.SetBigInt(userBigInt)
-
 	}
-
 	var userCrmID uuid.UUID
 	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m.SetCrmID(userCrmID)
-
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
-
 	userExp := uint64(user.GetExp())
 	m.SetExp(userExp)
-
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
-
 	if user.GetOptBool() != nil {
-
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)
-
 	}
-
 	if user.GetOptNum() != nil {
-
 		userOptNum := int(user.GetOptNum().GetValue())
 		m.SetOptNum(userOptNum)
-
 	}
-
 	if user.GetOptStr() != nil {
-
 		userOptStr := user.GetOptStr().GetValue()
 		m.SetOptStr(userOptStr)
-
 	}
-
 	userPoints := uint(user.GetPoints())
 	m.SetPoints(userPoints)
-
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
-
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
-
 	var userAttachment uuid.UUID
 	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m.SetAttachmentID(userAttachment)
-
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
-
 	for _, item := range user.GetReceived() {
 		var received uuid.UUID
 		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
@@ -342,7 +286,6 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		}
 		m.AddReceivedIDs(received)
 	}
-
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -358,12 +301,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
 
-// Delete implements UserServiceServerDelete
+// Delete implements UserServiceServer.Delete
 func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
-
 	var err error
 	id := int(req.GetId())
 	err = svc.client.User.DeleteOneID(id).Exec(ctx)
@@ -375,5 +316,4 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }

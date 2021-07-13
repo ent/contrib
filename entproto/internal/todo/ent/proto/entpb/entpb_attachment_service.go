@@ -34,38 +34,31 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 		return nil, err
 	}
 	v.Id = id
-
 	for _, edg := range e.Edges.Recipients {
 		id := int32(edg.ID)
 		v.Recipients = append(v.Recipients, &User{
 			Id: id,
 		})
 	}
-
 	if edg := e.Edges.User; edg != nil {
 		id := int32(edg.ID)
 		v.User = &User{
 			Id: id,
 		}
 	}
-
 	return v, nil
 }
 
-// Create implements AttachmentServiceServerCreate
+// Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-
 	m := svc.client.Attachment.Create()
-
 	for _, item := range attachment.GetRecipients() {
 		recipients := int(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
-
 	attachmentUser := int(attachment.GetUser().GetId())
 	m.SetUserID(attachmentUser)
-
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -81,12 +74,10 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
 
-// Get implements AttachmentServiceServerGet
+// Get implements AttachmentServiceServer.Get
 func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest) (*Attachment, error) {
-
 	var (
 		err error
 		get *ent.Attachment
@@ -121,10 +112,9 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 	return nil, nil
-
 }
 
-// Update implements AttachmentServiceServerUpdate
+// Update implements AttachmentServiceServer.Update
 func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
 	var attachmentID uuid.UUID
@@ -132,15 +122,12 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m := svc.client.Attachment.UpdateOneID(attachmentID)
-
 	for _, item := range attachment.GetRecipients() {
 		recipients := int(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
-
 	attachmentUser := int(attachment.GetUser().GetId())
 	m.SetUserID(attachmentUser)
-
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -156,12 +143,10 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
 
-// Delete implements AttachmentServiceServerDelete
+// Delete implements AttachmentServiceServer.Delete
 func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentRequest) (*emptypb.Empty, error) {
-
 	var err error
 	var id uuid.UUID
 	if err := (&id).UnmarshalBinary(req.GetId()); err != nil {
@@ -176,5 +161,4 @@ func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-
 }
