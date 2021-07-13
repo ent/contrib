@@ -32,7 +32,6 @@ import (
 var (
 	entSchemaPath *string
 	snake         = gen.Funcs["snake"].(func(string) string)
-	contextImp    = protogen.GoImportPath("context")
 	status        = protogen.GoImportPath("google.golang.org/grpc/status")
 	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
 )
@@ -179,4 +178,9 @@ func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
 func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {
 	ip := path.Join(string(g.EntPackage), subpath)
 	return protogen.GoImportPath(ip).Ident(ident)
+}
+
+type methodInput struct {
+	G      *serviceGenerator
+	Method *protogen.Method
 }

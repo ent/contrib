@@ -181,38 +181,6 @@ func convertPbMessageType(md *desc.MessageDescriptor, entField *gen.Field, conv 
 	return nil
 }
 
-func (g *serviceGenerator) renderToEnt(conv *converter, varName, ident string) string {
-	// Attach a modifer to ident (i.e. .GetValue())
-	if conv.ToEntModifier != "" {
-		ident += conv.ToEntModifier
-	}
-
-	switch {
-	case conv.ToEntMarshallerConstructor.GoName != "":
-		return fmt.Sprintf(`var %s %s
-		if err := (&%s).UnmarshalBinary(%s); err != nil {
-			return nil, %s
-		}
-		`, varName, g.QualifiedGoIdent(conv.ToEntMarshallerConstructor), varName, ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
-	case conv.ToEntScannerConstructor.GoName != "":
-		// Returns: varName, err := EntConstructor(protoMember) with error handler
-		return fmt.Sprintf(`%s := %s{}
-		if err := (&%s).Scan(%s); err != nil {
-			return nil, %s
-		}
-		`, varName, g.QualifiedGoIdent(conv.ToEntScannerConstructor), varName, ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
-	case conv.ToEntConstructor.GoName != "":
-		// Returns: varName := EntConstructor(protoMember)
-		return fmt.Sprintf("%s := %s(%s)", varName, g.QualifiedGoIdent(conv.ToEntConstructor), ident)
-	case conv.ToEntConversion != "":
-		// Returns: varName := EntConversion(protoMember)
-		return fmt.Sprintf("%s := %s(%s)", varName, conv.ToEntConversion, ident)
-	default:
-		// Returns: varName := protoMember
-		return fmt.Sprintf("%s := %s", varName, ident)
-	}
-}
-
 func isWrapperType(md *desc.MessageDescriptor) bool {
 	_, ok := wrapperPrimitives[md.GetFullyQualifiedName()]
 	return ok
