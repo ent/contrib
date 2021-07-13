@@ -52,7 +52,6 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
 	banned := e.Banned
 	v.Banned = banned
-
 	bigintValue, err := e.BigInt.Value()
 	if err != nil {
 		return nil, err
@@ -63,46 +62,33 @@ func toProtoUser(e *ent.User) (*User, error) {
 	}
 	bigint := wrapperspb.String(bigintTyped)
 	v.BigInt = bigint
-
 	crmid, err := e.CrmID.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
 	v.CrmId = crmid
-
 	custompb := uint64(e.CustomPb)
 	v.CustomPb = custompb
-
 	exp := e.Exp
 	v.Exp = exp
-
 	externalid := int32(e.ExternalID)
 	v.ExternalId = externalid
-
 	id := int32(e.ID)
 	v.Id = id
-
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
-
 	optbool := wrapperspb.Bool(e.OptBool)
 	v.OptBool = optbool
-
 	optnum := wrapperspb.Int32(int32(e.OptNum))
 	v.OptNum = optnum
-
 	optstr := wrapperspb.String(e.OptStr)
 	v.OptStr = optstr
-
 	points := uint32(e.Points)
 	v.Points = points
-
 	status := toProtoUser_Status(e.Status)
 	v.Status = status
-
 	username := e.UserName
 	v.UserName = username
-
 	if edg := e.Edges.Attachment; edg != nil {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -112,14 +98,12 @@ func toProtoUser(e *ent.User) (*User, error) {
 			Id: id,
 		}
 	}
-
 	if edg := e.Edges.Group; edg != nil {
 		id := int32(edg.ID)
 		v.Group = &Group{
 			Id: id,
 		}
 	}
-
 	for _, edg := range e.Edges.Received {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -129,7 +113,6 @@ func toProtoUser(e *ent.User) (*User, error) {
 			Id: id,
 		})
 	}
-
 	return v, nil
 }
 

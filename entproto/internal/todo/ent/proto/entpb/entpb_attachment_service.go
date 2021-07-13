@@ -34,21 +34,18 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 		return nil, err
 	}
 	v.Id = id
-
 	for _, edg := range e.Edges.Recipients {
 		id := int32(edg.ID)
 		v.Recipients = append(v.Recipients, &User{
 			Id: id,
 		})
 	}
-
 	if edg := e.Edges.User; edg != nil {
 		id := int32(edg.ID)
 		v.User = &User{
 			Id: id,
 		}
 	}
-
 	return v, nil
 }
 
