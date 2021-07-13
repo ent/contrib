@@ -1,0 +1,64 @@
+{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
+{{ define "method_mutate" }}
+    {{- $ := .G -}}
+    {{- $idField := $.FieldMap.ID -}}
+    {{- $varName := $idField.EntField.Name -}}
+    {{- $inputName := .Method.Input.GoIdent.GoName -}}
+    {{- $methodName := .Method.GoName -}}
+    {{- $reqVar := camel $.EntType.Name -}}
+    {{ $reqVar }} := req.Get{{ $.EntType.Name }}()
+    {{- if eq .Method.GoName "Create" }}
+        m := svc.client.{{ $.EntType.Name }}.Create()
+    {{- else }}
+        {{- $varName := camel (print $reqVar "_" $idField.EntField.Name) -}}
+        {{- $id := print $reqVar ".Get" $idField.PbStructField "() " -}}
+        {{- template "field_to_ent" dict "Field" $idField "VarName" $varName "Ident" $id }}
+        m := svc.client.{{ $.EntType.Name }}.UpdateOneID({{ $varName }})
+    {{- end }}
+    {{- range $.FieldMap.Fields }}
+        {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
+        {{- $skip := or .IsIDField $skipImmutable -}}
+        {{- if not $skip }}
+            {{- $varName := camel (print $reqVar  "_"  .EntField.Name) -}}
+            {{- $id := print $reqVar ".Get" .PbStructField "() " -}}
+            {{- if .EntField.Optional }}
+                if {{ $id }} != nil {
+            {{- end }}
+            {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+            m.Set{{ .EntField.StructField }}({{ $varName }})
+            {{- if .EntField.Optional }}
+                }
+            {{- end }}
+        {{- end }}
+    {{- end }}
+    {{- range $.FieldMap.Edges }}
+        {{- if .EntEdge.Unique }}
+            {{- $varName := camel (print $reqVar  "_"  .EntEdge.Name) -}}
+            {{- $id := print $reqVar ".Get" .PbStructField "().Get" .EdgeIDPbStructField "()" -}}
+            {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+            m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
+        {{- else }}
+            for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
+                {{- $varName  := camel .EntEdge.StructField }}
+                {{- $id := print "item.Get" .EdgeIDPbStructField "()"}}
+                {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
+            }
+        {{- end }}
+    {{- end }}
+    res, err := m.Save(ctx)
+    switch {
+        case err == nil:
+            proto, err := toProto{{ $.EntType.Name }}(res)
+            if err != nil {
+                return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+            }
+            return proto, nil
+        case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
+            return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}
+        case {{ $.EntPackage.Ident "IsConstraintError" | ident }}(err):
+            return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err"}}
+        default:
+            return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
+    }
+{{ end }}

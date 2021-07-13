@@ -74,6 +74,7 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Get implements AttachmentServiceServer.Get
@@ -107,11 +108,11 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 		return toProtoAttachment(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
-
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 	return nil, nil
+
 }
 
 // Update implements AttachmentServiceServer.Update
@@ -143,6 +144,7 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Delete implements AttachmentServiceServer.Delete
@@ -161,4 +163,5 @@ func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }

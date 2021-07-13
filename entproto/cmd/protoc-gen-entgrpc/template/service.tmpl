@@ -29,106 +29,11 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
     // {{ .GoName }} implements {{ $.Service.GoName }}Server.{{ .GoName }}
     func (svc *{{ $.Service.GoName }}) {{ .GoName }}(ctx {{ qualify "context" "Context" }}, req *{{ ident .Input.GoIdent }}) (*{{ ident .Output.GoIdent }}, error) {
         {{- if eq $methodName "Get" }}
-            var (
-                err error
-                get *{{ $.EntPackage.Ident $.EntType.Name | ident }}
-            )
-            {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
-            switch req.GetView() {
-                case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
-                    get, err = svc.client.{{ $.EntType.Name }}.Get(ctx, {{ $varName }})
-                case {{ $inputName }}_WITH_EDGE_IDS:
-                    get, err = svc.client.{{ $.EntType.Name }}.Query().
-                        Where({{ qualify (print (unquote $.EntPackage.String) "/" $.EntType.Package) "ID" }}({{ $varName }})).
-                        {{ range $.FieldMap.Edges }}
-                            {{- $et := .EntEdge.Type -}}
-                            With{{ .EntEdge.StructField }}(func(query *ent.{{ $et.Name }}Query) {
-                                query.Select({{  qualify (print (unquote $.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
-                            }).
-                        {{ end }}
-                        Only(ctx)
-                default:
-                    return nil, {{ statusErr "InvalidArgument" "invalid argument: unknown view"}}
-            }
-            switch {
-                case err == nil:
-                    return toProto{{ $.EntType.Name }}(get)
-                case {{ $.EntPackage.Ident "IsNotFound" | ident }}(err):
-                    return nil, {{ statusErrf "NotFound" "not found: %s" "err" }}
-
-                default:
-                    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
-            }
-            return nil, nil
+            {{ template "method_get" (method .) }}
         {{- else if eq $methodName "Delete" }}
-            var err error
-            {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
-            err = svc.client.{{ $.EntType.Name }}.DeleteOneID({{ $varName }}).Exec(ctx)
-            switch {
-                case err == nil:
-                    return &{{ qualify "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
-                case {{ $.EntPackage.Ident "IsNotFound" | ident }}(err):
-                    return nil, {{ statusErrf "NotFound" "not found: %s" "err"}}
-                default:
-                    return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
-            }
+            {{ template "method_delete" (method .) }}
         {{- else if or (eq $methodName "Create") (eq $methodName "Update") }}
-            {{- $reqVar := camel $.EntType.Name -}}
-            {{ $reqVar }} := req.Get{{ $.EntType.Name }}()
-            {{- if eq $methodName "Create" }}
-                m := svc.client.{{ $.EntType.Name }}.Create()
-            {{- else }}
-                {{- $varName := camel (print $reqVar "_" $idField.EntField.Name) -}}
-                {{- $id := print $reqVar ".Get" $idField.PbStructField "() " -}}
-                {{- template "field_to_ent" dict "Field" $idField "VarName" $varName "Ident" $id }}
-                m := svc.client.{{ $.EntType.Name }}.UpdateOneID({{ $varName }})
-            {{- end }}
-            {{- range $.FieldMap.Fields }}
-                {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
-                {{- $skip := or .IsIDField $skipImmutable -}}
-                {{- if not $skip }}
-                    {{- $varName := camel (print $reqVar  "_"  .EntField.Name) -}}
-                    {{- $id := print $reqVar ".Get" .PbStructField "() " -}}
-                    {{- if .EntField.Optional }}
-                        if {{ $id }} != nil {
-                    {{- end }}
-                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                    m.Set{{ .EntField.StructField }}({{ $varName }})
-                    {{- if .EntField.Optional }}
-                        }
-                    {{- end }}
-                {{- end }}
-            {{- end }}
-            {{- range $.FieldMap.Edges }}
-                {{- if .EntEdge.Unique }}
-                    {{- $varName := camel (print $reqVar  "_"  .EntEdge.Name) -}}
-                    {{- $id := print $reqVar ".Get" .PbStructField "().Get" .EdgeIDPbStructField "()" -}}
-                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                    m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
-                {{- else }}
-                    for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
-                        {{- $varName  := camel .EntEdge.StructField }}
-                        {{- $id := print "item.Get" .EdgeIDPbStructField "()"}}
-                        {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                        m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
-                    }
-                {{- end }}
-            {{- end }}
-            res, err := m.Save(ctx)
-            switch {
-                case err == nil:
-                    proto, err := toProto{{ $.EntType.Name }}(res)
-                    if err != nil {
-                        return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
-                    }
-                    return proto, nil
-                case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
-                    return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}
-                case {{ $.EntPackage.Ident "IsConstraintError" | ident }}(err):
-                    return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err"}}
-                default:
-                    return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
-            }
+            {{ template "method_mutate" (method .) }}
         {{- end }}
     }
 {{ end }}

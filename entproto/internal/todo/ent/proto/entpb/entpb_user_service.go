@@ -189,6 +189,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Get implements UserServiceServer.Get
@@ -222,11 +223,11 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 		return toProtoUser(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
-
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 	return nil, nil
+
 }
 
 // Update implements UserServiceServer.Update
@@ -301,6 +302,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Delete implements UserServiceServer.Delete
@@ -316,4 +318,5 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }

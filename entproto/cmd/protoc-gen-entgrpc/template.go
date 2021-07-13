@@ -15,60 +15,10 @@
 package main
 
 import (
-	"fmt"
-	"regexp"
-
-	"github.com/hashicorp/go-multierror"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// match tokens like %(hello) in a string
-var templateTokens = regexp.MustCompile(`(%\(.+?\))`)
-
-// printTemplate is a utility function to make working with protogen have a more declarative interface.
-// It receives a *protogen.GeneratedFile, a template string with placeholder formatted like "%(variableName)"
-// and a tmplValues map containing the values that should be replaced when the template is rendered.
-//
-// Instead of:
-//	g.P("func New", svcName, "(p string) *", protogen.GoImportPath("context").Ident("Context"))
-// We can use
-//	printTemplate(g, "func New%(svcName)(p string) *%(ctx)", tmplValues{
-//		"svcName": "UserService",
-//		"ctx": protogen.GoImportPath("context").Ident("Context"),
-//	})
-func printTemplate(g *protogen.GeneratedFile, tmpl string, values tmplValues) error {
-	var errors error
-	out := templateTokens.ReplaceAllStringFunc(tmpl, func(s string) string {
-		val, err := values.retrieve(s)
-		if err != nil {
-			errors = multierror.Append(errors, err)
-		}
-		switch p := val.(type) {
-		case protogen.GoIdent:
-			return g.QualifiedGoIdent(p) // The P(..) magic for Go identifiers.
-		default:
-			return fmt.Sprint(p)
-		}
-	})
-	if errors != nil {
-		return errors
-	}
-
-	// Recursively apply templating to allow nested templates
-	if templateTokens.MatchString(out) {
-		return printTemplate(g, out, values)
-	}
-
-	g.P(out)
-	return nil
-}
-
-type tmplValues map[string]interface{}
-
-func (t tmplValues) retrieve(token string) (interface{}, error) {
-	k, ok := t[token[2:len(token)-1]] // from %(hello) => hello
-	if !ok {
-		return nil, fmt.Errorf("entproto: could not find token %q in map", token)
-	}
-	return k, nil
+type methodInput struct {
+	G      *serviceGenerator
+	Method *protogen.Method
 }

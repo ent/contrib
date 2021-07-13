@@ -128,6 +128,12 @@ func (g *serviceGenerator) generate() error {
 					strings.Join(args, ","),
 				)
 			},
+			"method": func(m *protogen.Method) *methodInput {
+				return &methodInput{
+					G:      g,
+					Method: m,
+				}
+			},
 		})
 	for _, t := range templates {
 		if _, err := tmpl.Parse(string(t)); err != nil {
@@ -137,12 +143,6 @@ func (g *serviceGenerator) generate() error {
 	if err := tmpl.Execute(g, g); err != nil {
 		return err
 	}
-	g.P()
-	//for _, method := range g.Service.Methods {
-	//	if err := g.generateMethod(method); err != nil {
-	//		return err
-	//	}
-	//}
 	return nil
 }
 
@@ -155,56 +155,15 @@ type serviceGenerator struct {
 	FieldMap   entproto.FieldMap
 }
 
-func (g *serviceGenerator) Tmpl(s string, values tmplValues) {
-	if err := printTemplate(g.GeneratedFile, s, values); err != nil {
-		panic(err)
-	}
-}
-
 //go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
 var templates = [][]byte{
 	internal.MustAsset("template/service.tmpl"),
+	internal.MustAsset("template/method_get.tmpl"),
+	internal.MustAsset("template/method_delete.tmpl"),
+	internal.MustAsset("template/method_mutate.tmpl"),
 	internal.MustAsset("template/enums.tmpl"),
 	internal.MustAsset("template/to_proto.tmpl"),
 	internal.MustAsset("template/to_ent.tmpl"),
-}
-
-func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
-	g.Tmpl(`
-	// %(name) implements %(svcName)Server.%(name)
-	func (svc *%(svcName)) %(name)(ctx %(ctx), req *%(inputIdent)) (*%(outputIdent), error) {`, tmplValues{
-		"name":        me.GoName,
-		"svcName":     g.Service.GoName,
-		"ctx":         contextImp.Ident("Context"),
-		"inputIdent":  me.Input.GoIdent,
-		"outputIdent": me.Output.GoIdent,
-	})
-
-	switch me.GoName {
-	case "Create":
-		if err := g.generateCreateMethod(); err != nil {
-			return err
-		}
-	case "Get":
-		if err := g.generateGetMethod(me.Input.GoIdent.GoName); err != nil {
-			return err
-		}
-	case "Delete":
-		if err := g.generateDeleteMethod(); err != nil {
-			return err
-		}
-	case "Update":
-		if err := g.generateUpdateMethod(); err != nil {
-			return err
-		}
-	default:
-		g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
-			"grpcStatusError": status.Ident("Error"),
-			"notImplemented":  codes.Ident("Unimplemented"),
-		})
-	}
-	g.P("}")
-	return nil
 }
 
 func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
