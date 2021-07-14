@@ -509,9 +509,7 @@ func (e *Extension) addQueryDefinition(queries map[string]*ast.FieldDefinition, 
 	})
 
 	if relaySpec {
-		query.Type = ast.NewList(&ast.List{
-			Type: newASTNamed(node.Name + "Connection"),
-		})
+		query.Type = newASTNamed(node.Name + "Connection")
 		query.Arguments = append(query.Arguments,
 			ast.NewInputValueDefinition(&ast.InputValueDefinition{
 				Name: newASTName("before"),
