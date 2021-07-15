@@ -1,24 +1,23 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_get" }}
-    {{- $g := .G -}}
-    {{- $idField := $g.FieldMap.ID -}}
+    {{- $idField := .G.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
     var (
         err error
-        get *{{ $g.EntPackage.Ident $g.EntType.Name | ident }}
+        get *{{ .G.EntPackage.Ident .G.EntType.Name | ident }}
     )
     {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
     switch req.GetView() {
         case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
-            get, err = svc.client.{{ $g.EntType.Name }}.Get(ctx, {{ $varName }})
+            get, err = svc.client.{{ .G.EntType.Name }}.Get(ctx, {{ $varName }})
         case {{ $inputName }}_WITH_EDGE_IDS:
-            get, err = svc.client.{{ $g.EntType.Name }}.Query().
-            Where({{ qualify (print (unquote $g.EntPackage.String) "/" $g.EntType.Package) "ID" }}({{ $varName }})).
-            {{ range $g.FieldMap.Edges }}
+            get, err = svc.client.{{ .G.EntType.Name }}.Query().
+            Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
+            {{ range .G.FieldMap.Edges }}
                 {{- $et := .EntEdge.Type -}}
                 With{{ .EntEdge.StructField }}(func(query *ent.{{ $et.Name }}Query) {
-                    query.Select({{  qualify (print (unquote $g.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
+                    query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
                 }).
             {{ end }}
             Only(ctx)
@@ -27,8 +26,8 @@
     }
     switch {
         case err == nil:
-            return toProto{{ $g.EntType.Name }}(get)
-        case {{ $g.EntPackage.Ident "IsNotFound" | ident }}(err):
+            return toProto{{ .G.EntType.Name }}(get)
+        case {{ .G.EntPackage.Ident "IsNotFound" | ident }}(err):
             return nil, {{ statusErrf "NotFound" "not found: %s" "err" }}
         default:
             return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
