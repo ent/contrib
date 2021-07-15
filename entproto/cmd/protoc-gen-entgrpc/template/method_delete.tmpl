@@ -1,15 +1,15 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_delete" }}
-    {{- $ := .G -}}
-    {{- $idField := $.FieldMap.ID -}}
+    {{- $g := .G -}}
+    {{- $idField := $g.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
     var err error
     {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
-    err = svc.client.{{ $.EntType.Name }}.DeleteOneID({{ $varName }}).Exec(ctx)
+    err = svc.client.{{ $g.EntType.Name }}.DeleteOneID({{ $varName }}).Exec(ctx)
     switch {
         case err == nil:
             return &{{ qualify "google.golang.org/protobuf/types/known/emptypb" "Empty" }}{}, nil
-        case {{ $.EntPackage.Ident "IsNotFound" | ident }}(err):
+        case {{ $g.EntPackage.Ident "IsNotFound" | ident }}(err):
             return nil, {{ statusErrf "NotFound" "not found: %s" "err"}}
         default:
             return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
