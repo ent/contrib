@@ -48,9 +48,6 @@ var (
 	// WhereTemplate adds a template for generating <T>WhereInput filters for each schema type.
 	WhereTemplate = parse("template/where_input.tmpl")
 
-	// FilterTemplate adds a template for generating a basic filter function for each schema type.
-	FilterTemplate = parse("template/filter_input.tmpl")
-
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,

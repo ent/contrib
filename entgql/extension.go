@@ -141,16 +141,6 @@ func WithTemplates(templates ...*gen.Template) ExtensionOption {
 	}
 }
 
-// WithQueryFilters adds the template to generate a basic Filter function to each
-// query type in the ent schema.
-// This is for GraphQL queries not using pagination/relay
-func WithQueryFilters() ExtensionOption {
-	return func(ex *Extension) error {
-		ex.templates = append(ex.templates, FilterTemplate)
-		return nil
-	}
-}
-
 // WithNaming takes either "snake" or "camel" and sets that as the naming
 // convention when generating the GraphQL schema
 func WithNaming(s string) ExtensionOption {
