@@ -29,6 +29,9 @@ import (
         if err := validateFirstLast(first, last); err != nil {
             return nil, err
         }
+        if orderBy == nil {
+            orderBy = Default{{ $n.Name }}Order
+        }
         if err := orderBy.Direction.Validate(); err != nil {
             return nil, err
         }
