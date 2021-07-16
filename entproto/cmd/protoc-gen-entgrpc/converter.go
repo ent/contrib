@@ -38,12 +38,12 @@ type BinaryMarshallerUnmarshaller interface {
 }
 
 type converter struct {
-	toEntConversion              string
-	toEntScannerConversion       string
-	toEntConstructor             protogen.GoIdent
+	ToEntConversion              string
+	ToEntScannerConversion       string
+	ToEntConstructor             protogen.GoIdent
 	ToEntMarshallerConstructor   protogen.GoIdent
-	toEntScannerConstructor      protogen.GoIdent
-	toEntModifier                string
+	ToEntScannerConstructor      protogen.GoIdent
+	ToEntModifier                string
 	ToProtoConversion            string
 	ToProtoConstructor           protogen.GoIdent
 	toProtoMarshallerConstructor protogen.GoIdent
@@ -93,23 +93,23 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 			// Ident returned from ent already has the packagename prefixed. Strip it since `g.QualifiedGoIdent`
 			// adds it back.
 			split := strings.Split(efld.Type.Ident, ".")
-			out.toEntScannerConstructor = protogen.GoImportPath(efld.Type.PkgPath).Ident(split[1])
+			out.ToEntScannerConstructor = protogen.GoImportPath(efld.Type.PkgPath).Ident(split[1])
 		case efld.IsBool():
-			out.toEntScannerConversion = "bool"
+			out.ToEntScannerConversion = "bool"
 		case efld.IsBytes():
-			out.toEntScannerConversion = "[]byte"
+			out.ToEntScannerConversion = "[]byte"
 		case efld.IsString():
-			out.toEntScannerConversion = "string"
+			out.ToEntScannerConversion = "string"
 		}
 	case efld.IsBool(), efld.IsBytes(), efld.IsString():
 	case efld.Type.Numeric():
-		out.toEntConversion = efld.Type.String()
+		out.ToEntConversion = efld.Type.String()
 	case efld.IsTime():
-		out.toEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime")
+		out.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime")
 	case efld.IsEnum():
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
-		out.toEntConstructor = g.File.GoImportPath.Ident(method)
+		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}
@@ -174,43 +174,11 @@ func convertPbMessageType(md *desc.MessageDescriptor, entField *gen.Field, conv 
 		} else if entField.Type.String() != goType {
 			conv.ToProtoConversion = goType
 		}
-		conv.toEntModifier = ".GetValue()"
+		conv.ToEntModifier = ".GetValue()"
 	default:
 		return fmt.Errorf("entproto: no mapping for pb field type %q", md.GetFullyQualifiedName())
 	}
 	return nil
-}
-
-func (g *serviceGenerator) renderToEnt(conv *converter, varName, ident string) string {
-	// Attach a modifer to ident (i.e. .GetValue())
-	if conv.toEntModifier != "" {
-		ident += conv.toEntModifier
-	}
-
-	switch {
-	case conv.ToEntMarshallerConstructor.GoName != "":
-		return fmt.Sprintf(`var %s %s
-		if err := (&%s).UnmarshalBinary(%s); err != nil {
-			return nil, %s
-		}
-		`, varName, g.QualifiedGoIdent(conv.ToEntMarshallerConstructor), varName, ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
-	case conv.toEntScannerConstructor.GoName != "":
-		// Returns: varName, err := EntConstructor(protoMember) with error handler
-		return fmt.Sprintf(`%s := %s{}
-		if err := (&%s).Scan(%s); err != nil {
-			return nil, %s
-		}
-		`, varName, g.QualifiedGoIdent(conv.toEntScannerConstructor), varName, ident, `%(statusErrf)(%(invalidArgument), "invalid argument: %s", err)`)
-	case conv.toEntConstructor.GoName != "":
-		// Returns: varName := EntConstructor(protoMember)
-		return fmt.Sprintf("%s := %s(%s)", varName, g.QualifiedGoIdent(conv.toEntConstructor), ident)
-	case conv.toEntConversion != "":
-		// Returns: varName := EntConversion(protoMember)
-		return fmt.Sprintf("%s := %s(%s)", varName, conv.toEntConversion, ident)
-	default:
-		// Returns: varName := protoMember
-		return fmt.Sprintf("%s := %s", varName, ident)
-	}
 }
 
 func isWrapperType(md *desc.MessageDescriptor) bool {

@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -31,7 +32,6 @@ import (
 var (
 	entSchemaPath *string
 	snake         = gen.Funcs["snake"].(func(string) string)
-	contextImp    = protogen.GoImportPath("context")
 	status        = protogen.GoImportPath("google.golang.org/grpc/status")
 	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
 )
@@ -107,8 +107,31 @@ func (g *serviceGenerator) generate() error {
 			"ident":        g.QualifiedGoIdent,
 			"entIdent":     g.entIdent,
 			"newConverter": g.newConverter,
+			"unquote":      strconv.Unquote,
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
+			},
+			"statusErr": func(code, msg string) string {
+				msg = strconv.Quote(msg)
+				return fmt.Sprintf("%s(%s, %s)",
+					g.QualifiedGoIdent(status.Ident("Error")),
+					g.QualifiedGoIdent(codes.Ident(code)),
+					msg,
+				)
+			},
+			"statusErrf": func(code, format string, args ...string) string {
+				return fmt.Sprintf("%s(%s, %s, %s)",
+					g.QualifiedGoIdent(status.Ident("Errorf")),
+					g.QualifiedGoIdent(codes.Ident(code)),
+					strconv.Quote(format),
+					strings.Join(args, ","),
+				)
+			},
+			"method": func(m *protogen.Method) *methodInput {
+				return &methodInput{
+					G:      g,
+					Method: m,
+				}
 			},
 		})
 	for _, t := range templates {
@@ -118,12 +141,6 @@ func (g *serviceGenerator) generate() error {
 	}
 	if err := tmpl.Execute(g, g); err != nil {
 		return err
-	}
-	g.P()
-	for _, method := range g.Service.Methods {
-		if err := g.generateMethod(method); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -137,55 +154,15 @@ type serviceGenerator struct {
 	FieldMap   entproto.FieldMap
 }
 
-func (g *serviceGenerator) Tmpl(s string, values tmplValues) {
-	if err := printTemplate(g.GeneratedFile, s, values); err != nil {
-		panic(err)
-	}
-}
-
 //go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
 var templates = [][]byte{
 	internal.MustAsset("template/service.tmpl"),
+	internal.MustAsset("template/method_get.tmpl"),
+	internal.MustAsset("template/method_delete.tmpl"),
+	internal.MustAsset("template/method_mutate.tmpl"),
 	internal.MustAsset("template/enums.tmpl"),
 	internal.MustAsset("template/to_proto.tmpl"),
-}
-
-func (g *serviceGenerator) generateMethod(me *protogen.Method) error {
-	g.Tmpl(`
-	// %(name) implements %(svcName)Server.%(name)
-	func (svc *%(svcName)) %(name)(ctx %(ctx), req *%(inputIdent)) (*%(outputIdent), error) {`, tmplValues{
-		"name":        me.GoName,
-		"svcName":     g.Service.GoName,
-		"ctx":         contextImp.Ident("Context"),
-		"inputIdent":  me.Input.GoIdent,
-		"outputIdent": me.Output.GoIdent,
-	})
-
-	switch me.GoName {
-	case "Create":
-		if err := g.generateCreateMethod(); err != nil {
-			return err
-		}
-	case "Get":
-		if err := g.generateGetMethod(me.Input.GoIdent.GoName); err != nil {
-			return err
-		}
-	case "Delete":
-		if err := g.generateDeleteMethod(); err != nil {
-			return err
-		}
-	case "Update":
-		if err := g.generateUpdateMethod(); err != nil {
-			return err
-		}
-	default:
-		g.Tmpl(`return nil, %(grpcStatusError)(%(notImplemented), "error")`, tmplValues{
-			"grpcStatusError": status.Ident("Error"),
-			"notImplemented":  codes.Ident("Unimplemented"),
-		})
-	}
-	g.P("}")
-	return nil
+	internal.MustAsset("template/to_ent.tmpl"),
 }
 
 func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
@@ -201,4 +178,9 @@ func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
 func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {
 	ip := path.Join(string(g.EntPackage), subpath)
 	return protogen.GoImportPath(ip).Ident(ident)
+}
+
+type methodInput struct {
+	G      *serviceGenerator
+	Method *protogen.Method
 }

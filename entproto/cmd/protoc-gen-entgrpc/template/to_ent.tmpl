@@ -1,0 +1,25 @@
+{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.serviceGenerator*/ -}}
+{{ define "field_to_ent" }}
+    {{- $id := .Ident -}}
+    {{- $conv := newConverter .Field -}}
+    {{- if $conv.ToEntModifier -}}
+        {{- $id = print $id $conv.ToEntModifier -}}
+    {{- end -}}
+    {{- if $conv.ToEntMarshallerConstructor.GoName }}
+        var {{ .VarName }} {{ ident $conv.ToEntMarshallerConstructor}}
+        if err := (&{{ .VarName }}).UnmarshalBinary( {{ $id }}); err != nil {
+            return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err" }}
+        }
+    {{- else if $conv.ToEntScannerConstructor.GoName }}
+        {{ .VarName }} := {{ ident $conv.ToEntScannerConstructor }}{}
+        if err := (&{{ .VarName }}).Scan( {{ $id }} ); err != nil {
+            return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err" }}
+        }
+    {{- else if $conv.ToEntConstructor.GoName }}
+        {{ .VarName }} := {{ ident $conv.ToEntConstructor }}({{ $id }})
+    {{- else if $conv.ToEntConversion }}
+        {{ .VarName }} := {{ $conv.ToEntConversion }}({{ $id }})
+    {{- else }}
+        {{ .VarName }} := {{ $id }}
+    {{- end }}
+{{- end }}

@@ -127,14 +127,12 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
-
 		m.SetBigInt(userBigInt)
 	}
 	var userCrmID uuid.UUID
 	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	m.SetCrmID(userCrmID)
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
@@ -166,7 +164,6 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	m.SetAttachmentID(userAttachment)
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
@@ -175,17 +172,14 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
-
 		m.AddReceivedIDs(received)
 	}
-
 	res, err := m.Save(ctx)
-
 	switch {
 	case err == nil:
 		proto, err := toProtoUser(res)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
@@ -193,8 +187,9 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	case ent.IsConstraintError(err):
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	default:
-		return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Get implements UserServiceServer.Get
@@ -221,7 +216,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 			}).
 			Only(ctx)
 	default:
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+		return nil, status.Error(codes.InvalidArgument, "invalid argument: unknown view")
 	}
 	switch {
 	case err == nil:
@@ -231,6 +226,8 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+	return nil, nil
+
 }
 
 // Update implements UserServiceServer.Update
@@ -245,14 +242,12 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
-
 		m.SetBigInt(userBigInt)
 	}
 	var userCrmID uuid.UUID
 	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	m.SetCrmID(userCrmID)
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
@@ -282,7 +277,6 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	m.SetAttachmentID(userAttachment)
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
@@ -291,17 +285,14 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
-
 		m.AddReceivedIDs(received)
 	}
-
 	res, err := m.Save(ctx)
-
 	switch {
 	case err == nil:
 		proto, err := toProtoUser(res)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
@@ -309,8 +300,9 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	case ent.IsConstraintError(err):
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	default:
-		return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Delete implements UserServiceServer.Delete
@@ -326,4 +318,5 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }

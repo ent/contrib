@@ -57,16 +57,14 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 		recipients := int(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
-
 	attachmentUser := int(attachment.GetUser().GetId())
 	m.SetUserID(attachmentUser)
 	res, err := m.Save(ctx)
-
 	switch {
 	case err == nil:
 		proto, err := toProtoAttachment(res)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
@@ -74,8 +72,9 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 	case ent.IsConstraintError(err):
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	default:
-		return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Get implements AttachmentServiceServer.Get
@@ -88,7 +87,6 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	if err := (&id).UnmarshalBinary(req.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	switch req.GetView() {
 	case GetAttachmentRequest_VIEW_UNSPECIFIED, GetAttachmentRequest_BASIC:
 		get, err = svc.client.Attachment.Get(ctx, id)
@@ -103,7 +101,7 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 			}).
 			Only(ctx)
 	default:
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: unknown view")
+		return nil, status.Error(codes.InvalidArgument, "invalid argument: unknown view")
 	}
 	switch {
 	case err == nil:
@@ -113,6 +111,8 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+	return nil, nil
+
 }
 
 // Update implements AttachmentServiceServer.Update
@@ -122,22 +122,19 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	if err := (&attachmentID).UnmarshalBinary(attachment.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	m := svc.client.Attachment.UpdateOneID(attachmentID)
 	for _, item := range attachment.GetRecipients() {
 		recipients := int(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
-
 	attachmentUser := int(attachment.GetUser().GetId())
 	m.SetUserID(attachmentUser)
 	res, err := m.Save(ctx)
-
 	switch {
 	case err == nil:
 		proto, err := toProtoAttachment(res)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "internal: %s", err)
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return proto, nil
 	case sqlgraph.IsUniqueConstraintError(err):
@@ -145,8 +142,9 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	case ent.IsConstraintError(err):
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	default:
-		return nil, status.Errorf(codes.Internal, "internal: %s", err)
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }
 
 // Delete implements AttachmentServiceServer.Delete
@@ -156,7 +154,6 @@ func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentR
 	if err := (&id).UnmarshalBinary(req.GetId()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
-
 	err = svc.client.Attachment.DeleteOneID(id).Exec(ctx)
 	switch {
 	case err == nil:
@@ -166,4 +163,5 @@ func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentR
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
+
 }

@@ -18,3 +18,21 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
 {{ template "enums" . }}
 
 {{ template "to_proto_func" . }}
+
+{{ range .Service.Methods }}
+    {{- $idField := $.FieldMap.ID -}}
+    {{- $varName := $idField.EntField.Name -}}
+    {{- $methodName := .GoName -}}
+    {{- $inputName := .Input.GoIdent.GoName -}}
+
+    // {{ .GoName }} implements {{ $.Service.GoName }}Server.{{ .GoName }}
+    func (svc *{{ $.Service.GoName }}) {{ .GoName }}(ctx {{ qualify "context" "Context" }}, req *{{ ident .Input.GoIdent }}) (*{{ ident .Output.GoIdent }}, error) {
+        {{- if eq $methodName "Get" }}
+            {{ template "method_get" (method .) }}
+        {{- else if eq $methodName "Delete" }}
+            {{ template "method_delete" (method .) }}
+        {{- else if or (eq $methodName "Create") (eq $methodName "Update") }}
+            {{ template "method_mutate" (method .) }}
+        {{- end }}
+    }
+{{ end }}
