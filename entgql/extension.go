@@ -380,11 +380,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition, 
 		}))
 	}
 
-	allFields := t.Fields
-	if t.ID != nil {
-		allFields = append(allFields, t.ID)
-	}
-	fields, err := filterFields(allFields)
+	fields, err := filterFields(append(t.Fields, t.ID))
 	if err != nil {
 		return "", nil, err
 	}
@@ -452,7 +448,6 @@ func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefi
 			}),
 		}),
 	})
-
 	if f.Name == "id" {
 		def.Type = ast.NewNamed(&ast.Named{
 			Name: ast.NewName(&ast.Name{
