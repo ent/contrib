@@ -40,6 +40,16 @@ input CategoryWhereInput {
   configIsNil: Boolean
   configNotNil: Boolean
   
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  
   """todos edge predicates"""
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
@@ -94,6 +104,16 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
+  
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   
   """parent edge predicates"""
   hasParent: Boolean

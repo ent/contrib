@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/google/uuid"
 )
 
 // CategoryWhereInput represents a where input for filtering Category queries.
@@ -31,6 +32,16 @@ type CategoryWhereInput struct {
 	Not *CategoryWhereInput   `json:"not,omitempty"`
 	Or  []*CategoryWhereInput `json:"or,omitempty"`
 	And []*CategoryWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *uuid.UUID  `json:"id,omitempty"`
+	IDNEQ   *uuid.UUID  `json:"idNEQ,omitempty"`
+	IDIn    []uuid.UUID `json:"idIn,omitempty"`
+	IDNotIn []uuid.UUID `json:"idNotIn,omitempty"`
+	IDGT    *uuid.UUID  `json:"idGT,omitempty"`
+	IDGTE   *uuid.UUID  `json:"idGTE,omitempty"`
+	IDLT    *uuid.UUID  `json:"idLT,omitempty"`
+	IDLTE   *uuid.UUID  `json:"idLTE,omitempty"`
 
 	// "text" field predicates.
 	Text             *string  `json:"text,omitempty"`
@@ -128,6 +139,30 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 			and = append(and, p)
 		}
 		predicates = append(predicates, category.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, category.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, category.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, category.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, category.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, category.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, category.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, category.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, category.IDLTE(*i.IDLTE))
 	}
 	if i.Text != nil {
 		predicates = append(predicates, category.TextEQ(*i.Text))
@@ -245,6 +280,16 @@ type TodoWhereInput struct {
 	Or  []*TodoWhereInput `json:"or,omitempty"`
 	And []*TodoWhereInput `json:"and,omitempty"`
 
+	// "id" field predicates.
+	ID      *uuid.UUID  `json:"id,omitempty"`
+	IDNEQ   *uuid.UUID  `json:"idNEQ,omitempty"`
+	IDIn    []uuid.UUID `json:"idIn,omitempty"`
+	IDNotIn []uuid.UUID `json:"idNotIn,omitempty"`
+	IDGT    *uuid.UUID  `json:"idGT,omitempty"`
+	IDGTE   *uuid.UUID  `json:"idGTE,omitempty"`
+	IDLT    *uuid.UUID  `json:"idLT,omitempty"`
+	IDLTE   *uuid.UUID  `json:"idLTE,omitempty"`
+
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
 	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
@@ -357,6 +402,30 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 			and = append(and, p)
 		}
 		predicates = append(predicates, todo.And(and...))
+	}
+	if i.ID != nil {
+		predicates = append(predicates, todo.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, todo.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, todo.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, todo.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, todo.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, todo.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, todo.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, todo.IDLTE(*i.IDLTE))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, todo.CreatedAtEQ(*i.CreatedAt))
