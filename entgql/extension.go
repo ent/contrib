@@ -379,7 +379,6 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition, 
 			}),
 		}))
 	}
-
 	fields, err := filterFields(append(t.Fields, t.ID))
 	if err != nil {
 		return "", nil, err
@@ -455,7 +454,6 @@ func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.InputValueDefi
 			}),
 		})
 	}
-
 	if op.Variadic() {
 		def.Type = ast.NewList(&ast.List{
 			Type: ast.NewNonNull(&ast.NonNull{
