@@ -15,9 +15,13 @@ in the LICENSE file in the root directory of this source tree.
 
 {{ template "import" $ }}
 
-{{- range $n := filterNodes $.Nodes }}
-    {{ $comparableFields := list }}
-    {{ $comparableFields = append $comparableFields $n.ID }}
+{{ range $n := filterNodes $.Nodes }}
+    {{ $comparableFields := list $n.ID }}
+    {{ with $annotation := $n.ID.Annotations.EntGQL }}
+        {{ if $annotation.Skip }}
+            {{ $comparableFields = list }}
+        {{ end }}
+    {{ end }}
     {{ range $f := filterFields $n.Fields }}
         {{ if $f.Type.Comparable }}
             {{ $comparableFields = append $comparableFields $f }}
