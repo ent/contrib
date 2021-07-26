@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -147,14 +148,17 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 		}
 		builder.annotate(annots...)
 	}
-
+	if desc.Default != nil {
+		expr, err := defaultExpr(desc.Default)
+		if err != nil {
+			return nil, err
+		}
+		builder.method("Default", expr)
+	}
 	// Unsupported features
 	var unsupported error
 	if len(desc.Validators) != 0 {
 		unsupported = combineUnsupported(unsupported, "Descriptor.Validators")
-	}
-	if desc.Default != nil {
-		unsupported = combineUnsupported(unsupported, "Descriptor.Default")
 	}
 	if desc.UpdateDefault != nil {
 		unsupported = combineUnsupported(unsupported, "Descriptor.UpdateDefault")
@@ -167,6 +171,35 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 
 func fieldConstructor(dsc *field.Descriptor) string {
 	return strings.TrimPrefix(dsc.Info.ConstName(), "Type")
+}
+
+func defaultExpr(d interface{}) (ast.Expr, error) {
+	v := reflect.ValueOf(d)
+	switch v.Kind() {
+	case reflect.String:
+		return strLit(d.(string)), nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		lit := &ast.BasicLit{
+			Kind:  token.INT,
+			Value: fmt.Sprintf("%d", d),
+		}
+		return lit, nil
+	case reflect.Float32, reflect.Float64:
+		lit := &ast.BasicLit{
+			Kind:  token.FLOAT,
+			Value: fmt.Sprintf("%v", d),
+		}
+		return lit, nil
+	case reflect.Bool:
+		lit := &ast.BasicLit{
+			Kind:  token.STRING,
+			Value: strconv.FormatBool(d.(bool)),
+		}
+		return lit, nil
+	default:
+		return nil, fmt.Errorf("schemast: unsupported default field kind: %q", v.Kind())
+	}
 }
 
 func extractFieldName(fd *ast.CallExpr) (string, error) {

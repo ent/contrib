@@ -88,9 +88,36 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.String("x").Annotations(entproto.Message())`,
 		},
 		{
-			name:           "unsupported default",
-			field:          field.String("x").Default("x"),
-			expectedErrMsg: "schemast: unsupported feature Descriptor.Default",
+			name:     "default:string",
+			field:    field.String("x").Default("x"),
+			expected: `field.String("x").Default("x")`,
+		},
+		{
+			name:     "default:int",
+			field:    field.Int("x").Default(1),
+			expected: `field.Int("x").Default(1)`,
+		},
+		{
+			name:     "default:uint64",
+			field:    field.Uint64("x").Default(1),
+			expected: `field.Uint64("x").Default(1)`,
+		},
+		{
+			name:     "default:float32",
+			field:    field.Float32("x").Default(3.14),
+			expected: `field.Float32("x").Default(3.14)`,
+		},
+		{
+			name:     "default:bool",
+			field:    field.Bool("x").Default(true),
+			expected: `field.Bool("x").Default(true)`,
+		},
+		{
+			name: "default:func",
+			field: field.String("x").DefaultFunc(func() string {
+				return "hello"
+			}),
+			expectedErrMsg: `schemast: unsupported default field kind: "func"`,
 		},
 		{
 			name: "unsupported validator",
@@ -98,11 +125,6 @@ func TestFromFieldDescriptor(t *testing.T) {
 				return nil
 			}),
 			expectedErrMsg: "schemast: unsupported feature Descriptor.Validators",
-		},
-		{
-			name:           "multi unsupported",
-			field:          field.String("x").MaxLen(10).Default("x"),
-			expectedErrMsg: "schemast: unsupported feature Descriptor.Validators; schemast: unsupported feature Descriptor.Default",
 		},
 	}
 
