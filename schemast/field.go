@@ -188,7 +188,7 @@ func defaultExpr(d interface{}) (ast.Expr, error) {
 	case reflect.Float32, reflect.Float64:
 		lit := &ast.BasicLit{
 			Kind:  token.FLOAT,
-			Value: fmt.Sprintf("%v", d),
+			Value: fmt.Sprintf("%#v", d),
 		}
 		return lit, nil
 	case reflect.Bool:
