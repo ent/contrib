@@ -543,11 +543,11 @@ func (e *Extension) addRelayObjectDefinitions(objects map[string]*ast.ObjectDefi
 	})
 	conn.Fields = []*ast.FieldDefinition{
 		ast.NewFieldDefinition(&ast.FieldDefinition{
-			Name: newASTName(e.naming("total_count")),
+			Name: newASTName("totalCount"),
 			Type: newASTNamed(graphql.Int.String() + "!"),
 		}),
 		ast.NewFieldDefinition(&ast.FieldDefinition{
-			Name: newASTName(e.naming("page_info")),
+			Name: newASTName("pageInfo"),
 			Type: newASTNamed("PageInfo!"),
 		}),
 		ast.NewFieldDefinition(&ast.FieldDefinition{
