@@ -50,22 +50,22 @@ const (
 	EdgeSecret = "secret"
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
-	// ParentTable is the table the holds the parent relation/edge.
+	// ParentTable is the table that holds the parent relation/edge.
 	ParentTable = "todos"
 	// ParentColumn is the table column denoting the parent relation/edge.
 	ParentColumn = "todo_children"
-	// ChildrenTable is the table the holds the children relation/edge.
+	// ChildrenTable is the table that holds the children relation/edge.
 	ChildrenTable = "todos"
 	// ChildrenColumn is the table column denoting the children relation/edge.
 	ChildrenColumn = "todo_children"
-	// CategoryTable is the table the holds the category relation/edge.
+	// CategoryTable is the table that holds the category relation/edge.
 	CategoryTable = "todos"
 	// CategoryInverseTable is the table name for the Category entity.
 	// It exists in this package in order to avoid circular dependency with the "category" package.
 	CategoryInverseTable = "categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
 	CategoryColumn = "category_todos"
-	// SecretTable is the table the holds the secret relation/edge.
+	// SecretTable is the table that holds the secret relation/edge.
 	SecretTable = "todos"
 	// SecretInverseTable is the table name for the VerySecret entity.
 	// It exists in this package in order to avoid circular dependency with the "verysecret" package.

@@ -73,6 +73,9 @@ func (vsc *VerySecretCreate) Save(ctx context.Context) (*VerySecret, error) {
 			return node, err
 		})
 		for i := len(vsc.hooks) - 1; i >= 0; i-- {
+			if vsc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vsc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vsc.mutation); err != nil {
@@ -91,10 +94,23 @@ func (vsc *VerySecretCreate) SaveX(ctx context.Context) *VerySecret {
 	return v
 }
 
+// Exec executes the query.
+func (vsc *VerySecretCreate) Exec(ctx context.Context) error {
+	_, err := vsc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (vsc *VerySecretCreate) ExecX(ctx context.Context) {
+	if err := vsc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (vsc *VerySecretCreate) check() error {
 	if _, ok := vsc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New("ent: missing required field \"password\"")}
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "password"`)}
 	}
 	return nil
 }
@@ -162,8 +178,9 @@ func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, erro
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vscb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, vscb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, vscb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -174,8 +191,10 @@ func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, erro
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -199,4 +218,17 @@ func (vscb *VerySecretCreateBulk) SaveX(ctx context.Context) []*VerySecret {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (vscb *VerySecretCreateBulk) Exec(ctx context.Context) error {
+	_, err := vscb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (vscb *VerySecretCreateBulk) ExecX(ctx context.Context) {
+	if err := vscb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
