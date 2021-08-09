@@ -4,8 +4,7 @@ import (
 	"context"
 	"time"
 
-	"entprom/internal/ent"
-
+	"entgo.io/ent"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )

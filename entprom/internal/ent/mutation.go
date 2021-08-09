@@ -4,11 +4,12 @@ package ent
 
 import (
 	"context"
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/predicate"
-	"entprom/internal/ent/user"
 	"fmt"
 	"sync"
+
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/predicate"
+	"entgo.io/contrib/entprom/internal/ent/user"
 
 	"entgo.io/ent"
 )

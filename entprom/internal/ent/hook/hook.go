@@ -4,8 +4,9 @@ package hook
 
 import (
 	"context"
-	"entprom/internal/ent"
 	"fmt"
+
+	"entgo.io/contrib/entprom/internal/ent"
 )
 
 // The FileFunc type is an adapter to allow the use of ordinary

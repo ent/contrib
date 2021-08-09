@@ -3,11 +3,11 @@
 package ent
 
 import (
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/user"
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/user"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )

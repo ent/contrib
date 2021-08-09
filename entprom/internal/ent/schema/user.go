@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"entprom"
-
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -25,12 +23,5 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("files", File.Type),
-	}
-}
-
-// Hooks of the User.
-func (User) Hooks() []ent.Hook {
-	return []ent.Hook{
-		entprom.Hook(),
 	}
 }

@@ -4,11 +4,11 @@ package ent
 
 import (
 	"context"
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/predicate"
-	"entprom/internal/ent/user"
 	"fmt"
 
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/predicate"
+	"entgo.io/contrib/entprom/internal/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

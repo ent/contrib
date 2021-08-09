@@ -3,8 +3,8 @@
 package ent
 
 import (
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/schema"
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"entprom"
-	"entprom/internal/ent"
-
+	"entgo.io/contrib/entprom"
+	"entgo.io/contrib/entprom/internal/ent"
+	_ "entgo.io/contrib/entprom/internal/ent/runtime"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"entprom/internal/ent/user"
 	"fmt"
 	"strings"
 
+	"entgo.io/contrib/entprom/internal/ent/user"
 	"entgo.io/ent/dialect/sql"
 )
 

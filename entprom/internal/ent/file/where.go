@@ -3,8 +3,7 @@
 package file
 
 import (
-	"entprom/internal/ent/predicate"
-
+	"entgo.io/contrib/entprom/internal/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
