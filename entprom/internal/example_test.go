@@ -14,7 +14,6 @@ func Example_prometheusHook() {
 	if err != nil {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}
-	defer client.Close()
 	ctx := context.Background()
 	// Run the auto migration tool.
 	if err := client.Schema.Create(ctx); err != nil {

@@ -55,7 +55,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	dbClient = initDB()
-	defer dbClient.Close()
 	http.HandleFunc("/", handler)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Println("server starting on port 8080")
