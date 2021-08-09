@@ -20,9 +20,9 @@ type WithoutFieldsDelete struct {
 	mutation *WithoutFieldsMutation
 }
 
-// Where adds a new predicate to the WithoutFieldsDelete builder.
+// Where appends a list predicates to the WithoutFieldsDelete builder.
 func (wfd *WithoutFieldsDelete) Where(ps ...predicate.WithoutFields) *WithoutFieldsDelete {
-	wfd.mutation.predicates = append(wfd.mutation.predicates, ps...)
+	wfd.mutation.Where(ps...)
 	return wfd
 }
 
@@ -46,6 +46,9 @@ func (wfd *WithoutFieldsDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(wfd.hooks) - 1; i >= 0; i-- {
+			if wfd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wfd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wfd.mutation); err != nil {

@@ -326,8 +326,8 @@ func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
 //		Select(image.FieldURLPath).
 //		Scan(ctx, &v)
 //
-func (iq *ImageQuery) Select(field string, fields ...string) *ImageSelect {
-	iq.fields = append([]string{field}, fields...)
+func (iq *ImageQuery) Select(fields ...string) *ImageSelect {
+	iq.fields = append(iq.fields, fields...)
 	return &ImageSelect{ImageQuery: iq}
 }
 

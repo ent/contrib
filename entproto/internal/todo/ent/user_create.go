@@ -230,6 +230,9 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 			return node, err
 		})
 		for i := len(uc.hooks) - 1; i >= 0; i-- {
+			if uc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = uc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, uc.mutation); err != nil {
@@ -248,6 +251,19 @@ func (uc *UserCreate) SaveX(ctx context.Context) *User {
 	return v
 }
 
+// Exec executes the query.
+func (uc *UserCreate) Exec(ctx context.Context) error {
+	_, err := uc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (uc *UserCreate) ExecX(ctx context.Context) {
+	if err := uc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() {
 	if _, ok := uc.mutation.Banned(); !ok {
@@ -259,36 +275,36 @@ func (uc *UserCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.UserName(); !ok {
-		return &ValidationError{Name: "user_name", err: errors.New("ent: missing required field \"user_name\"")}
+		return &ValidationError{Name: "user_name", err: errors.New(`ent: missing required field "user_name"`)}
 	}
 	if _, ok := uc.mutation.Joined(); !ok {
-		return &ValidationError{Name: "joined", err: errors.New("ent: missing required field \"joined\"")}
+		return &ValidationError{Name: "joined", err: errors.New(`ent: missing required field "joined"`)}
 	}
 	if _, ok := uc.mutation.Points(); !ok {
-		return &ValidationError{Name: "points", err: errors.New("ent: missing required field \"points\"")}
+		return &ValidationError{Name: "points", err: errors.New(`ent: missing required field "points"`)}
 	}
 	if _, ok := uc.mutation.Exp(); !ok {
-		return &ValidationError{Name: "exp", err: errors.New("ent: missing required field \"exp\"")}
+		return &ValidationError{Name: "exp", err: errors.New(`ent: missing required field "exp"`)}
 	}
 	if _, ok := uc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "status"`)}
 	}
 	if v, ok := uc.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "status": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.ExternalID(); !ok {
-		return &ValidationError{Name: "external_id", err: errors.New("ent: missing required field \"external_id\"")}
+		return &ValidationError{Name: "external_id", err: errors.New(`ent: missing required field "external_id"`)}
 	}
 	if _, ok := uc.mutation.CrmID(); !ok {
-		return &ValidationError{Name: "crm_id", err: errors.New("ent: missing required field \"crm_id\"")}
+		return &ValidationError{Name: "crm_id", err: errors.New(`ent: missing required field "crm_id"`)}
 	}
 	if _, ok := uc.mutation.Banned(); !ok {
-		return &ValidationError{Name: "banned", err: errors.New("ent: missing required field \"banned\"")}
+		return &ValidationError{Name: "banned", err: errors.New(`ent: missing required field "banned"`)}
 	}
 	if _, ok := uc.mutation.CustomPb(); !ok {
-		return &ValidationError{Name: "custom_pb", err: errors.New("ent: missing required field \"custom_pb\"")}
+		return &ValidationError{Name: "custom_pb", err: errors.New(`ent: missing required field "custom_pb"`)}
 	}
 	return nil
 }
@@ -511,8 +527,9 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, ucb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, ucb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -523,8 +540,10 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -548,4 +567,17 @@ func (ucb *UserCreateBulk) SaveX(ctx context.Context) []*User {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (ucb *UserCreateBulk) Exec(ctx context.Context) error {
+	_, err := ucb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ucb *UserCreateBulk) ExecX(ctx context.Context) {
+	if err := ucb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

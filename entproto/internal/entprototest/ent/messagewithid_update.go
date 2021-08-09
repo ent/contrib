@@ -20,9 +20,9 @@ type MessageWithIDUpdate struct {
 	mutation *MessageWithIDMutation
 }
 
-// Where adds a new predicate for the MessageWithIDUpdate builder.
+// Where appends a list predicates to the MessageWithIDUpdate builder.
 func (mwiu *MessageWithIDUpdate) Where(ps ...predicate.MessageWithID) *MessageWithIDUpdate {
-	mwiu.mutation.predicates = append(mwiu.mutation.predicates, ps...)
+	mwiu.mutation.Where(ps...)
 	return mwiu
 }
 
@@ -51,6 +51,9 @@ func (mwiu *MessageWithIDUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mwiu.hooks) - 1; i >= 0; i-- {
+			if mwiu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwiu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwiu.mutation); err != nil {
@@ -151,6 +154,9 @@ func (mwiuo *MessageWithIDUpdateOne) Save(ctx context.Context) (*MessageWithID, 
 			return node, err
 		})
 		for i := len(mwiuo.hooks) - 1; i >= 0; i-- {
+			if mwiuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwiuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwiuo.mutation); err != nil {

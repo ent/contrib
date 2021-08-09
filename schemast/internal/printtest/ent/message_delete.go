@@ -20,9 +20,9 @@ type MessageDelete struct {
 	mutation *MessageMutation
 }
 
-// Where adds a new predicate to the MessageDelete builder.
+// Where appends a list predicates to the MessageDelete builder.
 func (md *MessageDelete) Where(ps ...predicate.Message) *MessageDelete {
-	md.mutation.predicates = append(md.mutation.predicates, ps...)
+	md.mutation.Where(ps...)
 	return md
 }
 
@@ -46,6 +46,9 @@ func (md *MessageDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(md.hooks) - 1; i >= 0; i-- {
+			if md.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = md.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, md.mutation); err != nil {

@@ -264,8 +264,8 @@ func (ismq *ImplicitSkippedMessageQuery) GroupBy(field string, fields ...string)
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (ismq *ImplicitSkippedMessageQuery) Select(field string, fields ...string) *ImplicitSkippedMessageSelect {
-	ismq.fields = append([]string{field}, fields...)
+func (ismq *ImplicitSkippedMessageQuery) Select(fields ...string) *ImplicitSkippedMessageSelect {
+	ismq.fields = append(ismq.fields, fields...)
 	return &ImplicitSkippedMessageSelect{ImplicitSkippedMessageQuery: ismq}
 }
 

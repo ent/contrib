@@ -263,8 +263,8 @@ func (mwiq *MessageWithIDQuery) GroupBy(field string, fields ...string) *Message
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (mwiq *MessageWithIDQuery) Select(field string, fields ...string) *MessageWithIDSelect {
-	mwiq.fields = append([]string{field}, fields...)
+func (mwiq *MessageWithIDQuery) Select(fields ...string) *MessageWithIDSelect {
+	mwiq.fields = append(mwiq.fields, fields...)
 	return &MessageWithIDSelect{MessageWithIDQuery: mwiq}
 }
 

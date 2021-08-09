@@ -263,8 +263,8 @@ func (wfq *WithoutFieldsQuery) GroupBy(field string, fields ...string) *WithoutF
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (wfq *WithoutFieldsQuery) Select(field string, fields ...string) *WithoutFieldsSelect {
-	wfq.fields = append([]string{field}, fields...)
+func (wfq *WithoutFieldsQuery) Select(fields ...string) *WithoutFieldsSelect {
+	wfq.fields = append(wfq.fields, fields...)
 	return &WithoutFieldsSelect{WithoutFieldsQuery: wfq}
 }
 

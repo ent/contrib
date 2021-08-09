@@ -45,21 +45,21 @@ const (
 	EdgeReceived = "received"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// GroupTable is the table the holds the group relation/edge.
+	// GroupTable is the table that holds the group relation/edge.
 	GroupTable = "users"
 	// GroupInverseTable is the table name for the Group entity.
 	// It exists in this package in order to avoid circular dependency with the "group" package.
 	GroupInverseTable = "groups"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "user_group"
-	// AttachmentTable is the table the holds the attachment relation/edge.
+	// AttachmentTable is the table that holds the attachment relation/edge.
 	AttachmentTable = "attachments"
 	// AttachmentInverseTable is the table name for the Attachment entity.
 	// It exists in this package in order to avoid circular dependency with the "attachment" package.
 	AttachmentInverseTable = "attachments"
 	// AttachmentColumn is the table column denoting the attachment relation/edge.
 	AttachmentColumn = "user_attachment"
-	// ReceivedTable is the table the holds the received relation/edge. The primary key declared below.
+	// ReceivedTable is the table that holds the received relation/edge. The primary key declared below.
 	ReceivedTable = "attachment_recipients"
 	// ReceivedInverseTable is the table name for the Attachment entity.
 	// It exists in this package in order to avoid circular dependency with the "attachment" package.

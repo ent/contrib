@@ -20,9 +20,9 @@ type MessageWithEnumDelete struct {
 	mutation *MessageWithEnumMutation
 }
 
-// Where adds a new predicate to the MessageWithEnumDelete builder.
+// Where appends a list predicates to the MessageWithEnumDelete builder.
 func (mwed *MessageWithEnumDelete) Where(ps ...predicate.MessageWithEnum) *MessageWithEnumDelete {
-	mwed.mutation.predicates = append(mwed.mutation.predicates, ps...)
+	mwed.mutation.Where(ps...)
 	return mwed
 }
 
@@ -46,6 +46,9 @@ func (mwed *MessageWithEnumDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mwed.hooks) - 1; i >= 0; i-- {
+			if mwed.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwed.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwed.mutation); err != nil {

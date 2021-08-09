@@ -287,8 +287,8 @@ func (ifmq *InvalidFieldMessageQuery) GroupBy(field string, fields ...string) *I
 //		Select(invalidfieldmessage.FieldJSON).
 //		Scan(ctx, &v)
 //
-func (ifmq *InvalidFieldMessageQuery) Select(field string, fields ...string) *InvalidFieldMessageSelect {
-	ifmq.fields = append([]string{field}, fields...)
+func (ifmq *InvalidFieldMessageQuery) Select(fields ...string) *InvalidFieldMessageSelect {
+	ifmq.fields = append(ifmq.fields, fields...)
 	return &InvalidFieldMessageSelect{InvalidFieldMessageQuery: ifmq}
 }
 

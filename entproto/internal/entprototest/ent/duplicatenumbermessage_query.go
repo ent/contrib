@@ -287,8 +287,8 @@ func (dnmq *DuplicateNumberMessageQuery) GroupBy(field string, fields ...string)
 //		Select(duplicatenumbermessage.FieldHello).
 //		Scan(ctx, &v)
 //
-func (dnmq *DuplicateNumberMessageQuery) Select(field string, fields ...string) *DuplicateNumberMessageSelect {
-	dnmq.fields = append([]string{field}, fields...)
+func (dnmq *DuplicateNumberMessageQuery) Select(fields ...string) *DuplicateNumberMessageSelect {
+	dnmq.fields = append(dnmq.fields, fields...)
 	return &DuplicateNumberMessageSelect{DuplicateNumberMessageQuery: dnmq}
 }
 

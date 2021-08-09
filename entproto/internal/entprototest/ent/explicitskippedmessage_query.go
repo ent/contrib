@@ -263,8 +263,8 @@ func (esmq *ExplicitSkippedMessageQuery) GroupBy(field string, fields ...string)
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (esmq *ExplicitSkippedMessageQuery) Select(field string, fields ...string) *ExplicitSkippedMessageSelect {
-	esmq.fields = append([]string{field}, fields...)
+func (esmq *ExplicitSkippedMessageQuery) Select(fields ...string) *ExplicitSkippedMessageSelect {
+	esmq.fields = append(esmq.fields, fields...)
 	return &ExplicitSkippedMessageSelect{ExplicitSkippedMessageQuery: esmq}
 }
 

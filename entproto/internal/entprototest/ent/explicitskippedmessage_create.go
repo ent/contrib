@@ -52,6 +52,9 @@ func (esmc *ExplicitSkippedMessageCreate) Save(ctx context.Context) (*ExplicitSk
 			return node, err
 		})
 		for i := len(esmc.hooks) - 1; i >= 0; i-- {
+			if esmc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = esmc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, esmc.mutation); err != nil {
@@ -68,6 +71,19 @@ func (esmc *ExplicitSkippedMessageCreate) SaveX(ctx context.Context) *ExplicitSk
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (esmc *ExplicitSkippedMessageCreate) Exec(ctx context.Context) error {
+	_, err := esmc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (esmc *ExplicitSkippedMessageCreate) ExecX(ctx context.Context) {
+	if err := esmc.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -130,8 +146,9 @@ func (esmcb *ExplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Exp
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, esmcb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, esmcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, esmcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -142,8 +159,10 @@ func (esmcb *ExplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Exp
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -167,4 +186,17 @@ func (esmcb *ExplicitSkippedMessageCreateBulk) SaveX(ctx context.Context) []*Exp
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (esmcb *ExplicitSkippedMessageCreateBulk) Exec(ctx context.Context) error {
+	_, err := esmcb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (esmcb *ExplicitSkippedMessageCreateBulk) ExecX(ctx context.Context) {
+	if err := esmcb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

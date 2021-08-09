@@ -93,6 +93,9 @@ func (vmc *ValidMessageCreate) Save(ctx context.Context) (*ValidMessage, error) 
 			return node, err
 		})
 		for i := len(vmc.hooks) - 1; i >= 0; i-- {
+			if vmc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vmc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vmc.mutation); err != nil {
@@ -111,19 +114,32 @@ func (vmc *ValidMessageCreate) SaveX(ctx context.Context) *ValidMessage {
 	return v
 }
 
+// Exec executes the query.
+func (vmc *ValidMessageCreate) Exec(ctx context.Context) error {
+	_, err := vmc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (vmc *ValidMessageCreate) ExecX(ctx context.Context) {
+	if err := vmc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (vmc *ValidMessageCreate) check() error {
 	if _, ok := vmc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
 	}
 	if _, ok := vmc.mutation.Ts(); !ok {
-		return &ValidationError{Name: "ts", err: errors.New("ent: missing required field \"ts\"")}
+		return &ValidationError{Name: "ts", err: errors.New(`ent: missing required field "ts"`)}
 	}
 	if _, ok := vmc.mutation.UUID(); !ok {
-		return &ValidationError{Name: "uuid", err: errors.New("ent: missing required field \"uuid\"")}
+		return &ValidationError{Name: "uuid", err: errors.New(`ent: missing required field "uuid"`)}
 	}
 	if _, ok := vmc.mutation.U8(); !ok {
-		return &ValidationError{Name: "u8", err: errors.New("ent: missing required field \"u8\"")}
+		return &ValidationError{Name: "u8", err: errors.New(`ent: missing required field "u8"`)}
 	}
 	return nil
 }
@@ -223,8 +239,9 @@ func (vmcb *ValidMessageCreateBulk) Save(ctx context.Context) ([]*ValidMessage, 
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vmcb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, vmcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, vmcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -235,8 +252,10 @@ func (vmcb *ValidMessageCreateBulk) Save(ctx context.Context) ([]*ValidMessage, 
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -260,4 +279,17 @@ func (vmcb *ValidMessageCreateBulk) SaveX(ctx context.Context) []*ValidMessage {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (vmcb *ValidMessageCreateBulk) Exec(ctx context.Context) error {
+	_, err := vmcb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (vmcb *ValidMessageCreateBulk) ExecX(ctx context.Context) {
+	if err := vmcb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -287,8 +287,8 @@ func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMess
 //		Select(validmessage.FieldName).
 //		Scan(ctx, &v)
 //
-func (vmq *ValidMessageQuery) Select(field string, fields ...string) *ValidMessageSelect {
-	vmq.fields = append([]string{field}, fields...)
+func (vmq *ValidMessageQuery) Select(fields ...string) *ValidMessageSelect {
+	vmq.fields = append(vmq.fields, fields...)
 	return &ValidMessageSelect{ValidMessageQuery: vmq}
 }
 

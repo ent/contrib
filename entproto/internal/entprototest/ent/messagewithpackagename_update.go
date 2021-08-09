@@ -20,9 +20,9 @@ type MessageWithPackageNameUpdate struct {
 	mutation *MessageWithPackageNameMutation
 }
 
-// Where adds a new predicate for the MessageWithPackageNameUpdate builder.
+// Where appends a list predicates to the MessageWithPackageNameUpdate builder.
 func (mwpnu *MessageWithPackageNameUpdate) Where(ps ...predicate.MessageWithPackageName) *MessageWithPackageNameUpdate {
-	mwpnu.mutation.predicates = append(mwpnu.mutation.predicates, ps...)
+	mwpnu.mutation.Where(ps...)
 	return mwpnu
 }
 
@@ -57,6 +57,9 @@ func (mwpnu *MessageWithPackageNameUpdate) Save(ctx context.Context) (int, error
 			return affected, err
 		})
 		for i := len(mwpnu.hooks) - 1; i >= 0; i-- {
+			if mwpnu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwpnu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwpnu.mutation); err != nil {
@@ -170,6 +173,9 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Save(ctx context.Context) (*Messa
 			return node, err
 		})
 		for i := len(mwpnuo.hooks) - 1; i >= 0; i-- {
+			if mwpnuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwpnuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwpnuo.mutation); err != nil {

@@ -20,9 +20,9 @@ type BlogPostDelete struct {
 	mutation *BlogPostMutation
 }
 
-// Where adds a new predicate to the BlogPostDelete builder.
+// Where appends a list predicates to the BlogPostDelete builder.
 func (bpd *BlogPostDelete) Where(ps ...predicate.BlogPost) *BlogPostDelete {
-	bpd.mutation.predicates = append(bpd.mutation.predicates, ps...)
+	bpd.mutation.Where(ps...)
 	return bpd
 }
 
@@ -46,6 +46,9 @@ func (bpd *BlogPostDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(bpd.hooks) - 1; i >= 0; i-- {
+			if bpd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = bpd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, bpd.mutation); err != nil {

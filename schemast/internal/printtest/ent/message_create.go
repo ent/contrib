@@ -52,6 +52,9 @@ func (mc *MessageCreate) Save(ctx context.Context) (*Message, error) {
 			return node, err
 		})
 		for i := len(mc.hooks) - 1; i >= 0; i-- {
+			if mc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mc.mutation); err != nil {
@@ -68,6 +71,19 @@ func (mc *MessageCreate) SaveX(ctx context.Context) *Message {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (mc *MessageCreate) Exec(ctx context.Context) error {
+	_, err := mc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (mc *MessageCreate) ExecX(ctx context.Context) {
+	if err := mc.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -130,8 +146,9 @@ func (mcb *MessageCreateBulk) Save(ctx context.Context) ([]*Message, error) {
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mcb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, mcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, mcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -142,8 +159,10 @@ func (mcb *MessageCreateBulk) Save(ctx context.Context) ([]*Message, error) {
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -167,4 +186,17 @@ func (mcb *MessageCreateBulk) SaveX(ctx context.Context) []*Message {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (mcb *MessageCreateBulk) Exec(ctx context.Context) error {
+	_, err := mcb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (mcb *MessageCreateBulk) ExecX(ctx context.Context) {
+	if err := mcb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
