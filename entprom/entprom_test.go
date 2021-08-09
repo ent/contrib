@@ -6,7 +6,7 @@ import (
 
 	"entgo.io/ent/examples/fs/ent"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/prometheus/tsdb/testutil"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/require"
 )
 
