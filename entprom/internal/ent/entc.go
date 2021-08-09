@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	err := entc.Generate("./schema", &gen.Config{}, )
+	err := entc.Generate("./schema", &gen.Config{})
 	if err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}
