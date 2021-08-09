@@ -89,13 +89,16 @@ and all operations. To collect metrics only on specific operations you can use:
 client.Use(hook.On(entprom.Hook(), ent.OpUpdate|ent.OpUpdateOne))
 ```
 
-Attach hook only for specific schema - for example User
+Attach hook only for specific schema - 
 
 ```go
 // Hooks of the User.
 func (User) Hooks() []ent.Hook {
     return []ent.Hook{
-        entprom.Hook(),
+        entprom.Hook(
+            entprom.Labels(map[string]string{
+              "schema": "user",
+        })),
     }
 }
 ```
