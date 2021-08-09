@@ -12,7 +12,6 @@ client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 if err != nil {
     log.Fatalf("failed opening connection to sqlite: %v", err)
 }
-defer client.Close()
 ctx := context.Background()
 
 if err := client.Schema.Create(ctx); err != nil {
