@@ -403,6 +403,11 @@ func (m *FileMutation) ResetOwner() {
 	m.clearedowner = false
 }
 
+// Where appends a list predicates to the FileMutation builder.
+func (m *FileMutation) Where(ps ...predicate.File) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *FileMutation) Op() Op {
 	return m.op
@@ -886,6 +891,11 @@ func (m *UserMutation) ResetFiles() {
 	m.files = nil
 	m.clearedfiles = false
 	m.removedfiles = nil
+}
+
+// Where appends a list predicates to the UserMutation builder.
+func (m *UserMutation) Where(ps ...predicate.User) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

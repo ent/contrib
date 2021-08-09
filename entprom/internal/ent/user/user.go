@@ -2,10 +2,6 @@
 
 package user
 
-import (
-	"entgo.io/ent"
-)
-
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -17,7 +13,7 @@ const (
 	EdgeFiles = "files"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// FilesTable is the table the holds the files relation/edge.
+	// FilesTable is the table that holds the files relation/edge.
 	FilesTable = "files"
 	// FilesInverseTable is the table name for the File entity.
 	// It exists in this package in order to avoid circular dependency with the "file" package.
@@ -41,13 +37,3 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
-
-// Note that the variables below are initialized by the runtime
-// package on the initialization of the application. Therefore,
-// it should be imported in the main as follows:
-//
-//	import _ "entgo.io/contrib/entprom/internal/ent/runtime"
-//
-var (
-	Hooks [1]ent.Hook
-)
