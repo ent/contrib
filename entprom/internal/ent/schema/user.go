@@ -1,8 +1,7 @@
 package schema
 
 import (
-	"entprom"
-
+	"entgo.io/contrib/entprom"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -31,6 +30,8 @@ func (User) Edges() []ent.Edge {
 // Hooks of the User.
 func (User) Hooks() []ent.Hook {
 	return []ent.Hook{
-		entprom.Hook(),
+		entprom.Hook(
+			entprom.Labels(map[string]string{"schema_hook": "user"}),
+		),
 	}
 }

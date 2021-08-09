@@ -5,13 +5,13 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/predicate"
-	"entprom/internal/ent/user"
 	"errors"
 	"fmt"
 	"math"
 
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/predicate"
+	"entgo.io/contrib/entprom/internal/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -325,8 +325,8 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 //		Select(user.FieldName).
 //		Scan(ctx, &v)
 //
-func (uq *UserQuery) Select(fields ...string) *UserSelect {
-	uq.fields = append(uq.fields, fields...)
+func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
+	uq.fields = append([]string{field}, fields...)
 	return &UserSelect{UserQuery: uq}
 }
 

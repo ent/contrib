@@ -2,9 +2,26 @@
 
 package runtime
 
-// The schema-stitching logic is generated in entprom/internal/ent/runtime.go
+import (
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/schema"
+	"entgo.io/contrib/entprom/internal/ent/user"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	fileFields := schema.File{}.Fields()
+	_ = fileFields
+	// fileDescDeleted is the schema descriptor for deleted field.
+	fileDescDeleted := fileFields[1].Descriptor()
+	// file.DefaultDeleted holds the default value on creation for the deleted field.
+	file.DefaultDeleted = fileDescDeleted.Default.(bool)
+	userHooks := schema.User{}.Hooks()
+	user.Hooks[0] = userHooks[0]
+}
 
 const (
-	Version = "v0.9.0"                                          // Version of ent codegen.
-	Sum     = "h1:2S1zfpMMW6p+wctj6kcYUprNPNjLWFW06T5MdyAfmWc=" // Sum of ent codegen.
+	Version = "(devel)" // Version of ent codegen.
 )

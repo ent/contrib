@@ -4,11 +4,12 @@ package ent
 
 import (
 	"context"
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/predicate"
-	"entprom/internal/ent/user"
 	"fmt"
 	"sync"
+
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/predicate"
+	"entgo.io/contrib/entprom/internal/ent/user"
 
 	"entgo.io/ent"
 )
@@ -400,11 +401,6 @@ func (m *FileMutation) OwnerIDs() (ids []int) {
 func (m *FileMutation) ResetOwner() {
 	m.owner = nil
 	m.clearedowner = false
-}
-
-// Where appends a list predicates to the FileMutation builder.
-func (m *FileMutation) Where(ps ...predicate.File) {
-	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -890,11 +886,6 @@ func (m *UserMutation) ResetFiles() {
 	m.files = nil
 	m.clearedfiles = false
 	m.removedfiles = nil
-}
-
-// Where appends a list predicates to the UserMutation builder.
-func (m *UserMutation) Where(ps ...predicate.User) {
-	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

@@ -23,15 +23,15 @@ const (
 	EdgeOwner = "owner"
 	// Table holds the table name of the file in the database.
 	Table = "files"
-	// ParentTable is the table that holds the parent relation/edge.
+	// ParentTable is the table the holds the parent relation/edge.
 	ParentTable = "files"
 	// ParentColumn is the table column denoting the parent relation/edge.
 	ParentColumn = "parent_id"
-	// ChildrenTable is the table that holds the children relation/edge.
+	// ChildrenTable is the table the holds the children relation/edge.
 	ChildrenTable = "files"
 	// ChildrenColumn is the table column denoting the children relation/edge.
 	ChildrenColumn = "parent_id"
-	// OwnerTable is the table that holds the owner relation/edge.
+	// OwnerTable is the table the holds the owner relation/edge.
 	OwnerTable = "files"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.

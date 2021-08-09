@@ -4,10 +4,10 @@ package ent
 
 import (
 	"context"
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/predicate"
 	"fmt"
 
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,9 +20,9 @@ type FileDelete struct {
 	mutation *FileMutation
 }
 
-// Where appends a list predicates to the FileDelete builder.
+// Where adds a new predicate to the FileDelete builder.
 func (fd *FileDelete) Where(ps ...predicate.File) *FileDelete {
-	fd.mutation.Where(ps...)
+	fd.mutation.predicates = append(fd.mutation.predicates, ps...)
 	return fd
 }
 
@@ -46,9 +46,6 @@ func (fd *FileDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(fd.hooks) - 1; i >= 0; i-- {
-			if fd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
 			mut = fd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fd.mutation); err != nil {

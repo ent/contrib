@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"log"
 
-	"entprom/internal/ent/migrate"
+	"entgo.io/contrib/entprom/internal/ent/migrate"
 
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/user"
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/user"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -370,5 +370,6 @@ func (c *UserClient) QueryFiles(u *User) *FileQuery {
 
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }

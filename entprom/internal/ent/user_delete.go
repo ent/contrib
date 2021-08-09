@@ -4,10 +4,10 @@ package ent
 
 import (
 	"context"
-	"entprom/internal/ent/predicate"
-	"entprom/internal/ent/user"
 	"fmt"
 
+	"entgo.io/contrib/entprom/internal/ent/predicate"
+	"entgo.io/contrib/entprom/internal/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,9 +20,9 @@ type UserDelete struct {
 	mutation *UserMutation
 }
 
-// Where appends a list predicates to the UserDelete builder.
+// Where adds a new predicate to the UserDelete builder.
 func (ud *UserDelete) Where(ps ...predicate.User) *UserDelete {
-	ud.mutation.Where(ps...)
+	ud.mutation.predicates = append(ud.mutation.predicates, ps...)
 	return ud
 }
 
@@ -46,9 +46,6 @@ func (ud *UserDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ud.hooks) - 1; i >= 0; i-- {
-			if ud.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
 			mut = ud.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ud.mutation); err != nil {

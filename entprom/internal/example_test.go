@@ -4,9 +4,8 @@ import (
 	"context"
 	"log"
 
-	"entprom"
-	"entprom/internal/ent"
-
+	"entgo.io/contrib/entprom"
+	"entgo.io/contrib/entprom/internal/ent"
 	_ "github.com/mattn/go-sqlite3"
 )
 

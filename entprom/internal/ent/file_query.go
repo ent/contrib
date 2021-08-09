@@ -5,13 +5,13 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
-	"entprom/internal/ent/file"
-	"entprom/internal/ent/predicate"
-	"entprom/internal/ent/user"
 	"errors"
 	"fmt"
 	"math"
 
+	"entgo.io/contrib/entprom/internal/ent/file"
+	"entgo.io/contrib/entprom/internal/ent/predicate"
+	"entgo.io/contrib/entprom/internal/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -395,8 +395,8 @@ func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 //		Select(file.FieldName).
 //		Scan(ctx, &v)
 //
-func (fq *FileQuery) Select(fields ...string) *FileSelect {
-	fq.fields = append(fq.fields, fields...)
+func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
+	fq.fields = append([]string{field}, fields...)
 	return &FileSelect{FileQuery: fq}
 }
 

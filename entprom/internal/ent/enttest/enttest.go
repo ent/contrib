@@ -4,9 +4,10 @@ package enttest
 
 import (
 	"context"
-	"entprom/internal/ent"
+
+	"entgo.io/contrib/entprom/internal/ent"
 	// required by schema hooks.
-	_ "entprom/internal/ent/runtime"
+	_ "entgo.io/contrib/entprom/internal/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )
