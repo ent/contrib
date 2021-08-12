@@ -215,10 +215,10 @@ func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
 		scalar = graphql.Boolean.Name()
 	case f.IsEdgeField():
 		scalar = graphql.ID.Name()
-	case t.Numeric():
-		scalar = graphql.Int.Name()
 	case t.Float():
 		scalar = graphql.Float.Name()
+	case t.Numeric():
+		scalar = graphql.Int.Name()
 	case t == field.TypeString:
 		scalar = graphql.String.Name()
 	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
