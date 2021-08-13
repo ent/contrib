@@ -101,15 +101,9 @@ type Edge struct {
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
 				}
-				{{- if $idType.Numeric }}
-					node.Edges[{{ $i }}].IDs, err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
-						Select({{ $e.Type.Package }}.FieldID).
-						{{ pascal $idType.String }}s(ctx)
-				{{- else }}
-					err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
-						Select({{ $e.Type.Package }}.FieldID).
-						Scan(ctx, &node.Edges[{{ $i }}].IDs)
-				{{- end }}
+				err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+					Select({{ $e.Type.Package }}.FieldID).
+					Scan(ctx, &node.Edges[{{ $i }}].IDs)
 				if err != nil {
 					return nil, err
 				}
