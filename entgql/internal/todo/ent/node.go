@@ -97,9 +97,9 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "todos",
 	}
-	node.Edges[0].IDs, err = c.QueryTodos().
+	err = c.QueryTodos().
 		Select(todo.FieldID).
-		Ints(ctx)
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -158,9 +158,9 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "parent",
 	}
-	node.Edges[0].IDs, err = t.QueryParent().
+	err = t.QueryParent().
 		Select(todo.FieldID).
-		Ints(ctx)
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -168,9 +168,9 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "children",
 	}
-	node.Edges[1].IDs, err = t.QueryChildren().
+	err = t.QueryChildren().
 		Select(todo.FieldID).
-		Ints(ctx)
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -178,9 +178,9 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Category",
 		Name: "category",
 	}
-	node.Edges[2].IDs, err = t.QueryCategory().
+	err = t.QueryCategory().
 		Select(category.FieldID).
-		Ints(ctx)
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
