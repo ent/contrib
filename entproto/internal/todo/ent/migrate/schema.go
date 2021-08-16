@@ -38,6 +38,18 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
+	// NilExamplesColumns holds the columns for the "nil_examples" table.
+	NilExamplesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "str_nil", Type: field.TypeString, Nullable: true},
+		{Name: "time_nil", Type: field.TypeTime, Nullable: true},
+	}
+	// NilExamplesTable holds the schema information for the "nil_examples" table.
+	NilExamplesTable = &schema.Table{
+		Name:       "nil_examples",
+		Columns:    NilExamplesColumns,
+		PrimaryKey: []*schema.Column{NilExamplesColumns[0]},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -120,6 +132,7 @@ var (
 	Tables = []*schema.Table{
 		AttachmentsTable,
 		GroupsTable,
+		NilExamplesTable,
 		TodosTable,
 		UsersTable,
 		AttachmentRecipientsTable,

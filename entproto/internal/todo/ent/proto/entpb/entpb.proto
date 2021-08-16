@@ -53,6 +53,40 @@ message Group {
   repeated User users = 3;
 }
 
+message NilExample {
+  int32 id = 1;
+
+  google.protobuf.StringValue str_nil = 2;
+
+  google.protobuf.Timestamp time_nil = 3;
+}
+
+message CreateNilExampleRequest {
+  NilExample nil_example = 1;
+}
+
+message GetNilExampleRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateNilExampleRequest {
+  NilExample nil_example = 1;
+}
+
+message DeleteNilExampleRequest {
+  int32 id = 1;
+}
+
 message Todo {
   int32 id = 1;
 
@@ -149,6 +183,16 @@ service AttachmentService {
   rpc Update ( UpdateAttachmentRequest ) returns ( Attachment );
 
   rpc Delete ( DeleteAttachmentRequest ) returns ( google.protobuf.Empty );
+}
+
+service NilExampleService {
+  rpc Create ( CreateNilExampleRequest ) returns ( NilExample );
+
+  rpc Get ( GetNilExampleRequest ) returns ( NilExample );
+
+  rpc Update ( UpdateNilExampleRequest ) returns ( NilExample );
+
+  rpc Delete ( DeleteNilExampleRequest ) returns ( google.protobuf.Empty );
 }
 
 service UserService {

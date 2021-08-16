@@ -209,6 +209,200 @@ var AttachmentService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "entpb/entpb.proto",
 }
 
+// NilExampleServiceClient is the client API for NilExampleService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type NilExampleServiceClient interface {
+	Create(ctx context.Context, in *CreateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
+	Get(ctx context.Context, in *GetNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
+	Update(ctx context.Context, in *UpdateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
+	Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+}
+
+type nilExampleServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewNilExampleServiceClient(cc grpc.ClientConnInterface) NilExampleServiceClient {
+	return &nilExampleServiceClient{cc}
+}
+
+func (c *nilExampleServiceClient) Create(ctx context.Context, in *CreateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error) {
+	out := new(NilExample)
+	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nilExampleServiceClient) Get(ctx context.Context, in *GetNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error) {
+	out := new(NilExample)
+	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nilExampleServiceClient) Update(ctx context.Context, in *UpdateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error) {
+	out := new(NilExample)
+	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nilExampleServiceClient) Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NilExampleServiceServer is the server API for NilExampleService service.
+// All implementations must embed UnimplementedNilExampleServiceServer
+// for forward compatibility
+type NilExampleServiceServer interface {
+	Create(context.Context, *CreateNilExampleRequest) (*NilExample, error)
+	Get(context.Context, *GetNilExampleRequest) (*NilExample, error)
+	Update(context.Context, *UpdateNilExampleRequest) (*NilExample, error)
+	Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedNilExampleServiceServer()
+}
+
+// UnimplementedNilExampleServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedNilExampleServiceServer struct {
+}
+
+func (UnimplementedNilExampleServiceServer) Create(context.Context, *CreateNilExampleRequest) (*NilExample, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedNilExampleServiceServer) Get(context.Context, *GetNilExampleRequest) (*NilExample, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedNilExampleServiceServer) Update(context.Context, *UpdateNilExampleRequest) (*NilExample, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedNilExampleServiceServer) Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedNilExampleServiceServer) mustEmbedUnimplementedNilExampleServiceServer() {}
+
+// UnsafeNilExampleServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to NilExampleServiceServer will
+// result in compilation errors.
+type UnsafeNilExampleServiceServer interface {
+	mustEmbedUnimplementedNilExampleServiceServer()
+}
+
+func RegisterNilExampleServiceServer(s grpc.ServiceRegistrar, srv NilExampleServiceServer) {
+	s.RegisterService(&NilExampleService_ServiceDesc, srv)
+}
+
+func _NilExampleService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNilExampleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NilExampleServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.NilExampleService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NilExampleServiceServer).Create(ctx, req.(*CreateNilExampleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NilExampleService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNilExampleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NilExampleServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.NilExampleService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NilExampleServiceServer).Get(ctx, req.(*GetNilExampleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NilExampleService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNilExampleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NilExampleServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.NilExampleService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NilExampleServiceServer).Update(ctx, req.(*UpdateNilExampleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NilExampleService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteNilExampleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NilExampleServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.NilExampleService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NilExampleServiceServer).Delete(ctx, req.(*DeleteNilExampleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// NilExampleService_ServiceDesc is the grpc.ServiceDesc for NilExampleService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var NilExampleService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.NilExampleService",
+	HandlerType: (*NilExampleServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _NilExampleService_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _NilExampleService_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _NilExampleService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _NilExampleService_Delete_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "entpb/entpb.proto",
+}
+
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
