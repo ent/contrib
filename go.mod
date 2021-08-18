@@ -10,7 +10,6 @@ require (
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-bindata/go-bindata v1.0.1-0.20190711162640-ee3c2418e368
 	github.com/go-openapi/inflect v0.19.0
-	github.com/golang/protobuf v1.5.1
 	github.com/google/addlicense v0.0.0-20200906110928-a0294312aa76 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
@@ -23,7 +22,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.7
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/oklog/ulid/v2 v2.0.2
-	github.com/prometheus/common v0.4.0
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.1.0
