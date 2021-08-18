@@ -6,14 +6,14 @@ in the LICENSE file in the root directory of this source tree.
 
 {{/* gotype: entgo.io/ent/entc/gen.Graph */}}
 
-{{ define "pagination" }}
+{{ define "gql_pagination" }}
 {{ template "header" $ }}
 
 {{- if ne $.Storage.Name "sql" }}
 	{{ fail "pagination requires SQL storage" }}
 {{- end }}
 
-{{- if not (hasTemplate "collection") }}
+{{- if not (hasTemplate "gql_collection") }}
 	{{ fail "pagination requires field collection" }}
 {{- end }}
 

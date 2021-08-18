@@ -15,7 +15,11 @@
 package entgql
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
+	tparse "text/template/parse"
 
 	"entgo.io/contrib/entgql/internal"
 
@@ -134,4 +138,44 @@ func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
 		filteredFields = append(filteredFields, f)
 	}
 	return filteredFields, nil
+}
+
+func removeOldGeneratedFiles() gen.Hook {
+	prefix := "gql_"
+	return func(next gen.Generator) gen.Generator {
+		return gen.GenerateFunc(func(g *gen.Graph) error {
+			for _, rootTemplate := range AllTemplates {
+				for _, t := range rootTemplate.Templates() {
+					// Check if template is empty
+					if tparse.IsEmptyTree(t.Root) {
+						continue
+					}
+					// Check if template has correct prefix
+					if !strings.HasPrefix(t.Name(), prefix) {
+						continue
+					}
+					name := strings.TrimPrefix(t.Name(), prefix)
+					err := deleteOldTemplateByName(g, name)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			return next.Generate(g)
+		})
+	}
+}
+
+func deleteOldTemplateByName(g *gen.Graph, name string) error {
+	// Check if name already taken by existing schema field
+	for _, n := range g.Nodes {
+		if n.Package() == name {
+			return nil
+		}
+	}
+	err := os.Remove(filepath.Join(g.Target, name+".go"))
+	if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
