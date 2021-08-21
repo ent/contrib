@@ -121,6 +121,11 @@ func (m *UserMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
+// Where appends a list predicates to the UserMutation builder.
+func (m *UserMutation) Where(ps ...predicate.User) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -381,6 +386,11 @@ func (m *WithFieldsMutation) OldExisting(ctx context.Context) (v string, err err
 // ResetExisting resets all changes to the "existing" field.
 func (m *WithFieldsMutation) ResetExisting() {
 	m.existing = nil
+}
+
+// Where appends a list predicates to the WithFieldsMutation builder.
+func (m *WithFieldsMutation) Where(ps ...predicate.WithFields) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -711,6 +721,11 @@ func (m *WithModifiedFieldMutation) ResetOwner() {
 	m.clearedowner = false
 }
 
+// Where appends a list predicates to the WithModifiedFieldMutation builder.
+func (m *WithModifiedFieldMutation) Where(ps ...predicate.WithModifiedField) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *WithModifiedFieldMutation) Op() Op {
 	return m.op
@@ -989,6 +1004,11 @@ func (m *WithNilFieldsMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
+// Where appends a list predicates to the WithNilFieldsMutation builder.
+func (m *WithNilFieldsMutation) Where(ps ...predicate.WithNilFields) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *WithNilFieldsMutation) Op() Op {
 	return m.op
@@ -1212,6 +1232,11 @@ func (m *WithoutFieldsMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// Where appends a list predicates to the WithoutFieldsMutation builder.
+func (m *WithoutFieldsMutation) Where(ps ...predicate.WithoutFields) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

@@ -19,14 +19,14 @@ const (
 	EdgeCategories = "categories"
 	// Table holds the table name of the blogpost in the database.
 	Table = "blog_posts"
-	// AuthorTable is the table the holds the author relation/edge.
+	// AuthorTable is the table that holds the author relation/edge.
 	AuthorTable = "blog_posts"
 	// AuthorInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	AuthorInverseTable = "users"
 	// AuthorColumn is the table column denoting the author relation/edge.
 	AuthorColumn = "blog_post_author"
-	// CategoriesTable is the table the holds the categories relation/edge. The primary key declared below.
+	// CategoriesTable is the table that holds the categories relation/edge. The primary key declared below.
 	CategoriesTable = "category_blog_posts"
 	// CategoriesInverseTable is the table name for the Category entity.
 	// It exists in this package in order to avoid circular dependency with the "category" package.

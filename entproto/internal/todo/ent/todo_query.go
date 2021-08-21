@@ -325,8 +325,8 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 //		Select(todo.FieldTask).
 //		Scan(ctx, &v)
 //
-func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
-	tq.fields = append([]string{field}, fields...)
+func (tq *TodoQuery) Select(fields ...string) *TodoSelect {
+	tq.fields = append(tq.fields, fields...)
 	return &TodoSelect{TodoQuery: tq}
 }
 

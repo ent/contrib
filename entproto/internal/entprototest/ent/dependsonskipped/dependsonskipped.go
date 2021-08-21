@@ -13,7 +13,7 @@ const (
 	EdgeSkipped = "skipped"
 	// Table holds the table name of the dependsonskipped in the database.
 	Table = "depends_on_skippeds"
-	// SkippedTable is the table the holds the skipped relation/edge.
+	// SkippedTable is the table that holds the skipped relation/edge.
 	SkippedTable = "implicit_skipped_messages"
 	// SkippedInverseTable is the table name for the ImplicitSkippedMessage entity.
 	// It exists in this package in order to avoid circular dependency with the "implicitskippedmessage" package.

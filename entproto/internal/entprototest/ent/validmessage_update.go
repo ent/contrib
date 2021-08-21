@@ -22,9 +22,9 @@ type ValidMessageUpdate struct {
 	mutation *ValidMessageMutation
 }
 
-// Where adds a new predicate for the ValidMessageUpdate builder.
+// Where appends a list predicates to the ValidMessageUpdate builder.
 func (vmu *ValidMessageUpdate) Where(ps ...predicate.ValidMessage) *ValidMessageUpdate {
-	vmu.mutation.predicates = append(vmu.mutation.predicates, ps...)
+	vmu.mutation.Where(ps...)
 	return vmu
 }
 
@@ -111,6 +111,9 @@ func (vmu *ValidMessageUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(vmu.hooks) - 1; i >= 0; i-- {
+			if vmu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vmu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vmu.mutation); err != nil {
@@ -324,6 +327,9 @@ func (vmuo *ValidMessageUpdateOne) Save(ctx context.Context) (*ValidMessage, err
 			return node, err
 		})
 		for i := len(vmuo.hooks) - 1; i >= 0; i-- {
+			if vmuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vmuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vmuo.mutation); err != nil {

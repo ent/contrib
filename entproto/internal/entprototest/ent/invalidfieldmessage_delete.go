@@ -20,9 +20,9 @@ type InvalidFieldMessageDelete struct {
 	mutation *InvalidFieldMessageMutation
 }
 
-// Where adds a new predicate to the InvalidFieldMessageDelete builder.
+// Where appends a list predicates to the InvalidFieldMessageDelete builder.
 func (ifmd *InvalidFieldMessageDelete) Where(ps ...predicate.InvalidFieldMessage) *InvalidFieldMessageDelete {
-	ifmd.mutation.predicates = append(ifmd.mutation.predicates, ps...)
+	ifmd.mutation.Where(ps...)
 	return ifmd
 }
 
@@ -46,6 +46,9 @@ func (ifmd *InvalidFieldMessageDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ifmd.hooks) - 1; i >= 0; i-- {
+			if ifmd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ifmd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ifmd.mutation); err != nil {

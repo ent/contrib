@@ -20,9 +20,9 @@ type ImplicitSkippedMessageDelete struct {
 	mutation *ImplicitSkippedMessageMutation
 }
 
-// Where adds a new predicate to the ImplicitSkippedMessageDelete builder.
+// Where appends a list predicates to the ImplicitSkippedMessageDelete builder.
 func (ismd *ImplicitSkippedMessageDelete) Where(ps ...predicate.ImplicitSkippedMessage) *ImplicitSkippedMessageDelete {
-	ismd.mutation.predicates = append(ismd.mutation.predicates, ps...)
+	ismd.mutation.Where(ps...)
 	return ismd
 }
 
@@ -46,6 +46,9 @@ func (ismd *ImplicitSkippedMessageDelete) Exec(ctx context.Context) (int, error)
 			return affected, err
 		})
 		for i := len(ismd.hooks) - 1; i >= 0; i-- {
+			if ismd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ismd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ismd.mutation); err != nil {

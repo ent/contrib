@@ -20,9 +20,9 @@ type MessageUpdate struct {
 	mutation *MessageMutation
 }
 
-// Where adds a new predicate for the MessageUpdate builder.
+// Where appends a list predicates to the MessageUpdate builder.
 func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
-	mu.mutation.predicates = append(mu.mutation.predicates, ps...)
+	mu.mutation.Where(ps...)
 	return mu
 }
 
@@ -51,6 +51,9 @@ func (mu *MessageUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mu.hooks) - 1; i >= 0; i-- {
+			if mu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mu.mutation); err != nil {
@@ -151,6 +154,9 @@ func (muo *MessageUpdateOne) Save(ctx context.Context) (*Message, error) {
 			return node, err
 		})
 		for i := len(muo.hooks) - 1; i >= 0; i-- {
+			if muo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = muo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, muo.mutation); err != nil {

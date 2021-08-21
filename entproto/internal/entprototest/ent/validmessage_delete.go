@@ -20,9 +20,9 @@ type ValidMessageDelete struct {
 	mutation *ValidMessageMutation
 }
 
-// Where adds a new predicate to the ValidMessageDelete builder.
+// Where appends a list predicates to the ValidMessageDelete builder.
 func (vmd *ValidMessageDelete) Where(ps ...predicate.ValidMessage) *ValidMessageDelete {
-	vmd.mutation.predicates = append(vmd.mutation.predicates, ps...)
+	vmd.mutation.Where(ps...)
 	return vmd
 }
 
@@ -46,6 +46,9 @@ func (vmd *ValidMessageDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(vmd.hooks) - 1; i >= 0; i-- {
+			if vmd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vmd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vmd.mutation); err != nil {

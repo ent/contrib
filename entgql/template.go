@@ -15,16 +15,14 @@
 package entgql
 
 import (
+	"embed"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 	"text/template/parse"
 
-	"entgo.io/contrib/entgql/internal"
-
 	"entgo.io/ent/entc/gen"
-	_ "github.com/go-bindata/go-bindata"
 )
 
 var (
@@ -68,16 +66,16 @@ var (
 		"filterEdges":  filterEdges,
 		"filterFields": filterFields,
 	}
+
+	//go:embed template/*
+	templates embed.FS
 )
 
-//go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
-
 func parseT(path string) *gen.Template {
-	text := string(internal.MustAsset(path))
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(gen.Funcs).
 		Funcs(TemplateFuncs).
-		Parse(text))
+		ParseFS(templates, path))
 }
 
 func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {

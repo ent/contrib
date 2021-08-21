@@ -20,9 +20,9 @@ type ExplicitSkippedMessageDelete struct {
 	mutation *ExplicitSkippedMessageMutation
 }
 
-// Where adds a new predicate to the ExplicitSkippedMessageDelete builder.
+// Where appends a list predicates to the ExplicitSkippedMessageDelete builder.
 func (esmd *ExplicitSkippedMessageDelete) Where(ps ...predicate.ExplicitSkippedMessage) *ExplicitSkippedMessageDelete {
-	esmd.mutation.predicates = append(esmd.mutation.predicates, ps...)
+	esmd.mutation.Where(ps...)
 	return esmd
 }
 
@@ -46,6 +46,9 @@ func (esmd *ExplicitSkippedMessageDelete) Exec(ctx context.Context) (int, error)
 			return affected, err
 		})
 		for i := len(esmd.hooks) - 1; i >= 0; i-- {
+			if esmd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = esmd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, esmd.mutation); err != nil {

@@ -324,6 +324,11 @@ func (m *CategoryMutation) ResetTodos() {
 	m.removedtodos = nil
 }
 
+// Where appends a list predicates to the CategoryMutation builder.
+func (m *CategoryMutation) Where(ps ...predicate.Category) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *CategoryMutation) Op() Op {
 	return m.op
@@ -1058,6 +1063,11 @@ func (m *TodoMutation) ResetSecret() {
 	m.clearedsecret = false
 }
 
+// Where appends a list predicates to the TodoMutation builder.
+func (m *TodoMutation) Where(ps ...predicate.Todo) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *TodoMutation) Op() Op {
 	return m.op
@@ -1531,6 +1541,11 @@ func (m *VerySecretMutation) OldPassword(ctx context.Context) (v string, err err
 // ResetPassword resets all changes to the "password" field.
 func (m *VerySecretMutation) ResetPassword() {
 	m.password = nil
+}
+
+// Where appends a list predicates to the VerySecretMutation builder.
+func (m *VerySecretMutation) Where(ps ...predicate.VerySecret) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

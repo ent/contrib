@@ -20,9 +20,9 @@ type MessageWithFieldOneDelete struct {
 	mutation *MessageWithFieldOneMutation
 }
 
-// Where adds a new predicate to the MessageWithFieldOneDelete builder.
+// Where appends a list predicates to the MessageWithFieldOneDelete builder.
 func (mwfod *MessageWithFieldOneDelete) Where(ps ...predicate.MessageWithFieldOne) *MessageWithFieldOneDelete {
-	mwfod.mutation.predicates = append(mwfod.mutation.predicates, ps...)
+	mwfod.mutation.Where(ps...)
 	return mwfod
 }
 
@@ -46,6 +46,9 @@ func (mwfod *MessageWithFieldOneDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mwfod.hooks) - 1; i >= 0; i-- {
+			if mwfod.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwfod.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwfod.mutation); err != nil {

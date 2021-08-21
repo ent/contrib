@@ -21,9 +21,9 @@ type ImageUpdate struct {
 	mutation *ImageMutation
 }
 
-// Where adds a new predicate for the ImageUpdate builder.
+// Where appends a list predicates to the ImageUpdate builder.
 func (iu *ImageUpdate) Where(ps ...predicate.Image) *ImageUpdate {
-	iu.mutation.predicates = append(iu.mutation.predicates, ps...)
+	iu.mutation.Where(ps...)
 	return iu
 }
 
@@ -94,6 +94,9 @@ func (iu *ImageUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(iu.hooks) - 1; i >= 0; i-- {
+			if iu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = iu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, iu.mutation); err != nil {
@@ -297,6 +300,9 @@ func (iuo *ImageUpdateOne) Save(ctx context.Context) (*Image, error) {
 			return node, err
 		})
 		for i := len(iuo.hooks) - 1; i >= 0; i-- {
+			if iuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = iuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, iuo.mutation); err != nil {

@@ -21,14 +21,14 @@ const (
 	EdgeProfilePic = "profile_pic"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// BlogPostsTable is the table the holds the blog_posts relation/edge.
+	// BlogPostsTable is the table that holds the blog_posts relation/edge.
 	BlogPostsTable = "blog_posts"
 	// BlogPostsInverseTable is the table name for the BlogPost entity.
 	// It exists in this package in order to avoid circular dependency with the "blogpost" package.
 	BlogPostsInverseTable = "blog_posts"
 	// BlogPostsColumn is the table column denoting the blog_posts relation/edge.
 	BlogPostsColumn = "blog_post_author"
-	// ProfilePicTable is the table the holds the profile_pic relation/edge.
+	// ProfilePicTable is the table that holds the profile_pic relation/edge.
 	ProfilePicTable = "users"
 	// ProfilePicInverseTable is the table name for the Image entity.
 	// It exists in this package in order to avoid circular dependency with the "image" package.
