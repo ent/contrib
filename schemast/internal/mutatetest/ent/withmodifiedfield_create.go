@@ -79,6 +79,9 @@ func (wmfc *WithModifiedFieldCreate) Save(ctx context.Context) (*WithModifiedFie
 			return node, err
 		})
 		for i := len(wmfc.hooks) - 1; i >= 0; i-- {
+			if wmfc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wmfc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wmfc.mutation); err != nil {
@@ -97,14 +100,27 @@ func (wmfc *WithModifiedFieldCreate) SaveX(ctx context.Context) *WithModifiedFie
 	return v
 }
 
+// Exec executes the query.
+func (wmfc *WithModifiedFieldCreate) Exec(ctx context.Context) error {
+	_, err := wmfc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (wmfc *WithModifiedFieldCreate) ExecX(ctx context.Context) {
+	if err := wmfc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (wmfc *WithModifiedFieldCreate) check() error {
 	if _, ok := wmfc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
 	}
 	if v, ok := wmfc.mutation.Name(); ok {
 		if err := withmodifiedfield.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "name": %w`, err)}
 		}
 	}
 	return nil
@@ -193,8 +209,9 @@ func (wmfcb *WithModifiedFieldCreateBulk) Save(ctx context.Context) ([]*WithModi
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wmfcb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, wmfcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, wmfcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -205,8 +222,10 @@ func (wmfcb *WithModifiedFieldCreateBulk) Save(ctx context.Context) ([]*WithModi
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -230,4 +249,17 @@ func (wmfcb *WithModifiedFieldCreateBulk) SaveX(ctx context.Context) []*WithModi
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (wmfcb *WithModifiedFieldCreateBulk) Exec(ctx context.Context) error {
+	_, err := wmfcb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (wmfcb *WithModifiedFieldCreateBulk) ExecX(ctx context.Context) {
+	if err := wmfcb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

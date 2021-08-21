@@ -20,9 +20,9 @@ type MessageWithEnumUpdate struct {
 	mutation *MessageWithEnumMutation
 }
 
-// Where adds a new predicate for the MessageWithEnumUpdate builder.
+// Where appends a list predicates to the MessageWithEnumUpdate builder.
 func (mweu *MessageWithEnumUpdate) Where(ps ...predicate.MessageWithEnum) *MessageWithEnumUpdate {
-	mweu.mutation.predicates = append(mweu.mutation.predicates, ps...)
+	mweu.mutation.Where(ps...)
 	return mweu
 }
 
@@ -77,6 +77,9 @@ func (mweu *MessageWithEnumUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mweu.hooks) - 1; i >= 0; i-- {
+			if mweu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mweu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mweu.mutation); err != nil {
@@ -232,6 +235,9 @@ func (mweuo *MessageWithEnumUpdateOne) Save(ctx context.Context) (*MessageWithEn
 			return node, err
 		})
 		for i := len(mweuo.hooks) - 1; i >= 0; i-- {
+			if mweuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mweuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mweuo.mutation); err != nil {

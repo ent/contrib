@@ -39,7 +39,7 @@ const (
 	EdgeTodos = "todos"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
-	// TodosTable is the table the holds the todos relation/edge.
+	// TodosTable is the table that holds the todos relation/edge.
 	TodosTable = "todos"
 	// TodosInverseTable is the table name for the Todo entity.
 	// It exists in this package in order to avoid circular dependency with the "todo" package.

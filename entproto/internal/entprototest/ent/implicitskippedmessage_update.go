@@ -20,9 +20,9 @@ type ImplicitSkippedMessageUpdate struct {
 	mutation *ImplicitSkippedMessageMutation
 }
 
-// Where adds a new predicate for the ImplicitSkippedMessageUpdate builder.
+// Where appends a list predicates to the ImplicitSkippedMessageUpdate builder.
 func (ismu *ImplicitSkippedMessageUpdate) Where(ps ...predicate.ImplicitSkippedMessage) *ImplicitSkippedMessageUpdate {
-	ismu.mutation.predicates = append(ismu.mutation.predicates, ps...)
+	ismu.mutation.Where(ps...)
 	return ismu
 }
 
@@ -51,6 +51,9 @@ func (ismu *ImplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error)
 			return affected, err
 		})
 		for i := len(ismu.hooks) - 1; i >= 0; i-- {
+			if ismu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ismu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ismu.mutation); err != nil {
@@ -151,6 +154,9 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*Implic
 			return node, err
 		})
 		for i := len(ismuo.hooks) - 1; i >= 0; i-- {
+			if ismuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ismuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ismuo.mutation); err != nil {

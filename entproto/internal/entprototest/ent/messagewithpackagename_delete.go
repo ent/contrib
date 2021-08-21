@@ -20,9 +20,9 @@ type MessageWithPackageNameDelete struct {
 	mutation *MessageWithPackageNameMutation
 }
 
-// Where adds a new predicate to the MessageWithPackageNameDelete builder.
+// Where appends a list predicates to the MessageWithPackageNameDelete builder.
 func (mwpnd *MessageWithPackageNameDelete) Where(ps ...predicate.MessageWithPackageName) *MessageWithPackageNameDelete {
-	mwpnd.mutation.predicates = append(mwpnd.mutation.predicates, ps...)
+	mwpnd.mutation.Where(ps...)
 	return mwpnd
 }
 
@@ -46,6 +46,9 @@ func (mwpnd *MessageWithPackageNameDelete) Exec(ctx context.Context) (int, error
 			return affected, err
 		})
 		for i := len(mwpnd.hooks) - 1; i >= 0; i-- {
+			if mwpnd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwpnd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwpnd.mutation); err != nil {

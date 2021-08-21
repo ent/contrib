@@ -20,9 +20,9 @@ type WithNilFieldsUpdate struct {
 	mutation *WithNilFieldsMutation
 }
 
-// Where adds a new predicate for the WithNilFieldsUpdate builder.
+// Where appends a list predicates to the WithNilFieldsUpdate builder.
 func (wnfu *WithNilFieldsUpdate) Where(ps ...predicate.WithNilFields) *WithNilFieldsUpdate {
-	wnfu.mutation.predicates = append(wnfu.mutation.predicates, ps...)
+	wnfu.mutation.Where(ps...)
 	return wnfu
 }
 
@@ -51,6 +51,9 @@ func (wnfu *WithNilFieldsUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(wnfu.hooks) - 1; i >= 0; i-- {
+			if wnfu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wnfu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wnfu.mutation); err != nil {
@@ -151,6 +154,9 @@ func (wnfuo *WithNilFieldsUpdateOne) Save(ctx context.Context) (*WithNilFields, 
 			return node, err
 		})
 		for i := len(wnfuo.hooks) - 1; i >= 0; i-- {
+			if wnfuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wnfuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wnfuo.mutation); err != nil {

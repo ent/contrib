@@ -287,8 +287,8 @@ func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGr
 //		Select(attachment.FieldContents).
 //		Scan(ctx, &v)
 //
-func (aq *AttachmentQuery) Select(field string, fields ...string) *AttachmentSelect {
-	aq.fields = append([]string{field}, fields...)
+func (aq *AttachmentQuery) Select(fields ...string) *AttachmentSelect {
+	aq.fields = append(aq.fields, fields...)
 	return &AttachmentSelect{AttachmentQuery: aq}
 }
 

@@ -15,7 +15,7 @@ const (
 	EdgeBlogPosts = "blog_posts"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
-	// BlogPostsTable is the table the holds the blog_posts relation/edge. The primary key declared below.
+	// BlogPostsTable is the table that holds the blog_posts relation/edge. The primary key declared below.
 	BlogPostsTable = "category_blog_posts"
 	// BlogPostsInverseTable is the table name for the BlogPost entity.
 	// It exists in this package in order to avoid circular dependency with the "blogpost" package.

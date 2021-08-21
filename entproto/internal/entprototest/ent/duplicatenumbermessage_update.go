@@ -20,9 +20,9 @@ type DuplicateNumberMessageUpdate struct {
 	mutation *DuplicateNumberMessageMutation
 }
 
-// Where adds a new predicate for the DuplicateNumberMessageUpdate builder.
+// Where appends a list predicates to the DuplicateNumberMessageUpdate builder.
 func (dnmu *DuplicateNumberMessageUpdate) Where(ps ...predicate.DuplicateNumberMessage) *DuplicateNumberMessageUpdate {
-	dnmu.mutation.predicates = append(dnmu.mutation.predicates, ps...)
+	dnmu.mutation.Where(ps...)
 	return dnmu
 }
 
@@ -63,6 +63,9 @@ func (dnmu *DuplicateNumberMessageUpdate) Save(ctx context.Context) (int, error)
 			return affected, err
 		})
 		for i := len(dnmu.hooks) - 1; i >= 0; i-- {
+			if dnmu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = dnmu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, dnmu.mutation); err != nil {
@@ -189,6 +192,9 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) Save(ctx context.Context) (*Duplic
 			return node, err
 		})
 		for i := len(dnmuo.hooks) - 1; i >= 0; i-- {
+			if dnmuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = dnmuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, dnmuo.mutation); err != nil {

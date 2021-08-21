@@ -17,14 +17,14 @@ const (
 	EdgeRecipients = "recipients"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
-	// UserTable is the table the holds the user relation/edge.
+	// UserTable is the table that holds the user relation/edge.
 	UserTable = "attachments"
 	// UserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_attachment"
-	// RecipientsTable is the table the holds the recipients relation/edge. The primary key declared below.
+	// RecipientsTable is the table that holds the recipients relation/edge. The primary key declared below.
 	RecipientsTable = "attachment_recipients"
 	// RecipientsInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.

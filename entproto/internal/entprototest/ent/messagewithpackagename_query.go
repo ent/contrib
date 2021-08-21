@@ -287,8 +287,8 @@ func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string
 //		Select(messagewithpackagename.FieldName).
 //		Scan(ctx, &v)
 //
-func (mwpnq *MessageWithPackageNameQuery) Select(field string, fields ...string) *MessageWithPackageNameSelect {
-	mwpnq.fields = append([]string{field}, fields...)
+func (mwpnq *MessageWithPackageNameQuery) Select(fields ...string) *MessageWithPackageNameSelect {
+	mwpnq.fields = append(mwpnq.fields, fields...)
 	return &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}
 }
 

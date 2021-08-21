@@ -287,8 +287,8 @@ func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *Messa
 //		Select(messagewithenum.FieldEnumType).
 //		Scan(ctx, &v)
 //
-func (mweq *MessageWithEnumQuery) Select(field string, fields ...string) *MessageWithEnumSelect {
-	mweq.fields = append([]string{field}, fields...)
+func (mweq *MessageWithEnumQuery) Select(fields ...string) *MessageWithEnumSelect {
+	mweq.fields = append(mweq.fields, fields...)
 	return &MessageWithEnumSelect{MessageWithEnumQuery: mweq}
 }
 

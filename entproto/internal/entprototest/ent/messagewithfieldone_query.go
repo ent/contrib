@@ -287,8 +287,8 @@ func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *
 //		Select(messagewithfieldone.FieldFieldOne).
 //		Scan(ctx, &v)
 //
-func (mwfoq *MessageWithFieldOneQuery) Select(field string, fields ...string) *MessageWithFieldOneSelect {
-	mwfoq.fields = append([]string{field}, fields...)
+func (mwfoq *MessageWithFieldOneQuery) Select(fields ...string) *MessageWithFieldOneSelect {
+	mwfoq.fields = append(mwfoq.fields, fields...)
 	return &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}
 }
 

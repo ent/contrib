@@ -263,8 +263,8 @@ func (mq *MessageQuery) GroupBy(field string, fields ...string) *MessageGroupBy 
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (mq *MessageQuery) Select(field string, fields ...string) *MessageSelect {
-	mq.fields = append([]string{field}, fields...)
+func (mq *MessageQuery) Select(fields ...string) *MessageSelect {
+	mq.fields = append(mq.fields, fields...)
 	return &MessageSelect{MessageQuery: mq}
 }
 

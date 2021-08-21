@@ -20,9 +20,9 @@ type PortalDelete struct {
 	mutation *PortalMutation
 }
 
-// Where adds a new predicate to the PortalDelete builder.
+// Where appends a list predicates to the PortalDelete builder.
 func (pd *PortalDelete) Where(ps ...predicate.Portal) *PortalDelete {
-	pd.mutation.predicates = append(pd.mutation.predicates, ps...)
+	pd.mutation.Where(ps...)
 	return pd
 }
 
@@ -46,6 +46,9 @@ func (pd *PortalDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(pd.hooks) - 1; i >= 0; i-- {
+			if pd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = pd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, pd.mutation); err != nil {

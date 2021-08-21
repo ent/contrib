@@ -338,8 +338,8 @@ func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGr
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (aq *AttachmentQuery) Select(field string, fields ...string) *AttachmentSelect {
-	aq.fields = append([]string{field}, fields...)
+func (aq *AttachmentQuery) Select(fields ...string) *AttachmentSelect {
+	aq.fields = append(aq.fields, fields...)
 	return &AttachmentSelect{AttachmentQuery: aq}
 }
 

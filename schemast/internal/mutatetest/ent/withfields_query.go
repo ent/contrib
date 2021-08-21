@@ -287,8 +287,8 @@ func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsG
 //		Select(withfields.FieldExisting).
 //		Scan(ctx, &v)
 //
-func (wfq *WithFieldsQuery) Select(field string, fields ...string) *WithFieldsSelect {
-	wfq.fields = append([]string{field}, fields...)
+func (wfq *WithFieldsQuery) Select(fields ...string) *WithFieldsSelect {
+	wfq.fields = append(wfq.fields, fields...)
 	return &WithFieldsSelect{WithFieldsQuery: wfq}
 }
 

@@ -13,7 +13,7 @@ const (
 	EdgeUserProfilePic = "user_profile_pic"
 	// Table holds the table name of the image in the database.
 	Table = "images"
-	// UserProfilePicTable is the table the holds the user_profile_pic relation/edge.
+	// UserProfilePicTable is the table that holds the user_profile_pic relation/edge.
 	UserProfilePicTable = "users"
 	// UserProfilePicInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.

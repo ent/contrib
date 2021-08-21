@@ -325,8 +325,8 @@ func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *Wit
 //		Select(withmodifiedfield.FieldName).
 //		Scan(ctx, &v)
 //
-func (wmfq *WithModifiedFieldQuery) Select(field string, fields ...string) *WithModifiedFieldSelect {
-	wmfq.fields = append([]string{field}, fields...)
+func (wmfq *WithModifiedFieldQuery) Select(fields ...string) *WithModifiedFieldSelect {
+	wmfq.fields = append(wmfq.fields, fields...)
 	return &WithModifiedFieldSelect{WithModifiedFieldQuery: wmfq}
 }
 

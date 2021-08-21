@@ -34,9 +34,9 @@ type VerySecretUpdate struct {
 	mutation *VerySecretMutation
 }
 
-// Where adds a new predicate for the VerySecretUpdate builder.
+// Where appends a list predicates to the VerySecretUpdate builder.
 func (vsu *VerySecretUpdate) Where(ps ...predicate.VerySecret) *VerySecretUpdate {
-	vsu.mutation.predicates = append(vsu.mutation.predicates, ps...)
+	vsu.mutation.Where(ps...)
 	return vsu
 }
 
@@ -71,6 +71,9 @@ func (vsu *VerySecretUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(vsu.hooks) - 1; i >= 0; i-- {
+			if vsu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vsu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vsu.mutation); err != nil {
@@ -184,6 +187,9 @@ func (vsuo *VerySecretUpdateOne) Save(ctx context.Context) (*VerySecret, error) 
 			return node, err
 		})
 		for i := len(vsuo.hooks) - 1; i >= 0; i-- {
+			if vsuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vsuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vsuo.mutation); err != nil {

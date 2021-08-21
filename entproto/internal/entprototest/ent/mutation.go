@@ -376,6 +376,11 @@ func (m *BlogPostMutation) ResetCategories() {
 	m.removedcategories = nil
 }
 
+// Where appends a list predicates to the BlogPostMutation builder.
+func (m *BlogPostMutation) Where(ps ...predicate.BlogPost) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *BlogPostMutation) Op() Op {
 	return m.op
@@ -860,6 +865,11 @@ func (m *CategoryMutation) ResetBlogPosts() {
 	m.removedblog_posts = nil
 }
 
+// Where appends a list predicates to the CategoryMutation builder.
+func (m *CategoryMutation) Where(ps ...predicate.Category) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *CategoryMutation) Op() Op {
 	return m.op
@@ -1257,6 +1267,11 @@ func (m *DependsOnSkippedMutation) ResetSkipped() {
 	m.removedskipped = nil
 }
 
+// Where appends a list predicates to the DependsOnSkippedMutation builder.
+func (m *DependsOnSkippedMutation) Where(ps ...predicate.DependsOnSkipped) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *DependsOnSkippedMutation) Op() Op {
 	return m.op
@@ -1617,6 +1632,11 @@ func (m *DuplicateNumberMessageMutation) ResetWorld() {
 	m.world = nil
 }
 
+// Where appends a list predicates to the DuplicateNumberMessageMutation builder.
+func (m *DuplicateNumberMessageMutation) Where(ps ...predicate.DuplicateNumberMessage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *DuplicateNumberMessageMutation) Op() Op {
 	return m.op
@@ -1882,6 +1902,11 @@ func (m *ExplicitSkippedMessageMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// Where appends a list predicates to the ExplicitSkippedMessageMutation builder.
+func (m *ExplicitSkippedMessageMutation) Where(ps ...predicate.ExplicitSkippedMessage) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -2209,6 +2234,11 @@ func (m *ImageMutation) ResetUserProfilePic() {
 	m.removeduser_profile_pic = nil
 }
 
+// Where appends a list predicates to the ImageMutation builder.
+func (m *ImageMutation) Where(ps ...predicate.Image) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *ImageMutation) Op() Op {
 	return m.op
@@ -2495,6 +2525,11 @@ func (m *ImplicitSkippedMessageMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
+// Where appends a list predicates to the ImplicitSkippedMessageMutation builder.
+func (m *ImplicitSkippedMessageMutation) Where(ps ...predicate.ImplicitSkippedMessage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *ImplicitSkippedMessageMutation) Op() Op {
 	return m.op
@@ -2755,6 +2790,11 @@ func (m *InvalidFieldMessageMutation) OldJSON(ctx context.Context) (v *schema.So
 // ResetJSON resets all changes to the "json" field.
 func (m *InvalidFieldMessageMutation) ResetJSON() {
 	m.json = nil
+}
+
+// Where appends a list predicates to the InvalidFieldMessageMutation builder.
+func (m *InvalidFieldMessageMutation) Where(ps ...predicate.InvalidFieldMessage) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -3079,6 +3119,11 @@ func (m *MessageWithEnumMutation) OldEnumWithoutDefault(ctx context.Context) (v 
 // ResetEnumWithoutDefault resets all changes to the "enum_without_default" field.
 func (m *MessageWithEnumMutation) ResetEnumWithoutDefault() {
 	m.enum_without_default = nil
+}
+
+// Where appends a list predicates to the MessageWithEnumMutation builder.
+func (m *MessageWithEnumMutation) Where(ps ...predicate.MessageWithEnum) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -3406,6 +3451,11 @@ func (m *MessageWithFieldOneMutation) ResetFieldOne() {
 	m.addfield_one = nil
 }
 
+// Where appends a list predicates to the MessageWithFieldOneMutation builder.
+func (m *MessageWithFieldOneMutation) Where(ps ...predicate.MessageWithFieldOne) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithFieldOneMutation) Op() Op {
 	return m.op
@@ -3675,6 +3725,11 @@ func (m *MessageWithIDMutation) ID() (id int32, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// Where appends a list predicates to the MessageWithIDMutation builder.
+func (m *MessageWithIDMutation) Where(ps ...predicate.MessageWithID) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -4368,6 +4423,11 @@ func (m *MessageWithOptionalsMutation) ResetTimeOptional() {
 	delete(m.clearedFields, messagewithoptionals.FieldTimeOptional)
 }
 
+// Where appends a list predicates to the MessageWithOptionalsMutation builder.
+func (m *MessageWithOptionalsMutation) Where(ps ...predicate.MessageWithOptionals) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithOptionalsMutation) Op() Op {
 	return m.op
@@ -4864,6 +4924,11 @@ func (m *MessageWithPackageNameMutation) ResetName() {
 	m.name = nil
 }
 
+// Where appends a list predicates to the MessageWithPackageNameMutation builder.
+func (m *MessageWithPackageNameMutation) Where(ps ...predicate.MessageWithPackageName) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithPackageNameMutation) Op() Op {
 	return m.op
@@ -5227,6 +5292,11 @@ func (m *PortalMutation) CategoryIDs() (ids []int) {
 func (m *PortalMutation) ResetCategory() {
 	m.category = nil
 	m.clearedcategory = false
+}
+
+// Where appends a list predicates to the PortalMutation builder.
+func (m *PortalMutation) Where(ps ...predicate.Portal) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -5694,6 +5764,11 @@ func (m *UserMutation) ProfilePicIDs() (ids []uuid.UUID) {
 func (m *UserMutation) ResetProfilePic() {
 	m.profile_pic = nil
 	m.clearedprofile_pic = false
+}
+
+// Where appends a list predicates to the UserMutation builder.
+func (m *UserMutation) Where(ps ...predicate.User) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -6256,6 +6331,11 @@ func (m *ValidMessageMutation) ResetOpti8() {
 	m.opti8 = nil
 	m.addopti8 = nil
 	delete(m.clearedFields, validmessage.FieldOpti8)
+}
+
+// Where appends a list predicates to the ValidMessageMutation builder.
+func (m *ValidMessageMutation) Where(ps ...predicate.ValidMessage) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

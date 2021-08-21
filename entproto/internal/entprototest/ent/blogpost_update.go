@@ -22,9 +22,9 @@ type BlogPostUpdate struct {
 	mutation *BlogPostMutation
 }
 
-// Where adds a new predicate for the BlogPostUpdate builder.
+// Where appends a list predicates to the BlogPostUpdate builder.
 func (bpu *BlogPostUpdate) Where(ps ...predicate.BlogPost) *BlogPostUpdate {
-	bpu.mutation.predicates = append(bpu.mutation.predicates, ps...)
+	bpu.mutation.Where(ps...)
 	return bpu
 }
 
@@ -139,6 +139,9 @@ func (bpu *BlogPostUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(bpu.hooks) - 1; i >= 0; i-- {
+			if bpu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = bpu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, bpu.mutation); err != nil {
@@ -442,6 +445,9 @@ func (bpuo *BlogPostUpdateOne) Save(ctx context.Context) (*BlogPost, error) {
 			return node, err
 		})
 		for i := len(bpuo.hooks) - 1; i >= 0; i-- {
+			if bpuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = bpuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, bpuo.mutation); err != nil {

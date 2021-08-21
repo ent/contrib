@@ -362,8 +362,8 @@ func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroup
 //		Select(blogpost.FieldTitle).
 //		Scan(ctx, &v)
 //
-func (bpq *BlogPostQuery) Select(field string, fields ...string) *BlogPostSelect {
-	bpq.fields = append([]string{field}, fields...)
+func (bpq *BlogPostQuery) Select(fields ...string) *BlogPostSelect {
+	bpq.fields = append(bpq.fields, fields...)
 	return &BlogPostSelect{BlogPostQuery: bpq}
 }
 

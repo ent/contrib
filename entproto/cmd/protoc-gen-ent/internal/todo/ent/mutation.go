@@ -165,6 +165,11 @@ func (m *AttachmentMutation) ResetContents() {
 	m.contents = nil
 }
 
+// Where appends a list predicates to the AttachmentMutation builder.
+func (m *AttachmentMutation) Where(ps ...predicate.Attachment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *AttachmentMutation) Op() Op {
 	return m.op
@@ -456,6 +461,11 @@ func (m *FileMutation) OldContents(ctx context.Context) (v string, err error) {
 // ResetContents resets all changes to the "contents" field.
 func (m *FileMutation) ResetContents() {
 	m.contents = nil
+}
+
+// Where appends a list predicates to the FileMutation builder.
+func (m *FileMutation) Where(ps ...predicate.File) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
@@ -869,6 +879,11 @@ func (m *TaskMutation) ResetSignature() {
 	m.signature = nil
 }
 
+// Where appends a list predicates to the TaskMutation builder.
+func (m *TaskMutation) Where(ps ...predicate.Task) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *TaskMutation) Op() Op {
 	return m.op
@@ -1214,6 +1229,11 @@ func (m *UserMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *UserMutation) ResetName() {
 	m.name = nil
+}
+
+// Where appends a list predicates to the UserMutation builder.
+func (m *UserMutation) Where(ps ...predicate.User) {
+	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.

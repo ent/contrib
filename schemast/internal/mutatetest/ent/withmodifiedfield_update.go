@@ -21,9 +21,9 @@ type WithModifiedFieldUpdate struct {
 	mutation *WithModifiedFieldMutation
 }
 
-// Where adds a new predicate for the WithModifiedFieldUpdate builder.
+// Where appends a list predicates to the WithModifiedFieldUpdate builder.
 func (wmfu *WithModifiedFieldUpdate) Where(ps ...predicate.WithModifiedField) *WithModifiedFieldUpdate {
-	wmfu.mutation.predicates = append(wmfu.mutation.predicates, ps...)
+	wmfu.mutation.Where(ps...)
 	return wmfu
 }
 
@@ -77,6 +77,9 @@ func (wmfu *WithModifiedFieldUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(wmfu.hooks) - 1; i >= 0; i-- {
+			if wmfu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wmfu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wmfu.mutation); err != nil {
@@ -237,6 +240,9 @@ func (wmfuo *WithModifiedFieldUpdateOne) Save(ctx context.Context) (*WithModifie
 			return node, err
 		})
 		for i := len(wmfuo.hooks) - 1; i >= 0; i-- {
+			if wmfuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wmfuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wmfuo.mutation); err != nil {

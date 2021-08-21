@@ -75,6 +75,9 @@ func (dosc *DependsOnSkippedCreate) Save(ctx context.Context) (*DependsOnSkipped
 			return node, err
 		})
 		for i := len(dosc.hooks) - 1; i >= 0; i-- {
+			if dosc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = dosc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, dosc.mutation); err != nil {
@@ -93,10 +96,23 @@ func (dosc *DependsOnSkippedCreate) SaveX(ctx context.Context) *DependsOnSkipped
 	return v
 }
 
+// Exec executes the query.
+func (dosc *DependsOnSkippedCreate) Exec(ctx context.Context) error {
+	_, err := dosc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (dosc *DependsOnSkippedCreate) ExecX(ctx context.Context) {
+	if err := dosc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (dosc *DependsOnSkippedCreate) check() error {
 	if _, ok := dosc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
 	}
 	return nil
 }
@@ -183,8 +199,9 @@ func (doscb *DependsOnSkippedCreateBulk) Save(ctx context.Context) ([]*DependsOn
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, doscb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, doscb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, doscb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -195,8 +212,10 @@ func (doscb *DependsOnSkippedCreateBulk) Save(ctx context.Context) ([]*DependsOn
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -220,4 +239,17 @@ func (doscb *DependsOnSkippedCreateBulk) SaveX(ctx context.Context) []*DependsOn
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (doscb *DependsOnSkippedCreateBulk) Exec(ctx context.Context) error {
+	_, err := doscb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (doscb *DependsOnSkippedCreateBulk) ExecX(ctx context.Context) {
+	if err := doscb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

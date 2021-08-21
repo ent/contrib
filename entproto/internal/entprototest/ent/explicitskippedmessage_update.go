@@ -20,9 +20,9 @@ type ExplicitSkippedMessageUpdate struct {
 	mutation *ExplicitSkippedMessageMutation
 }
 
-// Where adds a new predicate for the ExplicitSkippedMessageUpdate builder.
+// Where appends a list predicates to the ExplicitSkippedMessageUpdate builder.
 func (esmu *ExplicitSkippedMessageUpdate) Where(ps ...predicate.ExplicitSkippedMessage) *ExplicitSkippedMessageUpdate {
-	esmu.mutation.predicates = append(esmu.mutation.predicates, ps...)
+	esmu.mutation.Where(ps...)
 	return esmu
 }
 
@@ -51,6 +51,9 @@ func (esmu *ExplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error)
 			return affected, err
 		})
 		for i := len(esmu.hooks) - 1; i >= 0; i-- {
+			if esmu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = esmu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, esmu.mutation); err != nil {
@@ -151,6 +154,9 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*Explic
 			return node, err
 		})
 		for i := len(esmuo.hooks) - 1; i >= 0; i-- {
+			if esmuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = esmuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, esmuo.mutation); err != nil {

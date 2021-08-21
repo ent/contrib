@@ -20,9 +20,9 @@ type DuplicateNumberMessageDelete struct {
 	mutation *DuplicateNumberMessageMutation
 }
 
-// Where adds a new predicate to the DuplicateNumberMessageDelete builder.
+// Where appends a list predicates to the DuplicateNumberMessageDelete builder.
 func (dnmd *DuplicateNumberMessageDelete) Where(ps ...predicate.DuplicateNumberMessage) *DuplicateNumberMessageDelete {
-	dnmd.mutation.predicates = append(dnmd.mutation.predicates, ps...)
+	dnmd.mutation.Where(ps...)
 	return dnmd
 }
 
@@ -46,6 +46,9 @@ func (dnmd *DuplicateNumberMessageDelete) Exec(ctx context.Context) (int, error)
 			return affected, err
 		})
 		for i := len(dnmd.hooks) - 1; i >= 0; i-- {
+			if dnmd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = dnmd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, dnmd.mutation); err != nil {
