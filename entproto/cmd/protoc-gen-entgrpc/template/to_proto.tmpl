@@ -5,12 +5,12 @@
         v := &{{ .EntType.Name }}{}
         {{- range .FieldMap.Fields }}
             {{- $varName := camel .EntField.StructField -}}
-            {{- $id := print "e." .EntField.StructField -}}
+            {{- $f := print "e." .EntField.StructField -}}
             {{- if .EntField.Nillable }}
-                if {{ $id }} != nil {
-                {{- $id = print "*" $id -}}
+                if {{ $f }} != nil {
+                {{- $f = print "*" $f -}}
             {{- end }}
-            {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
+            {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $f }}
             v.{{ .PbStructField }} = {{ $varName }}
             {{- if .EntField.Nillable }}
                 }
