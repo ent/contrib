@@ -287,8 +287,8 @@ func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleG
 //		Select(nilexample.FieldStrNil).
 //		Scan(ctx, &v)
 //
-func (neq *NilExampleQuery) Select(field string, fields ...string) *NilExampleSelect {
-	neq.fields = append([]string{field}, fields...)
+func (neq *NilExampleQuery) Select(fields ...string) *NilExampleSelect {
+	neq.fields = append(neq.fields, fields...)
 	return &NilExampleSelect{NilExampleQuery: neq}
 }
 

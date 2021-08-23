@@ -1000,6 +1000,11 @@ func (m *NilExampleMutation) ResetTimeNil() {
 	delete(m.clearedFields, nilexample.FieldTimeNil)
 }
 
+// Where appends a list predicates to the NilExampleMutation builder.
+func (m *NilExampleMutation) Where(ps ...predicate.NilExample) {
+	m.predicates = append(m.predicates, ps...)
+}
+
 // Op returns the operation name.
 func (m *NilExampleMutation) Op() Op {
 	return m.op

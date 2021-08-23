@@ -20,9 +20,9 @@ type NilExampleDelete struct {
 	mutation *NilExampleMutation
 }
 
-// Where adds a new predicate to the NilExampleDelete builder.
+// Where appends a list predicates to the NilExampleDelete builder.
 func (ned *NilExampleDelete) Where(ps ...predicate.NilExample) *NilExampleDelete {
-	ned.mutation.predicates = append(ned.mutation.predicates, ps...)
+	ned.mutation.Where(ps...)
 	return ned
 }
 
@@ -46,6 +46,9 @@ func (ned *NilExampleDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ned.hooks) - 1; i >= 0; i-- {
+			if ned.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ned.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ned.mutation); err != nil {

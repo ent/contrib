@@ -21,9 +21,9 @@ type NilExampleUpdate struct {
 	mutation *NilExampleMutation
 }
 
-// Where adds a new predicate for the NilExampleUpdate builder.
+// Where appends a list predicates to the NilExampleUpdate builder.
 func (neu *NilExampleUpdate) Where(ps ...predicate.NilExample) *NilExampleUpdate {
-	neu.mutation.predicates = append(neu.mutation.predicates, ps...)
+	neu.mutation.Where(ps...)
 	return neu
 }
 
@@ -92,6 +92,9 @@ func (neu *NilExampleUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(neu.hooks) - 1; i >= 0; i-- {
+			if neu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = neu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, neu.mutation); err != nil {
@@ -258,6 +261,9 @@ func (neuo *NilExampleUpdateOne) Save(ctx context.Context) (*NilExample, error) 
 			return node, err
 		})
 		for i := len(neuo.hooks) - 1; i >= 0; i-- {
+			if neuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = neuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, neuo.mutation); err != nil {

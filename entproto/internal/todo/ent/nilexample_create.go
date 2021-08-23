@@ -81,6 +81,9 @@ func (nec *NilExampleCreate) Save(ctx context.Context) (*NilExample, error) {
 			return node, err
 		})
 		for i := len(nec.hooks) - 1; i >= 0; i-- {
+			if nec.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = nec.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, nec.mutation); err != nil {
@@ -97,6 +100,19 @@ func (nec *NilExampleCreate) SaveX(ctx context.Context) *NilExample {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (nec *NilExampleCreate) Exec(ctx context.Context) error {
+	_, err := nec.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (nec *NilExampleCreate) ExecX(ctx context.Context) {
+	if err := nec.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -175,8 +191,9 @@ func (necb *NilExampleCreateBulk) Save(ctx context.Context) ([]*NilExample, erro
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, necb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, necb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, necb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -187,8 +204,10 @@ func (necb *NilExampleCreateBulk) Save(ctx context.Context) ([]*NilExample, erro
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -212,4 +231,17 @@ func (necb *NilExampleCreateBulk) SaveX(ctx context.Context) []*NilExample {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (necb *NilExampleCreateBulk) Exec(ctx context.Context) error {
+	_, err := necb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (necb *NilExampleCreateBulk) ExecX(ctx context.Context) {
+	if err := necb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
