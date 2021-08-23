@@ -13,7 +13,7 @@ const (
 	EdgeOwner = "owner"
 	// Table holds the table name of the withmodifiedfield in the database.
 	Table = "with_modified_fields"
-	// OwnerTable is the table the holds the owner relation/edge.
+	// OwnerTable is the table that holds the owner relation/edge.
 	OwnerTable = "with_modified_fields"
 	// OwnerInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.

@@ -21,9 +21,9 @@ type DependsOnSkippedUpdate struct {
 	mutation *DependsOnSkippedMutation
 }
 
-// Where adds a new predicate for the DependsOnSkippedUpdate builder.
+// Where appends a list predicates to the DependsOnSkippedUpdate builder.
 func (dosu *DependsOnSkippedUpdate) Where(ps ...predicate.DependsOnSkipped) *DependsOnSkippedUpdate {
-	dosu.mutation.predicates = append(dosu.mutation.predicates, ps...)
+	dosu.mutation.Where(ps...)
 	return dosu
 }
 
@@ -94,6 +94,9 @@ func (dosu *DependsOnSkippedUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(dosu.hooks) - 1; i >= 0; i-- {
+			if dosu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = dosu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, dosu.mutation); err != nil {
@@ -297,6 +300,9 @@ func (dosuo *DependsOnSkippedUpdateOne) Save(ctx context.Context) (*DependsOnSki
 			return node, err
 		})
 		for i := len(dosuo.hooks) - 1; i >= 0; i-- {
+			if dosuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = dosuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, dosuo.mutation); err != nil {

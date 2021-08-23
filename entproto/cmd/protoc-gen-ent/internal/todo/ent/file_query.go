@@ -287,8 +287,8 @@ func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 //		Select(file.FieldContents).
 //		Scan(ctx, &v)
 //
-func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
-	fq.fields = append([]string{field}, fields...)
+func (fq *FileQuery) Select(fields ...string) *FileSelect {
+	fq.fields = append(fq.fields, fields...)
 	return &FileSelect{FileQuery: fq}
 }
 

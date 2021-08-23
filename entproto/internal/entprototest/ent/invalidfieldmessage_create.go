@@ -60,6 +60,9 @@ func (ifmc *InvalidFieldMessageCreate) Save(ctx context.Context) (*InvalidFieldM
 			return node, err
 		})
 		for i := len(ifmc.hooks) - 1; i >= 0; i-- {
+			if ifmc.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ifmc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ifmc.mutation); err != nil {
@@ -78,10 +81,23 @@ func (ifmc *InvalidFieldMessageCreate) SaveX(ctx context.Context) *InvalidFieldM
 	return v
 }
 
+// Exec executes the query.
+func (ifmc *InvalidFieldMessageCreate) Exec(ctx context.Context) error {
+	_, err := ifmc.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ifmc *InvalidFieldMessageCreate) ExecX(ctx context.Context) {
+	if err := ifmc.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ifmc *InvalidFieldMessageCreate) check() error {
 	if _, ok := ifmc.mutation.JSON(); !ok {
-		return &ValidationError{Name: "json", err: errors.New("ent: missing required field \"json\"")}
+		return &ValidationError{Name: "json", err: errors.New(`ent: missing required field "json"`)}
 	}
 	return nil
 }
@@ -149,8 +165,9 @@ func (ifmcb *InvalidFieldMessageCreateBulk) Save(ctx context.Context) ([]*Invali
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ifmcb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, ifmcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, ifmcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -161,8 +178,10 @@ func (ifmcb *InvalidFieldMessageCreateBulk) Save(ctx context.Context) ([]*Invali
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				id := specs[i].ID.Value.(int64)
-				nodes[i].ID = int(id)
+				if specs[i].ID.Value != nil {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = int(id)
+				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {
@@ -186,4 +205,17 @@ func (ifmcb *InvalidFieldMessageCreateBulk) SaveX(ctx context.Context) []*Invali
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (ifmcb *InvalidFieldMessageCreateBulk) Exec(ctx context.Context) error {
+	_, err := ifmcb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ifmcb *InvalidFieldMessageCreateBulk) ExecX(ctx context.Context) {
+	if err := ifmcb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

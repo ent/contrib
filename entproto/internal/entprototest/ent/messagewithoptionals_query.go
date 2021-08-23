@@ -287,8 +287,8 @@ func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *
 //		Select(messagewithoptionals.FieldStrOptional).
 //		Scan(ctx, &v)
 //
-func (mwoq *MessageWithOptionalsQuery) Select(field string, fields ...string) *MessageWithOptionalsSelect {
-	mwoq.fields = append([]string{field}, fields...)
+func (mwoq *MessageWithOptionalsQuery) Select(fields ...string) *MessageWithOptionalsSelect {
+	mwoq.fields = append(mwoq.fields, fields...)
 	return &MessageWithOptionalsSelect{MessageWithOptionalsQuery: mwoq}
 }
 

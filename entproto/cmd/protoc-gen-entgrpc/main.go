@@ -15,6 +15,7 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
 	"path"
@@ -23,7 +24,6 @@ import (
 	"text/template"
 
 	"entgo.io/contrib/entproto"
-	"entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc/internal"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -101,8 +101,7 @@ func newServiceGenerator(plugin *protogen.Plugin, file *protogen.File, graph *ge
 }
 
 func (g *serviceGenerator) generate() error {
-	tmpl := template.New("").
-		Funcs(gen.Funcs).
+	tmpl, err := gen.NewTemplate("service").
 		Funcs(template.FuncMap{
 			"ident":        g.QualifiedGoIdent,
 			"entIdent":     g.entIdent,
@@ -112,8 +111,7 @@ func (g *serviceGenerator) generate() error {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
 			},
 			"statusErr": func(code, msg string) string {
-				msg = strconv.Quote(msg)
-				return fmt.Sprintf("%s(%s, %s)",
+				return fmt.Sprintf("%s(%s, %q)",
 					g.QualifiedGoIdent(status.Ident("Error")),
 					g.QualifiedGoIdent(codes.Ident(code)),
 					msg,
@@ -133,37 +131,34 @@ func (g *serviceGenerator) generate() error {
 					Method: m,
 				}
 			},
-		})
-	for _, t := range templates {
-		if _, err := tmpl.Parse(string(t)); err != nil {
-			return err
-		}
-	}
-	if err := tmpl.Execute(g, g); err != nil {
+		}).
+		ParseFS(templates, "template/*.tmpl")
+	if err != nil {
 		return err
+	}
+	if err := tmpl.ExecuteTemplate(g, "service", g); err != nil {
+		return fmt.Errorf("template execution failed: %w", err)
 	}
 	return nil
 }
 
-type serviceGenerator struct {
-	*protogen.GeneratedFile
-	EntPackage protogen.GoImportPath
-	File       *protogen.File
-	Service    *protogen.Service
-	EntType    *gen.Type
-	FieldMap   entproto.FieldMap
-}
+type (
+	serviceGenerator struct {
+		*protogen.GeneratedFile
+		EntPackage protogen.GoImportPath
+		File       *protogen.File
+		Service    *protogen.Service
+		EntType    *gen.Type
+		FieldMap   entproto.FieldMap
+	}
+	methodInput struct {
+		G      *serviceGenerator
+		Method *protogen.Method
+	}
+)
 
-//go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
-var templates = [][]byte{
-	internal.MustAsset("template/service.tmpl"),
-	internal.MustAsset("template/method_get.tmpl"),
-	internal.MustAsset("template/method_delete.tmpl"),
-	internal.MustAsset("template/method_mutate.tmpl"),
-	internal.MustAsset("template/enums.tmpl"),
-	internal.MustAsset("template/to_proto.tmpl"),
-	internal.MustAsset("template/to_ent.tmpl"),
-}
+//go:embed template/*
+var templates embed.FS
 
 func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
 	typeName := strings.TrimSuffix(s.GoName, "Service")
@@ -178,9 +173,4 @@ func extractEntTypeName(s *protogen.Service, g *gen.Graph) (*gen.Type, error) {
 func (g *serviceGenerator) entIdent(subpath string, ident string) protogen.GoIdent {
 	ip := path.Join(string(g.EntPackage), subpath)
 	return protogen.GoImportPath(ip).Ident(ident)
-}
-
-type methodInput struct {
-	G      *serviceGenerator
-	Method *protogen.Method
 }

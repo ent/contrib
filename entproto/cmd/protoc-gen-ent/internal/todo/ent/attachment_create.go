@@ -65,6 +65,9 @@ func (ac *AttachmentCreate) Save(ctx context.Context) (*Attachment, error) {
 			return node, err
 		})
 		for i := len(ac.hooks) - 1; i >= 0; i-- {
+			if ac.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ac.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ac.mutation); err != nil {
@@ -83,10 +86,23 @@ func (ac *AttachmentCreate) SaveX(ctx context.Context) *Attachment {
 	return v
 }
 
+// Exec executes the query.
+func (ac *AttachmentCreate) Exec(ctx context.Context) error {
+	_, err := ac.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ac *AttachmentCreate) ExecX(ctx context.Context) {
+	if err := ac.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ac *AttachmentCreate) check() error {
 	if _, ok := ac.mutation.Contents(); !ok {
-		return &ValidationError{Name: "contents", err: errors.New("ent: missing required field \"contents\"")}
+		return &ValidationError{Name: "contents", err: errors.New(`ent: missing required field "contents"`)}
 	}
 	return nil
 }
@@ -98,6 +114,9 @@ func (ac *AttachmentCreate) sqlSave(ctx context.Context) (*Attachment, error) {
 			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
+	}
+	if _spec.ID.Value != nil {
+		_node.ID = _spec.ID.Value.(string)
 	}
 	return _node, nil
 }
@@ -156,8 +175,9 @@ func (acb *AttachmentCreateBulk) Save(ctx context.Context) ([]*Attachment, error
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, acb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, acb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -191,4 +211,17 @@ func (acb *AttachmentCreateBulk) SaveX(ctx context.Context) []*Attachment {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (acb *AttachmentCreateBulk) Exec(ctx context.Context) error {
+	_, err := acb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (acb *AttachmentCreateBulk) ExecX(ctx context.Context) {
+	if err := acb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -20,9 +20,9 @@ type MessageWithOptionalsDelete struct {
 	mutation *MessageWithOptionalsMutation
 }
 
-// Where adds a new predicate to the MessageWithOptionalsDelete builder.
+// Where appends a list predicates to the MessageWithOptionalsDelete builder.
 func (mwod *MessageWithOptionalsDelete) Where(ps ...predicate.MessageWithOptionals) *MessageWithOptionalsDelete {
-	mwod.mutation.predicates = append(mwod.mutation.predicates, ps...)
+	mwod.mutation.Where(ps...)
 	return mwod
 }
 
@@ -46,6 +46,9 @@ func (mwod *MessageWithOptionalsDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mwod.hooks) - 1; i >= 0; i-- {
+			if mwod.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwod.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwod.mutation); err != nil {

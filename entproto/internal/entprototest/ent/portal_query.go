@@ -325,8 +325,8 @@ func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
 //		Select(portal.FieldName).
 //		Scan(ctx, &v)
 //
-func (pq *PortalQuery) Select(field string, fields ...string) *PortalSelect {
-	pq.fields = append([]string{field}, fields...)
+func (pq *PortalQuery) Select(fields ...string) *PortalSelect {
+	pq.fields = append(pq.fields, fields...)
 	return &PortalSelect{PortalQuery: pq}
 }
 

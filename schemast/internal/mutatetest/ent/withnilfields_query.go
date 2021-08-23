@@ -263,8 +263,8 @@ func (wnfq *WithNilFieldsQuery) GroupBy(field string, fields ...string) *WithNil
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (wnfq *WithNilFieldsQuery) Select(field string, fields ...string) *WithNilFieldsSelect {
-	wnfq.fields = append([]string{field}, fields...)
+func (wnfq *WithNilFieldsQuery) Select(fields ...string) *WithNilFieldsSelect {
+	wnfq.fields = append(wnfq.fields, fields...)
 	return &WithNilFieldsSelect{WithNilFieldsQuery: wnfq}
 }
 

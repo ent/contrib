@@ -21,9 +21,9 @@ type InvalidFieldMessageUpdate struct {
 	mutation *InvalidFieldMessageMutation
 }
 
-// Where adds a new predicate for the InvalidFieldMessageUpdate builder.
+// Where appends a list predicates to the InvalidFieldMessageUpdate builder.
 func (ifmu *InvalidFieldMessageUpdate) Where(ps ...predicate.InvalidFieldMessage) *InvalidFieldMessageUpdate {
-	ifmu.mutation.predicates = append(ifmu.mutation.predicates, ps...)
+	ifmu.mutation.Where(ps...)
 	return ifmu
 }
 
@@ -58,6 +58,9 @@ func (ifmu *InvalidFieldMessageUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(ifmu.hooks) - 1; i >= 0; i-- {
+			if ifmu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ifmu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ifmu.mutation); err != nil {
@@ -171,6 +174,9 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Save(ctx context.Context) (*InvalidFi
 			return node, err
 		})
 		for i := len(ifmuo.hooks) - 1; i >= 0; i-- {
+			if ifmuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ifmuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ifmuo.mutation); err != nil {

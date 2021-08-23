@@ -15,38 +15,40 @@
 package entgql
 
 import (
+	"embed"
+	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
-
-	"entgo.io/contrib/entgql/internal"
+	"text/template/parse"
 
 	"entgo.io/ent/entc/gen"
-	_ "github.com/go-bindata/go-bindata"
 )
 
 var (
 	// CollectionTemplate adds fields collection support using auto eager-load ent edges.
 	// More info can be found here: https://spec.graphql.org/June2018/#sec-Field-Collection.
-	CollectionTemplate = parse("template/collection.tmpl")
+	CollectionTemplate = parseT("template/collection.tmpl")
 
 	// EnumTemplate adds a template implementing MarshalGQL/UnmarshalGQL methods for enums.
-	EnumTemplate = parse("template/enum.tmpl")
+	EnumTemplate = parseT("template/enum.tmpl")
 
 	// NodeTemplate implements the Relay Node interface for all types.
-	NodeTemplate = parse("template/node.tmpl")
+	NodeTemplate = parseT("template/node.tmpl")
 
 	// PaginationTemplate adds pagination support according to the GraphQL Cursor Connections Spec.
 	// More info can be found in the following link: https://relay.dev/graphql/connections.htm.
-	PaginationTemplate = parse("template/pagination.tmpl")
+	PaginationTemplate = parseT("template/pagination.tmpl")
 
 	// TransactionTemplate adds support for ent.Client for opening transactions for the transaction
 	// middleware. See transaction.go for for information.
-	TransactionTemplate = parse("template/transaction.tmpl")
+	TransactionTemplate = parseT("template/transaction.tmpl")
 
 	// EdgeTemplate adds edge resolution using eager-loading with a query fallback.
-	EdgeTemplate = parse("template/edge.tmpl")
+	EdgeTemplate = parseT("template/edge.tmpl")
 
 	// WhereTemplate adds a template for generating <T>WhereInput filters for each schema type.
-	WhereTemplate = parse("template/where_input.tmpl")
+	WhereTemplate = parseT("template/where_input.tmpl")
 
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
@@ -64,16 +66,16 @@ var (
 		"filterEdges":  filterEdges,
 		"filterFields": filterFields,
 	}
+
+	//go:embed template/*
+	templates embed.FS
 )
 
-//go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=internal/bindata.go -pkg=internal -modtime=1 ./template
-
-func parse(path string) *gen.Template {
-	text := string(internal.MustAsset(path))
+func parseT(path string) *gen.Template {
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(gen.Funcs).
 		Funcs(TemplateFuncs).
-		Parse(text))
+		ParseFS(templates, path))
 }
 
 func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
@@ -134,4 +136,40 @@ func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
 		filteredFields = append(filteredFields, f)
 	}
 	return filteredFields, nil
+}
+
+// removeOldAssets removes files that were generated before v0.1.0.
+func removeOldAssets(next gen.Generator) gen.Generator {
+	const prefix = "gql_"
+	return gen.GenerateFunc(func(g *gen.Graph) error {
+		for _, rootT := range AllTemplates {
+			for _, t := range rootT.Templates() {
+				if parse.IsEmptyTree(t.Root) {
+					continue
+				}
+				if !strings.HasPrefix(t.Name(), prefix) {
+					continue
+				}
+				name := strings.TrimPrefix(t.Name(), prefix)
+				if err := removeOldTemplate(g, name); err != nil {
+					return err
+				}
+			}
+		}
+		return next.Generate(g)
+	})
+}
+
+func removeOldTemplate(g *gen.Graph, name string) error {
+	// Check if name already taken by existing schema field.
+	for _, n := range g.Nodes {
+		if n.Package() == name {
+			return nil
+		}
+	}
+	err := os.Remove(filepath.Join(g.Target, name+".go"))
+	if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }

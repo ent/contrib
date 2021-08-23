@@ -34,9 +34,9 @@ type VerySecretDelete struct {
 	mutation *VerySecretMutation
 }
 
-// Where adds a new predicate to the VerySecretDelete builder.
+// Where appends a list predicates to the VerySecretDelete builder.
 func (vsd *VerySecretDelete) Where(ps ...predicate.VerySecret) *VerySecretDelete {
-	vsd.mutation.predicates = append(vsd.mutation.predicates, ps...)
+	vsd.mutation.Where(ps...)
 	return vsd
 }
 
@@ -60,6 +60,9 @@ func (vsd *VerySecretDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(vsd.hooks) - 1; i >= 0; i-- {
+			if vsd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = vsd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, vsd.mutation); err != nil {

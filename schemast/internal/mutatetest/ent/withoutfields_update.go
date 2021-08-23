@@ -20,9 +20,9 @@ type WithoutFieldsUpdate struct {
 	mutation *WithoutFieldsMutation
 }
 
-// Where adds a new predicate for the WithoutFieldsUpdate builder.
+// Where appends a list predicates to the WithoutFieldsUpdate builder.
 func (wfu *WithoutFieldsUpdate) Where(ps ...predicate.WithoutFields) *WithoutFieldsUpdate {
-	wfu.mutation.predicates = append(wfu.mutation.predicates, ps...)
+	wfu.mutation.Where(ps...)
 	return wfu
 }
 
@@ -51,6 +51,9 @@ func (wfu *WithoutFieldsUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(wfu.hooks) - 1; i >= 0; i-- {
+			if wfu.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wfu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wfu.mutation); err != nil {
@@ -151,6 +154,9 @@ func (wfuo *WithoutFieldsUpdateOne) Save(ctx context.Context) (*WithoutFields, e
 			return node, err
 		})
 		for i := len(wfuo.hooks) - 1; i >= 0; i-- {
+			if wfuo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wfuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wfuo.mutation); err != nil {

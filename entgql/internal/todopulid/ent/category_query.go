@@ -340,8 +340,8 @@ func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupB
 //		Select(category.FieldText).
 //		Scan(ctx, &v)
 //
-func (cq *CategoryQuery) Select(field string, fields ...string) *CategorySelect {
-	cq.fields = append([]string{field}, fields...)
+func (cq *CategoryQuery) Select(fields ...string) *CategorySelect {
+	cq.fields = append(cq.fields, fields...)
 	return &CategorySelect{CategoryQuery: cq}
 }
 

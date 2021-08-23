@@ -22,9 +22,9 @@ type MessageWithOptionalsUpdate struct {
 	mutation *MessageWithOptionalsMutation
 }
 
-// Where adds a new predicate for the MessageWithOptionalsUpdate builder.
+// Where appends a list predicates to the MessageWithOptionalsUpdate builder.
 func (mwou *MessageWithOptionalsUpdate) Where(ps ...predicate.MessageWithOptionals) *MessageWithOptionalsUpdate {
-	mwou.mutation.predicates = append(mwou.mutation.predicates, ps...)
+	mwou.mutation.Where(ps...)
 	return mwou
 }
 
@@ -218,6 +218,9 @@ func (mwou *MessageWithOptionalsUpdate) Save(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mwou.hooks) - 1; i >= 0; i-- {
+			if mwou.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwou.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwou.mutation); err != nil {
@@ -608,6 +611,9 @@ func (mwouo *MessageWithOptionalsUpdateOne) Save(ctx context.Context) (*MessageW
 			return node, err
 		})
 		for i := len(mwouo.hooks) - 1; i >= 0; i-- {
+			if mwouo.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwouo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwouo.mutation); err != nil {

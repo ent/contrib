@@ -82,6 +82,9 @@ func (ic *ImageCreate) Save(ctx context.Context) (*Image, error) {
 			return node, err
 		})
 		for i := len(ic.hooks) - 1; i >= 0; i-- {
+			if ic.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = ic.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ic.mutation); err != nil {
@@ -100,10 +103,23 @@ func (ic *ImageCreate) SaveX(ctx context.Context) *Image {
 	return v
 }
 
+// Exec executes the query.
+func (ic *ImageCreate) Exec(ctx context.Context) error {
+	_, err := ic.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (ic *ImageCreate) ExecX(ctx context.Context) {
+	if err := ic.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ic *ImageCreate) check() error {
 	if _, ok := ic.mutation.URLPath(); !ok {
-		return &ValidationError{Name: "url_path", err: errors.New("ent: missing required field \"url_path\"")}
+		return &ValidationError{Name: "url_path", err: errors.New(`ent: missing required field "url_path"`)}
 	}
 	return nil
 }
@@ -115,6 +131,9 @@ func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
 			err = &ConstraintError{err.Error(), err}
 		}
 		return nil, err
+	}
+	if _spec.ID.Value != nil {
+		_node.ID = _spec.ID.Value.(uuid.UUID)
 	}
 	return _node, nil
 }
@@ -192,8 +211,9 @@ func (icb *ImageCreateBulk) Save(ctx context.Context) ([]*Image, error) {
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, icb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, icb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, icb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -227,4 +247,17 @@ func (icb *ImageCreateBulk) SaveX(ctx context.Context) []*Image {
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (icb *ImageCreateBulk) Exec(ctx context.Context) error {
+	_, err := icb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (icb *ImageCreateBulk) ExecX(ctx context.Context) {
+	if err := icb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -20,9 +20,9 @@ type WithNilFieldsDelete struct {
 	mutation *WithNilFieldsMutation
 }
 
-// Where adds a new predicate to the WithNilFieldsDelete builder.
+// Where appends a list predicates to the WithNilFieldsDelete builder.
 func (wnfd *WithNilFieldsDelete) Where(ps ...predicate.WithNilFields) *WithNilFieldsDelete {
-	wnfd.mutation.predicates = append(wnfd.mutation.predicates, ps...)
+	wnfd.mutation.Where(ps...)
 	return wnfd
 }
 
@@ -46,6 +46,9 @@ func (wnfd *WithNilFieldsDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(wnfd.hooks) - 1; i >= 0; i-- {
+			if wnfd.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = wnfd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wnfd.mutation); err != nil {

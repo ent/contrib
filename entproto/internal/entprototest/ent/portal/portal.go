@@ -15,7 +15,7 @@ const (
 	EdgeCategory = "category"
 	// Table holds the table name of the portal in the database.
 	Table = "portals"
-	// CategoryTable is the table the holds the category relation/edge.
+	// CategoryTable is the table that holds the category relation/edge.
 	CategoryTable = "portals"
 	// CategoryInverseTable is the table name for the Category entity.
 	// It exists in this package in order to avoid circular dependency with the "category" package.

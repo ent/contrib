@@ -58,6 +58,9 @@ func (mwic *MessageWithIDCreate) Save(ctx context.Context) (*MessageWithID, erro
 			return node, err
 		})
 		for i := len(mwic.hooks) - 1; i >= 0; i-- {
+			if mwic.hooks[i] == nil {
+				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwic.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwic.mutation); err != nil {
@@ -76,6 +79,19 @@ func (mwic *MessageWithIDCreate) SaveX(ctx context.Context) *MessageWithID {
 	return v
 }
 
+// Exec executes the query.
+func (mwic *MessageWithIDCreate) Exec(ctx context.Context) error {
+	_, err := mwic.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (mwic *MessageWithIDCreate) ExecX(ctx context.Context) {
+	if err := mwic.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (mwic *MessageWithIDCreate) check() error {
 	return nil
@@ -89,7 +105,7 @@ func (mwic *MessageWithIDCreate) sqlSave(ctx context.Context) (*MessageWithID, e
 		}
 		return nil, err
 	}
-	if _node.ID == 0 {
+	if _spec.ID.Value != _node.ID {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int32(id)
 	}
@@ -142,8 +158,9 @@ func (mwicb *MessageWithIDCreateBulk) Save(ctx context.Context) ([]*MessageWithI
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwicb.builders[i+1].mutation)
 				} else {
+					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, mwicb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, mwicb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{err.Error(), err}
 						}
@@ -154,7 +171,7 @@ func (mwicb *MessageWithIDCreateBulk) Save(ctx context.Context) ([]*MessageWithI
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				if nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int32(id)
 				}
@@ -181,4 +198,17 @@ func (mwicb *MessageWithIDCreateBulk) SaveX(ctx context.Context) []*MessageWithI
 		panic(err)
 	}
 	return v
+}
+
+// Exec executes the query.
+func (mwicb *MessageWithIDCreateBulk) Exec(ctx context.Context) error {
+	_, err := mwicb.Save(ctx)
+	return err
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (mwicb *MessageWithIDCreateBulk) ExecX(ctx context.Context) {
+	if err := mwicb.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -325,8 +325,8 @@ func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *Depe
 //		Select(dependsonskipped.FieldName).
 //		Scan(ctx, &v)
 //
-func (dosq *DependsOnSkippedQuery) Select(field string, fields ...string) *DependsOnSkippedSelect {
-	dosq.fields = append([]string{field}, fields...)
+func (dosq *DependsOnSkippedQuery) Select(fields ...string) *DependsOnSkippedSelect {
+	dosq.fields = append(dosq.fields, fields...)
 	return &DependsOnSkippedSelect{DependsOnSkippedQuery: dosq}
 }
 

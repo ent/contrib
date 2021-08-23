@@ -302,8 +302,8 @@ func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretG
 //		Select(verysecret.FieldPassword).
 //		Scan(ctx, &v)
 //
-func (vsq *VerySecretQuery) Select(field string, fields ...string) *VerySecretSelect {
-	vsq.fields = append([]string{field}, fields...)
+func (vsq *VerySecretQuery) Select(fields ...string) *VerySecretSelect {
+	vsq.fields = append(vsq.fields, fields...)
 	return &VerySecretSelect{VerySecretQuery: vsq}
 }
 

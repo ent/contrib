@@ -20,9 +20,9 @@ type MessageWithIDDelete struct {
 	mutation *MessageWithIDMutation
 }
 
-// Where adds a new predicate to the MessageWithIDDelete builder.
+// Where appends a list predicates to the MessageWithIDDelete builder.
 func (mwid *MessageWithIDDelete) Where(ps ...predicate.MessageWithID) *MessageWithIDDelete {
-	mwid.mutation.predicates = append(mwid.mutation.predicates, ps...)
+	mwid.mutation.Where(ps...)
 	return mwid
 }
 
@@ -46,6 +46,9 @@ func (mwid *MessageWithIDDelete) Exec(ctx context.Context) (int, error) {
 			return affected, err
 		})
 		for i := len(mwid.hooks) - 1; i >= 0; i-- {
+			if mwid.hooks[i] == nil {
+				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
+			}
 			mut = mwid.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, mwid.mutation); err != nil {
