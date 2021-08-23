@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
@@ -30,6 +31,7 @@ const (
 	// Node types.
 	TypeAttachment = "Attachment"
 	TypeGroup      = "Group"
+	TypeNilExample = "NilExample"
 	TypeTodo       = "Todo"
 	TypeUser       = "User"
 )
@@ -805,6 +807,393 @@ func (m *GroupMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Group edge %s", name)
+}
+
+// NilExampleMutation represents an operation that mutates the NilExample nodes in the graph.
+type NilExampleMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	str_nil       *string
+	time_nil      *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*NilExample, error)
+	predicates    []predicate.NilExample
+}
+
+var _ ent.Mutation = (*NilExampleMutation)(nil)
+
+// nilexampleOption allows management of the mutation configuration using functional options.
+type nilexampleOption func(*NilExampleMutation)
+
+// newNilExampleMutation creates new mutation for the NilExample entity.
+func newNilExampleMutation(c config, op Op, opts ...nilexampleOption) *NilExampleMutation {
+	m := &NilExampleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNilExample,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNilExampleID sets the ID field of the mutation.
+func withNilExampleID(id int) nilexampleOption {
+	return func(m *NilExampleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NilExample
+		)
+		m.oldValue = func(ctx context.Context) (*NilExample, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NilExample.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNilExample sets the old NilExample of the mutation.
+func withNilExample(node *NilExample) nilexampleOption {
+	return func(m *NilExampleMutation) {
+		m.oldValue = func(context.Context) (*NilExample, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NilExampleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NilExampleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NilExampleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetStrNil sets the "str_nil" field.
+func (m *NilExampleMutation) SetStrNil(s string) {
+	m.str_nil = &s
+}
+
+// StrNil returns the value of the "str_nil" field in the mutation.
+func (m *NilExampleMutation) StrNil() (r string, exists bool) {
+	v := m.str_nil
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStrNil returns the old "str_nil" field's value of the NilExample entity.
+// If the NilExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NilExampleMutation) OldStrNil(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStrNil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStrNil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStrNil: %w", err)
+	}
+	return oldValue.StrNil, nil
+}
+
+// ClearStrNil clears the value of the "str_nil" field.
+func (m *NilExampleMutation) ClearStrNil() {
+	m.str_nil = nil
+	m.clearedFields[nilexample.FieldStrNil] = struct{}{}
+}
+
+// StrNilCleared returns if the "str_nil" field was cleared in this mutation.
+func (m *NilExampleMutation) StrNilCleared() bool {
+	_, ok := m.clearedFields[nilexample.FieldStrNil]
+	return ok
+}
+
+// ResetStrNil resets all changes to the "str_nil" field.
+func (m *NilExampleMutation) ResetStrNil() {
+	m.str_nil = nil
+	delete(m.clearedFields, nilexample.FieldStrNil)
+}
+
+// SetTimeNil sets the "time_nil" field.
+func (m *NilExampleMutation) SetTimeNil(t time.Time) {
+	m.time_nil = &t
+}
+
+// TimeNil returns the value of the "time_nil" field in the mutation.
+func (m *NilExampleMutation) TimeNil() (r time.Time, exists bool) {
+	v := m.time_nil
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeNil returns the old "time_nil" field's value of the NilExample entity.
+// If the NilExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NilExampleMutation) OldTimeNil(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTimeNil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTimeNil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeNil: %w", err)
+	}
+	return oldValue.TimeNil, nil
+}
+
+// ClearTimeNil clears the value of the "time_nil" field.
+func (m *NilExampleMutation) ClearTimeNil() {
+	m.time_nil = nil
+	m.clearedFields[nilexample.FieldTimeNil] = struct{}{}
+}
+
+// TimeNilCleared returns if the "time_nil" field was cleared in this mutation.
+func (m *NilExampleMutation) TimeNilCleared() bool {
+	_, ok := m.clearedFields[nilexample.FieldTimeNil]
+	return ok
+}
+
+// ResetTimeNil resets all changes to the "time_nil" field.
+func (m *NilExampleMutation) ResetTimeNil() {
+	m.time_nil = nil
+	delete(m.clearedFields, nilexample.FieldTimeNil)
+}
+
+// Where appends a list predicates to the NilExampleMutation builder.
+func (m *NilExampleMutation) Where(ps ...predicate.NilExample) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *NilExampleMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (NilExample).
+func (m *NilExampleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NilExampleMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.str_nil != nil {
+		fields = append(fields, nilexample.FieldStrNil)
+	}
+	if m.time_nil != nil {
+		fields = append(fields, nilexample.FieldTimeNil)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NilExampleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nilexample.FieldStrNil:
+		return m.StrNil()
+	case nilexample.FieldTimeNil:
+		return m.TimeNil()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NilExampleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nilexample.FieldStrNil:
+		return m.OldStrNil(ctx)
+	case nilexample.FieldTimeNil:
+		return m.OldTimeNil(ctx)
+	}
+	return nil, fmt.Errorf("unknown NilExample field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NilExampleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nilexample.FieldStrNil:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStrNil(v)
+		return nil
+	case nilexample.FieldTimeNil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeNil(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NilExample field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NilExampleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NilExampleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NilExampleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NilExample numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NilExampleMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(nilexample.FieldStrNil) {
+		fields = append(fields, nilexample.FieldStrNil)
+	}
+	if m.FieldCleared(nilexample.FieldTimeNil) {
+		fields = append(fields, nilexample.FieldTimeNil)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NilExampleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NilExampleMutation) ClearField(name string) error {
+	switch name {
+	case nilexample.FieldStrNil:
+		m.ClearStrNil()
+		return nil
+	case nilexample.FieldTimeNil:
+		m.ClearTimeNil()
+		return nil
+	}
+	return fmt.Errorf("unknown NilExample nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NilExampleMutation) ResetField(name string) error {
+	switch name {
+	case nilexample.FieldStrNil:
+		m.ResetStrNil()
+		return nil
+	case nilexample.FieldTimeNil:
+		m.ResetTimeNil()
+		return nil
+	}
+	return fmt.Errorf("unknown NilExample field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NilExampleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NilExampleMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NilExampleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NilExampleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NilExampleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NilExampleMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NilExampleMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown NilExample unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NilExampleMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown NilExample edge %s", name)
 }
 
 // TodoMutation represents an operation that mutates the Todo nodes in the graph.

@@ -12,6 +12,9 @@ type Attachment func(*sql.Selector)
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
 
+// NilExample is the predicate function for nilexample builders.
+type NilExample func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
 

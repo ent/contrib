@@ -35,6 +35,19 @@ func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return f(ctx, mv)
 }
 
+// The NilExampleFunc type is an adapter to allow the use of ordinary
+// function as NilExample mutator.
+type NilExampleFunc func(context.Context, *ent.NilExampleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NilExampleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.NilExampleMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NilExampleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TodoFunc type is an adapter to allow the use of ordinary
 // function as Todo mutator.
 type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)

@@ -5,9 +5,16 @@
         v := &{{ .EntType.Name }}{}
         {{- range .FieldMap.Fields }}
             {{- $varName := camel .EntField.StructField -}}
-            {{- $id := print "e." .EntField.StructField -}}
-            {{ template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
+            {{- $f := print "e." .EntField.StructField -}}
+            {{- if .EntField.Nillable }}
+                if {{ $f }} != nil {
+                {{- $f = print "*" $f -}}
+            {{- end }}
+            {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $f }}
             v.{{ .PbStructField }} = {{ $varName }}
+            {{- if .EntField.Nillable }}
+                }
+            {{- end }}
         {{- end }}
         {{- range .FieldMap.Edges }}
             {{- $varName := camel .EntEdge.Type.ID.StructField -}}
