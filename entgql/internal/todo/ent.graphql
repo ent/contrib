@@ -40,6 +40,18 @@ input CategoryWhereInput {
   configIsNil: Boolean
   configNotNil: Boolean
   
+  """duration field predicates"""
+  duration: Duration
+  durationNEQ: Duration
+  durationIn: [Duration!]
+  durationNotIn: [Duration!]
+  durationGT: Duration
+  durationGTE: Duration
+  durationLT: Duration
+  durationLTE: Duration
+  durationIsNil: Boolean
+  durationNotNil: Boolean
+  
   """id field predicates"""
   id: ID
   idNEQ: ID

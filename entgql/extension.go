@@ -212,7 +212,9 @@ func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
 	}
 	scalar := f.Type.String()
 	switch t := f.Type.Type; {
-	case op.Niladic() || t == field.TypeBool:
+	case op.Niladic():
+		return graphql.Boolean.Name()
+	case t == field.TypeBool:
 		scalar = graphql.Boolean.Name()
 	case f.IsEdgeField():
 		scalar = graphql.ID.Name()
@@ -229,17 +231,15 @@ func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
 		}
 	}
+	if t, ok := typeAnnotation(f); ok {
+		return t
+	}
 	return scalar
 }
 
 // hasMapping reports if the gqlgen.yml has custom mapping for
 // the given field type and returns its GraphQL name if exists.
 func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
-	var ant Annotation
-	// If the field was defined with a `entgql.Type` option (e.g. `entgql.Type("Boolean")`).
-	if i, ok := f.Annotations[ant.Name()]; ok && ant.Decode(i) == nil && ant.Type != "" {
-		return ant.Type, true
-	}
 	if e.cfg == nil {
 		return "", false
 	}
@@ -469,3 +469,12 @@ var (
 	_     entc.Extension = (*Extension)(nil)
 	camel                = gen.Funcs["camel"].(func(string) string)
 )
+
+// typeAnnotation returns the scalar type mapping if exists (i.e. entgql.Type).
+func typeAnnotation(f *gen.Field) (string, bool) {
+	var ant Annotation
+	if i, ok := f.Annotations[ant.Name()]; ok && ant.Decode(i) == nil && ant.Type != "" {
+		return ant.Type, true
+	}
+	return "", false
+}

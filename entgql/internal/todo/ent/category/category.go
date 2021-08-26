@@ -33,6 +33,8 @@ const (
 	FieldStatus = "status"
 	// FieldConfig holds the string denoting the config field in the database.
 	FieldConfig = "config"
+	// FieldDuration holds the string denoting the duration field in the database.
+	FieldDuration = "duration"
 	// EdgeTodos holds the string denoting the todos edge name in mutations.
 	EdgeTodos = "todos"
 	// Table holds the table name of the category in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldText,
 	FieldStatus,
 	FieldConfig,
+	FieldDuration,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -19,6 +19,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
@@ -37,6 +38,8 @@ type Category struct {
 	Status category.Status `json:"status,omitempty"`
 	// Config holds the value of the "config" field.
 	Config *schematype.CategoryConfig `json:"config,omitempty"`
+	// Duration holds the value of the "duration" field.
+	Duration time.Duration `json:"duration,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
 	Edges CategoryEdges `json:"edges"`
@@ -67,6 +70,8 @@ func (*Category) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case category.FieldConfig:
 			values[i] = new(schematype.CategoryConfig)
+		case category.FieldDuration:
+			values[i] = new(sql.NullInt64)
 		case category.FieldText, category.FieldStatus:
 			values[i] = new(sql.NullString)
 		case category.FieldID:
@@ -110,6 +115,12 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 			} else if value != nil {
 				c.Config = value
 			}
+		case category.FieldDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration", values[i])
+			} else if value.Valid {
+				c.Duration = time.Duration(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -149,6 +160,8 @@ func (c *Category) String() string {
 	builder.WriteString(fmt.Sprintf("%v", c.Status))
 	builder.WriteString(", config=")
 	builder.WriteString(fmt.Sprintf("%v", c.Config))
+	builder.WriteString(", duration=")
+	builder.WriteString(fmt.Sprintf("%v", c.Duration))
 	builder.WriteByte(')')
 	return builder.String()
 }

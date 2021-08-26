@@ -21,6 +21,7 @@ enum Status {
 }
 
 scalar Time
+scalar Duration
 
 type Todo implements Node {
   id: ID!

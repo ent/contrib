@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
@@ -51,6 +52,20 @@ func (cc *CategoryCreate) SetStatus(c category.Status) *CategoryCreate {
 // SetConfig sets the "config" field.
 func (cc *CategoryCreate) SetConfig(sc *schematype.CategoryConfig) *CategoryCreate {
 	cc.mutation.SetConfig(sc)
+	return cc
+}
+
+// SetDuration sets the "duration" field.
+func (cc *CategoryCreate) SetDuration(t time.Duration) *CategoryCreate {
+	cc.mutation.SetDuration(t)
+	return cc
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (cc *CategoryCreate) SetNillableDuration(t *time.Duration) *CategoryCreate {
+	if t != nil {
+		cc.SetDuration(*t)
+	}
 	return cc
 }
 
@@ -233,6 +248,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldConfig,
 		})
 		_node.Config = value
+	}
+	if value, ok := cc.mutation.Duration(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: category.FieldDuration,
+		})
+		_node.Duration = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

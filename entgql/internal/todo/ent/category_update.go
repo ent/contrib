@@ -19,6 +19,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
@@ -63,6 +64,33 @@ func (cu *CategoryUpdate) SetConfig(sc *schematype.CategoryConfig) *CategoryUpda
 // ClearConfig clears the value of the "config" field.
 func (cu *CategoryUpdate) ClearConfig() *CategoryUpdate {
 	cu.mutation.ClearConfig()
+	return cu
+}
+
+// SetDuration sets the "duration" field.
+func (cu *CategoryUpdate) SetDuration(t time.Duration) *CategoryUpdate {
+	cu.mutation.ResetDuration()
+	cu.mutation.SetDuration(t)
+	return cu
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableDuration(t *time.Duration) *CategoryUpdate {
+	if t != nil {
+		cu.SetDuration(*t)
+	}
+	return cu
+}
+
+// AddDuration adds t to the "duration" field.
+func (cu *CategoryUpdate) AddDuration(t time.Duration) *CategoryUpdate {
+	cu.mutation.AddDuration(t)
+	return cu
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (cu *CategoryUpdate) ClearDuration() *CategoryUpdate {
+	cu.mutation.ClearDuration()
 	return cu
 }
 
@@ -227,6 +255,26 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldConfig,
 		})
 	}
+	if value, ok := cu.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: category.FieldDuration,
+		})
+	}
+	if value, ok := cu.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: category.FieldDuration,
+		})
+	}
+	if cu.mutation.DurationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Column: category.FieldDuration,
+		})
+	}
 	if cu.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -321,6 +369,33 @@ func (cuo *CategoryUpdateOne) SetConfig(sc *schematype.CategoryConfig) *Category
 // ClearConfig clears the value of the "config" field.
 func (cuo *CategoryUpdateOne) ClearConfig() *CategoryUpdateOne {
 	cuo.mutation.ClearConfig()
+	return cuo
+}
+
+// SetDuration sets the "duration" field.
+func (cuo *CategoryUpdateOne) SetDuration(t time.Duration) *CategoryUpdateOne {
+	cuo.mutation.ResetDuration()
+	cuo.mutation.SetDuration(t)
+	return cuo
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableDuration(t *time.Duration) *CategoryUpdateOne {
+	if t != nil {
+		cuo.SetDuration(*t)
+	}
+	return cuo
+}
+
+// AddDuration adds t to the "duration" field.
+func (cuo *CategoryUpdateOne) AddDuration(t time.Duration) *CategoryUpdateOne {
+	cuo.mutation.AddDuration(t)
+	return cuo
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (cuo *CategoryUpdateOne) ClearDuration() *CategoryUpdateOne {
+	cuo.mutation.ClearDuration()
 	return cuo
 }
 
@@ -507,6 +582,26 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeOther,
 			Column: category.FieldConfig,
+		})
+	}
+	if value, ok := cuo.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: category.FieldDuration,
+		})
+	}
+	if value, ok := cuo.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: category.FieldDuration,
+		})
+	}
+	if cuo.mutation.DurationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Column: category.FieldDuration,
 		})
 	}
 	if cuo.mutation.TodosCleared() {

@@ -28,6 +28,7 @@ import (
 	"entgo.io/contrib/entgql"
 	gen "entgo.io/contrib/entgql/internal/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent"
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/enttest"
 	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
@@ -595,6 +596,27 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		)
 		s.Require().NoError(err)
 		s.Require().Equal(0, rsp.Todos.TotalCount)
+	})
+	s.Run("WithCategory", func() {
+		ctx := context.Background()
+		id := s.ent.Todo.Query().Order(ent.Asc(todo.FieldID)).FirstIDX(ctx)
+		s.ent.Category.Create().SetText("Disabled").SetStatus(category.StatusDisabled).AddTodoIDs(id).SetDuration(time.Second).ExecX(ctx)
+
+		var (
+			rsp   response
+			query = `query($duration: Duration) {
+				todos(where:{hasCategoryWith: {duration: $duration}}) {
+					totalCount
+
+				}
+			}`
+		)
+		err := s.Post(query, &rsp, client.Var("duration", time.Second))
+		s.NoError(err)
+		s.Equal(1, rsp.Todos.TotalCount)
+		err = s.Post(query, &rsp, client.Var("duration", time.Second*2))
+		s.NoError(err)
+		s.Zero(rsp.Todos.TotalCount)
 	})
 }
 

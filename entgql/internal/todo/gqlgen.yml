@@ -20,6 +20,9 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.IntID
+  Duration:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent.Noder
