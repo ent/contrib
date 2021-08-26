@@ -55,6 +55,8 @@ type CategoryMutation struct {
 	text          *string
 	status        *category.Status
 	_config       **schematype.CategoryConfig
+	duration      *time.Duration
+	addduration   *time.Duration
 	clearedFields map[string]struct{}
 	todos         map[uuid.UUID]struct{}
 	removedtodos  map[uuid.UUID]struct{}
@@ -270,6 +272,76 @@ func (m *CategoryMutation) ResetConfig() {
 	delete(m.clearedFields, category.FieldConfig)
 }
 
+// SetDuration sets the "duration" field.
+func (m *CategoryMutation) SetDuration(t time.Duration) {
+	m.duration = &t
+	m.addduration = nil
+}
+
+// Duration returns the value of the "duration" field in the mutation.
+func (m *CategoryMutation) Duration() (r time.Duration, exists bool) {
+	v := m.duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDuration returns the old "duration" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldDuration(ctx context.Context) (v time.Duration, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDuration: %w", err)
+	}
+	return oldValue.Duration, nil
+}
+
+// AddDuration adds t to the "duration" field.
+func (m *CategoryMutation) AddDuration(t time.Duration) {
+	if m.addduration != nil {
+		*m.addduration += t
+	} else {
+		m.addduration = &t
+	}
+}
+
+// AddedDuration returns the value that was added to the "duration" field in this mutation.
+func (m *CategoryMutation) AddedDuration() (r time.Duration, exists bool) {
+	v := m.addduration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (m *CategoryMutation) ClearDuration() {
+	m.duration = nil
+	m.addduration = nil
+	m.clearedFields[category.FieldDuration] = struct{}{}
+}
+
+// DurationCleared returns if the "duration" field was cleared in this mutation.
+func (m *CategoryMutation) DurationCleared() bool {
+	_, ok := m.clearedFields[category.FieldDuration]
+	return ok
+}
+
+// ResetDuration resets all changes to the "duration" field.
+func (m *CategoryMutation) ResetDuration() {
+	m.duration = nil
+	m.addduration = nil
+	delete(m.clearedFields, category.FieldDuration)
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by ids.
 func (m *CategoryMutation) AddTodoIDs(ids ...uuid.UUID) {
 	if m.todos == nil {
@@ -343,7 +415,7 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
 	}
@@ -352,6 +424,9 @@ func (m *CategoryMutation) Fields() []string {
 	}
 	if m._config != nil {
 		fields = append(fields, category.FieldConfig)
+	}
+	if m.duration != nil {
+		fields = append(fields, category.FieldDuration)
 	}
 	return fields
 }
@@ -367,6 +442,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case category.FieldConfig:
 		return m.Config()
+	case category.FieldDuration:
+		return m.Duration()
 	}
 	return nil, false
 }
@@ -382,6 +459,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldStatus(ctx)
 	case category.FieldConfig:
 		return m.OldConfig(ctx)
+	case category.FieldDuration:
+		return m.OldDuration(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -412,6 +491,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetConfig(v)
 		return nil
+	case category.FieldDuration:
+		v, ok := value.(time.Duration)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDuration(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
 }
@@ -419,13 +505,21 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *CategoryMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addduration != nil {
+		fields = append(fields, category.FieldDuration)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *CategoryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case category.FieldDuration:
+		return m.AddedDuration()
+	}
 	return nil, false
 }
 
@@ -434,6 +528,13 @@ func (m *CategoryMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *CategoryMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case category.FieldDuration:
+		v, ok := value.(time.Duration)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDuration(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Category numeric field %s", name)
 }
@@ -444,6 +545,9 @@ func (m *CategoryMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(category.FieldConfig) {
 		fields = append(fields, category.FieldConfig)
+	}
+	if m.FieldCleared(category.FieldDuration) {
+		fields = append(fields, category.FieldDuration)
 	}
 	return fields
 }
@@ -462,6 +566,9 @@ func (m *CategoryMutation) ClearField(name string) error {
 	case category.FieldConfig:
 		m.ClearConfig()
 		return nil
+	case category.FieldDuration:
+		m.ClearDuration()
+		return nil
 	}
 	return fmt.Errorf("unknown Category nullable field %s", name)
 }
@@ -478,6 +585,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 		return nil
 	case category.FieldConfig:
 		m.ResetConfig()
+		return nil
+	case category.FieldDuration:
+		m.ResetDuration()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

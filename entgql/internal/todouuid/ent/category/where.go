@@ -17,6 +17,8 @@
 package category
 
 import (
+	"time"
+
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
 	"entgo.io/ent/dialect/sql"
@@ -118,6 +120,14 @@ func Text(v string) predicate.Category {
 func Config(v *schematype.CategoryConfig) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldConfig), v))
+	})
+}
+
+// Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
+func Duration(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDuration), vc))
 	})
 }
 
@@ -367,6 +377,102 @@ func ConfigIsNil() predicate.Category {
 func ConfigNotNil() predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldConfig)))
+	})
+}
+
+// DurationEQ applies the EQ predicate on the "duration" field.
+func DurationEQ(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDuration), vc))
+	})
+}
+
+// DurationNEQ applies the NEQ predicate on the "duration" field.
+func DurationNEQ(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDuration), vc))
+	})
+}
+
+// DurationIn applies the In predicate on the "duration" field.
+func DurationIn(vs ...time.Duration) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = int64(vs[i])
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDuration), v...))
+	})
+}
+
+// DurationNotIn applies the NotIn predicate on the "duration" field.
+func DurationNotIn(vs ...time.Duration) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = int64(vs[i])
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDuration), v...))
+	})
+}
+
+// DurationGT applies the GT predicate on the "duration" field.
+func DurationGT(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDuration), vc))
+	})
+}
+
+// DurationGTE applies the GTE predicate on the "duration" field.
+func DurationGTE(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDuration), vc))
+	})
+}
+
+// DurationLT applies the LT predicate on the "duration" field.
+func DurationLT(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDuration), vc))
+	})
+}
+
+// DurationLTE applies the LTE predicate on the "duration" field.
+func DurationLTE(v time.Duration) predicate.Category {
+	vc := int64(v)
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDuration), vc))
+	})
+}
+
+// DurationIsNil applies the IsNil predicate on the "duration" field.
+func DurationIsNil() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDuration)))
+	})
+}
+
+// DurationNotNil applies the NotNil predicate on the "duration" field.
+func DurationNotNil() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDuration)))
 	})
 }
 

@@ -20,6 +20,9 @@ models:
   ID:
     model:
       - entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid.ID
+  Duration:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todopulid/ent.Noder

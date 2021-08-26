@@ -452,6 +452,16 @@ var (
 			}
 		},
 	}
+	// CategoryOrderFieldDuration orders Category by duration.
+	CategoryOrderFieldDuration = &CategoryOrderField{
+		field: category.FieldDuration,
+		toCursor: func(c *Category) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.Duration,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -460,6 +470,8 @@ func (f CategoryOrderField) String() string {
 	switch f.field {
 	case category.FieldText:
 		str = "TEXT"
+	case category.FieldDuration:
+		str = "DURATION"
 	}
 	return str
 }
@@ -478,6 +490,8 @@ func (f *CategoryOrderField) UnmarshalGQL(v interface{}) error {
 	switch str {
 	case "TEXT":
 		*f = *CategoryOrderFieldText
+	case "DURATION":
+		*f = *CategoryOrderFieldDuration
 	default:
 		return fmt.Errorf("%s is not a valid CategoryOrderField", str)
 	}

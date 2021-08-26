@@ -15,13 +15,15 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
-	"entgo.io/ent/dialect"
+	"time"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 )
 
 // Category holds the schema definition for the Category entity.
@@ -47,6 +49,13 @@ func (Category) Fields() []ent.Field {
 				dialect.SQLite: "json",
 			}).
 			Optional(),
+		field.Int64("duration").
+			GoType(time.Duration(0)).
+			Optional().
+			Annotations(
+				entgql.OrderField("DURATION"),
+				entgql.Type("Duration"),
+			),
 	}
 }
 

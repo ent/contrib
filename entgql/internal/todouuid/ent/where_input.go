@@ -76,6 +76,18 @@ type CategoryWhereInput struct {
 	ConfigIsNil  bool                         `json:"configIsNil,omitempty"`
 	ConfigNotNil bool                         `json:"configNotNil,omitempty"`
 
+	// "duration" field predicates.
+	Duration       *time.Duration  `json:"duration,omitempty"`
+	DurationNEQ    *time.Duration  `json:"durationNEQ,omitempty"`
+	DurationIn     []time.Duration `json:"durationIn,omitempty"`
+	DurationNotIn  []time.Duration `json:"durationNotIn,omitempty"`
+	DurationGT     *time.Duration  `json:"durationGT,omitempty"`
+	DurationGTE    *time.Duration  `json:"durationGTE,omitempty"`
+	DurationLT     *time.Duration  `json:"durationLT,omitempty"`
+	DurationLTE    *time.Duration  `json:"durationLTE,omitempty"`
+	DurationIsNil  bool            `json:"durationIsNil,omitempty"`
+	DurationNotNil bool            `json:"durationNotNil,omitempty"`
+
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
@@ -244,6 +256,36 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	if i.ConfigNotNil {
 		predicates = append(predicates, category.ConfigNotNil())
+	}
+	if i.Duration != nil {
+		predicates = append(predicates, category.DurationEQ(*i.Duration))
+	}
+	if i.DurationNEQ != nil {
+		predicates = append(predicates, category.DurationNEQ(*i.DurationNEQ))
+	}
+	if len(i.DurationIn) > 0 {
+		predicates = append(predicates, category.DurationIn(i.DurationIn...))
+	}
+	if len(i.DurationNotIn) > 0 {
+		predicates = append(predicates, category.DurationNotIn(i.DurationNotIn...))
+	}
+	if i.DurationGT != nil {
+		predicates = append(predicates, category.DurationGT(*i.DurationGT))
+	}
+	if i.DurationGTE != nil {
+		predicates = append(predicates, category.DurationGTE(*i.DurationGTE))
+	}
+	if i.DurationLT != nil {
+		predicates = append(predicates, category.DurationLT(*i.DurationLT))
+	}
+	if i.DurationLTE != nil {
+		predicates = append(predicates, category.DurationLTE(*i.DurationLTE))
+	}
+	if i.DurationIsNil {
+		predicates = append(predicates, category.DurationIsNil())
+	}
+	if i.DurationNotNil {
+		predicates = append(predicates, category.DurationNotNil())
 	}
 
 	if i.HasTodos != nil {
