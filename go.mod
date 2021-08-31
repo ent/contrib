@@ -8,7 +8,6 @@ require (
 	github.com/AlekSi/pointer v1.1.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/alecthomas/kong v0.2.11
-	github.com/go-chi/chi/v5 v5.0.4
 	github.com/go-openapi/inflect v0.19.0
 	github.com/google/uuid v1.3.0
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
