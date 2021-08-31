@@ -73,7 +73,7 @@ func main() {
 			sqc.ApplicationTagKey: "bootcamp",
 			sqc.FrameworkTagKey:   "go-chi",
 		}),
-		sqc.NewDriverVersionCommenter(),
+		sqc.NewDriverVersionTagger(),
 		MyCustomCommetner{},
 	))
 	client := ent.NewClient(ent.Driver(commentedDriver))

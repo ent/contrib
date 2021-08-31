@@ -56,13 +56,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	// create sqlcommenter driver which wraps debug driver which wraps sqlite driver
+	// we should have sqlcommenter and debug logs on every query to our sqlite DB
 	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
+		// add OpenCensus tracing comments
 		sqc.NewOCTrace(),
+		// add some constant comments, which
 		sqc.NewStaticTagger(sqc.SQLCommentTags{
 			sqc.ApplicationTagKey: "bootcamp",
 			sqc.FrameworkTagKey:   "go-chi",
 		}),
-		sqc.NewDriverVersionCommenter(),
+		sqc.NewDriverVersionTagger(),
 	))
 	client := ent.NewClient(ent.Driver(commentedDriver))
 	defer client.Close()

@@ -10,7 +10,7 @@ type DriverVersionTagger struct {
 	version string
 }
 
-func NewDriverVersionCommenter() DriverVersionTagger {
+func NewDriverVersionTagger() DriverVersionTagger {
 	info, ok := debug.ReadBuildInfo()
 	ver := "ent"
 	if ok {

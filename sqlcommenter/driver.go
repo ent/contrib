@@ -26,7 +26,7 @@ type (
 )
 
 func NewDriver(drv dialect.Driver, options ...Option) dialect.Driver {
-	defaultCommenters := []Tagger{NewDriverVersionCommenter()}
+	defaultCommenters := []Tagger{NewDriverVersionTagger()}
 	opts := buildOptions(append(options, WithTagger(defaultCommenters...)))
 	return &Driver{drv, commenter{opts}}
 }
