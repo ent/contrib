@@ -5,15 +5,15 @@ import (
 )
 
 type Commenter interface {
-	GetComments(context.Context) SqlComments
+	Comments(context.Context) SQLComments
 }
 
 type (
-	CommentsHandler func(context.Context) SqlComments
+	CommentsHandler func(context.Context) SQLComments
 	Option          func(*options)
 	options         struct {
 		commenters     []Commenter
-		globalComments SqlComments
+		globalComments SQLComments
 	}
 )
 
@@ -26,7 +26,7 @@ func WithCommenter(commenters ...Commenter) Option {
 }
 
 // WithComments appends the given comments to every sql query.
-func WithComments(comments SqlComments) Option {
+func WithComments(comments SQLComments) Option {
 	return func(opts *options) {
 		opts.commenters = append(opts.commenters, NewStaticCommenter(comments))
 	}

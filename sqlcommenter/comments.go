@@ -8,56 +8,44 @@ import (
 )
 
 const (
-	DbDriverCommentKey    = CommentKey("db_driver")
-	FrameworkCommentKey   = CommentKey("framework")
-	ApplicationCommentKey = CommentKey("application")
-	RouteCommentKey       = CommentKey("route")
-	ControllerCommentKey  = CommentKey("controller")
-	ActionCommentKey      = CommentKey("action")
+	DbDriverCommentKey    = "db_driver"
+	FrameworkCommentKey   = "framework"
+	ApplicationCommentKey = "application"
+	RouteCommentKey       = "route"
+	ControllerCommentKey  = "controller"
+	ActionCommentKey      = "action"
 )
 
-type (
-	CommentKey   string
-	CommentValue string
-	SqlComments  map[CommentKey]CommentValue
+type SQLComments map[string]string
 
-	// used for sort
-	Comment struct {
-		CommentKey   CommentKey
-		CommentValue CommentValue
-	}
-	Comments []Comment
-)
-
-func (c Comments) Len() int           { return len(c) }
-func (c Comments) Less(i, j int) bool { return c[i].CommentKey < c[j].CommentKey }
-func (c Comments) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
-
-func (v CommentValue) marshal() string {
+func encodeValue(v string) string {
 	urlEscape := strings.ReplaceAll(url.PathEscape(string(v)), "+", "%20")
 	return fmt.Sprintf("'%s'", urlEscape)
 }
 
-func (v CommentKey) marshal() string {
-	return url.QueryEscape(string(v))
+func encodeKey(k string) string {
+	return url.QueryEscape(string(k))
 }
 
-func (sc SqlComments) Marshal() string {
-	cmts := make(Comments, 0, len(sc))
-	for k, v := range sc {
-		cmts = append(cmts, Comment{k, v})
+func (sc SQLComments) Marshal() string {
+	kv := make([]struct{ k, v string }, 0, len(sc))
+	for k := range sc {
+		kv = append(kv, struct{ k, v string }{encodeKey(k), encodeValue(sc[k])})
 	}
-	sort.Sort(cmts)
+	sort.Slice(kv, func(i, j int) bool {
+		return kv[i].k < kv[j].k
+	})
 	var b strings.Builder
-	for _, c := range cmts {
-		fmt.Fprintf(&b, "%s=%s,", c.CommentKey.marshal(), c.CommentValue.marshal())
+	for i, p := range kv {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		fmt.Fprintf(&b, "%s=%s", p.k, p.v)
 	}
-	s := b.String()
-	// remove trailing ","
-	return s[:b.Len()-1]
+	return b.String()
 }
 
-func (sc SqlComments) Append(comments ...SqlComments) SqlComments {
+func (sc SQLComments) Append(comments ...SQLComments) SQLComments {
 	for _, c := range comments {
 		for k, v := range c {
 			sc[k] = v

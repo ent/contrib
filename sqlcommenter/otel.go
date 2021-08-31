@@ -1,26 +1,25 @@
-package otel
+package sqlcommenter
 
 import (
 	"context"
 
-	sqc "entgo.io/contrib/sqlcommenter"
 	"go.opentelemetry.io/otel"
 )
 
 type (
-	OtelTraceCommenter struct{}
-	CommentCarrier     sqc.SqlComments
+	OtelTrace      struct{}
+	CommentCarrier SQLComments
 )
 
-func NewOtelTraceCommenter() OtelTraceCommenter {
-	return OtelTraceCommenter{}
+func NewOtelTrace() OtelTrace {
+	return OtelTrace{}
 }
 
-func (hc OtelTraceCommenter) GetComments(ctx context.Context) sqc.SqlComments {
+func (hc OtelTrace) Comments(ctx context.Context) SQLComments {
 	comments := NewCommentCarrier()
 	otel.GetTextMapPropagator().Inject(ctx, comments)
 
-	return sqc.SqlComments(comments)
+	return SQLComments(comments)
 }
 
 func NewCommentCarrier() CommentCarrier {
@@ -29,12 +28,12 @@ func NewCommentCarrier() CommentCarrier {
 
 // Get returns the value associated with the passed key.
 func (c CommentCarrier) Get(key string) string {
-	return string(c[sqc.CommentKey(key)])
+	return string(c[key])
 }
 
 // Set stores the key-value pair.
 func (c CommentCarrier) Set(key string, value string) {
-	c[sqc.CommentKey(key)] = sqc.CommentValue(value)
+	c[key] = value
 }
 
 // Keys lists the keys stored in this carrier.

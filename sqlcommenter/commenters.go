@@ -19,43 +19,41 @@ func NewDriverVersionCommenter() DriverVersionCommenter {
 	return DriverVersionCommenter{ver}
 }
 
-func (dc DriverVersionCommenter) GetComments(ctx context.Context) SqlComments {
-	return SqlComments{
-		DbDriverCommentKey: CommentValue(dc.version),
+func (dc DriverVersionCommenter) Comments(ctx context.Context) SQLComments {
+	return SQLComments{
+		DbDriverCommentKey: dc.version,
 	}
 }
 
 type ContextMapper struct {
 	contextKey interface{}
-	commentKey CommentKey
+	commentKey string
 }
 
-func NewContextMapper(commentKey CommentKey, contextKey interface{}) ContextMapper {
+func NewContextMapper(commentKey string, contextKey interface{}) ContextMapper {
 	return ContextMapper{
 		commentKey: commentKey,
 		contextKey: contextKey,
 	}
 }
 
-func (cm ContextMapper) GetComments(ctx context.Context) SqlComments {
+func (cm ContextMapper) Comments(ctx context.Context) SQLComments {
 	switch v := ctx.Value(cm.contextKey).(type) {
 	case string:
-		return SqlComments{cm.commentKey: CommentValue(v)}
-	case CommentValue:
-		return SqlComments{cm.commentKey: v}
+		return SQLComments{cm.commentKey: v}
 	default:
 		return nil
 	}
 }
 
 type StaticCommenter struct {
-	comments SqlComments
+	comments SQLComments
 }
 
-func NewStaticCommenter(comments SqlComments) StaticCommenter {
+func NewStaticCommenter(comments SQLComments) StaticCommenter {
 	return StaticCommenter{comments}
 }
 
-func (sc StaticCommenter) GetComments(ctx context.Context) SqlComments {
+func (sc StaticCommenter) Comments(ctx context.Context) SQLComments {
 	return sc.comments
 }

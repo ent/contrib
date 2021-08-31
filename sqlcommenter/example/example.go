@@ -9,11 +9,11 @@ import (
 	"net/http/httptest"
 
 	sqc "entgo.io/contrib/sqlcommenter"
+	cmt "entgo.io/contrib/sqlcommenter/commenters"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
 
-	otelCommenter "entgo.io/contrib/sqlcommenter/commenters/otel"
 	"github.com/go-chi/chi/v5"
 
 	"entgo.io/contrib/sqlcommenter/example/ent"
@@ -30,8 +30,8 @@ import (
 type routeKey struct{}
 type MyCustomCommetner struct{}
 
-func (mcc MyCustomCommetner) GetComments(ctx context.Context) sqc.SqlComments {
-	return sqc.SqlComments{
+func (mcc MyCustomCommetner) Comments(ctx context.Context) sqc.SQLComments {
+	return sqc.SQLComments{
 		"key": "value",
 	}
 }
@@ -66,10 +66,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	commentedDriver := sqc.NewCommentDriver(dialect.Debug(db), sqc.WithCommenter(
-		otelCommenter.NewOtelTraceCommenter(),
-		sqc.NewContextMapper(sqc.RouteCommentKey, routeKey{}),
-		sqc.NewStaticCommenter(sqc.SqlComments{
+	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithCommenter(
+		cmt.NewOtelTrace(),
+		cmt.NewContextMapper(sqc.RouteCommentKey, routeKey{}),
+		cmt.NewStaticCommenter(sqc.SQLComments{
 			sqc.ApplicationCommentKey: "bootcamp",
 			sqc.FrameworkCommentKey:   "go-chi",
 		}),

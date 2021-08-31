@@ -12,8 +12,8 @@ type (
 	commenter struct {
 		options
 	}
-	// CommentDriver is a driver that adds sql comments (see https://google.github.io/sqlcommenter/).
-	CommentDriver struct {
+	// Driver is a driver that adds sql comments (see https://google.github.io/sqlcommenter/).
+	Driver struct {
 		dialect.Driver // underlying driver.
 		commenter
 	}
@@ -25,17 +25,17 @@ type (
 	}
 )
 
-func NewCommentDriver(drv dialect.Driver, options ...Option) dialect.Driver {
+func NewDriver(drv dialect.Driver, options ...Option) dialect.Driver {
 	defaultCommenters := []Commenter{NewDriverVersionCommenter()}
 	opts := buildOptions(append(options, WithCommenter(defaultCommenters...)))
-	return &CommentDriver{drv, commenter{opts}}
+	return &Driver{drv, commenter{opts}}
 }
 
-func (c commenter) getComments(ctx context.Context) SqlComments {
-	cmts := make(SqlComments)
+func (c commenter) getComments(ctx context.Context) SQLComments {
+	cmts := make(SQLComments)
 	cmts.Append(c.globalComments)
 	for _, h := range c.commenters {
-		cmts.Append(h.GetComments(ctx))
+		cmts.Append(h.Comments(ctx))
 	}
 	return cmts
 }
@@ -45,17 +45,17 @@ func (c commenter) withComments(ctx context.Context, query string) string {
 }
 
 // Exec adds sql comments to the original query and calls the underlying driver Exec method.
-func (d *CommentDriver) Exec(ctx context.Context, query string, args, v interface{}) error {
+func (d *Driver) Exec(ctx context.Context, query string, args, v interface{}) error {
 	return d.Driver.Exec(ctx, d.withComments(ctx, query), args, v)
 }
 
 // Query adds sql comments to the original query and calls the underlying driver Query method.
-func (d *CommentDriver) Query(ctx context.Context, query string, args, v interface{}) error {
+func (d *Driver) Query(ctx context.Context, query string, args, v interface{}) error {
 	return d.Driver.Query(ctx, d.withComments(ctx, query), args, v)
 }
 
 // Tx wraps the underlying Tx command with a commenter.
-func (d *CommentDriver) Tx(ctx context.Context) (dialect.Tx, error) {
+func (d *Driver) Tx(ctx context.Context) (dialect.Tx, error) {
 	tx, err := d.Driver.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (d *CommentDriver) Tx(ctx context.Context) (dialect.Tx, error) {
 }
 
 // BeginTx wraps the underlying transaction with commenter and calls the underlying driver BeginTx command if it's supported.
-func (d *CommentDriver) BeginTx(ctx context.Context, opts *sql.TxOptions) (dialect.Tx, error) {
+func (d *Driver) BeginTx(ctx context.Context, opts *sql.TxOptions) (dialect.Tx, error) {
 	drv, ok := d.Driver.(interface {
 		BeginTx(context.Context, *sql.TxOptions) (dialect.Tx, error)
 	})
