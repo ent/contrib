@@ -67,6 +67,7 @@ func main() {
 	}
 	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithCommenter(
 		sqc.NewOtelTrace(),
+		sqc.NewOCTrace(),
 		sqc.NewContextMapper(sqc.RouteCommentKey, routeKey{}),
 		sqc.NewStaticCommenter(sqc.SQLComments{
 			sqc.ApplicationCommentKey: "bootcamp",
