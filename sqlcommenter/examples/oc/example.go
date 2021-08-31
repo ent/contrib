@@ -59,7 +59,7 @@ func main() {
 	// we should have sqlcommenter and debug logs on every query to our sqlite DB
 	commentedDriver := sqc.NewDriver(dialect.Debug(db),
 		// add OpenCensus tracing tags
-		sqc.WithTagger(sqc.NewOCTrace()),
+		sqc.WithTagger(sqc.NewOCTagger()),
 		sqc.WithDriverVersion(),
 		sqc.WithTags(sqc.Tags{
 			sqc.KeyAppliaction: "bootcamp",

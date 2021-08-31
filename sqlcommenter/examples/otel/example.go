@@ -25,9 +25,9 @@ import (
 )
 
 type routeKey struct{}
-type MyCustomCommetner struct{}
+type MyCustomCommenter struct{}
 
-func (mcc MyCustomCommetner) Tag(ctx context.Context) sqc.Tags {
+func (mcc MyCustomCommenter) Tag(ctx context.Context) sqc.Tags {
 	return sqc.Tags{
 		"key": "value",
 	}
@@ -46,6 +46,7 @@ func initTracer() *sdktrace.TracerProvider {
 		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String("ExampleService"))),
 	)
 	otel.SetTracerProvider(tp)
+	// Add propagation.TaceContext{} which will be used by OtelTagger to inject trace information.
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	return tp
 }
@@ -65,8 +66,8 @@ func main() {
 	}
 	commentedDriver := sqc.NewDriver(dialect.Debug(db),
 		sqc.WithTagger(
-			sqc.NewOtelTrace(),
-			MyCustomCommetner{},
+			sqc.NewOtelTagger(),
+			MyCustomCommenter{},
 			sqc.NewContextMapper(sqc.KeyRoute, routeKey{}),
 		),
 		sqc.WithDriverVersion(),

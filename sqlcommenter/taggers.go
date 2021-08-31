@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 )
 
+// DriverVersionTagger adds `db_driver` tag with "ent:<version>"
 type DriverVersionTagger struct {
 	version string
 }
@@ -23,12 +24,24 @@ func NewDriverVersionTagger() DriverVersionTagger {
 	return DriverVersionTagger{"ent"}
 }
 
-func (dc DriverVersionTagger) Tag(ctx context.Context) Tags {
+func (dv DriverVersionTagger) Tag(ctx context.Context) Tags {
 	return Tags{
-		KeyDBDriver: dc.version,
+		KeyDBDriver: dv.version,
 	}
 }
 
+// ContextMapper is a Tagger that maps context values to tags
+// for example, if you want to add 'route' tag to your SQL comment, put the url path on request context:
+//  type routeKey struct{}
+//  middleware := func(next http.Handler) http.Handler {
+//  	fn := func(w http.ResponseWriter, r *http.Request) {
+//  		c := context.WithValue(r.Context(), routeKey{}, r.URL.Path)
+//  		next.ServeHTTP(w, r.WithContext(c))
+//  	}
+//  	return http.HandlerFunc(fn)
+//  }
+// and use ContextMapper to map that route to SQL tag, in your sqlcommenter init code:
+//  sqc.NewDriver(drv, sqc.WithTagger(sqc.NewContextMapper("route", routeKey{})))
 type ContextMapper struct {
 	contextKey interface{}
 	tagKey     string
@@ -58,6 +71,6 @@ func NewStaticTagger(tags Tags) StaticTagger {
 	return StaticTagger{tags}
 }
 
-func (sc StaticTagger) Tag(ctx context.Context) Tags {
-	return sc.tags
+func (st StaticTagger) Tag(ctx context.Context) Tags {
+	return st.tags
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// A Tagger is used by the driver to add tags to SQL queries.
 type Tagger interface {
 	Tag(context.Context) Tags
 }

@@ -27,10 +27,11 @@ func encodeKey(k string) string {
 	return url.QueryEscape(string(k))
 }
 
-func (sc Tags) Marshal() string {
-	kv := make([]struct{ k, v string }, 0, len(sc))
-	for k := range sc {
-		kv = append(kv, struct{ k, v string }{encodeKey(k), encodeValue(sc[k])})
+// Marshal returns the sqlcomment encoding of t following the spec (see https://google.github.io/sqlcommenter/).
+func (t Tags) Marshal() string {
+	kv := make([]struct{ k, v string }, 0, len(t))
+	for k := range t {
+		kv = append(kv, struct{ k, v string }{encodeKey(k), encodeValue(t[k])})
 	}
 	sort.Slice(kv, func(i, j int) bool {
 		return kv[i].k < kv[j].k
@@ -45,11 +46,12 @@ func (sc Tags) Marshal() string {
 	return b.String()
 }
 
-func (sc Tags) Merge(tags ...Tags) Tags {
+// Merge copies given tags into sc.
+func (t Tags) Merge(tags ...Tags) Tags {
 	for _, c := range tags {
 		for k, v := range c {
-			sc[k] = v
+			t[k] = v
 		}
 	}
-	return sc
+	return t
 }

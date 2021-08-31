@@ -12,17 +12,19 @@ const (
 	tracestateHeader  = "tracestate"
 )
 
-type OCTrace struct {
+// OCTagger is a Tagger that adds `traceparent` and `tracestate` tags to the SQL comment.
+type OCTagger struct {
 	format *tracecontext.HTTPFormat
 }
 
-func NewOCTrace() OCTrace {
-	return OCTrace{&tracecontext.HTTPFormat{}}
+func NewOCTagger() OCTagger {
+	return OCTagger{&tracecontext.HTTPFormat{}}
 }
 
-func (oc OCTrace) Tag(ctx context.Context) Tags {
+// Tag finds trace information on the given context and returns SQL tags with trace information.
+func (ot OCTagger) Tag(ctx context.Context) Tags {
 	spanCtx := trace.FromContext(ctx).SpanContext()
-	tp, ts := oc.format.SpanContextToHeaders(spanCtx)
+	tp, ts := ot.format.SpanContextToHeaders(spanCtx)
 	tags := Tags{
 		traceparentHeader: tp,
 	}

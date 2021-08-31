@@ -25,6 +25,7 @@ type (
 	}
 )
 
+// NewDriver decorates the given driver and add sql comment to every query.
 func NewDriver(drv dialect.Driver, options ...Option) dialect.Driver {
 	defaultCommenters := []Tagger{NewDriverVersionTagger()}
 	opts := buildOptions(append(options, WithTagger(defaultCommenters...)))
