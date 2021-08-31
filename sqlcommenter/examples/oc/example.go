@@ -57,16 +57,15 @@ func main() {
 	}
 	// create sqlcommenter driver which wraps debug driver which wraps sqlite driver
 	// we should have sqlcommenter and debug logs on every query to our sqlite DB
-	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
+	commentedDriver := sqc.NewDriver(dialect.Debug(db),
 		// add OpenCensus tracing tags
-		sqc.NewOCTrace(),
-		// add some constant tags, which
-		sqc.NewStaticTagger(sqc.Tags{
+		sqc.WithTagger(sqc.NewOCTrace()),
+		sqc.WithDriverVersion(),
+		sqc.WithTags(sqc.Tags{
 			sqc.KeyAppliaction: "bootcamp",
 			sqc.KeyFramework:   "go-chi",
 		}),
-		sqc.NewDriverVersionTagger(),
-	))
+	)
 	client := ent.NewClient(ent.Driver(commentedDriver))
 	defer client.Close()
 	// Run the auto migration tool.

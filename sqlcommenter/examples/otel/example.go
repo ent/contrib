@@ -63,17 +63,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
-		sqc.NewOtelTrace(),
-		sqc.NewOCTrace(),
-		sqc.NewContextMapper(sqc.KeyRoute, routeKey{}),
-		sqc.NewStaticTagger(sqc.Tags{
+	commentedDriver := sqc.NewDriver(dialect.Debug(db),
+		sqc.WithTagger(
+			sqc.NewOtelTrace(),
+			MyCustomCommetner{},
+			sqc.NewContextMapper(sqc.KeyRoute, routeKey{}),
+		),
+		sqc.WithDriverVersion(),
+		sqc.WithTags(sqc.Tags{
 			sqc.KeyAppliaction: "bootcamp",
 			sqc.KeyFramework:   "go-chi",
-		}),
-		sqc.NewDriverVersionTagger(),
-		MyCustomCommetner{},
-	))
+		}))
 	client := ent.NewClient(ent.Driver(commentedDriver))
 	defer client.Close()
 	// Run the auto migration tool.
