@@ -8,18 +8,18 @@ import (
 
 type (
 	OtelTrace      struct{}
-	CommentCarrier SQLComments
+	CommentCarrier SQLCommentTags
 )
 
 func NewOtelTrace() OtelTrace {
 	return OtelTrace{}
 }
 
-func (hc OtelTrace) Comments(ctx context.Context) SQLComments {
-	comments := NewCommentCarrier()
-	otel.GetTextMapPropagator().Inject(ctx, comments)
+func (hc OtelTrace) Tag(ctx context.Context) SQLCommentTags {
+	c := NewCommentCarrier()
+	otel.GetTextMapPropagator().Inject(ctx, c)
 
-	return SQLComments(comments)
+	return SQLCommentTags(c)
 }
 
 func NewCommentCarrier() CommentCarrier {

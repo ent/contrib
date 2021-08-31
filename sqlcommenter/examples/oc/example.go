@@ -56,11 +56,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithCommenter(
+	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
 		sqc.NewOCTrace(),
-		sqc.NewStaticCommenter(sqc.SQLComments{
-			sqc.ApplicationCommentKey: "bootcamp",
-			sqc.FrameworkCommentKey:   "go-chi",
+		sqc.NewStaticTagger(sqc.SQLCommentTags{
+			sqc.ApplicationTagKey: "bootcamp",
+			sqc.FrameworkTagKey:   "go-chi",
 		}),
 		sqc.NewDriverVersionCommenter(),
 	))

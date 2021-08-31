@@ -26,32 +26,32 @@ type (
 )
 
 func NewDriver(drv dialect.Driver, options ...Option) dialect.Driver {
-	defaultCommenters := []Commenter{NewDriverVersionCommenter()}
-	opts := buildOptions(append(options, WithCommenter(defaultCommenters...)))
+	defaultCommenters := []Tagger{NewDriverVersionCommenter()}
+	opts := buildOptions(append(options, WithTagger(defaultCommenters...)))
 	return &Driver{drv, commenter{opts}}
 }
 
-func (c commenter) getComments(ctx context.Context) SQLComments {
-	cmts := make(SQLComments)
+func (c commenter) getTags(ctx context.Context) SQLCommentTags {
+	cmts := make(SQLCommentTags)
 	cmts.Append(c.globalComments)
 	for _, h := range c.commenters {
-		cmts.Append(h.Comments(ctx))
+		cmts.Append(h.Tag(ctx))
 	}
 	return cmts
 }
 
-func (c commenter) withComments(ctx context.Context, query string) string {
-	return fmt.Sprintf("%s /*%s*/", query, c.getComments(ctx).Marshal())
+func (c commenter) withComment(ctx context.Context, query string) string {
+	return fmt.Sprintf("%s /*%s*/", query, c.getTags(ctx).Marshal())
 }
 
-// Exec adds sql comments to the original query and calls the underlying driver Exec method.
+// Exec adds sql comment to the original query and calls the underlying driver Exec method.
 func (d *Driver) Exec(ctx context.Context, query string, args, v interface{}) error {
-	return d.Driver.Exec(ctx, d.withComments(ctx, query), args, v)
+	return d.Driver.Exec(ctx, d.withComment(ctx, query), args, v)
 }
 
-// Query adds sql comments to the original query and calls the underlying driver Query method.
+// Query adds sql comment to the original query and calls the underlying driver Query method.
 func (d *Driver) Query(ctx context.Context, query string, args, v interface{}) error {
-	return d.Driver.Query(ctx, d.withComments(ctx, query), args, v)
+	return d.Driver.Query(ctx, d.withComment(ctx, query), args, v)
 }
 
 // Tx wraps the underlying Tx command with a commenter.
@@ -80,12 +80,12 @@ func (d *Driver) BeginTx(ctx context.Context, opts *sql.TxOptions) (dialect.Tx, 
 
 // Exec adds sql comments and calls the underlying transaction Exec method.
 func (d *CommentTx) Exec(ctx context.Context, query string, args, v interface{}) error {
-	return d.Tx.Exec(ctx, d.withComments(ctx, query), args, v)
+	return d.Tx.Exec(ctx, d.withComment(ctx, query), args, v)
 }
 
 // Query adds sql comments and calls the underlying transaction Query method.
 func (d *CommentTx) Query(ctx context.Context, query string, args, v interface{}) error {
-	return d.Tx.Query(ctx, d.withComments(ctx, query), args, v)
+	return d.Tx.Query(ctx, d.withComment(ctx, query), args, v)
 }
 
 // Commit calls the underlying Tx to commit.

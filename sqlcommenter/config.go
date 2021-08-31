@@ -4,31 +4,29 @@ import (
 	"context"
 )
 
-type Commenter interface {
-	Comments(context.Context) SQLComments
+type Tagger interface {
+	Tag(context.Context) SQLCommentTags
 }
 
 type (
-	CommentsHandler func(context.Context) SQLComments
-	Option          func(*options)
-	options         struct {
-		commenters     []Commenter
-		globalComments SQLComments
+	Option  func(*options)
+	options struct {
+		commenters     []Tagger
+		globalComments SQLCommentTags
 	}
 )
 
-// WithCommenter overrides the default comments generator handler.
-// default comments added via WithComments will still be applied.
-func WithCommenter(commenters ...Commenter) Option {
+// WithTagger sets the taggers to be used to populate the SQL comment
+func WithTagger(taggers ...Tagger) Option {
 	return func(opts *options) {
-		opts.commenters = append(opts.commenters, commenters...)
+		opts.commenters = append(opts.commenters, taggers...)
 	}
 }
 
-// WithComments appends the given comments to every sql query.
-func WithComments(comments SQLComments) Option {
+// WithTags appends the given tags to every SQL query.
+func WithTags(tags SQLCommentTags) Option {
 	return func(opts *options) {
-		opts.commenters = append(opts.commenters, NewStaticCommenter(comments))
+		opts.commenters = append(opts.commenters, NewStaticTagger(tags))
 	}
 }
 

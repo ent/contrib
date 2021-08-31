@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"entgo.io/contrib/sqlcommenter/examples/otel/ent"
+	"entgo.io/contrib/sqlcommenter/example/ent"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -29,7 +29,7 @@ import (
 type routeKey struct{}
 type MyCustomCommetner struct{}
 
-func (mcc MyCustomCommetner) Tag(ctx context.Context) sqc.SQLCommentTags {
+func (mcc MyCustomCommetner) Comments(ctx context.Context) sqc.SQLCommentTags {
 	return sqc.SQLCommentTags{
 		"key": "value",
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestCommentEscapse(t *testing.T) {
-	cmts := SQLComments{
+	cmts := SQLCommentTags{
 		"route":     `/param first`,
 		"num":       `1234`,
 		"query":     `DROP TABLE FOO'`,
