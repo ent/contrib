@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 
-	"entgo.io/contrib/sqlcommenter/example/ent/predicate"
-	"entgo.io/contrib/sqlcommenter/example/ent/user"
+	"entgo.io/contrib/sqlcommenter/examples/otel/ent/predicate"
+	"entgo.io/contrib/sqlcommenter/examples/otel/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

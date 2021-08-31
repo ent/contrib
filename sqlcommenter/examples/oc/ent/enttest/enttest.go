@@ -5,9 +5,9 @@ package enttest
 import (
 	"context"
 
-	"entgo.io/contrib/sqlcommenter/example/ent"
+	"entgo.io/contrib/sqlcommenter/examples/oc/ent"
 	// required by schema hooks.
-	_ "entgo.io/contrib/sqlcommenter/example/ent/runtime"
+	_ "entgo.io/contrib/sqlcommenter/examples/oc/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

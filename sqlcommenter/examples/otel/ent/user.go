@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/sqlcommenter/example/ent/user"
+	"entgo.io/contrib/sqlcommenter/examples/otel/ent/user"
 	"entgo.io/ent/dialect/sql"
 )
 

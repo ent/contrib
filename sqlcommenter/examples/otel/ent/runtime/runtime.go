@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in entgo.io/contrib/sqlcommenter/example/ent/runtime.go
+// The schema-stitching logic is generated in entgo.io/contrib/sqlcommenter/examples/otel/ent/runtime.go
 
 const (
 	Version = "v0.9.2-0.20210821141344-368a8f7a2e9a"            // Version of ent codegen.
