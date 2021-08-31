@@ -72,6 +72,7 @@ func main() {
 			sqc.ApplicationCommentKey: "bootcamp",
 			sqc.FrameworkCommentKey:   "go-chi",
 		}),
+		sqc.NewDriverVersionCommenter(),
 		MyCustomCommetner{},
 	))
 	client := ent.NewClient(ent.Driver(commentedDriver))
