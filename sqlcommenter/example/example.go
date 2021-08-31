@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 
 	sqc "entgo.io/contrib/sqlcommenter"
-	cmt "entgo.io/contrib/sqlcommenter/commenters"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
@@ -67,9 +66,9 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithCommenter(
-		cmt.NewOtelTrace(),
-		cmt.NewContextMapper(sqc.RouteCommentKey, routeKey{}),
-		cmt.NewStaticCommenter(sqc.SQLComments{
+		sqc.NewOtelTrace(),
+		sqc.NewContextMapper(sqc.RouteCommentKey, routeKey{}),
+		sqc.NewStaticCommenter(sqc.SQLComments{
 			sqc.ApplicationCommentKey: "bootcamp",
 			sqc.FrameworkCommentKey:   "go-chi",
 		}),
