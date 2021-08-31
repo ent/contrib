@@ -12,16 +12,20 @@ type DriverVersionTagger struct {
 
 func NewDriverVersionTagger() DriverVersionTagger {
 	info, ok := debug.ReadBuildInfo()
-	ver := "ent"
-	if ok {
-		ver = fmt.Sprintf("ent:%s", info.Main.Version)
+	if !ok {
+		return DriverVersionTagger{"ent"}
 	}
-	return DriverVersionTagger{ver}
+	for _, d := range info.Deps {
+		if d.Path == "entgo.io/ent" {
+			return DriverVersionTagger{fmt.Sprintf("ent:%s", d.Version)}
+		}
+	}
+	return DriverVersionTagger{"ent"}
 }
 
-func (dc DriverVersionTagger) Tag(ctx context.Context) SQLCommentTags {
-	return SQLCommentTags{
-		DbDriverTagKey: dc.version,
+func (dc DriverVersionTagger) Tag(ctx context.Context) Tags {
+	return Tags{
+		KeyDBDriver: dc.version,
 	}
 }
 
@@ -37,23 +41,23 @@ func NewContextMapper(tagKey string, contextKey interface{}) ContextMapper {
 	}
 }
 
-func (cm ContextMapper) Tag(ctx context.Context) SQLCommentTags {
+func (cm ContextMapper) Tag(ctx context.Context) Tags {
 	switch v := ctx.Value(cm.contextKey).(type) {
 	case string:
-		return SQLCommentTags{cm.tagKey: v}
+		return Tags{cm.tagKey: v}
 	default:
 		return nil
 	}
 }
 
 type StaticTagger struct {
-	tags SQLCommentTags
+	tags Tags
 }
 
-func NewStaticTagger(tags SQLCommentTags) StaticTagger {
+func NewStaticTagger(tags Tags) StaticTagger {
 	return StaticTagger{tags}
 }
 
-func (sc StaticTagger) Tag(ctx context.Context) SQLCommentTags {
+func (sc StaticTagger) Tag(ctx context.Context) Tags {
 	return sc.tags
 }

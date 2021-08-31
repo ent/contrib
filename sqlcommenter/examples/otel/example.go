@@ -13,8 +13,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/go-chi/chi/v5"
-
 	"entgo.io/contrib/sqlcommenter/examples/otel/ent"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -29,8 +27,8 @@ import (
 type routeKey struct{}
 type MyCustomCommetner struct{}
 
-func (mcc MyCustomCommetner) Tag(ctx context.Context) sqc.SQLCommentTags {
-	return sqc.SQLCommentTags{
+func (mcc MyCustomCommetner) Tag(ctx context.Context) sqc.Tags {
+	return sqc.Tags{
 		"key": "value",
 	}
 }
@@ -68,10 +66,10 @@ func main() {
 	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
 		sqc.NewOtelTrace(),
 		sqc.NewOCTrace(),
-		sqc.NewContextMapper(sqc.RouteTagKey, routeKey{}),
-		sqc.NewStaticTagger(sqc.SQLCommentTags{
-			sqc.ApplicationTagKey: "bootcamp",
-			sqc.FrameworkTagKey:   "go-chi",
+		sqc.NewContextMapper(sqc.KeyRoute, routeKey{}),
+		sqc.NewStaticTagger(sqc.Tags{
+			sqc.KeyAppliaction: "bootcamp",
+			sqc.KeyFramework:   "go-chi",
 		}),
 		sqc.NewDriverVersionTagger(),
 		MyCustomCommetner{},
@@ -92,23 +90,21 @@ func main() {
 		}
 		return http.HandlerFunc(fn)
 	}
-	r := chi.NewRouter()
-	r.Use(middleware)
-	r.Get("/users", func(rw http.ResponseWriter, r *http.Request) {
+	getUsersHandler := func(rw http.ResponseWriter, r *http.Request) {
 		users := client.User.Query().AllX(r.Context())
 		b, _ := json.Marshal(users)
 		rw.WriteHeader(http.StatusOK)
 		rw.Write(b)
-	})
+	}
 
-	backend := otelhttp.NewHandler(r, "app")
+	backend := otelhttp.NewHandler(middleware(http.HandlerFunc(getUsersHandler)), "app")
 	testRequest(backend)
 }
 
 func testRequest(handler http.Handler) {
-	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
-	// debug printer should print sql statement with comments
+	// debug printer should print sql statement with comment
 	handler.ServeHTTP(w, req)
 }

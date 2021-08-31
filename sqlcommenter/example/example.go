@@ -29,8 +29,8 @@ import (
 type routeKey struct{}
 type MyCustomCommetner struct{}
 
-func (mcc MyCustomCommetner) Comments(ctx context.Context) sqc.SQLCommentTags {
-	return sqc.SQLCommentTags{
+func (mcc MyCustomCommetner) Comments(ctx context.Context) sqc.Tags {
+	return sqc.Tags{
 		"key": "value",
 	}
 }
@@ -68,10 +68,10 @@ func main() {
 	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
 		sqc.NewOtelTrace(),
 		sqc.NewOCTrace(),
-		sqc.NewContextMapper(sqc.RouteTagKey, routeKey{}),
-		sqc.NewStaticTagger(sqc.SQLCommentTags{
-			sqc.ApplicationTagKey: "bootcamp",
-			sqc.FrameworkTagKey:   "go-chi",
+		sqc.NewContextMapper(sqc.KeyRoute, routeKey{}),
+		sqc.NewStaticTagger(sqc.Tags{
+			sqc.KeyAppliaction: "bootcamp",
+			sqc.KeyFramework:   "go-chi",
 		}),
 		sqc.NewDriverVersionTagger(),
 		MyCustomCommetner{},
@@ -109,6 +109,6 @@ func testRequest(handler http.Handler) {
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	w := httptest.NewRecorder()
 
-	// debug printer should print sql statement with comments
+	// debug printer should print sql statement with comment
 	handler.ServeHTTP(w, req)
 }

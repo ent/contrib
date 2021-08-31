@@ -12,12 +12,12 @@ type (
 	commenter struct {
 		options
 	}
-	// Driver is a driver that adds sql comments (see https://google.github.io/sqlcommenter/).
+	// Driver is a driver that adds sql comment (see https://google.github.io/sqlcommenter/).
 	Driver struct {
 		dialect.Driver // underlying driver.
 		commenter
 	}
-	// CommentTx is a transaction implementation that adds sql comments.
+	// CommentTx is a transaction implementation that adds sql comment.
 	CommentTx struct {
 		dialect.Tx                 // underlying transaction.
 		ctx        context.Context // underlying transaction context.
@@ -31,17 +31,12 @@ func NewDriver(drv dialect.Driver, options ...Option) dialect.Driver {
 	return &Driver{drv, commenter{opts}}
 }
 
-func (c commenter) getTags(ctx context.Context) SQLCommentTags {
-	cmts := make(SQLCommentTags)
-	cmts.Append(c.globalComments)
-	for _, h := range c.commenters {
-		cmts.Append(h.Tag(ctx))
-	}
-	return cmts
-}
-
 func (c commenter) withComment(ctx context.Context, query string) string {
-	return fmt.Sprintf("%s /*%s*/", query, c.getTags(ctx).Marshal())
+	tags := make(Tags)
+	for _, h := range c.taggers {
+		tags.Merge(h.Tag(ctx))
+	}
+	return fmt.Sprintf("%s /*%s*/", query, tags.Marshal())
 }
 
 // Exec adds sql comment to the original query and calls the underlying driver Exec method.
@@ -78,12 +73,12 @@ func (d *Driver) BeginTx(ctx context.Context, opts *sql.TxOptions) (dialect.Tx, 
 	return &CommentTx{tx, ctx, d.commenter}, nil
 }
 
-// Exec adds sql comments and calls the underlying transaction Exec method.
+// Exec adds sql comment and calls the underlying transaction Exec method.
 func (d *CommentTx) Exec(ctx context.Context, query string, args, v interface{}) error {
 	return d.Tx.Exec(ctx, d.withComment(ctx, query), args, v)
 }
 
-// Query adds sql comments and calls the underlying transaction Query method.
+// Query adds sql comment and calls the underlying transaction Query method.
 func (d *CommentTx) Query(ctx context.Context, query string, args, v interface{}) error {
 	return d.Tx.Query(ctx, d.withComment(ctx, query), args, v)
 }

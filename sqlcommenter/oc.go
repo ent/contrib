@@ -20,14 +20,14 @@ func NewOCTrace() OCTrace {
 	return OCTrace{&tracecontext.HTTPFormat{}}
 }
 
-func (oc OCTrace) Tag(ctx context.Context) SQLCommentTags {
+func (oc OCTrace) Tag(ctx context.Context) Tags {
 	spanCtx := trace.FromContext(ctx).SpanContext()
 	tp, ts := oc.format.SpanContextToHeaders(spanCtx)
-	cmts := SQLCommentTags{
+	tags := Tags{
 		traceparentHeader: tp,
 	}
 	if ts != "" {
-		cmts[tracestateHeader] = ts
+		tags[tracestateHeader] = ts
 	}
-	return cmts
+	return tags
 }

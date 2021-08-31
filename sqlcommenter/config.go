@@ -5,28 +5,27 @@ import (
 )
 
 type Tagger interface {
-	Tag(context.Context) SQLCommentTags
+	Tag(context.Context) Tags
 }
 
 type (
 	Option  func(*options)
 	options struct {
-		commenters     []Tagger
-		globalComments SQLCommentTags
+		taggers []Tagger
 	}
 )
 
-// WithTagger sets the taggers to be used to populate the SQL comment
+// WithTagger sets the taggers to be used to populate the SQL comment.
 func WithTagger(taggers ...Tagger) Option {
 	return func(opts *options) {
-		opts.commenters = append(opts.commenters, taggers...)
+		opts.taggers = append(opts.taggers, taggers...)
 	}
 }
 
 // WithTags appends the given tags to every SQL query.
-func WithTags(tags SQLCommentTags) Option {
+func WithTags(tags Tags) Option {
 	return func(opts *options) {
-		opts.commenters = append(opts.commenters, NewStaticTagger(tags))
+		opts.taggers = append(opts.taggers, NewStaticTagger(tags))
 	}
 }
 

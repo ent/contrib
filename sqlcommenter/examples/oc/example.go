@@ -12,7 +12,6 @@ import (
 	"entgo.io/contrib/sqlcommenter/examples/oc/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/go-chi/chi"
 
 	"go.opencensus.io/examples/exporter"
 	"go.opencensus.io/plugin/ochttp"
@@ -59,12 +58,12 @@ func main() {
 	// create sqlcommenter driver which wraps debug driver which wraps sqlite driver
 	// we should have sqlcommenter and debug logs on every query to our sqlite DB
 	commentedDriver := sqc.NewDriver(dialect.Debug(db), sqc.WithTagger(
-		// add OpenCensus tracing comments
+		// add OpenCensus tracing tags
 		sqc.NewOCTrace(),
-		// add some constant comments, which
-		sqc.NewStaticTagger(sqc.SQLCommentTags{
-			sqc.ApplicationTagKey: "bootcamp",
-			sqc.FrameworkTagKey:   "go-chi",
+		// add some constant tags, which
+		sqc.NewStaticTagger(sqc.Tags{
+			sqc.KeyAppliaction: "bootcamp",
+			sqc.KeyFramework:   "go-chi",
 		}),
 		sqc.NewDriverVersionTagger(),
 	))
@@ -76,24 +75,23 @@ func main() {
 	}
 
 	client.User.Create().SetName("hedwigz").SaveX(context.Background())
-	r := chi.NewRouter()
-	r.Get("/users", func(rw http.ResponseWriter, r *http.Request) {
+	getUsersHandler := func(rw http.ResponseWriter, r *http.Request) {
 		users := client.User.Query().AllX(r.Context())
 		b, _ := json.Marshal(users)
 		rw.WriteHeader(http.StatusOK)
 		rw.Write(b)
-	})
+	}
 
 	backend := &ochttp.Handler{
-		Handler: r,
+		Handler: http.HandlerFunc(getUsersHandler),
 	}
 	testRequest(backend)
 }
 
 func testRequest(handler http.Handler) {
-	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
-	// debug printer should print sql statement with comments
+	// debug printer should print sql statement with comment
 	handler.ServeHTTP(w, req)
 }

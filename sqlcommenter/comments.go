@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	DbDriverTagKey    = "db_driver"
-	FrameworkTagKey   = "framework"
-	ApplicationTagKey = "application"
-	RouteTagKey       = "route"
-	ControllerTagKey  = "controller"
-	ActionTagKey      = "action"
+	KeyDBDriver    = "db_driver"
+	KeyFramework   = "framework"
+	KeyAppliaction = "application"
+	KeyRoute       = "route"
+	KeyController  = "controller"
+	KeyAction      = "action"
 )
 
-type SQLCommentTags map[string]string
+type Tags map[string]string
 
 func encodeValue(v string) string {
 	urlEscape := strings.ReplaceAll(url.PathEscape(string(v)), "+", "%20")
@@ -27,7 +27,7 @@ func encodeKey(k string) string {
 	return url.QueryEscape(string(k))
 }
 
-func (sc SQLCommentTags) Marshal() string {
+func (sc Tags) Marshal() string {
 	kv := make([]struct{ k, v string }, 0, len(sc))
 	for k := range sc {
 		kv = append(kv, struct{ k, v string }{encodeKey(k), encodeValue(sc[k])})
@@ -45,7 +45,7 @@ func (sc SQLCommentTags) Marshal() string {
 	return b.String()
 }
 
-func (sc SQLCommentTags) Append(tags ...SQLCommentTags) SQLCommentTags {
+func (sc Tags) Merge(tags ...Tags) Tags {
 	for _, c := range tags {
 		for k, v := range c {
 			sc[k] = v
