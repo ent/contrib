@@ -50,7 +50,7 @@ func initTracer() func() {
 func main() {
 	closeTracer := initTracer()
 	defer closeTracer()
-	// create and configure ent client
+	// create db driver
 	db, err := sql.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -66,6 +66,7 @@ func main() {
 			sqc.KeyFramework:   "go-chi",
 		}),
 	)
+	// create and configure ent client
 	client := ent.NewClient(ent.Driver(commentedDriver))
 	defer client.Close()
 	// Run the auto migration tool.

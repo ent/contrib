@@ -59,22 +59,28 @@ func main() {
 		}
 	}()
 
-	// create and configure ent client
+	// create db driver
 	db, err := sql.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	commentedDriver := sqc.NewDriver(dialect.Debug(db),
 		sqc.WithTagger(
+			// add tracing info with Open Telemetry.
 			sqc.NewOtelTagger(),
+			// use your custom commenter
 			MyCustomCommenter{},
+			// map routeKey{} from context to tag named "route"
 			sqc.NewContextMapper(sqc.KeyRoute, routeKey{}),
 		),
+		// add `db_driver` version tag
 		sqc.WithDriverVersion(),
+		// add some global tags to all queries
 		sqc.WithTags(sqc.Tags{
 			sqc.KeyAppliaction: "bootcamp",
 			sqc.KeyFramework:   "go-chi",
 		}))
+	// create and configure ent client
 	client := ent.NewClient(ent.Driver(commentedDriver))
 	defer client.Close()
 	// Run the auto migration tool.
@@ -84,6 +90,7 @@ func main() {
 
 	client.User.Create().SetName("hedwigz").SaveX(context.Background())
 
+	// this http middleware adds the url path to the request context, to later be used by sqc.ContextMapper.
 	middleware := func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			c := context.WithValue(r.Context(), routeKey{}, r.URL.Path)
@@ -91,6 +98,7 @@ func main() {
 		}
 		return http.HandlerFunc(fn)
 	}
+	// some app http handler
 	getUsersHandler := func(rw http.ResponseWriter, r *http.Request) {
 		users := client.User.Query().AllX(r.Context())
 		b, _ := json.Marshal(users)
