@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"entgo.io/ent/entc/gen"
-	"github.com/go-openapi/inflect"
 	"github.com/jhump/protoreflect/desc"
 )
 
@@ -111,7 +110,7 @@ func (d *FieldMappingDescriptor) PbStructField() string {
 }
 
 func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
-	return inflect.Camelize(d.EntEdge.Ref.Type.ID.Name)
+	return CamelCase(d.EntEdge.Ref.Type.ID.Name)
 }
 
 func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {
