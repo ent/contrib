@@ -106,11 +106,11 @@ type FieldMappingDescriptor struct {
 }
 
 func (d *FieldMappingDescriptor) PbStructField() string {
-	return CamelCase(d.PbFieldDescriptor.GetName())
+	return camelCase(d.PbFieldDescriptor.GetName())
 }
 
 func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
-	return CamelCase(d.EntEdge.Ref.Type.ID.Name)
+	return camelCase(d.EntEdge.Ref.Type.ID.Name)
 }
 
 func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {
@@ -186,7 +186,8 @@ func isASCIIDigit(c byte) bool {
 	return '0' <= c && c <= '9'
 }
 
-// CamelCase returns the CamelCased name.
+// camelCase was copied from https://github.com/golang/protobuf/blob/v1.5.2/protoc-gen-go/generator/generator.go#L2648
+// camelCase returns the CamelCased name.
 // If there is an interior underscore followed by a lower case letter,
 // drop the underscore and convert the letter to upper case.
 // There is a remote possibility of this rewrite causing a name collision,
@@ -194,7 +195,7 @@ func isASCIIDigit(c byte) bool {
 // C++ generator lowercases names, it's extremely unlikely to have two fields
 // with different capitalizations.
 // In short, _my_field_name_2 becomes XMyFieldName_2.
-func CamelCase(s string) string {
+func camelCase(s string) string {
 	if s == "" {
 		return ""
 	}
