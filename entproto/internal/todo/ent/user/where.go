@@ -179,6 +179,13 @@ func BigInt(v schema.BigInt) predicate.User {
 	})
 }
 
+// BUser1 applies equality check predicate on the "b_user_1" field. It's identical to BUser1EQ.
+func BUser1(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBUser1), v))
+	})
+}
+
 // UserNameEQ applies the EQ predicate on the "user_name" field.
 func UserNameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -1141,6 +1148,96 @@ func BigIntNotNil() predicate.User {
 	})
 }
 
+// BUser1EQ applies the EQ predicate on the "b_user_1" field.
+func BUser1EQ(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBUser1), v))
+	})
+}
+
+// BUser1NEQ applies the NEQ predicate on the "b_user_1" field.
+func BUser1NEQ(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBUser1), v))
+	})
+}
+
+// BUser1In applies the In predicate on the "b_user_1" field.
+func BUser1In(vs ...int) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldBUser1), v...))
+	})
+}
+
+// BUser1NotIn applies the NotIn predicate on the "b_user_1" field.
+func BUser1NotIn(vs ...int) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldBUser1), v...))
+	})
+}
+
+// BUser1GT applies the GT predicate on the "b_user_1" field.
+func BUser1GT(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldBUser1), v))
+	})
+}
+
+// BUser1GTE applies the GTE predicate on the "b_user_1" field.
+func BUser1GTE(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldBUser1), v))
+	})
+}
+
+// BUser1LT applies the LT predicate on the "b_user_1" field.
+func BUser1LT(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldBUser1), v))
+	})
+}
+
+// BUser1LTE applies the LTE predicate on the "b_user_1" field.
+func BUser1LTE(v int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldBUser1), v))
+	})
+}
+
+// BUser1IsNil applies the IsNil predicate on the "b_user_1" field.
+func BUser1IsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldBUser1)))
+	})
+}
+
+// BUser1NotNil applies the NotNil predicate on the "b_user_1" field.
+func BUser1NotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldBUser1)))
+	})
+}
+
 // HasGroup applies the HasEdge predicate on the "group" edge.
 func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -1197,25 +1294,25 @@ func HasAttachmentWith(preds ...predicate.Attachment) predicate.User {
 	})
 }
 
-// HasReceived applies the HasEdge predicate on the "received" edge.
-func HasReceived() predicate.User {
+// HasReceived1 applies the HasEdge predicate on the "received_1" edge.
+func HasReceived1() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceivedTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ReceivedTable, ReceivedPrimaryKey...),
+			sqlgraph.To(Received1Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, Received1Table, Received1PrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasReceivedWith applies the HasEdge predicate on the "received" edge with a given conditions (other predicates).
-func HasReceivedWith(preds ...predicate.Attachment) predicate.User {
+// HasReceived1With applies the HasEdge predicate on the "received_1" edge with a given conditions (other predicates).
+func HasReceived1With(preds ...predicate.Attachment) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceivedInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ReceivedTable, ReceivedPrimaryKey...),
+			sqlgraph.To(Received1InverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, Received1Table, Received1PrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

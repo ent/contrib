@@ -95,6 +95,10 @@ func (User) Fields() []ent.Field {
 				entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				entproto.TypeName("google.protobuf.StringValue"),
 			)),
+		field.Int("b_user_1").
+			Optional().
+			Unique().
+			Annotations(entproto.Field(18)),
 	}
 }
 
@@ -110,7 +114,7 @@ func (User) Edges() []ent.Edge {
 			Annotations(
 				entproto.Field(11),
 			),
-		edge.From("received", Attachment.Type).
+		edge.From("received_1", Attachment.Type).
 			Ref("recipients").
 			Annotations(entproto.Field(16)),
 	}

@@ -134,11 +134,13 @@ message User {
 
   google.protobuf.StringValue big_int = 17;
 
+  google.protobuf.Int32Value b_user_1 = 18;
+
   Group group = 7;
 
   Attachment attachment = 11;
 
-  repeated Attachment received = 16;
+  repeated Attachment received_1 = 16;
 
   enum Status {
     STATUS_UNSPECIFIED = 0;
