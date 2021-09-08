@@ -40,6 +40,8 @@ type Category struct {
 	Config *schematype.CategoryConfig `json:"config,omitempty"`
 	// Duration holds the value of the "duration" field.
 	Duration time.Duration `json:"duration,omitempty"`
+	// Count holds the value of the "count" field.
+	Count uint64 `json:"count,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
 	Edges CategoryEdges `json:"edges"`
@@ -72,7 +74,7 @@ func (*Category) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(pulid.ID)
 		case category.FieldConfig:
 			values[i] = new(schematype.CategoryConfig)
-		case category.FieldDuration:
+		case category.FieldDuration, category.FieldCount:
 			values[i] = new(sql.NullInt64)
 		case category.FieldText, category.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -121,6 +123,12 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				c.Duration = time.Duration(value.Int64)
 			}
+		case category.FieldCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field count", values[i])
+			} else if value.Valid {
+				c.Count = uint64(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -162,6 +170,8 @@ func (c *Category) String() string {
 	builder.WriteString(fmt.Sprintf("%v", c.Config))
 	builder.WriteString(", duration=")
 	builder.WriteString(fmt.Sprintf("%v", c.Duration))
+	builder.WriteString(", count=")
+	builder.WriteString(fmt.Sprintf("%v", c.Count))
 	builder.WriteByte(')')
 	return builder.String()
 }

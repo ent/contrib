@@ -56,6 +56,11 @@ func (Category) Fields() []ent.Field {
 				entgql.OrderField("DURATION"),
 				entgql.Type("Duration"),
 			),
+		field.Uint64("count").
+			Optional().
+			Annotations(
+				entgql.Type("Uint64"),
+			),
 	}
 }
 
