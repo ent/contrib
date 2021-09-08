@@ -88,6 +88,18 @@ type CategoryWhereInput struct {
 	DurationIsNil  bool            `json:"durationIsNil,omitempty"`
 	DurationNotNil bool            `json:"durationNotNil,omitempty"`
 
+	// "count" field predicates.
+	Count       *uint64  `json:"count,omitempty"`
+	CountNEQ    *uint64  `json:"countNEQ,omitempty"`
+	CountIn     []uint64 `json:"countIn,omitempty"`
+	CountNotIn  []uint64 `json:"countNotIn,omitempty"`
+	CountGT     *uint64  `json:"countGT,omitempty"`
+	CountGTE    *uint64  `json:"countGTE,omitempty"`
+	CountLT     *uint64  `json:"countLT,omitempty"`
+	CountLTE    *uint64  `json:"countLTE,omitempty"`
+	CountIsNil  bool     `json:"countIsNil,omitempty"`
+	CountNotNil bool     `json:"countNotNil,omitempty"`
+
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
@@ -286,6 +298,36 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	if i.DurationNotNil {
 		predicates = append(predicates, category.DurationNotNil())
+	}
+	if i.Count != nil {
+		predicates = append(predicates, category.CountEQ(*i.Count))
+	}
+	if i.CountNEQ != nil {
+		predicates = append(predicates, category.CountNEQ(*i.CountNEQ))
+	}
+	if len(i.CountIn) > 0 {
+		predicates = append(predicates, category.CountIn(i.CountIn...))
+	}
+	if len(i.CountNotIn) > 0 {
+		predicates = append(predicates, category.CountNotIn(i.CountNotIn...))
+	}
+	if i.CountGT != nil {
+		predicates = append(predicates, category.CountGT(*i.CountGT))
+	}
+	if i.CountGTE != nil {
+		predicates = append(predicates, category.CountGTE(*i.CountGTE))
+	}
+	if i.CountLT != nil {
+		predicates = append(predicates, category.CountLT(*i.CountLT))
+	}
+	if i.CountLTE != nil {
+		predicates = append(predicates, category.CountLTE(*i.CountLTE))
+	}
+	if i.CountIsNil {
+		predicates = append(predicates, category.CountIsNil())
+	}
+	if i.CountNotNil {
+		predicates = append(predicates, category.CountNotNil())
 	}
 
 	if i.HasTodos != nil {

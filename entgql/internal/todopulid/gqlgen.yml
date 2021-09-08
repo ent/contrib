@@ -20,6 +20,9 @@ models:
   ID:
     model:
       - entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid.ID
+  Uint64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint64
   Duration:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration

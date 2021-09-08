@@ -607,7 +607,6 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 			query = `query($duration: Duration) {
 				todos(where:{hasCategoryWith: {duration: $duration}}) {
 					totalCount
-
 				}
 			}`
 		)
