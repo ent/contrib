@@ -201,6 +201,33 @@ func (uu *UserUpdate) ClearBigInt() *UserUpdate {
 	return uu
 }
 
+// SetBUser1 sets the "b_user_1" field.
+func (uu *UserUpdate) SetBUser1(i int) *UserUpdate {
+	uu.mutation.ResetBUser1()
+	uu.mutation.SetBUser1(i)
+	return uu
+}
+
+// SetNillableBUser1 sets the "b_user_1" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableBUser1(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetBUser1(*i)
+	}
+	return uu
+}
+
+// AddBUser1 adds i to the "b_user_1" field.
+func (uu *UserUpdate) AddBUser1(i int) *UserUpdate {
+	uu.mutation.AddBUser1(i)
+	return uu
+}
+
+// ClearBUser1 clears the value of the "b_user_1" field.
+func (uu *UserUpdate) ClearBUser1() *UserUpdate {
+	uu.mutation.ClearBUser1()
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -239,19 +266,19 @@ func (uu *UserUpdate) SetAttachment(a *Attachment) *UserUpdate {
 	return uu.SetAttachmentID(a.ID)
 }
 
-// AddReceivedIDs adds the "received" edge to the Attachment entity by IDs.
-func (uu *UserUpdate) AddReceivedIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.AddReceivedIDs(ids...)
+// AddReceived1IDs adds the "received_1" edge to the Attachment entity by IDs.
+func (uu *UserUpdate) AddReceived1IDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddReceived1IDs(ids...)
 	return uu
 }
 
-// AddReceived adds the "received" edges to the Attachment entity.
-func (uu *UserUpdate) AddReceived(a ...*Attachment) *UserUpdate {
+// AddReceived1 adds the "received_1" edges to the Attachment entity.
+func (uu *UserUpdate) AddReceived1(a ...*Attachment) *UserUpdate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uu.AddReceivedIDs(ids...)
+	return uu.AddReceived1IDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -271,25 +298,25 @@ func (uu *UserUpdate) ClearAttachment() *UserUpdate {
 	return uu
 }
 
-// ClearReceived clears all "received" edges to the Attachment entity.
-func (uu *UserUpdate) ClearReceived() *UserUpdate {
-	uu.mutation.ClearReceived()
+// ClearReceived1 clears all "received_1" edges to the Attachment entity.
+func (uu *UserUpdate) ClearReceived1() *UserUpdate {
+	uu.mutation.ClearReceived1()
 	return uu
 }
 
-// RemoveReceivedIDs removes the "received" edge to Attachment entities by IDs.
-func (uu *UserUpdate) RemoveReceivedIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.RemoveReceivedIDs(ids...)
+// RemoveReceived1IDs removes the "received_1" edge to Attachment entities by IDs.
+func (uu *UserUpdate) RemoveReceived1IDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveReceived1IDs(ids...)
 	return uu
 }
 
-// RemoveReceived removes "received" edges to Attachment entities.
-func (uu *UserUpdate) RemoveReceived(a ...*Attachment) *UserUpdate {
+// RemoveReceived1 removes "received_1" edges to Attachment entities.
+func (uu *UserUpdate) RemoveReceived1(a ...*Attachment) *UserUpdate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uu.RemoveReceivedIDs(ids...)
+	return uu.RemoveReceived1IDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -523,6 +550,26 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldBigInt,
 		})
 	}
+	if value, ok := uu.mutation.BUser1(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBUser1,
+		})
+	}
+	if value, ok := uu.mutation.AddedBUser1(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBUser1,
+		})
+	}
+	if uu.mutation.BUser1Cleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: user.FieldBUser1,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -593,12 +640,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.ReceivedCleared() {
+	if uu.mutation.Received1Cleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -609,12 +656,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedReceivedIDs(); len(nodes) > 0 && !uu.mutation.ReceivedCleared() {
+	if nodes := uu.mutation.RemovedReceived1IDs(); len(nodes) > 0 && !uu.mutation.Received1Cleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -628,12 +675,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.ReceivedIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.Received1IDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -837,6 +884,33 @@ func (uuo *UserUpdateOne) ClearBigInt() *UserUpdateOne {
 	return uuo
 }
 
+// SetBUser1 sets the "b_user_1" field.
+func (uuo *UserUpdateOne) SetBUser1(i int) *UserUpdateOne {
+	uuo.mutation.ResetBUser1()
+	uuo.mutation.SetBUser1(i)
+	return uuo
+}
+
+// SetNillableBUser1 sets the "b_user_1" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableBUser1(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetBUser1(*i)
+	}
+	return uuo
+}
+
+// AddBUser1 adds i to the "b_user_1" field.
+func (uuo *UserUpdateOne) AddBUser1(i int) *UserUpdateOne {
+	uuo.mutation.AddBUser1(i)
+	return uuo
+}
+
+// ClearBUser1 clears the value of the "b_user_1" field.
+func (uuo *UserUpdateOne) ClearBUser1() *UserUpdateOne {
+	uuo.mutation.ClearBUser1()
+	return uuo
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uuo *UserUpdateOne) SetGroupID(id int) *UserUpdateOne {
 	uuo.mutation.SetGroupID(id)
@@ -875,19 +949,19 @@ func (uuo *UserUpdateOne) SetAttachment(a *Attachment) *UserUpdateOne {
 	return uuo.SetAttachmentID(a.ID)
 }
 
-// AddReceivedIDs adds the "received" edge to the Attachment entity by IDs.
-func (uuo *UserUpdateOne) AddReceivedIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.AddReceivedIDs(ids...)
+// AddReceived1IDs adds the "received_1" edge to the Attachment entity by IDs.
+func (uuo *UserUpdateOne) AddReceived1IDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddReceived1IDs(ids...)
 	return uuo
 }
 
-// AddReceived adds the "received" edges to the Attachment entity.
-func (uuo *UserUpdateOne) AddReceived(a ...*Attachment) *UserUpdateOne {
+// AddReceived1 adds the "received_1" edges to the Attachment entity.
+func (uuo *UserUpdateOne) AddReceived1(a ...*Attachment) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uuo.AddReceivedIDs(ids...)
+	return uuo.AddReceived1IDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -907,25 +981,25 @@ func (uuo *UserUpdateOne) ClearAttachment() *UserUpdateOne {
 	return uuo
 }
 
-// ClearReceived clears all "received" edges to the Attachment entity.
-func (uuo *UserUpdateOne) ClearReceived() *UserUpdateOne {
-	uuo.mutation.ClearReceived()
+// ClearReceived1 clears all "received_1" edges to the Attachment entity.
+func (uuo *UserUpdateOne) ClearReceived1() *UserUpdateOne {
+	uuo.mutation.ClearReceived1()
 	return uuo
 }
 
-// RemoveReceivedIDs removes the "received" edge to Attachment entities by IDs.
-func (uuo *UserUpdateOne) RemoveReceivedIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.RemoveReceivedIDs(ids...)
+// RemoveReceived1IDs removes the "received_1" edge to Attachment entities by IDs.
+func (uuo *UserUpdateOne) RemoveReceived1IDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveReceived1IDs(ids...)
 	return uuo
 }
 
-// RemoveReceived removes "received" edges to Attachment entities.
-func (uuo *UserUpdateOne) RemoveReceived(a ...*Attachment) *UserUpdateOne {
+// RemoveReceived1 removes "received_1" edges to Attachment entities.
+func (uuo *UserUpdateOne) RemoveReceived1(a ...*Attachment) *UserUpdateOne {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uuo.RemoveReceivedIDs(ids...)
+	return uuo.RemoveReceived1IDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1183,6 +1257,26 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Column: user.FieldBigInt,
 		})
 	}
+	if value, ok := uuo.mutation.BUser1(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBUser1,
+		})
+	}
+	if value, ok := uuo.mutation.AddedBUser1(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBUser1,
+		})
+	}
+	if uuo.mutation.BUser1Cleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: user.FieldBUser1,
+		})
+	}
 	if uuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1253,12 +1347,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.ReceivedCleared() {
+	if uuo.mutation.Received1Cleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1269,12 +1363,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedReceivedIDs(); len(nodes) > 0 && !uuo.mutation.ReceivedCleared() {
+	if nodes := uuo.mutation.RemovedReceived1IDs(); len(nodes) > 0 && !uuo.mutation.Received1Cleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1288,12 +1382,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.ReceivedIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.Received1IDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

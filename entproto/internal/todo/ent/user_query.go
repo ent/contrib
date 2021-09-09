@@ -31,7 +31,7 @@ type UserQuery struct {
 	// eager-loading edges.
 	withGroup      *GroupQuery
 	withAttachment *AttachmentQuery
-	withReceived   *AttachmentQuery
+	withReceived1  *AttachmentQuery
 	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -113,8 +113,8 @@ func (uq *UserQuery) QueryAttachment() *AttachmentQuery {
 	return query
 }
 
-// QueryReceived chains the current query on the "received" edge.
-func (uq *UserQuery) QueryReceived() *AttachmentQuery {
+// QueryReceived1 chains the current query on the "received_1" edge.
+func (uq *UserQuery) QueryReceived1() *AttachmentQuery {
 	query := &AttachmentQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -127,7 +127,7 @@ func (uq *UserQuery) QueryReceived() *AttachmentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, user.ReceivedTable, user.ReceivedPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.Received1Table, user.Received1PrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -318,7 +318,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		predicates:     append([]predicate.User{}, uq.predicates...),
 		withGroup:      uq.withGroup.Clone(),
 		withAttachment: uq.withAttachment.Clone(),
-		withReceived:   uq.withReceived.Clone(),
+		withReceived1:  uq.withReceived1.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -347,14 +347,14 @@ func (uq *UserQuery) WithAttachment(opts ...func(*AttachmentQuery)) *UserQuery {
 	return uq
 }
 
-// WithReceived tells the query-builder to eager-load the nodes that are connected to
-// the "received" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithReceived(opts ...func(*AttachmentQuery)) *UserQuery {
+// WithReceived1 tells the query-builder to eager-load the nodes that are connected to
+// the "received_1" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithReceived1(opts ...func(*AttachmentQuery)) *UserQuery {
 	query := &AttachmentQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withReceived = query
+	uq.withReceived1 = query
 	return uq
 }
 
@@ -427,7 +427,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		loadedTypes = [3]bool{
 			uq.withGroup != nil,
 			uq.withAttachment != nil,
-			uq.withReceived != nil,
+			uq.withReceived1 != nil,
 		}
 	)
 	if uq.withGroup != nil {
@@ -513,13 +513,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		}
 	}
 
-	if query := uq.withReceived; query != nil {
+	if query := uq.withReceived1; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		ids := make(map[int]*User, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
-			node.Edges.Received = []*Attachment{}
+			node.Edges.Received1 = []*Attachment{}
 		}
 		var (
 			edgeids []uuid.UUID
@@ -528,11 +528,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
 				Inverse: true,
-				Table:   user.ReceivedTable,
-				Columns: user.ReceivedPrimaryKey,
+				Table:   user.Received1Table,
+				Columns: user.Received1PrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(user.ReceivedPrimaryKey[1], fks...))
+				s.Where(sql.InValues(user.Received1PrimaryKey[1], fks...))
 			},
 			ScanValues: func() [2]interface{} {
 				return [2]interface{}{new(sql.NullInt64), new(uuid.UUID)}
@@ -560,7 +560,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			},
 		}
 		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "received": %w`, err)
+			return nil, fmt.Errorf(`query edges "received_1": %w`, err)
 		}
 		query.Where(attachment.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
@@ -570,10 +570,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		for _, n := range neighbors {
 			nodes, ok := edges[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "received" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected "received_1" node returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Received = append(nodes[i].Edges.Received, n)
+				nodes[i].Edges.Received1 = append(nodes[i].Edges.Received1, n)
 			}
 		}
 	}

@@ -50,6 +50,8 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
+	buser1 := wrapperspb.Int32(int32(e.BUser1))
+	v.BUser_1 = buser1
 	banned := e.Banned
 	v.Banned = banned
 	bigintValue, err := e.BigInt.Value()
@@ -104,12 +106,12 @@ func toProtoUser(e *ent.User) (*User, error) {
 			Id: id,
 		}
 	}
-	for _, edg := range e.Edges.Received {
+	for _, edg := range e.Edges.Received1 {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
 			return nil, err
 		}
-		v.Received = append(v.Received, &Attachment{
+		v.Received_1 = append(v.Received_1, &Attachment{
 			Id: id,
 		})
 	}
@@ -120,6 +122,10 @@ func toProtoUser(e *ent.User) (*User, error) {
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
 	m := svc.client.User.Create()
+	if user.GetBUser_1() != nil {
+		userBUser1 := int(user.GetBUser_1().GetValue())
+		m.SetBUser1(userBUser1)
+	}
 	userBanned := user.GetBanned()
 	m.SetBanned(userBanned)
 	if user.GetBigInt() != nil {
@@ -167,12 +173,12 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetAttachmentID(userAttachment)
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
-	for _, item := range user.GetReceived() {
-		var received uuid.UUID
-		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
+	for _, item := range user.GetReceived_1() {
+		var received1 uuid.UUID
+		if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
-		m.AddReceivedIDs(received)
+		m.AddReceived1IDs(received1)
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -211,7 +217,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 			WithGroup(func(query *ent.GroupQuery) {
 				query.Select(group.FieldID)
 			}).
-			WithReceived(func(query *ent.AttachmentQuery) {
+			WithReceived1(func(query *ent.AttachmentQuery) {
 				query.Select(attachment.FieldID)
 			}).
 			Only(ctx)
@@ -235,6 +241,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	user := req.GetUser()
 	userID := int(user.GetId())
 	m := svc.client.User.UpdateOneID(userID)
+	if user.GetBUser_1() != nil {
+		userBUser1 := int(user.GetBUser_1().GetValue())
+		m.SetBUser1(userBUser1)
+	}
 	userBanned := user.GetBanned()
 	m.SetBanned(userBanned)
 	if user.GetBigInt() != nil {
@@ -280,12 +290,12 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetAttachmentID(userAttachment)
 	userGroup := int(user.GetGroup().GetId())
 	m.SetGroupID(userGroup)
-	for _, item := range user.GetReceived() {
-		var received uuid.UUID
-		if err := (&received).UnmarshalBinary(item.GetId()); err != nil {
+	for _, item := range user.GetReceived_1() {
+		var received1 uuid.UUID
+		if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 		}
-		m.AddReceivedIDs(received)
+		m.AddReceived1IDs(received1)
 	}
 	res, err := m.Save(ctx)
 	switch {

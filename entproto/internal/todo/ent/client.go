@@ -692,15 +692,15 @@ func (c *UserClient) QueryAttachment(u *User) *AttachmentQuery {
 	return query
 }
 
-// QueryReceived queries the received edge of a User.
-func (c *UserClient) QueryReceived(u *User) *AttachmentQuery {
+// QueryReceived1 queries the received_1 edge of a User.
+func (c *UserClient) QueryReceived1(u *User) *AttachmentQuery {
 	query := &AttachmentQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, user.ReceivedTable, user.ReceivedPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, true, user.Received1Table, user.Received1PrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
