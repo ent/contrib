@@ -31,10 +31,8 @@ import (
 // to construct it.
 func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 	switch t := desc.Info.Type; {
-	case t.Numeric(), t == field.TypeString, t == field.TypeBool:
+	case t.Numeric(), t == field.TypeString, t == field.TypeBool, t == field.TypeTime:
 		return fromSimpleType(desc)
-	case t == field.TypeTime:
-		return fromTimeType(desc)
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
 	default:
@@ -90,10 +88,6 @@ func newFieldCall(desc *field.Descriptor) *builderCall {
 			},
 		},
 	}
-}
-
-func fromTimeType(desc *field.Descriptor) (*ast.CallExpr, error) {
-	return fromSimpleType(desc)
 }
 
 func fromEnumType(desc *field.Descriptor) (*ast.CallExpr, error) {
