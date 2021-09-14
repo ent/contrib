@@ -19,6 +19,7 @@ import (
 	"go/printer"
 	"go/token"
 	"testing"
+	"time"
 
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
@@ -53,6 +54,18 @@ func TestFromFieldDescriptor(t *testing.T) {
 			name:           "unsupported type",
 			field:          field.JSON("json_field", &SomeJSON{}),
 			expectedErrMsg: "schemast: unsupported type TypeJSON",
+		},
+		{
+			name:     "time",
+			field:    field.Time("time").Default(time.Now),
+			expected: `field.Time("time").Default(time.Now)`,
+		},
+		{
+			name: "time anonymous",
+			field: field.Time("time").Default(func() time.Time {
+				return time.Time{}
+			}),
+			expectedErrMsg: "schemast: only selector exprs are supported for default func",
 		},
 		{
 			name:     "struct tag",
