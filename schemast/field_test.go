@@ -126,13 +126,6 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.Bool("x").Default(true)`,
 		},
 		{
-			name: "default:func",
-			field: field.String("x").DefaultFunc(func() string {
-				return "hello"
-			}),
-			expectedErrMsg: `schemast: unsupported default field kind: "func"`,
-		},
-		{
 			name: "unsupported validator",
 			field: field.String("x").Validate(func(s string) error {
 				return nil
