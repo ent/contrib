@@ -52,6 +52,18 @@ input CategoryWhereInput {
   durationIsNil: Boolean
   durationNotNil: Boolean
   
+  """count field predicates"""
+  count: Uint64
+  countNEQ: Uint64
+  countIn: [Uint64!]
+  countNotIn: [Uint64!]
+  countGT: Uint64
+  countGTE: Uint64
+  countLT: Uint64
+  countLTE: Uint64
+  countIsNil: Boolean
+  countNotNil: Boolean
+  
   """id field predicates"""
   id: ID
   idNEQ: ID

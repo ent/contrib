@@ -22,6 +22,7 @@ enum Status {
 
 scalar Time
 scalar Duration
+scalar Uint64
 
 type Todo implements Node {
   id: ID!

@@ -23,14 +23,14 @@
             {{- if .EntEdge.Unique }}
                 if edg := e.Edges.{{ $name }}; edg != nil {
                     {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
-                    v.{{ $name }} = &{{ .EntEdge.Type.Name }}{
+                    v.{{ .PbStructField }} = &{{ .EntEdge.Type.Name }}{
                         {{ .EdgeIDPbStructField }}: {{ $varName }},
                     }
                 }
             {{- else }}
                 for _, edg := range e.Edges.{{ $name }} {
                     {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
-                    v.{{ $name }} = append(v.{{ $name }}, &{{ .EntEdge.Type.Name }}{
+                    v.{{ .PbStructField }} = append(v.{{ .PbStructField }}, &{{ .EntEdge.Type.Name }}{
                         {{ .EdgeIDPbStructField }}: {{ $varName }},
                     })
                 }

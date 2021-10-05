@@ -94,6 +94,33 @@ func (cu *CategoryUpdate) ClearDuration() *CategoryUpdate {
 	return cu
 }
 
+// SetCount sets the "count" field.
+func (cu *CategoryUpdate) SetCount(u uint64) *CategoryUpdate {
+	cu.mutation.ResetCount()
+	cu.mutation.SetCount(u)
+	return cu
+}
+
+// SetNillableCount sets the "count" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableCount(u *uint64) *CategoryUpdate {
+	if u != nil {
+		cu.SetCount(*u)
+	}
+	return cu
+}
+
+// AddCount adds u to the "count" field.
+func (cu *CategoryUpdate) AddCount(u uint64) *CategoryUpdate {
+	cu.mutation.AddCount(u)
+	return cu
+}
+
+// ClearCount clears the value of the "count" field.
+func (cu *CategoryUpdate) ClearCount() *CategoryUpdate {
+	cu.mutation.ClearCount()
+	return cu
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cu *CategoryUpdate) AddTodoIDs(ids ...int) *CategoryUpdate {
 	cu.mutation.AddTodoIDs(ids...)
@@ -275,6 +302,26 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldDuration,
 		})
 	}
+	if value, ok := cu.mutation.Count(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: category.FieldCount,
+		})
+	}
+	if value, ok := cu.mutation.AddedCount(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: category.FieldCount,
+		})
+	}
+	if cu.mutation.CountCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Column: category.FieldCount,
+		})
+	}
 	if cu.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -396,6 +443,33 @@ func (cuo *CategoryUpdateOne) AddDuration(t time.Duration) *CategoryUpdateOne {
 // ClearDuration clears the value of the "duration" field.
 func (cuo *CategoryUpdateOne) ClearDuration() *CategoryUpdateOne {
 	cuo.mutation.ClearDuration()
+	return cuo
+}
+
+// SetCount sets the "count" field.
+func (cuo *CategoryUpdateOne) SetCount(u uint64) *CategoryUpdateOne {
+	cuo.mutation.ResetCount()
+	cuo.mutation.SetCount(u)
+	return cuo
+}
+
+// SetNillableCount sets the "count" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableCount(u *uint64) *CategoryUpdateOne {
+	if u != nil {
+		cuo.SetCount(*u)
+	}
+	return cuo
+}
+
+// AddCount adds u to the "count" field.
+func (cuo *CategoryUpdateOne) AddCount(u uint64) *CategoryUpdateOne {
+	cuo.mutation.AddCount(u)
+	return cuo
+}
+
+// ClearCount clears the value of the "count" field.
+func (cuo *CategoryUpdateOne) ClearCount() *CategoryUpdateOne {
+	cuo.mutation.ClearCount()
 	return cuo
 }
 
@@ -602,6 +676,26 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt64,
 			Column: category.FieldDuration,
+		})
+	}
+	if value, ok := cuo.mutation.Count(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: category.FieldCount,
+		})
+	}
+	if value, ok := cuo.mutation.AddedCount(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Value:  value,
+			Column: category.FieldCount,
+		})
+	}
+	if cuo.mutation.CountCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeUint64,
+			Column: category.FieldCount,
 		})
 	}
 	if cuo.mutation.TodosCleared() {

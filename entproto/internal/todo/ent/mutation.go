@@ -1635,14 +1635,16 @@ type UserMutation struct {
 	opt_str           *string
 	opt_bool          *bool
 	big_int           *schema.BigInt
+	b_user_1          *int
+	addb_user_1       *int
 	clearedFields     map[string]struct{}
 	group             *int
 	clearedgroup      bool
 	attachment        *uuid.UUID
 	clearedattachment bool
-	received          map[uuid.UUID]struct{}
-	removedreceived   map[uuid.UUID]struct{}
-	clearedreceived   bool
+	received_1        map[uuid.UUID]struct{}
+	removedreceived_1 map[uuid.UUID]struct{}
+	clearedreceived_1 bool
 	done              bool
 	oldValue          func(context.Context) (*User, error)
 	predicates        []predicate.User
@@ -2348,6 +2350,76 @@ func (m *UserMutation) ResetBigInt() {
 	delete(m.clearedFields, user.FieldBigInt)
 }
 
+// SetBUser1 sets the "b_user_1" field.
+func (m *UserMutation) SetBUser1(i int) {
+	m.b_user_1 = &i
+	m.addb_user_1 = nil
+}
+
+// BUser1 returns the value of the "b_user_1" field in the mutation.
+func (m *UserMutation) BUser1() (r int, exists bool) {
+	v := m.b_user_1
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBUser1 returns the old "b_user_1" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldBUser1(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldBUser1 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldBUser1 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBUser1: %w", err)
+	}
+	return oldValue.BUser1, nil
+}
+
+// AddBUser1 adds i to the "b_user_1" field.
+func (m *UserMutation) AddBUser1(i int) {
+	if m.addb_user_1 != nil {
+		*m.addb_user_1 += i
+	} else {
+		m.addb_user_1 = &i
+	}
+}
+
+// AddedBUser1 returns the value that was added to the "b_user_1" field in this mutation.
+func (m *UserMutation) AddedBUser1() (r int, exists bool) {
+	v := m.addb_user_1
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearBUser1 clears the value of the "b_user_1" field.
+func (m *UserMutation) ClearBUser1() {
+	m.b_user_1 = nil
+	m.addb_user_1 = nil
+	m.clearedFields[user.FieldBUser1] = struct{}{}
+}
+
+// BUser1Cleared returns if the "b_user_1" field was cleared in this mutation.
+func (m *UserMutation) BUser1Cleared() bool {
+	_, ok := m.clearedFields[user.FieldBUser1]
+	return ok
+}
+
+// ResetBUser1 resets all changes to the "b_user_1" field.
+func (m *UserMutation) ResetBUser1() {
+	m.b_user_1 = nil
+	m.addb_user_1 = nil
+	delete(m.clearedFields, user.FieldBUser1)
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -2426,58 +2498,58 @@ func (m *UserMutation) ResetAttachment() {
 	m.clearedattachment = false
 }
 
-// AddReceivedIDs adds the "received" edge to the Attachment entity by ids.
-func (m *UserMutation) AddReceivedIDs(ids ...uuid.UUID) {
-	if m.received == nil {
-		m.received = make(map[uuid.UUID]struct{})
+// AddReceived1IDs adds the "received_1" edge to the Attachment entity by ids.
+func (m *UserMutation) AddReceived1IDs(ids ...uuid.UUID) {
+	if m.received_1 == nil {
+		m.received_1 = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.received[ids[i]] = struct{}{}
+		m.received_1[ids[i]] = struct{}{}
 	}
 }
 
-// ClearReceived clears the "received" edge to the Attachment entity.
-func (m *UserMutation) ClearReceived() {
-	m.clearedreceived = true
+// ClearReceived1 clears the "received_1" edge to the Attachment entity.
+func (m *UserMutation) ClearReceived1() {
+	m.clearedreceived_1 = true
 }
 
-// ReceivedCleared reports if the "received" edge to the Attachment entity was cleared.
-func (m *UserMutation) ReceivedCleared() bool {
-	return m.clearedreceived
+// Received1Cleared reports if the "received_1" edge to the Attachment entity was cleared.
+func (m *UserMutation) Received1Cleared() bool {
+	return m.clearedreceived_1
 }
 
-// RemoveReceivedIDs removes the "received" edge to the Attachment entity by IDs.
-func (m *UserMutation) RemoveReceivedIDs(ids ...uuid.UUID) {
-	if m.removedreceived == nil {
-		m.removedreceived = make(map[uuid.UUID]struct{})
+// RemoveReceived1IDs removes the "received_1" edge to the Attachment entity by IDs.
+func (m *UserMutation) RemoveReceived1IDs(ids ...uuid.UUID) {
+	if m.removedreceived_1 == nil {
+		m.removedreceived_1 = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.received, ids[i])
-		m.removedreceived[ids[i]] = struct{}{}
+		delete(m.received_1, ids[i])
+		m.removedreceived_1[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedReceived returns the removed IDs of the "received" edge to the Attachment entity.
-func (m *UserMutation) RemovedReceivedIDs() (ids []uuid.UUID) {
-	for id := range m.removedreceived {
+// RemovedReceived1 returns the removed IDs of the "received_1" edge to the Attachment entity.
+func (m *UserMutation) RemovedReceived1IDs() (ids []uuid.UUID) {
+	for id := range m.removedreceived_1 {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ReceivedIDs returns the "received" edge IDs in the mutation.
-func (m *UserMutation) ReceivedIDs() (ids []uuid.UUID) {
-	for id := range m.received {
+// Received1IDs returns the "received_1" edge IDs in the mutation.
+func (m *UserMutation) Received1IDs() (ids []uuid.UUID) {
+	for id := range m.received_1 {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetReceived resets all changes to the "received" edge.
-func (m *UserMutation) ResetReceived() {
-	m.received = nil
-	m.clearedreceived = false
-	m.removedreceived = nil
+// ResetReceived1 resets all changes to the "received_1" edge.
+func (m *UserMutation) ResetReceived1() {
+	m.received_1 = nil
+	m.clearedreceived_1 = false
+	m.removedreceived_1 = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -2499,7 +2571,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -2539,6 +2611,9 @@ func (m *UserMutation) Fields() []string {
 	if m.big_int != nil {
 		fields = append(fields, user.FieldBigInt)
 	}
+	if m.b_user_1 != nil {
+		fields = append(fields, user.FieldBUser1)
+	}
 	return fields
 }
 
@@ -2573,6 +2648,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.OptBool()
 	case user.FieldBigInt:
 		return m.BigInt()
+	case user.FieldBUser1:
+		return m.BUser1()
 	}
 	return nil, false
 }
@@ -2608,6 +2685,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldOptBool(ctx)
 	case user.FieldBigInt:
 		return m.OldBigInt(ctx)
+	case user.FieldBUser1:
+		return m.OldBUser1(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -2708,6 +2787,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBigInt(v)
 		return nil
+	case user.FieldBUser1:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBUser1(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -2731,6 +2817,9 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addopt_num != nil {
 		fields = append(fields, user.FieldOptNum)
 	}
+	if m.addb_user_1 != nil {
+		fields = append(fields, user.FieldBUser1)
+	}
 	return fields
 }
 
@@ -2749,6 +2838,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedCustomPb()
 	case user.FieldOptNum:
 		return m.AddedOptNum()
+	case user.FieldBUser1:
+		return m.AddedBUser1()
 	}
 	return nil, false
 }
@@ -2793,6 +2884,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddOptNum(v)
 		return nil
+	case user.FieldBUser1:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBUser1(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -2812,6 +2910,9 @@ func (m *UserMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(user.FieldBigInt) {
 		fields = append(fields, user.FieldBigInt)
+	}
+	if m.FieldCleared(user.FieldBUser1) {
+		fields = append(fields, user.FieldBUser1)
 	}
 	return fields
 }
@@ -2838,6 +2939,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldBigInt:
 		m.ClearBigInt()
+		return nil
+	case user.FieldBUser1:
+		m.ClearBUser1()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -2886,6 +2990,9 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldBigInt:
 		m.ResetBigInt()
 		return nil
+	case user.FieldBUser1:
+		m.ResetBUser1()
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -2899,8 +3006,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.attachment != nil {
 		edges = append(edges, user.EdgeAttachment)
 	}
-	if m.received != nil {
-		edges = append(edges, user.EdgeReceived)
+	if m.received_1 != nil {
+		edges = append(edges, user.EdgeReceived1)
 	}
 	return edges
 }
@@ -2917,9 +3024,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.attachment; id != nil {
 			return []ent.Value{*id}
 		}
-	case user.EdgeReceived:
-		ids := make([]ent.Value, 0, len(m.received))
-		for id := range m.received {
+	case user.EdgeReceived1:
+		ids := make([]ent.Value, 0, len(m.received_1))
+		for id := range m.received_1 {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2930,8 +3037,8 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 3)
-	if m.removedreceived != nil {
-		edges = append(edges, user.EdgeReceived)
+	if m.removedreceived_1 != nil {
+		edges = append(edges, user.EdgeReceived1)
 	}
 	return edges
 }
@@ -2940,9 +3047,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeReceived:
-		ids := make([]ent.Value, 0, len(m.removedreceived))
-		for id := range m.removedreceived {
+	case user.EdgeReceived1:
+		ids := make([]ent.Value, 0, len(m.removedreceived_1))
+		for id := range m.removedreceived_1 {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2959,8 +3066,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedattachment {
 		edges = append(edges, user.EdgeAttachment)
 	}
-	if m.clearedreceived {
-		edges = append(edges, user.EdgeReceived)
+	if m.clearedreceived_1 {
+		edges = append(edges, user.EdgeReceived1)
 	}
 	return edges
 }
@@ -2973,8 +3080,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedgroup
 	case user.EdgeAttachment:
 		return m.clearedattachment
-	case user.EdgeReceived:
-		return m.clearedreceived
+	case user.EdgeReceived1:
+		return m.clearedreceived_1
 	}
 	return false
 }
@@ -3003,8 +3110,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeAttachment:
 		m.ResetAttachment()
 		return nil
-	case user.EdgeReceived:
-		m.ResetReceived()
+	case user.EdgeReceived1:
+		m.ResetReceived1()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

@@ -15,10 +15,12 @@
 package schemast
 
 import (
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -29,7 +31,7 @@ import (
 // to construct it.
 func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 	switch t := desc.Info.Type; {
-	case t.Numeric(), t == field.TypeString, t == field.TypeBool:
+	case t.Numeric(), t == field.TypeString, t == field.TypeBool, t == field.TypeTime:
 		return fromSimpleType(desc)
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
@@ -197,6 +199,13 @@ func defaultExpr(d interface{}) (ast.Expr, error) {
 			Value: strconv.FormatBool(d.(bool)),
 		}
 		return lit, nil
+	case reflect.Func:
+		f := runtime.FuncForPC(v.Pointer()).Name()
+		parts := strings.Split(f, ".")
+		if len(parts) != 2 {
+			return nil, errors.New("schemast: only selector exprs are supported for default func")
+		}
+		return selectorLit(parts[0], parts[1]), nil
 	default:
 		return nil, fmt.Errorf("schemast: unsupported default field kind: %q", v.Kind())
 	}

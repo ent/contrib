@@ -142,6 +142,20 @@ func (uc *UserCreate) SetNillableBigInt(si *schema.BigInt) *UserCreate {
 	return uc
 }
 
+// SetBUser1 sets the "b_user_1" field.
+func (uc *UserCreate) SetBUser1(i int) *UserCreate {
+	uc.mutation.SetBUser1(i)
+	return uc
+}
+
+// SetNillableBUser1 sets the "b_user_1" field if the given value is not nil.
+func (uc *UserCreate) SetNillableBUser1(i *int) *UserCreate {
+	if i != nil {
+		uc.SetBUser1(*i)
+	}
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -180,19 +194,19 @@ func (uc *UserCreate) SetAttachment(a *Attachment) *UserCreate {
 	return uc.SetAttachmentID(a.ID)
 }
 
-// AddReceivedIDs adds the "received" edge to the Attachment entity by IDs.
-func (uc *UserCreate) AddReceivedIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddReceivedIDs(ids...)
+// AddReceived1IDs adds the "received_1" edge to the Attachment entity by IDs.
+func (uc *UserCreate) AddReceived1IDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddReceived1IDs(ids...)
 	return uc
 }
 
-// AddReceived adds the "received" edges to the Attachment entity.
-func (uc *UserCreate) AddReceived(a ...*Attachment) *UserCreate {
+// AddReceived1 adds the "received_1" edges to the Attachment entity.
+func (uc *UserCreate) AddReceived1(a ...*Attachment) *UserCreate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uc.AddReceivedIDs(ids...)
+	return uc.AddReceived1IDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -437,6 +451,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		})
 		_node.BigInt = value
 	}
+	if value, ok := uc.mutation.BUser1(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: user.FieldBUser1,
+		})
+		_node.BUser1 = value
+	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -476,12 +498,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.ReceivedIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.Received1IDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.ReceivedTable,
-			Columns: user.ReceivedPrimaryKey,
+			Table:   user.Received1Table,
+			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

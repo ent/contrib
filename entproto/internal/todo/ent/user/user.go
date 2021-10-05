@@ -37,12 +37,14 @@ const (
 	FieldOptBool = "opt_bool"
 	// FieldBigInt holds the string denoting the big_int field in the database.
 	FieldBigInt = "big_int"
+	// FieldBUser1 holds the string denoting the b_user_1 field in the database.
+	FieldBUser1 = "b_user_1"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
 	EdgeAttachment = "attachment"
-	// EdgeReceived holds the string denoting the received edge name in mutations.
-	EdgeReceived = "received"
+	// EdgeReceived1 holds the string denoting the received_1 edge name in mutations.
+	EdgeReceived1 = "received_1"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupTable is the table that holds the group relation/edge.
@@ -59,11 +61,11 @@ const (
 	AttachmentInverseTable = "attachments"
 	// AttachmentColumn is the table column denoting the attachment relation/edge.
 	AttachmentColumn = "user_attachment"
-	// ReceivedTable is the table that holds the received relation/edge. The primary key declared below.
-	ReceivedTable = "attachment_recipients"
-	// ReceivedInverseTable is the table name for the Attachment entity.
+	// Received1Table is the table that holds the received_1 relation/edge. The primary key declared below.
+	Received1Table = "attachment_recipients"
+	// Received1InverseTable is the table name for the Attachment entity.
 	// It exists in this package in order to avoid circular dependency with the "attachment" package.
-	ReceivedInverseTable = "attachments"
+	Received1InverseTable = "attachments"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -82,6 +84,7 @@ var Columns = []string{
 	FieldOptStr,
 	FieldOptBool,
 	FieldBigInt,
+	FieldBUser1,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -91,9 +94,9 @@ var ForeignKeys = []string{
 }
 
 var (
-	// ReceivedPrimaryKey and ReceivedColumn2 are the table columns denoting the
-	// primary key for the received relation (M2M).
-	ReceivedPrimaryKey = []string{"attachment_id", "user_id"}
+	// Received1PrimaryKey and Received1Column2 are the table columns denoting the
+	// primary key for the received_1 relation (M2M).
+	Received1PrimaryKey = []string{"attachment_id", "user_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
