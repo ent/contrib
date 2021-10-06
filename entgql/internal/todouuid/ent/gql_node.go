@@ -268,6 +268,7 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 	case category.Table:
 		n, err := c.Category.Query().
 			Where(category.ID(id)).
+			CollectFields(ctx, "Category").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -276,6 +277,7 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 	case todo.Table:
 		n, err := c.Todo.Query().
 			Where(todo.ID(id)).
+			CollectFields(ctx, "Todo").
 			Only(ctx)
 		if err != nil {
 			return nil, err
@@ -357,6 +359,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 	case category.Table:
 		nodes, err := c.Category.Query().
 			Where(category.IDIn(ids...)).
+			CollectFields(ctx, "Category").
 			All(ctx)
 		if err != nil {
 			return nil, err
@@ -369,6 +372,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 	case todo.Table:
 		nodes, err := c.Todo.Query().
 			Where(todo.IDIn(ids...)).
+			CollectFields(ctx, "Todo").
 			All(ctx)
 		if err != nil {
 			return nil, err
