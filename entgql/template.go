@@ -141,7 +141,8 @@ func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
 // removeOldAssets removes files that were generated before v0.1.0.
 func removeOldAssets(next gen.Generator) gen.Generator {
 	const prefix = "gql_"
-	templates := append(AllTemplates, WhereTemplate)
+	templates := []*gen.Template{WhereTemplate}
+	templates = append(templates, AllTemplates...)
 	return gen.GenerateFunc(func(g *gen.Graph) error {
 		for _, rootT := range templates {
 			for _, t := range rootT.Templates() {
