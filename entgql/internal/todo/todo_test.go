@@ -36,7 +36,6 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/suite"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -81,8 +80,7 @@ func (s *todoTestSuite) SetupTest() {
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
 
-	srv := handler.New(gen.NewSchema(s.ent))
-	srv.AddTransport(transport.POST{})
+	srv := handler.NewDefaultServer(gen.NewSchema(s.ent))
 	srv.Use(entgql.Transactioner{TxOpener: s.ent})
 	s.Client = client.New(srv)
 
