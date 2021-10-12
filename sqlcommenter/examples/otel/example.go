@@ -24,8 +24,10 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-type routeKey struct{}
-type MyCustomCommenter struct{}
+type (
+	routeKey          struct{}
+	MyCustomCommenter struct{}
+)
 
 func (mcc MyCustomCommenter) Tag(ctx context.Context) sqc.Tags {
 	return sqc.Tags{

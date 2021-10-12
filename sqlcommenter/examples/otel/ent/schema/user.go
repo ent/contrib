@@ -16,8 +16,3 @@ func (User) Fields() []ent.Field {
 		field.String("name"),
 	}
 }
-
-// Edges of the User.
-func (User) Edges() []ent.Edge {
-	return nil
-}

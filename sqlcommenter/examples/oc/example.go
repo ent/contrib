@@ -62,8 +62,8 @@ func main() {
 		sqc.WithTagger(sqc.NewOCTagger()),
 		sqc.WithDriverVersion(),
 		sqc.WithTags(sqc.Tags{
-			sqc.KeyAppliaction: "bootcamp",
-			sqc.KeyFramework:   "go-chi",
+			sqc.KeyAppliaction: "users",
+			sqc.KeyFramework:   "net/http",
 		}),
 	)
 	// create and configure ent client

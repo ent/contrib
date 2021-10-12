@@ -17,8 +17,8 @@ type (
 		dialect.Driver // underlying driver.
 		commenter
 	}
-	// CommentTx is a transaction implementation that adds sql comment.
-	CommentTx struct {
+	// Tx is a transaction implementation that adds sql comment.
+	Tx struct {
 		dialect.Tx                 // underlying transaction.
 		ctx        context.Context // underlying transaction context.
 		commenter
@@ -56,7 +56,7 @@ func (d *Driver) Tx(ctx context.Context) (dialect.Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CommentTx{tx, ctx, d.commenter}, nil
+	return &Tx{tx, ctx, d.commenter}, nil
 }
 
 // BeginTx wraps the underlying transaction with commenter and calls the underlying driver BeginTx command if it's supported.
@@ -71,25 +71,25 @@ func (d *Driver) BeginTx(ctx context.Context, opts *sql.TxOptions) (dialect.Tx, 
 	if err != nil {
 		return nil, err
 	}
-	return &CommentTx{tx, ctx, d.commenter}, nil
+	return &Tx{tx, ctx, d.commenter}, nil
 }
 
 // Exec adds sql comment and calls the underlying transaction Exec method.
-func (d *CommentTx) Exec(ctx context.Context, query string, args, v interface{}) error {
+func (d *Tx) Exec(ctx context.Context, query string, args, v interface{}) error {
 	return d.Tx.Exec(ctx, d.withComment(ctx, query), args, v)
 }
 
 // Query adds sql comment and calls the underlying transaction Query method.
-func (d *CommentTx) Query(ctx context.Context, query string, args, v interface{}) error {
+func (d *Tx) Query(ctx context.Context, query string, args, v interface{}) error {
 	return d.Tx.Query(ctx, d.withComment(ctx, query), args, v)
 }
 
 // Commit calls the underlying Tx to commit.
-func (d *CommentTx) Commit() error {
+func (d *Tx) Commit() error {
 	return d.Tx.Commit()
 }
 
 // Rollback calls the underlying Tx to rollback.
-func (d *CommentTx) Rollback() error {
+func (d *Tx) Rollback() error {
 	return d.Tx.Rollback()
 }

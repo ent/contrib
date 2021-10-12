@@ -6,25 +6,25 @@ import (
 	"runtime/debug"
 )
 
-// DriverVersionTagger adds `db_driver` tag with "ent:<version>"
-type DriverVersionTagger struct {
+// driverVersionTagger adds `db_driver` tag with "ent:<version>"
+type driverVersionTagger struct {
 	version string
 }
 
-func NewDriverVersionTagger() DriverVersionTagger {
+func NewDriverVersionTagger() driverVersionTagger {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
-		return DriverVersionTagger{"ent"}
+		return driverVersionTagger{"ent"}
 	}
 	for _, d := range info.Deps {
 		if d.Path == "entgo.io/ent" {
-			return DriverVersionTagger{fmt.Sprintf("ent:%s", d.Version)}
+			return driverVersionTagger{fmt.Sprintf("ent:%s", d.Version)}
 		}
 	}
-	return DriverVersionTagger{"ent"}
+	return driverVersionTagger{"ent"}
 }
 
-func (dv DriverVersionTagger) Tag(ctx context.Context) Tags {
+func (dv driverVersionTagger) Tag(ctx context.Context) Tags {
 	return Tags{
 		KeyDBDriver: dv.version,
 	}
