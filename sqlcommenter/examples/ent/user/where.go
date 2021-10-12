@@ -3,7 +3,7 @@
 package user
 
 import (
-	"entgo.io/contrib/sqlcommenter/examples/oc/ent/predicate"
+	"entgo.io/contrib/sqlcommenter/examples/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 )
 

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	sqc "entgo.io/contrib/sqlcommenter"
-	"entgo.io/contrib/sqlcommenter/examples/oc/ent"
+	"entgo.io/contrib/sqlcommenter/examples/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/sqlcommenter/examples/oc/ent"
+	"entgo.io/contrib/sqlcommenter/examples/ent"
 )
 
 // The UserFunc type is an adapter to allow the use of ordinary

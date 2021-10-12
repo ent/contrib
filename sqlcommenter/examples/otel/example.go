@@ -13,7 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
 
-	"entgo.io/contrib/sqlcommenter/examples/otel/ent"
+	"entgo.io/contrib/sqlcommenter/examples/ent"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
