@@ -8,7 +8,6 @@ require (
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -20,6 +19,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.8
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/oklog/ulid/v2 v2.0.2
+	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.2.0
