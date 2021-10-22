@@ -5,10 +5,9 @@ go 1.16
 require (
 	entgo.io/ent v0.9.2-0.20210821141344-368a8f7a2e9a
 	github.com/99designs/gqlgen v0.14.0
-	github.com/AlekSi/pointer v1.1.0
+	github.com/AlekSi/pointer v1.2.0
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
 	github.com/hashicorp/errwrap v1.1.0 // indirect
