@@ -50,6 +50,8 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
+	accountbalance := e.AccountBalance
+	v.AccountBalance = accountbalance
 	buser1 := wrapperspb.Int32(int32(e.BUser1))
 	v.BUser_1 = buser1
 	banned := e.Banned
@@ -75,6 +77,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Exp = exp
 	externalid := int32(e.ExternalID)
 	v.ExternalId = externalid
+	heightincm := e.HeightInCm
+	v.HeightInCm = heightincm
 	id := int32(e.ID)
 	v.Id = id
 	joined := timestamppb.New(e.Joined)
@@ -122,6 +126,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
 	m := svc.client.User.Create()
+	userAccountBalance := float64(user.GetAccountBalance())
+	m.SetAccountBalance(userAccountBalance)
 	if user.GetBUser_1() != nil {
 		userBUser1 := int(user.GetBUser_1().GetValue())
 		m.SetBUser1(userBUser1)
@@ -146,6 +152,8 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
+	userHeightInCm := float32(user.GetHeightInCm())
+	m.SetHeightInCm(userHeightInCm)
 	userJoined := runtime.ExtractTime(user.GetJoined())
 	m.SetJoined(userJoined)
 	if user.GetOptBool() != nil {
@@ -241,6 +249,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	user := req.GetUser()
 	userID := int(user.GetId())
 	m := svc.client.User.UpdateOneID(userID)
+	userAccountBalance := float64(user.GetAccountBalance())
+	m.SetAccountBalance(userAccountBalance)
 	if user.GetBUser_1() != nil {
 		userBUser1 := int(user.GetBUser_1().GetValue())
 		m.SetBUser1(userBUser1)
@@ -265,6 +275,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
+	userHeightInCm := float32(user.GetHeightInCm())
+	m.SetHeightInCm(userHeightInCm)
 	if user.GetOptBool() != nil {
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)

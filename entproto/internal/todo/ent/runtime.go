@@ -27,4 +27,12 @@ func init() {
 	userDescBanned := userFields[7].Descriptor()
 	// user.DefaultBanned holds the default value on creation for the banned field.
 	user.DefaultBanned = userDescBanned.Default.(bool)
+	// userDescHeightInCm is the schema descriptor for height_in_cm field.
+	userDescHeightInCm := userFields[14].Descriptor()
+	// user.DefaultHeightInCm holds the default value on creation for the height_in_cm field.
+	user.DefaultHeightInCm = userDescHeightInCm.Default.(float32)
+	// userDescAccountBalance is the schema descriptor for account_balance field.
+	userDescAccountBalance := userFields[15].Descriptor()
+	// user.DefaultAccountBalance holds the default value on creation for the account_balance field.
+	user.DefaultAccountBalance = userDescAccountBalance.Default.(float64)
 }

@@ -88,6 +88,8 @@ var (
 		{Name: "opt_bool", Type: field.TypeBool, Nullable: true},
 		{Name: "big_int", Type: field.TypeInt, Nullable: true},
 		{Name: "b_user_1", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "height_in_cm", Type: field.TypeFloat32, Default: 0},
+		{Name: "account_balance", Type: field.TypeFloat64, Default: 0},
 		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -98,7 +100,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[15]},
+				Columns:    []*schema.Column{UsersColumns[17]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
