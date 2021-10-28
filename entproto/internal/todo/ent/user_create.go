@@ -156,6 +156,34 @@ func (uc *UserCreate) SetNillableBUser1(i *int) *UserCreate {
 	return uc
 }
 
+// SetHeightInCm sets the "height_in_cm" field.
+func (uc *UserCreate) SetHeightInCm(f float32) *UserCreate {
+	uc.mutation.SetHeightInCm(f)
+	return uc
+}
+
+// SetNillableHeightInCm sets the "height_in_cm" field if the given value is not nil.
+func (uc *UserCreate) SetNillableHeightInCm(f *float32) *UserCreate {
+	if f != nil {
+		uc.SetHeightInCm(*f)
+	}
+	return uc
+}
+
+// SetAccountBalance sets the "account_balance" field.
+func (uc *UserCreate) SetAccountBalance(f float64) *UserCreate {
+	uc.mutation.SetAccountBalance(f)
+	return uc
+}
+
+// SetNillableAccountBalance sets the "account_balance" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAccountBalance(f *float64) *UserCreate {
+	if f != nil {
+		uc.SetAccountBalance(*f)
+	}
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -284,6 +312,14 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultBanned
 		uc.mutation.SetBanned(v)
 	}
+	if _, ok := uc.mutation.HeightInCm(); !ok {
+		v := user.DefaultHeightInCm
+		uc.mutation.SetHeightInCm(v)
+	}
+	if _, ok := uc.mutation.AccountBalance(); !ok {
+		v := user.DefaultAccountBalance
+		uc.mutation.SetAccountBalance(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -319,6 +355,12 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.CustomPb(); !ok {
 		return &ValidationError{Name: "custom_pb", err: errors.New(`ent: missing required field "custom_pb"`)}
+	}
+	if _, ok := uc.mutation.HeightInCm(); !ok {
+		return &ValidationError{Name: "height_in_cm", err: errors.New(`ent: missing required field "height_in_cm"`)}
+	}
+	if _, ok := uc.mutation.AccountBalance(); !ok {
+		return &ValidationError{Name: "account_balance", err: errors.New(`ent: missing required field "account_balance"`)}
 	}
 	return nil
 }
@@ -458,6 +500,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldBUser1,
 		})
 		_node.BUser1 = value
+	}
+	if value, ok := uc.mutation.HeightInCm(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat32,
+			Value:  value,
+			Column: user.FieldHeightInCm,
+		})
+		_node.HeightInCm = value
+	}
+	if value, ok := uc.mutation.AccountBalance(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: user.FieldAccountBalance,
+		})
+		_node.AccountBalance = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

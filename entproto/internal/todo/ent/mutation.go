@@ -1614,40 +1614,44 @@ func (m *TodoMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	user_name         *string
-	joined            *time.Time
-	points            *uint
-	addpoints         *uint
-	exp               *uint64
-	addexp            *uint64
-	status            *user.Status
-	external_id       *int
-	addexternal_id    *int
-	crm_id            *uuid.UUID
-	banned            *bool
-	custom_pb         *uint8
-	addcustom_pb      *uint8
-	opt_num           *int
-	addopt_num        *int
-	opt_str           *string
-	opt_bool          *bool
-	big_int           *schema.BigInt
-	b_user_1          *int
-	addb_user_1       *int
-	clearedFields     map[string]struct{}
-	group             *int
-	clearedgroup      bool
-	attachment        *uuid.UUID
-	clearedattachment bool
-	received_1        map[uuid.UUID]struct{}
-	removedreceived_1 map[uuid.UUID]struct{}
-	clearedreceived_1 bool
-	done              bool
-	oldValue          func(context.Context) (*User, error)
-	predicates        []predicate.User
+	op                 Op
+	typ                string
+	id                 *int
+	user_name          *string
+	joined             *time.Time
+	points             *uint
+	addpoints          *uint
+	exp                *uint64
+	addexp             *uint64
+	status             *user.Status
+	external_id        *int
+	addexternal_id     *int
+	crm_id             *uuid.UUID
+	banned             *bool
+	custom_pb          *uint8
+	addcustom_pb       *uint8
+	opt_num            *int
+	addopt_num         *int
+	opt_str            *string
+	opt_bool           *bool
+	big_int            *schema.BigInt
+	b_user_1           *int
+	addb_user_1        *int
+	height_in_cm       *float32
+	addheight_in_cm    *float32
+	account_balance    *float64
+	addaccount_balance *float64
+	clearedFields      map[string]struct{}
+	group              *int
+	clearedgroup       bool
+	attachment         *uuid.UUID
+	clearedattachment  bool
+	received_1         map[uuid.UUID]struct{}
+	removedreceived_1  map[uuid.UUID]struct{}
+	clearedreceived_1  bool
+	done               bool
+	oldValue           func(context.Context) (*User, error)
+	predicates         []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -2420,6 +2424,118 @@ func (m *UserMutation) ResetBUser1() {
 	delete(m.clearedFields, user.FieldBUser1)
 }
 
+// SetHeightInCm sets the "height_in_cm" field.
+func (m *UserMutation) SetHeightInCm(f float32) {
+	m.height_in_cm = &f
+	m.addheight_in_cm = nil
+}
+
+// HeightInCm returns the value of the "height_in_cm" field in the mutation.
+func (m *UserMutation) HeightInCm() (r float32, exists bool) {
+	v := m.height_in_cm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeightInCm returns the old "height_in_cm" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldHeightInCm(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldHeightInCm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldHeightInCm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeightInCm: %w", err)
+	}
+	return oldValue.HeightInCm, nil
+}
+
+// AddHeightInCm adds f to the "height_in_cm" field.
+func (m *UserMutation) AddHeightInCm(f float32) {
+	if m.addheight_in_cm != nil {
+		*m.addheight_in_cm += f
+	} else {
+		m.addheight_in_cm = &f
+	}
+}
+
+// AddedHeightInCm returns the value that was added to the "height_in_cm" field in this mutation.
+func (m *UserMutation) AddedHeightInCm() (r float32, exists bool) {
+	v := m.addheight_in_cm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHeightInCm resets all changes to the "height_in_cm" field.
+func (m *UserMutation) ResetHeightInCm() {
+	m.height_in_cm = nil
+	m.addheight_in_cm = nil
+}
+
+// SetAccountBalance sets the "account_balance" field.
+func (m *UserMutation) SetAccountBalance(f float64) {
+	m.account_balance = &f
+	m.addaccount_balance = nil
+}
+
+// AccountBalance returns the value of the "account_balance" field in the mutation.
+func (m *UserMutation) AccountBalance() (r float64, exists bool) {
+	v := m.account_balance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountBalance returns the old "account_balance" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldAccountBalance(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldAccountBalance is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldAccountBalance requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountBalance: %w", err)
+	}
+	return oldValue.AccountBalance, nil
+}
+
+// AddAccountBalance adds f to the "account_balance" field.
+func (m *UserMutation) AddAccountBalance(f float64) {
+	if m.addaccount_balance != nil {
+		*m.addaccount_balance += f
+	} else {
+		m.addaccount_balance = &f
+	}
+}
+
+// AddedAccountBalance returns the value that was added to the "account_balance" field in this mutation.
+func (m *UserMutation) AddedAccountBalance() (r float64, exists bool) {
+	v := m.addaccount_balance
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAccountBalance resets all changes to the "account_balance" field.
+func (m *UserMutation) ResetAccountBalance() {
+	m.account_balance = nil
+	m.addaccount_balance = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -2571,7 +2687,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 16)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -2614,6 +2730,12 @@ func (m *UserMutation) Fields() []string {
 	if m.b_user_1 != nil {
 		fields = append(fields, user.FieldBUser1)
 	}
+	if m.height_in_cm != nil {
+		fields = append(fields, user.FieldHeightInCm)
+	}
+	if m.account_balance != nil {
+		fields = append(fields, user.FieldAccountBalance)
+	}
 	return fields
 }
 
@@ -2650,6 +2772,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.BigInt()
 	case user.FieldBUser1:
 		return m.BUser1()
+	case user.FieldHeightInCm:
+		return m.HeightInCm()
+	case user.FieldAccountBalance:
+		return m.AccountBalance()
 	}
 	return nil, false
 }
@@ -2687,6 +2813,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldBigInt(ctx)
 	case user.FieldBUser1:
 		return m.OldBUser1(ctx)
+	case user.FieldHeightInCm:
+		return m.OldHeightInCm(ctx)
+	case user.FieldAccountBalance:
+		return m.OldAccountBalance(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -2794,6 +2924,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBUser1(v)
 		return nil
+	case user.FieldHeightInCm:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeightInCm(v)
+		return nil
+	case user.FieldAccountBalance:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountBalance(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -2820,6 +2964,12 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addb_user_1 != nil {
 		fields = append(fields, user.FieldBUser1)
 	}
+	if m.addheight_in_cm != nil {
+		fields = append(fields, user.FieldHeightInCm)
+	}
+	if m.addaccount_balance != nil {
+		fields = append(fields, user.FieldAccountBalance)
+	}
 	return fields
 }
 
@@ -2840,6 +2990,10 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedOptNum()
 	case user.FieldBUser1:
 		return m.AddedBUser1()
+	case user.FieldHeightInCm:
+		return m.AddedHeightInCm()
+	case user.FieldAccountBalance:
+		return m.AddedAccountBalance()
 	}
 	return nil, false
 }
@@ -2890,6 +3044,20 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddBUser1(v)
+		return nil
+	case user.FieldHeightInCm:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHeightInCm(v)
+		return nil
+	case user.FieldAccountBalance:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAccountBalance(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -2992,6 +3160,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldBUser1:
 		m.ResetBUser1()
+		return nil
+	case user.FieldHeightInCm:
+		m.ResetHeightInCm()
+		return nil
+	case user.FieldAccountBalance:
+		m.ResetAccountBalance()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

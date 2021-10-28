@@ -39,6 +39,10 @@ const (
 	FieldBigInt = "big_int"
 	// FieldBUser1 holds the string denoting the b_user_1 field in the database.
 	FieldBUser1 = "b_user_1"
+	// FieldHeightInCm holds the string denoting the height_in_cm field in the database.
+	FieldHeightInCm = "height_in_cm"
+	// FieldAccountBalance holds the string denoting the account_balance field in the database.
+	FieldAccountBalance = "account_balance"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -85,6 +89,8 @@ var Columns = []string{
 	FieldOptBool,
 	FieldBigInt,
 	FieldBUser1,
+	FieldHeightInCm,
+	FieldAccountBalance,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -117,6 +123,10 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultBanned holds the default value on creation for the "banned" field.
 	DefaultBanned bool
+	// DefaultHeightInCm holds the default value on creation for the "height_in_cm" field.
+	DefaultHeightInCm float32
+	// DefaultAccountBalance holds the default value on creation for the "account_balance" field.
+	DefaultAccountBalance float64
 )
 
 // Status defines the type for the "status" enum field.
