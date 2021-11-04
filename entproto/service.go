@@ -106,18 +106,6 @@ func (a *Adapter) createServiceResources(genType *gen.Type, options *serviceOpti
 		}
 	}
 
-	idField, err := toProtoFieldDescriptor(genType.ID)
-	if err != nil {
-		return serviceResources{}, err
-	}
-	idMsg := &descriptorpb.DescriptorProto{
-		Name: strptr(fmt.Sprintf("%sId", genType.Name)),
-		Field: []*descriptorpb.FieldDescriptorProto{
-			idField,
-		},
-	}
-	out.svcMessages = append(out.svcMessages, idMsg)
-
 	return out, nil
 }
 
