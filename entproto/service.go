@@ -39,19 +39,43 @@ var (
 	errNoServiceDef = errors.New("entproto: annotation entproto.Service missing")
 )
 
+type ServiceOptionsEnum int
+
+const (
+	// OptionGenGetAll generates a GetAll RPC for retrieving all ids of existing entities.
+	OptionGenGetAll ServiceOptionsEnum = iota
+)
+
+type serviceOptions struct {
+	GenerateGetAll bool
+}
+
 type service struct {
 	Generate bool
+	Options  *serviceOptions
 }
 
 func (service) Name() string {
 	return ServiceAnnotation
 }
 
-func Service() schema.Annotation {
-	return service{Generate: true}
+func Service(options ...ServiceOptionsEnum) schema.Annotation {
+	newService := &service{
+		Generate: true,
+		Options:  &serviceOptions{},
+	}
+
+	for _, option := range options {
+		switch option {
+		case OptionGenGetAll:
+			newService.Options.GenerateGetAll = true
+		}
+	}
+
+	return newService
 }
 
-func (a *Adapter) createServiceResources(genType *gen.Type) (serviceResources, error) {
+func (a *Adapter) createServiceResources(genType *gen.Type, options *serviceOptions) (serviceResources, error) {
 	name := genType.Name
 	serviceFqn := fmt.Sprintf("%sService", name)
 
@@ -67,10 +91,70 @@ func (a *Adapter) createServiceResources(genType *gen.Type) (serviceResources, e
 			return serviceResources{}, err
 		}
 		out.svc.Method = append(out.svc.Method, resources.methodDescriptor)
-		out.svcMessages = append(out.svcMessages, resources.input)
+		out.svcMessages = append(out.svcMessages, resources.messages...)
 	}
 
+	if options != nil {
+		resources, err := a.genOptionalMethodProtos(genType, options)
+		if err != nil {
+			return serviceResources{}, err
+		}
+
+		for _, resource := range resources {
+			out.svc.Method = append(out.svc.Method, resource.methodDescriptor)
+			out.svcMessages = append(out.svcMessages, resource.messages...)
+		}
+	}
+
+	idField, err := toProtoFieldDescriptor(genType.ID)
+	if err != nil {
+		return serviceResources{}, err
+	}
+	idMsg := &descriptorpb.DescriptorProto{
+		Name: strptr(fmt.Sprintf("%sId", genType.Name)),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			idField,
+		},
+	}
+	out.svcMessages = append(out.svcMessages, idMsg)
+
 	return out, nil
+}
+
+func (a *Adapter) genOptionalMethodProtos(genType *gen.Type, options *serviceOptions) ([]*methodResources, error) {
+	var methods []*methodResources
+
+	if options.GenerateGetAll {
+		protoMessageFieldType := descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
+		singleMessageField := &descriptorpb.FieldDescriptorProto{
+			Name:     strptr(snake(genType.Name)),
+			Number:   int32ptr(1),
+			Type:     &protoMessageFieldType,
+			TypeName: strptr(fmt.Sprintf("%sId", genType.Name)),
+		}
+		singleMessageField.Name = strptr(*singleMessageField.Name + "_ids")
+
+		repeatedFieldLabel = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+		singleMessageField.Label = &repeatedFieldLabel
+
+		output := &descriptorpb.DescriptorProto{
+			Name:  strptr(fmt.Sprintf("%sIds", genType.Name)),
+			Field: []*descriptorpb.FieldDescriptorProto{singleMessageField},
+		}
+
+		methods = append(methods, &methodResources{
+			methodDescriptor: &descriptorpb.MethodDescriptorProto{
+				Name:       strptr("GetAll"),
+				InputType:  strptr("google.protobuf.Empty"),
+				OutputType: output.Name,
+			},
+			messages: []*descriptorpb.DescriptorProto{
+				output,
+			},
+		})
+	}
+
+	return methods, nil
 }
 
 func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources, error) {
@@ -128,13 +212,15 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources,
 			InputType:  input.Name,
 			OutputType: &output,
 		},
-		input: input,
+		messages: []*descriptorpb.DescriptorProto{
+			input,
+		},
 	}, nil
 }
 
 type methodResources struct {
 	methodDescriptor *descriptorpb.MethodDescriptorProto
-	input            *descriptorpb.DescriptorProto
+	messages         []*descriptorpb.DescriptorProto
 }
 
 type serviceResources struct {

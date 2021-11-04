@@ -1,0 +1,23 @@
+{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
+{{ define "method_getall" }}
+    var (
+        err error
+        entities []*ent.{{ .G.EntType.Name }}
+    )
+    entities, err = svc.client.{{ .G.EntType.Name }}.Query().All(ctx)
+    switch {
+    case err == nil:
+        var ids []*{{ .G.EntType.Name }}Id
+        for _, entity := range entities {
+            ids = append(ids, &{{ .G.EntType.Name }}Id{
+                Id: int32(entity.ID),
+            })
+        }
+        entityIds := {{ .G.EntType.Name }}Ids{
+            {{ .G.EntType.Name }}Ids: ids,
+        }
+        return &entityIds, nil
+    default:
+        return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+    }
+{{ end }}
