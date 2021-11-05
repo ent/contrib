@@ -27,6 +27,7 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"google.golang.org/protobuf/types/descriptorpb"
 	_ "google.golang.org/protobuf/types/known/emptypb"
+	_ "google.golang.org/protobuf/types/known/structpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	_ "google.golang.org/protobuf/types/known/wrapperspb" // needed to load wkt to global proto registry
 )
@@ -52,6 +53,7 @@ var (
 		"google.protobuf.StringValue": "google/protobuf/wrappers.proto",
 		"google.protobuf.BoolValue":   "google/protobuf/wrappers.proto",
 		"google.protobuf.BytesValue":  "google/protobuf/wrappers.proto",
+		"google.protobuf.ListValue":   "google/protobuf/struct.proto",
 	}
 )
 
@@ -479,9 +481,14 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 }
 
 func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
-	cfg, ok := typeMap[f.Type.Type]
-	if !ok || cfg.unsupported {
-		return fieldType{}, unsupportedTypeError{Type: f.Type}
+	var cfg typeConfig
+	cfg, ok := identMap[f.Type.Ident]
+	if !ok {
+		cfgType, ok := typeMap[f.Type.Type]
+		if !ok || cfgType.unsupported {
+			return fieldType{}, unsupportedTypeError{Type: f.Type}
+		}
+		cfg = typeConfig(cfgType)
 	}
 	if f.Optional {
 		if cfg.optionalType == "" {

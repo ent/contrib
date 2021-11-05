@@ -196,6 +196,7 @@ var wrapperPrimitives = map[string]string{
 	"google.protobuf.BoolValue":   "bool",
 	"google.protobuf.StringValue": "string",
 	"google.protobuf.BytesValue":  "[]byte",
+	"google.protobuf.ListValue":   "[]interface{}",
 }
 
 func implements(r *field.RType, typ reflect.Type) bool {
