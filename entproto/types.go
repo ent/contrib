@@ -46,14 +46,14 @@ var typeMap = map[field.Type]typeConfig{
 }
 
 var identMap = map[string]typeConfig{
-	"[]string": {pbType: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, msgTypeName: "google.protobuf.ListValue", optionalType: "google.protobuf.ListValue", repeatedType: "google.protobuf.StringValue"},
+	"[]string": {pbType: descriptorpb.FieldDescriptorProto_TYPE_STRING, pbLabel: descriptorpb.FieldDescriptorProto_LABEL_REPEATED, optionalType: "google.protobuf.StringValue"},
 }
 
 type typeConfig struct {
 	unsupported  bool
 	pbType       descriptorpb.FieldDescriptorProto_Type
+	pbLabel      descriptorpb.FieldDescriptorProto_Label
 	msgTypeName  string
 	optionalType string
-	repeatedType string
 	namer        func(fld *gen.Field) string
 }

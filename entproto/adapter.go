@@ -27,7 +27,6 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"google.golang.org/protobuf/types/descriptorpb"
 	_ "google.golang.org/protobuf/types/known/emptypb"
-	_ "google.golang.org/protobuf/types/known/structpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	_ "google.golang.org/protobuf/types/known/wrapperspb" // needed to load wkt to global proto registry
 )
@@ -53,7 +52,6 @@ var (
 		"google.protobuf.StringValue": "google/protobuf/wrappers.proto",
 		"google.protobuf.BoolValue":   "google/protobuf/wrappers.proto",
 		"google.protobuf.BytesValue":  "google/protobuf/wrappers.proto",
-		"google.protobuf.ListValue":   "google/protobuf/struct.proto",
 	}
 )
 
@@ -476,6 +474,9 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	if typeDetails.messageName != "" {
 		fieldDesc.TypeName = &typeDetails.messageName
 	}
+	if typeDetails.protoLabel != nil {
+		fieldDesc.Label = typeDetails.protoLabel
+	}
 
 	return fieldDesc, nil
 }
@@ -496,6 +497,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 		}
 		return fieldType{
 			protoType:   descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
+			protoLabel:  &cfg.pbLabel,
 			messageName: cfg.optionalType,
 		}, nil
 	}
@@ -505,6 +507,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	}
 	return fieldType{
 		protoType:   cfg.pbType,
+		protoLabel:  &cfg.pbLabel,
 		messageName: name,
 	}, nil
 }
@@ -512,6 +515,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 type fieldType struct {
 	messageName string
 	protoType   descriptorpb.FieldDescriptorProto_Type
+	protoLabel  *descriptorpb.FieldDescriptorProto_Label
 }
 
 func strptr(s string) *string {
