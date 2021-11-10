@@ -238,4 +238,8 @@ func (suite *AdapterTestSuite) TestOptionals() {
 	uuidField := message.FindFieldByName("uuid_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, bytesField.GetType())
 	suite.Require().EqualValues("BytesValue", uuidField.GetMessageType().GetName())
+
+	stringsField := message.FindFieldByName("strings_optional")
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_STRING, stringsField.GetType())
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_LABEL_REPEATED, stringsField.GetLabel())
 }

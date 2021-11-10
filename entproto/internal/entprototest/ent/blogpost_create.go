@@ -33,6 +33,12 @@ func (bpc *BlogPostCreate) SetBody(s string) *BlogPostCreate {
 	return bpc
 }
 
+// SetTags sets the "tags" field.
+func (bpc *BlogPostCreate) SetTags(s []string) *BlogPostCreate {
+	bpc.mutation.SetTags(s)
+	return bpc
+}
+
 // SetExternalID sets the "external_id" field.
 func (bpc *BlogPostCreate) SetExternalID(i int) *BlogPostCreate {
 	bpc.mutation.SetExternalID(i)
@@ -149,6 +155,9 @@ func (bpc *BlogPostCreate) check() error {
 	if _, ok := bpc.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "body"`)}
 	}
+	if _, ok := bpc.mutation.Tags(); !ok {
+		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required field "tags"`)}
+	}
 	if _, ok := bpc.mutation.ExternalID(); !ok {
 		return &ValidationError{Name: "external_id", err: errors.New(`ent: missing required field "external_id"`)}
 	}
@@ -194,6 +203,14 @@ func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 			Column: blogpost.FieldBody,
 		})
 		_node.Body = value
+	}
+	if value, ok := bpc.mutation.Tags(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: blogpost.FieldTags,
+		})
+		_node.Tags = value
 	}
 	if value, ok := bpc.mutation.ExternalID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -11,6 +11,8 @@ const (
 	FieldTitle = "title"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
+	// FieldTags holds the string denoting the tags field in the database.
+	FieldTags = "tags"
 	// FieldExternalID holds the string denoting the external_id field in the database.
 	FieldExternalID = "external_id"
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
@@ -38,6 +40,7 @@ var Columns = []string{
 	FieldID,
 	FieldTitle,
 	FieldBody,
+	FieldTags,
 	FieldExternalID,
 }
 

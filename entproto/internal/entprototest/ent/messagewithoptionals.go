@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -33,6 +34,8 @@ type MessageWithOptionals struct {
 	UUIDOptional uuid.UUID `json:"uuid_optional,omitempty"`
 	// TimeOptional holds the value of the "time_optional" field.
 	TimeOptional time.Time `json:"time_optional,omitempty"`
+	// StringsOptional holds the value of the "strings_optional" field.
+	StringsOptional []string `json:"strings_optional,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -40,7 +43,7 @@ func (*MessageWithOptionals) scanValues(columns []string) ([]interface{}, error)
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case messagewithoptionals.FieldBytesOptional:
+		case messagewithoptionals.FieldBytesOptional, messagewithoptionals.FieldStringsOptional:
 			values[i] = new([]byte)
 		case messagewithoptionals.FieldBoolOptional:
 			values[i] = new(sql.NullBool)
@@ -123,6 +126,14 @@ func (mwo *MessageWithOptionals) assignValues(columns []string, values []interfa
 			} else if value.Valid {
 				mwo.TimeOptional = value.Time
 			}
+		case messagewithoptionals.FieldStringsOptional:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field strings_optional", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &mwo.StringsOptional); err != nil {
+					return fmt.Errorf("unmarshal field strings_optional: %w", err)
+				}
+			}
 		}
 	}
 	return nil
@@ -167,6 +178,8 @@ func (mwo *MessageWithOptionals) String() string {
 	builder.WriteString(fmt.Sprintf("%v", mwo.UUIDOptional))
 	builder.WriteString(", time_optional=")
 	builder.WriteString(mwo.TimeOptional.Format(time.ANSIC))
+	builder.WriteString(", strings_optional=")
+	builder.WriteString(fmt.Sprintf("%v", mwo.StringsOptional))
 	builder.WriteByte(')')
 	return builder.String()
 }

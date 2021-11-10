@@ -23,6 +23,8 @@ const (
 	FieldUUIDOptional = "uuid_optional"
 	// FieldTimeOptional holds the string denoting the time_optional field in the database.
 	FieldTimeOptional = "time_optional"
+	// FieldStringsOptional holds the string denoting the strings_optional field in the database.
+	FieldStringsOptional = "strings_optional"
 	// Table holds the table name of the messagewithoptionals in the database.
 	Table = "message_with_optionals"
 )
@@ -38,6 +40,7 @@ var Columns = []string{
 	FieldBytesOptional,
 	FieldUUIDOptional,
 	FieldTimeOptional,
+	FieldStringsOptional,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

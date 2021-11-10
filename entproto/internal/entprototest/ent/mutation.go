@@ -63,6 +63,7 @@ type BlogPostMutation struct {
 	id                *int
 	title             *string
 	body              *string
+	tags              *[]string
 	external_id       *int
 	addexternal_id    *int
 	clearedFields     map[string]struct{}
@@ -225,6 +226,42 @@ func (m *BlogPostMutation) OldBody(ctx context.Context) (v string, err error) {
 // ResetBody resets all changes to the "body" field.
 func (m *BlogPostMutation) ResetBody() {
 	m.body = nil
+}
+
+// SetTags sets the "tags" field.
+func (m *BlogPostMutation) SetTags(s []string) {
+	m.tags = &s
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *BlogPostMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the BlogPost entity.
+// If the BlogPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlogPostMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *BlogPostMutation) ResetTags() {
+	m.tags = nil
 }
 
 // SetExternalID sets the "external_id" field.
@@ -395,12 +432,15 @@ func (m *BlogPostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BlogPostMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.title != nil {
 		fields = append(fields, blogpost.FieldTitle)
 	}
 	if m.body != nil {
 		fields = append(fields, blogpost.FieldBody)
+	}
+	if m.tags != nil {
+		fields = append(fields, blogpost.FieldTags)
 	}
 	if m.external_id != nil {
 		fields = append(fields, blogpost.FieldExternalID)
@@ -417,6 +457,8 @@ func (m *BlogPostMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case blogpost.FieldBody:
 		return m.Body()
+	case blogpost.FieldTags:
+		return m.Tags()
 	case blogpost.FieldExternalID:
 		return m.ExternalID()
 	}
@@ -432,6 +474,8 @@ func (m *BlogPostMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTitle(ctx)
 	case blogpost.FieldBody:
 		return m.OldBody(ctx)
+	case blogpost.FieldTags:
+		return m.OldTags(ctx)
 	case blogpost.FieldExternalID:
 		return m.OldExternalID(ctx)
 	}
@@ -456,6 +500,13 @@ func (m *BlogPostMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBody(v)
+		return nil
+	case blogpost.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
 		return nil
 	case blogpost.FieldExternalID:
 		v, ok := value.(int)
@@ -533,6 +584,9 @@ func (m *BlogPostMutation) ResetField(name string) error {
 		return nil
 	case blogpost.FieldBody:
 		m.ResetBody()
+		return nil
+	case blogpost.FieldTags:
+		m.ResetTags()
 		return nil
 	case blogpost.FieldExternalID:
 		m.ResetExternalID()
@@ -3883,6 +3937,7 @@ type MessageWithOptionalsMutation struct {
 	bytes_optional    *[]byte
 	uuid_optional     *uuid.UUID
 	time_optional     *time.Time
+	strings_optional  *[]string
 	clearedFields     map[string]struct{}
 	done              bool
 	oldValue          func(context.Context) (*MessageWithOptionals, error)
@@ -4423,6 +4478,55 @@ func (m *MessageWithOptionalsMutation) ResetTimeOptional() {
 	delete(m.clearedFields, messagewithoptionals.FieldTimeOptional)
 }
 
+// SetStringsOptional sets the "strings_optional" field.
+func (m *MessageWithOptionalsMutation) SetStringsOptional(s []string) {
+	m.strings_optional = &s
+}
+
+// StringsOptional returns the value of the "strings_optional" field in the mutation.
+func (m *MessageWithOptionalsMutation) StringsOptional() (r []string, exists bool) {
+	v := m.strings_optional
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStringsOptional returns the old "strings_optional" field's value of the MessageWithOptionals entity.
+// If the MessageWithOptionals object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithOptionalsMutation) OldStringsOptional(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStringsOptional is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStringsOptional requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStringsOptional: %w", err)
+	}
+	return oldValue.StringsOptional, nil
+}
+
+// ClearStringsOptional clears the value of the "strings_optional" field.
+func (m *MessageWithOptionalsMutation) ClearStringsOptional() {
+	m.strings_optional = nil
+	m.clearedFields[messagewithoptionals.FieldStringsOptional] = struct{}{}
+}
+
+// StringsOptionalCleared returns if the "strings_optional" field was cleared in this mutation.
+func (m *MessageWithOptionalsMutation) StringsOptionalCleared() bool {
+	_, ok := m.clearedFields[messagewithoptionals.FieldStringsOptional]
+	return ok
+}
+
+// ResetStringsOptional resets all changes to the "strings_optional" field.
+func (m *MessageWithOptionalsMutation) ResetStringsOptional() {
+	m.strings_optional = nil
+	delete(m.clearedFields, messagewithoptionals.FieldStringsOptional)
+}
+
 // Where appends a list predicates to the MessageWithOptionalsMutation builder.
 func (m *MessageWithOptionalsMutation) Where(ps ...predicate.MessageWithOptionals) {
 	m.predicates = append(m.predicates, ps...)
@@ -4442,7 +4546,7 @@ func (m *MessageWithOptionalsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageWithOptionalsMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.str_optional != nil {
 		fields = append(fields, messagewithoptionals.FieldStrOptional)
 	}
@@ -4466,6 +4570,9 @@ func (m *MessageWithOptionalsMutation) Fields() []string {
 	}
 	if m.time_optional != nil {
 		fields = append(fields, messagewithoptionals.FieldTimeOptional)
+	}
+	if m.strings_optional != nil {
+		fields = append(fields, messagewithoptionals.FieldStringsOptional)
 	}
 	return fields
 }
@@ -4491,6 +4598,8 @@ func (m *MessageWithOptionalsMutation) Field(name string) (ent.Value, bool) {
 		return m.UUIDOptional()
 	case messagewithoptionals.FieldTimeOptional:
 		return m.TimeOptional()
+	case messagewithoptionals.FieldStringsOptional:
+		return m.StringsOptional()
 	}
 	return nil, false
 }
@@ -4516,6 +4625,8 @@ func (m *MessageWithOptionalsMutation) OldField(ctx context.Context, name string
 		return m.OldUUIDOptional(ctx)
 	case messagewithoptionals.FieldTimeOptional:
 		return m.OldTimeOptional(ctx)
+	case messagewithoptionals.FieldStringsOptional:
+		return m.OldStringsOptional(ctx)
 	}
 	return nil, fmt.Errorf("unknown MessageWithOptionals field %s", name)
 }
@@ -4580,6 +4691,13 @@ func (m *MessageWithOptionalsMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTimeOptional(v)
+		return nil
+	case messagewithoptionals.FieldStringsOptional:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStringsOptional(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals field %s", name)
@@ -4674,6 +4792,9 @@ func (m *MessageWithOptionalsMutation) ClearedFields() []string {
 	if m.FieldCleared(messagewithoptionals.FieldTimeOptional) {
 		fields = append(fields, messagewithoptionals.FieldTimeOptional)
 	}
+	if m.FieldCleared(messagewithoptionals.FieldStringsOptional) {
+		fields = append(fields, messagewithoptionals.FieldStringsOptional)
+	}
 	return fields
 }
 
@@ -4712,6 +4833,9 @@ func (m *MessageWithOptionalsMutation) ClearField(name string) error {
 	case messagewithoptionals.FieldTimeOptional:
 		m.ClearTimeOptional()
 		return nil
+	case messagewithoptionals.FieldStringsOptional:
+		m.ClearStringsOptional()
+		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals nullable field %s", name)
 }
@@ -4743,6 +4867,9 @@ func (m *MessageWithOptionalsMutation) ResetField(name string) error {
 		return nil
 	case messagewithoptionals.FieldTimeOptional:
 		m.ResetTimeOptional()
+		return nil
+	case messagewithoptionals.FieldStringsOptional:
+		m.ResetStringsOptional()
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithOptionals field %s", name)

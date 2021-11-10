@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString},
 		{Name: "body", Type: field.TypeString},
+		{Name: "tags", Type: field.TypeJSON},
 		{Name: "external_id", Type: field.TypeInt, Unique: true},
 		{Name: "blog_post_author", Type: field.TypeInt, Nullable: true},
 	}
@@ -24,7 +25,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "blog_posts_users_author",
-				Columns:    []*schema.Column{BlogPostsColumns[4]},
+				Columns:    []*schema.Column{BlogPostsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -160,6 +161,7 @@ var (
 		{Name: "bytes_optional", Type: field.TypeBytes, Nullable: true},
 		{Name: "uuid_optional", Type: field.TypeUUID, Nullable: true},
 		{Name: "time_optional", Type: field.TypeTime, Nullable: true},
+		{Name: "strings_optional", Type: field.TypeJSON, Nullable: true},
 	}
 	// MessageWithOptionalsTable holds the schema information for the "message_with_optionals" table.
 	MessageWithOptionalsTable = &schema.Table{

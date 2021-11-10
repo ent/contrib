@@ -193,6 +193,18 @@ func (mwou *MessageWithOptionalsUpdate) ClearTimeOptional() *MessageWithOptional
 	return mwou
 }
 
+// SetStringsOptional sets the "strings_optional" field.
+func (mwou *MessageWithOptionalsUpdate) SetStringsOptional(s []string) *MessageWithOptionalsUpdate {
+	mwou.mutation.SetStringsOptional(s)
+	return mwou
+}
+
+// ClearStringsOptional clears the value of the "strings_optional" field.
+func (mwou *MessageWithOptionalsUpdate) ClearStringsOptional() *MessageWithOptionalsUpdate {
+	mwou.mutation.ClearStringsOptional()
+	return mwou
+}
+
 // Mutation returns the MessageWithOptionalsMutation object of the builder.
 func (mwou *MessageWithOptionalsUpdate) Mutation() *MessageWithOptionalsMutation {
 	return mwou.mutation
@@ -395,6 +407,19 @@ func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err
 			Column: messagewithoptionals.FieldTimeOptional,
 		})
 	}
+	if value, ok := mwou.mutation.StringsOptional(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: messagewithoptionals.FieldStringsOptional,
+		})
+	}
+	if mwou.mutation.StringsOptionalCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: messagewithoptionals.FieldStringsOptional,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{messagewithoptionals.Label}
@@ -576,6 +601,18 @@ func (mwouo *MessageWithOptionalsUpdateOne) SetNillableTimeOptional(t *time.Time
 // ClearTimeOptional clears the value of the "time_optional" field.
 func (mwouo *MessageWithOptionalsUpdateOne) ClearTimeOptional() *MessageWithOptionalsUpdateOne {
 	mwouo.mutation.ClearTimeOptional()
+	return mwouo
+}
+
+// SetStringsOptional sets the "strings_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) SetStringsOptional(s []string) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.SetStringsOptional(s)
+	return mwouo
+}
+
+// ClearStringsOptional clears the value of the "strings_optional" field.
+func (mwouo *MessageWithOptionalsUpdateOne) ClearStringsOptional() *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.ClearStringsOptional()
 	return mwouo
 }
 
@@ -803,6 +840,19 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: messagewithoptionals.FieldTimeOptional,
+		})
+	}
+	if value, ok := mwouo.mutation.StringsOptional(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: messagewithoptionals.FieldStringsOptional,
+		})
+	}
+	if mwouo.mutation.StringsOptionalCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: messagewithoptionals.FieldStringsOptional,
 		})
 	}
 	_node = &MessageWithOptionals{config: mwouo.config}

@@ -116,6 +116,12 @@ func (mwoc *MessageWithOptionalsCreate) SetNillableTimeOptional(t *time.Time) *M
 	return mwoc
 }
 
+// SetStringsOptional sets the "strings_optional" field.
+func (mwoc *MessageWithOptionalsCreate) SetStringsOptional(s []string) *MessageWithOptionalsCreate {
+	mwoc.mutation.SetStringsOptional(s)
+	return mwoc
+}
+
 // Mutation returns the MessageWithOptionalsMutation object of the builder.
 func (mwoc *MessageWithOptionalsCreate) Mutation() *MessageWithOptionalsMutation {
 	return mwoc.mutation
@@ -276,6 +282,14 @@ func (mwoc *MessageWithOptionalsCreate) createSpec() (*MessageWithOptionals, *sq
 			Column: messagewithoptionals.FieldTimeOptional,
 		})
 		_node.TimeOptional = value
+	}
+	if value, ok := mwoc.mutation.StringsOptional(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: messagewithoptionals.FieldStringsOptional,
+		})
+		_node.StringsOptional = value
 	}
 	return _node, _spec
 }

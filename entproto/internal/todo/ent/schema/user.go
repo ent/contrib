@@ -87,6 +87,9 @@ func (User) Fields() []ent.Field {
 		field.Bool("opt_bool").
 			Optional().
 			Annotations(entproto.Field(15)),
+		field.Strings("opt_strings").
+			Optional().
+			Annotations(entproto.Field(16)),
 		field.Int("big_int").
 			Optional().
 			GoType(BigInt{}).

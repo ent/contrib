@@ -842,6 +842,20 @@ func TimeOptionalNotNil() predicate.MessageWithOptionals {
 	})
 }
 
+// StringsOptionalIsNil applies the IsNil predicate on the "strings_optional" field.
+func StringsOptionalIsNil() predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldStringsOptional)))
+	})
+}
+
+// StringsOptionalNotNil applies the NotNil predicate on the "strings_optional" field.
+func StringsOptionalNotNil() predicate.MessageWithOptionals {
+	return predicate.MessageWithOptionals(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldStringsOptional)))
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.MessageWithOptionals) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {

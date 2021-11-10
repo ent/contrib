@@ -52,6 +52,9 @@ func (MessageWithOptionals) Fields() []ent.Field {
 		field.Time("time_optional").
 			Optional().
 			Annotations(entproto.Field(9)),
+		field.Strings("strings_optional").
+			Optional().
+			Annotations(entproto.Field(10)),
 	}
 }
 
