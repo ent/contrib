@@ -102,6 +102,12 @@ func (User) Fields() []ent.Field {
 			Optional().
 			Unique().
 			Annotations(entproto.Field(18)),
+		field.Float32("height_in_cm").
+			Default(0.0).
+			Annotations(entproto.Field(19)),
+		field.Float("account_balance").
+			Default(0.0).
+			Annotations(entproto.Field(20)),
 	}
 }
 

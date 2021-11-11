@@ -52,9 +52,11 @@ func TestUserService_Create(t *testing.T) {
 		Group: &Group{
 			Id: int32(group.ID),
 		},
-		CrmId:      crmID,
-		Attachment: &Attachment{Id: attachmentID},
-		Banned:     true,
+		CrmId:          crmID,
+		Attachment:     &Attachment{Id: attachmentID},
+		Banned:         true,
+		HeightInCm:     170.18,
+		AccountBalance: 2000.50,
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -69,6 +71,8 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.Points, fromDB.Points)
 	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper(string(fromDB.Status)))
 	require.EqualValues(t, inputUser.Banned, fromDB.Banned)
+	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
+	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
 
 	// preexisting user
 	_, err = svc.Create(ctx, &CreateUserRequest{
@@ -93,6 +97,8 @@ func TestUserService_Get(t *testing.T) {
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
 		SetCustomPb(1).
+		SetHeightInCm(170.18).
+		SetAccountBalance(2000.50).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: int32(created.ID),
@@ -102,6 +108,8 @@ func TestUserService_Get(t *testing.T) {
 	require.EqualValues(t, created.Exp, get.Exp)
 	require.EqualValues(t, created.Joined.Unix(), get.Joined.AsTime().Unix())
 	require.EqualValues(t, created.Points, get.Points)
+	require.EqualValues(t, created.HeightInCm, get.HeightInCm)
+	require.EqualValues(t, created.AccountBalance, get.AccountBalance)
 	get, err = svc.Get(ctx, &GetUserRequest{
 		Id: 1000,
 	})
@@ -158,6 +166,8 @@ func TestUserService_Update(t *testing.T) {
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
 		SetCustomPb(1).
+		SetHeightInCm(170.18).
+		SetAccountBalance(2000.50).
 		SaveX(ctx)
 
 	attachmentID, err := attachment.ID.MarshalBinary()
@@ -180,7 +190,9 @@ func TestUserService_Update(t *testing.T) {
 		Attachment: &Attachment{
 			Id: attachmentID,
 		},
-		CrmId: crmID,
+		CrmId:          crmID,
+		HeightInCm:     175.18,
+		AccountBalance: 5000.75,
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,

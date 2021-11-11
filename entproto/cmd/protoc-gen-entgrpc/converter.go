@@ -57,7 +57,8 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	case dpb.FieldDescriptorProto_TYPE_BOOL, dpb.FieldDescriptorProto_TYPE_STRING,
 		dpb.FieldDescriptorProto_TYPE_BYTES, dpb.FieldDescriptorProto_TYPE_INT32,
 		dpb.FieldDescriptorProto_TYPE_INT64, dpb.FieldDescriptorProto_TYPE_UINT32,
-		dpb.FieldDescriptorProto_TYPE_UINT64:
+		dpb.FieldDescriptorProto_TYPE_UINT64, dpb.FieldDescriptorProto_TYPE_FLOAT,
+		dpb.FieldDescriptorProto_TYPE_DOUBLE:
 		if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
 			return nil, err
 		}
@@ -153,6 +154,14 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 	case dpb.FieldDescriptorProto_TYPE_UINT64:
 		if entField.Type.String() != "uint64" {
 			conv.ToProtoConversion = "uint64"
+		}
+	case dpb.FieldDescriptorProto_TYPE_FLOAT:
+		if entField.Type.String() != "float32" {
+			conv.ToProtoConversion = "float32"
+		}
+	case dpb.FieldDescriptorProto_TYPE_DOUBLE:
+		if entField.Type.Valuer() {
+			conv.ToProtoConversion = "float64"
 		}
 	}
 	return nil

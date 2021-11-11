@@ -136,6 +136,10 @@ message User {
 
   google.protobuf.Int32Value b_user_1 = 18;
 
+  float height_in_cm = 19;
+
+  double account_balance = 20;
+
   Group group = 7;
 
   Attachment attachment = 11;

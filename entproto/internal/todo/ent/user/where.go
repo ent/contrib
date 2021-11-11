@@ -186,6 +186,20 @@ func BUser1(v int) predicate.User {
 	})
 }
 
+// HeightInCm applies equality check predicate on the "height_in_cm" field. It's identical to HeightInCmEQ.
+func HeightInCm(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldHeightInCm), v))
+	})
+}
+
+// AccountBalance applies equality check predicate on the "account_balance" field. It's identical to AccountBalanceEQ.
+func AccountBalance(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAccountBalance), v))
+	})
+}
+
 // UserNameEQ applies the EQ predicate on the "user_name" field.
 func UserNameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -1235,6 +1249,158 @@ func BUser1IsNil() predicate.User {
 func BUser1NotNil() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldBUser1)))
+	})
+}
+
+// HeightInCmEQ applies the EQ predicate on the "height_in_cm" field.
+func HeightInCmEQ(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldHeightInCm), v))
+	})
+}
+
+// HeightInCmNEQ applies the NEQ predicate on the "height_in_cm" field.
+func HeightInCmNEQ(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldHeightInCm), v))
+	})
+}
+
+// HeightInCmIn applies the In predicate on the "height_in_cm" field.
+func HeightInCmIn(vs ...float32) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldHeightInCm), v...))
+	})
+}
+
+// HeightInCmNotIn applies the NotIn predicate on the "height_in_cm" field.
+func HeightInCmNotIn(vs ...float32) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldHeightInCm), v...))
+	})
+}
+
+// HeightInCmGT applies the GT predicate on the "height_in_cm" field.
+func HeightInCmGT(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldHeightInCm), v))
+	})
+}
+
+// HeightInCmGTE applies the GTE predicate on the "height_in_cm" field.
+func HeightInCmGTE(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldHeightInCm), v))
+	})
+}
+
+// HeightInCmLT applies the LT predicate on the "height_in_cm" field.
+func HeightInCmLT(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldHeightInCm), v))
+	})
+}
+
+// HeightInCmLTE applies the LTE predicate on the "height_in_cm" field.
+func HeightInCmLTE(v float32) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldHeightInCm), v))
+	})
+}
+
+// AccountBalanceEQ applies the EQ predicate on the "account_balance" field.
+func AccountBalanceEQ(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAccountBalance), v))
+	})
+}
+
+// AccountBalanceNEQ applies the NEQ predicate on the "account_balance" field.
+func AccountBalanceNEQ(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAccountBalance), v))
+	})
+}
+
+// AccountBalanceIn applies the In predicate on the "account_balance" field.
+func AccountBalanceIn(vs ...float64) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldAccountBalance), v...))
+	})
+}
+
+// AccountBalanceNotIn applies the NotIn predicate on the "account_balance" field.
+func AccountBalanceNotIn(vs ...float64) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldAccountBalance), v...))
+	})
+}
+
+// AccountBalanceGT applies the GT predicate on the "account_balance" field.
+func AccountBalanceGT(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAccountBalance), v))
+	})
+}
+
+// AccountBalanceGTE applies the GTE predicate on the "account_balance" field.
+func AccountBalanceGTE(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAccountBalance), v))
+	})
+}
+
+// AccountBalanceLT applies the LT predicate on the "account_balance" field.
+func AccountBalanceLT(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAccountBalance), v))
+	})
+}
+
+// AccountBalanceLTE applies the LTE predicate on the "account_balance" field.
+func AccountBalanceLTE(v float64) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAccountBalance), v))
 	})
 }
 

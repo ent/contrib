@@ -228,6 +228,48 @@ func (uu *UserUpdate) ClearBUser1() *UserUpdate {
 	return uu
 }
 
+// SetHeightInCm sets the "height_in_cm" field.
+func (uu *UserUpdate) SetHeightInCm(f float32) *UserUpdate {
+	uu.mutation.ResetHeightInCm()
+	uu.mutation.SetHeightInCm(f)
+	return uu
+}
+
+// SetNillableHeightInCm sets the "height_in_cm" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHeightInCm(f *float32) *UserUpdate {
+	if f != nil {
+		uu.SetHeightInCm(*f)
+	}
+	return uu
+}
+
+// AddHeightInCm adds f to the "height_in_cm" field.
+func (uu *UserUpdate) AddHeightInCm(f float32) *UserUpdate {
+	uu.mutation.AddHeightInCm(f)
+	return uu
+}
+
+// SetAccountBalance sets the "account_balance" field.
+func (uu *UserUpdate) SetAccountBalance(f float64) *UserUpdate {
+	uu.mutation.ResetAccountBalance()
+	uu.mutation.SetAccountBalance(f)
+	return uu
+}
+
+// SetNillableAccountBalance sets the "account_balance" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAccountBalance(f *float64) *UserUpdate {
+	if f != nil {
+		uu.SetAccountBalance(*f)
+	}
+	return uu
+}
+
+// AddAccountBalance adds f to the "account_balance" field.
+func (uu *UserUpdate) AddAccountBalance(f float64) *UserUpdate {
+	uu.mutation.AddAccountBalance(f)
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -570,6 +612,34 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldBUser1,
 		})
 	}
+	if value, ok := uu.mutation.HeightInCm(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat32,
+			Value:  value,
+			Column: user.FieldHeightInCm,
+		})
+	}
+	if value, ok := uu.mutation.AddedHeightInCm(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat32,
+			Value:  value,
+			Column: user.FieldHeightInCm,
+		})
+	}
+	if value, ok := uu.mutation.AccountBalance(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: user.FieldAccountBalance,
+		})
+	}
+	if value, ok := uu.mutation.AddedAccountBalance(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: user.FieldAccountBalance,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -908,6 +978,48 @@ func (uuo *UserUpdateOne) AddBUser1(i int) *UserUpdateOne {
 // ClearBUser1 clears the value of the "b_user_1" field.
 func (uuo *UserUpdateOne) ClearBUser1() *UserUpdateOne {
 	uuo.mutation.ClearBUser1()
+	return uuo
+}
+
+// SetHeightInCm sets the "height_in_cm" field.
+func (uuo *UserUpdateOne) SetHeightInCm(f float32) *UserUpdateOne {
+	uuo.mutation.ResetHeightInCm()
+	uuo.mutation.SetHeightInCm(f)
+	return uuo
+}
+
+// SetNillableHeightInCm sets the "height_in_cm" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHeightInCm(f *float32) *UserUpdateOne {
+	if f != nil {
+		uuo.SetHeightInCm(*f)
+	}
+	return uuo
+}
+
+// AddHeightInCm adds f to the "height_in_cm" field.
+func (uuo *UserUpdateOne) AddHeightInCm(f float32) *UserUpdateOne {
+	uuo.mutation.AddHeightInCm(f)
+	return uuo
+}
+
+// SetAccountBalance sets the "account_balance" field.
+func (uuo *UserUpdateOne) SetAccountBalance(f float64) *UserUpdateOne {
+	uuo.mutation.ResetAccountBalance()
+	uuo.mutation.SetAccountBalance(f)
+	return uuo
+}
+
+// SetNillableAccountBalance sets the "account_balance" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAccountBalance(f *float64) *UserUpdateOne {
+	if f != nil {
+		uuo.SetAccountBalance(*f)
+	}
+	return uuo
+}
+
+// AddAccountBalance adds f to the "account_balance" field.
+func (uuo *UserUpdateOne) AddAccountBalance(f float64) *UserUpdateOne {
+	uuo.mutation.AddAccountBalance(f)
 	return uuo
 }
 
@@ -1275,6 +1387,34 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: user.FieldBUser1,
+		})
+	}
+	if value, ok := uuo.mutation.HeightInCm(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat32,
+			Value:  value,
+			Column: user.FieldHeightInCm,
+		})
+	}
+	if value, ok := uuo.mutation.AddedHeightInCm(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat32,
+			Value:  value,
+			Column: user.FieldHeightInCm,
+		})
+	}
+	if value, ok := uuo.mutation.AccountBalance(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: user.FieldAccountBalance,
+		})
+	}
+	if value, ok := uuo.mutation.AddedAccountBalance(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: user.FieldAccountBalance,
 		})
 	}
 	if uuo.mutation.GroupCleared() {
