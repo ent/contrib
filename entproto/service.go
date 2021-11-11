@@ -43,7 +43,7 @@ type Method uint
 // Is reports whether method m matches given method n.
 func (m Method) Is(n Method) bool { return m&n != 0 }
 
-func Methods(methods Method) func(*service) {
+func Methods(methods Method) ServiceOption {
 	return func(s *service) {
 		s.Methods = methods
 	}
@@ -58,18 +58,21 @@ func (service) Name() string {
 	return ServiceAnnotation
 }
 
-func Service(options ...func(*service)) schema.Annotation {
-	s := &service{Generate: true}
+// ServiceOption configures the entproto.Service annotation.
+type ServiceOption func(svc *service)
 
-	for _, opt := range options {
-		opt(s)
+// Service annotates an ent.Schema to specify that protobuf service generation is required for it.
+func Service(opts ...ServiceOption) schema.Annotation {
+	s := service{
+		Generate: true,
 	}
-
+	for _, apply := range opts {
+		apply(&s)
+	}
 	// Default to generating all methods
 	if s.Methods == 0 {
 		s.Methods = MethodAll
 	}
-
 	return s
 }
 
