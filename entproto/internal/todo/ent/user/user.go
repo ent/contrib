@@ -35,6 +35,8 @@ const (
 	FieldOptStr = "opt_str"
 	// FieldOptBool holds the string denoting the opt_bool field in the database.
 	FieldOptBool = "opt_bool"
+	// FieldOptStrings holds the string denoting the opt_strings field in the database.
+	FieldOptStrings = "opt_strings"
 	// FieldBigInt holds the string denoting the big_int field in the database.
 	FieldBigInt = "big_int"
 	// FieldBUser1 holds the string denoting the b_user_1 field in the database.
@@ -87,6 +89,7 @@ var Columns = []string{
 	FieldOptNum,
 	FieldOptStr,
 	FieldOptBool,
+	FieldOptStrings,
 	FieldBigInt,
 	FieldBUser1,
 	FieldHeightInCm,

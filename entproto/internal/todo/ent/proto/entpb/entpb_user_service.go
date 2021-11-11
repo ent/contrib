@@ -9,6 +9,7 @@ import (
 	schema "entgo.io/contrib/entproto/internal/todo/ent/schema"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
+	slice "entgo.io/contrib/entproto/slice"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	errors "errors"
 	uuid "github.com/google/uuid"
@@ -89,6 +90,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.OptNum = optnum
 	optstr := wrapperspb.String(e.OptStr)
 	v.OptStr = optstr
+	optstrings := slice.InsertStrings(e.OptStrings)
+	v.OptStrings = optstrings
 	points := uint32(e.Points)
 	v.Points = points
 	status := toProtoUser_Status(e.Status)
@@ -167,6 +170,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	if user.GetOptStr() != nil {
 		userOptStr := user.GetOptStr().GetValue()
 		m.SetOptStr(userOptStr)
+	}
+	if user.GetOptStrings() != nil {
+		userOptStrings := slice.ExtractStrings(user.GetOptStrings())
+		m.SetOptStrings(userOptStrings)
 	}
 	userPoints := uint(user.GetPoints())
 	m.SetPoints(userPoints)
@@ -288,6 +295,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	if user.GetOptStr() != nil {
 		userOptStr := user.GetOptStr().GetValue()
 		m.SetOptStr(userOptStr)
+	}
+	if user.GetOptStrings() != nil {
+		userOptStrings := slice.ExtractStrings(user.GetOptStrings())
+		m.SetOptStrings(userOptStrings)
 	}
 	userPoints := uint(user.GetPoints())
 	m.SetPoints(userPoints)

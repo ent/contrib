@@ -1072,6 +1072,20 @@ func OptBoolNotNil() predicate.User {
 	})
 }
 
+// OptStringsIsNil applies the IsNil predicate on the "opt_strings" field.
+func OptStringsIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOptStrings)))
+	})
+}
+
+// OptStringsNotNil applies the NotNil predicate on the "opt_strings" field.
+func OptStringsNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOptStrings)))
+	})
+}
+
 // BigIntEQ applies the EQ predicate on the "big_int" field.
 func BigIntEQ(v schema.BigInt) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

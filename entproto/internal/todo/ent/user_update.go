@@ -181,6 +181,18 @@ func (uu *UserUpdate) ClearOptBool() *UserUpdate {
 	return uu
 }
 
+// SetOptStrings sets the "opt_strings" field.
+func (uu *UserUpdate) SetOptStrings(s []string) *UserUpdate {
+	uu.mutation.SetOptStrings(s)
+	return uu
+}
+
+// ClearOptStrings clears the value of the "opt_strings" field.
+func (uu *UserUpdate) ClearOptStrings() *UserUpdate {
+	uu.mutation.ClearOptStrings()
+	return uu
+}
+
 // SetBigInt sets the "big_int" field.
 func (uu *UserUpdate) SetBigInt(si schema.BigInt) *UserUpdate {
 	uu.mutation.SetBigInt(si)
@@ -579,6 +591,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldOptBool,
 		})
 	}
+	if value, ok := uu.mutation.OptStrings(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldOptStrings,
+		})
+	}
+	if uu.mutation.OptStringsCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: user.FieldOptStrings,
+		})
+	}
 	if value, ok := uu.mutation.BigInt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -931,6 +956,18 @@ func (uuo *UserUpdateOne) SetNillableOptBool(b *bool) *UserUpdateOne {
 // ClearOptBool clears the value of the "opt_bool" field.
 func (uuo *UserUpdateOne) ClearOptBool() *UserUpdateOne {
 	uuo.mutation.ClearOptBool()
+	return uuo
+}
+
+// SetOptStrings sets the "opt_strings" field.
+func (uuo *UserUpdateOne) SetOptStrings(s []string) *UserUpdateOne {
+	uuo.mutation.SetOptStrings(s)
+	return uuo
+}
+
+// ClearOptStrings clears the value of the "opt_strings" field.
+func (uuo *UserUpdateOne) ClearOptStrings() *UserUpdateOne {
+	uuo.mutation.ClearOptStrings()
 	return uuo
 }
 
@@ -1354,6 +1391,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: user.FieldOptBool,
+		})
+	}
+	if value, ok := uuo.mutation.OptStrings(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldOptStrings,
+		})
+	}
+	if uuo.mutation.OptStringsCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: user.FieldOptStrings,
 		})
 	}
 	if value, ok := uuo.mutation.BigInt(); ok {

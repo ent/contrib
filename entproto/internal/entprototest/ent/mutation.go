@@ -63,9 +63,9 @@ type BlogPostMutation struct {
 	id                *int
 	title             *string
 	body              *string
-	tags              *[]string
 	external_id       *int
 	addexternal_id    *int
+	tags              *[]string
 	clearedFields     map[string]struct{}
 	author            *int
 	clearedauthor     bool
@@ -228,42 +228,6 @@ func (m *BlogPostMutation) ResetBody() {
 	m.body = nil
 }
 
-// SetTags sets the "tags" field.
-func (m *BlogPostMutation) SetTags(s []string) {
-	m.tags = &s
-}
-
-// Tags returns the value of the "tags" field in the mutation.
-func (m *BlogPostMutation) Tags() (r []string, exists bool) {
-	v := m.tags
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTags returns the old "tags" field's value of the BlogPost entity.
-// If the BlogPost object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *BlogPostMutation) OldTags(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldTags is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldTags requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTags: %w", err)
-	}
-	return oldValue.Tags, nil
-}
-
-// ResetTags resets all changes to the "tags" field.
-func (m *BlogPostMutation) ResetTags() {
-	m.tags = nil
-}
-
 // SetExternalID sets the "external_id" field.
 func (m *BlogPostMutation) SetExternalID(i int) {
 	m.external_id = &i
@@ -318,6 +282,42 @@ func (m *BlogPostMutation) AddedExternalID() (r int, exists bool) {
 func (m *BlogPostMutation) ResetExternalID() {
 	m.external_id = nil
 	m.addexternal_id = nil
+}
+
+// SetTags sets the "tags" field.
+func (m *BlogPostMutation) SetTags(s []string) {
+	m.tags = &s
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *BlogPostMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the BlogPost entity.
+// If the BlogPost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlogPostMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *BlogPostMutation) ResetTags() {
+	m.tags = nil
 }
 
 // SetAuthorID sets the "author" edge to the User entity by id.
@@ -439,11 +439,11 @@ func (m *BlogPostMutation) Fields() []string {
 	if m.body != nil {
 		fields = append(fields, blogpost.FieldBody)
 	}
-	if m.tags != nil {
-		fields = append(fields, blogpost.FieldTags)
-	}
 	if m.external_id != nil {
 		fields = append(fields, blogpost.FieldExternalID)
+	}
+	if m.tags != nil {
+		fields = append(fields, blogpost.FieldTags)
 	}
 	return fields
 }
@@ -457,10 +457,10 @@ func (m *BlogPostMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case blogpost.FieldBody:
 		return m.Body()
-	case blogpost.FieldTags:
-		return m.Tags()
 	case blogpost.FieldExternalID:
 		return m.ExternalID()
+	case blogpost.FieldTags:
+		return m.Tags()
 	}
 	return nil, false
 }
@@ -474,10 +474,10 @@ func (m *BlogPostMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTitle(ctx)
 	case blogpost.FieldBody:
 		return m.OldBody(ctx)
-	case blogpost.FieldTags:
-		return m.OldTags(ctx)
 	case blogpost.FieldExternalID:
 		return m.OldExternalID(ctx)
+	case blogpost.FieldTags:
+		return m.OldTags(ctx)
 	}
 	return nil, fmt.Errorf("unknown BlogPost field %s", name)
 }
@@ -501,19 +501,19 @@ func (m *BlogPostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBody(v)
 		return nil
-	case blogpost.FieldTags:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTags(v)
-		return nil
 	case blogpost.FieldExternalID:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExternalID(v)
+		return nil
+	case blogpost.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
 		return nil
 	}
 	return fmt.Errorf("unknown BlogPost field %s", name)
@@ -585,11 +585,11 @@ func (m *BlogPostMutation) ResetField(name string) error {
 	case blogpost.FieldBody:
 		m.ResetBody()
 		return nil
-	case blogpost.FieldTags:
-		m.ResetTags()
-		return nil
 	case blogpost.FieldExternalID:
 		m.ResetExternalID()
+		return nil
+	case blogpost.FieldTags:
+		m.ResetTags()
 		return nil
 	}
 	return fmt.Errorf("unknown BlogPost field %s", name)

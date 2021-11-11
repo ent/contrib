@@ -94,20 +94,20 @@ func (User) Fields() []ent.Field {
 			Optional().
 			GoType(BigInt{}).
 			Annotations(entproto.Field(
-				17,
+				18,
 				entproto.Type(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE),
 				entproto.TypeName("google.protobuf.StringValue"),
 			)),
 		field.Int("b_user_1").
 			Optional().
 			Unique().
-			Annotations(entproto.Field(18)),
+			Annotations(entproto.Field(19)),
 		field.Float32("height_in_cm").
 			Default(0.0).
-			Annotations(entproto.Field(19)),
+			Annotations(entproto.Field(20)),
 		field.Float("account_balance").
 			Default(0.0).
-			Annotations(entproto.Field(20)),
+			Annotations(entproto.Field(21)),
 	}
 }
 
@@ -125,7 +125,7 @@ func (User) Edges() []ent.Edge {
 			),
 		edge.From("received_1", Attachment.Type).
 			Ref("recipients").
-			Annotations(entproto.Field(16)),
+			Annotations(entproto.Field(17)),
 	}
 }
 

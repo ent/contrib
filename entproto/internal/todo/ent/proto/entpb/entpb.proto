@@ -132,19 +132,21 @@ message User {
 
   google.protobuf.BoolValue opt_bool = 15;
 
-  google.protobuf.StringValue big_int = 17;
+  repeated google.protobuf.StringValue opt_strings = 16;
 
-  google.protobuf.Int32Value b_user_1 = 18;
+  google.protobuf.StringValue big_int = 18;
 
-  float height_in_cm = 19;
+  google.protobuf.Int32Value b_user_1 = 19;
 
-  double account_balance = 20;
+  float height_in_cm = 20;
+
+  double account_balance = 21;
 
   Group group = 7;
 
   Attachment attachment = 11;
 
-  repeated Attachment received_1 = 16;
+  repeated Attachment received_1 = 17;
 
   enum Status {
     STATUS_UNSPECIFIED = 0;

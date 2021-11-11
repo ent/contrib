@@ -128,6 +128,12 @@ func (uc *UserCreate) SetNillableOptBool(b *bool) *UserCreate {
 	return uc
 }
 
+// SetOptStrings sets the "opt_strings" field.
+func (uc *UserCreate) SetOptStrings(s []string) *UserCreate {
+	uc.mutation.SetOptStrings(s)
+	return uc
+}
+
 // SetBigInt sets the "big_int" field.
 func (uc *UserCreate) SetBigInt(si schema.BigInt) *UserCreate {
 	uc.mutation.SetBigInt(si)
@@ -484,6 +490,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldOptBool,
 		})
 		_node.OptBool = value
+	}
+	if value, ok := uc.mutation.OptStrings(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldOptStrings,
+		})
+		_node.OptStrings = value
 	}
 	if value, ok := uc.mutation.BigInt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

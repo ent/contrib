@@ -1634,6 +1634,7 @@ type UserMutation struct {
 	addopt_num         *int
 	opt_str            *string
 	opt_bool           *bool
+	opt_strings        *[]string
 	big_int            *schema.BigInt
 	b_user_1           *int
 	addb_user_1        *int
@@ -2305,6 +2306,55 @@ func (m *UserMutation) ResetOptBool() {
 	delete(m.clearedFields, user.FieldOptBool)
 }
 
+// SetOptStrings sets the "opt_strings" field.
+func (m *UserMutation) SetOptStrings(s []string) {
+	m.opt_strings = &s
+}
+
+// OptStrings returns the value of the "opt_strings" field in the mutation.
+func (m *UserMutation) OptStrings() (r []string, exists bool) {
+	v := m.opt_strings
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptStrings returns the old "opt_strings" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldOptStrings(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOptStrings is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOptStrings requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptStrings: %w", err)
+	}
+	return oldValue.OptStrings, nil
+}
+
+// ClearOptStrings clears the value of the "opt_strings" field.
+func (m *UserMutation) ClearOptStrings() {
+	m.opt_strings = nil
+	m.clearedFields[user.FieldOptStrings] = struct{}{}
+}
+
+// OptStringsCleared returns if the "opt_strings" field was cleared in this mutation.
+func (m *UserMutation) OptStringsCleared() bool {
+	_, ok := m.clearedFields[user.FieldOptStrings]
+	return ok
+}
+
+// ResetOptStrings resets all changes to the "opt_strings" field.
+func (m *UserMutation) ResetOptStrings() {
+	m.opt_strings = nil
+	delete(m.clearedFields, user.FieldOptStrings)
+}
+
 // SetBigInt sets the "big_int" field.
 func (m *UserMutation) SetBigInt(si schema.BigInt) {
 	m.big_int = &si
@@ -2687,7 +2737,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -2723,6 +2773,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.opt_bool != nil {
 		fields = append(fields, user.FieldOptBool)
+	}
+	if m.opt_strings != nil {
+		fields = append(fields, user.FieldOptStrings)
 	}
 	if m.big_int != nil {
 		fields = append(fields, user.FieldBigInt)
@@ -2768,6 +2821,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.OptStr()
 	case user.FieldOptBool:
 		return m.OptBool()
+	case user.FieldOptStrings:
+		return m.OptStrings()
 	case user.FieldBigInt:
 		return m.BigInt()
 	case user.FieldBUser1:
@@ -2809,6 +2864,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldOptStr(ctx)
 	case user.FieldOptBool:
 		return m.OldOptBool(ctx)
+	case user.FieldOptStrings:
+		return m.OldOptStrings(ctx)
 	case user.FieldBigInt:
 		return m.OldBigInt(ctx)
 	case user.FieldBUser1:
@@ -2909,6 +2966,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOptBool(v)
+		return nil
+	case user.FieldOptStrings:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptStrings(v)
 		return nil
 	case user.FieldBigInt:
 		v, ok := value.(schema.BigInt)
@@ -3076,6 +3140,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldOptBool) {
 		fields = append(fields, user.FieldOptBool)
 	}
+	if m.FieldCleared(user.FieldOptStrings) {
+		fields = append(fields, user.FieldOptStrings)
+	}
 	if m.FieldCleared(user.FieldBigInt) {
 		fields = append(fields, user.FieldBigInt)
 	}
@@ -3104,6 +3171,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldOptBool:
 		m.ClearOptBool()
+		return nil
+	case user.FieldOptStrings:
+		m.ClearOptStrings()
 		return nil
 	case user.FieldBigInt:
 		m.ClearBigInt()
@@ -3154,6 +3224,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldOptBool:
 		m.ResetOptBool()
+		return nil
+	case user.FieldOptStrings:
+		m.ResetOptStrings()
 		return nil
 	case user.FieldBigInt:
 		m.ResetBigInt()

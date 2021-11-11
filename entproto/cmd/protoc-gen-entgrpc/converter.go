@@ -102,7 +102,10 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		case efld.IsString():
 			out.ToEntScannerConversion = "string"
 		}
-	case efld.IsBool(), efld.IsBytes(), efld.IsString(), efld.Type.Ident == "[]string":
+	case isRepeatedType(efld.Type):
+		constructor := "Extract" + repeatedConstructors[efld.Type.Ident]
+		out.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/slice").Ident(constructor)
+	case efld.IsBool(), efld.IsBytes(), efld.IsString():
 	case efld.Type.Numeric():
 		out.ToEntConversion = efld.Type.String()
 	case efld.IsTime():
@@ -171,6 +174,9 @@ func convertPbMessageType(md *desc.MessageDescriptor, entField *gen.Field, conv 
 	switch {
 	case md.GetFullyQualifiedName() == "google.protobuf.Timestamp":
 		conv.ToProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
+	case isRepeatedType(entField.Type):
+		constructor := "Insert" + repeatedConstructors[entField.Type.Ident]
+		conv.ToProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/slice").Ident(constructor)
 	case isWrapperType(md):
 		fqn := md.GetFullyQualifiedName()
 		typ := strings.Split(fqn, ".")[2]
@@ -205,6 +211,15 @@ var wrapperPrimitives = map[string]string{
 	"google.protobuf.BoolValue":   "bool",
 	"google.protobuf.StringValue": "string",
 	"google.protobuf.BytesValue":  "[]byte",
+}
+
+func isRepeatedType(ti *field.TypeInfo) bool {
+	_, ok := repeatedConstructors[ti.Ident]
+	return ok
+}
+
+var repeatedConstructors = map[string]string{
+	"[]string": "Strings",
 }
 
 func implements(r *field.RType, typ reflect.Type) bool {

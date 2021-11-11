@@ -13,8 +13,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString},
 		{Name: "body", Type: field.TypeString},
-		{Name: "tags", Type: field.TypeJSON},
 		{Name: "external_id", Type: field.TypeInt, Unique: true},
+		{Name: "tags", Type: field.TypeJSON},
 		{Name: "blog_post_author", Type: field.TypeInt, Nullable: true},
 	}
 	// BlogPostsTable holds the schema information for the "blog_posts" table.

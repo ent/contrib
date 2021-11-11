@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -44,6 +45,8 @@ type User struct {
 	OptStr string `json:"opt_str,omitempty"`
 	// OptBool holds the value of the "opt_bool" field.
 	OptBool bool `json:"opt_bool,omitempty"`
+	// OptStrings holds the value of the "opt_strings" field.
+	OptStrings []string `json:"opt_strings,omitempty"`
 	// BigInt holds the value of the "big_int" field.
 	BigInt schema.BigInt `json:"big_int,omitempty"`
 	// BUser1 holds the value of the "b_user_1" field.
@@ -113,6 +116,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldOptStrings:
+			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
 		case user.FieldBanned, user.FieldOptBool:
@@ -222,6 +227,14 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.OptBool = value.Bool
 			}
+		case user.FieldOptStrings:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field opt_strings", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.OptStrings); err != nil {
+					return fmt.Errorf("unmarshal field opt_strings: %w", err)
+				}
+			}
 		case user.FieldBigInt:
 			if value, ok := values[i].(*schema.BigInt); !ok {
 				return fmt.Errorf("unexpected type %T for field big_int", values[i])
@@ -320,6 +333,8 @@ func (u *User) String() string {
 	builder.WriteString(u.OptStr)
 	builder.WriteString(", opt_bool=")
 	builder.WriteString(fmt.Sprintf("%v", u.OptBool))
+	builder.WriteString(", opt_strings=")
+	builder.WriteString(fmt.Sprintf("%v", u.OptStrings))
 	builder.WriteString(", big_int=")
 	builder.WriteString(fmt.Sprintf("%v", u.BigInt))
 	builder.WriteString(", b_user_1=")

@@ -40,12 +40,6 @@ func (bpu *BlogPostUpdate) SetBody(s string) *BlogPostUpdate {
 	return bpu
 }
 
-// SetTags sets the "tags" field.
-func (bpu *BlogPostUpdate) SetTags(s []string) *BlogPostUpdate {
-	bpu.mutation.SetTags(s)
-	return bpu
-}
-
 // SetExternalID sets the "external_id" field.
 func (bpu *BlogPostUpdate) SetExternalID(i int) *BlogPostUpdate {
 	bpu.mutation.ResetExternalID()
@@ -56,6 +50,12 @@ func (bpu *BlogPostUpdate) SetExternalID(i int) *BlogPostUpdate {
 // AddExternalID adds i to the "external_id" field.
 func (bpu *BlogPostUpdate) AddExternalID(i int) *BlogPostUpdate {
 	bpu.mutation.AddExternalID(i)
+	return bpu
+}
+
+// SetTags sets the "tags" field.
+func (bpu *BlogPostUpdate) SetTags(s []string) *BlogPostUpdate {
+	bpu.mutation.SetTags(s)
 	return bpu
 }
 
@@ -211,13 +211,6 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: blogpost.FieldBody,
 		})
 	}
-	if value, ok := bpu.mutation.Tags(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: blogpost.FieldTags,
-		})
-	}
 	if value, ok := bpu.mutation.ExternalID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -230,6 +223,13 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: blogpost.FieldExternalID,
+		})
+	}
+	if value, ok := bpu.mutation.Tags(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: blogpost.FieldTags,
 		})
 	}
 	if bpu.mutation.AuthorCleared() {
@@ -352,12 +352,6 @@ func (bpuo *BlogPostUpdateOne) SetBody(s string) *BlogPostUpdateOne {
 	return bpuo
 }
 
-// SetTags sets the "tags" field.
-func (bpuo *BlogPostUpdateOne) SetTags(s []string) *BlogPostUpdateOne {
-	bpuo.mutation.SetTags(s)
-	return bpuo
-}
-
 // SetExternalID sets the "external_id" field.
 func (bpuo *BlogPostUpdateOne) SetExternalID(i int) *BlogPostUpdateOne {
 	bpuo.mutation.ResetExternalID()
@@ -368,6 +362,12 @@ func (bpuo *BlogPostUpdateOne) SetExternalID(i int) *BlogPostUpdateOne {
 // AddExternalID adds i to the "external_id" field.
 func (bpuo *BlogPostUpdateOne) AddExternalID(i int) *BlogPostUpdateOne {
 	bpuo.mutation.AddExternalID(i)
+	return bpuo
+}
+
+// SetTags sets the "tags" field.
+func (bpuo *BlogPostUpdateOne) SetTags(s []string) *BlogPostUpdateOne {
+	bpuo.mutation.SetTags(s)
 	return bpuo
 }
 
@@ -547,13 +547,6 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Column: blogpost.FieldBody,
 		})
 	}
-	if value, ok := bpuo.mutation.Tags(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: blogpost.FieldTags,
-		})
-	}
 	if value, ok := bpuo.mutation.ExternalID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
@@ -566,6 +559,13 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: blogpost.FieldExternalID,
+		})
+	}
+	if value, ok := bpuo.mutation.Tags(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: blogpost.FieldTags,
 		})
 	}
 	if bpuo.mutation.AuthorCleared() {

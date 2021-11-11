@@ -21,10 +21,10 @@ type BlogPost struct {
 	Title string `json:"title,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
-	// Tags holds the value of the "tags" field.
-	Tags []string `json:"tags,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID int `json:"external_id,omitempty"`
+	// Tags holds the value of the "tags" field.
+	Tags []string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BlogPostQuery when eager-loading is set.
 	Edges            BlogPostEdges `json:"edges"`
@@ -111,6 +111,12 @@ func (bp *BlogPost) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				bp.Body = value.String
 			}
+		case blogpost.FieldExternalID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field external_id", values[i])
+			} else if value.Valid {
+				bp.ExternalID = int(value.Int64)
+			}
 		case blogpost.FieldTags:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field tags", values[i])
@@ -118,12 +124,6 @@ func (bp *BlogPost) assignValues(columns []string, values []interface{}) error {
 				if err := json.Unmarshal(*value, &bp.Tags); err != nil {
 					return fmt.Errorf("unmarshal field tags: %w", err)
 				}
-			}
-		case blogpost.FieldExternalID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field external_id", values[i])
-			} else if value.Valid {
-				bp.ExternalID = int(value.Int64)
 			}
 		case blogpost.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -174,10 +174,10 @@ func (bp *BlogPost) String() string {
 	builder.WriteString(bp.Title)
 	builder.WriteString(", body=")
 	builder.WriteString(bp.Body)
-	builder.WriteString(", tags=")
-	builder.WriteString(fmt.Sprintf("%v", bp.Tags))
 	builder.WriteString(", external_id=")
 	builder.WriteString(fmt.Sprintf("%v", bp.ExternalID))
+	builder.WriteString(", tags=")
+	builder.WriteString(fmt.Sprintf("%v", bp.Tags))
 	builder.WriteByte(')')
 	return builder.String()
 }

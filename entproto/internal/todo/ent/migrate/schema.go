@@ -86,6 +86,7 @@ var (
 		{Name: "opt_num", Type: field.TypeInt, Nullable: true},
 		{Name: "opt_str", Type: field.TypeString, Nullable: true},
 		{Name: "opt_bool", Type: field.TypeBool, Nullable: true},
+		{Name: "opt_strings", Type: field.TypeJSON, Nullable: true},
 		{Name: "big_int", Type: field.TypeInt, Nullable: true},
 		{Name: "b_user_1", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "height_in_cm", Type: field.TypeFloat32, Default: 0},
@@ -100,7 +101,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[17]},
+				Columns:    []*schema.Column{UsersColumns[18]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

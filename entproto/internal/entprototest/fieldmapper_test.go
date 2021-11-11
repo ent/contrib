@@ -88,8 +88,4 @@ func (suite *AdapterTestSuite) TestReferenced() {
 	require.True(ok)
 	require.NotNil(auth)
 	require.EqualValues(auth.ReferencedPbType.GetName(), "User")
-	tags, ok := mp["tags"]
-	require.True(ok)
-	require.NotNil(tags)
-	require.EqualValues(tags.ReferencedPbType.GetName(), "Tags")
 }
