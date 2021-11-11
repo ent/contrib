@@ -377,3 +377,48 @@ message BlogPost {
 
 Validation:
 * Cyclic dependencies are not supported in protobuf - so back references can only be supported if both messages are output to the same proto package. (In the above example, `BlogPost`, `User` and `Category` must be output to the same proto package).
+
+### Contributing
+
+#### Code generation
+Please re-generate all code using `go generate ./...` before checking code in - CI will fail
+on [this check](https://github.com/ent/contrib/blob/f21123a5a76255777ef50e8f263e8741b936e0c7/.github/workflows/ci.yml#L67)
+otherwise. To ensure you get the same output as the CI process make sure your local environment has
+the same `protoc`, `protoc-gen-go` and `protoc-gen-go-grpc`. See the environment setup in the
+[ci.yaml](https://github.com/ent/contrib/blob/f21123a5a76255777ef50e8f263e8741b936e0c7/.github/workflows/ci.yml#L57-L64)
+file.
+
+#### Codegen + Test flow
+
+To rebuild the `protoc-gen-entgrpc` plugin, regenerate the code and run all tests:
+
+```shell
+go generate ./cmd/protoc-gen-entgrpc/... && 
+  go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
+  go generate ./... &&
+  go test ./... 
+```
+
+If you prefer to run code-generation inside a Docker container you
+can use the provided [Dockerfile](Dockerfile) that mimics the CI environment. 
+
+Build the image:
+```shell
+docker build -t entproto-dev .
+```
+
+Run the image (from the root `contrib/` directory), mounting your local source code
+into `/go/src` inside the container:
+```shell
+docker run -it -v $(pwd):/go/src -w /go/src/entproto entproto bash
+```
+
+From within the Docker image, compile and install your current `protoc-gen-entgrpc`
+binary, regenerate all code and run the tests. 
+```shell
+go generate ./cmd/protoc-gen-entgrpc/... && 
+  go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
+  go generate ./... &&
+  go test ./... 
+```
+
