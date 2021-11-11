@@ -43,8 +43,10 @@ type Method uint
 // Is reports whether method m matches given method n.
 func (m Method) Is(n Method) bool { return m&n != 0 }
 
-func Methods(methods Method) Method {
-	return methods
+func Methods(methods Method) func(*service) {
+	return func(s *service) {
+		s.Methods = methods
+	}
 }
 
 type service struct {
@@ -56,20 +58,19 @@ func (service) Name() string {
 	return ServiceAnnotation
 }
 
-func Service(methods ...Method) schema.Annotation {
-	var m Method
-	// Default is to generate all methods
-	if len(methods) == 0 {
-		m = MethodAll
-	}
-	for _, n := range methods {
-		m |= n
+func Service(options ...func(*service)) schema.Annotation {
+	s := &service{Generate: true}
+
+	for _, opt := range options {
+		opt(s)
 	}
 
-	return service{
-		Generate: true,
-		Methods:  m,
+	// Default to generating all methods
+	if s.Methods == 0 {
+		s.Methods = MethodAll
 	}
+
+	return s
 }
 
 func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (serviceResources, error) {
