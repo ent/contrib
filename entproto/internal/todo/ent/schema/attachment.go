@@ -49,8 +49,6 @@ func (Attachment) Edges() []ent.Edge {
 func (Attachment) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
-		entproto.Service(
-			entproto.Methods(
-				entproto.MethodAll)),
+		entproto.Service(),
 	}
 }
