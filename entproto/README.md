@@ -399,6 +399,8 @@ go generate ./cmd/protoc-gen-entgrpc/... &&
   go test ./... 
 ```
 
+#### Running in Docker
+
 If you prefer to run code-generation inside a Docker container you
 can use the provided [Dockerfile](Dockerfile) that mimics the CI environment. 
 
