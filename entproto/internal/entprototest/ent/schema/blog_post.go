@@ -52,8 +52,6 @@ func (BlogPost) Fields() []ent.Field {
 func (BlogPost) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
-		entproto.Service(
-			entproto.Methods(
-				entproto.MethodAll)),
+		entproto.Service(),
 	}
 }
