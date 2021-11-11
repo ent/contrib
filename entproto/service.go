@@ -27,50 +27,52 @@ import (
 
 const (
 	ServiceAnnotation        = "ProtoService"
-	MethodAll         Method = "All"
-	MethodCreate      Method = "Create"
-	MethodGet         Method = "Get"
-	MethodUpdate      Method = "Update"
-	MethodDelete      Method = "Delete"
+	MethodCreate      Method = 1 << iota
+	MethodGet
+	MethodUpdate
+	MethodDelete
+	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete
 )
 
 var (
 	errNoServiceDef = errors.New("entproto: annotation entproto.Service missing")
 )
 
-type Method string
-type service struct {
-	Generate bool
-	Methods  []Method
+type Method uint
+
+// Is reports whether method m matches given method n.
+func (m Method) Is(n Method) bool { return m&n != 0 }
+
+func Methods(methods Method) Method {
+	return methods
 }
 
-func Methods(methods ...Method) []Method {
-	for _, m := range methods {
-		if m == MethodAll {
-			return []Method{
-				MethodCreate,
-				MethodGet,
-				MethodUpdate,
-				MethodDelete,
-			}
-		}
-	}
-
-	return methods
+type service struct {
+	Generate bool
+	Methods  Method
 }
 
 func (service) Name() string {
 	return ServiceAnnotation
 }
 
-func Service(methods []Method) schema.Annotation {
+func Service(methods ...Method) schema.Annotation {
+	var m Method
+	// Default is to generate all methods
+	if len(methods) == 0 {
+		m = MethodAll
+	}
+	for _, n := range methods {
+		m |= n
+	}
+
 	return service{
 		Generate: true,
-		Methods:  methods,
+		Methods:  m,
 	}
 }
 
-func (a *Adapter) createServiceResources(genType *gen.Type, methods []Method) (serviceResources, error) {
+func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (serviceResources, error) {
 	name := genType.Name
 	serviceFqn := fmt.Sprintf("%sService", name)
 
@@ -80,7 +82,11 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods []Method) (s
 		},
 	}
 
-	for _, m := range methods {
+	for _, m := range []Method{MethodCreate, MethodGet, MethodUpdate, MethodDelete} {
+		if !methods.Is(m) {
+			continue
+		}
+
 		resources, err := a.genMethodProtos(genType, m)
 		if err != nil {
 			return serviceResources{}, err
@@ -93,9 +99,7 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods []Method) (s
 }
 
 func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources, error) {
-	input := &descriptorpb.DescriptorProto{
-		Name: strptr(fmt.Sprintf("%s%sRequest", m, genType.Name)),
-	}
+	input := &descriptorpb.DescriptorProto{}
 	idField, err := toProtoFieldDescriptor(genType.ID)
 	if err != nil {
 		return methodResources{}, err
@@ -108,9 +112,11 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		Type:     &protoMessageFieldType,
 		TypeName: &genType.Name,
 	}
-	var output string
+	var output, methodName string
 	switch m {
 	case MethodGet:
+		methodName = "Get"
+		input.Name = strptr(fmt.Sprintf("Get%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{
 			idField,
 			{
@@ -130,12 +136,18 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		})
 		output = genType.Name
 	case MethodCreate:
+		methodName = "Create"
+		input.Name = strptr(fmt.Sprintf("Create%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		output = genType.Name
 	case MethodUpdate:
+		methodName = "Update"
+		input.Name = strptr(fmt.Sprintf("Update%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		output = genType.Name
 	case MethodDelete:
+		methodName = "Delete"
+		input.Name = strptr(fmt.Sprintf("Delete%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
 		output = "google.protobuf.Empty"
 	default:
@@ -143,7 +155,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	}
 	return methodResources{
 		methodDescriptor: &descriptorpb.MethodDescriptorProto{
-			Name:       strptr(string(m)),
+			Name:       &methodName,
 			InputType:  input.Name,
 			OutputType: &output,
 		},
