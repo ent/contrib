@@ -55,7 +55,7 @@ func TestAnnotation(t *testing.T) {
 		},
 		{
 			name:       "proto service",
-			annot:      entproto.Service(),
+			annot:      entproto.Service(entproto.Methods()),
 			expectedOk: true,
 			expected:   `entproto.Service()`,
 		},
