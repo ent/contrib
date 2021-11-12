@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
@@ -19,7 +20,9 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 	"entgo.io/ent"
@@ -44,6 +47,7 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		allmethodsservice.Table:      allmethodsservice.ValidColumn,
 		blogpost.Table:               blogpost.ValidColumn,
 		category.Table:               category.ValidColumn,
 		dependsonskipped.Table:       dependsonskipped.ValidColumn,
@@ -57,7 +61,9 @@ func columnChecker(table string) func(string) error {
 		messagewithid.Table:          messagewithid.ValidColumn,
 		messagewithoptionals.Table:   messagewithoptionals.ValidColumn,
 		messagewithpackagename.Table: messagewithpackagename.ValidColumn,
+		onemethodservice.Table:       onemethodservice.ValidColumn,
 		portal.Table:                 portal.ValidColumn,
+		twomethodservice.Table:       twomethodservice.ValidColumn,
 		user.Table:                   user.ValidColumn,
 		validmessage.Table:           validmessage.ValidColumn,
 	}

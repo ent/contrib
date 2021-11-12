@@ -10,6 +10,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/migrate"
 	"github.com/google/uuid"
 
+	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
@@ -23,7 +24,9 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 
@@ -37,6 +40,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AllMethodsService is the client for interacting with the AllMethodsService builders.
+	AllMethodsService *AllMethodsServiceClient
 	// BlogPost is the client for interacting with the BlogPost builders.
 	BlogPost *BlogPostClient
 	// Category is the client for interacting with the Category builders.
@@ -63,8 +68,12 @@ type Client struct {
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
+	// OneMethodService is the client for interacting with the OneMethodService builders.
+	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
 	Portal *PortalClient
+	// TwoMethodService is the client for interacting with the TwoMethodService builders.
+	TwoMethodService *TwoMethodServiceClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// ValidMessage is the client for interacting with the ValidMessage builders.
@@ -82,6 +91,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AllMethodsService = NewAllMethodsServiceClient(c.config)
 	c.BlogPost = NewBlogPostClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.DependsOnSkipped = NewDependsOnSkippedClient(c.config)
@@ -95,7 +105,9 @@ func (c *Client) init() {
 	c.MessageWithID = NewMessageWithIDClient(c.config)
 	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
+	c.OneMethodService = NewOneMethodServiceClient(c.config)
 	c.Portal = NewPortalClient(c.config)
+	c.TwoMethodService = NewTwoMethodServiceClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.ValidMessage = NewValidMessageClient(c.config)
 }
@@ -131,6 +143,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                    ctx,
 		config:                 cfg,
+		AllMethodsService:      NewAllMethodsServiceClient(cfg),
 		BlogPost:               NewBlogPostClient(cfg),
 		Category:               NewCategoryClient(cfg),
 		DependsOnSkipped:       NewDependsOnSkippedClient(cfg),
@@ -144,7 +157,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithID:          NewMessageWithIDClient(cfg),
 		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
+		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
+		TwoMethodService:       NewTwoMethodServiceClient(cfg),
 		User:                   NewUserClient(cfg),
 		ValidMessage:           NewValidMessageClient(cfg),
 	}, nil
@@ -165,6 +180,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
 		config:                 cfg,
+		AllMethodsService:      NewAllMethodsServiceClient(cfg),
 		BlogPost:               NewBlogPostClient(cfg),
 		Category:               NewCategoryClient(cfg),
 		DependsOnSkipped:       NewDependsOnSkippedClient(cfg),
@@ -178,7 +194,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithID:          NewMessageWithIDClient(cfg),
 		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
+		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
+		TwoMethodService:       NewTwoMethodServiceClient(cfg),
 		User:                   NewUserClient(cfg),
 		ValidMessage:           NewValidMessageClient(cfg),
 	}, nil
@@ -187,7 +205,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		BlogPost.
+//		AllMethodsService.
 //		Query().
 //		Count(ctx)
 //
@@ -210,6 +228,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.AllMethodsService.Use(hooks...)
 	c.BlogPost.Use(hooks...)
 	c.Category.Use(hooks...)
 	c.DependsOnSkipped.Use(hooks...)
@@ -223,9 +242,101 @@ func (c *Client) Use(hooks ...Hook) {
 	c.MessageWithID.Use(hooks...)
 	c.MessageWithOptionals.Use(hooks...)
 	c.MessageWithPackageName.Use(hooks...)
+	c.OneMethodService.Use(hooks...)
 	c.Portal.Use(hooks...)
+	c.TwoMethodService.Use(hooks...)
 	c.User.Use(hooks...)
 	c.ValidMessage.Use(hooks...)
+}
+
+// AllMethodsServiceClient is a client for the AllMethodsService schema.
+type AllMethodsServiceClient struct {
+	config
+}
+
+// NewAllMethodsServiceClient returns a client for the AllMethodsService from the given config.
+func NewAllMethodsServiceClient(c config) *AllMethodsServiceClient {
+	return &AllMethodsServiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `allmethodsservice.Hooks(f(g(h())))`.
+func (c *AllMethodsServiceClient) Use(hooks ...Hook) {
+	c.hooks.AllMethodsService = append(c.hooks.AllMethodsService, hooks...)
+}
+
+// Create returns a create builder for AllMethodsService.
+func (c *AllMethodsServiceClient) Create() *AllMethodsServiceCreate {
+	mutation := newAllMethodsServiceMutation(c.config, OpCreate)
+	return &AllMethodsServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AllMethodsService entities.
+func (c *AllMethodsServiceClient) CreateBulk(builders ...*AllMethodsServiceCreate) *AllMethodsServiceCreateBulk {
+	return &AllMethodsServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AllMethodsService.
+func (c *AllMethodsServiceClient) Update() *AllMethodsServiceUpdate {
+	mutation := newAllMethodsServiceMutation(c.config, OpUpdate)
+	return &AllMethodsServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AllMethodsServiceClient) UpdateOne(ams *AllMethodsService) *AllMethodsServiceUpdateOne {
+	mutation := newAllMethodsServiceMutation(c.config, OpUpdateOne, withAllMethodsService(ams))
+	return &AllMethodsServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AllMethodsServiceClient) UpdateOneID(id int) *AllMethodsServiceUpdateOne {
+	mutation := newAllMethodsServiceMutation(c.config, OpUpdateOne, withAllMethodsServiceID(id))
+	return &AllMethodsServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AllMethodsService.
+func (c *AllMethodsServiceClient) Delete() *AllMethodsServiceDelete {
+	mutation := newAllMethodsServiceMutation(c.config, OpDelete)
+	return &AllMethodsServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *AllMethodsServiceClient) DeleteOne(ams *AllMethodsService) *AllMethodsServiceDeleteOne {
+	return c.DeleteOneID(ams.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *AllMethodsServiceClient) DeleteOneID(id int) *AllMethodsServiceDeleteOne {
+	builder := c.Delete().Where(allmethodsservice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AllMethodsServiceDeleteOne{builder}
+}
+
+// Query returns a query builder for AllMethodsService.
+func (c *AllMethodsServiceClient) Query() *AllMethodsServiceQuery {
+	return &AllMethodsServiceQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a AllMethodsService entity by its id.
+func (c *AllMethodsServiceClient) Get(ctx context.Context, id int) (*AllMethodsService, error) {
+	return c.Query().Where(allmethodsservice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AllMethodsServiceClient) GetX(ctx context.Context, id int) *AllMethodsService {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AllMethodsServiceClient) Hooks() []Hook {
+	return c.hooks.AllMethodsService
 }
 
 // BlogPostClient is a client for the BlogPost schema.
@@ -1478,6 +1589,96 @@ func (c *MessageWithPackageNameClient) Hooks() []Hook {
 	return c.hooks.MessageWithPackageName
 }
 
+// OneMethodServiceClient is a client for the OneMethodService schema.
+type OneMethodServiceClient struct {
+	config
+}
+
+// NewOneMethodServiceClient returns a client for the OneMethodService from the given config.
+func NewOneMethodServiceClient(c config) *OneMethodServiceClient {
+	return &OneMethodServiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `onemethodservice.Hooks(f(g(h())))`.
+func (c *OneMethodServiceClient) Use(hooks ...Hook) {
+	c.hooks.OneMethodService = append(c.hooks.OneMethodService, hooks...)
+}
+
+// Create returns a create builder for OneMethodService.
+func (c *OneMethodServiceClient) Create() *OneMethodServiceCreate {
+	mutation := newOneMethodServiceMutation(c.config, OpCreate)
+	return &OneMethodServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OneMethodService entities.
+func (c *OneMethodServiceClient) CreateBulk(builders ...*OneMethodServiceCreate) *OneMethodServiceCreateBulk {
+	return &OneMethodServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OneMethodService.
+func (c *OneMethodServiceClient) Update() *OneMethodServiceUpdate {
+	mutation := newOneMethodServiceMutation(c.config, OpUpdate)
+	return &OneMethodServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OneMethodServiceClient) UpdateOne(oms *OneMethodService) *OneMethodServiceUpdateOne {
+	mutation := newOneMethodServiceMutation(c.config, OpUpdateOne, withOneMethodService(oms))
+	return &OneMethodServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OneMethodServiceClient) UpdateOneID(id int) *OneMethodServiceUpdateOne {
+	mutation := newOneMethodServiceMutation(c.config, OpUpdateOne, withOneMethodServiceID(id))
+	return &OneMethodServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OneMethodService.
+func (c *OneMethodServiceClient) Delete() *OneMethodServiceDelete {
+	mutation := newOneMethodServiceMutation(c.config, OpDelete)
+	return &OneMethodServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *OneMethodServiceClient) DeleteOne(oms *OneMethodService) *OneMethodServiceDeleteOne {
+	return c.DeleteOneID(oms.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *OneMethodServiceClient) DeleteOneID(id int) *OneMethodServiceDeleteOne {
+	builder := c.Delete().Where(onemethodservice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OneMethodServiceDeleteOne{builder}
+}
+
+// Query returns a query builder for OneMethodService.
+func (c *OneMethodServiceClient) Query() *OneMethodServiceQuery {
+	return &OneMethodServiceQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a OneMethodService entity by its id.
+func (c *OneMethodServiceClient) Get(ctx context.Context, id int) (*OneMethodService, error) {
+	return c.Query().Where(onemethodservice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OneMethodServiceClient) GetX(ctx context.Context, id int) *OneMethodService {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OneMethodServiceClient) Hooks() []Hook {
+	return c.hooks.OneMethodService
+}
+
 // PortalClient is a client for the Portal schema.
 type PortalClient struct {
 	config
@@ -1582,6 +1783,96 @@ func (c *PortalClient) QueryCategory(po *Portal) *CategoryQuery {
 // Hooks returns the client hooks.
 func (c *PortalClient) Hooks() []Hook {
 	return c.hooks.Portal
+}
+
+// TwoMethodServiceClient is a client for the TwoMethodService schema.
+type TwoMethodServiceClient struct {
+	config
+}
+
+// NewTwoMethodServiceClient returns a client for the TwoMethodService from the given config.
+func NewTwoMethodServiceClient(c config) *TwoMethodServiceClient {
+	return &TwoMethodServiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `twomethodservice.Hooks(f(g(h())))`.
+func (c *TwoMethodServiceClient) Use(hooks ...Hook) {
+	c.hooks.TwoMethodService = append(c.hooks.TwoMethodService, hooks...)
+}
+
+// Create returns a create builder for TwoMethodService.
+func (c *TwoMethodServiceClient) Create() *TwoMethodServiceCreate {
+	mutation := newTwoMethodServiceMutation(c.config, OpCreate)
+	return &TwoMethodServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TwoMethodService entities.
+func (c *TwoMethodServiceClient) CreateBulk(builders ...*TwoMethodServiceCreate) *TwoMethodServiceCreateBulk {
+	return &TwoMethodServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TwoMethodService.
+func (c *TwoMethodServiceClient) Update() *TwoMethodServiceUpdate {
+	mutation := newTwoMethodServiceMutation(c.config, OpUpdate)
+	return &TwoMethodServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TwoMethodServiceClient) UpdateOne(tms *TwoMethodService) *TwoMethodServiceUpdateOne {
+	mutation := newTwoMethodServiceMutation(c.config, OpUpdateOne, withTwoMethodService(tms))
+	return &TwoMethodServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TwoMethodServiceClient) UpdateOneID(id int) *TwoMethodServiceUpdateOne {
+	mutation := newTwoMethodServiceMutation(c.config, OpUpdateOne, withTwoMethodServiceID(id))
+	return &TwoMethodServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TwoMethodService.
+func (c *TwoMethodServiceClient) Delete() *TwoMethodServiceDelete {
+	mutation := newTwoMethodServiceMutation(c.config, OpDelete)
+	return &TwoMethodServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TwoMethodServiceClient) DeleteOne(tms *TwoMethodService) *TwoMethodServiceDeleteOne {
+	return c.DeleteOneID(tms.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TwoMethodServiceClient) DeleteOneID(id int) *TwoMethodServiceDeleteOne {
+	builder := c.Delete().Where(twomethodservice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TwoMethodServiceDeleteOne{builder}
+}
+
+// Query returns a query builder for TwoMethodService.
+func (c *TwoMethodServiceClient) Query() *TwoMethodServiceQuery {
+	return &TwoMethodServiceQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a TwoMethodService entity by its id.
+func (c *TwoMethodServiceClient) Get(ctx context.Context, id int) (*TwoMethodService, error) {
+	return c.Query().Where(twomethodservice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TwoMethodServiceClient) GetX(ctx context.Context, id int) *TwoMethodService {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TwoMethodServiceClient) Hooks() []Hook {
+	return c.hooks.TwoMethodService
 }
 
 // UserClient is a client for the User schema.

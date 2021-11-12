@@ -9,6 +9,19 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent"
 )
 
+// The AllMethodsServiceFunc type is an adapter to allow the use of ordinary
+// function as AllMethodsService mutator.
+type AllMethodsServiceFunc func(context.Context, *ent.AllMethodsServiceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AllMethodsServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AllMethodsServiceMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AllMethodsServiceMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The BlogPostFunc type is an adapter to allow the use of ordinary
 // function as BlogPost mutator.
 type BlogPostFunc func(context.Context, *ent.BlogPostMutation) (ent.Value, error)
@@ -178,6 +191,19 @@ func (f MessageWithPackageNameFunc) Mutate(ctx context.Context, m ent.Mutation) 
 	return f(ctx, mv)
 }
 
+// The OneMethodServiceFunc type is an adapter to allow the use of ordinary
+// function as OneMethodService mutator.
+type OneMethodServiceFunc func(context.Context, *ent.OneMethodServiceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OneMethodServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.OneMethodServiceMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OneMethodServiceMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The PortalFunc type is an adapter to allow the use of ordinary
 // function as Portal mutator.
 type PortalFunc func(context.Context, *ent.PortalMutation) (ent.Value, error)
@@ -187,6 +213,19 @@ func (f PortalFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	mv, ok := m.(*ent.PortalMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PortalMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TwoMethodServiceFunc type is an adapter to allow the use of ordinary
+// function as TwoMethodService mutator.
+type TwoMethodServiceFunc func(context.Context, *ent.TwoMethodServiceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TwoMethodServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TwoMethodServiceMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TwoMethodServiceMutation", m)
 	}
 	return f(ctx, mv)
 }

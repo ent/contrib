@@ -8,6 +8,16 @@ import (
 )
 
 var (
+	// AllMethodsServicesColumns holds the columns for the "all_methods_services" table.
+	AllMethodsServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// AllMethodsServicesTable holds the schema information for the "all_methods_services" table.
+	AllMethodsServicesTable = &schema.Table{
+		Name:       "all_methods_services",
+		Columns:    AllMethodsServicesColumns,
+		PrimaryKey: []*schema.Column{AllMethodsServicesColumns[0]},
+	}
 	// BlogPostsColumns holds the columns for the "blog_posts" table.
 	BlogPostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -178,6 +188,16 @@ var (
 		Columns:    MessageWithPackageNamesColumns,
 		PrimaryKey: []*schema.Column{MessageWithPackageNamesColumns[0]},
 	}
+	// OneMethodServicesColumns holds the columns for the "one_method_services" table.
+	OneMethodServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// OneMethodServicesTable holds the schema information for the "one_method_services" table.
+	OneMethodServicesTable = &schema.Table{
+		Name:       "one_method_services",
+		Columns:    OneMethodServicesColumns,
+		PrimaryKey: []*schema.Column{OneMethodServicesColumns[0]},
+	}
 	// PortalsColumns holds the columns for the "portals" table.
 	PortalsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -198,6 +218,16 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// TwoMethodServicesColumns holds the columns for the "two_method_services" table.
+	TwoMethodServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// TwoMethodServicesTable holds the schema information for the "two_method_services" table.
+	TwoMethodServicesTable = &schema.Table{
+		Name:       "two_method_services",
+		Columns:    TwoMethodServicesColumns,
+		PrimaryKey: []*schema.Column{TwoMethodServicesColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -262,6 +292,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AllMethodsServicesTable,
 		BlogPostsTable,
 		CategoriesTable,
 		DependsOnSkippedsTable,
@@ -275,7 +306,9 @@ var (
 		MessageWithIdsTable,
 		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
+		OneMethodServicesTable,
 		PortalsTable,
+		TwoMethodServicesTable,
 		UsersTable,
 		ValidMessagesTable,
 		CategoryBlogPostsTable,
