@@ -22,6 +22,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
+	"entgo.io/contrib/entproto/slice"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -57,6 +58,7 @@ func TestUserService_Create(t *testing.T) {
 		Banned:         true,
 		HeightInCm:     170.18,
 		AccountBalance: 2000.50,
+		OptStrings:     slice.InsertStrings([]string{"one", "two", "three"}),
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -73,6 +75,7 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.Banned, fromDB.Banned)
 	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
 	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
+	require.ElementsMatch(t, slice.ExtractStrings(inputUser.OptStrings), fromDB.OptStrings)
 
 	// preexisting user
 	_, err = svc.Create(ctx, &CreateUserRequest{
@@ -99,6 +102,7 @@ func TestUserService_Get(t *testing.T) {
 		SetCustomPb(1).
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
+		SetOptStrings([]string{"one", "two", "three"}).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: int32(created.ID),
@@ -110,6 +114,7 @@ func TestUserService_Get(t *testing.T) {
 	require.EqualValues(t, created.Points, get.Points)
 	require.EqualValues(t, created.HeightInCm, get.HeightInCm)
 	require.EqualValues(t, created.AccountBalance, get.AccountBalance)
+	require.ElementsMatch(t, created.OptStrings, slice.ExtractStrings(get.OptStrings))
 	get, err = svc.Get(ctx, &GetUserRequest{
 		Id: 1000,
 	})
@@ -168,6 +173,7 @@ func TestUserService_Update(t *testing.T) {
 		SetCustomPb(1).
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
+		SetOptStrings([]string{"one", "two", "three"}).
 		SaveX(ctx)
 
 	attachmentID, err := attachment.ID.MarshalBinary()
@@ -193,6 +199,7 @@ func TestUserService_Update(t *testing.T) {
 		CrmId:          crmID,
 		HeightInCm:     175.18,
 		AccountBalance: 5000.75,
+		OptStrings:     slice.InsertStrings([]string{"one", "two", "three"}),
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,

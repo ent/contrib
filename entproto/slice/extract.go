@@ -15,6 +15,8 @@
 package slice
 
 import (
+	"strings"
+
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -31,7 +33,9 @@ func InsertStrings(s []string) []*wrapperspb.StringValue {
 func ExtractStrings(s []*wrapperspb.StringValue) []string {
 	extract := []string{}
 	for _, str := range s {
-		extract = append(extract, str.String())
+		cleanVal := strings.Trim(str.String(), "value:")
+		cleanVal = strings.Trim(cleanVal, "\"")
+		extract = append(extract, cleanVal)
 	}
 	return extract
 }

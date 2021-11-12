@@ -59,7 +59,10 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		dpb.FieldDescriptorProto_TYPE_INT64, dpb.FieldDescriptorProto_TYPE_UINT32,
 		dpb.FieldDescriptorProto_TYPE_UINT64, dpb.FieldDescriptorProto_TYPE_FLOAT,
 		dpb.FieldDescriptorProto_TYPE_DOUBLE:
-		if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
+		if isRepeatedType(fld.EntField.Type) {
+			constructor := "Insert" + repeatedConstructors[fld.EntField.Type.Ident]
+			out.ToProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/slice").Ident(constructor)
+		} else if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
 			return nil, err
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
