@@ -108,6 +108,8 @@ func (User) Fields() []ent.Field {
 		field.Float("account_balance").
 			Default(0.0).
 			Annotations(entproto.Field(21)),
+		field.Strings("strings").
+			Annotations(entproto.Field(22)),
 	}
 }
 

@@ -142,6 +142,8 @@ message User {
 
   double account_balance = 21;
 
+  repeated string strings = 22;
+
   Group group = 7;
 
   Attachment attachment = 11;

@@ -282,6 +282,12 @@ func (uu *UserUpdate) AddAccountBalance(f float64) *UserUpdate {
 	return uu
 }
 
+// SetStrings sets the "strings" field.
+func (uu *UserUpdate) SetStrings(s []string) *UserUpdate {
+	uu.mutation.SetStrings(s)
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -663,6 +669,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: user.FieldAccountBalance,
+		})
+	}
+	if value, ok := uu.mutation.Strings(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldStrings,
 		})
 	}
 	if uu.mutation.GroupCleared() {
@@ -1057,6 +1070,12 @@ func (uuo *UserUpdateOne) SetNillableAccountBalance(f *float64) *UserUpdateOne {
 // AddAccountBalance adds f to the "account_balance" field.
 func (uuo *UserUpdateOne) AddAccountBalance(f float64) *UserUpdateOne {
 	uuo.mutation.AddAccountBalance(f)
+	return uuo
+}
+
+// SetStrings sets the "strings" field.
+func (uuo *UserUpdateOne) SetStrings(s []string) *UserUpdateOne {
+	uuo.mutation.SetStrings(s)
 	return uuo
 }
 
@@ -1465,6 +1484,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: user.FieldAccountBalance,
+		})
+	}
+	if value, ok := uuo.mutation.Strings(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldStrings,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

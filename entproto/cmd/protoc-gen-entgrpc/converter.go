@@ -59,10 +59,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		dpb.FieldDescriptorProto_TYPE_INT64, dpb.FieldDescriptorProto_TYPE_UINT32,
 		dpb.FieldDescriptorProto_TYPE_UINT64, dpb.FieldDescriptorProto_TYPE_FLOAT,
 		dpb.FieldDescriptorProto_TYPE_DOUBLE:
-		if isRepeatedType(fld.EntField.Type) {
-			constructor := "Insert" + repeatedConstructors[fld.EntField.Type.Ident]
-			out.ToProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/slice").Ident(constructor)
-		} else if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
+		if err := basicTypeConversion(fld.PbFieldDescriptor, fld.EntField, out); err != nil {
 			return nil, err
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
@@ -105,9 +102,6 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		case efld.IsString():
 			out.ToEntScannerConversion = "string"
 		}
-	case isRepeatedType(efld.Type):
-		constructor := "Extract" + repeatedConstructors[efld.Type.Ident]
-		out.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/slice").Ident(constructor)
 	case efld.IsBool(), efld.IsBytes(), efld.IsString():
 	case efld.Type.Numeric():
 		out.ToEntConversion = efld.Type.String()
@@ -117,6 +111,11 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
 		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
+	case isRepeatedType(efld.Type):
+		if pbd.GetType() == dpb.FieldDescriptorProto_TYPE_MESSAGE {
+			constructor := "Extract" + repeatedConstructors[efld.Type.Ident]
+			out.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/slice").Ident(constructor)
+		}
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}

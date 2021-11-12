@@ -102,6 +102,7 @@ func TestUserService_Get(t *testing.T) {
 		SetCustomPb(1).
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
+		SetStrings([]string{"lorem", "ipsum"}).
 		SetOptStrings([]string{"one", "two", "three"}).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
@@ -114,6 +115,7 @@ func TestUserService_Get(t *testing.T) {
 	require.EqualValues(t, created.Points, get.Points)
 	require.EqualValues(t, created.HeightInCm, get.HeightInCm)
 	require.EqualValues(t, created.AccountBalance, get.AccountBalance)
+	require.ElementsMatch(t, created.Strings, get.Strings)
 	require.ElementsMatch(t, created.OptStrings, slice.ExtractStrings(get.OptStrings))
 	get, err = svc.Get(ctx, &GetUserRequest{
 		Id: 1000,
@@ -138,6 +140,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
 		SetCustomPb(1).
+		SetStrings([]string{"lorem", "ipsum"}).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
 		Id: int32(created.ID),
@@ -173,6 +176,7 @@ func TestUserService_Update(t *testing.T) {
 		SetCustomPb(1).
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
+		SetStrings([]string{"lorem", "ipsum"}).
 		SetOptStrings([]string{"one", "two", "three"}).
 		SaveX(ctx)
 
@@ -199,6 +203,7 @@ func TestUserService_Update(t *testing.T) {
 		CrmId:          crmID,
 		HeightInCm:     175.18,
 		AccountBalance: 5000.75,
+		Strings:        []string{"lorem", "ipsum"},
 		OptStrings:     slice.InsertStrings([]string{"one", "two", "three"}),
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{

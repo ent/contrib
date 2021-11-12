@@ -190,6 +190,12 @@ func (uc *UserCreate) SetNillableAccountBalance(f *float64) *UserCreate {
 	return uc
 }
 
+// SetStrings sets the "strings" field.
+func (uc *UserCreate) SetStrings(s []string) *UserCreate {
+	uc.mutation.SetStrings(s)
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -368,6 +374,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.AccountBalance(); !ok {
 		return &ValidationError{Name: "account_balance", err: errors.New(`ent: missing required field "account_balance"`)}
 	}
+	if _, ok := uc.mutation.Strings(); !ok {
+		return &ValidationError{Name: "strings", err: errors.New(`ent: missing required field "strings"`)}
+	}
 	return nil
 }
 
@@ -530,6 +539,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldAccountBalance,
 		})
 		_node.AccountBalance = value
+	}
+	if value, ok := uc.mutation.Strings(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldStrings,
+		})
+		_node.Strings = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

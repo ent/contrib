@@ -96,6 +96,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Points = points
 	status := toProtoUser_Status(e.Status)
 	v.Status = status
+	strings := e.Strings
+	v.Strings = strings
 	username := e.UserName
 	v.UserName = username
 	if edg := e.Edges.Attachment; edg != nil {
@@ -179,6 +181,8 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetPoints(userPoints)
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
+	userStrings := user.GetStrings()
+	m.SetStrings(userStrings)
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
 	var userAttachment uuid.UUID
@@ -304,6 +308,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetPoints(userPoints)
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
+	userStrings := user.GetStrings()
+	m.SetStrings(userStrings)
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
 	var userAttachment uuid.UUID

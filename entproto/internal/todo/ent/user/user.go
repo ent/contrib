@@ -45,6 +45,8 @@ const (
 	FieldHeightInCm = "height_in_cm"
 	// FieldAccountBalance holds the string denoting the account_balance field in the database.
 	FieldAccountBalance = "account_balance"
+	// FieldStrings holds the string denoting the strings field in the database.
+	FieldStrings = "strings"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -94,6 +96,7 @@ var Columns = []string{
 	FieldBUser1,
 	FieldHeightInCm,
 	FieldAccountBalance,
+	FieldStrings,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

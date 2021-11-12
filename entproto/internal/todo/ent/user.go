@@ -55,6 +55,8 @@ type User struct {
 	HeightInCm float32 `json:"height_in_cm,omitempty"`
 	// AccountBalance holds the value of the "account_balance" field.
 	AccountBalance float64 `json:"account_balance,omitempty"`
+	// Strings holds the value of the "strings" field.
+	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -116,7 +118,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldOptStrings:
+		case user.FieldOptStrings, user.FieldStrings:
 			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
@@ -259,6 +261,14 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.AccountBalance = value.Float64
 			}
+		case user.FieldStrings:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field strings", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Strings); err != nil {
+					return fmt.Errorf("unmarshal field strings: %w", err)
+				}
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -343,6 +353,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.HeightInCm))
 	builder.WriteString(", account_balance=")
 	builder.WriteString(fmt.Sprintf("%v", u.AccountBalance))
+	builder.WriteString(", strings=")
+	builder.WriteString(fmt.Sprintf("%v", u.Strings))
 	builder.WriteByte(')')
 	return builder.String()
 }

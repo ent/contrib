@@ -33,8 +33,8 @@ func InsertStrings(s []string) []*wrapperspb.StringValue {
 func ExtractStrings(s []*wrapperspb.StringValue) []string {
 	extract := []string{}
 	for _, str := range s {
-		cleanVal := strings.Trim(str.String(), "value:")
-		cleanVal = strings.Trim(cleanVal, "\"")
+		cleanVal := strings.TrimPrefix(str.String(), "value:\"")
+		cleanVal = strings.TrimSuffix(cleanVal, "\"")
 		extract = append(extract, cleanVal)
 	}
 	return extract

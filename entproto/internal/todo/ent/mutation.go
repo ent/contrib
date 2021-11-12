@@ -1642,6 +1642,7 @@ type UserMutation struct {
 	addheight_in_cm    *float32
 	account_balance    *float64
 	addaccount_balance *float64
+	strings            *[]string
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -2586,6 +2587,42 @@ func (m *UserMutation) ResetAccountBalance() {
 	m.addaccount_balance = nil
 }
 
+// SetStrings sets the "strings" field.
+func (m *UserMutation) SetStrings(s []string) {
+	m.strings = &s
+}
+
+// Strings returns the value of the "strings" field in the mutation.
+func (m *UserMutation) Strings() (r []string, exists bool) {
+	v := m.strings
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStrings returns the old "strings" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStrings(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStrings is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStrings requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStrings: %w", err)
+	}
+	return oldValue.Strings, nil
+}
+
+// ResetStrings resets all changes to the "strings" field.
+func (m *UserMutation) ResetStrings() {
+	m.strings = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -2737,7 +2774,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -2789,6 +2826,9 @@ func (m *UserMutation) Fields() []string {
 	if m.account_balance != nil {
 		fields = append(fields, user.FieldAccountBalance)
 	}
+	if m.strings != nil {
+		fields = append(fields, user.FieldStrings)
+	}
 	return fields
 }
 
@@ -2831,6 +2871,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.HeightInCm()
 	case user.FieldAccountBalance:
 		return m.AccountBalance()
+	case user.FieldStrings:
+		return m.Strings()
 	}
 	return nil, false
 }
@@ -2874,6 +2916,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldHeightInCm(ctx)
 	case user.FieldAccountBalance:
 		return m.OldAccountBalance(ctx)
+	case user.FieldStrings:
+		return m.OldStrings(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -3001,6 +3045,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAccountBalance(v)
+		return nil
+	case user.FieldStrings:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStrings(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -3239,6 +3290,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAccountBalance:
 		m.ResetAccountBalance()
+		return nil
+	case user.FieldStrings:
+		m.ResetStrings()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
