@@ -14,140 +14,102 @@
 
 package entprototest
 
-import (
-	"fmt"
-)
-
-type method struct {
-	name         string
-	input        string
-	output       string
-	formatInput  bool
-	formatOutput bool
-}
-
-func (m *method) getFormatInput(name string) string {
-	return fmt.Sprintf(m.input, name)
-}
-func (m *method) getFormatOutput(name string) string {
-	return fmt.Sprintf(m.output, name)
-}
-
-var (
-	methodCreate = method{
-		name:         "Create",
-		input:        "Create%sRequest",
-		output:       "%s",
-		formatInput:  true,
-		formatOutput: true,
-	}
-
-	methodGet = method{
-		name:         "Get",
-		input:        "Get%sRequest",
-		output:       "%s",
-		formatInput:  true,
-		formatOutput: true,
-	}
-
-	methodUpdate = method{
-		name:         "Update",
-		input:        "Update%sRequest",
-		output:       "%s",
-		formatInput:  true,
-		formatOutput: true,
-	}
-
-	methodDelete = method{
-		name:         "Delete",
-		input:        "Delete%sRequest",
-		output:       "Empty",
-		formatInput:  true,
-		formatOutput: false,
-	}
-)
-
 func (suite *AdapterTestSuite) TestServiceGeneration() {
-	testCases := []struct {
-		testName        string
-		schemaName      string
-		includedMethods []method
-		excludedMethods []method
-	}{
-		{
-			testName:   "Default Method Generation",
-			schemaName: "BlogPost",
-			includedMethods: []method{
-				methodCreate,
-				methodGet,
-				methodUpdate,
-				methodDelete,
-			},
-		},
-		{
-			testName:   "All Methods Generation",
-			schemaName: "AllMethodsService",
-			includedMethods: []method{
-				methodCreate,
-				methodGet,
-				methodUpdate,
-				methodDelete,
-			},
-		},
-		{
-			testName:   "One Method Generation",
-			schemaName: "OneMethodService",
-			includedMethods: []method{
-				methodGet,
-			},
-			excludedMethods: []method{
-				methodCreate,
-				methodUpdate,
-				methodDelete,
-			},
-		},
-		{
-			testName:   "Two Method Generation",
-			schemaName: "TwoMethodService",
-			includedMethods: []method{
-				methodCreate,
-				methodGet,
-			},
-			excludedMethods: []method{
-				methodUpdate,
-				methodDelete,
-			},
-		},
-	}
+	// Test default method generation
+	fd, err := suite.adapter.GetFileDescriptor("BlogPost")
+	suite.Require().NoError(err)
 
-	for _, tc := range testCases {
-		println(fmt.Sprintf("Test %s", tc.testName))
+	svc := fd.FindService("entpb.BlogPostService")
+	suite.NotNil(svc)
 
-		fd, err := suite.adapter.GetFileDescriptor(tc.schemaName)
-		suite.Require().NoError(err)
+	getMeth := svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetBlogPostRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("BlogPost", getMeth.GetOutputType().GetName())
 
-		svc := fd.FindService(fmt.Sprintf("entpb.%sService", tc.schemaName))
-		suite.NotNil(svc)
+	createMeth := svc.FindMethodByName("Create")
+	suite.Require().NotNil(createMeth)
+	suite.EqualValues("CreateBlogPostRequest", createMeth.GetInputType().GetName())
+	suite.EqualValues("BlogPost", createMeth.GetOutputType().GetName())
 
-		for _, m := range tc.includedMethods {
-			getMeth := svc.FindMethodByName(m.name)
-			suite.Require().NotNil(getMeth)
+	deleteMeth := svc.FindMethodByName("Delete")
+	suite.Require().NotNil(deleteMeth)
+	suite.EqualValues("DeleteBlogPostRequest", deleteMeth.GetInputType().GetName())
+	suite.EqualValues("google.protobuf.Empty", deleteMeth.GetOutputType().GetFullyQualifiedName())
 
-			if m.formatInput {
-				m.input = m.getFormatInput(tc.schemaName)
-			}
-			suite.EqualValues(m.input, getMeth.GetInputType().GetName())
-			if m.formatOutput {
-				m.output = m.getFormatOutput(tc.schemaName)
-			}
-			suite.EqualValues(m.output, getMeth.GetOutputType().GetName())
-		}
+	updateMeth := svc.FindMethodByName("Update")
+	suite.Require().NotNil(updateMeth)
+	suite.EqualValues("UpdateBlogPostRequest", updateMeth.GetInputType().GetName())
+	suite.EqualValues("BlogPost", updateMeth.GetOutputType().GetName())
 
-		for _, m := range tc.excludedMethods {
-			getMeth := svc.FindMethodByName(m.name)
-			suite.Nil(getMeth)
-		}
+	// Test all method generation
+	fd, err = suite.adapter.GetFileDescriptor("AllMethodsService")
+	suite.Require().NoError(err)
 
-		println("PASS")
-	}
+	svc = fd.FindService("entpb.AllMethodsServiceService")
+	suite.NotNil(svc)
+
+	getMeth = svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetAllMethodsServiceRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("AllMethodsService", getMeth.GetOutputType().GetName())
+
+	createMeth = svc.FindMethodByName("Create")
+	suite.Require().NotNil(createMeth)
+	suite.EqualValues("CreateAllMethodsServiceRequest", createMeth.GetInputType().GetName())
+	suite.EqualValues("AllMethodsService", createMeth.GetOutputType().GetName())
+
+	deleteMeth = svc.FindMethodByName("Delete")
+	suite.Require().NotNil(deleteMeth)
+	suite.EqualValues("DeleteAllMethodsServiceRequest", deleteMeth.GetInputType().GetName())
+	suite.EqualValues("google.protobuf.Empty", deleteMeth.GetOutputType().GetFullyQualifiedName())
+
+	updateMeth = svc.FindMethodByName("Update")
+	suite.Require().NotNil(updateMeth)
+	suite.EqualValues("UpdateAllMethodsServiceRequest", updateMeth.GetInputType().GetName())
+	suite.EqualValues("AllMethodsService", updateMeth.GetOutputType().GetName())
+
+	// Test single method generation
+	fd, err = suite.adapter.GetFileDescriptor("OneMethodService")
+	suite.Require().NoError(err)
+
+	svc = fd.FindService("entpb.OneMethodServiceService")
+	suite.NotNil(svc)
+
+	getMeth = svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetOneMethodServiceRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("OneMethodService", getMeth.GetOutputType().GetName())
+
+	createMeth = svc.FindMethodByName("Create")
+	suite.Require().Nil(createMeth)
+
+	deleteMeth = svc.FindMethodByName("Delete")
+	suite.Require().Nil(deleteMeth)
+
+	updateMeth = svc.FindMethodByName("Update")
+	suite.Require().Nil(updateMeth)
+
+	// Test two method generation
+	fd, err = suite.adapter.GetFileDescriptor("TwoMethodService")
+	suite.Require().NoError(err)
+
+	svc = fd.FindService("entpb.TwoMethodServiceService")
+	suite.NotNil(svc)
+
+	getMeth = svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetTwoMethodServiceRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("TwoMethodService", getMeth.GetOutputType().GetName())
+
+	createMeth = svc.FindMethodByName("Create")
+	suite.Require().NotNil(createMeth)
+	suite.EqualValues("CreateTwoMethodServiceRequest", createMeth.GetInputType().GetName())
+	suite.EqualValues("TwoMethodService", createMeth.GetOutputType().GetName())
+
+	deleteMeth = svc.FindMethodByName("Delete")
+	suite.Require().Nil(deleteMeth)
+
+	updateMeth = svc.FindMethodByName("Update")
+	suite.Require().Nil(updateMeth)
 }
