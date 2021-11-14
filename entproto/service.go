@@ -43,6 +43,7 @@ type Method uint
 // Is reports whether method m matches given method n.
 func (m Method) Is(n Method) bool { return m&n != 0 }
 
+// Methods specifies the gRPC service methods to generate for the entproto.Service.
 func Methods(methods Method) ServiceOption {
 	return func(s *service) {
 		s.Methods = methods
