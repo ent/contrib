@@ -25,15 +25,6 @@ type TwoMethodService struct {
 	ent.Schema
 }
 
-// Fields of the TwoMethodService.
-func (TwoMethodService) Fields() []ent.Field {
-	return nil
-}
-
-// Edges of the TwoMethodService.
-func (TwoMethodService) Edges() []ent.Edge {
-	return nil
-}
 
 func (TwoMethodService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
