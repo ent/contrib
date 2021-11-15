@@ -25,7 +25,6 @@ type OneMethodService struct {
 	ent.Schema
 }
 
-
 func (OneMethodService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),

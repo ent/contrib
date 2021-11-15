@@ -25,7 +25,6 @@ type TwoMethodService struct {
 	ent.Schema
 }
 
-
 func (TwoMethodService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
