@@ -70,7 +70,7 @@ func Service(opts ...ServiceOption) schema.Annotation {
 	for _, apply := range opts {
 		apply(&s)
 	}
-	// Default to generating all methods
+	// Default to generating all methods.
 	if s.Methods == 0 {
 		s.Methods = MethodAll
 	}
