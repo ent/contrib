@@ -42,7 +42,7 @@ func EdgeTree(n *gen.Type, gs serialization.Groups) (Edges, error) { return edge
 func (es Edges) Flatten() []*gen.Edge {
 	em := make(map[string]*gen.Edge)
 	types(em, es)
- 	r := make([]*gen.Edge, 0, len(em))
+	r := make([]*gen.Edge, 0, len(em))
 	for _, t := range em {
 		r = append(r, t)
 	}
