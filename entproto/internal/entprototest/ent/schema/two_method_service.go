@@ -18,36 +18,20 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
-	"entgo.io/ent/schema/field"
 )
 
-type NilExample struct {
+// TwoMethodService holds the schema definition for the TwoMethodService entity.
+type TwoMethodService struct {
 	ent.Schema
 }
 
-func (NilExample) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("str_nil").
-			Optional().
-			Nillable().
-			Annotations(
-				entproto.Field(2),
-			),
-		field.Time("time_nil").
-			Optional().
-			Nillable().
-			Annotations(
-				entproto.Field(3),
-			),
-	}
-}
-
-func (NilExample) Annotations() []schema.Annotation {
+func (TwoMethodService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
 		entproto.Service(
 			entproto.Methods(
-				entproto.MethodAll,
+				entproto.MethodCreate |
+					entproto.MethodGet,
 			),
 		),
 	}

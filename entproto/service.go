@@ -25,33 +25,64 @@ import (
 	_ "google.golang.org/protobuf/types/known/emptypb"
 )
 
-type method string
-
 const (
-	ServiceAnnotation        = "ProtoService"
-	get               method = "Get"
-	create                   = "Create"
-	update                   = "Update"
-	delete_                  = "Delete"
+	ServiceAnnotation = "ProtoService"
+	// MethodCreate generates a Create gRPC service method for the entproto.Service.
+	MethodCreate Method = 1 << iota
+	// MethodGet generates a Get gRPC service method for the entproto.Service.
+	MethodGet
+	// MethodUpdate generates an Update gRPC service method for the entproto.Service.
+	MethodUpdate
+	// MethodDelete generates a Delete gRPC service method for the entproto.Service.
+	MethodDelete
+	// MethodAll generates all service methods for the entproto.Service. This is the same behavior as not including entproto.Methods.
+	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete
 )
 
 var (
 	errNoServiceDef = errors.New("entproto: annotation entproto.Service missing")
 )
 
+type Method uint
+
+// Is reports whether method m matches given method n.
+func (m Method) Is(n Method) bool { return m&n != 0 }
+
+// Methods specifies the gRPC service methods to generate for the entproto.Service.
+func Methods(methods Method) ServiceOption {
+	return func(s *service) {
+		s.Methods = methods
+	}
+}
+
 type service struct {
 	Generate bool
+	Methods  Method
 }
 
 func (service) Name() string {
 	return ServiceAnnotation
 }
 
-func Service() schema.Annotation {
-	return service{Generate: true}
+// ServiceOption configures the entproto.Service annotation.
+type ServiceOption func(svc *service)
+
+// Service annotates an ent.Schema to specify that protobuf service generation is required for it.
+func Service(opts ...ServiceOption) schema.Annotation {
+	s := service{
+		Generate: true,
+	}
+	for _, apply := range opts {
+		apply(&s)
+	}
+	// Default to generating all methods.
+	if s.Methods == 0 {
+		s.Methods = MethodAll
+	}
+	return s
 }
 
-func (a *Adapter) createServiceResources(genType *gen.Type) (serviceResources, error) {
+func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (serviceResources, error) {
 	name := genType.Name
 	serviceFqn := fmt.Sprintf("%sService", name)
 
@@ -61,7 +92,11 @@ func (a *Adapter) createServiceResources(genType *gen.Type) (serviceResources, e
 		},
 	}
 
-	for _, m := range []method{create, get, update, delete_} {
+	for _, m := range []Method{MethodCreate, MethodGet, MethodUpdate, MethodDelete} {
+		if !methods.Is(m) {
+			continue
+		}
+
 		resources, err := a.genMethodProtos(genType, m)
 		if err != nil {
 			return serviceResources{}, err
@@ -73,10 +108,8 @@ func (a *Adapter) createServiceResources(genType *gen.Type) (serviceResources, e
 	return out, nil
 }
 
-func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources, error) {
-	input := &descriptorpb.DescriptorProto{
-		Name: strptr(fmt.Sprintf("%s%sRequest", m, genType.Name)),
-	}
+func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources, error) {
+	input := &descriptorpb.DescriptorProto{}
 	idField, err := toProtoFieldDescriptor(genType.ID)
 	if err != nil {
 		return methodResources{}, err
@@ -89,9 +122,11 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources,
 		Type:     &protoMessageFieldType,
 		TypeName: &genType.Name,
 	}
-	var output string
+	var output, methodName string
 	switch m {
-	case get:
+	case MethodGet:
+		methodName = "Get"
+		input.Name = strptr(fmt.Sprintf("Get%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{
 			idField,
 			{
@@ -110,13 +145,19 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources,
 			},
 		})
 		output = genType.Name
-	case create:
+	case MethodCreate:
+		methodName = "Create"
+		input.Name = strptr(fmt.Sprintf("Create%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		output = genType.Name
-	case update:
+	case MethodUpdate:
+		methodName = "Update"
+		input.Name = strptr(fmt.Sprintf("Update%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		output = genType.Name
-	case delete_:
+	case MethodDelete:
+		methodName = "Delete"
+		input.Name = strptr(fmt.Sprintf("Delete%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
 		output = "google.protobuf.Empty"
 	default:
@@ -124,7 +165,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m method) (methodResources,
 	}
 	return methodResources{
 		methodDescriptor: &descriptorpb.MethodDescriptorProto{
-			Name:       strptr(string(m)),
+			Name:       &methodName,
 			InputType:  input.Name,
 			OutputType: &output,
 		},

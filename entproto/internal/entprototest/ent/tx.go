@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AllMethodsService is the client for interacting with the AllMethodsService builders.
+	AllMethodsService *AllMethodsServiceClient
 	// BlogPost is the client for interacting with the BlogPost builders.
 	BlogPost *BlogPostClient
 	// Category is the client for interacting with the Category builders.
@@ -38,8 +40,12 @@ type Tx struct {
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
+	// OneMethodService is the client for interacting with the OneMethodService builders.
+	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
 	Portal *PortalClient
+	// TwoMethodService is the client for interacting with the TwoMethodService builders.
+	TwoMethodService *TwoMethodServiceClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// ValidMessage is the client for interacting with the ValidMessage builders.
@@ -179,6 +185,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AllMethodsService = NewAllMethodsServiceClient(tx.config)
 	tx.BlogPost = NewBlogPostClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.DependsOnSkipped = NewDependsOnSkippedClient(tx.config)
@@ -192,7 +199,9 @@ func (tx *Tx) init() {
 	tx.MessageWithID = NewMessageWithIDClient(tx.config)
 	tx.MessageWithOptionals = NewMessageWithOptionalsClient(tx.config)
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
+	tx.OneMethodService = NewOneMethodServiceClient(tx.config)
 	tx.Portal = NewPortalClient(tx.config)
+	tx.TwoMethodService = NewTwoMethodServiceClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.ValidMessage = NewValidMessageClient(tx.config)
 }
@@ -204,7 +213,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: BlogPost.QueryXXX(), the query will be executed
+// applies a query, for example: AllMethodsService.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -15,6 +15,7 @@
 package entprototest
 
 func (suite *AdapterTestSuite) TestServiceGeneration() {
+	// Test default method generation
 	fd, err := suite.adapter.GetFileDescriptor("BlogPost")
 	suite.Require().NoError(err)
 
@@ -40,4 +41,75 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 	suite.Require().NotNil(updateMeth)
 	suite.EqualValues("UpdateBlogPostRequest", updateMeth.GetInputType().GetName())
 	suite.EqualValues("BlogPost", updateMeth.GetOutputType().GetName())
+
+	// Test all method generation
+	fd, err = suite.adapter.GetFileDescriptor("AllMethodsService")
+	suite.Require().NoError(err)
+
+	svc = fd.FindService("entpb.AllMethodsServiceService")
+	suite.NotNil(svc)
+
+	getMeth = svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetAllMethodsServiceRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("AllMethodsService", getMeth.GetOutputType().GetName())
+
+	createMeth = svc.FindMethodByName("Create")
+	suite.Require().NotNil(createMeth)
+	suite.EqualValues("CreateAllMethodsServiceRequest", createMeth.GetInputType().GetName())
+	suite.EqualValues("AllMethodsService", createMeth.GetOutputType().GetName())
+
+	deleteMeth = svc.FindMethodByName("Delete")
+	suite.Require().NotNil(deleteMeth)
+	suite.EqualValues("DeleteAllMethodsServiceRequest", deleteMeth.GetInputType().GetName())
+	suite.EqualValues("google.protobuf.Empty", deleteMeth.GetOutputType().GetFullyQualifiedName())
+
+	updateMeth = svc.FindMethodByName("Update")
+	suite.Require().NotNil(updateMeth)
+	suite.EqualValues("UpdateAllMethodsServiceRequest", updateMeth.GetInputType().GetName())
+	suite.EqualValues("AllMethodsService", updateMeth.GetOutputType().GetName())
+
+	// Test single method generation
+	fd, err = suite.adapter.GetFileDescriptor("OneMethodService")
+	suite.Require().NoError(err)
+
+	svc = fd.FindService("entpb.OneMethodServiceService")
+	suite.NotNil(svc)
+
+	getMeth = svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetOneMethodServiceRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("OneMethodService", getMeth.GetOutputType().GetName())
+
+	createMeth = svc.FindMethodByName("Create")
+	suite.Require().Nil(createMeth)
+
+	deleteMeth = svc.FindMethodByName("Delete")
+	suite.Require().Nil(deleteMeth)
+
+	updateMeth = svc.FindMethodByName("Update")
+	suite.Require().Nil(updateMeth)
+
+	// Test two method generation
+	fd, err = suite.adapter.GetFileDescriptor("TwoMethodService")
+	suite.Require().NoError(err)
+
+	svc = fd.FindService("entpb.TwoMethodServiceService")
+	suite.NotNil(svc)
+
+	getMeth = svc.FindMethodByName("Get")
+	suite.Require().NotNil(getMeth)
+	suite.EqualValues("GetTwoMethodServiceRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("TwoMethodService", getMeth.GetOutputType().GetName())
+
+	createMeth = svc.FindMethodByName("Create")
+	suite.Require().NotNil(createMeth)
+	suite.EqualValues("CreateTwoMethodServiceRequest", createMeth.GetInputType().GetName())
+	suite.EqualValues("TwoMethodService", createMeth.GetOutputType().GetName())
+
+	deleteMeth = svc.FindMethodByName("Delete")
+	suite.Require().Nil(deleteMeth)
+
+	updateMeth = svc.FindMethodByName("Update")
+	suite.Require().Nil(updateMeth)
 }

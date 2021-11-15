@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AllMethodsService is the predicate function for allmethodsservice builders.
+type AllMethodsService func(*sql.Selector)
+
 // BlogPost is the predicate function for blogpost builders.
 type BlogPost func(*sql.Selector)
 
@@ -45,8 +48,14 @@ type MessageWithOptionals func(*sql.Selector)
 // MessageWithPackageName is the predicate function for messagewithpackagename builders.
 type MessageWithPackageName func(*sql.Selector)
 
+// OneMethodService is the predicate function for onemethodservice builders.
+type OneMethodService func(*sql.Selector)
+
 // Portal is the predicate function for portal builders.
 type Portal func(*sql.Selector)
+
+// TwoMethodService is the predicate function for twomethodservice builders.
+type TwoMethodService func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

@@ -24,6 +24,7 @@ type config struct {
 
 // hooks per client, for fast access.
 type hooks struct {
+	AllMethodsService      []ent.Hook
 	BlogPost               []ent.Hook
 	Category               []ent.Hook
 	DependsOnSkipped       []ent.Hook
@@ -37,7 +38,9 @@ type hooks struct {
 	MessageWithID          []ent.Hook
 	MessageWithOptionals   []ent.Hook
 	MessageWithPackageName []ent.Hook
+	OneMethodService       []ent.Hook
 	Portal                 []ent.Hook
+	TwoMethodService       []ent.Hook
 	User                   []ent.Hook
 	ValidMessage           []ent.Hook
 }

@@ -148,7 +148,7 @@ func (a *Adapter) parse() error {
 			return err
 		}
 		if svcAnnotation.Generate {
-			svcResources, err := a.createServiceResources(genType)
+			svcResources, err := a.createServiceResources(genType, svcAnnotation.Methods)
 			if err != nil {
 				return err
 			}
