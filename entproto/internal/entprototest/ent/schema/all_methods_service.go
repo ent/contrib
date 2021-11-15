@@ -25,16 +25,6 @@ type AllMethodsService struct {
 	ent.Schema
 }
 
-// Fields of the AllMethodsService.
-func (AllMethodsService) Fields() []ent.Field {
-	return nil
-}
-
-// Edges of the AllMethodsService.
-func (AllMethodsService) Edges() []ent.Edge {
-	return nil
-}
-
 func (AllMethodsService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
