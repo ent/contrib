@@ -20,7 +20,6 @@ import (
 
 	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
-	"github.com/stoewer/go-strcase"
 )
 
 // A View is a subset of a gen.Type. It may hold fewer Fields and Edges than the gen.Type it is derived from.
@@ -246,7 +245,7 @@ func viewNameEdge(vn string, e *gen.Edge) (string, error) {
 	if cfg.SimpleModels {
 		return e.Type.Name, nil
 	}
-	return fmt.Sprintf("%s_%s", vn, strcase.UpperCamelCase(e.Name)), nil
+	return fmt.Sprintf("%s_%s", vn, e.StructField()), nil
 }
 
 // Title returns the title cases variant of the operation.
