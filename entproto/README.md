@@ -185,7 +185,7 @@ This is useful in cases where a `Mixin` is used and its default behavior enables
 
 `entproto` supports the generation of simple CRUD gRPC service definitions from `ent.Schema`
 
-To enable generation of a service definition, add an `entproto.Service() annotation:
+To enable generation of a service definition, add an `entproto.Service()` annotation:
 ```go
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
@@ -222,6 +222,60 @@ service UserService {
   rpc Delete ( DeleteUserRequest ) returns ( google.protobuf.Empty );
 }
 ```
+Method generation can be customized by including the argument `entproto.Methods()` in the `entproto.Service()` annotation. 
+`entproto.Methods()` accepts bit flags to determine what service methods should be generated.
+```go
+// Generates a Create gRPC service method for the entproto.Service.
+entproto.MethodCreate
+
+// Generates a Get gRPC service method for the entproto.Service.
+entproto.MethodGet
+
+// Generates an Update gRPC service method for the entproto.Service.
+entproto.MethodUpdate
+
+// Generates a Delete gRPC service method for the entproto.Service.
+entproto.MethodDelete
+
+// Generates all service methods for the entproto.Service.
+// This is the same behavior as not including entproto.Methods.
+entproto.MethodAll
+```
+To generate a service with multiple methods, bitwise OR the flags.
+
+
+For example, the `ent.Schema` can be modified to generate only `Create` and `Get` methods:
+```go
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entproto.Message(),
+		entproto.Service(
+			entproto.Methods(
+				entproto.MethodCreate |
+                                entproto.MethodGet
+                        ),
+                ),
+	}
+}
+```
+
+This will generate:
+```protobuf
+message CreateUserRequest {
+  User user = 1;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+}
+
+service UserService {
+  rpc Create ( CreateUserRequest ) returns ( User );
+
+  rpc Get ( GetUserRequest ) returns ( User );
+}
+```
+
 ## Field Annotations
 
 ### entproto.Field
