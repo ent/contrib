@@ -25,15 +25,6 @@ type OneMethodService struct {
 	ent.Schema
 }
 
-// Fields of the OneMethodService.
-func (OneMethodService) Fields() []ent.Field {
-	return nil
-}
-
-// Edges of the OneMethodService.
-func (OneMethodService) Edges() []ent.Edge {
-	return nil
-}
 
 func (OneMethodService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
