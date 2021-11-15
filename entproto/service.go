@@ -26,11 +26,16 @@ import (
 )
 
 const (
-	ServiceAnnotation        = "ProtoService"
-	MethodCreate      Method = 1 << iota
+	ServiceAnnotation = "ProtoService"
+	// MethodCreate generates a Create gRPC service method for the entproto.Service.
+	MethodCreate Method = 1 << iota
+	// MethodGet generates a Get gRPC service method for the entproto.Service.
 	MethodGet
+	// MethodUpdate generates an Update gRPC service method for the entproto.Service.
 	MethodUpdate
+	// MethodDelete generates a Delete gRPC service method for the entproto.Service.
 	MethodDelete
+	// MethodAll generates all service methods for the entproto.Service. This is the same behavior as not including entproto.Methods.
 	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete
 )
 
