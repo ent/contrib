@@ -21,7 +21,11 @@
         Limit(pageSize + 1)
     if req.GetPageToken() != nil {
         buf := {{ qualify "bytes" "Buffer" }}{}
-        buf.WriteString(req.GetPageToken().GetValue())
+        bytes, err := {{ qualify "encoding/base64" "StdEncoding.DecodeString" }}(req.PageToken.GetValue())
+        if err != nil {
+            return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+        }
+        buf.Write(bytes)
         var pageToken token
         err = {{ qualify "encoding/gob" "NewDecoder" }}(&buf).Decode(&pageToken)
         if err != nil {
@@ -54,7 +58,8 @@
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 			}
-			nextPageToken = {{ qualify "google.golang.org/protobuf/types/known/wrapperspb" "String" }}(buf.String())
+			nextPageToken = {{ qualify "google.golang.org/protobuf/types/known/wrapperspb" "String" }}(
+			    {{ qualify "encoding/base64" "StdEncoding.EncodeToString" }}(buf.Bytes()))
 			entList = entList[:len(entList)-1]
         }
         var pbList []*{{ .G.EntType.Name }}
