@@ -2,7 +2,10 @@
 package entpb
 
 import (
+	bytes "bytes"
 	context "context"
+	gob "encoding/gob"
+	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	nilexample "entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	runtime "entgo.io/contrib/entproto/runtime"
@@ -143,6 +146,76 @@ func (svc *NilExampleService) Delete(ctx context.Context, req *DeleteNilExampleR
 		return &emptypb.Empty{}, nil
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+// List implements NilExampleServiceServer.List
+func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleRequest) (*ListNilExampleResponse, error) {
+	type token struct {
+		Id int
+	}
+	var (
+		err      error
+		entList  []*ent.NilExample
+		pageSize int
+	)
+	pageSize = int(req.GetPageSize())
+	switch {
+	case pageSize < 0:
+		return nil, status.Errorf(codes.InvalidArgument, "page size cannot be less than zero")
+	case pageSize == 0 || pageSize > entproto.MaxPageSize:
+		pageSize = entproto.MaxPageSize
+	}
+	listQuery := svc.client.NilExample.Query().
+		Order(ent.Desc(nilexample.FieldID)).
+		Limit(pageSize + 1)
+	if req.GetPageToken() != nil {
+		buf := bytes.Buffer{}
+		buf.WriteString(req.GetPageToken().GetValue())
+		var pageToken token
+		err = gob.NewDecoder(&buf).Decode(&pageToken)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		listQuery = listQuery.
+			Where(nilexample.IDLTE(pageToken.Id))
+	}
+	switch req.GetView() {
+	case ListNilExampleRequest_VIEW_UNSPECIFIED, ListNilExampleRequest_BASIC:
+		entList, err = listQuery.All(ctx)
+	case ListNilExampleRequest_WITH_EDGE_IDS:
+		entList, err = listQuery.
+			All(ctx)
+	}
+	switch {
+	case err == nil:
+		var nextPageToken *wrapperspb.StringValue
+		if len(entList) == pageSize+1 {
+			buf := bytes.Buffer{}
+			var pageToken token
+			pageToken.Id = entList[len(entList)-1].ID
+			err = gob.NewEncoder(&buf).Encode(&pageToken)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			nextPageToken = wrapperspb.String(buf.String())
+			entList = entList[:len(entList)-1]
+		}
+		var pbList []*NilExample
+		for _, entEntity := range entList {
+			pbEntity, err := toProtoNilExample(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &ListNilExampleResponse{
+			NilExampleList: pbList,
+			NextPageToken:  nextPageToken,
+		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}

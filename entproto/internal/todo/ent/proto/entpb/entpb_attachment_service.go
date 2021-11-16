@@ -2,7 +2,10 @@
 package entpb
 
 import (
+	bytes "bytes"
 	context "context"
+	gob "encoding/gob"
+	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
@@ -11,6 +14,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // AttachmentService implements AttachmentServiceServer
@@ -160,6 +164,82 @@ func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentR
 		return &emptypb.Empty{}, nil
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+// List implements AttachmentServiceServer.List
+func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentRequest) (*ListAttachmentResponse, error) {
+	type token struct {
+		Id uuid.UUID
+	}
+	var (
+		err      error
+		entList  []*ent.Attachment
+		pageSize int
+	)
+	pageSize = int(req.GetPageSize())
+	switch {
+	case pageSize < 0:
+		return nil, status.Errorf(codes.InvalidArgument, "page size cannot be less than zero")
+	case pageSize == 0 || pageSize > entproto.MaxPageSize:
+		pageSize = entproto.MaxPageSize
+	}
+	listQuery := svc.client.Attachment.Query().
+		Order(ent.Desc(attachment.FieldID)).
+		Limit(pageSize + 1)
+	if req.GetPageToken() != nil {
+		buf := bytes.Buffer{}
+		buf.WriteString(req.GetPageToken().GetValue())
+		var pageToken token
+		err = gob.NewDecoder(&buf).Decode(&pageToken)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		listQuery = listQuery.
+			Where(attachment.IDLTE(pageToken.Id))
+	}
+	switch req.GetView() {
+	case ListAttachmentRequest_VIEW_UNSPECIFIED, ListAttachmentRequest_BASIC:
+		entList, err = listQuery.All(ctx)
+	case ListAttachmentRequest_WITH_EDGE_IDS:
+		entList, err = listQuery.
+			WithRecipients(func(query *ent.UserQuery) {
+				query.Select(user.FieldID)
+			}).
+			WithUser(func(query *ent.UserQuery) {
+				query.Select(user.FieldID)
+			}).
+			All(ctx)
+	}
+	switch {
+	case err == nil:
+		var nextPageToken *wrapperspb.StringValue
+		if len(entList) == pageSize+1 {
+			buf := bytes.Buffer{}
+			var pageToken token
+			pageToken.Id = entList[len(entList)-1].ID
+			err = gob.NewEncoder(&buf).Encode(&pageToken)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			nextPageToken = wrapperspb.String(buf.String())
+			entList = entList[:len(entList)-1]
+		}
+		var pbList []*Attachment
+		for _, entEntity := range entList {
+			pbEntity, err := toProtoAttachment(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &ListAttachmentResponse{
+			AttachmentList: pbList,
+			NextPageToken:  nextPageToken,
+		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}

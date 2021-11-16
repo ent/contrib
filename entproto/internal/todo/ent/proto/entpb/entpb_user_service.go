@@ -2,7 +2,10 @@
 package entpb
 
 import (
+	bytes "bytes"
 	context "context"
+	gob "encoding/gob"
+	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	group "entgo.io/contrib/entproto/internal/todo/ent/group"
@@ -337,6 +340,85 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 		return &emptypb.Empty{}, nil
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+// List implements UserServiceServer.List
+func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
+	type token struct {
+		Id int
+	}
+	var (
+		err      error
+		entList  []*ent.User
+		pageSize int
+	)
+	pageSize = int(req.GetPageSize())
+	switch {
+	case pageSize < 0:
+		return nil, status.Errorf(codes.InvalidArgument, "page size cannot be less than zero")
+	case pageSize == 0 || pageSize > entproto.MaxPageSize:
+		pageSize = entproto.MaxPageSize
+	}
+	listQuery := svc.client.User.Query().
+		Order(ent.Desc(user.FieldID)).
+		Limit(pageSize + 1)
+	if req.GetPageToken() != nil {
+		buf := bytes.Buffer{}
+		buf.WriteString(req.GetPageToken().GetValue())
+		var pageToken token
+		err = gob.NewDecoder(&buf).Decode(&pageToken)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		listQuery = listQuery.
+			Where(user.IDLTE(pageToken.Id))
+	}
+	switch req.GetView() {
+	case ListUserRequest_VIEW_UNSPECIFIED, ListUserRequest_BASIC:
+		entList, err = listQuery.All(ctx)
+	case ListUserRequest_WITH_EDGE_IDS:
+		entList, err = listQuery.
+			WithAttachment(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
+			WithGroup(func(query *ent.GroupQuery) {
+				query.Select(group.FieldID)
+			}).
+			WithReceived1(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
+			All(ctx)
+	}
+	switch {
+	case err == nil:
+		var nextPageToken *wrapperspb.StringValue
+		if len(entList) == pageSize+1 {
+			buf := bytes.Buffer{}
+			var pageToken token
+			pageToken.Id = entList[len(entList)-1].ID
+			err = gob.NewEncoder(&buf).Encode(&pageToken)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			nextPageToken = wrapperspb.String(buf.String())
+			entList = entList[:len(entList)-1]
+		}
+		var pbList []*User
+		for _, entEntity := range entList {
+			pbEntity, err := toProtoUser(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &ListUserResponse{
+			UserList:      pbList,
+			NextPageToken: nextPageToken,
+		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
