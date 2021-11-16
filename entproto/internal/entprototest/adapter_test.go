@@ -241,6 +241,5 @@ func (suite *AdapterTestSuite) TestOptionals() {
 
 	stringsField := message.FindFieldByName("strings_optional")
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, stringsField.GetType())
-	suite.Require().EqualValues("StringValue", stringsField.GetMessageType().GetName())
-	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_LABEL_REPEATED, stringsField.GetLabel())
+	suite.Require().EqualValues("ListValue", stringsField.GetMessageType().GetName())
 }

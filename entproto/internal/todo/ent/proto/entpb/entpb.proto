@@ -5,6 +5,8 @@ package entpb;
 
 import "google/protobuf/empty.proto";
 
+import "google/protobuf/struct.proto";
+
 import "google/protobuf/timestamp.proto";
 
 import "google/protobuf/wrappers.proto";
@@ -132,15 +134,15 @@ message User {
 
   google.protobuf.BoolValue opt_bool = 15;
 
-  repeated google.protobuf.StringValue opt_strings = 16;
+  google.protobuf.ListValue opt_strings = 21;
 
-  google.protobuf.StringValue big_int = 18;
+  google.protobuf.StringValue big_int = 17;
 
-  google.protobuf.Int32Value b_user_1 = 19;
+  google.protobuf.Int32Value b_user_1 = 18;
 
-  float height_in_cm = 20;
+  float height_in_cm = 19;
 
-  double account_balance = 21;
+  double account_balance = 20;
 
   repeated string strings = 22;
 
@@ -148,7 +150,7 @@ message User {
 
   Attachment attachment = 11;
 
-  repeated Attachment received_1 = 17;
+  repeated Attachment received_1 = 16;
 
   enum Status {
     STATUS_UNSPECIFIED = 0;

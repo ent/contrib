@@ -58,6 +58,7 @@ func TestUserService_Create(t *testing.T) {
 		Banned:         true,
 		HeightInCm:     170.18,
 		AccountBalance: 2000.50,
+		Strings:        []string{"lorem", "ipsum"},
 		OptStrings:     slice.InsertStrings([]string{"one", "two", "three"}),
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
@@ -75,6 +76,7 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.Banned, fromDB.Banned)
 	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
 	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
+	require.EqualValues(t, inputUser.Strings, fromDB.Strings)
 	require.ElementsMatch(t, slice.ExtractStrings(inputUser.OptStrings), fromDB.OptStrings)
 
 	// preexisting user

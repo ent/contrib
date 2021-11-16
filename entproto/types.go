@@ -46,7 +46,7 @@ var typeMap = map[field.Type]typeConfig{
 }
 
 var identMap = map[string]typeConfig{
-	"[]string": {pbType: descriptorpb.FieldDescriptorProto_TYPE_STRING, pbLabel: descriptorpb.FieldDescriptorProto_LABEL_REPEATED, optionalType: "google.protobuf.StringValue"},
+	"[]string": {pbType: descriptorpb.FieldDescriptorProto_TYPE_STRING, pbLabel: descriptorpb.FieldDescriptorProto_LABEL_REPEATED, optionalType: "google.protobuf.ListValue"},
 }
 
 type typeConfig struct {

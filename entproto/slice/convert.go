@@ -15,27 +15,30 @@
 package slice
 
 import (
-	"strings"
-
-	"google.golang.org/protobuf/types/known/wrapperspb"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
-// InsertStrings returns a slice of proto strings from a slice of strings
-func InsertStrings(s []string) []*wrapperspb.StringValue {
-	wrappers := []*wrapperspb.StringValue{}
+// InsertStrings returns a proto list from a slice of strings
+func InsertStrings(s []string) *structpb.ListValue {
+	insert := make([]interface{}, 0)
 	for _, str := range s {
-		wrappers = append(wrappers, wrapperspb.String(str))
+		insert = append(insert, str)
 	}
-	return wrappers
+	wrapper, err := structpb.NewList(insert)
+	if err != nil {
+		return nil
+	}
+	return wrapper
 }
 
-// ExtractStrings returns a slice of strings from a slice of proto strings
-func ExtractStrings(s []*wrapperspb.StringValue) []string {
+// ExtractStrings returns a slice of strings from a proto list
+func ExtractStrings(s *structpb.ListValue) []string {
 	extract := []string{}
-	for _, str := range s {
-		cleanVal := strings.TrimPrefix(str.String(), "value:\"")
-		cleanVal = strings.TrimSuffix(cleanVal, "\"")
-		extract = append(extract, cleanVal)
+	for _, str := range s.AsSlice() {
+		extract = append(extract, str.(string))
+	}
+	if len(extract) == 0 {
+		return nil
 	}
 	return extract
 }
