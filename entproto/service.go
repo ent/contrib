@@ -130,7 +130,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	}
 	var outputName, methodName string
 	var messages []*descriptorpb.DescriptorProto
-	var dependecies []string
+	var dependencies []string
 	switch m {
 	case MethodGet:
 		methodName = "Get"
@@ -172,7 +172,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
 		outputName = "google.protobuf.Empty"
 		messages = append(messages, input)
-		dependecies = append(dependecies, "google/protobuf/empty.proto")
+		dependencies = append(dependencies, "google/protobuf/empty.proto")
 	case MethodList:
 		methodName = "List"
 		int32FieldType := descriptorpb.FieldDescriptorProto_TYPE_INT32
@@ -228,7 +228,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 			},
 		}
 		messages = append(messages, input, output)
-		dependecies = append(dependecies, "google/protobuf/wrappers.proto")
+		dependencies = append(dependencies, "google/protobuf/wrappers.proto")
 	default:
 		return methodResources{}, fmt.Errorf("unknown method %q", m)
 	}
@@ -239,7 +239,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 			OutputType: &outputName,
 		},
 		messages:     messages,
-		dependencies: dependecies,
+		dependencies: dependencies,
 	}, nil
 }
 
