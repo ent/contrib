@@ -279,9 +279,9 @@ func TestUserService_List(t *testing.T) {
 		}
 		// Check unique values of returned entities
 		for entryIdx, entry := range resp.UserList {
-			entityId := numEntitiesRemaining - (entryIdx + 1)
-			require.EqualValues(t, fmt.Sprintf("User%d", entityId), entry.UserName)
-			require.EqualValues(t, entityId, entry.ExternalId)
+			entityID := numEntitiesRemaining - (entryIdx + 1)
+			require.EqualValues(t, fmt.Sprintf("User%d", entityID), entry.UserName)
+			require.EqualValues(t, entityID, entry.ExternalId)
 		}
 	}
 
@@ -308,9 +308,9 @@ func TestUserService_List(t *testing.T) {
 		}
 		// Check unique values of returned entities
 		for entryIdx, entry := range resp.UserList {
-			entityId := numEntitiesRemaining - (entryIdx + 1)
-			require.EqualValues(t, fmt.Sprintf("User%d", entityId), entry.UserName)
-			require.EqualValues(t, entityId, entry.ExternalId)
+			entityID := numEntitiesRemaining - (entryIdx + 1)
+			require.EqualValues(t, fmt.Sprintf("User%d", entityID), entry.UserName)
+			require.EqualValues(t, entityID, entry.ExternalId)
 		}
 	}
 
