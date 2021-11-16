@@ -4,6 +4,7 @@ package entpb
 import (
 	bytes "bytes"
 	context "context"
+	base64 "encoding/base64"
 	gob "encoding/gob"
 	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
@@ -174,7 +175,11 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 		Limit(pageSize + 1)
 	if req.GetPageToken() != nil {
 		buf := bytes.Buffer{}
-		buf.WriteString(req.GetPageToken().GetValue())
+		bytes, err := base64.StdEncoding.DecodeString(req.PageToken.GetValue())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		buf.Write(bytes)
 		var pageToken token
 		err = gob.NewDecoder(&buf).Decode(&pageToken)
 		if err != nil {
@@ -201,7 +206,8 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 			}
-			nextPageToken = wrapperspb.String(buf.String())
+			nextPageToken = wrapperspb.String(
+				base64.StdEncoding.EncodeToString(buf.Bytes()))
 			entList = entList[:len(entList)-1]
 		}
 		var pbList []*NilExample
