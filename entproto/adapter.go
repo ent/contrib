@@ -154,7 +154,7 @@ func (a *Adapter) parse() error {
 			}
 			fd.Service = append(fd.Service, svcResources.svc)
 			fd.MessageType = append(fd.MessageType, svcResources.svcMessages...)
-			fd.Dependency = append(fd.Dependency, "google/protobuf/empty.proto")
+			fd.Dependency = append(fd.Dependency, svcResources.svcDependencies...)
 		}
 	}
 
