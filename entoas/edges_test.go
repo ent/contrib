@@ -79,7 +79,7 @@ func TestEdgeTree(t *testing.T) {
 	// Load a graph.
 	wd, err := os.Getwd()
 	require.NoError(t, err)
-	g, err := entc.LoadGraph(filepath.Join(wd, "internal", "schema"), &gen.Config{})
+	g, err := entc.LoadGraph(filepath.Join(wd, "internal", "simple", "schema"), &gen.Config{})
 	require.NoError(t, err)
 	// Extract the Edges for a read operation on the Pet entity.
 	var (
