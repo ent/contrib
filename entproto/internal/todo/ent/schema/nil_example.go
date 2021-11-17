@@ -46,9 +46,7 @@ func (NilExample) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
 		entproto.Service(
-			entproto.Methods(
-				entproto.MethodAll,
-			),
+			entproto.Methods(entproto.MethodAll),
 		),
 	}
 }
