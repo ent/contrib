@@ -29,7 +29,7 @@ const (
 	ServiceAnnotation = "ProtoService"
 	// MaxPageSize is the maximum page size that can be returned by a List call. Requesting page sizes larger than
 	// this value will return, at most, MaxPageSize entries.
-	MaxPageSize = 100
+	MaxPageSize = 1000
 	// MethodCreate generates a Create gRPC service method for the entproto.Service.
 	MethodCreate Method = 1 << iota
 	// MethodGet generates a Get gRPC service method for the entproto.Service.
