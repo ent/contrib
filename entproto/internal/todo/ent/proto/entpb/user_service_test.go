@@ -18,7 +18,6 @@ import (
 	"context"
 	"entgo.io/contrib/entproto"
 	"fmt"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	"strings"
 	"testing"
 	"time"
@@ -208,41 +207,13 @@ func TestUserService_Update(t *testing.T) {
 }
 
 func TestUserService_List(t *testing.T) {
-	const (
-		NumListEntries = (entproto.MaxPageSize * 2) + 5
-	)
-
-	// Helper functions
-	coercePageSize := func(pageSize int) int {
-		// Default page size is max page size
-		// Page sizes greater than max are coerced down to max
-		if pageSize == 0 || pageSize > entproto.MaxPageSize {
-			return entproto.MaxPageSize
-		}
-
-		return pageSize
-	}
-	calcNumPages := func(pageSize int) int {
-		pageSize = coercePageSize(pageSize)
-		// Remainder means there is an extra page
-		if NumListEntries%pageSize != 0 {
-			return (NumListEntries / pageSize) + 1
-		} else {
-			return NumListEntries / pageSize
-		}
-	}
-	calcEntitiesRemaining := func(pageSize, pageIdx int) int {
-		pageSize = coercePageSize(pageSize)
-		return NumListEntries - (pageSize * pageIdx)
-	}
-
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
 	svc := NewUserService(client)
 	ctx := context.Background()
 
 	// Create test entries
-	for i := 0; i < NumListEntries; i++ {
+	for i := 0; i < (entproto.MaxPageSize*2)+5; i++ {
 		_ = client.User.Create().
 			SetUserName(fmt.Sprintf("User%d", i)).
 			SetExternalID(i).
@@ -255,69 +226,47 @@ func TestUserService_List(t *testing.T) {
 			SaveX(ctx)
 	}
 
-	var err error
-	resp := &ListUserResponse{}
-
-	// List all pages using default page size
-	pageSize := 0
-	numPages := calcNumPages(pageSize)
-	for pageIdx := 0; pageIdx < numPages; pageIdx++ {
-		resp, err = svc.List(ctx, &ListUserRequest{
-			PageSize:  int32(pageSize),
-			PageToken: resp.NextPageToken,
-		})
-		// Check gRPC error status
-		require.NoError(t, err)
-		// Check number of entities returned
-		numEntitiesRemaining := calcEntitiesRemaining(pageSize, pageIdx)
-		if numEntitiesRemaining > coercePageSize(pageSize) {
-			require.EqualValues(t, coercePageSize(pageSize), len(resp.UserList))
-			require.NotNil(t, resp.NextPageToken)
-		} else {
-			require.EqualValues(t, numEntitiesRemaining, len(resp.UserList))
-			require.Nil(t, resp.NextPageToken)
-		}
-		// Check unique values of returned entities
-		for entryIdx, entry := range resp.UserList {
-			entityID := numEntitiesRemaining - (entryIdx + 1)
-			require.EqualValues(t, fmt.Sprintf("User%d", entityID), entry.UserName)
-			require.EqualValues(t, entityID, entry.ExternalId)
-		}
+	// First page
+	resp, err := svc.List(ctx, &ListUserRequest{
+		PageSize: entproto.MaxPageSize * 2,
+	})
+	require.NoError(t, err)
+	// Check number of entities returned. Should be max page size
+	require.EqualValues(t, entproto.MaxPageSize, len(resp.UserList))
+	// Check unique values of returned entities
+	for entryIdx, entry := range resp.UserList {
+		entityID := ((entproto.MaxPageSize * 2) + 5) - (entryIdx + 1)
+		require.EqualValues(t, fmt.Sprintf("User%d", entityID), entry.UserName)
+		require.EqualValues(t, entityID, entry.ExternalId)
 	}
 
-	// List all pages using page size greater than max
-	// Checks that page size coercion works as expected
-	pageSize = entproto.MaxPageSize * 2
-	numPages = calcNumPages(pageSize)
-	resp = &ListUserResponse{}
-	for pageIdx := 0; pageIdx < numPages; pageIdx++ {
-		resp, err = svc.List(ctx, &ListUserRequest{
-			PageSize:  int32(pageSize),
-			PageToken: resp.NextPageToken,
-		})
-		// Check gRPC error status
-		require.NoError(t, err)
-		// Check number of entities returned
-		numEntitiesRemaining := calcEntitiesRemaining(pageSize, pageIdx)
-		if numEntitiesRemaining > coercePageSize(pageSize) {
-			require.EqualValues(t, coercePageSize(pageSize), len(resp.UserList))
-			require.NotNil(t, resp.NextPageToken)
-		} else {
-			require.EqualValues(t, numEntitiesRemaining, len(resp.UserList))
-			require.Nil(t, resp.NextPageToken)
-		}
-		// Check unique values of returned entities
-		for entryIdx, entry := range resp.UserList {
-			entityID := numEntitiesRemaining - (entryIdx + 1)
-			require.EqualValues(t, fmt.Sprintf("User%d", entityID), entry.UserName)
-			require.EqualValues(t, entityID, entry.ExternalId)
-		}
+	// Second page
+	resp, err = svc.List(ctx, &ListUserRequest{
+		PageToken: resp.NextPageToken,
+	})
+	require.NoError(t, err)
+	// Check number of entities returned. Should be max page size which is the default
+	require.EqualValues(t, entproto.MaxPageSize, len(resp.UserList))
+	// Check that we actually got values from the second page
+	for entryIdx, entry := range resp.UserList {
+		entityID := (entproto.MaxPageSize + 5) - (entryIdx + 1)
+		require.EqualValues(t, fmt.Sprintf("User%d", entityID), entry.UserName)
+		require.EqualValues(t, entityID, entry.ExternalId)
 	}
+
+	// Final page
+	resp, err = svc.List(ctx, &ListUserRequest{
+		PageToken: resp.NextPageToken,
+	})
+	require.NoError(t, err)
+	// Check number of entities returned
+	require.EqualValues(t, 5, len(resp.UserList))
+	// Check that no next page token was returned
+	require.EqualValues(t, "", resp.NextPageToken)
 
 	// Invalid page size
-	pageSize = -1
 	resp, err = svc.List(ctx, &ListUserRequest{
-		PageSize: int32(pageSize),
+		PageSize: -1,
 	})
 	require.Nil(t, resp)
 	respStatus, ok := status.FromError(err)
@@ -325,10 +274,8 @@ func TestUserService_List(t *testing.T) {
 	require.EqualValues(t, respStatus.Code(), codes.InvalidArgument)
 
 	// Invalid page token
-	pageSize = entproto.MaxPageSize
 	resp, err = svc.List(ctx, &ListUserRequest{
-		PageSize:  int32(pageSize),
-		PageToken: wrapperspb.String("INVALID PAGE TOKEN"),
+		PageToken: "INVALID PAGE TOKEN",
 	})
 	require.Nil(t, resp)
 	respStatus, ok = status.FromError(err)
