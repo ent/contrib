@@ -1,9 +1,6 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_list" }}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
-    type token struct {
-        Id {{ idType }}
-    }
     var (
         err error
         entList []*ent.{{ .G.EntType.Name }}
@@ -20,19 +17,24 @@
         Order(ent.Desc({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "FieldID" }})).
         Limit(pageSize + 1)
     if req.GetPageToken() != "" {
-        buf := {{ qualify "bytes" "Buffer" }}{}
         bytes, err := {{ qualify "encoding/base64" "StdEncoding.DecodeString" }}(req.PageToken)
         if err != nil {
             return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
         }
-        buf.Write(bytes)
-        var pageToken token
-        err = {{ qualify "encoding/gob" "NewDecoder" }}(&buf).Decode(&pageToken)
-        if err != nil {
-            return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
-        }
+        {{ if .G.EntType.ID.Type.Type.Integer }}
+            token, err := {{ qualify "strconv" "ParseInt" }}(string(bytes), 10, 32)
+            if err != nil {
+                return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+            }
+            pageToken := int(token)
+        {{ else }}
+            pageToken, err := {{ qualify "github.com/google/uuid" "ParseBytes" }}(bytes)
+            if err != nil {
+                return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+            }
+        {{ end }}
         listQuery = listQuery.
-            Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken.Id))
+            Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken))
     }
     switch req.GetView() {
     case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
@@ -51,14 +53,8 @@
     case err == nil:
         var nextPageToken string
         if len(entList) == pageSize + 1 {
-			buf := {{ qualify "bytes" "Buffer" }}{}
-			var pageToken token
-			pageToken.Id = entList[len(entList)-1].ID
-			err = {{ qualify "encoding/gob" "NewEncoder" }}(&buf).Encode(&pageToken)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			nextPageToken = {{ qualify "encoding/base64" "StdEncoding.EncodeToString" }}(buf.Bytes())
+			nextPageToken = {{ qualify "encoding/base64" "StdEncoding.EncodeToString" }}(
+			    []byte({{ qualify "fmt" "Sprintf" }}("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
         }
         var pbList []*{{ .G.EntType.Name }}
