@@ -47,6 +47,5 @@ func (User) Edges() []ent.Edge {
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entoas.ReadOperation(entoas.OperationGroups("user")),
-		// entoas.ListOperation(entoas.OperationGroups("user")),
 	}
 }
