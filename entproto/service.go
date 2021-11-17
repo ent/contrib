@@ -108,7 +108,6 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 		}
 		out.svc.Method = append(out.svc.Method, resources.methodDescriptor)
 		out.svcMessages = append(out.svcMessages, resources.messages...)
-		out.svcDependencies = append(out.svcDependencies, resources.dependencies...)
 	}
 
 	return out, nil
@@ -130,7 +129,6 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	}
 	var outputName, methodName string
 	var messages []*descriptorpb.DescriptorProto
-	var dependencies []string
 	switch m {
 	case MethodGet:
 		methodName = "Get"
@@ -172,7 +170,6 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
 		outputName = "google.protobuf.Empty"
 		messages = append(messages, input)
-		dependencies = append(dependencies, "google/protobuf/empty.proto")
 	case MethodList:
 		methodName = "List"
 		int32FieldType := descriptorpb.FieldDescriptorProto_TYPE_INT32
