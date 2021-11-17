@@ -48,7 +48,7 @@ message DeleteAttachmentRequest {
 message ListAttachmentRequest {
   int32 page_size = 1;
 
-  google.protobuf.StringValue page_token = 2;
+  string page_token = 2;
 
   View view = 3;
 
@@ -64,7 +64,7 @@ message ListAttachmentRequest {
 message ListAttachmentResponse {
   repeated Attachment attachment_list = 1;
 
-  google.protobuf.StringValue next_page_token = 2;
+  string next_page_token = 2;
 }
 
 message Group {
@@ -112,7 +112,7 @@ message DeleteNilExampleRequest {
 message ListNilExampleRequest {
   int32 page_size = 1;
 
-  google.protobuf.StringValue page_token = 2;
+  string page_token = 2;
 
   View view = 3;
 
@@ -128,7 +128,7 @@ message ListNilExampleRequest {
 message ListNilExampleResponse {
   repeated NilExample nil_example_list = 1;
 
-  google.protobuf.StringValue next_page_token = 2;
+  string next_page_token = 2;
 }
 
 message Todo {
@@ -228,7 +228,7 @@ message DeleteUserRequest {
 message ListUserRequest {
   int32 page_size = 1;
 
-  google.protobuf.StringValue page_token = 2;
+  string page_token = 2;
 
   View view = 3;
 
@@ -244,7 +244,7 @@ message ListUserRequest {
 message ListUserResponse {
   repeated User user_list = 1;
 
-  google.protobuf.StringValue next_page_token = 2;
+  string next_page_token = 2;
 }
 
 service AttachmentService {

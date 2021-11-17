@@ -2,20 +2,20 @@
 package entpb
 
 import (
-	bytes "bytes"
 	context "context"
 	base64 "encoding/base64"
-	gob "encoding/gob"
 	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	nilexample "entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
+	fmt "fmt"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	strconv "strconv"
 )
 
 // NilExampleService implements NilExampleServiceServer
@@ -155,9 +155,6 @@ func (svc *NilExampleService) Delete(ctx context.Context, req *DeleteNilExampleR
 
 // List implements NilExampleServiceServer.List
 func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleRequest) (*ListNilExampleResponse, error) {
-	type token struct {
-		Id int
-	}
 	var (
 		err      error
 		entList  []*ent.NilExample
@@ -173,20 +170,20 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 	listQuery := svc.client.NilExample.Query().
 		Order(ent.Desc(nilexample.FieldID)).
 		Limit(pageSize + 1)
-	if req.GetPageToken() != nil {
-		buf := bytes.Buffer{}
-		bytes, err := base64.StdEncoding.DecodeString(req.PageToken.GetValue())
+	if req.GetPageToken() != "" {
+		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-		buf.Write(bytes)
-		var pageToken token
-		err = gob.NewDecoder(&buf).Decode(&pageToken)
+
+		token, err := strconv.ParseInt(string(bytes), 10, 32)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
+		pageToken := int(token)
+
 		listQuery = listQuery.
-			Where(nilexample.IDLTE(pageToken.Id))
+			Where(nilexample.IDLTE(pageToken))
 	}
 	switch req.GetView() {
 	case ListNilExampleRequest_VIEW_UNSPECIFIED, ListNilExampleRequest_BASIC:
@@ -197,17 +194,10 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 	}
 	switch {
 	case err == nil:
-		var nextPageToken *wrapperspb.StringValue
+		var nextPageToken string
 		if len(entList) == pageSize+1 {
-			buf := bytes.Buffer{}
-			var pageToken token
-			pageToken.Id = entList[len(entList)-1].ID
-			err = gob.NewEncoder(&buf).Encode(&pageToken)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			nextPageToken = wrapperspb.String(
-				base64.StdEncoding.EncodeToString(buf.Bytes()))
+			nextPageToken = base64.StdEncoding.EncodeToString(
+				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
 		var pbList []*NilExample

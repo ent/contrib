@@ -2,20 +2,18 @@
 package entpb
 
 import (
-	bytes "bytes"
 	context "context"
 	base64 "encoding/base64"
-	gob "encoding/gob"
 	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
+	fmt "fmt"
 	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // AttachmentService implements AttachmentServiceServer
@@ -173,9 +171,6 @@ func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentR
 
 // List implements AttachmentServiceServer.List
 func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentRequest) (*ListAttachmentResponse, error) {
-	type token struct {
-		Id uuid.UUID
-	}
 	var (
 		err      error
 		entList  []*ent.Attachment
@@ -191,20 +186,19 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 	listQuery := svc.client.Attachment.Query().
 		Order(ent.Desc(attachment.FieldID)).
 		Limit(pageSize + 1)
-	if req.GetPageToken() != nil {
-		buf := bytes.Buffer{}
-		bytes, err := base64.StdEncoding.DecodeString(req.PageToken.GetValue())
+	if req.GetPageToken() != "" {
+		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-		buf.Write(bytes)
-		var pageToken token
-		err = gob.NewDecoder(&buf).Decode(&pageToken)
+
+		pageToken, err := uuid.ParseBytes(bytes)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
+
 		listQuery = listQuery.
-			Where(attachment.IDLTE(pageToken.Id))
+			Where(attachment.IDLTE(pageToken))
 	}
 	switch req.GetView() {
 	case ListAttachmentRequest_VIEW_UNSPECIFIED, ListAttachmentRequest_BASIC:
@@ -221,17 +215,10 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 	}
 	switch {
 	case err == nil:
-		var nextPageToken *wrapperspb.StringValue
+		var nextPageToken string
 		if len(entList) == pageSize+1 {
-			buf := bytes.Buffer{}
-			var pageToken token
-			pageToken.Id = entList[len(entList)-1].ID
-			err = gob.NewEncoder(&buf).Encode(&pageToken)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			nextPageToken = wrapperspb.String(
-				base64.StdEncoding.EncodeToString(buf.Bytes()))
+			nextPageToken = base64.StdEncoding.EncodeToString(
+				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
 		var pbList []*Attachment

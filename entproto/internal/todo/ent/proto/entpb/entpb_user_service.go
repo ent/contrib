@@ -2,10 +2,8 @@
 package entpb
 
 import (
-	bytes "bytes"
 	context "context"
 	base64 "encoding/base64"
-	gob "encoding/gob"
 	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
@@ -15,12 +13,14 @@ import (
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	errors "errors"
+	fmt "fmt"
 	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	strconv "strconv"
 	strings "strings"
 )
 
@@ -349,9 +349,6 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 
 // List implements UserServiceServer.List
 func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
-	type token struct {
-		Id int
-	}
 	var (
 		err      error
 		entList  []*ent.User
@@ -367,20 +364,20 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 	listQuery := svc.client.User.Query().
 		Order(ent.Desc(user.FieldID)).
 		Limit(pageSize + 1)
-	if req.GetPageToken() != nil {
-		buf := bytes.Buffer{}
-		bytes, err := base64.StdEncoding.DecodeString(req.PageToken.GetValue())
+	if req.GetPageToken() != "" {
+		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-		buf.Write(bytes)
-		var pageToken token
-		err = gob.NewDecoder(&buf).Decode(&pageToken)
+
+		token, err := strconv.ParseInt(string(bytes), 10, 32)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
+		pageToken := int(token)
+
 		listQuery = listQuery.
-			Where(user.IDLTE(pageToken.Id))
+			Where(user.IDLTE(pageToken))
 	}
 	switch req.GetView() {
 	case ListUserRequest_VIEW_UNSPECIFIED, ListUserRequest_BASIC:
@@ -400,17 +397,10 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 	}
 	switch {
 	case err == nil:
-		var nextPageToken *wrapperspb.StringValue
+		var nextPageToken string
 		if len(entList) == pageSize+1 {
-			buf := bytes.Buffer{}
-			var pageToken token
-			pageToken.Id = entList[len(entList)-1].ID
-			err = gob.NewEncoder(&buf).Encode(&pageToken)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			nextPageToken = wrapperspb.String(
-				base64.StdEncoding.EncodeToString(buf.Bytes()))
+			nextPageToken = base64.StdEncoding.EncodeToString(
+				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
 		var pbList []*User
