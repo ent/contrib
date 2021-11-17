@@ -176,7 +176,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	case MethodList:
 		methodName = "List"
 		int32FieldType := descriptorpb.FieldDescriptorProto_TYPE_INT32
-		optionalFieldLabel := descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
+		stringFieldType := descriptorpb.FieldDescriptorProto_TYPE_STRING
 		repeatedFieldLabel := descriptorpb.FieldDescriptorProto_LABEL_REPEATED
 		input.Name = strptr(fmt.Sprintf("List%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{
@@ -186,11 +186,9 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 				Type:   &int32FieldType,
 			},
 			{
-				Name:     strptr("page_token"),
-				Number:   int32ptr(2),
-				Label:    &optionalFieldLabel,
-				Type:     &protoMessageFieldType,
-				TypeName: strptr("google.protobuf.StringValue"),
+				Name:   strptr("page_token"),
+				Number: int32ptr(2),
+				Type:   &stringFieldType,
 			},
 			{
 				Name:     strptr("view"),
@@ -219,16 +217,13 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 					TypeName: strptr(genType.Name),
 				},
 				{
-					Name:     strptr("next_page_token"),
-					Number:   int32ptr(2),
-					Label:    &optionalFieldLabel,
-					Type:     &protoMessageFieldType,
-					TypeName: strptr("google.protobuf.StringValue"),
+					Name:   strptr("next_page_token"),
+					Number: int32ptr(2),
+					Type:   &stringFieldType,
 				},
 			},
 		}
 		messages = append(messages, input, output)
-		dependencies = append(dependencies, "google/protobuf/wrappers.proto")
 	default:
 		return methodResources{}, fmt.Errorf("unknown method %q", m)
 	}
@@ -238,21 +233,18 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 			InputType:  input.Name,
 			OutputType: &outputName,
 		},
-		messages:     messages,
-		dependencies: dependencies,
+		messages: messages,
 	}, nil
 }
 
 type methodResources struct {
 	methodDescriptor *descriptorpb.MethodDescriptorProto
 	messages         []*descriptorpb.DescriptorProto
-	dependencies     []string
 }
 
 type serviceResources struct {
-	svc             *descriptorpb.ServiceDescriptorProto
-	svcMessages     []*descriptorpb.DescriptorProto
-	svcDependencies []string
+	svc         *descriptorpb.ServiceDescriptorProto
+	svcMessages []*descriptorpb.DescriptorProto
 }
 
 func extractServiceAnnotation(sch *gen.Type) (*service, error) {

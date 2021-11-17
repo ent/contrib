@@ -19,9 +19,9 @@
     listQuery := svc.client.{{ .G.EntType.Name }}.Query().
         Order(ent.Desc({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "FieldID" }})).
         Limit(pageSize + 1)
-    if req.GetPageToken() != nil {
+    if req.GetPageToken() != "" {
         buf := {{ qualify "bytes" "Buffer" }}{}
-        bytes, err := {{ qualify "encoding/base64" "StdEncoding.DecodeString" }}(req.PageToken.GetValue())
+        bytes, err := {{ qualify "encoding/base64" "StdEncoding.DecodeString" }}(req.PageToken)
         if err != nil {
             return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
         }
@@ -49,7 +49,7 @@
     }
     switch {
     case err == nil:
-        var nextPageToken *{{ qualify "google.golang.org/protobuf/types/known/wrapperspb" "StringValue" }}
+        var nextPageToken string
         if len(entList) == pageSize + 1 {
 			buf := {{ qualify "bytes" "Buffer" }}{}
 			var pageToken token
@@ -58,8 +58,7 @@
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 			}
-			nextPageToken = {{ qualify "google.golang.org/protobuf/types/known/wrapperspb" "String" }}(
-			    {{ qualify "encoding/base64" "StdEncoding.EncodeToString" }}(buf.Bytes()))
+			nextPageToken = {{ qualify "encoding/base64" "StdEncoding.EncodeToString" }}(buf.Bytes())
 			entList = entList[:len(entList)-1]
         }
         var pbList []*{{ .G.EntType.Name }}
