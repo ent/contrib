@@ -25,65 +25,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWalk_CycleDepth(t *testing.T) {
+func TestEdges_Flatten(t *testing.T) {
 	t.Parallel()
-
-	var w walk
-	require.Equal(t, uint(0), w.cycleDepth())
-
-	w = walk{"a"}
-	require.Equal(t, uint(1), w.cycleDepth())
-
-	w = walk{"a", "b"}
-	require.Equal(t, uint(1), w.cycleDepth())
-
-	w = walk{"a", "a"}
-	require.Equal(t, uint(2), w.cycleDepth())
-
-	w = walk{"a", "b", "b"}
-	require.Equal(t, uint(2), w.cycleDepth())
-
-	w = walk{"a", "b", "b", "c"}
-	require.Equal(t, uint(1), w.cycleDepth())
-
-	w = walk{"a", "b", "b", "a"}
-	require.Equal(t, uint(2), w.cycleDepth())
-
-	w = walk{"a", "a", "b", "a"}
-	require.Equal(t, uint(3), w.cycleDepth())
-}
-
-func TestWalk_Push(t *testing.T) {
-	t.Parallel()
-
-	var w walk
-	require.Equal(t, walk(nil), w)
-
-	w.push("a")
-	require.Equal(t, walk{"a"}, w)
-
-	w.push("b")
-	require.Equal(t, walk{"a", "b"}, w)
-}
-
-func TestWalk_Pop(t *testing.T) {
-	t.Parallel()
-
-	w := walk{"a", "b", "c"}
-
-	w.pop()
-	require.Equal(t, walk{"a", "b"}, w)
-
-	w.pop()
-	require.Equal(t, walk{"a"}, w)
-
-	w.pop()
-	require.Equal(t, walk{}, w)
+	// Load a graph.
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	g, err := entc.LoadGraph(filepath.Join(wd, "internal", "cycle", "schema"), &gen.Config{})
+	require.NoError(t, err)
+	// Extract the Edges for a read operation on the User entity.
+	var u *gen.Type
+	for _, n := range g.Nodes {
+		if n.Name == "User" {
+			u = n
+			break
+		}
+	}
+	es, err := EdgeTree(u, serialization.Groups{"user"})
+	require.NoError(t, err)
+	require.Equal(t, len(u.Edges), len(es.Flatten()))
 }
 
 func TestEdgeTree(t *testing.T) {
 	t.Parallel()
-
 	// Load a graph.
 	wd, err := os.Getwd()
 	require.NoError(t, err)

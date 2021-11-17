@@ -27,7 +27,6 @@ import (
 
 func TestView(t *testing.T) {
 	t.Parallel()
-
 	// Load a graph.
 	wd, err := os.Getwd()
 	require.NoError(t, err)

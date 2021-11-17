@@ -236,7 +236,7 @@ func edgeViewName(n *gen.Type, e *gen.Edge, op Operation) (string, error) {
 	return fmt.Sprintf("%s_%s%s", n.Name, e.StructField(), op.Title()), nil
 }
 
-// viewName returns the name for a view that is an edge on the given viewName.
+// viewNameEdge returns the name for a view that is an edge on the given node.
 func viewNameEdge(vn string, e *gen.Edge) (string, error) {
 	cfg, err := GetConfig(e.Type.Config)
 	if err != nil {
