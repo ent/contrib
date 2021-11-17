@@ -26,6 +26,8 @@ import (
 )
 
 func TestWalk_CycleDepth(t *testing.T) {
+	t.Parallel()
+
 	var w walk
 	require.Equal(t, uint(0), w.cycleDepth())
 
@@ -52,6 +54,8 @@ func TestWalk_CycleDepth(t *testing.T) {
 }
 
 func TestWalk_Push(t *testing.T) {
+	t.Parallel()
+
 	var w walk
 	require.Equal(t, walk(nil), w)
 
@@ -63,6 +67,8 @@ func TestWalk_Push(t *testing.T) {
 }
 
 func TestWalk_Pop(t *testing.T) {
+	t.Parallel()
+
 	w := walk{"a", "b", "c"}
 
 	w.pop()
@@ -76,6 +82,8 @@ func TestWalk_Pop(t *testing.T) {
 }
 
 func TestEdgeTree(t *testing.T) {
+	t.Parallel()
+
 	// Load a graph.
 	wd, err := os.Getwd()
 	require.NoError(t, err)
