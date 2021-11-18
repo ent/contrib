@@ -115,5 +115,5 @@ func (w *walk) pop() {
 	}
 }
 
-// equal returns of the given step o is equal to the current step s.
+// equal returns if the given step o is equal to the current step s.
 func (s step) equal(o step) bool { return s.from.Name == o.from.Name && s.over.Name == o.over.Name }
