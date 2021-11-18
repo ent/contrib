@@ -27,8 +27,6 @@ type (
 	Annotation struct {
 		// Groups holds the serialization groups to use on this field / edge.
 		Groups serialization.Groups
-		// MaxDepth tells the generator the maximum depth of this edge when there is a cycle possible.
-		MaxDepth uint
 		// OpenAPI Specification example value for a schema field.
 		Example interface{}
 		// Create has meta information about a creation operation.
