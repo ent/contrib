@@ -21,17 +21,21 @@
         if err != nil {
             return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
         }
-        {{ if .G.EntType.ID.Type.Type.Integer }}
+        {{ if .G.EntType.ID.IsInt }}
             token, err := {{ qualify "strconv" "ParseInt" }}(string(bytes), 10, 32)
             if err != nil {
                 return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
             }
             pageToken := int(token)
-        {{ else }}
+        {{ else if .G.EntType.ID.IsUUID }}
             pageToken, err := {{ qualify "github.com/google/uuid" "ParseBytes" }}(bytes)
             if err != nil {
                 return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
             }
+        {{ else if .G.EntType.ID.IsString }}
+            pageToken := string(bytes)
+        {{ else }}
+            {{ throwError "unsupported id type for list method" }}
         {{ end }}
         listQuery = listQuery.
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken))

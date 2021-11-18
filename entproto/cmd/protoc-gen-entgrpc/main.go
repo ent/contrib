@@ -131,6 +131,9 @@ func (g *serviceGenerator) generate() error {
 					Method: m,
 				}
 			},
+			"throwError": func(description string) (string, error) {
+				return "", fmt.Errorf("entproto: %s", description)
+			},
 		}).
 		ParseFS(templates, "template/*.tmpl")
 	if err != nil {
