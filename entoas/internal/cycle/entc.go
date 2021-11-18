@@ -12,29 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package entoas
+//go:build ignore
+// +build ignore
+
+package main
 
 import (
-	"os"
-	"testing"
+	"log"
 
-	"entgo.io/contrib/entoas/spec"
+	"entgo.io/contrib/entoas"
+	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"github.com/stretchr/testify/require"
 )
 
-func TestExtension(t *testing.T) {
-	t.Parallel()
-	ex, err := NewExtension(
-		DefaultPolicy(PolicyExpose),
-		Mutations(func(graph *gen.Graph, spec *spec.Spec) error { return nil }),
-		SpecTitle("Spec Title"),
-		SpecDescription("Spec Description"),
-		SpecVersion("Spec Version"),
-		WriteTo(os.Stdout),
-	)
-	require.NoError(t, err)
-	require.Equal(t, ex.config.DefaultPolicy, PolicyExpose)
-	require.Len(t, ex.mutations, 4)
-	require.Equal(t, ex.out, os.Stdout)
+func main() {
+	ex, err := entoas.NewExtension()
+	if err != nil {
+		log.Fatalf("creating entoas extension: %v", err)
+	}
+	err = entc.Generate("./schema", &gen.Config{}, entc.Extensions(ex))
+	if err != nil {
+		log.Fatalf("running ent codegen: %v", err)
+	}
 }

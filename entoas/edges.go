@@ -38,23 +38,25 @@ type (
 // EdgeTree returns the Edges to include on a type for the given serialization groups.
 func EdgeTree(n *gen.Type, gs serialization.Groups) (Edges, error) { return edgeTree(n, walk{}, gs) }
 
-// Flatten returns a list of all gen.Types present in the tree.
+// Flatten returns a list of all gen.Edge present in the tree.
 func (es Edges) Flatten() []*gen.Edge {
-	em := make(map[string]*gen.Edge)
-	types(em, es)
-	r := make([]*gen.Edge, 0, len(em))
-	for _, t := range em {
+	var r []*gen.Edge
+	for _, t := range edges(es) {
 		r = append(r, t)
 	}
 	return r
 }
 
-// types recursively adds all gen.Types present on the given Edges to the given map.
-func types(dest map[string]*gen.Edge, es Edges) {
+// edges recursively adds all gen.Edge present on the given Edges to the given map.
+func edges(es Edges) map[string]*gen.Edge {
+	m := make(map[string]*gen.Edge)
 	for _, e := range es {
-		dest[e.Type.Name] = e.Edge
-		types(dest, e.Edges)
+		m[e.Name] = e.Edge
+		for k, v := range edges(e.Edges) {
+			m[k] = v
+		}
 	}
+	return m
 }
 
 // edgeTree recursively collects the edges to load on this type for the requested groups.
