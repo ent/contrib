@@ -129,7 +129,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	}
 	var (
 		outputName, methodName string
-		messages []*descriptorpb.DescriptorProto
+		messages               []*descriptorpb.DescriptorProto
 	)
 	switch m {
 	case MethodGet:
