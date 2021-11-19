@@ -191,12 +191,10 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-
 		pageToken, err := uuid.ParseBytes(bytes)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-
 		listQuery = listQuery.
 			Where(attachment.IDLTE(pageToken))
 	}

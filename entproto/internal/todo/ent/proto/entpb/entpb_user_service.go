@@ -369,13 +369,11 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-
 		token, err := strconv.ParseInt(string(bytes), 10, 32)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
 		pageToken := int(token)
-
 		listQuery = listQuery.
 			Where(user.IDLTE(pageToken))
 	}
