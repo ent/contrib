@@ -127,8 +127,10 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		Type:     &protoMessageFieldType,
 		TypeName: &genType.Name,
 	}
-	var outputName, methodName string
-	var messages []*descriptorpb.DescriptorProto
+	var (
+		outputName, methodName string
+		messages []*descriptorpb.DescriptorProto
+	)
 	switch m {
 	case MethodGet:
 		methodName = "Get"
