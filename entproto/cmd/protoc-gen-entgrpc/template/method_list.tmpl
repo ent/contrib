@@ -34,8 +34,6 @@
             }
         {{- else if .G.EntType.ID.IsString }}
             pageToken := string(bytes)
-        {{- else }}
-            {{ throwError "unsupported id type for list method" }}
         {{- end }}
         listQuery = listQuery.
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken))
