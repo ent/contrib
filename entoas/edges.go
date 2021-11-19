@@ -15,13 +15,9 @@
 package entoas
 
 import (
-	"fmt"
-
 	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 )
-
-const maxDepth = 25
 
 type (
 	// Edge wraps a gen.Edge and denotes an edge to be returned in an operation response. It recursively defines
@@ -31,8 +27,13 @@ type (
 		Edges Edges
 	}
 	Edges []*Edge
-	// walk is a node sequence in the schema graph. Used to keep track when creating an Edge.
-	walk []string
+	// A step when traversing the schema graph.
+	step struct {
+		from *gen.Type
+		over *gen.Edge
+	}
+	// walk is a sequence of steps.
+	walk []step
 )
 
 // EdgeTree returns the Edges to include on a type for the given serialization groups.
@@ -61,10 +62,6 @@ func edges(es Edges) map[string]*gen.Edge {
 
 // edgeTree recursively collects the edges to load on this type for the requested groups.
 func edgeTree(n *gen.Type, w walk, gs serialization.Groups) (Edges, error) {
-	// If we have reached maxDepth there most possibly is an unwanted circular reference.
-	if w.reachedMaxDepth() {
-		return nil, fmt.Errorf("entoas: max depth of %d reached: ", maxDepth)
-	}
 	// Iterate over the edges of the given type.
 	// If the type has an edge we need to eager load, do so.
 	// Recursively go down the current types edges and, if requested, eager load those too.
@@ -74,24 +71,20 @@ func edgeTree(n *gen.Type, w walk, gs serialization.Groups) (Edges, error) {
 		if err != nil {
 			return nil, err
 		}
-		if a.MaxDepth == 0 {
-			a.MaxDepth = 1
-		}
 		// If the edge has at least one of the groups requested, load the edge.
 		if a.Groups.Match(gs) {
-			// Add the current step to our walk, since we will add this edge.
-			w.push(n.Name + "." + e.Name)
-			// If we have reached the max depth on this field for the given type stop the recursion. Backtrack!
-			if w.cycleDepth() > a.MaxDepth {
-				w.pop()
+			s := step{n, e}
+			// If we already visited this edge before don't do it again to prevent an endless cycle.
+			if w.visited(s) {
 				continue
 			}
+			w.push(s)
 			// Recursively collect the eager loads of edge-types edges.
 			es1, err := edgeTree(e.Type, w, gs)
 			if err != nil {
 				return nil, err
 			}
-			// Done visiting this node. Remove this node from our walk.
+			// Done visiting this edge.
 			w.pop()
 			es = append(es, &Edge{Edge: e, Edges: es1})
 		}
@@ -99,35 +92,28 @@ func edgeTree(n *gen.Type, w walk, gs serialization.Groups) (Edges, error) {
 	return es, nil
 }
 
-// cycleDepth determines the length of a cycle on the last visited node.
-//   <nil>: 0 -> no visits at all
-// a->b->c: 1 -> 1st visit on c
-// a->b->b: 2 -> 2nd visit on b
-// a->a->a: 3 -> 3rd visit on a
-// a->b->a: 2 -> 2nd visit on a
-func (w walk) cycleDepth() uint {
+// visited returns if the given step has been done before.
+func (w walk) visited(s step) bool {
 	if len(w) == 0 {
-		return 0
+		return false
 	}
-	n := w[len(w)-1]
-	c := uint(1)
-	for i := len(w) - 2; i >= 0; i-- {
-		if n == w[i] {
-			c++
+	for i := len(w) - 1; i >= 0; i-- {
+		if w[i].equal(s) {
+			return true
 		}
 	}
-	return c
+	return false
 }
 
-// reachedMaxDepth returns if the walk has reached a depth greater than maxDepth.
-func (w walk) reachedMaxDepth() bool { return len(w) > maxDepth }
-
 // push adds a new step to the walk.
-func (w *walk) push(s string) { *w = append(*w, s) }
+func (w *walk) push(s step) { *w = append(*w, s) }
 
-// pop removed the last step of the walk.
+// pop removes the last step of the walk.
 func (w *walk) pop() {
 	if len(*w) > 0 {
 		*w = (*w)[:len(*w)-1]
 	}
 }
+
+// equal returns if the given step o is equal to the current step s.
+func (s step) equal(o step) bool { return s.from.Name == o.from.Name && s.over.Name == o.over.Name }
