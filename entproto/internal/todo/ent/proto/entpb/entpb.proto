@@ -45,6 +45,28 @@ message DeleteAttachmentRequest {
   bytes id = 1;
 }
 
+message ListAttachmentRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListAttachmentResponse {
+  repeated Attachment attachment_list = 1;
+
+  string next_page_token = 2;
+}
+
 message Group {
   int32 id = 1;
 
@@ -91,6 +113,28 @@ message DeleteMultiWordSchemaRequest {
   int32 id = 1;
 }
 
+message ListMultiWordSchemaRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListMultiWordSchemaResponse {
+  repeated MultiWordSchema multi_word_schema_list = 1;
+
+  string next_page_token = 2;
+}
+
 message NilExample {
   int32 id = 1;
 
@@ -123,6 +167,28 @@ message UpdateNilExampleRequest {
 
 message DeleteNilExampleRequest {
   int32 id = 1;
+}
+
+message ListNilExampleRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListNilExampleResponse {
+  repeated NilExample nil_example_list = 1;
+
+  string next_page_token = 2;
 }
 
 message Todo {
@@ -219,6 +285,28 @@ message DeleteUserRequest {
   int32 id = 1;
 }
 
+message ListUserRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListUserResponse {
+  repeated User user_list = 1;
+
+  string next_page_token = 2;
+}
+
 service AttachmentService {
   rpc Create ( CreateAttachmentRequest ) returns ( Attachment );
 
@@ -227,6 +315,8 @@ service AttachmentService {
   rpc Update ( UpdateAttachmentRequest ) returns ( Attachment );
 
   rpc Delete ( DeleteAttachmentRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListAttachmentRequest ) returns ( ListAttachmentResponse );
 }
 
 service MultiWordSchemaService {
@@ -237,6 +327,8 @@ service MultiWordSchemaService {
   rpc Update ( UpdateMultiWordSchemaRequest ) returns ( MultiWordSchema );
 
   rpc Delete ( DeleteMultiWordSchemaRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListMultiWordSchemaRequest ) returns ( ListMultiWordSchemaResponse );
 }
 
 service NilExampleService {
@@ -247,6 +339,8 @@ service NilExampleService {
   rpc Update ( UpdateNilExampleRequest ) returns ( NilExample );
 
   rpc Delete ( DeleteNilExampleRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListNilExampleRequest ) returns ( ListNilExampleResponse );
 }
 
 service UserService {
@@ -257,4 +351,6 @@ service UserService {
   rpc Update ( UpdateUserRequest ) returns ( User );
 
   rpc Delete ( DeleteUserRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListUserRequest ) returns ( ListUserResponse );
 }

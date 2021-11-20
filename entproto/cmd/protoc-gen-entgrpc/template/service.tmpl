@@ -34,6 +34,8 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
             {{ template "method_delete" (method .) }}
         {{- else if or (eq $methodName "Create") (eq $methodName "Update") }}
             {{ template "method_mutate" (method .) }}
+        {{- else if eq $methodName "List" }}
+            {{ template "method_list" (method .) }}
         {{- end }}
     }
 {{ end }}

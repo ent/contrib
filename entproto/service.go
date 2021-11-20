@@ -27,6 +27,9 @@ import (
 
 const (
 	ServiceAnnotation = "ProtoService"
+	// MaxPageSize is the maximum page size that can be returned by a List call. Requesting page sizes larger than
+	// this value will return, at most, MaxPageSize entries.
+	MaxPageSize = 1000
 	// MethodCreate generates a Create gRPC service method for the entproto.Service.
 	MethodCreate Method = 1 << iota
 	// MethodGet generates a Get gRPC service method for the entproto.Service.
@@ -35,8 +38,10 @@ const (
 	MethodUpdate
 	// MethodDelete generates a Delete gRPC service method for the entproto.Service.
 	MethodDelete
+	// MethodList generates a List gRPC service method for the entproto.Service.
+	MethodList
 	// MethodAll generates all service methods for the entproto.Service. This is the same behavior as not including entproto.Methods.
-	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete
+	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete | MethodList
 )
 
 var (
@@ -92,7 +97,7 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 		},
 	}
 
-	for _, m := range []Method{MethodCreate, MethodGet, MethodUpdate, MethodDelete} {
+	for _, m := range []Method{MethodCreate, MethodGet, MethodUpdate, MethodDelete, MethodList} {
 		if !methods.Is(m) {
 			continue
 		}
@@ -102,7 +107,7 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 			return serviceResources{}, err
 		}
 		out.svc.Method = append(out.svc.Method, resources.methodDescriptor)
-		out.svcMessages = append(out.svcMessages, resources.input)
+		out.svcMessages = append(out.svcMessages, resources.messages...)
 	}
 
 	return out, nil
@@ -122,7 +127,10 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		Type:     &protoMessageFieldType,
 		TypeName: &genType.Name,
 	}
-	var output, methodName string
+	var (
+		outputName, methodName string
+		messages               []*descriptorpb.DescriptorProto
+	)
 	switch m {
 	case MethodGet:
 		methodName = "Get"
@@ -144,22 +152,82 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 				{Number: int32ptr(2), Name: strptr("WITH_EDGE_IDS")},
 			},
 		})
-		output = genType.Name
+		outputName = genType.Name
+		messages = append(messages, input)
 	case MethodCreate:
 		methodName = "Create"
 		input.Name = strptr(fmt.Sprintf("Create%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
-		output = genType.Name
+		outputName = genType.Name
+		messages = append(messages, input)
 	case MethodUpdate:
 		methodName = "Update"
 		input.Name = strptr(fmt.Sprintf("Update%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
-		output = genType.Name
+		outputName = genType.Name
+		messages = append(messages, input)
 	case MethodDelete:
 		methodName = "Delete"
 		input.Name = strptr(fmt.Sprintf("Delete%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
-		output = "google.protobuf.Empty"
+		outputName = "google.protobuf.Empty"
+		messages = append(messages, input)
+	case MethodList:
+		if !(genType.ID.IsInt() || genType.ID.IsUUID() || genType.ID.IsString()) {
+			return methodResources{}, fmt.Errorf("entproto: list method does not support schema %q id type %q",
+				genType.Name, genType.ID.Type.String())
+		}
+
+		methodName = "List"
+		int32FieldType := descriptorpb.FieldDescriptorProto_TYPE_INT32
+		stringFieldType := descriptorpb.FieldDescriptorProto_TYPE_STRING
+		repeatedFieldLabel := descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+		input.Name = strptr(fmt.Sprintf("List%sRequest", genType.Name))
+		input.Field = []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:   strptr("page_size"),
+				Number: int32ptr(1),
+				Type:   &int32FieldType,
+			},
+			{
+				Name:   strptr("page_token"),
+				Number: int32ptr(2),
+				Type:   &stringFieldType,
+			},
+			{
+				Name:     strptr("view"),
+				Number:   int32ptr(3),
+				Type:     &protoEnumFieldType,
+				TypeName: strptr("View"),
+			},
+		}
+		input.EnumType = append(input.EnumType, &descriptorpb.EnumDescriptorProto{
+			Name: strptr("View"),
+			Value: []*descriptorpb.EnumValueDescriptorProto{
+				{Number: int32ptr(0), Name: strptr("VIEW_UNSPECIFIED")},
+				{Number: int32ptr(1), Name: strptr("BASIC")},
+				{Number: int32ptr(2), Name: strptr("WITH_EDGE_IDS")},
+			},
+		})
+		outputName = fmt.Sprintf("List%sResponse", genType.Name)
+		output := &descriptorpb.DescriptorProto{
+			Name: &outputName,
+			Field: []*descriptorpb.FieldDescriptorProto{
+				{
+					Name:     strptr(snake(genType.Name) + "_list"),
+					Number:   int32ptr(1),
+					Label:    &repeatedFieldLabel,
+					Type:     &protoMessageFieldType,
+					TypeName: strptr(genType.Name),
+				},
+				{
+					Name:   strptr("next_page_token"),
+					Number: int32ptr(2),
+					Type:   &stringFieldType,
+				},
+			},
+		}
+		messages = append(messages, input, output)
 	default:
 		return methodResources{}, fmt.Errorf("unknown method %q", m)
 	}
@@ -167,15 +235,15 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		methodDescriptor: &descriptorpb.MethodDescriptorProto{
 			Name:       &methodName,
 			InputType:  input.Name,
-			OutputType: &output,
+			OutputType: &outputName,
 		},
-		input: input,
+		messages: messages,
 	}, nil
 }
 
 type methodResources struct {
 	methodDescriptor *descriptorpb.MethodDescriptorProto
-	input            *descriptorpb.DescriptorProto
+	messages         []*descriptorpb.DescriptorProto
 }
 
 type serviceResources struct {

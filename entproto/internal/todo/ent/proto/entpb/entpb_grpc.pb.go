@@ -23,6 +23,7 @@ type AttachmentServiceClient interface {
 	Get(ctx context.Context, in *GetAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
 	Update(ctx context.Context, in *UpdateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
 	Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListAttachmentRequest, opts ...grpc.CallOption) (*ListAttachmentResponse, error)
 }
 
 type attachmentServiceClient struct {
@@ -69,6 +70,15 @@ func (c *attachmentServiceClient) Delete(ctx context.Context, in *DeleteAttachme
 	return out, nil
 }
 
+func (c *attachmentServiceClient) List(ctx context.Context, in *ListAttachmentRequest, opts ...grpc.CallOption) (*ListAttachmentResponse, error) {
+	out := new(ListAttachmentResponse)
+	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AttachmentServiceServer is the server API for AttachmentService service.
 // All implementations must embed UnimplementedAttachmentServiceServer
 // for forward compatibility
@@ -77,6 +87,7 @@ type AttachmentServiceServer interface {
 	Get(context.Context, *GetAttachmentRequest) (*Attachment, error)
 	Update(context.Context, *UpdateAttachmentRequest) (*Attachment, error)
 	Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListAttachmentRequest) (*ListAttachmentResponse, error)
 	mustEmbedUnimplementedAttachmentServiceServer()
 }
 
@@ -95,6 +106,9 @@ func (UnimplementedAttachmentServiceServer) Update(context.Context, *UpdateAttac
 }
 func (UnimplementedAttachmentServiceServer) Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedAttachmentServiceServer) List(context.Context, *ListAttachmentRequest) (*ListAttachmentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedAttachmentServiceServer) mustEmbedUnimplementedAttachmentServiceServer() {}
 
@@ -181,6 +195,24 @@ func _AttachmentService_Delete_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AttachmentService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAttachmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttachmentServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.AttachmentService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttachmentServiceServer).List(ctx, req.(*ListAttachmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AttachmentService_ServiceDesc is the grpc.ServiceDesc for AttachmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -204,6 +236,10 @@ var AttachmentService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Delete",
 			Handler:    _AttachmentService_Delete_Handler,
 		},
+		{
+			MethodName: "List",
+			Handler:    _AttachmentService_List_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -217,6 +253,7 @@ type MultiWordSchemaServiceClient interface {
 	Get(ctx context.Context, in *GetMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Update(ctx context.Context, in *UpdateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListMultiWordSchemaRequest, opts ...grpc.CallOption) (*ListMultiWordSchemaResponse, error)
 }
 
 type multiWordSchemaServiceClient struct {
@@ -263,6 +300,15 @@ func (c *multiWordSchemaServiceClient) Delete(ctx context.Context, in *DeleteMul
 	return out, nil
 }
 
+func (c *multiWordSchemaServiceClient) List(ctx context.Context, in *ListMultiWordSchemaRequest, opts ...grpc.CallOption) (*ListMultiWordSchemaResponse, error) {
+	out := new(ListMultiWordSchemaResponse)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MultiWordSchemaServiceServer is the server API for MultiWordSchemaService service.
 // All implementations must embed UnimplementedMultiWordSchemaServiceServer
 // for forward compatibility
@@ -271,6 +317,7 @@ type MultiWordSchemaServiceServer interface {
 	Get(context.Context, *GetMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error)
 	mustEmbedUnimplementedMultiWordSchemaServiceServer()
 }
 
@@ -289,6 +336,9 @@ func (UnimplementedMultiWordSchemaServiceServer) Update(context.Context, *Update
 }
 func (UnimplementedMultiWordSchemaServiceServer) Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedMultiWordSchemaServiceServer) mustEmbedUnimplementedMultiWordSchemaServiceServer() {
 }
@@ -376,6 +426,24 @@ func _MultiWordSchemaService_Delete_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MultiWordSchemaService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMultiWordSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).List(ctx, req.(*ListMultiWordSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MultiWordSchemaService_ServiceDesc is the grpc.ServiceDesc for MultiWordSchemaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -399,6 +467,10 @@ var MultiWordSchemaService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Delete",
 			Handler:    _MultiWordSchemaService_Delete_Handler,
 		},
+		{
+			MethodName: "List",
+			Handler:    _MultiWordSchemaService_List_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -412,6 +484,7 @@ type NilExampleServiceClient interface {
 	Get(ctx context.Context, in *GetNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
 	Update(ctx context.Context, in *UpdateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
 	Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListNilExampleRequest, opts ...grpc.CallOption) (*ListNilExampleResponse, error)
 }
 
 type nilExampleServiceClient struct {
@@ -458,6 +531,15 @@ func (c *nilExampleServiceClient) Delete(ctx context.Context, in *DeleteNilExamp
 	return out, nil
 }
 
+func (c *nilExampleServiceClient) List(ctx context.Context, in *ListNilExampleRequest, opts ...grpc.CallOption) (*ListNilExampleResponse, error) {
+	out := new(ListNilExampleResponse)
+	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NilExampleServiceServer is the server API for NilExampleService service.
 // All implementations must embed UnimplementedNilExampleServiceServer
 // for forward compatibility
@@ -466,6 +548,7 @@ type NilExampleServiceServer interface {
 	Get(context.Context, *GetNilExampleRequest) (*NilExample, error)
 	Update(context.Context, *UpdateNilExampleRequest) (*NilExample, error)
 	Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListNilExampleRequest) (*ListNilExampleResponse, error)
 	mustEmbedUnimplementedNilExampleServiceServer()
 }
 
@@ -484,6 +567,9 @@ func (UnimplementedNilExampleServiceServer) Update(context.Context, *UpdateNilEx
 }
 func (UnimplementedNilExampleServiceServer) Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedNilExampleServiceServer) List(context.Context, *ListNilExampleRequest) (*ListNilExampleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedNilExampleServiceServer) mustEmbedUnimplementedNilExampleServiceServer() {}
 
@@ -570,6 +656,24 @@ func _NilExampleService_Delete_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NilExampleService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNilExampleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NilExampleServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.NilExampleService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NilExampleServiceServer).List(ctx, req.(*ListNilExampleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NilExampleService_ServiceDesc is the grpc.ServiceDesc for NilExampleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -593,6 +697,10 @@ var NilExampleService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Delete",
 			Handler:    _NilExampleService_Delete_Handler,
 		},
+		{
+			MethodName: "List",
+			Handler:    _NilExampleService_List_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -606,6 +714,7 @@ type UserServiceClient interface {
 	Get(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
 }
 
 type userServiceClient struct {
@@ -652,6 +761,15 @@ func (c *userServiceClient) Delete(ctx context.Context, in *DeleteUserRequest, o
 	return out, nil
 }
 
+func (c *userServiceClient) List(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error) {
+	out := new(ListUserResponse)
+	err := c.cc.Invoke(ctx, "/entpb.UserService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -660,6 +778,7 @@ type UserServiceServer interface {
 	Get(context.Context, *GetUserRequest) (*User, error)
 	Update(context.Context, *UpdateUserRequest) (*User, error)
 	Delete(context.Context, *DeleteUserRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListUserRequest) (*ListUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -678,6 +797,9 @@ func (UnimplementedUserServiceServer) Update(context.Context, *UpdateUserRequest
 }
 func (UnimplementedUserServiceServer) Delete(context.Context, *DeleteUserRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedUserServiceServer) List(context.Context, *ListUserRequest) (*ListUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -764,6 +886,24 @@ func _UserService_Delete_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.UserService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).List(ctx, req.(*ListUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -786,6 +926,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _UserService_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _UserService_List_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
