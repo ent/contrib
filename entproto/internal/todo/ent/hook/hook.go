@@ -35,6 +35,19 @@ func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return f(ctx, mv)
 }
 
+// The MultiWordSchemaFunc type is an adapter to allow the use of ordinary
+// function as MultiWordSchema mutator.
+type MultiWordSchemaFunc func(context.Context, *ent.MultiWordSchemaMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MultiWordSchemaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.MultiWordSchemaMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MultiWordSchemaMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The NilExampleFunc type is an adapter to allow the use of ordinary
 // function as NilExample mutator.
 type NilExampleFunc func(context.Context, *ent.NilExampleMutation) (ent.Value, error)

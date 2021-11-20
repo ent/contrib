@@ -12,6 +12,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
@@ -30,6 +31,8 @@ type Client struct {
 	Attachment *AttachmentClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// MultiWordSchema is the client for interacting with the MultiWordSchema builders.
+	MultiWordSchema *MultiWordSchemaClient
 	// NilExample is the client for interacting with the NilExample builders.
 	NilExample *NilExampleClient
 	// Todo is the client for interacting with the Todo builders.
@@ -51,6 +54,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Attachment = NewAttachmentClient(c.config)
 	c.Group = NewGroupClient(c.config)
+	c.MultiWordSchema = NewMultiWordSchemaClient(c.config)
 	c.NilExample = NewNilExampleClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -85,13 +89,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Attachment: NewAttachmentClient(cfg),
-		Group:      NewGroupClient(cfg),
-		NilExample: NewNilExampleClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Attachment:      NewAttachmentClient(cfg),
+		Group:           NewGroupClient(cfg),
+		MultiWordSchema: NewMultiWordSchemaClient(cfg),
+		NilExample:      NewNilExampleClient(cfg),
+		Todo:            NewTodoClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -109,12 +114,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		config:     cfg,
-		Attachment: NewAttachmentClient(cfg),
-		Group:      NewGroupClient(cfg),
-		NilExample: NewNilExampleClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
+		config:          cfg,
+		Attachment:      NewAttachmentClient(cfg),
+		Group:           NewGroupClient(cfg),
+		MultiWordSchema: NewMultiWordSchemaClient(cfg),
+		NilExample:      NewNilExampleClient(cfg),
+		Todo:            NewTodoClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -146,6 +152,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Attachment.Use(hooks...)
 	c.Group.Use(hooks...)
+	c.MultiWordSchema.Use(hooks...)
 	c.NilExample.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
@@ -377,6 +384,96 @@ func (c *GroupClient) QueryUsers(gr *Group) *UserQuery {
 // Hooks returns the client hooks.
 func (c *GroupClient) Hooks() []Hook {
 	return c.hooks.Group
+}
+
+// MultiWordSchemaClient is a client for the MultiWordSchema schema.
+type MultiWordSchemaClient struct {
+	config
+}
+
+// NewMultiWordSchemaClient returns a client for the MultiWordSchema from the given config.
+func NewMultiWordSchemaClient(c config) *MultiWordSchemaClient {
+	return &MultiWordSchemaClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `multiwordschema.Hooks(f(g(h())))`.
+func (c *MultiWordSchemaClient) Use(hooks ...Hook) {
+	c.hooks.MultiWordSchema = append(c.hooks.MultiWordSchema, hooks...)
+}
+
+// Create returns a create builder for MultiWordSchema.
+func (c *MultiWordSchemaClient) Create() *MultiWordSchemaCreate {
+	mutation := newMultiWordSchemaMutation(c.config, OpCreate)
+	return &MultiWordSchemaCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MultiWordSchema entities.
+func (c *MultiWordSchemaClient) CreateBulk(builders ...*MultiWordSchemaCreate) *MultiWordSchemaCreateBulk {
+	return &MultiWordSchemaCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MultiWordSchema.
+func (c *MultiWordSchemaClient) Update() *MultiWordSchemaUpdate {
+	mutation := newMultiWordSchemaMutation(c.config, OpUpdate)
+	return &MultiWordSchemaUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MultiWordSchemaClient) UpdateOne(mws *MultiWordSchema) *MultiWordSchemaUpdateOne {
+	mutation := newMultiWordSchemaMutation(c.config, OpUpdateOne, withMultiWordSchema(mws))
+	return &MultiWordSchemaUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MultiWordSchemaClient) UpdateOneID(id int) *MultiWordSchemaUpdateOne {
+	mutation := newMultiWordSchemaMutation(c.config, OpUpdateOne, withMultiWordSchemaID(id))
+	return &MultiWordSchemaUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MultiWordSchema.
+func (c *MultiWordSchemaClient) Delete() *MultiWordSchemaDelete {
+	mutation := newMultiWordSchemaMutation(c.config, OpDelete)
+	return &MultiWordSchemaDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *MultiWordSchemaClient) DeleteOne(mws *MultiWordSchema) *MultiWordSchemaDeleteOne {
+	return c.DeleteOneID(mws.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *MultiWordSchemaClient) DeleteOneID(id int) *MultiWordSchemaDeleteOne {
+	builder := c.Delete().Where(multiwordschema.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MultiWordSchemaDeleteOne{builder}
+}
+
+// Query returns a query builder for MultiWordSchema.
+func (c *MultiWordSchemaClient) Query() *MultiWordSchemaQuery {
+	return &MultiWordSchemaQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a MultiWordSchema entity by its id.
+func (c *MultiWordSchemaClient) Get(ctx context.Context, id int) (*MultiWordSchema, error) {
+	return c.Query().Where(multiwordschema.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MultiWordSchemaClient) GetX(ctx context.Context, id int) *MultiWordSchema {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MultiWordSchemaClient) Hooks() []Hook {
+	return c.hooks.MultiWordSchema
 }
 
 // NilExampleClient is a client for the NilExample schema.

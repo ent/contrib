@@ -209,6 +209,201 @@ var AttachmentService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "entpb/entpb.proto",
 }
 
+// MultiWordSchemaServiceClient is the client API for MultiWordSchemaService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type MultiWordSchemaServiceClient interface {
+	Create(ctx context.Context, in *CreateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
+	Get(ctx context.Context, in *GetMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
+	Update(ctx context.Context, in *UpdateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
+	Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+}
+
+type multiWordSchemaServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewMultiWordSchemaServiceClient(cc grpc.ClientConnInterface) MultiWordSchemaServiceClient {
+	return &multiWordSchemaServiceClient{cc}
+}
+
+func (c *multiWordSchemaServiceClient) Create(ctx context.Context, in *CreateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error) {
+	out := new(MultiWordSchema)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *multiWordSchemaServiceClient) Get(ctx context.Context, in *GetMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error) {
+	out := new(MultiWordSchema)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *multiWordSchemaServiceClient) Update(ctx context.Context, in *UpdateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error) {
+	out := new(MultiWordSchema)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *multiWordSchemaServiceClient) Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MultiWordSchemaServiceServer is the server API for MultiWordSchemaService service.
+// All implementations must embed UnimplementedMultiWordSchemaServiceServer
+// for forward compatibility
+type MultiWordSchemaServiceServer interface {
+	Create(context.Context, *CreateMultiWordSchemaRequest) (*MultiWordSchema, error)
+	Get(context.Context, *GetMultiWordSchemaRequest) (*MultiWordSchema, error)
+	Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error)
+	Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedMultiWordSchemaServiceServer()
+}
+
+// UnimplementedMultiWordSchemaServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedMultiWordSchemaServiceServer struct {
+}
+
+func (UnimplementedMultiWordSchemaServiceServer) Create(context.Context, *CreateMultiWordSchemaRequest) (*MultiWordSchema, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) Get(context.Context, *GetMultiWordSchemaRequest) (*MultiWordSchema, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) mustEmbedUnimplementedMultiWordSchemaServiceServer() {
+}
+
+// UnsafeMultiWordSchemaServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MultiWordSchemaServiceServer will
+// result in compilation errors.
+type UnsafeMultiWordSchemaServiceServer interface {
+	mustEmbedUnimplementedMultiWordSchemaServiceServer()
+}
+
+func RegisterMultiWordSchemaServiceServer(s grpc.ServiceRegistrar, srv MultiWordSchemaServiceServer) {
+	s.RegisterService(&MultiWordSchemaService_ServiceDesc, srv)
+}
+
+func _MultiWordSchemaService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMultiWordSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).Create(ctx, req.(*CreateMultiWordSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MultiWordSchemaService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMultiWordSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).Get(ctx, req.(*GetMultiWordSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MultiWordSchemaService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMultiWordSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).Update(ctx, req.(*UpdateMultiWordSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MultiWordSchemaService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMultiWordSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).Delete(ctx, req.(*DeleteMultiWordSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// MultiWordSchemaService_ServiceDesc is the grpc.ServiceDesc for MultiWordSchemaService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var MultiWordSchemaService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.MultiWordSchemaService",
+	HandlerType: (*MultiWordSchemaServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _MultiWordSchemaService_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _MultiWordSchemaService_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _MultiWordSchemaService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _MultiWordSchemaService_Delete_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "entpb/entpb.proto",
+}
+
 // NilExampleServiceClient is the client API for NilExampleService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

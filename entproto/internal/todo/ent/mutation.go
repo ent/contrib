@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
@@ -29,11 +30,12 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAttachment = "Attachment"
-	TypeGroup      = "Group"
-	TypeNilExample = "NilExample"
-	TypeTodo       = "Todo"
-	TypeUser       = "User"
+	TypeAttachment      = "Attachment"
+	TypeGroup           = "Group"
+	TypeMultiWordSchema = "MultiWordSchema"
+	TypeNilExample      = "NilExample"
+	TypeTodo            = "Todo"
+	TypeUser            = "User"
 )
 
 // AttachmentMutation represents an operation that mutates the Attachment nodes in the graph.
@@ -807,6 +809,298 @@ func (m *GroupMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Group edge %s", name)
+}
+
+// MultiWordSchemaMutation represents an operation that mutates the MultiWordSchema nodes in the graph.
+type MultiWordSchemaMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	unit          *multiwordschema.Unit
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*MultiWordSchema, error)
+	predicates    []predicate.MultiWordSchema
+}
+
+var _ ent.Mutation = (*MultiWordSchemaMutation)(nil)
+
+// multiwordschemaOption allows management of the mutation configuration using functional options.
+type multiwordschemaOption func(*MultiWordSchemaMutation)
+
+// newMultiWordSchemaMutation creates new mutation for the MultiWordSchema entity.
+func newMultiWordSchemaMutation(c config, op Op, opts ...multiwordschemaOption) *MultiWordSchemaMutation {
+	m := &MultiWordSchemaMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMultiWordSchema,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMultiWordSchemaID sets the ID field of the mutation.
+func withMultiWordSchemaID(id int) multiwordschemaOption {
+	return func(m *MultiWordSchemaMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MultiWordSchema
+		)
+		m.oldValue = func(ctx context.Context) (*MultiWordSchema, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MultiWordSchema.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMultiWordSchema sets the old MultiWordSchema of the mutation.
+func withMultiWordSchema(node *MultiWordSchema) multiwordschemaOption {
+	return func(m *MultiWordSchemaMutation) {
+		m.oldValue = func(context.Context) (*MultiWordSchema, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MultiWordSchemaMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MultiWordSchemaMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MultiWordSchemaMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetUnit sets the "unit" field.
+func (m *MultiWordSchemaMutation) SetUnit(value multiwordschema.Unit) {
+	m.unit = &value
+}
+
+// Unit returns the value of the "unit" field in the mutation.
+func (m *MultiWordSchemaMutation) Unit() (r multiwordschema.Unit, exists bool) {
+	v := m.unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnit returns the old "unit" field's value of the MultiWordSchema entity.
+// If the MultiWordSchema object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MultiWordSchemaMutation) OldUnit(ctx context.Context) (v multiwordschema.Unit, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnit: %w", err)
+	}
+	return oldValue.Unit, nil
+}
+
+// ResetUnit resets all changes to the "unit" field.
+func (m *MultiWordSchemaMutation) ResetUnit() {
+	m.unit = nil
+}
+
+// Where appends a list predicates to the MultiWordSchemaMutation builder.
+func (m *MultiWordSchemaMutation) Where(ps ...predicate.MultiWordSchema) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *MultiWordSchemaMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (MultiWordSchema).
+func (m *MultiWordSchemaMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MultiWordSchemaMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.unit != nil {
+		fields = append(fields, multiwordschema.FieldUnit)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MultiWordSchemaMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case multiwordschema.FieldUnit:
+		return m.Unit()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MultiWordSchemaMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case multiwordschema.FieldUnit:
+		return m.OldUnit(ctx)
+	}
+	return nil, fmt.Errorf("unknown MultiWordSchema field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MultiWordSchemaMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case multiwordschema.FieldUnit:
+		v, ok := value.(multiwordschema.Unit)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnit(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MultiWordSchema field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MultiWordSchemaMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MultiWordSchemaMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MultiWordSchemaMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown MultiWordSchema numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MultiWordSchemaMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MultiWordSchemaMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MultiWordSchemaMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MultiWordSchema nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MultiWordSchemaMutation) ResetField(name string) error {
+	switch name {
+	case multiwordschema.FieldUnit:
+		m.ResetUnit()
+		return nil
+	}
+	return fmt.Errorf("unknown MultiWordSchema field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MultiWordSchemaMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MultiWordSchemaMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MultiWordSchemaMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MultiWordSchemaMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MultiWordSchemaMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MultiWordSchemaMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MultiWordSchemaMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown MultiWordSchema unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MultiWordSchemaMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown MultiWordSchema edge %s", name)
 }
 
 // NilExampleMutation represents an operation that mutates the NilExample nodes in the graph.
