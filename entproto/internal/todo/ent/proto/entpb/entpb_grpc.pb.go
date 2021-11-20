@@ -253,6 +253,7 @@ type MultiWordSchemaServiceClient interface {
 	Get(ctx context.Context, in *GetMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Update(ctx context.Context, in *UpdateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListMultiWordSchemaRequest, opts ...grpc.CallOption) (*ListMultiWordSchemaResponse, error)
 }
 
 type multiWordSchemaServiceClient struct {
@@ -299,6 +300,15 @@ func (c *multiWordSchemaServiceClient) Delete(ctx context.Context, in *DeleteMul
 	return out, nil
 }
 
+func (c *multiWordSchemaServiceClient) List(ctx context.Context, in *ListMultiWordSchemaRequest, opts ...grpc.CallOption) (*ListMultiWordSchemaResponse, error) {
+	out := new(ListMultiWordSchemaResponse)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MultiWordSchemaServiceServer is the server API for MultiWordSchemaService service.
 // All implementations must embed UnimplementedMultiWordSchemaServiceServer
 // for forward compatibility
@@ -307,6 +317,7 @@ type MultiWordSchemaServiceServer interface {
 	Get(context.Context, *GetMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error)
 	mustEmbedUnimplementedMultiWordSchemaServiceServer()
 }
 
@@ -325,6 +336,9 @@ func (UnimplementedMultiWordSchemaServiceServer) Update(context.Context, *Update
 }
 func (UnimplementedMultiWordSchemaServiceServer) Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedMultiWordSchemaServiceServer) mustEmbedUnimplementedMultiWordSchemaServiceServer() {
 }
@@ -412,6 +426,24 @@ func _MultiWordSchemaService_Delete_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MultiWordSchemaService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMultiWordSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).List(ctx, req.(*ListMultiWordSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MultiWordSchemaService_ServiceDesc is the grpc.ServiceDesc for MultiWordSchemaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -434,6 +466,10 @@ var MultiWordSchemaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _MultiWordSchemaService_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _MultiWordSchemaService_List_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

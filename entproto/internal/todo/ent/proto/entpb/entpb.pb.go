@@ -123,6 +123,150 @@ func (ListAttachmentRequest_View) EnumDescriptor() ([]byte, []int) {
 	return file_entpb_entpb_proto_rawDescGZIP(), []int{5, 0}
 }
 
+type MultiWordSchema_Unit int32
+
+const (
+	MultiWordSchema_M  MultiWordSchema_Unit = 0
+	MultiWordSchema_FT MultiWordSchema_Unit = 1
+)
+
+// Enum value maps for MultiWordSchema_Unit.
+var (
+	MultiWordSchema_Unit_name = map[int32]string{
+		0: "M",
+		1: "FT",
+	}
+	MultiWordSchema_Unit_value = map[string]int32{
+		"M":  0,
+		"FT": 1,
+	}
+)
+
+func (x MultiWordSchema_Unit) Enum() *MultiWordSchema_Unit {
+	p := new(MultiWordSchema_Unit)
+	*p = x
+	return p
+}
+
+func (x MultiWordSchema_Unit) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MultiWordSchema_Unit) Descriptor() protoreflect.EnumDescriptor {
+	return file_entpb_entpb_proto_enumTypes[2].Descriptor()
+}
+
+func (MultiWordSchema_Unit) Type() protoreflect.EnumType {
+	return &file_entpb_entpb_proto_enumTypes[2]
+}
+
+func (x MultiWordSchema_Unit) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MultiWordSchema_Unit.Descriptor instead.
+func (MultiWordSchema_Unit) EnumDescriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{8, 0}
+}
+
+type GetMultiWordSchemaRequest_View int32
+
+const (
+	GetMultiWordSchemaRequest_VIEW_UNSPECIFIED GetMultiWordSchemaRequest_View = 0
+	GetMultiWordSchemaRequest_BASIC            GetMultiWordSchemaRequest_View = 1
+	GetMultiWordSchemaRequest_WITH_EDGE_IDS    GetMultiWordSchemaRequest_View = 2
+)
+
+// Enum value maps for GetMultiWordSchemaRequest_View.
+var (
+	GetMultiWordSchemaRequest_View_name = map[int32]string{
+		0: "VIEW_UNSPECIFIED",
+		1: "BASIC",
+		2: "WITH_EDGE_IDS",
+	}
+	GetMultiWordSchemaRequest_View_value = map[string]int32{
+		"VIEW_UNSPECIFIED": 0,
+		"BASIC":            1,
+		"WITH_EDGE_IDS":    2,
+	}
+)
+
+func (x GetMultiWordSchemaRequest_View) Enum() *GetMultiWordSchemaRequest_View {
+	p := new(GetMultiWordSchemaRequest_View)
+	*p = x
+	return p
+}
+
+func (x GetMultiWordSchemaRequest_View) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GetMultiWordSchemaRequest_View) Descriptor() protoreflect.EnumDescriptor {
+	return file_entpb_entpb_proto_enumTypes[3].Descriptor()
+}
+
+func (GetMultiWordSchemaRequest_View) Type() protoreflect.EnumType {
+	return &file_entpb_entpb_proto_enumTypes[3]
+}
+
+func (x GetMultiWordSchemaRequest_View) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GetMultiWordSchemaRequest_View.Descriptor instead.
+func (GetMultiWordSchemaRequest_View) EnumDescriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{10, 0}
+}
+
+type ListMultiWordSchemaRequest_View int32
+
+const (
+	ListMultiWordSchemaRequest_VIEW_UNSPECIFIED ListMultiWordSchemaRequest_View = 0
+	ListMultiWordSchemaRequest_BASIC            ListMultiWordSchemaRequest_View = 1
+	ListMultiWordSchemaRequest_WITH_EDGE_IDS    ListMultiWordSchemaRequest_View = 2
+)
+
+// Enum value maps for ListMultiWordSchemaRequest_View.
+var (
+	ListMultiWordSchemaRequest_View_name = map[int32]string{
+		0: "VIEW_UNSPECIFIED",
+		1: "BASIC",
+		2: "WITH_EDGE_IDS",
+	}
+	ListMultiWordSchemaRequest_View_value = map[string]int32{
+		"VIEW_UNSPECIFIED": 0,
+		"BASIC":            1,
+		"WITH_EDGE_IDS":    2,
+	}
+)
+
+func (x ListMultiWordSchemaRequest_View) Enum() *ListMultiWordSchemaRequest_View {
+	p := new(ListMultiWordSchemaRequest_View)
+	*p = x
+	return p
+}
+
+func (x ListMultiWordSchemaRequest_View) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ListMultiWordSchemaRequest_View) Descriptor() protoreflect.EnumDescriptor {
+	return file_entpb_entpb_proto_enumTypes[4].Descriptor()
+}
+
+func (ListMultiWordSchemaRequest_View) Type() protoreflect.EnumType {
+	return &file_entpb_entpb_proto_enumTypes[4]
+}
+
+func (x ListMultiWordSchemaRequest_View) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ListMultiWordSchemaRequest_View.Descriptor instead.
+func (ListMultiWordSchemaRequest_View) EnumDescriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{13, 0}
+}
+
 type GetNilExampleRequest_View int32
 
 const (
@@ -156,11 +300,11 @@ func (x GetNilExampleRequest_View) String() string {
 }
 
 func (GetNilExampleRequest_View) Descriptor() protoreflect.EnumDescriptor {
-	return file_entpb_entpb_proto_enumTypes[2].Descriptor()
+	return file_entpb_entpb_proto_enumTypes[5].Descriptor()
 }
 
 func (GetNilExampleRequest_View) Type() protoreflect.EnumType {
-	return &file_entpb_entpb_proto_enumTypes[2]
+	return &file_entpb_entpb_proto_enumTypes[5]
 }
 
 func (x GetNilExampleRequest_View) Number() protoreflect.EnumNumber {
@@ -169,7 +313,7 @@ func (x GetNilExampleRequest_View) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GetNilExampleRequest_View.Descriptor instead.
 func (GetNilExampleRequest_View) EnumDescriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{10, 0}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{17, 0}
 }
 
 type ListNilExampleRequest_View int32
@@ -205,11 +349,11 @@ func (x ListNilExampleRequest_View) String() string {
 }
 
 func (ListNilExampleRequest_View) Descriptor() protoreflect.EnumDescriptor {
-	return file_entpb_entpb_proto_enumTypes[3].Descriptor()
+	return file_entpb_entpb_proto_enumTypes[6].Descriptor()
 }
 
 func (ListNilExampleRequest_View) Type() protoreflect.EnumType {
-	return &file_entpb_entpb_proto_enumTypes[3]
+	return &file_entpb_entpb_proto_enumTypes[6]
 }
 
 func (x ListNilExampleRequest_View) Number() protoreflect.EnumNumber {
@@ -218,7 +362,7 @@ func (x ListNilExampleRequest_View) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ListNilExampleRequest_View.Descriptor instead.
 func (ListNilExampleRequest_View) EnumDescriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{13, 0}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{20, 0}
 }
 
 type Todo_Status int32
@@ -254,11 +398,11 @@ func (x Todo_Status) String() string {
 }
 
 func (Todo_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_entpb_entpb_proto_enumTypes[4].Descriptor()
+	return file_entpb_entpb_proto_enumTypes[7].Descriptor()
 }
 
 func (Todo_Status) Type() protoreflect.EnumType {
-	return &file_entpb_entpb_proto_enumTypes[4]
+	return &file_entpb_entpb_proto_enumTypes[7]
 }
 
 func (x Todo_Status) Number() protoreflect.EnumNumber {
@@ -267,7 +411,7 @@ func (x Todo_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Todo_Status.Descriptor instead.
 func (Todo_Status) EnumDescriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{15, 0}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{22, 0}
 }
 
 type User_Status int32
@@ -303,11 +447,11 @@ func (x User_Status) String() string {
 }
 
 func (User_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_entpb_entpb_proto_enumTypes[5].Descriptor()
+	return file_entpb_entpb_proto_enumTypes[8].Descriptor()
 }
 
 func (User_Status) Type() protoreflect.EnumType {
-	return &file_entpb_entpb_proto_enumTypes[5]
+	return &file_entpb_entpb_proto_enumTypes[8]
 }
 
 func (x User_Status) Number() protoreflect.EnumNumber {
@@ -316,7 +460,7 @@ func (x User_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use User_Status.Descriptor instead.
 func (User_Status) EnumDescriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{16, 0}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{23, 0}
 }
 
 type GetUserRequest_View int32
@@ -352,11 +496,11 @@ func (x GetUserRequest_View) String() string {
 }
 
 func (GetUserRequest_View) Descriptor() protoreflect.EnumDescriptor {
-	return file_entpb_entpb_proto_enumTypes[6].Descriptor()
+	return file_entpb_entpb_proto_enumTypes[9].Descriptor()
 }
 
 func (GetUserRequest_View) Type() protoreflect.EnumType {
-	return &file_entpb_entpb_proto_enumTypes[6]
+	return &file_entpb_entpb_proto_enumTypes[9]
 }
 
 func (x GetUserRequest_View) Number() protoreflect.EnumNumber {
@@ -365,7 +509,7 @@ func (x GetUserRequest_View) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GetUserRequest_View.Descriptor instead.
 func (GetUserRequest_View) EnumDescriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{18, 0}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{25, 0}
 }
 
 type ListUserRequest_View int32
@@ -401,11 +545,11 @@ func (x ListUserRequest_View) String() string {
 }
 
 func (ListUserRequest_View) Descriptor() protoreflect.EnumDescriptor {
-	return file_entpb_entpb_proto_enumTypes[7].Descriptor()
+	return file_entpb_entpb_proto_enumTypes[10].Descriptor()
 }
 
 func (ListUserRequest_View) Type() protoreflect.EnumType {
-	return &file_entpb_entpb_proto_enumTypes[7]
+	return &file_entpb_entpb_proto_enumTypes[10]
 }
 
 func (x ListUserRequest_View) Number() protoreflect.EnumNumber {
@@ -414,7 +558,7 @@ func (x ListUserRequest_View) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ListUserRequest_View.Descriptor instead.
 func (ListUserRequest_View) EnumDescriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{21, 0}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{28, 0}
 }
 
 type Attachment struct {
@@ -857,6 +1001,375 @@ func (x *Group) GetUsers() []*User {
 	return nil
 }
 
+type MultiWordSchema struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id   int32                `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Unit MultiWordSchema_Unit `protobuf:"varint,2,opt,name=unit,proto3,enum=entpb.MultiWordSchema_Unit" json:"unit,omitempty"`
+}
+
+func (x *MultiWordSchema) Reset() {
+	*x = MultiWordSchema{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MultiWordSchema) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MultiWordSchema) ProtoMessage() {}
+
+func (x *MultiWordSchema) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MultiWordSchema.ProtoReflect.Descriptor instead.
+func (*MultiWordSchema) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *MultiWordSchema) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *MultiWordSchema) GetUnit() MultiWordSchema_Unit {
+	if x != nil {
+		return x.Unit
+	}
+	return MultiWordSchema_M
+}
+
+type CreateMultiWordSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	MultiWordSchema *MultiWordSchema `protobuf:"bytes,1,opt,name=multi_word_schema,json=multiWordSchema,proto3" json:"multi_word_schema,omitempty"`
+}
+
+func (x *CreateMultiWordSchemaRequest) Reset() {
+	*x = CreateMultiWordSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateMultiWordSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMultiWordSchemaRequest) ProtoMessage() {}
+
+func (x *CreateMultiWordSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMultiWordSchemaRequest.ProtoReflect.Descriptor instead.
+func (*CreateMultiWordSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateMultiWordSchemaRequest) GetMultiWordSchema() *MultiWordSchema {
+	if x != nil {
+		return x.MultiWordSchema
+	}
+	return nil
+}
+
+type GetMultiWordSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id   int32                          `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	View GetMultiWordSchemaRequest_View `protobuf:"varint,2,opt,name=view,proto3,enum=entpb.GetMultiWordSchemaRequest_View" json:"view,omitempty"`
+}
+
+func (x *GetMultiWordSchemaRequest) Reset() {
+	*x = GetMultiWordSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetMultiWordSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMultiWordSchemaRequest) ProtoMessage() {}
+
+func (x *GetMultiWordSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMultiWordSchemaRequest.ProtoReflect.Descriptor instead.
+func (*GetMultiWordSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetMultiWordSchemaRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *GetMultiWordSchemaRequest) GetView() GetMultiWordSchemaRequest_View {
+	if x != nil {
+		return x.View
+	}
+	return GetMultiWordSchemaRequest_VIEW_UNSPECIFIED
+}
+
+type UpdateMultiWordSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	MultiWordSchema *MultiWordSchema `protobuf:"bytes,1,opt,name=multi_word_schema,json=multiWordSchema,proto3" json:"multi_word_schema,omitempty"`
+}
+
+func (x *UpdateMultiWordSchemaRequest) Reset() {
+	*x = UpdateMultiWordSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateMultiWordSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateMultiWordSchemaRequest) ProtoMessage() {}
+
+func (x *UpdateMultiWordSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateMultiWordSchemaRequest.ProtoReflect.Descriptor instead.
+func (*UpdateMultiWordSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UpdateMultiWordSchemaRequest) GetMultiWordSchema() *MultiWordSchema {
+	if x != nil {
+		return x.MultiWordSchema
+	}
+	return nil
+}
+
+type DeleteMultiWordSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id int32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *DeleteMultiWordSchemaRequest) Reset() {
+	*x = DeleteMultiWordSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteMultiWordSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMultiWordSchemaRequest) ProtoMessage() {}
+
+func (x *DeleteMultiWordSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMultiWordSchemaRequest.ProtoReflect.Descriptor instead.
+func (*DeleteMultiWordSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteMultiWordSchemaRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type ListMultiWordSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PageSize  int32                           `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken string                          `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	View      ListMultiWordSchemaRequest_View `protobuf:"varint,3,opt,name=view,proto3,enum=entpb.ListMultiWordSchemaRequest_View" json:"view,omitempty"`
+}
+
+func (x *ListMultiWordSchemaRequest) Reset() {
+	*x = ListMultiWordSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListMultiWordSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMultiWordSchemaRequest) ProtoMessage() {}
+
+func (x *ListMultiWordSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMultiWordSchemaRequest.ProtoReflect.Descriptor instead.
+func (*ListMultiWordSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListMultiWordSchemaRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMultiWordSchemaRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *ListMultiWordSchemaRequest) GetView() ListMultiWordSchemaRequest_View {
+	if x != nil {
+		return x.View
+	}
+	return ListMultiWordSchemaRequest_VIEW_UNSPECIFIED
+}
+
+type ListMultiWordSchemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	MultiWordSchemaList []*MultiWordSchema `protobuf:"bytes,1,rep,name=multi_word_schema_list,json=multiWordSchemaList,proto3" json:"multi_word_schema_list,omitempty"`
+	NextPageToken       string             `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+}
+
+func (x *ListMultiWordSchemaResponse) Reset() {
+	*x = ListMultiWordSchemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_entpb_entpb_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListMultiWordSchemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMultiWordSchemaResponse) ProtoMessage() {}
+
+func (x *ListMultiWordSchemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_entpb_entpb_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMultiWordSchemaResponse.ProtoReflect.Descriptor instead.
+func (*ListMultiWordSchemaResponse) Descriptor() ([]byte, []int) {
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListMultiWordSchemaResponse) GetMultiWordSchemaList() []*MultiWordSchema {
+	if x != nil {
+		return x.MultiWordSchemaList
+	}
+	return nil
+}
+
+func (x *ListMultiWordSchemaResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 type NilExample struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -870,7 +1383,7 @@ type NilExample struct {
 func (x *NilExample) Reset() {
 	*x = NilExample{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[8]
+		mi := &file_entpb_entpb_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -883,7 +1396,7 @@ func (x *NilExample) String() string {
 func (*NilExample) ProtoMessage() {}
 
 func (x *NilExample) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[8]
+	mi := &file_entpb_entpb_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -896,7 +1409,7 @@ func (x *NilExample) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NilExample.ProtoReflect.Descriptor instead.
 func (*NilExample) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{8}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *NilExample) GetId() int32 {
@@ -931,7 +1444,7 @@ type CreateNilExampleRequest struct {
 func (x *CreateNilExampleRequest) Reset() {
 	*x = CreateNilExampleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[9]
+		mi := &file_entpb_entpb_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -944,7 +1457,7 @@ func (x *CreateNilExampleRequest) String() string {
 func (*CreateNilExampleRequest) ProtoMessage() {}
 
 func (x *CreateNilExampleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[9]
+	mi := &file_entpb_entpb_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -957,7 +1470,7 @@ func (x *CreateNilExampleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNilExampleRequest.ProtoReflect.Descriptor instead.
 func (*CreateNilExampleRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{9}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateNilExampleRequest) GetNilExample() *NilExample {
@@ -979,7 +1492,7 @@ type GetNilExampleRequest struct {
 func (x *GetNilExampleRequest) Reset() {
 	*x = GetNilExampleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[10]
+		mi := &file_entpb_entpb_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -992,7 +1505,7 @@ func (x *GetNilExampleRequest) String() string {
 func (*GetNilExampleRequest) ProtoMessage() {}
 
 func (x *GetNilExampleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[10]
+	mi := &file_entpb_entpb_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,7 +1518,7 @@ func (x *GetNilExampleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNilExampleRequest.ProtoReflect.Descriptor instead.
 func (*GetNilExampleRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{10}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetNilExampleRequest) GetId() int32 {
@@ -1033,7 +1546,7 @@ type UpdateNilExampleRequest struct {
 func (x *UpdateNilExampleRequest) Reset() {
 	*x = UpdateNilExampleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[11]
+		mi := &file_entpb_entpb_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1046,7 +1559,7 @@ func (x *UpdateNilExampleRequest) String() string {
 func (*UpdateNilExampleRequest) ProtoMessage() {}
 
 func (x *UpdateNilExampleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[11]
+	mi := &file_entpb_entpb_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1059,7 +1572,7 @@ func (x *UpdateNilExampleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNilExampleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNilExampleRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{11}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateNilExampleRequest) GetNilExample() *NilExample {
@@ -1080,7 +1593,7 @@ type DeleteNilExampleRequest struct {
 func (x *DeleteNilExampleRequest) Reset() {
 	*x = DeleteNilExampleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[12]
+		mi := &file_entpb_entpb_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1093,7 +1606,7 @@ func (x *DeleteNilExampleRequest) String() string {
 func (*DeleteNilExampleRequest) ProtoMessage() {}
 
 func (x *DeleteNilExampleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[12]
+	mi := &file_entpb_entpb_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1106,7 +1619,7 @@ func (x *DeleteNilExampleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNilExampleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNilExampleRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{12}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteNilExampleRequest) GetId() int32 {
@@ -1129,7 +1642,7 @@ type ListNilExampleRequest struct {
 func (x *ListNilExampleRequest) Reset() {
 	*x = ListNilExampleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[13]
+		mi := &file_entpb_entpb_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1142,7 +1655,7 @@ func (x *ListNilExampleRequest) String() string {
 func (*ListNilExampleRequest) ProtoMessage() {}
 
 func (x *ListNilExampleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[13]
+	mi := &file_entpb_entpb_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1155,7 +1668,7 @@ func (x *ListNilExampleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNilExampleRequest.ProtoReflect.Descriptor instead.
 func (*ListNilExampleRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{13}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListNilExampleRequest) GetPageSize() int32 {
@@ -1191,7 +1704,7 @@ type ListNilExampleResponse struct {
 func (x *ListNilExampleResponse) Reset() {
 	*x = ListNilExampleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[14]
+		mi := &file_entpb_entpb_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1204,7 +1717,7 @@ func (x *ListNilExampleResponse) String() string {
 func (*ListNilExampleResponse) ProtoMessage() {}
 
 func (x *ListNilExampleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[14]
+	mi := &file_entpb_entpb_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1217,7 +1730,7 @@ func (x *ListNilExampleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNilExampleResponse.ProtoReflect.Descriptor instead.
 func (*ListNilExampleResponse) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{14}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListNilExampleResponse) GetNilExampleList() []*NilExample {
@@ -1248,7 +1761,7 @@ type Todo struct {
 func (x *Todo) Reset() {
 	*x = Todo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[15]
+		mi := &file_entpb_entpb_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1261,7 +1774,7 @@ func (x *Todo) String() string {
 func (*Todo) ProtoMessage() {}
 
 func (x *Todo) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[15]
+	mi := &file_entpb_entpb_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1274,7 +1787,7 @@ func (x *Todo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Todo.ProtoReflect.Descriptor instead.
 func (*Todo) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{15}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Todo) GetId() int32 {
@@ -1335,7 +1848,7 @@ type User struct {
 func (x *User) Reset() {
 	*x = User{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[16]
+		mi := &file_entpb_entpb_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1348,7 +1861,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[16]
+	mi := &file_entpb_entpb_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1361,7 +1874,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{16}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *User) GetId() int32 {
@@ -1515,7 +2028,7 @@ type CreateUserRequest struct {
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[17]
+		mi := &file_entpb_entpb_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1528,7 +2041,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[17]
+	mi := &file_entpb_entpb_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1541,7 +2054,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{17}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateUserRequest) GetUser() *User {
@@ -1563,7 +2076,7 @@ type GetUserRequest struct {
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[18]
+		mi := &file_entpb_entpb_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1576,7 +2089,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[18]
+	mi := &file_entpb_entpb_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1589,7 +2102,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{18}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetUserRequest) GetId() int32 {
@@ -1617,7 +2130,7 @@ type UpdateUserRequest struct {
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[19]
+		mi := &file_entpb_entpb_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1630,7 +2143,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[19]
+	mi := &file_entpb_entpb_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1643,7 +2156,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{19}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UpdateUserRequest) GetUser() *User {
@@ -1664,7 +2177,7 @@ type DeleteUserRequest struct {
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[20]
+		mi := &file_entpb_entpb_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1677,7 +2190,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[20]
+	mi := &file_entpb_entpb_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1690,7 +2203,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{20}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteUserRequest) GetId() int32 {
@@ -1713,7 +2226,7 @@ type ListUserRequest struct {
 func (x *ListUserRequest) Reset() {
 	*x = ListUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[21]
+		mi := &file_entpb_entpb_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1726,7 +2239,7 @@ func (x *ListUserRequest) String() string {
 func (*ListUserRequest) ProtoMessage() {}
 
 func (x *ListUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[21]
+	mi := &file_entpb_entpb_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1739,7 +2252,7 @@ func (x *ListUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserRequest.ProtoReflect.Descriptor instead.
 func (*ListUserRequest) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{21}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListUserRequest) GetPageSize() int32 {
@@ -1775,7 +2288,7 @@ type ListUserResponse struct {
 func (x *ListUserResponse) Reset() {
 	*x = ListUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_entpb_entpb_proto_msgTypes[22]
+		mi := &file_entpb_entpb_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1788,7 +2301,7 @@ func (x *ListUserResponse) String() string {
 func (*ListUserResponse) ProtoMessage() {}
 
 func (x *ListUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_entpb_entpb_proto_msgTypes[22]
+	mi := &file_entpb_entpb_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1801,7 +2314,7 @@ func (x *ListUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserResponse.ProtoReflect.Descriptor instead.
 func (*ListUserResponse) Descriptor() ([]byte, []int) {
-	return file_entpb_entpb_proto_rawDescGZIP(), []int{22}
+	return file_entpb_entpb_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListUserResponse) GetUserList() []*User {
@@ -1882,7 +2395,62 @@ var file_entpb_entpb_proto_rawDesc = []byte{
 	0x28, 0x05, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x21, 0x0a, 0x05, 0x75, 0x73,
 	0x65, 0x72, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x65, 0x6e, 0x74, 0x70,
-	0x62, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x22, 0x8a, 0x01,
+	0x62, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x52, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x22, 0x69, 0x0a,
+	0x0f, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69, 0x64,
+	0x12, 0x2f, 0x0a, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1b,
+	0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64,
+	0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x2e, 0x55, 0x6e, 0x69, 0x74, 0x52, 0x04, 0x75, 0x6e, 0x69,
+	0x74, 0x22, 0x15, 0x0a, 0x04, 0x55, 0x6e, 0x69, 0x74, 0x12, 0x05, 0x0a, 0x01, 0x4d, 0x10, 0x00,
+	0x12, 0x06, 0x0a, 0x02, 0x46, 0x54, 0x10, 0x01, 0x22, 0x62, 0x0a, 0x1c, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d,
+	0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x42, 0x0a, 0x11, 0x6d, 0x75, 0x6c, 0x74,
+	0x69, 0x5f, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4d, 0x75, 0x6c, 0x74,
+	0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x0f, 0x6d, 0x75, 0x6c,
+	0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x22, 0xa2, 0x01, 0x0a,
+	0x19, 0x47, 0x65, 0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69, 0x64, 0x12, 0x39, 0x0a, 0x04, 0x76, 0x69,
+	0x65, 0x77, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x25, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62,
+	0x2e, 0x47, 0x65, 0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x56, 0x69, 0x65, 0x77, 0x52,
+	0x04, 0x76, 0x69, 0x65, 0x77, 0x22, 0x3a, 0x0a, 0x04, 0x56, 0x69, 0x65, 0x77, 0x12, 0x14, 0x0a,
+	0x10, 0x56, 0x49, 0x45, 0x57, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45,
+	0x44, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x42, 0x41, 0x53, 0x49, 0x43, 0x10, 0x01, 0x12, 0x11,
+	0x0a, 0x0d, 0x57, 0x49, 0x54, 0x48, 0x5f, 0x45, 0x44, 0x47, 0x45, 0x5f, 0x49, 0x44, 0x53, 0x10,
+	0x02, 0x22, 0x62, 0x0a, 0x1c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x75, 0x6c, 0x74, 0x69,
+	0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x42, 0x0a, 0x11, 0x6d, 0x75, 0x6c, 0x74, 0x69, 0x5f, 0x77, 0x6f, 0x72, 0x64, 0x5f,
+	0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x65,
+	0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x52, 0x0f, 0x6d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x22, 0x2e, 0x0a, 0x1c, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x4d,
+	0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x05, 0x52, 0x02, 0x69, 0x64, 0x22, 0xd0, 0x01, 0x0a, 0x1a, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x75,
+	0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x73, 0x69, 0x7a,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a,
+	0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x61, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e,
+	0x12, 0x3a, 0x0a, 0x04, 0x76, 0x69, 0x65, 0x77, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x26,
+	0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69,
+	0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x2e, 0x56, 0x69, 0x65, 0x77, 0x52, 0x04, 0x76, 0x69, 0x65, 0x77, 0x22, 0x3a, 0x0a, 0x04,
+	0x56, 0x69, 0x65, 0x77, 0x12, 0x14, 0x0a, 0x10, 0x56, 0x49, 0x45, 0x57, 0x5f, 0x55, 0x4e, 0x53,
+	0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x42, 0x41,
+	0x53, 0x49, 0x43, 0x10, 0x01, 0x12, 0x11, 0x0a, 0x0d, 0x57, 0x49, 0x54, 0x48, 0x5f, 0x45, 0x44,
+	0x47, 0x45, 0x5f, 0x49, 0x44, 0x53, 0x10, 0x02, 0x22, 0x92, 0x01, 0x0a, 0x1b, 0x4c, 0x69, 0x73,
+	0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4b, 0x0a, 0x16, 0x6d, 0x75, 0x6c, 0x74,
+	0x69, 0x5f, 0x77, 0x6f, 0x72, 0x64, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x5f, 0x6c, 0x69,
+	0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62,
+	0x2e, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x52, 0x13, 0x6d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d,
+	0x61, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x26, 0x0a, 0x0f, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x70, 0x61,
+	0x67, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d,
+	0x6e, 0x65, 0x78, 0x74, 0x50, 0x61, 0x67, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x8a, 0x01,
 	0x0a, 0x0a, 0x4e, 0x69, 0x6c, 0x45, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x12, 0x0e, 0x0a, 0x02,
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x02, 0x69, 0x64, 0x12, 0x35, 0x0a, 0x07,
 	0x73, 0x74, 0x72, 0x5f, 0x6e, 0x69, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
@@ -2055,6 +2623,30 @@ var file_entpb_entpb_proto_rawDesc = []byte{
 	0x74, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
 	0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x41,
 	0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x32, 0xfd, 0x02, 0x0a, 0x16, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x45, 0x0a, 0x06,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x23, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x43,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x65, 0x6e,
+	0x74, 0x70, 0x62, 0x2e, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x12, 0x3f, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x20, 0x2e, 0x65, 0x6e, 0x74,
+	0x70, 0x62, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x65,
+	0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x12, 0x45, 0x0a, 0x06, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x23,
+	0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4d, 0x75, 0x6c,
+	0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4d, 0x75, 0x6c, 0x74,
+	0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x45, 0x0a, 0x06, 0x44,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x23, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x12, 0x4d, 0x0a, 0x04, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x21, 0x2e, 0x65, 0x6e, 0x74,
+	0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57, 0x6f, 0x72, 0x64,
+	0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e,
+	0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x75, 0x6c, 0x74, 0x69, 0x57,
+	0x6f, 0x72, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
 	0x65, 0x32, 0xcb, 0x02, 0x0a, 0x11, 0x4e, 0x69, 0x6c, 0x45, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65,
 	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3b, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74,
 	0x65, 0x12, 0x1e, 0x2e, 0x65, 0x6e, 0x74, 0x70, 0x62, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
@@ -2112,114 +2704,140 @@ func file_entpb_entpb_proto_rawDescGZIP() []byte {
 	return file_entpb_entpb_proto_rawDescData
 }
 
-var file_entpb_entpb_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_entpb_entpb_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_entpb_entpb_proto_enumTypes = make([]protoimpl.EnumInfo, 11)
+var file_entpb_entpb_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_entpb_entpb_proto_goTypes = []interface{}{
-	(GetAttachmentRequest_View)(0),  // 0: entpb.GetAttachmentRequest.View
-	(ListAttachmentRequest_View)(0), // 1: entpb.ListAttachmentRequest.View
-	(GetNilExampleRequest_View)(0),  // 2: entpb.GetNilExampleRequest.View
-	(ListNilExampleRequest_View)(0), // 3: entpb.ListNilExampleRequest.View
-	(Todo_Status)(0),                // 4: entpb.Todo.Status
-	(User_Status)(0),                // 5: entpb.User.Status
-	(GetUserRequest_View)(0),        // 6: entpb.GetUserRequest.View
-	(ListUserRequest_View)(0),       // 7: entpb.ListUserRequest.View
-	(*Attachment)(nil),              // 8: entpb.Attachment
-	(*CreateAttachmentRequest)(nil), // 9: entpb.CreateAttachmentRequest
-	(*GetAttachmentRequest)(nil),    // 10: entpb.GetAttachmentRequest
-	(*UpdateAttachmentRequest)(nil), // 11: entpb.UpdateAttachmentRequest
-	(*DeleteAttachmentRequest)(nil), // 12: entpb.DeleteAttachmentRequest
-	(*ListAttachmentRequest)(nil),   // 13: entpb.ListAttachmentRequest
-	(*ListAttachmentResponse)(nil),  // 14: entpb.ListAttachmentResponse
-	(*Group)(nil),                   // 15: entpb.Group
-	(*NilExample)(nil),              // 16: entpb.NilExample
-	(*CreateNilExampleRequest)(nil), // 17: entpb.CreateNilExampleRequest
-	(*GetNilExampleRequest)(nil),    // 18: entpb.GetNilExampleRequest
-	(*UpdateNilExampleRequest)(nil), // 19: entpb.UpdateNilExampleRequest
-	(*DeleteNilExampleRequest)(nil), // 20: entpb.DeleteNilExampleRequest
-	(*ListNilExampleRequest)(nil),   // 21: entpb.ListNilExampleRequest
-	(*ListNilExampleResponse)(nil),  // 22: entpb.ListNilExampleResponse
-	(*Todo)(nil),                    // 23: entpb.Todo
-	(*User)(nil),                    // 24: entpb.User
-	(*CreateUserRequest)(nil),       // 25: entpb.CreateUserRequest
-	(*GetUserRequest)(nil),          // 26: entpb.GetUserRequest
-	(*UpdateUserRequest)(nil),       // 27: entpb.UpdateUserRequest
-	(*DeleteUserRequest)(nil),       // 28: entpb.DeleteUserRequest
-	(*ListUserRequest)(nil),         // 29: entpb.ListUserRequest
-	(*ListUserResponse)(nil),        // 30: entpb.ListUserResponse
-	(*wrapperspb.StringValue)(nil),  // 31: google.protobuf.StringValue
-	(*timestamppb.Timestamp)(nil),   // 32: google.protobuf.Timestamp
-	(*wrapperspb.Int32Value)(nil),   // 33: google.protobuf.Int32Value
-	(*wrapperspb.BoolValue)(nil),    // 34: google.protobuf.BoolValue
-	(*emptypb.Empty)(nil),           // 35: google.protobuf.Empty
+	(GetAttachmentRequest_View)(0),       // 0: entpb.GetAttachmentRequest.View
+	(ListAttachmentRequest_View)(0),      // 1: entpb.ListAttachmentRequest.View
+	(MultiWordSchema_Unit)(0),            // 2: entpb.MultiWordSchema.Unit
+	(GetMultiWordSchemaRequest_View)(0),  // 3: entpb.GetMultiWordSchemaRequest.View
+	(ListMultiWordSchemaRequest_View)(0), // 4: entpb.ListMultiWordSchemaRequest.View
+	(GetNilExampleRequest_View)(0),       // 5: entpb.GetNilExampleRequest.View
+	(ListNilExampleRequest_View)(0),      // 6: entpb.ListNilExampleRequest.View
+	(Todo_Status)(0),                     // 7: entpb.Todo.Status
+	(User_Status)(0),                     // 8: entpb.User.Status
+	(GetUserRequest_View)(0),             // 9: entpb.GetUserRequest.View
+	(ListUserRequest_View)(0),            // 10: entpb.ListUserRequest.View
+	(*Attachment)(nil),                   // 11: entpb.Attachment
+	(*CreateAttachmentRequest)(nil),      // 12: entpb.CreateAttachmentRequest
+	(*GetAttachmentRequest)(nil),         // 13: entpb.GetAttachmentRequest
+	(*UpdateAttachmentRequest)(nil),      // 14: entpb.UpdateAttachmentRequest
+	(*DeleteAttachmentRequest)(nil),      // 15: entpb.DeleteAttachmentRequest
+	(*ListAttachmentRequest)(nil),        // 16: entpb.ListAttachmentRequest
+	(*ListAttachmentResponse)(nil),       // 17: entpb.ListAttachmentResponse
+	(*Group)(nil),                        // 18: entpb.Group
+	(*MultiWordSchema)(nil),              // 19: entpb.MultiWordSchema
+	(*CreateMultiWordSchemaRequest)(nil), // 20: entpb.CreateMultiWordSchemaRequest
+	(*GetMultiWordSchemaRequest)(nil),    // 21: entpb.GetMultiWordSchemaRequest
+	(*UpdateMultiWordSchemaRequest)(nil), // 22: entpb.UpdateMultiWordSchemaRequest
+	(*DeleteMultiWordSchemaRequest)(nil), // 23: entpb.DeleteMultiWordSchemaRequest
+	(*ListMultiWordSchemaRequest)(nil),   // 24: entpb.ListMultiWordSchemaRequest
+	(*ListMultiWordSchemaResponse)(nil),  // 25: entpb.ListMultiWordSchemaResponse
+	(*NilExample)(nil),                   // 26: entpb.NilExample
+	(*CreateNilExampleRequest)(nil),      // 27: entpb.CreateNilExampleRequest
+	(*GetNilExampleRequest)(nil),         // 28: entpb.GetNilExampleRequest
+	(*UpdateNilExampleRequest)(nil),      // 29: entpb.UpdateNilExampleRequest
+	(*DeleteNilExampleRequest)(nil),      // 30: entpb.DeleteNilExampleRequest
+	(*ListNilExampleRequest)(nil),        // 31: entpb.ListNilExampleRequest
+	(*ListNilExampleResponse)(nil),       // 32: entpb.ListNilExampleResponse
+	(*Todo)(nil),                         // 33: entpb.Todo
+	(*User)(nil),                         // 34: entpb.User
+	(*CreateUserRequest)(nil),            // 35: entpb.CreateUserRequest
+	(*GetUserRequest)(nil),               // 36: entpb.GetUserRequest
+	(*UpdateUserRequest)(nil),            // 37: entpb.UpdateUserRequest
+	(*DeleteUserRequest)(nil),            // 38: entpb.DeleteUserRequest
+	(*ListUserRequest)(nil),              // 39: entpb.ListUserRequest
+	(*ListUserResponse)(nil),             // 40: entpb.ListUserResponse
+	(*wrapperspb.StringValue)(nil),       // 41: google.protobuf.StringValue
+	(*timestamppb.Timestamp)(nil),        // 42: google.protobuf.Timestamp
+	(*wrapperspb.Int32Value)(nil),        // 43: google.protobuf.Int32Value
+	(*wrapperspb.BoolValue)(nil),         // 44: google.protobuf.BoolValue
+	(*emptypb.Empty)(nil),                // 45: google.protobuf.Empty
 }
 var file_entpb_entpb_proto_depIdxs = []int32{
-	24, // 0: entpb.Attachment.user:type_name -> entpb.User
-	24, // 1: entpb.Attachment.recipients:type_name -> entpb.User
-	8,  // 2: entpb.CreateAttachmentRequest.attachment:type_name -> entpb.Attachment
+	34, // 0: entpb.Attachment.user:type_name -> entpb.User
+	34, // 1: entpb.Attachment.recipients:type_name -> entpb.User
+	11, // 2: entpb.CreateAttachmentRequest.attachment:type_name -> entpb.Attachment
 	0,  // 3: entpb.GetAttachmentRequest.view:type_name -> entpb.GetAttachmentRequest.View
-	8,  // 4: entpb.UpdateAttachmentRequest.attachment:type_name -> entpb.Attachment
+	11, // 4: entpb.UpdateAttachmentRequest.attachment:type_name -> entpb.Attachment
 	1,  // 5: entpb.ListAttachmentRequest.view:type_name -> entpb.ListAttachmentRequest.View
-	8,  // 6: entpb.ListAttachmentResponse.attachment_list:type_name -> entpb.Attachment
-	24, // 7: entpb.Group.users:type_name -> entpb.User
-	31, // 8: entpb.NilExample.str_nil:type_name -> google.protobuf.StringValue
-	32, // 9: entpb.NilExample.time_nil:type_name -> google.protobuf.Timestamp
-	16, // 10: entpb.CreateNilExampleRequest.nil_example:type_name -> entpb.NilExample
-	2,  // 11: entpb.GetNilExampleRequest.view:type_name -> entpb.GetNilExampleRequest.View
-	16, // 12: entpb.UpdateNilExampleRequest.nil_example:type_name -> entpb.NilExample
-	3,  // 13: entpb.ListNilExampleRequest.view:type_name -> entpb.ListNilExampleRequest.View
-	16, // 14: entpb.ListNilExampleResponse.nil_example_list:type_name -> entpb.NilExample
-	4,  // 15: entpb.Todo.status:type_name -> entpb.Todo.Status
-	24, // 16: entpb.Todo.user:type_name -> entpb.User
-	32, // 17: entpb.User.joined:type_name -> google.protobuf.Timestamp
-	5,  // 18: entpb.User.status:type_name -> entpb.User.Status
-	33, // 19: entpb.User.opt_num:type_name -> google.protobuf.Int32Value
-	31, // 20: entpb.User.opt_str:type_name -> google.protobuf.StringValue
-	34, // 21: entpb.User.opt_bool:type_name -> google.protobuf.BoolValue
-	31, // 22: entpb.User.big_int:type_name -> google.protobuf.StringValue
-	33, // 23: entpb.User.b_user_1:type_name -> google.protobuf.Int32Value
-	15, // 24: entpb.User.group:type_name -> entpb.Group
-	8,  // 25: entpb.User.attachment:type_name -> entpb.Attachment
-	8,  // 26: entpb.User.received_1:type_name -> entpb.Attachment
-	24, // 27: entpb.CreateUserRequest.user:type_name -> entpb.User
-	6,  // 28: entpb.GetUserRequest.view:type_name -> entpb.GetUserRequest.View
-	24, // 29: entpb.UpdateUserRequest.user:type_name -> entpb.User
-	7,  // 30: entpb.ListUserRequest.view:type_name -> entpb.ListUserRequest.View
-	24, // 31: entpb.ListUserResponse.user_list:type_name -> entpb.User
-	9,  // 32: entpb.AttachmentService.Create:input_type -> entpb.CreateAttachmentRequest
-	10, // 33: entpb.AttachmentService.Get:input_type -> entpb.GetAttachmentRequest
-	11, // 34: entpb.AttachmentService.Update:input_type -> entpb.UpdateAttachmentRequest
-	12, // 35: entpb.AttachmentService.Delete:input_type -> entpb.DeleteAttachmentRequest
-	13, // 36: entpb.AttachmentService.List:input_type -> entpb.ListAttachmentRequest
-	17, // 37: entpb.NilExampleService.Create:input_type -> entpb.CreateNilExampleRequest
-	18, // 38: entpb.NilExampleService.Get:input_type -> entpb.GetNilExampleRequest
-	19, // 39: entpb.NilExampleService.Update:input_type -> entpb.UpdateNilExampleRequest
-	20, // 40: entpb.NilExampleService.Delete:input_type -> entpb.DeleteNilExampleRequest
-	21, // 41: entpb.NilExampleService.List:input_type -> entpb.ListNilExampleRequest
-	25, // 42: entpb.UserService.Create:input_type -> entpb.CreateUserRequest
-	26, // 43: entpb.UserService.Get:input_type -> entpb.GetUserRequest
-	27, // 44: entpb.UserService.Update:input_type -> entpb.UpdateUserRequest
-	28, // 45: entpb.UserService.Delete:input_type -> entpb.DeleteUserRequest
-	29, // 46: entpb.UserService.List:input_type -> entpb.ListUserRequest
-	8,  // 47: entpb.AttachmentService.Create:output_type -> entpb.Attachment
-	8,  // 48: entpb.AttachmentService.Get:output_type -> entpb.Attachment
-	8,  // 49: entpb.AttachmentService.Update:output_type -> entpb.Attachment
-	35, // 50: entpb.AttachmentService.Delete:output_type -> google.protobuf.Empty
-	14, // 51: entpb.AttachmentService.List:output_type -> entpb.ListAttachmentResponse
-	16, // 52: entpb.NilExampleService.Create:output_type -> entpb.NilExample
-	16, // 53: entpb.NilExampleService.Get:output_type -> entpb.NilExample
-	16, // 54: entpb.NilExampleService.Update:output_type -> entpb.NilExample
-	35, // 55: entpb.NilExampleService.Delete:output_type -> google.protobuf.Empty
-	22, // 56: entpb.NilExampleService.List:output_type -> entpb.ListNilExampleResponse
-	24, // 57: entpb.UserService.Create:output_type -> entpb.User
-	24, // 58: entpb.UserService.Get:output_type -> entpb.User
-	24, // 59: entpb.UserService.Update:output_type -> entpb.User
-	35, // 60: entpb.UserService.Delete:output_type -> google.protobuf.Empty
-	30, // 61: entpb.UserService.List:output_type -> entpb.ListUserResponse
-	47, // [47:62] is the sub-list for method output_type
-	32, // [32:47] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	11, // 6: entpb.ListAttachmentResponse.attachment_list:type_name -> entpb.Attachment
+	34, // 7: entpb.Group.users:type_name -> entpb.User
+	2,  // 8: entpb.MultiWordSchema.unit:type_name -> entpb.MultiWordSchema.Unit
+	19, // 9: entpb.CreateMultiWordSchemaRequest.multi_word_schema:type_name -> entpb.MultiWordSchema
+	3,  // 10: entpb.GetMultiWordSchemaRequest.view:type_name -> entpb.GetMultiWordSchemaRequest.View
+	19, // 11: entpb.UpdateMultiWordSchemaRequest.multi_word_schema:type_name -> entpb.MultiWordSchema
+	4,  // 12: entpb.ListMultiWordSchemaRequest.view:type_name -> entpb.ListMultiWordSchemaRequest.View
+	19, // 13: entpb.ListMultiWordSchemaResponse.multi_word_schema_list:type_name -> entpb.MultiWordSchema
+	41, // 14: entpb.NilExample.str_nil:type_name -> google.protobuf.StringValue
+	42, // 15: entpb.NilExample.time_nil:type_name -> google.protobuf.Timestamp
+	26, // 16: entpb.CreateNilExampleRequest.nil_example:type_name -> entpb.NilExample
+	5,  // 17: entpb.GetNilExampleRequest.view:type_name -> entpb.GetNilExampleRequest.View
+	26, // 18: entpb.UpdateNilExampleRequest.nil_example:type_name -> entpb.NilExample
+	6,  // 19: entpb.ListNilExampleRequest.view:type_name -> entpb.ListNilExampleRequest.View
+	26, // 20: entpb.ListNilExampleResponse.nil_example_list:type_name -> entpb.NilExample
+	7,  // 21: entpb.Todo.status:type_name -> entpb.Todo.Status
+	34, // 22: entpb.Todo.user:type_name -> entpb.User
+	42, // 23: entpb.User.joined:type_name -> google.protobuf.Timestamp
+	8,  // 24: entpb.User.status:type_name -> entpb.User.Status
+	43, // 25: entpb.User.opt_num:type_name -> google.protobuf.Int32Value
+	41, // 26: entpb.User.opt_str:type_name -> google.protobuf.StringValue
+	44, // 27: entpb.User.opt_bool:type_name -> google.protobuf.BoolValue
+	41, // 28: entpb.User.big_int:type_name -> google.protobuf.StringValue
+	43, // 29: entpb.User.b_user_1:type_name -> google.protobuf.Int32Value
+	18, // 30: entpb.User.group:type_name -> entpb.Group
+	11, // 31: entpb.User.attachment:type_name -> entpb.Attachment
+	11, // 32: entpb.User.received_1:type_name -> entpb.Attachment
+	34, // 33: entpb.CreateUserRequest.user:type_name -> entpb.User
+	9,  // 34: entpb.GetUserRequest.view:type_name -> entpb.GetUserRequest.View
+	34, // 35: entpb.UpdateUserRequest.user:type_name -> entpb.User
+	10, // 36: entpb.ListUserRequest.view:type_name -> entpb.ListUserRequest.View
+	34, // 37: entpb.ListUserResponse.user_list:type_name -> entpb.User
+	12, // 38: entpb.AttachmentService.Create:input_type -> entpb.CreateAttachmentRequest
+	13, // 39: entpb.AttachmentService.Get:input_type -> entpb.GetAttachmentRequest
+	14, // 40: entpb.AttachmentService.Update:input_type -> entpb.UpdateAttachmentRequest
+	15, // 41: entpb.AttachmentService.Delete:input_type -> entpb.DeleteAttachmentRequest
+	16, // 42: entpb.AttachmentService.List:input_type -> entpb.ListAttachmentRequest
+	20, // 43: entpb.MultiWordSchemaService.Create:input_type -> entpb.CreateMultiWordSchemaRequest
+	21, // 44: entpb.MultiWordSchemaService.Get:input_type -> entpb.GetMultiWordSchemaRequest
+	22, // 45: entpb.MultiWordSchemaService.Update:input_type -> entpb.UpdateMultiWordSchemaRequest
+	23, // 46: entpb.MultiWordSchemaService.Delete:input_type -> entpb.DeleteMultiWordSchemaRequest
+	24, // 47: entpb.MultiWordSchemaService.List:input_type -> entpb.ListMultiWordSchemaRequest
+	27, // 48: entpb.NilExampleService.Create:input_type -> entpb.CreateNilExampleRequest
+	28, // 49: entpb.NilExampleService.Get:input_type -> entpb.GetNilExampleRequest
+	29, // 50: entpb.NilExampleService.Update:input_type -> entpb.UpdateNilExampleRequest
+	30, // 51: entpb.NilExampleService.Delete:input_type -> entpb.DeleteNilExampleRequest
+	31, // 52: entpb.NilExampleService.List:input_type -> entpb.ListNilExampleRequest
+	35, // 53: entpb.UserService.Create:input_type -> entpb.CreateUserRequest
+	36, // 54: entpb.UserService.Get:input_type -> entpb.GetUserRequest
+	37, // 55: entpb.UserService.Update:input_type -> entpb.UpdateUserRequest
+	38, // 56: entpb.UserService.Delete:input_type -> entpb.DeleteUserRequest
+	39, // 57: entpb.UserService.List:input_type -> entpb.ListUserRequest
+	11, // 58: entpb.AttachmentService.Create:output_type -> entpb.Attachment
+	11, // 59: entpb.AttachmentService.Get:output_type -> entpb.Attachment
+	11, // 60: entpb.AttachmentService.Update:output_type -> entpb.Attachment
+	45, // 61: entpb.AttachmentService.Delete:output_type -> google.protobuf.Empty
+	17, // 62: entpb.AttachmentService.List:output_type -> entpb.ListAttachmentResponse
+	19, // 63: entpb.MultiWordSchemaService.Create:output_type -> entpb.MultiWordSchema
+	19, // 64: entpb.MultiWordSchemaService.Get:output_type -> entpb.MultiWordSchema
+	19, // 65: entpb.MultiWordSchemaService.Update:output_type -> entpb.MultiWordSchema
+	45, // 66: entpb.MultiWordSchemaService.Delete:output_type -> google.protobuf.Empty
+	25, // 67: entpb.MultiWordSchemaService.List:output_type -> entpb.ListMultiWordSchemaResponse
+	26, // 68: entpb.NilExampleService.Create:output_type -> entpb.NilExample
+	26, // 69: entpb.NilExampleService.Get:output_type -> entpb.NilExample
+	26, // 70: entpb.NilExampleService.Update:output_type -> entpb.NilExample
+	45, // 71: entpb.NilExampleService.Delete:output_type -> google.protobuf.Empty
+	32, // 72: entpb.NilExampleService.List:output_type -> entpb.ListNilExampleResponse
+	34, // 73: entpb.UserService.Create:output_type -> entpb.User
+	34, // 74: entpb.UserService.Get:output_type -> entpb.User
+	34, // 75: entpb.UserService.Update:output_type -> entpb.User
+	45, // 76: entpb.UserService.Delete:output_type -> google.protobuf.Empty
+	40, // 77: entpb.UserService.List:output_type -> entpb.ListUserResponse
+	58, // [58:78] is the sub-list for method output_type
+	38, // [38:58] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_entpb_entpb_proto_init() }
@@ -2325,7 +2943,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NilExample); i {
+			switch v := v.(*MultiWordSchema); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2337,7 +2955,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateNilExampleRequest); i {
+			switch v := v.(*CreateMultiWordSchemaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2349,7 +2967,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetNilExampleRequest); i {
+			switch v := v.(*GetMultiWordSchemaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2361,7 +2979,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateNilExampleRequest); i {
+			switch v := v.(*UpdateMultiWordSchemaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2373,7 +2991,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteNilExampleRequest); i {
+			switch v := v.(*DeleteMultiWordSchemaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2385,7 +3003,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListNilExampleRequest); i {
+			switch v := v.(*ListMultiWordSchemaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2397,7 +3015,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListNilExampleResponse); i {
+			switch v := v.(*ListMultiWordSchemaResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2409,7 +3027,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Todo); i {
+			switch v := v.(*NilExample); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2421,7 +3039,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*User); i {
+			switch v := v.(*CreateNilExampleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2433,7 +3051,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateUserRequest); i {
+			switch v := v.(*GetNilExampleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2445,7 +3063,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetUserRequest); i {
+			switch v := v.(*UpdateNilExampleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2457,7 +3075,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateUserRequest); i {
+			switch v := v.(*DeleteNilExampleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2469,7 +3087,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteUserRequest); i {
+			switch v := v.(*ListNilExampleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2481,7 +3099,7 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListUserRequest); i {
+			switch v := v.(*ListNilExampleResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2493,6 +3111,90 @@ func file_entpb_entpb_proto_init() {
 			}
 		}
 		file_entpb_entpb_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Todo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*User); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateUserRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetUserRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateUserRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteUserRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListUserRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_entpb_entpb_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserResponse); i {
 			case 0:
 				return &v.state
@@ -2510,10 +3212,10 @@ func file_entpb_entpb_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_entpb_entpb_proto_rawDesc,
-			NumEnums:      8,
-			NumMessages:   23,
+			NumEnums:      11,
+			NumMessages:   30,
 			NumExtensions: 0,
-			NumServices:   3,
+			NumServices:   4,
 		},
 		GoTypes:           file_entpb_entpb_proto_goTypes,
 		DependencyIndexes: file_entpb_entpb_proto_depIdxs,

@@ -113,6 +113,28 @@ message DeleteMultiWordSchemaRequest {
   int32 id = 1;
 }
 
+message ListMultiWordSchemaRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListMultiWordSchemaResponse {
+  repeated MultiWordSchema multi_word_schema_list = 1;
+
+  string next_page_token = 2;
+}
+
 message NilExample {
   int32 id = 1;
 
@@ -305,6 +327,8 @@ service MultiWordSchemaService {
   rpc Update ( UpdateMultiWordSchemaRequest ) returns ( MultiWordSchema );
 
   rpc Delete ( DeleteMultiWordSchemaRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListMultiWordSchemaRequest ) returns ( ListMultiWordSchemaResponse );
 }
 
 service NilExampleService {

@@ -3,12 +3,16 @@ package entpb
 
 import (
 	context "context"
+	base64 "encoding/base64"
+	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	multiwordschema "entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
+	fmt "fmt"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	strconv "strconv"
 	strings "strings"
 )
 
@@ -137,6 +141,69 @@ func (svc *MultiWordSchemaService) Delete(ctx context.Context, req *DeleteMultiW
 		return &emptypb.Empty{}, nil
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+// List implements MultiWordSchemaServiceServer.List
+func (svc *MultiWordSchemaService) List(ctx context.Context, req *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error) {
+	var (
+		err      error
+		entList  []*ent.MultiWordSchema
+		pageSize int
+	)
+	pageSize = int(req.GetPageSize())
+	switch {
+	case pageSize < 0:
+		return nil, status.Errorf(codes.InvalidArgument, "page size cannot be less than zero")
+	case pageSize == 0 || pageSize > entproto.MaxPageSize:
+		pageSize = entproto.MaxPageSize
+	}
+	listQuery := svc.client.MultiWordSchema.Query().
+		Order(ent.Desc(multiwordschema.FieldID)).
+		Limit(pageSize + 1)
+	if req.GetPageToken() != "" {
+		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		token, err := strconv.ParseInt(string(bytes), 10, 32)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		pageToken := int(token)
+		listQuery = listQuery.
+			Where(multiwordschema.IDLTE(pageToken))
+	}
+	switch req.GetView() {
+	case ListMultiWordSchemaRequest_VIEW_UNSPECIFIED, ListMultiWordSchemaRequest_BASIC:
+		entList, err = listQuery.All(ctx)
+	case ListMultiWordSchemaRequest_WITH_EDGE_IDS:
+		entList, err = listQuery.
+			All(ctx)
+	}
+	switch {
+	case err == nil:
+		var nextPageToken string
+		if len(entList) == pageSize+1 {
+			nextPageToken = base64.StdEncoding.EncodeToString(
+				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
+			entList = entList[:len(entList)-1]
+		}
+		var pbList []*MultiWordSchema
+		for _, entEntity := range entList {
+			pbEntity, err := toProtoMultiWordSchema(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &ListMultiWordSchemaResponse{
+			MultiWordSchemaList: pbList,
+			NextPageToken:       nextPageToken,
+		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
