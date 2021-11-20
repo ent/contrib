@@ -75,6 +75,44 @@ message Group {
   repeated User users = 3;
 }
 
+message MultiWordSchema {
+  int32 id = 1;
+
+  Unit unit = 2;
+
+  enum Unit {
+    M = 0;
+
+    FT = 1;
+  }
+}
+
+message CreateMultiWordSchemaRequest {
+  MultiWordSchema multi_word_schema = 1;
+}
+
+message GetMultiWordSchemaRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdateMultiWordSchemaRequest {
+  MultiWordSchema multi_word_schema = 1;
+}
+
+message DeleteMultiWordSchemaRequest {
+  int32 id = 1;
+}
+
 message NilExample {
   int32 id = 1;
 
@@ -257,6 +295,16 @@ service AttachmentService {
   rpc Delete ( DeleteAttachmentRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListAttachmentRequest ) returns ( ListAttachmentResponse );
+}
+
+service MultiWordSchemaService {
+  rpc Create ( CreateMultiWordSchemaRequest ) returns ( MultiWordSchema );
+
+  rpc Get ( GetMultiWordSchemaRequest ) returns ( MultiWordSchema );
+
+  rpc Update ( UpdateMultiWordSchemaRequest ) returns ( MultiWordSchema );
+
+  rpc Delete ( DeleteMultiWordSchemaRequest ) returns ( google.protobuf.Empty );
 }
 
 service NilExampleService {

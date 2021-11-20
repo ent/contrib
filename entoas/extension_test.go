@@ -24,6 +24,7 @@ import (
 )
 
 func TestExtension(t *testing.T) {
+	t.Parallel()
 	ex, err := NewExtension(
 		DefaultPolicy(PolicyExpose),
 		Mutations(func(graph *gen.Graph, spec *spec.Spec) error { return nil }),

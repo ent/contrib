@@ -19,6 +19,8 @@ func init() {
 	attachmentDescID := attachmentFields[0].Descriptor()
 	// attachment.DefaultID holds the default value on creation for the id field.
 	attachment.DefaultID = attachmentDescID.Default.(func() uuid.UUID)
+	multiwordschemaFields := schema.MultiWordSchema{}.Fields()
+	_ = multiwordschemaFields
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	userFields := schema.User{}.Fields()

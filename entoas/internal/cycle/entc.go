@@ -26,23 +26,11 @@ import (
 )
 
 func main() {
-	ex, err := entoas.NewExtension(
-		entoas.SpecTitle("My Simple API"),
-		entoas.SpecDescription("API to demonstrate **simple model** generation."),
-		entoas.SpecVersion("0.0.1"),
-		entoas.SimpleModels(),
-	)
+	ex, err := entoas.NewExtension()
 	if err != nil {
 		log.Fatalf("creating entoas extension: %v", err)
 	}
-	err = entc.Generate(
-		"./schema",
-		&gen.Config{
-			Target:  "./simple",
-			Package: "entgo.io/contrib/entoas/internal/simple",
-		},
-		entc.Extensions(ex),
-	)
+	err = entc.Generate("./schema", &gen.Config{}, entc.Extensions(ex))
 	if err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}

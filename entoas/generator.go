@@ -106,9 +106,12 @@ func schemas(g *gen.Graph, s *spec.Spec) error {
 		// Loop over every view once more to add the edges.
 		for n, v := range vs {
 			for _, e := range v.Edges {
-				vn, err := viewNameEdge(n, e)
+				vn, err := viewNameEdge(strings.Split(n, "_")[0], e)
 				if err != nil {
 					return err
+				}
+				if _, ok := s.Components.Schemas[vn]; !ok {
+					return fmt.Errorf("entoas: view %q does not exist", vn)
 				}
 				s.Components.Schemas[n].Edges[e.Name] = &spec.Edge{
 					Ref:    s.Components.Schemas[vn],

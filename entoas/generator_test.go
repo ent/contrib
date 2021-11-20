@@ -26,6 +26,7 @@ import (
 )
 
 func TestOASType(t *testing.T) {
+	t.Parallel()
 	for d, ex := range map[*entfield.Descriptor]*spec.Type{
 		entfield.Bool("bool").Descriptor():           _bool,
 		entfield.Bool("bool").Descriptor():           _bool,
@@ -62,6 +63,7 @@ func TestOASType(t *testing.T) {
 }
 
 func TestOperation_Title(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, "Create", OpCreate.Title())
 	require.Equal(t, "Read", OpRead.Title())
 	require.Equal(t, "Update", OpUpdate.Title())
