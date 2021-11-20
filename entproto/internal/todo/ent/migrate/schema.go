@@ -38,6 +38,17 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
+	// MultiWordSchemasColumns holds the columns for the "multi_word_schemas" table.
+	MultiWordSchemasColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "unit", Type: field.TypeEnum, Enums: []string{"m", "ft"}, Default: "m"},
+	}
+	// MultiWordSchemasTable holds the schema information for the "multi_word_schemas" table.
+	MultiWordSchemasTable = &schema.Table{
+		Name:       "multi_word_schemas",
+		Columns:    MultiWordSchemasColumns,
+		PrimaryKey: []*schema.Column{MultiWordSchemasColumns[0]},
+	}
 	// NilExamplesColumns holds the columns for the "nil_examples" table.
 	NilExamplesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -135,6 +146,7 @@ var (
 	Tables = []*schema.Table{
 		AttachmentsTable,
 		GroupsTable,
+		MultiWordSchemasTable,
 		NilExamplesTable,
 		TodosTable,
 		UsersTable,

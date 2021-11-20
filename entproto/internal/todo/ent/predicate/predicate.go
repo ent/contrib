@@ -12,6 +12,9 @@ type Attachment func(*sql.Selector)
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
 
+// MultiWordSchema is the predicate function for multiwordschema builders.
+type MultiWordSchema func(*sql.Selector)
+
 // NilExample is the predicate function for nilexample builders.
 type NilExample func(*sql.Selector)
 

@@ -16,6 +16,8 @@ type Tx struct {
 	Attachment *AttachmentClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// MultiWordSchema is the client for interacting with the MultiWordSchema builders.
+	MultiWordSchema *MultiWordSchemaClient
 	// NilExample is the client for interacting with the NilExample builders.
 	NilExample *NilExampleClient
 	// Todo is the client for interacting with the Todo builders.
@@ -159,6 +161,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Attachment = NewAttachmentClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
+	tx.MultiWordSchema = NewMultiWordSchemaClient(tx.config)
 	tx.NilExample = NewNilExampleClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
