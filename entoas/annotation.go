@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 
 	"entgo.io/contrib/entoas/serialization"
+	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 )
@@ -29,6 +30,8 @@ type (
 		Groups serialization.Groups
 		// OpenAPI Specification example value for a schema field.
 		Example interface{}
+		// OpenAPI Specification type to use for a schema field.
+		OASType *spec.Type
 		// Create has meta information about a creation operation.
 		Create OperationConfig
 		// Read has meta information about a read operation.
@@ -66,6 +69,9 @@ func OperationPolicy(p Policy) OperationConfigOption {
 
 // Example returns an example annotation.
 func Example(v interface{}) Annotation { return Annotation{Example: v} }
+
+// OASType returns an OASType annotation.
+func OASType(t *spec.Type) Annotation { return Annotation{OASType: t} }
 
 // CreateOperation returns a create operation annotation.
 func CreateOperation(opts ...OperationConfigOption) Annotation {
@@ -118,6 +124,9 @@ func (a Annotation) Merge(o schema.Annotation) schema.Annotation {
 	}
 	if ant.Example != nil {
 		a.Example = ant.Example
+	}
+	if ant.OASType != nil {
+		a.OASType = ant.OASType
 	}
 	a.Create.merge(ant.Create)
 	a.Read.merge(ant.Read)

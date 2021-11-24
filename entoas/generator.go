@@ -336,10 +336,6 @@ func createEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, erro
 
 // readOp returns a spec.OperationConfig for a read operation on the given node.
 func readOp(s *spec.Spec, n *gen.Type) (*spec.Operation, error) {
-	// ant, err := schemaAnnotation(n)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	id, err := pathParam(n)
 	if err != nil {
 		return nil, err
@@ -718,6 +714,7 @@ var (
 	_float    = &spec.Type{Type: "number", Format: "float"}
 	_double   = &spec.Type{Type: "number", Format: "double"}
 	_string   = &spec.Type{Type: "string"}
+	_bytes    = &spec.Type{Type: "string", Format: "byte"}
 	_bool     = &spec.Type{Type: "boolean"}
 	_dateTime = &spec.Type{Type: "string", Format: "date-time"}
 	_types    = map[string]*spec.Type{
@@ -725,6 +722,7 @@ var (
 		"time.Time": _dateTime,
 		"enum":      _string,
 		"string":    _string,
+		"[]byte":    _bytes,
 		"uuid.UUID": _string,
 		"int":       _int32,
 		"int8":      _int32,
@@ -743,17 +741,23 @@ var (
 
 // oasType returns the OAS primitive tye (if any) for the given ent schema field.
 func oasType(f *gen.Field) (*spec.Type, error) {
+	// If there is a custom type given on the field use it.
+	ant, err := FieldAnnotation(f)
+	if err != nil {
+		return nil, err
+	}
+	if ant.OASType != nil {
+		return ant.OASType, nil
+	}
 	if f.IsEnum() {
 		return _string, nil
 	}
 	s := f.Type.String()
-	// Handle list types.
+	// Handle slice types.
 	if strings.HasPrefix(s, "[]") {
-		t, ok := _types[s[2:]]
-		if !ok {
-			return nil, fmt.Errorf("no oas-type exists for %q", s)
+		if t, ok := _types[s[2:]]; ok {
+			return &spec.Type{Type: "array", Items: t}, nil
 		}
-		return &spec.Type{Type: "array", Format: t.Format, Items: t}, nil
 	}
 	t, ok := _types[s]
 	if !ok {
