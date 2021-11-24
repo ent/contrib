@@ -264,87 +264,87 @@ func (otc *OASTypesCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (otc *OASTypesCreate) check() error {
 	if _, ok := otc.mutation.Int(); !ok {
-		return &ValidationError{Name: "int", err: errors.New(`oastypes: missing required field "int"`)}
+		return &ValidationError{Name: "int", err: errors.New(`oastypes: missing required field "OASTypes.int"`)}
 	}
 	if _, ok := otc.mutation.Int8(); !ok {
-		return &ValidationError{Name: "int8", err: errors.New(`oastypes: missing required field "int8"`)}
+		return &ValidationError{Name: "int8", err: errors.New(`oastypes: missing required field "OASTypes.int8"`)}
 	}
 	if _, ok := otc.mutation.Int16(); !ok {
-		return &ValidationError{Name: "int16", err: errors.New(`oastypes: missing required field "int16"`)}
+		return &ValidationError{Name: "int16", err: errors.New(`oastypes: missing required field "OASTypes.int16"`)}
 	}
 	if _, ok := otc.mutation.Int32(); !ok {
-		return &ValidationError{Name: "int32", err: errors.New(`oastypes: missing required field "int32"`)}
+		return &ValidationError{Name: "int32", err: errors.New(`oastypes: missing required field "OASTypes.int32"`)}
 	}
 	if _, ok := otc.mutation.Int64(); !ok {
-		return &ValidationError{Name: "int64", err: errors.New(`oastypes: missing required field "int64"`)}
+		return &ValidationError{Name: "int64", err: errors.New(`oastypes: missing required field "OASTypes.int64"`)}
 	}
 	if _, ok := otc.mutation.Uint(); !ok {
-		return &ValidationError{Name: "uint", err: errors.New(`oastypes: missing required field "uint"`)}
+		return &ValidationError{Name: "uint", err: errors.New(`oastypes: missing required field "OASTypes.uint"`)}
 	}
 	if _, ok := otc.mutation.Uint8(); !ok {
-		return &ValidationError{Name: "uint8", err: errors.New(`oastypes: missing required field "uint8"`)}
+		return &ValidationError{Name: "uint8", err: errors.New(`oastypes: missing required field "OASTypes.uint8"`)}
 	}
 	if _, ok := otc.mutation.Uint16(); !ok {
-		return &ValidationError{Name: "uint16", err: errors.New(`oastypes: missing required field "uint16"`)}
+		return &ValidationError{Name: "uint16", err: errors.New(`oastypes: missing required field "OASTypes.uint16"`)}
 	}
 	if _, ok := otc.mutation.Uint32(); !ok {
-		return &ValidationError{Name: "uint32", err: errors.New(`oastypes: missing required field "uint32"`)}
+		return &ValidationError{Name: "uint32", err: errors.New(`oastypes: missing required field "OASTypes.uint32"`)}
 	}
 	if _, ok := otc.mutation.Uint64(); !ok {
-		return &ValidationError{Name: "uint64", err: errors.New(`oastypes: missing required field "uint64"`)}
+		return &ValidationError{Name: "uint64", err: errors.New(`oastypes: missing required field "OASTypes.uint64"`)}
 	}
 	if _, ok := otc.mutation.Float32(); !ok {
-		return &ValidationError{Name: "float32", err: errors.New(`oastypes: missing required field "float32"`)}
+		return &ValidationError{Name: "float32", err: errors.New(`oastypes: missing required field "OASTypes.float32"`)}
 	}
 	if _, ok := otc.mutation.Float64(); !ok {
-		return &ValidationError{Name: "float64", err: errors.New(`oastypes: missing required field "float64"`)}
+		return &ValidationError{Name: "float64", err: errors.New(`oastypes: missing required field "OASTypes.float64"`)}
 	}
 	if _, ok := otc.mutation.String(); !ok {
-		return &ValidationError{Name: "string", err: errors.New(`oastypes: missing required field "string"`)}
+		return &ValidationError{Name: "string", err: errors.New(`oastypes: missing required field "OASTypes.string"`)}
 	}
 	if _, ok := otc.mutation.Bool(); !ok {
-		return &ValidationError{Name: "bool", err: errors.New(`oastypes: missing required field "bool"`)}
+		return &ValidationError{Name: "bool", err: errors.New(`oastypes: missing required field "OASTypes.bool"`)}
 	}
 	if _, ok := otc.mutation.UUID(); !ok {
-		return &ValidationError{Name: "uuid", err: errors.New(`oastypes: missing required field "uuid"`)}
+		return &ValidationError{Name: "uuid", err: errors.New(`oastypes: missing required field "OASTypes.uuid"`)}
 	}
 	if _, ok := otc.mutation.Time(); !ok {
-		return &ValidationError{Name: "time", err: errors.New(`oastypes: missing required field "time"`)}
+		return &ValidationError{Name: "time", err: errors.New(`oastypes: missing required field "OASTypes.time"`)}
 	}
 	if _, ok := otc.mutation.Text(); !ok {
-		return &ValidationError{Name: "text", err: errors.New(`oastypes: missing required field "text"`)}
+		return &ValidationError{Name: "text", err: errors.New(`oastypes: missing required field "OASTypes.text"`)}
 	}
 	if _, ok := otc.mutation.State(); !ok {
-		return &ValidationError{Name: "state", err: errors.New(`oastypes: missing required field "state"`)}
+		return &ValidationError{Name: "state", err: errors.New(`oastypes: missing required field "OASTypes.state"`)}
 	}
 	if v, ok := otc.mutation.State(); ok {
 		if err := oastypes.StateValidator(v); err != nil {
-			return &ValidationError{Name: "state", err: fmt.Errorf(`oastypes: validator failed for field "state": %w`, err)}
+			return &ValidationError{Name: "state", err: fmt.Errorf(`oastypes: validator failed for field "OASTypes.state": %w`, err)}
 		}
 	}
 	if _, ok := otc.mutation.Strings(); !ok {
-		return &ValidationError{Name: "strings", err: errors.New(`oastypes: missing required field "strings"`)}
+		return &ValidationError{Name: "strings", err: errors.New(`oastypes: missing required field "OASTypes.strings"`)}
 	}
 	if _, ok := otc.mutation.Ints(); !ok {
-		return &ValidationError{Name: "ints", err: errors.New(`oastypes: missing required field "ints"`)}
+		return &ValidationError{Name: "ints", err: errors.New(`oastypes: missing required field "OASTypes.ints"`)}
 	}
 	if _, ok := otc.mutation.Floats(); !ok {
-		return &ValidationError{Name: "floats", err: errors.New(`oastypes: missing required field "floats"`)}
+		return &ValidationError{Name: "floats", err: errors.New(`oastypes: missing required field "OASTypes.floats"`)}
 	}
 	if _, ok := otc.mutation.Bytes(); !ok {
-		return &ValidationError{Name: "bytes", err: errors.New(`oastypes: missing required field "bytes"`)}
+		return &ValidationError{Name: "bytes", err: errors.New(`oastypes: missing required field "OASTypes.bytes"`)}
 	}
 	if _, ok := otc.mutation.Nicknames(); !ok {
-		return &ValidationError{Name: "nicknames", err: errors.New(`oastypes: missing required field "nicknames"`)}
+		return &ValidationError{Name: "nicknames", err: errors.New(`oastypes: missing required field "OASTypes.nicknames"`)}
 	}
 	if _, ok := otc.mutation.JSONSlice(); !ok {
-		return &ValidationError{Name: "json_slice", err: errors.New(`oastypes: missing required field "json_slice"`)}
+		return &ValidationError{Name: "json_slice", err: errors.New(`oastypes: missing required field "OASTypes.json_slice"`)}
 	}
 	if _, ok := otc.mutation.JSONObj(); !ok {
-		return &ValidationError{Name: "json_obj", err: errors.New(`oastypes: missing required field "json_obj"`)}
+		return &ValidationError{Name: "json_obj", err: errors.New(`oastypes: missing required field "OASTypes.json_obj"`)}
 	}
 	if _, ok := otc.mutation.Other(); !ok {
-		return &ValidationError{Name: "other", err: errors.New(`oastypes: missing required field "other"`)}
+		return &ValidationError{Name: "other", err: errors.New(`oastypes: missing required field "OASTypes.other"`)}
 	}
 	return nil
 }

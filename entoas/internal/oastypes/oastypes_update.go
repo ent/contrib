@@ -4,6 +4,7 @@ package oastypes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -340,7 +341,7 @@ func (otu *OASTypesUpdate) ExecX(ctx context.Context) {
 func (otu *OASTypesUpdate) check() error {
 	if v, ok := otu.mutation.State(); ok {
 		if err := oastypes.StateValidator(v); err != nil {
-			return &ValidationError{Name: "state", err: fmt.Errorf("oastypes: validator failed for field \"state\": %w", err)}
+			return &ValidationError{Name: "state", err: fmt.Errorf(`oastypes: validator failed for field "OASTypes.state": %w`, err)}
 		}
 	}
 	return nil
@@ -965,7 +966,7 @@ func (otuo *OASTypesUpdateOne) ExecX(ctx context.Context) {
 func (otuo *OASTypesUpdateOne) check() error {
 	if v, ok := otuo.mutation.State(); ok {
 		if err := oastypes.StateValidator(v); err != nil {
-			return &ValidationError{Name: "state", err: fmt.Errorf("oastypes: validator failed for field \"state\": %w", err)}
+			return &ValidationError{Name: "state", err: fmt.Errorf(`oastypes: validator failed for field "OASTypes.state": %w`, err)}
 		}
 	}
 	return nil
@@ -984,7 +985,7 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 	}
 	id, ok := otuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing OASTypes.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`oastypes: missing "OASTypes.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := otuo.fields; len(fields) > 0 {

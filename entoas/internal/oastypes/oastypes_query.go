@@ -336,6 +336,10 @@ func (otq *OASTypesQuery) sqlAll(ctx context.Context) ([]*OASTypes, error) {
 
 func (otq *OASTypesQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := otq.querySpec()
+	_spec.Node.Columns = otq.fields
+	if len(otq.fields) > 0 {
+		_spec.Unique = otq.unique != nil && *otq.unique
+	}
 	return sqlgraph.CountNodes(ctx, otq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (otq *OASTypesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if otq.sql != nil {
 		selector = otq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if otq.unique != nil && *otq.unique {
+		selector.Distinct()
 	}
 	for _, p := range otq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (otgb *OASTypesGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range otgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(otgb.fields...)...)

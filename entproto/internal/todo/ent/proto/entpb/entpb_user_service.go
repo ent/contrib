@@ -3,6 +3,8 @@ package entpb
 
 import (
 	context "context"
+	base64 "encoding/base64"
+	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	group "entgo.io/contrib/entproto/internal/todo/ent/group"
@@ -11,12 +13,14 @@ import (
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	errors "errors"
+	fmt "fmt"
 	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	strconv "strconv"
 	strings "strings"
 )
 
@@ -345,4 +349,72 @@ func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*em
 
 // List implements UserServiceServer.List
 func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUserResponse, error) {
+	var (
+		err      error
+		entList  []*ent.User
+		pageSize int
+	)
+	pageSize = int(req.GetPageSize())
+	switch {
+	case pageSize < 0:
+		return nil, status.Errorf(codes.InvalidArgument, "page size cannot be less than zero")
+	case pageSize == 0 || pageSize > entproto.MaxPageSize:
+		pageSize = entproto.MaxPageSize
+	}
+	listQuery := svc.client.User.Query().
+		Order(ent.Desc(user.FieldID)).
+		Limit(pageSize + 1)
+	if req.GetPageToken() != "" {
+		bytes, err := base64.StdEncoding.DecodeString(req.PageToken)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		token, err := strconv.ParseInt(string(bytes), 10, 32)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+		}
+		pageToken := int(token)
+		listQuery = listQuery.
+			Where(user.IDLTE(pageToken))
+	}
+	switch req.GetView() {
+	case ListUserRequest_VIEW_UNSPECIFIED, ListUserRequest_BASIC:
+		entList, err = listQuery.All(ctx)
+	case ListUserRequest_WITH_EDGE_IDS:
+		entList, err = listQuery.
+			WithAttachment(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
+			WithGroup(func(query *ent.GroupQuery) {
+				query.Select(group.FieldID)
+			}).
+			WithReceived1(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
+			All(ctx)
+	}
+	switch {
+	case err == nil:
+		var nextPageToken string
+		if len(entList) == pageSize+1 {
+			nextPageToken = base64.StdEncoding.EncodeToString(
+				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
+			entList = entList[:len(entList)-1]
+		}
+		var pbList []*User
+		for _, entEntity := range entList {
+			pbEntity, err := toProtoUser(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &ListUserResponse{
+			UserList:      pbList,
+			NextPageToken: nextPageToken,
+		}, nil
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
 }
