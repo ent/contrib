@@ -70,7 +70,7 @@ func OperationPolicy(p Policy) OperationConfigOption {
 // Example returns an example annotation.
 func Example(v interface{}) Annotation { return Annotation{Example: v} }
 
-// OASType returns a OASType annotation.
+// OASType returns an OASType annotation.
 func OASType(t *spec.Type) Annotation { return Annotation{OASType: t} }
 
 // CreateOperation returns a create operation annotation.
