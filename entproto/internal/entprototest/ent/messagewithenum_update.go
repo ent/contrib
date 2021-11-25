@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
@@ -115,12 +116,12 @@ func (mweu *MessageWithEnumUpdate) ExecX(ctx context.Context) {
 func (mweu *MessageWithEnumUpdate) check() error {
 	if v, ok := mweu.mutation.EnumType(); ok {
 		if err := messagewithenum.EnumTypeValidator(v); err != nil {
-			return &ValidationError{Name: "enum_type", err: fmt.Errorf("ent: validator failed for field \"enum_type\": %w", err)}
+			return &ValidationError{Name: "enum_type", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_type": %w`, err)}
 		}
 	}
 	if v, ok := mweu.mutation.EnumWithoutDefault(); ok {
 		if err := messagewithenum.EnumWithoutDefaultValidator(v); err != nil {
-			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf("ent: validator failed for field \"enum_without_default\": %w", err)}
+			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
 	return nil
@@ -273,12 +274,12 @@ func (mweuo *MessageWithEnumUpdateOne) ExecX(ctx context.Context) {
 func (mweuo *MessageWithEnumUpdateOne) check() error {
 	if v, ok := mweuo.mutation.EnumType(); ok {
 		if err := messagewithenum.EnumTypeValidator(v); err != nil {
-			return &ValidationError{Name: "enum_type", err: fmt.Errorf("ent: validator failed for field \"enum_type\": %w", err)}
+			return &ValidationError{Name: "enum_type", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_type": %w`, err)}
 		}
 	}
 	if v, ok := mweuo.mutation.EnumWithoutDefault(); ok {
 		if err := messagewithenum.EnumWithoutDefaultValidator(v); err != nil {
-			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf("ent: validator failed for field \"enum_without_default\": %w", err)}
+			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
 	return nil
@@ -297,7 +298,7 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 	}
 	id, ok := mweuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MessageWithEnum.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithEnum.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := mweuo.fields; len(fields) > 0 {

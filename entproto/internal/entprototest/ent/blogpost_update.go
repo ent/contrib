@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
@@ -492,7 +493,7 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 	}
 	id, ok := bpuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing BlogPost.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "BlogPost.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := bpuo.fields; len(fields) > 0 {

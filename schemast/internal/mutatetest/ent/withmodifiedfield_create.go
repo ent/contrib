@@ -116,11 +116,11 @@ func (wmfc *WithModifiedFieldCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (wmfc *WithModifiedFieldCreate) check() error {
 	if _, ok := wmfc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "WithModifiedField.name"`)}
 	}
 	if v, ok := wmfc.mutation.Name(); ok {
 		if err := withmodifiedfield.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "name": %w`, err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "WithModifiedField.name": %w`, err)}
 		}
 	}
 	return nil

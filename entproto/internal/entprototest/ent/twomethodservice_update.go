@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -201,7 +202,7 @@ func (tmsuo *TwoMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *Two
 	}
 	id, ok := tmsuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing TwoMethodService.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TwoMethodService.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := tmsuo.fields; len(fields) > 0 {

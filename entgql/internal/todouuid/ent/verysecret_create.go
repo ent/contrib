@@ -126,7 +126,7 @@ func (vsc *VerySecretCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (vsc *VerySecretCreate) check() error {
 	if _, ok := vsc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "password"`)}
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "VerySecret.password"`)}
 	}
 	return nil
 }
@@ -140,7 +140,11 @@ func (vsc *VerySecretCreate) sqlSave(ctx context.Context) (*VerySecret, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -158,7 +162,7 @@ func (vsc *VerySecretCreate) createSpec() (*VerySecret, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := vsc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := vsc.mutation.Password(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

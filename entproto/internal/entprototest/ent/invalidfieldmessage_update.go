@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
@@ -221,7 +222,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 	}
 	id, ok := ifmuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing InvalidFieldMessage.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "InvalidFieldMessage.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := ifmuo.fields; len(fields) > 0 {

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
@@ -220,7 +221,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_no
 	}
 	id, ok := mwpnuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MessageWithPackageName.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithPackageName.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := mwpnuo.fields; len(fields) > 0 {

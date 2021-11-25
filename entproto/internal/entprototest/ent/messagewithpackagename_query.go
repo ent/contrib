@@ -336,6 +336,10 @@ func (mwpnq *MessageWithPackageNameQuery) sqlAll(ctx context.Context) ([]*Messag
 
 func (mwpnq *MessageWithPackageNameQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwpnq.querySpec()
+	_spec.Node.Columns = mwpnq.fields
+	if len(mwpnq.fields) > 0 {
+		_spec.Unique = mwpnq.unique != nil && *mwpnq.unique
+	}
 	return sqlgraph.CountNodes(ctx, mwpnq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Sel
 	if mwpnq.sql != nil {
 		selector = mwpnq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if mwpnq.unique != nil && *mwpnq.unique {
+		selector.Distinct()
 	}
 	for _, p := range mwpnq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (mwpngb *MessageWithPackageNameGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range mwpngb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(mwpngb.fields...)...)

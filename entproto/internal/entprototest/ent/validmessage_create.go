@@ -130,16 +130,16 @@ func (vmc *ValidMessageCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (vmc *ValidMessageCreate) check() error {
 	if _, ok := vmc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "ValidMessage.name"`)}
 	}
 	if _, ok := vmc.mutation.Ts(); !ok {
-		return &ValidationError{Name: "ts", err: errors.New(`ent: missing required field "ts"`)}
+		return &ValidationError{Name: "ts", err: errors.New(`ent: missing required field "ValidMessage.ts"`)}
 	}
 	if _, ok := vmc.mutation.UUID(); !ok {
-		return &ValidationError{Name: "uuid", err: errors.New(`ent: missing required field "uuid"`)}
+		return &ValidationError{Name: "uuid", err: errors.New(`ent: missing required field "ValidMessage.uuid"`)}
 	}
 	if _, ok := vmc.mutation.U8(); !ok {
-		return &ValidationError{Name: "u8", err: errors.New(`ent: missing required field "u8"`)}
+		return &ValidationError{Name: "u8", err: errors.New(`ent: missing required field "ValidMessage.u8"`)}
 	}
 	return nil
 }

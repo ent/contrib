@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
@@ -141,7 +142,7 @@ func (tu *TodoUpdate) ExecX(ctx context.Context) {
 func (tu *TodoUpdate) check() error {
 	if v, ok := tu.mutation.Status(); ok {
 		if err := todo.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Todo.status": %w`, err)}
 		}
 	}
 	return nil
@@ -354,7 +355,7 @@ func (tuo *TodoUpdateOne) ExecX(ctx context.Context) {
 func (tuo *TodoUpdateOne) check() error {
 	if v, ok := tuo.mutation.Status(); ok {
 		if err := todo.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Todo.status": %w`, err)}
 		}
 	}
 	return nil
@@ -373,7 +374,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 	}
 	id, ok := tuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Todo.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Todo.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := tuo.fields; len(fields) > 0 {

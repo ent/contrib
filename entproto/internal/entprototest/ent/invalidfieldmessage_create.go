@@ -97,7 +97,7 @@ func (ifmc *InvalidFieldMessageCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (ifmc *InvalidFieldMessageCreate) check() error {
 	if _, ok := ifmc.mutation.JSON(); !ok {
-		return &ValidationError{Name: "json", err: errors.New(`ent: missing required field "json"`)}
+		return &ValidationError{Name: "json", err: errors.New(`ent: missing required field "InvalidFieldMessage.json"`)}
 	}
 	return nil
 }

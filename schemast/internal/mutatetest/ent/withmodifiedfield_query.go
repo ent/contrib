@@ -415,6 +415,10 @@ func (wmfq *WithModifiedFieldQuery) sqlAll(ctx context.Context) ([]*WithModified
 
 func (wmfq *WithModifiedFieldQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wmfq.querySpec()
+	_spec.Node.Columns = wmfq.fields
+	if len(wmfq.fields) > 0 {
+		_spec.Unique = wmfq.unique != nil && *wmfq.unique
+	}
 	return sqlgraph.CountNodes(ctx, wmfq.driver, _spec)
 }
 
@@ -485,6 +489,9 @@ func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector 
 	if wmfq.sql != nil {
 		selector = wmfq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if wmfq.unique != nil && *wmfq.unique {
+		selector.Distinct()
 	}
 	for _, p := range wmfq.predicates {
 		p(selector)
@@ -764,9 +771,7 @@ func (wmfgb *WithModifiedFieldGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range wmfgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(wmfgb.fields...)...)

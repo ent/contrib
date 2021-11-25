@@ -112,7 +112,7 @@ func (dosc *DependsOnSkippedCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (dosc *DependsOnSkippedCreate) check() error {
 	if _, ok := dosc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "DependsOnSkipped.name"`)}
 	}
 	return nil
 }

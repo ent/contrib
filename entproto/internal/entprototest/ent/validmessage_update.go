@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -54,7 +55,7 @@ func (vmu *ValidMessageUpdate) SetU8(u uint8) *ValidMessageUpdate {
 }
 
 // AddU8 adds u to the "u8" field.
-func (vmu *ValidMessageUpdate) AddU8(u uint8) *ValidMessageUpdate {
+func (vmu *ValidMessageUpdate) AddU8(u int8) *ValidMessageUpdate {
 	vmu.mutation.AddU8(u)
 	return vmu
 }
@@ -263,7 +264,7 @@ func (vmuo *ValidMessageUpdateOne) SetU8(u uint8) *ValidMessageUpdateOne {
 }
 
 // AddU8 adds u to the "u8" field.
-func (vmuo *ValidMessageUpdateOne) AddU8(u uint8) *ValidMessageUpdateOne {
+func (vmuo *ValidMessageUpdateOne) AddU8(u int8) *ValidMessageUpdateOne {
 	vmuo.mutation.AddU8(u)
 	return vmuo
 }
@@ -374,7 +375,7 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 	}
 	id, ok := vmuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ValidMessage.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ValidMessage.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := vmuo.fields; len(fields) > 0 {

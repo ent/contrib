@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/schemast/internal/printtest/ent/message"
@@ -201,7 +202,7 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	id, ok := muo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Message.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Message.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := muo.fields; len(fields) > 0 {

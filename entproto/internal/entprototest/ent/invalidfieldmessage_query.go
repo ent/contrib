@@ -336,6 +336,10 @@ func (ifmq *InvalidFieldMessageQuery) sqlAll(ctx context.Context) ([]*InvalidFie
 
 func (ifmq *InvalidFieldMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ifmq.querySpec()
+	_spec.Node.Columns = ifmq.fields
+	if len(ifmq.fields) > 0 {
+		_spec.Unique = ifmq.unique != nil && *ifmq.unique
+	}
 	return sqlgraph.CountNodes(ctx, ifmq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (ifmq *InvalidFieldMessageQuery) sqlQuery(ctx context.Context) *sql.Selecto
 	if ifmq.sql != nil {
 		selector = ifmq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if ifmq.unique != nil && *ifmq.unique {
+		selector.Distinct()
 	}
 	for _, p := range ifmq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (ifmgb *InvalidFieldMessageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range ifmgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(ifmgb.fields...)...)

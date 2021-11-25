@@ -317,6 +317,10 @@ func (ismq *ImplicitSkippedMessageQuery) sqlAll(ctx context.Context) ([]*Implici
 
 func (ismq *ImplicitSkippedMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ismq.querySpec()
+	_spec.Node.Columns = ismq.fields
+	if len(ismq.fields) > 0 {
+		_spec.Unique = ismq.unique != nil && *ismq.unique
+	}
 	return sqlgraph.CountNodes(ctx, ismq.driver, _spec)
 }
 
@@ -387,6 +391,9 @@ func (ismq *ImplicitSkippedMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 	if ismq.sql != nil {
 		selector = ismq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if ismq.unique != nil && *ismq.unique {
+		selector.Distinct()
 	}
 	for _, p := range ismq.predicates {
 		p(selector)
@@ -666,9 +673,7 @@ func (ismgb *ImplicitSkippedMessageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range ismgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(ismgb.fields...)...)

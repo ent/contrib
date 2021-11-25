@@ -139,14 +139,14 @@ func (tc *TodoCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (tc *TodoCreate) check() error {
 	if _, ok := tc.mutation.Task(); !ok {
-		return &ValidationError{Name: "task", err: errors.New(`ent: missing required field "task"`)}
+		return &ValidationError{Name: "task", err: errors.New(`ent: missing required field "Todo.task"`)}
 	}
 	if _, ok := tc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "status"`)}
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Todo.status"`)}
 	}
 	if v, ok := tc.mutation.Status(); ok {
 		if err := todo.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "status": %w`, err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Todo.status": %w`, err)}
 		}
 	}
 	return nil

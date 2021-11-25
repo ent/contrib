@@ -312,6 +312,10 @@ func (esmq *ExplicitSkippedMessageQuery) sqlAll(ctx context.Context) ([]*Explici
 
 func (esmq *ExplicitSkippedMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := esmq.querySpec()
+	_spec.Node.Columns = esmq.fields
+	if len(esmq.fields) > 0 {
+		_spec.Unique = esmq.unique != nil && *esmq.unique
+	}
 	return sqlgraph.CountNodes(ctx, esmq.driver, _spec)
 }
 
@@ -382,6 +386,9 @@ func (esmq *ExplicitSkippedMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 	if esmq.sql != nil {
 		selector = esmq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if esmq.unique != nil && *esmq.unique {
+		selector.Distinct()
 	}
 	for _, p := range esmq.predicates {
 		p(selector)
@@ -661,9 +668,7 @@ func (esmgb *ExplicitSkippedMessageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range esmgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(esmgb.fields...)...)

@@ -4,6 +4,7 @@ package cycle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entoas/internal/cycle/predicate"
@@ -790,7 +791,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	id, ok := uuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing User.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`cycle: missing "User.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := uuo.fields; len(fields) > 0 {

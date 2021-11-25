@@ -312,6 +312,10 @@ func (tmsq *TwoMethodServiceQuery) sqlAll(ctx context.Context) ([]*TwoMethodServ
 
 func (tmsq *TwoMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tmsq.querySpec()
+	_spec.Node.Columns = tmsq.fields
+	if len(tmsq.fields) > 0 {
+		_spec.Unique = tmsq.unique != nil && *tmsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, tmsq.driver, _spec)
 }
 
@@ -382,6 +386,9 @@ func (tmsq *TwoMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if tmsq.sql != nil {
 		selector = tmsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if tmsq.unique != nil && *tmsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range tmsq.predicates {
 		p(selector)
@@ -661,9 +668,7 @@ func (tmsgb *TwoMethodServiceGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range tmsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(tmsgb.fields...)...)

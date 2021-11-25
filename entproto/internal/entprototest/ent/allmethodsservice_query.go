@@ -312,6 +312,10 @@ func (amsq *AllMethodsServiceQuery) sqlAll(ctx context.Context) ([]*AllMethodsSe
 
 func (amsq *AllMethodsServiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := amsq.querySpec()
+	_spec.Node.Columns = amsq.fields
+	if len(amsq.fields) > 0 {
+		_spec.Unique = amsq.unique != nil && *amsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, amsq.driver, _spec)
 }
 
@@ -382,6 +386,9 @@ func (amsq *AllMethodsServiceQuery) sqlQuery(ctx context.Context) *sql.Selector 
 	if amsq.sql != nil {
 		selector = amsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if amsq.unique != nil && *amsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range amsq.predicates {
 		p(selector)
@@ -661,9 +668,7 @@ func (amsgb *AllMethodsServiceGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range amsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(amsgb.fields...)...)

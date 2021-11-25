@@ -408,6 +408,10 @@ func (dosq *DependsOnSkippedQuery) sqlAll(ctx context.Context) ([]*DependsOnSkip
 
 func (dosq *DependsOnSkippedQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := dosq.querySpec()
+	_spec.Node.Columns = dosq.fields
+	if len(dosq.fields) > 0 {
+		_spec.Unique = dosq.unique != nil && *dosq.unique
+	}
 	return sqlgraph.CountNodes(ctx, dosq.driver, _spec)
 }
 
@@ -478,6 +482,9 @@ func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if dosq.sql != nil {
 		selector = dosq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if dosq.unique != nil && *dosq.unique {
+		selector.Distinct()
 	}
 	for _, p := range dosq.predicates {
 		p(selector)
@@ -757,9 +764,7 @@ func (dosgb *DependsOnSkippedGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range dosgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(dosgb.fields...)...)

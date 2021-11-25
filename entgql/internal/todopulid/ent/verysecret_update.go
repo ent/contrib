@@ -18,6 +18,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
@@ -234,7 +235,7 @@ func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret
 	}
 	id, ok := vsuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing VerySecret.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "VerySecret.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := vsuo.fields; len(fields) > 0 {

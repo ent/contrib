@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
@@ -201,7 +202,7 @@ func (wnfuo *WithNilFieldsUpdateOne) sqlSave(ctx context.Context) (_node *WithNi
 	}
 	id, ok := wnfuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WithNilFields.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "WithNilFields.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := wnfuo.fields; len(fields) > 0 {

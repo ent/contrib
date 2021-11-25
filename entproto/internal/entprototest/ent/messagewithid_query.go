@@ -312,6 +312,10 @@ func (mwiq *MessageWithIDQuery) sqlAll(ctx context.Context) ([]*MessageWithID, e
 
 func (mwiq *MessageWithIDQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwiq.querySpec()
+	_spec.Node.Columns = mwiq.fields
+	if len(mwiq.fields) > 0 {
+		_spec.Unique = mwiq.unique != nil && *mwiq.unique
+	}
 	return sqlgraph.CountNodes(ctx, mwiq.driver, _spec)
 }
 
@@ -382,6 +386,9 @@ func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if mwiq.sql != nil {
 		selector = mwiq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if mwiq.unique != nil && *mwiq.unique {
+		selector.Distinct()
 	}
 	for _, p := range mwiq.predicates {
 		p(selector)
@@ -661,9 +668,7 @@ func (mwigb *MessageWithIDGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range mwigb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(mwigb.fields...)...)

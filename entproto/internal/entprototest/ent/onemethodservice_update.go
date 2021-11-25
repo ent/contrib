@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
@@ -201,7 +202,7 @@ func (omsuo *OneMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *One
 	}
 	id, ok := omsuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing OneMethodService.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "OneMethodService.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := omsuo.fields; len(fields) > 0 {

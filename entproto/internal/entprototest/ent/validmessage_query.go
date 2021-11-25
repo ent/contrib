@@ -336,6 +336,10 @@ func (vmq *ValidMessageQuery) sqlAll(ctx context.Context) ([]*ValidMessage, erro
 
 func (vmq *ValidMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := vmq.querySpec()
+	_spec.Node.Columns = vmq.fields
+	if len(vmq.fields) > 0 {
+		_spec.Unique = vmq.unique != nil && *vmq.unique
+	}
 	return sqlgraph.CountNodes(ctx, vmq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if vmq.sql != nil {
 		selector = vmq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if vmq.unique != nil && *vmq.unique {
+		selector.Distinct()
 	}
 	for _, p := range vmq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (vmgb *ValidMessageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range vmgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(vmgb.fields...)...)

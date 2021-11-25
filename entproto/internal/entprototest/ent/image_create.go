@@ -119,7 +119,7 @@ func (ic *ImageCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (ic *ImageCreate) check() error {
 	if _, ok := ic.mutation.URLPath(); !ok {
-		return &ValidationError{Name: "url_path", err: errors.New(`ent: missing required field "url_path"`)}
+		return &ValidationError{Name: "url_path", err: errors.New(`ent: missing required field "Image.url_path"`)}
 	}
 	return nil
 }
@@ -133,7 +133,11 @@ func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -151,7 +155,7 @@ func (ic *ImageCreate) createSpec() (*Image, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ic.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ic.mutation.URLPath(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

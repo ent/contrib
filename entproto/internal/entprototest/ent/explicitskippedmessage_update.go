@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/explicitskippedmessage"
@@ -201,7 +202,7 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 	}
 	id, ok := esmuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ExplicitSkippedMessage.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ExplicitSkippedMessage.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := esmuo.fields; len(fields) > 0 {

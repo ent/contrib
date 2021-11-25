@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
@@ -239,7 +240,7 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 	}
 	id, ok := dnmuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing DuplicateNumberMessage.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DuplicateNumberMessage.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := dnmuo.fields; len(fields) > 0 {

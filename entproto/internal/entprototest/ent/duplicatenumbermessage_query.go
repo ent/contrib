@@ -336,6 +336,10 @@ func (dnmq *DuplicateNumberMessageQuery) sqlAll(ctx context.Context) ([]*Duplica
 
 func (dnmq *DuplicateNumberMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := dnmq.querySpec()
+	_spec.Node.Columns = dnmq.fields
+	if len(dnmq.fields) > 0 {
+		_spec.Unique = dnmq.unique != nil && *dnmq.unique
+	}
 	return sqlgraph.CountNodes(ctx, dnmq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 	if dnmq.sql != nil {
 		selector = dnmq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if dnmq.unique != nil && *dnmq.unique {
+		selector.Distinct()
 	}
 	for _, p := range dnmq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (dnmgb *DuplicateNumberMessageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range dnmgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(dnmgb.fields...)...)
