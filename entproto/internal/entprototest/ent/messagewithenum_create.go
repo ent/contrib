@@ -119,19 +119,19 @@ func (mwec *MessageWithEnumCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (mwec *MessageWithEnumCreate) check() error {
 	if _, ok := mwec.mutation.EnumType(); !ok {
-		return &ValidationError{Name: "enum_type", err: errors.New(`ent: missing required field "enum_type"`)}
+		return &ValidationError{Name: "enum_type", err: errors.New(`ent: missing required field "MessageWithEnum.enum_type"`)}
 	}
 	if v, ok := mwec.mutation.EnumType(); ok {
 		if err := messagewithenum.EnumTypeValidator(v); err != nil {
-			return &ValidationError{Name: "enum_type", err: fmt.Errorf(`ent: validator failed for field "enum_type": %w`, err)}
+			return &ValidationError{Name: "enum_type", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_type": %w`, err)}
 		}
 	}
 	if _, ok := mwec.mutation.EnumWithoutDefault(); !ok {
-		return &ValidationError{Name: "enum_without_default", err: errors.New(`ent: missing required field "enum_without_default"`)}
+		return &ValidationError{Name: "enum_without_default", err: errors.New(`ent: missing required field "MessageWithEnum.enum_without_default"`)}
 	}
 	if v, ok := mwec.mutation.EnumWithoutDefault(); ok {
 		if err := messagewithenum.EnumWithoutDefaultValidator(v); err != nil {
-			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "enum_without_default": %w`, err)}
+			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
 	return nil

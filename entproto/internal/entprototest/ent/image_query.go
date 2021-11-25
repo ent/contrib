@@ -409,6 +409,10 @@ func (iq *ImageQuery) sqlAll(ctx context.Context) ([]*Image, error) {
 
 func (iq *ImageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := iq.querySpec()
+	_spec.Node.Columns = iq.fields
+	if len(iq.fields) > 0 {
+		_spec.Unique = iq.unique != nil && *iq.unique
+	}
 	return sqlgraph.CountNodes(ctx, iq.driver, _spec)
 }
 
@@ -479,6 +483,9 @@ func (iq *ImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if iq.sql != nil {
 		selector = iq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if iq.unique != nil && *iq.unique {
+		selector.Distinct()
 	}
 	for _, p := range iq.predicates {
 		p(selector)
@@ -758,9 +765,7 @@ func (igb *ImageGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range igb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(igb.fields...)...)

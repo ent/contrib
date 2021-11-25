@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
@@ -109,7 +110,7 @@ func (mwsu *MultiWordSchemaUpdate) ExecX(ctx context.Context) {
 func (mwsu *MultiWordSchemaUpdate) check() error {
 	if v, ok := mwsu.mutation.Unit(); ok {
 		if err := multiwordschema.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf("ent: validator failed for field \"unit\": %w", err)}
+			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "MultiWordSchema.unit": %w`, err)}
 		}
 	}
 	return nil
@@ -249,7 +250,7 @@ func (mwsuo *MultiWordSchemaUpdateOne) ExecX(ctx context.Context) {
 func (mwsuo *MultiWordSchemaUpdateOne) check() error {
 	if v, ok := mwsuo.mutation.Unit(); ok {
 		if err := multiwordschema.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf("ent: validator failed for field \"unit\": %w", err)}
+			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "MultiWordSchema.unit": %w`, err)}
 		}
 	}
 	return nil
@@ -268,7 +269,7 @@ func (mwsuo *MultiWordSchemaUpdateOne) sqlSave(ctx context.Context) (_node *Mult
 	}
 	id, ok := mwsuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MultiWordSchema.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MultiWordSchema.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := mwsuo.fields; len(fields) > 0 {

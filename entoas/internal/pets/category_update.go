@@ -4,6 +4,7 @@ package pets
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entoas/internal/pets/category"
@@ -347,7 +348,7 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 	}
 	id, ok := cuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Category.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`pets: missing "Category.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := cuo.fields; len(fields) > 0 {

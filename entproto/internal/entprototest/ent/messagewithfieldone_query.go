@@ -336,6 +336,10 @@ func (mwfoq *MessageWithFieldOneQuery) sqlAll(ctx context.Context) ([]*MessageWi
 
 func (mwfoq *MessageWithFieldOneQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwfoq.querySpec()
+	_spec.Node.Columns = mwfoq.fields
+	if len(mwfoq.fields) > 0 {
+		_spec.Unique = mwfoq.unique != nil && *mwfoq.unique
+	}
 	return sqlgraph.CountNodes(ctx, mwfoq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Select
 	if mwfoq.sql != nil {
 		selector = mwfoq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if mwfoq.unique != nil && *mwfoq.unique {
+		selector.Distinct()
 	}
 	for _, p := range mwfoq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (mwfogb *MessageWithFieldOneGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range mwfogb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(mwfogb.fields...)...)

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -91,7 +92,7 @@ func (mwou *MessageWithOptionalsUpdate) SetNillableUintOptional(u *uint8) *Messa
 }
 
 // AddUintOptional adds u to the "uint_optional" field.
-func (mwou *MessageWithOptionalsUpdate) AddUintOptional(u uint8) *MessageWithOptionalsUpdate {
+func (mwou *MessageWithOptionalsUpdate) AddUintOptional(u int8) *MessageWithOptionalsUpdate {
 	mwou.mutation.AddUintOptional(u)
 	return mwou
 }
@@ -477,7 +478,7 @@ func (mwouo *MessageWithOptionalsUpdateOne) SetNillableUintOptional(u *uint8) *M
 }
 
 // AddUintOptional adds u to the "uint_optional" field.
-func (mwouo *MessageWithOptionalsUpdateOne) AddUintOptional(u uint8) *MessageWithOptionalsUpdateOne {
+func (mwouo *MessageWithOptionalsUpdateOne) AddUintOptional(u int8) *MessageWithOptionalsUpdateOne {
 	mwouo.mutation.AddUintOptional(u)
 	return mwouo
 }
@@ -658,7 +659,7 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	id, ok := mwouo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing MessageWithOptionals.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithOptionals.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := mwouo.fields; len(fields) > 0 {

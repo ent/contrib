@@ -350,6 +350,10 @@ func (vsq *VerySecretQuery) sqlAll(ctx context.Context) ([]*VerySecret, error) {
 
 func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := vsq.querySpec()
+	_spec.Node.Columns = vsq.fields
+	if len(vsq.fields) > 0 {
+		_spec.Unique = vsq.unique != nil && *vsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, vsq.driver, _spec)
 }
 
@@ -420,6 +424,9 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if vsq.sql != nil {
 		selector = vsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if vsq.unique != nil && *vsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range vsq.predicates {
 		p(selector)
@@ -699,9 +706,7 @@ func (vsgb *VerySecretGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range vsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(vsgb.fields...)...)

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
@@ -44,7 +45,7 @@ func (uu *UserUpdate) SetPoints(u uint) *UserUpdate {
 }
 
 // AddPoints adds u to the "points" field.
-func (uu *UserUpdate) AddPoints(u uint) *UserUpdate {
+func (uu *UserUpdate) AddPoints(u int) *UserUpdate {
 	uu.mutation.AddPoints(u)
 	return uu
 }
@@ -57,7 +58,7 @@ func (uu *UserUpdate) SetExp(u uint64) *UserUpdate {
 }
 
 // AddExp adds u to the "exp" field.
-func (uu *UserUpdate) AddExp(u uint64) *UserUpdate {
+func (uu *UserUpdate) AddExp(u int64) *UserUpdate {
 	uu.mutation.AddExp(u)
 	return uu
 }
@@ -109,7 +110,7 @@ func (uu *UserUpdate) SetCustomPb(u uint8) *UserUpdate {
 }
 
 // AddCustomPb adds u to the "custom_pb" field.
-func (uu *UserUpdate) AddCustomPb(u uint8) *UserUpdate {
+func (uu *UserUpdate) AddCustomPb(u int8) *UserUpdate {
 	uu.mutation.AddCustomPb(u)
 	return uu
 }
@@ -425,7 +426,7 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 func (uu *UserUpdate) check() error {
 	if v, ok := uu.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	return nil
@@ -797,7 +798,7 @@ func (uuo *UserUpdateOne) SetPoints(u uint) *UserUpdateOne {
 }
 
 // AddPoints adds u to the "points" field.
-func (uuo *UserUpdateOne) AddPoints(u uint) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddPoints(u int) *UserUpdateOne {
 	uuo.mutation.AddPoints(u)
 	return uuo
 }
@@ -810,7 +811,7 @@ func (uuo *UserUpdateOne) SetExp(u uint64) *UserUpdateOne {
 }
 
 // AddExp adds u to the "exp" field.
-func (uuo *UserUpdateOne) AddExp(u uint64) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddExp(u int64) *UserUpdateOne {
 	uuo.mutation.AddExp(u)
 	return uuo
 }
@@ -862,7 +863,7 @@ func (uuo *UserUpdateOne) SetCustomPb(u uint8) *UserUpdateOne {
 }
 
 // AddCustomPb adds u to the "custom_pb" field.
-func (uuo *UserUpdateOne) AddCustomPb(u uint8) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddCustomPb(u int8) *UserUpdateOne {
 	uuo.mutation.AddCustomPb(u)
 	return uuo
 }
@@ -1185,7 +1186,7 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 func (uuo *UserUpdateOne) check() error {
 	if v, ok := uuo.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
 	return nil
@@ -1204,7 +1205,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	id, ok := uuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing User.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := uuo.fields; len(fields) > 0 {

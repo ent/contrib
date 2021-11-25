@@ -144,13 +144,13 @@ func (bpc *BlogPostCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (bpc *BlogPostCreate) check() error {
 	if _, ok := bpc.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "title"`)}
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "BlogPost.title"`)}
 	}
 	if _, ok := bpc.mutation.Body(); !ok {
-		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "body"`)}
+		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "BlogPost.body"`)}
 	}
 	if _, ok := bpc.mutation.ExternalID(); !ok {
-		return &ValidationError{Name: "external_id", err: errors.New(`ent: missing required field "external_id"`)}
+		return &ValidationError{Name: "external_id", err: errors.New(`ent: missing required field "BlogPost.external_id"`)}
 	}
 	return nil
 }

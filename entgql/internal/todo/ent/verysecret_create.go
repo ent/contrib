@@ -110,7 +110,7 @@ func (vsc *VerySecretCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (vsc *VerySecretCreate) check() error {
 	if _, ok := vsc.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "password"`)}
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "VerySecret.password"`)}
 	}
 	return nil
 }

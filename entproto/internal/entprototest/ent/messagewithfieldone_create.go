@@ -96,7 +96,7 @@ func (mwfoc *MessageWithFieldOneCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (mwfoc *MessageWithFieldOneCreate) check() error {
 	if _, ok := mwfoc.mutation.FieldOne(); !ok {
-		return &ValidationError{Name: "field_one", err: errors.New(`ent: missing required field "field_one"`)}
+		return &ValidationError{Name: "field_one", err: errors.New(`ent: missing required field "MessageWithFieldOne.field_one"`)}
 	}
 	return nil
 }

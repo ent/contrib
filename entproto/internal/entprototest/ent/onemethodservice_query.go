@@ -312,6 +312,10 @@ func (omsq *OneMethodServiceQuery) sqlAll(ctx context.Context) ([]*OneMethodServ
 
 func (omsq *OneMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := omsq.querySpec()
+	_spec.Node.Columns = omsq.fields
+	if len(omsq.fields) > 0 {
+		_spec.Unique = omsq.unique != nil && *omsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, omsq.driver, _spec)
 }
 
@@ -382,6 +386,9 @@ func (omsq *OneMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if omsq.sql != nil {
 		selector = omsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if omsq.unique != nil && *omsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range omsq.predicates {
 		p(selector)
@@ -661,9 +668,7 @@ func (omsgb *OneMethodServiceGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range omsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(omsgb.fields...)...)

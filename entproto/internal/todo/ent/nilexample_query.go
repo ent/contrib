@@ -336,6 +336,10 @@ func (neq *NilExampleQuery) sqlAll(ctx context.Context) ([]*NilExample, error) {
 
 func (neq *NilExampleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := neq.querySpec()
+	_spec.Node.Columns = neq.fields
+	if len(neq.fields) > 0 {
+		_spec.Unique = neq.unique != nil && *neq.unique
+	}
 	return sqlgraph.CountNodes(ctx, neq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (neq *NilExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if neq.sql != nil {
 		selector = neq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if neq.unique != nil && *neq.unique {
+		selector.Distinct()
 	}
 	for _, p := range neq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (negb *NilExampleGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range negb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(negb.fields...)...)

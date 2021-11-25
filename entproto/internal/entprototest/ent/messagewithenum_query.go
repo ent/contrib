@@ -336,6 +336,10 @@ func (mweq *MessageWithEnumQuery) sqlAll(ctx context.Context) ([]*MessageWithEnu
 
 func (mweq *MessageWithEnumQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mweq.querySpec()
+	_spec.Node.Columns = mweq.fields
+	if len(mweq.fields) > 0 {
+		_spec.Unique = mweq.unique != nil && *mweq.unique
+	}
 	return sqlgraph.CountNodes(ctx, mweq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if mweq.sql != nil {
 		selector = mweq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if mweq.unique != nil && *mweq.unique {
+		selector.Distinct()
 	}
 	for _, p := range mweq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (mwegb *MessageWithEnumGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range mwegb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(mwegb.fields...)...)

@@ -113,11 +113,11 @@ func (mwsc *MultiWordSchemaCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (mwsc *MultiWordSchemaCreate) check() error {
 	if _, ok := mwsc.mutation.Unit(); !ok {
-		return &ValidationError{Name: "unit", err: errors.New(`ent: missing required field "unit"`)}
+		return &ValidationError{Name: "unit", err: errors.New(`ent: missing required field "MultiWordSchema.unit"`)}
 	}
 	if v, ok := mwsc.mutation.Unit(); ok {
 		if err := multiwordschema.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "unit": %w`, err)}
+			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "MultiWordSchema.unit": %w`, err)}
 		}
 	}
 	return nil

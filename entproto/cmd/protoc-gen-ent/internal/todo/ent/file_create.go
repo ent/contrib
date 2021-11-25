@@ -102,7 +102,7 @@ func (fc *FileCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (fc *FileCreate) check() error {
 	if _, ok := fc.mutation.Contents(); !ok {
-		return &ValidationError{Name: "contents", err: errors.New(`ent: missing required field "contents"`)}
+		return &ValidationError{Name: "contents", err: errors.New(`ent: missing required field "File.contents"`)}
 	}
 	return nil
 }
@@ -116,7 +116,11 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(string)
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected File.ID type: %T", _spec.ID.Value)
+		}
 	}
 	return _node, nil
 }

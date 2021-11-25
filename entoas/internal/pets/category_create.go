@@ -112,7 +112,7 @@ func (cc *CategoryCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (cc *CategoryCreate) check() error {
 	if _, ok := cc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`pets: missing required field "name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`pets: missing required field "Category.name"`)}
 	}
 	return nil
 }

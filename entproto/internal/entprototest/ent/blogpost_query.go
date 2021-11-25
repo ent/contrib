@@ -518,6 +518,10 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
 
 func (bpq *BlogPostQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := bpq.querySpec()
+	_spec.Node.Columns = bpq.fields
+	if len(bpq.fields) > 0 {
+		_spec.Unique = bpq.unique != nil && *bpq.unique
+	}
 	return sqlgraph.CountNodes(ctx, bpq.driver, _spec)
 }
 
@@ -588,6 +592,9 @@ func (bpq *BlogPostQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if bpq.sql != nil {
 		selector = bpq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if bpq.unique != nil && *bpq.unique {
+		selector.Distinct()
 	}
 	for _, p := range bpq.predicates {
 		p(selector)
@@ -867,9 +874,7 @@ func (bpgb *BlogPostGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range bpgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(bpgb.fields...)...)

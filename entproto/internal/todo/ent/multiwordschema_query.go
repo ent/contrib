@@ -336,6 +336,10 @@ func (mwsq *MultiWordSchemaQuery) sqlAll(ctx context.Context) ([]*MultiWordSchem
 
 func (mwsq *MultiWordSchemaQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwsq.querySpec()
+	_spec.Node.Columns = mwsq.fields
+	if len(mwsq.fields) > 0 {
+		_spec.Unique = mwsq.unique != nil && *mwsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, mwsq.driver, _spec)
 }
 
@@ -406,6 +410,9 @@ func (mwsq *MultiWordSchemaQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if mwsq.sql != nil {
 		selector = mwsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if mwsq.unique != nil && *mwsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range mwsq.predicates {
 		p(selector)
@@ -685,9 +692,7 @@ func (mwsgb *MultiWordSchemaGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range mwsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(mwsgb.fields...)...)

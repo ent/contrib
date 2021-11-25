@@ -122,13 +122,13 @@ func (tc *TaskCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (tc *TaskCreate) check() error {
 	if _, ok := tc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "description"`)}
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Task.description"`)}
 	}
 	if _, ok := tc.mutation.Complete(); !ok {
-		return &ValidationError{Name: "complete", err: errors.New(`ent: missing required field "complete"`)}
+		return &ValidationError{Name: "complete", err: errors.New(`ent: missing required field "Task.complete"`)}
 	}
 	if _, ok := tc.mutation.Signature(); !ok {
-		return &ValidationError{Name: "signature", err: errors.New(`ent: missing required field "signature"`)}
+		return &ValidationError{Name: "signature", err: errors.New(`ent: missing required field "Task.signature"`)}
 	}
 	return nil
 }

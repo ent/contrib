@@ -102,10 +102,10 @@ func (dnmc *DuplicateNumberMessageCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (dnmc *DuplicateNumberMessageCreate) check() error {
 	if _, ok := dnmc.mutation.Hello(); !ok {
-		return &ValidationError{Name: "hello", err: errors.New(`ent: missing required field "hello"`)}
+		return &ValidationError{Name: "hello", err: errors.New(`ent: missing required field "DuplicateNumberMessage.hello"`)}
 	}
 	if _, ok := dnmc.mutation.World(); !ok {
-		return &ValidationError{Name: "world", err: errors.New(`ent: missing required field "world"`)}
+		return &ValidationError{Name: "world", err: errors.New(`ent: missing required field "DuplicateNumberMessage.world"`)}
 	}
 	return nil
 }

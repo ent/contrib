@@ -627,6 +627,10 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 
 func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tq.querySpec()
+	_spec.Node.Columns = tq.fields
+	if len(tq.fields) > 0 {
+		_spec.Unique = tq.unique != nil && *tq.unique
+	}
 	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
@@ -697,6 +701,9 @@ func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if tq.sql != nil {
 		selector = tq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if tq.unique != nil && *tq.unique {
+		selector.Distinct()
 	}
 	for _, p := range tq.predicates {
 		p(selector)
@@ -976,9 +983,7 @@ func (tgb *TodoGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range tgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(tgb.fields...)...)

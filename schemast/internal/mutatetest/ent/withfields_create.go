@@ -96,7 +96,7 @@ func (wfc *WithFieldsCreate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (wfc *WithFieldsCreate) check() error {
 	if _, ok := wfc.mutation.Existing(); !ok {
-		return &ValidationError{Name: "existing", err: errors.New(`ent: missing required field "existing"`)}
+		return &ValidationError{Name: "existing", err: errors.New(`ent: missing required field "WithFields.existing"`)}
 	}
 	return nil
 }
