@@ -48,15 +48,15 @@ type OASTypesMutation struct {
 	int64         *int64
 	addint64      *int64
 	uint          *uint
-	adduint       *uint
+	adduint       *int
 	uint8         *uint8
-	adduint8      *uint8
+	adduint8      *int8
 	uint16        *uint16
-	adduint16     *uint16
+	adduint16     *int16
 	uint32        *uint32
-	adduint32     *uint32
+	adduint32     *int32
 	uint64        *uint64
-	adduint64     *uint64
+	adduint64     *int64
 	float32       *float32
 	addfloat32    *float32
 	float64       *float64
@@ -492,7 +492,7 @@ func (m *OASTypesMutation) OldUint(ctx context.Context) (v uint, err error) {
 }
 
 // AddUint adds u to the "uint" field.
-func (m *OASTypesMutation) AddUint(u uint) {
+func (m *OASTypesMutation) AddUint(u int) {
 	if m.adduint != nil {
 		*m.adduint += u
 	} else {
@@ -501,7 +501,7 @@ func (m *OASTypesMutation) AddUint(u uint) {
 }
 
 // AddedUint returns the value that was added to the "uint" field in this mutation.
-func (m *OASTypesMutation) AddedUint() (r uint, exists bool) {
+func (m *OASTypesMutation) AddedUint() (r int, exists bool) {
 	v := m.adduint
 	if v == nil {
 		return
@@ -548,7 +548,7 @@ func (m *OASTypesMutation) OldUint8(ctx context.Context) (v uint8, err error) {
 }
 
 // AddUint8 adds u to the "uint8" field.
-func (m *OASTypesMutation) AddUint8(u uint8) {
+func (m *OASTypesMutation) AddUint8(u int8) {
 	if m.adduint8 != nil {
 		*m.adduint8 += u
 	} else {
@@ -557,7 +557,7 @@ func (m *OASTypesMutation) AddUint8(u uint8) {
 }
 
 // AddedUint8 returns the value that was added to the "uint8" field in this mutation.
-func (m *OASTypesMutation) AddedUint8() (r uint8, exists bool) {
+func (m *OASTypesMutation) AddedUint8() (r int8, exists bool) {
 	v := m.adduint8
 	if v == nil {
 		return
@@ -604,7 +604,7 @@ func (m *OASTypesMutation) OldUint16(ctx context.Context) (v uint16, err error) 
 }
 
 // AddUint16 adds u to the "uint16" field.
-func (m *OASTypesMutation) AddUint16(u uint16) {
+func (m *OASTypesMutation) AddUint16(u int16) {
 	if m.adduint16 != nil {
 		*m.adduint16 += u
 	} else {
@@ -613,7 +613,7 @@ func (m *OASTypesMutation) AddUint16(u uint16) {
 }
 
 // AddedUint16 returns the value that was added to the "uint16" field in this mutation.
-func (m *OASTypesMutation) AddedUint16() (r uint16, exists bool) {
+func (m *OASTypesMutation) AddedUint16() (r int16, exists bool) {
 	v := m.adduint16
 	if v == nil {
 		return
@@ -660,7 +660,7 @@ func (m *OASTypesMutation) OldUint32(ctx context.Context) (v uint32, err error) 
 }
 
 // AddUint32 adds u to the "uint32" field.
-func (m *OASTypesMutation) AddUint32(u uint32) {
+func (m *OASTypesMutation) AddUint32(u int32) {
 	if m.adduint32 != nil {
 		*m.adduint32 += u
 	} else {
@@ -669,7 +669,7 @@ func (m *OASTypesMutation) AddUint32(u uint32) {
 }
 
 // AddedUint32 returns the value that was added to the "uint32" field in this mutation.
-func (m *OASTypesMutation) AddedUint32() (r uint32, exists bool) {
+func (m *OASTypesMutation) AddedUint32() (r int32, exists bool) {
 	v := m.adduint32
 	if v == nil {
 		return
@@ -716,7 +716,7 @@ func (m *OASTypesMutation) OldUint64(ctx context.Context) (v uint64, err error) 
 }
 
 // AddUint64 adds u to the "uint64" field.
-func (m *OASTypesMutation) AddUint64(u uint64) {
+func (m *OASTypesMutation) AddUint64(u int64) {
 	if m.adduint64 != nil {
 		*m.adduint64 += u
 	} else {
@@ -725,7 +725,7 @@ func (m *OASTypesMutation) AddUint64(u uint64) {
 }
 
 // AddedUint64 returns the value that was added to the "uint64" field in this mutation.
-func (m *OASTypesMutation) AddedUint64() (r uint64, exists bool) {
+func (m *OASTypesMutation) AddedUint64() (r int64, exists bool) {
 	v := m.adduint64
 	if v == nil {
 		return
@@ -1886,35 +1886,35 @@ func (m *OASTypesMutation) AddField(name string, value ent.Value) error {
 		m.AddInt64(v)
 		return nil
 	case oastypes.FieldUint:
-		v, ok := value.(uint)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUint(v)
 		return nil
 	case oastypes.FieldUint8:
-		v, ok := value.(uint8)
+		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUint8(v)
 		return nil
 	case oastypes.FieldUint16:
-		v, ok := value.(uint16)
+		v, ok := value.(int16)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUint16(v)
 		return nil
 	case oastypes.FieldUint32:
-		v, ok := value.(uint32)
+		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUint32(v)
 		return nil
 	case oastypes.FieldUint64:
-		v, ok := value.(uint64)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

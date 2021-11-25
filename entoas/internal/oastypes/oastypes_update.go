@@ -105,7 +105,7 @@ func (otu *OASTypesUpdate) SetUint(u uint) *OASTypesUpdate {
 }
 
 // AddUint adds u to the "uint" field.
-func (otu *OASTypesUpdate) AddUint(u uint) *OASTypesUpdate {
+func (otu *OASTypesUpdate) AddUint(u int) *OASTypesUpdate {
 	otu.mutation.AddUint(u)
 	return otu
 }
@@ -118,7 +118,7 @@ func (otu *OASTypesUpdate) SetUint8(u uint8) *OASTypesUpdate {
 }
 
 // AddUint8 adds u to the "uint8" field.
-func (otu *OASTypesUpdate) AddUint8(u uint8) *OASTypesUpdate {
+func (otu *OASTypesUpdate) AddUint8(u int8) *OASTypesUpdate {
 	otu.mutation.AddUint8(u)
 	return otu
 }
@@ -131,7 +131,7 @@ func (otu *OASTypesUpdate) SetUint16(u uint16) *OASTypesUpdate {
 }
 
 // AddUint16 adds u to the "uint16" field.
-func (otu *OASTypesUpdate) AddUint16(u uint16) *OASTypesUpdate {
+func (otu *OASTypesUpdate) AddUint16(u int16) *OASTypesUpdate {
 	otu.mutation.AddUint16(u)
 	return otu
 }
@@ -144,7 +144,7 @@ func (otu *OASTypesUpdate) SetUint32(u uint32) *OASTypesUpdate {
 }
 
 // AddUint32 adds u to the "uint32" field.
-func (otu *OASTypesUpdate) AddUint32(u uint32) *OASTypesUpdate {
+func (otu *OASTypesUpdate) AddUint32(u int32) *OASTypesUpdate {
 	otu.mutation.AddUint32(u)
 	return otu
 }
@@ -157,7 +157,7 @@ func (otu *OASTypesUpdate) SetUint64(u uint64) *OASTypesUpdate {
 }
 
 // AddUint64 adds u to the "uint64" field.
-func (otu *OASTypesUpdate) AddUint64(u uint64) *OASTypesUpdate {
+func (otu *OASTypesUpdate) AddUint64(u int64) *OASTypesUpdate {
 	otu.mutation.AddUint64(u)
 	return otu
 }
@@ -723,7 +723,7 @@ func (otuo *OASTypesUpdateOne) SetUint(u uint) *OASTypesUpdateOne {
 }
 
 // AddUint adds u to the "uint" field.
-func (otuo *OASTypesUpdateOne) AddUint(u uint) *OASTypesUpdateOne {
+func (otuo *OASTypesUpdateOne) AddUint(u int) *OASTypesUpdateOne {
 	otuo.mutation.AddUint(u)
 	return otuo
 }
@@ -736,7 +736,7 @@ func (otuo *OASTypesUpdateOne) SetUint8(u uint8) *OASTypesUpdateOne {
 }
 
 // AddUint8 adds u to the "uint8" field.
-func (otuo *OASTypesUpdateOne) AddUint8(u uint8) *OASTypesUpdateOne {
+func (otuo *OASTypesUpdateOne) AddUint8(u int8) *OASTypesUpdateOne {
 	otuo.mutation.AddUint8(u)
 	return otuo
 }
@@ -749,7 +749,7 @@ func (otuo *OASTypesUpdateOne) SetUint16(u uint16) *OASTypesUpdateOne {
 }
 
 // AddUint16 adds u to the "uint16" field.
-func (otuo *OASTypesUpdateOne) AddUint16(u uint16) *OASTypesUpdateOne {
+func (otuo *OASTypesUpdateOne) AddUint16(u int16) *OASTypesUpdateOne {
 	otuo.mutation.AddUint16(u)
 	return otuo
 }
@@ -762,7 +762,7 @@ func (otuo *OASTypesUpdateOne) SetUint32(u uint32) *OASTypesUpdateOne {
 }
 
 // AddUint32 adds u to the "uint32" field.
-func (otuo *OASTypesUpdateOne) AddUint32(u uint32) *OASTypesUpdateOne {
+func (otuo *OASTypesUpdateOne) AddUint32(u int32) *OASTypesUpdateOne {
 	otuo.mutation.AddUint32(u)
 	return otuo
 }
@@ -775,7 +775,7 @@ func (otuo *OASTypesUpdateOne) SetUint64(u uint64) *OASTypesUpdateOne {
 }
 
 // AddUint64 adds u to the "uint64" field.
-func (otuo *OASTypesUpdateOne) AddUint64(u uint64) *OASTypesUpdateOne {
+func (otuo *OASTypesUpdateOne) AddUint64(u int64) *OASTypesUpdateOne {
 	otuo.mutation.AddUint64(u)
 	return otuo
 }
