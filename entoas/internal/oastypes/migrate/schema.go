@@ -23,7 +23,7 @@ var (
 		{Name: "uint64", Type: field.TypeUint64},
 		{Name: "float32", Type: field.TypeFloat32},
 		{Name: "float64", Type: field.TypeFloat64},
-		{Name: "string", Type: field.TypeString},
+		{Name: "string_field", Type: field.TypeString},
 		{Name: "bool", Type: field.TypeBool},
 		{Name: "uuid", Type: field.TypeUUID},
 		{Name: "time", Type: field.TypeTime},

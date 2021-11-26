@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
@@ -44,8 +45,8 @@ type OASTypes struct {
 	Float32 float32 `json:"float32,omitempty"`
 	// Float64 holds the value of the "float64" field.
 	Float64 float64 `json:"float64,omitempty"`
-	// String holds the value of the "string" field.
-	String string `json:"string,omitempty"`
+	// StringField holds the value of the "string_field" field.
+	StringField string `json:"string_field,omitempty"`
 	// Bool holds the value of the "bool" field.
 	Bool bool `json:"bool,omitempty"`
 	// UUID holds the value of the "uuid" field.
@@ -89,7 +90,7 @@ func (*OASTypes) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullFloat64)
 		case oastypes.FieldID, oastypes.FieldInt, oastypes.FieldInt8, oastypes.FieldInt16, oastypes.FieldInt32, oastypes.FieldInt64, oastypes.FieldUint, oastypes.FieldUint8, oastypes.FieldUint16, oastypes.FieldUint32, oastypes.FieldUint64:
 			values[i] = new(sql.NullInt64)
-		case oastypes.FieldString, oastypes.FieldText, oastypes.FieldState:
+		case oastypes.FieldStringField, oastypes.FieldText, oastypes.FieldState:
 			values[i] = new(sql.NullString)
 		case oastypes.FieldTime:
 			values[i] = new(sql.NullTime)
@@ -188,11 +189,11 @@ func (ot *OASTypes) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				ot.Float64 = value.Float64
 			}
-		case oastypes.FieldString:
+		case oastypes.FieldStringField:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field string", values[i])
+				return fmt.Errorf("unexpected type %T for field string_field", values[i])
 			} else if value.Valid {
-				ot.String = value.String
+				ot.StringField = value.String
 			}
 		case oastypes.FieldBool:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -307,7 +308,66 @@ func (ot *OASTypes) Unwrap() *OASTypes {
 	return ot
 }
 
-// No String() implementation
+// String implements the fmt.Stringer.
+func (ot *OASTypes) String() string {
+	var builder strings.Builder
+	builder.WriteString("OASTypes(")
+	builder.WriteString(fmt.Sprintf("id=%v", ot.ID))
+	builder.WriteString(", int=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Int))
+	builder.WriteString(", int8=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Int8))
+	builder.WriteString(", int16=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Int16))
+	builder.WriteString(", int32=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Int32))
+	builder.WriteString(", int64=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Int64))
+	builder.WriteString(", uint=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Uint))
+	builder.WriteString(", uint8=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Uint8))
+	builder.WriteString(", uint16=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Uint16))
+	builder.WriteString(", uint32=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Uint32))
+	builder.WriteString(", uint64=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Uint64))
+	builder.WriteString(", float32=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Float32))
+	builder.WriteString(", float64=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Float64))
+	builder.WriteString(", string_field=")
+	builder.WriteString(ot.StringField)
+	builder.WriteString(", bool=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Bool))
+	builder.WriteString(", uuid=")
+	builder.WriteString(fmt.Sprintf("%v", ot.UUID))
+	builder.WriteString(", time=")
+	builder.WriteString(ot.Time.Format(time.ANSIC))
+	builder.WriteString(", text=")
+	builder.WriteString(ot.Text)
+	builder.WriteString(", state=")
+	builder.WriteString(fmt.Sprintf("%v", ot.State))
+	builder.WriteString(", strings=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Strings))
+	builder.WriteString(", ints=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Ints))
+	builder.WriteString(", floats=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Floats))
+	builder.WriteString(", bytes=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Bytes))
+	builder.WriteString(", nicknames=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Nicknames))
+	builder.WriteString(", json_slice=")
+	builder.WriteString(fmt.Sprintf("%v", ot.JSONSlice))
+	builder.WriteString(", json_obj=")
+	builder.WriteString(fmt.Sprintf("%v", ot.JSONObj))
+	builder.WriteString(", other=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Other))
+	builder.WriteByte(')')
+	return builder.String()
+}
 
 // OASTypesSlice is a parsable slice of OASTypes.
 type OASTypesSlice []*OASTypes

@@ -96,9 +96,9 @@ func (otc *OASTypesCreate) SetFloat64(f float64) *OASTypesCreate {
 	return otc
 }
 
-// SetString sets the "string" field.
-func (otc *OASTypesCreate) SetString(s string) *OASTypesCreate {
-	otc.mutation.SetString(s)
+// SetStringField sets the "string_field" field.
+func (otc *OASTypesCreate) SetStringField(s string) *OASTypesCreate {
+	otc.mutation.SetStringField(s)
 	return otc
 }
 
@@ -299,8 +299,8 @@ func (otc *OASTypesCreate) check() error {
 	if _, ok := otc.mutation.Float64(); !ok {
 		return &ValidationError{Name: "float64", err: errors.New(`oastypes: missing required field "OASTypes.float64"`)}
 	}
-	if _, ok := otc.mutation.String(); !ok {
-		return &ValidationError{Name: "string", err: errors.New(`oastypes: missing required field "OASTypes.string"`)}
+	if _, ok := otc.mutation.StringField(); !ok {
+		return &ValidationError{Name: "string_field", err: errors.New(`oastypes: missing required field "OASTypes.string_field"`)}
 	}
 	if _, ok := otc.mutation.Bool(); !ok {
 		return &ValidationError{Name: "bool", err: errors.New(`oastypes: missing required field "OASTypes.bool"`)}
@@ -469,13 +469,13 @@ func (otc *OASTypesCreate) createSpec() (*OASTypes, *sqlgraph.CreateSpec) {
 		})
 		_node.Float64 = value
 	}
-	if value, ok := otc.mutation.String(); ok {
+	if value, ok := otc.mutation.StringField(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: oastypes.FieldString,
+			Column: oastypes.FieldStringField,
 		})
-		_node.String = value
+		_node.StringField = value
 	}
 	if value, ok := otc.mutation.Bool(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

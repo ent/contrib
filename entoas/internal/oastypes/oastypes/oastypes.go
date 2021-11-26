@@ -38,8 +38,8 @@ const (
 	FieldFloat32 = "float32"
 	// FieldFloat64 holds the string denoting the float64 field in the database.
 	FieldFloat64 = "float64"
-	// FieldString holds the string denoting the string field in the database.
-	FieldString = "string"
+	// FieldStringField holds the string denoting the string_field field in the database.
+	FieldStringField = "string_field"
 	// FieldBool holds the string denoting the bool field in the database.
 	FieldBool = "bool"
 	// FieldUUID holds the string denoting the uuid field in the database.
@@ -85,7 +85,7 @@ var Columns = []string{
 	FieldUint64,
 	FieldFloat32,
 	FieldFloat64,
-	FieldString,
+	FieldStringField,
 	FieldBool,
 	FieldUUID,
 	FieldTime,

@@ -93,7 +93,7 @@
                   "nicknames",
                   "other",
                   "state",
-                  "string",
+                  "string_field",
                   "strings",
                   "text",
                   "time",
@@ -176,7 +176,7 @@
                     "type": "string",
                     "example": "on"
                   },
-                  "string": {
+                  "string_field": {
                     "type": "string"
                   },
                   "strings": {
@@ -358,7 +358,7 @@
                   "nicknames",
                   "other",
                   "state",
-                  "string",
+                  "string_field",
                   "strings",
                   "text",
                   "time",
@@ -441,7 +441,7 @@
                     "type": "string",
                     "example": "on"
                   },
-                  "string": {
+                  "string_field": {
                     "type": "string"
                   },
                   "strings": {
@@ -531,7 +531,7 @@
           "nicknames",
           "other",
           "state",
-          "string",
+          "string_field",
           "strings",
           "text",
           "time",
@@ -618,7 +618,7 @@
             "type": "string",
             "example": "on"
           },
-          "string": {
+          "string_field": {
             "type": "string"
           },
           "strings": {
@@ -679,7 +679,7 @@
           "nicknames",
           "other",
           "state",
-          "string",
+          "string_field",
           "strings",
           "text",
           "time",
@@ -766,7 +766,7 @@
             "type": "string",
             "example": "on"
           },
-          "string": {
+          "string_field": {
             "type": "string"
           },
           "strings": {
@@ -827,7 +827,7 @@
           "nicknames",
           "other",
           "state",
-          "string",
+          "string_field",
           "strings",
           "text",
           "time",
@@ -914,7 +914,7 @@
             "type": "string",
             "example": "on"
           },
-          "string": {
+          "string_field": {
             "type": "string"
           },
           "strings": {
@@ -975,7 +975,7 @@
           "nicknames",
           "other",
           "state",
-          "string",
+          "string_field",
           "strings",
           "text",
           "time",
@@ -1062,7 +1062,7 @@
             "type": "string",
             "example": "on"
           },
-          "string": {
+          "string_field": {
             "type": "string"
           },
           "strings": {
@@ -1123,7 +1123,7 @@
           "nicknames",
           "other",
           "state",
-          "string",
+          "string_field",
           "strings",
           "text",
           "time",
@@ -1210,7 +1210,7 @@
             "type": "string",
             "example": "on"
           },
-          "string": {
+          "string_field": {
             "type": "string"
           },
           "strings": {

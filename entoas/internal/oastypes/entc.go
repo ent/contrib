@@ -30,11 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("creating entoas extension: %v", err)
 	}
-	err = entc.Generate("./schema", &gen.Config{
-		Templates: []*gen.Template{gen.MustParse(
-			gen.NewTemplate("").Parse(`{{ define "model/stringer" }}// No String() implementation{{ end }}`),
-		)},
-	}, entc.Extensions(ex))
+	err = entc.Generate("./schema", &gen.Config{}, entc.Extensions(ex))
 	if err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}

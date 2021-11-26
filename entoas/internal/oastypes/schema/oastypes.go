@@ -50,7 +50,7 @@ func (OASTypes) Fields() []ent.Field {
 		field.Float32("float32"),
 		field.Float("float64"),
 		// Basic
-		field.String("string"),
+		field.String("string_field"),
 		field.Bool("bool"),
 		field.UUID("uuid", uuid.Nil).
 			Default(uuid.New),

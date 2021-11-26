@@ -61,7 +61,7 @@ type OASTypesMutation struct {
 	addfloat32    *float32
 	float64       *float64
 	addfloat64    *float64
-	string        *string
+	string_field  *string
 	bool          *bool
 	uuid          *uuid.UUID
 	time          *time.Time
@@ -851,40 +851,40 @@ func (m *OASTypesMutation) ResetFloat64() {
 	m.addfloat64 = nil
 }
 
-// SetString sets the "string" field.
-func (m *OASTypesMutation) SetString(s string) {
-	m.string = &s
+// SetStringField sets the "string_field" field.
+func (m *OASTypesMutation) SetStringField(s string) {
+	m.string_field = &s
 }
 
-// String returns the value of the "string" field in the mutation.
-func (m *OASTypesMutation) String() (r string, exists bool) {
-	v := m.string
+// StringField returns the value of the "string_field" field in the mutation.
+func (m *OASTypesMutation) StringField() (r string, exists bool) {
+	v := m.string_field
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldString returns the old "string" field's value of the OASTypes entity.
+// OldStringField returns the old "string_field" field's value of the OASTypes entity.
 // If the OASTypes object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OASTypesMutation) OldString(ctx context.Context) (v string, err error) {
+func (m *OASTypesMutation) OldStringField(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldString is only allowed on UpdateOne operations")
+		return v, errors.New("OldStringField is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldString requires an ID field in the mutation")
+		return v, errors.New("OldStringField requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldString: %w", err)
+		return v, fmt.Errorf("querying old value for OldStringField: %w", err)
 	}
-	return oldValue.String, nil
+	return oldValue.StringField, nil
 }
 
-// ResetString resets all changes to the "string" field.
-func (m *OASTypesMutation) ResetString() {
-	m.string = nil
+// ResetStringField resets all changes to the "string_field" field.
+func (m *OASTypesMutation) ResetStringField() {
+	m.string_field = nil
 }
 
 // SetBool sets the "bool" field.
@@ -1411,8 +1411,8 @@ func (m *OASTypesMutation) Fields() []string {
 	if m.float64 != nil {
 		fields = append(fields, oastypes.FieldFloat64)
 	}
-	if m.string != nil {
-		fields = append(fields, oastypes.FieldString)
+	if m.string_field != nil {
+		fields = append(fields, oastypes.FieldStringField)
 	}
 	if m.bool != nil {
 		fields = append(fields, oastypes.FieldBool)
@@ -1485,8 +1485,8 @@ func (m *OASTypesMutation) Field(name string) (ent.Value, bool) {
 		return m.Float32()
 	case oastypes.FieldFloat64:
 		return m.Float64()
-	case oastypes.FieldString:
-		return m.String()
+	case oastypes.FieldStringField:
+		return m.StringField()
 	case oastypes.FieldBool:
 		return m.Bool()
 	case oastypes.FieldUUID:
@@ -1546,8 +1546,8 @@ func (m *OASTypesMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldFloat32(ctx)
 	case oastypes.FieldFloat64:
 		return m.OldFloat64(ctx)
-	case oastypes.FieldString:
-		return m.OldString(ctx)
+	case oastypes.FieldStringField:
+		return m.OldStringField(ctx)
 	case oastypes.FieldBool:
 		return m.OldBool(ctx)
 	case oastypes.FieldUUID:
@@ -1667,12 +1667,12 @@ func (m *OASTypesMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFloat64(v)
 		return nil
-	case oastypes.FieldString:
+	case oastypes.FieldStringField:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetString(v)
+		m.SetStringField(v)
 		return nil
 	case oastypes.FieldBool:
 		v, ok := value.(bool)
@@ -1997,8 +1997,8 @@ func (m *OASTypesMutation) ResetField(name string) error {
 	case oastypes.FieldFloat64:
 		m.ResetFloat64()
 		return nil
-	case oastypes.FieldString:
-		m.ResetString()
+	case oastypes.FieldStringField:
+		m.ResetStringField()
 		return nil
 	case oastypes.FieldBool:
 		m.ResetBool()

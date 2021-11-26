@@ -188,9 +188,9 @@ func (otu *OASTypesUpdate) AddFloat64(f float64) *OASTypesUpdate {
 	return otu
 }
 
-// SetString sets the "string" field.
-func (otu *OASTypesUpdate) SetString(s string) *OASTypesUpdate {
-	otu.mutation.SetString(s)
+// SetStringField sets the "string_field" field.
+func (otu *OASTypesUpdate) SetStringField(s string) *OASTypesUpdate {
+	otu.mutation.SetStringField(s)
 	return otu
 }
 
@@ -533,11 +533,11 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: oastypes.FieldFloat64,
 		})
 	}
-	if value, ok := otu.mutation.String(); ok {
+	if value, ok := otu.mutation.StringField(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: oastypes.FieldString,
+			Column: oastypes.FieldStringField,
 		})
 	}
 	if value, ok := otu.mutation.Bool(); ok {
@@ -806,9 +806,9 @@ func (otuo *OASTypesUpdateOne) AddFloat64(f float64) *OASTypesUpdateOne {
 	return otuo
 }
 
-// SetString sets the "string" field.
-func (otuo *OASTypesUpdateOne) SetString(s string) *OASTypesUpdateOne {
-	otuo.mutation.SetString(s)
+// SetStringField sets the "string_field" field.
+func (otuo *OASTypesUpdateOne) SetStringField(s string) *OASTypesUpdateOne {
+	otuo.mutation.SetStringField(s)
 	return otuo
 }
 
@@ -1175,11 +1175,11 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 			Column: oastypes.FieldFloat64,
 		})
 	}
-	if value, ok := otuo.mutation.String(); ok {
+	if value, ok := otuo.mutation.StringField(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: oastypes.FieldString,
+			Column: oastypes.FieldStringField,
 		})
 	}
 	if value, ok := otuo.mutation.Bool(); ok {

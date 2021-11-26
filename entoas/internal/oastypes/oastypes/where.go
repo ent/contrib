@@ -178,10 +178,10 @@ func Float64(v float64) predicate.OASTypes {
 	})
 }
 
-// String applies equality check predicate on the "string" field. It's identical to StringEQ.
-func String(v string) predicate.OASTypes {
+// StringField applies equality check predicate on the "string_field" field. It's identical to StringFieldEQ.
+func StringField(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldString), v))
+		s.Where(sql.EQ(s.C(FieldStringField), v))
 	})
 }
 
@@ -1139,22 +1139,22 @@ func Float64LTE(v float64) predicate.OASTypes {
 	})
 }
 
-// StringEQ applies the EQ predicate on the "string" field.
-func StringEQ(v string) predicate.OASTypes {
+// StringFieldEQ applies the EQ predicate on the "string_field" field.
+func StringFieldEQ(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldString), v))
+		s.Where(sql.EQ(s.C(FieldStringField), v))
 	})
 }
 
-// StringNEQ applies the NEQ predicate on the "string" field.
-func StringNEQ(v string) predicate.OASTypes {
+// StringFieldNEQ applies the NEQ predicate on the "string_field" field.
+func StringFieldNEQ(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldString), v))
+		s.Where(sql.NEQ(s.C(FieldStringField), v))
 	})
 }
 
-// StringIn applies the In predicate on the "string" field.
-func StringIn(vs ...string) predicate.OASTypes {
+// StringFieldIn applies the In predicate on the "string_field" field.
+func StringFieldIn(vs ...string) predicate.OASTypes {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -1166,12 +1166,12 @@ func StringIn(vs ...string) predicate.OASTypes {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldString), v...))
+		s.Where(sql.In(s.C(FieldStringField), v...))
 	})
 }
 
-// StringNotIn applies the NotIn predicate on the "string" field.
-func StringNotIn(vs ...string) predicate.OASTypes {
+// StringFieldNotIn applies the NotIn predicate on the "string_field" field.
+func StringFieldNotIn(vs ...string) predicate.OASTypes {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -1183,70 +1183,70 @@ func StringNotIn(vs ...string) predicate.OASTypes {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldString), v...))
+		s.Where(sql.NotIn(s.C(FieldStringField), v...))
 	})
 }
 
-// StringGT applies the GT predicate on the "string" field.
-func StringGT(v string) predicate.OASTypes {
+// StringFieldGT applies the GT predicate on the "string_field" field.
+func StringFieldGT(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldString), v))
+		s.Where(sql.GT(s.C(FieldStringField), v))
 	})
 }
 
-// StringGTE applies the GTE predicate on the "string" field.
-func StringGTE(v string) predicate.OASTypes {
+// StringFieldGTE applies the GTE predicate on the "string_field" field.
+func StringFieldGTE(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldString), v))
+		s.Where(sql.GTE(s.C(FieldStringField), v))
 	})
 }
 
-// StringLT applies the LT predicate on the "string" field.
-func StringLT(v string) predicate.OASTypes {
+// StringFieldLT applies the LT predicate on the "string_field" field.
+func StringFieldLT(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldString), v))
+		s.Where(sql.LT(s.C(FieldStringField), v))
 	})
 }
 
-// StringLTE applies the LTE predicate on the "string" field.
-func StringLTE(v string) predicate.OASTypes {
+// StringFieldLTE applies the LTE predicate on the "string_field" field.
+func StringFieldLTE(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldString), v))
+		s.Where(sql.LTE(s.C(FieldStringField), v))
 	})
 }
 
-// StringContains applies the Contains predicate on the "string" field.
-func StringContains(v string) predicate.OASTypes {
+// StringFieldContains applies the Contains predicate on the "string_field" field.
+func StringFieldContains(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldString), v))
+		s.Where(sql.Contains(s.C(FieldStringField), v))
 	})
 }
 
-// StringHasPrefix applies the HasPrefix predicate on the "string" field.
-func StringHasPrefix(v string) predicate.OASTypes {
+// StringFieldHasPrefix applies the HasPrefix predicate on the "string_field" field.
+func StringFieldHasPrefix(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldString), v))
+		s.Where(sql.HasPrefix(s.C(FieldStringField), v))
 	})
 }
 
-// StringHasSuffix applies the HasSuffix predicate on the "string" field.
-func StringHasSuffix(v string) predicate.OASTypes {
+// StringFieldHasSuffix applies the HasSuffix predicate on the "string_field" field.
+func StringFieldHasSuffix(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldString), v))
+		s.Where(sql.HasSuffix(s.C(FieldStringField), v))
 	})
 }
 
-// StringEqualFold applies the EqualFold predicate on the "string" field.
-func StringEqualFold(v string) predicate.OASTypes {
+// StringFieldEqualFold applies the EqualFold predicate on the "string_field" field.
+func StringFieldEqualFold(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldString), v))
+		s.Where(sql.EqualFold(s.C(FieldStringField), v))
 	})
 }
 
-// StringContainsFold applies the ContainsFold predicate on the "string" field.
-func StringContainsFold(v string) predicate.OASTypes {
+// StringFieldContainsFold applies the ContainsFold predicate on the "string_field" field.
+func StringFieldContainsFold(v string) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldString), v))
+		s.Where(sql.ContainsFold(s.C(FieldStringField), v))
 	})
 }
 
