@@ -73,9 +73,15 @@ func TestOASType(t *testing.T) {
 		t.Run(d.Name, func(t *testing.T) {
 			f, err := load.NewField(d)
 			require.NoError(t, err)
-			ac, err := oasType(&gen.Field{Type: f.Info, Annotations: f.Annotations})
+			gf := &gen.Field{Name: f.Name, Type: f.Info, Annotations: f.Annotations}
+			ac, err := oasType(gf)
 			if ex == _empty {
 				require.Error(t, err)
+				require.EqualError(t, err, fmt.Sprintf(
+					"no OAS-type exists for type %q of field %s",
+					gf.Type.String(),
+					gf.StructField(),
+				))
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, ex, ac)

@@ -761,7 +761,7 @@ func oasType(f *gen.Field) (*spec.Type, error) {
 	}
 	t, ok := _types[s]
 	if !ok {
-		return nil, fmt.Errorf("no OAS-type exists for %q", s)
+		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
 	}
 	return t, nil
 }
