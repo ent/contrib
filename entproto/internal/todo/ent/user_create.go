@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -235,6 +236,25 @@ func (uc *UserCreate) AddReceived1(a ...*Attachment) *UserCreate {
 		ids[i] = a[i].ID
 	}
 	return uc.AddReceived1IDs(ids...)
+}
+
+// SetPetID sets the "pet" edge to the Pet entity by ID.
+func (uc *UserCreate) SetPetID(id int) *UserCreate {
+	uc.mutation.SetPetID(id)
+	return uc
+}
+
+// SetNillablePetID sets the "pet" edge to the Pet entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillablePetID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetPetID(*id)
+	}
+	return uc
+}
+
+// SetPet sets the "pet" edge to the Pet entity.
+func (uc *UserCreate) SetPet(p *Pet) *UserCreate {
+	return uc.SetPetID(p.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -567,6 +587,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.PetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.PetTable,
+			Columns: []string{user.PetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pet.FieldID,
 				},
 			},
 		}

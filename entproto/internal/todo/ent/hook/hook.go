@@ -61,6 +61,19 @@ func (f NilExampleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return f(ctx, mv)
 }
 
+// The PetFunc type is an adapter to allow the use of ordinary
+// function as Pet mutator.
+type PetFunc func(context.Context, *ent.PetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PetMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PetMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TodoFunc type is an adapter to allow the use of ordinary
 // function as Todo mutator.
 type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)

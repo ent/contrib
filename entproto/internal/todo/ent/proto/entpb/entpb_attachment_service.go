@@ -60,8 +60,10 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 		recipients := int(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
-	attachmentUser := int(attachment.GetUser().GetId())
-	m.SetUserID(attachmentUser)
+	if attachment.GetUser() != nil {
+		attachmentUser := int(attachment.GetUser().GetId())
+		m.SetUserID(attachmentUser)
+	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -130,8 +132,10 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 		recipients := int(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
-	attachmentUser := int(attachment.GetUser().GetId())
-	m.SetUserID(attachmentUser)
+	if attachment.GetUser() != nil {
+		attachmentUser := int(attachment.GetUser().GetId())
+		m.SetUserID(attachmentUser)
+	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:

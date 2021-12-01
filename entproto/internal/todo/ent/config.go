@@ -28,6 +28,7 @@ type hooks struct {
 	Group           []ent.Hook
 	MultiWordSchema []ent.Hook
 	NilExample      []ent.Hook
+	Pet             []ent.Hook
 	Todo            []ent.Hook
 	User            []ent.Hook
 }

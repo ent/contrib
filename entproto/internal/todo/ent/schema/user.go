@@ -123,6 +123,9 @@ func (User) Edges() []ent.Edge {
 		edge.From("received_1", Attachment.Type).
 			Ref("recipients").
 			Annotations(entproto.Field(16)),
+		edge.To("pet", Pet.Type).
+			Unique().
+			Annotations(entproto.Field(21)),
 	}
 }
 

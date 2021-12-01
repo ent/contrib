@@ -61,6 +61,25 @@ var (
 		Columns:    NilExamplesColumns,
 		PrimaryKey: []*schema.Column{NilExamplesColumns[0]},
 	}
+	// PetsColumns holds the columns for the "pets" table.
+	PetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_pet", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// PetsTable holds the schema information for the "pets" table.
+	PetsTable = &schema.Table{
+		Name:       "pets",
+		Columns:    PetsColumns,
+		PrimaryKey: []*schema.Column{PetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "pets_users_pet",
+				Columns:    []*schema.Column{PetsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -148,6 +167,7 @@ var (
 		GroupsTable,
 		MultiWordSchemasTable,
 		NilExamplesTable,
+		PetsTable,
 		TodosTable,
 		UsersTable,
 		AttachmentRecipientsTable,
@@ -156,6 +176,7 @@ var (
 
 func init() {
 	AttachmentsTable.ForeignKeys[0].RefTable = UsersTable
+	PetsTable.ForeignKeys[0].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable
 	AttachmentRecipientsTable.ForeignKeys[0].RefTable = AttachmentsTable

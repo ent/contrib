@@ -191,6 +191,60 @@ message ListNilExampleResponse {
   string next_page_token = 2;
 }
 
+message Pet {
+  int32 id = 1;
+
+  User owner = 2;
+}
+
+message CreatePetRequest {
+  Pet pet = 1;
+}
+
+message GetPetRequest {
+  int32 id = 1;
+
+  View view = 2;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message UpdatePetRequest {
+  Pet pet = 1;
+}
+
+message DeletePetRequest {
+  int32 id = 1;
+}
+
+message ListPetRequest {
+  int32 page_size = 1;
+
+  string page_token = 2;
+
+  View view = 3;
+
+  enum View {
+    VIEW_UNSPECIFIED = 0;
+
+    BASIC = 1;
+
+    WITH_EDGE_IDS = 2;
+  }
+}
+
+message ListPetResponse {
+  repeated Pet pet_list = 1;
+
+  string next_page_token = 2;
+}
+
 message Todo {
   int32 id = 1;
 
@@ -249,6 +303,8 @@ message User {
   Attachment attachment = 11;
 
   repeated Attachment received_1 = 16;
+
+  Pet pet = 21;
 
   enum Status {
     STATUS_UNSPECIFIED = 0;
@@ -341,6 +397,18 @@ service NilExampleService {
   rpc Delete ( DeleteNilExampleRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListNilExampleRequest ) returns ( ListNilExampleResponse );
+}
+
+service PetService {
+  rpc Create ( CreatePetRequest ) returns ( Pet );
+
+  rpc Get ( GetPetRequest ) returns ( Pet );
+
+  rpc Update ( UpdatePetRequest ) returns ( Pet );
+
+  rpc Delete ( DeletePetRequest ) returns ( google.protobuf.Empty );
+
+  rpc List ( ListPetRequest ) returns ( ListPetResponse );
 }
 
 service UserService {

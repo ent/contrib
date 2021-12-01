@@ -14,6 +14,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
+	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 
@@ -35,6 +36,8 @@ type Client struct {
 	MultiWordSchema *MultiWordSchemaClient
 	// NilExample is the client for interacting with the NilExample builders.
 	NilExample *NilExampleClient
+	// Pet is the client for interacting with the Pet builders.
+	Pet *PetClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -56,6 +59,7 @@ func (c *Client) init() {
 	c.Group = NewGroupClient(c.config)
 	c.MultiWordSchema = NewMultiWordSchemaClient(c.config)
 	c.NilExample = NewNilExampleClient(c.config)
+	c.Pet = NewPetClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -95,6 +99,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Group:           NewGroupClient(cfg),
 		MultiWordSchema: NewMultiWordSchemaClient(cfg),
 		NilExample:      NewNilExampleClient(cfg),
+		Pet:             NewPetClient(cfg),
 		Todo:            NewTodoClient(cfg),
 		User:            NewUserClient(cfg),
 	}, nil
@@ -119,6 +124,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Group:           NewGroupClient(cfg),
 		MultiWordSchema: NewMultiWordSchemaClient(cfg),
 		NilExample:      NewNilExampleClient(cfg),
+		Pet:             NewPetClient(cfg),
 		Todo:            NewTodoClient(cfg),
 		User:            NewUserClient(cfg),
 	}, nil
@@ -154,6 +160,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Group.Use(hooks...)
 	c.MultiWordSchema.Use(hooks...)
 	c.NilExample.Use(hooks...)
+	c.Pet.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -566,6 +573,112 @@ func (c *NilExampleClient) Hooks() []Hook {
 	return c.hooks.NilExample
 }
 
+// PetClient is a client for the Pet schema.
+type PetClient struct {
+	config
+}
+
+// NewPetClient returns a client for the Pet from the given config.
+func NewPetClient(c config) *PetClient {
+	return &PetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pet.Hooks(f(g(h())))`.
+func (c *PetClient) Use(hooks ...Hook) {
+	c.hooks.Pet = append(c.hooks.Pet, hooks...)
+}
+
+// Create returns a create builder for Pet.
+func (c *PetClient) Create() *PetCreate {
+	mutation := newPetMutation(c.config, OpCreate)
+	return &PetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Pet entities.
+func (c *PetClient) CreateBulk(builders ...*PetCreate) *PetCreateBulk {
+	return &PetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Pet.
+func (c *PetClient) Update() *PetUpdate {
+	mutation := newPetMutation(c.config, OpUpdate)
+	return &PetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PetClient) UpdateOne(pe *Pet) *PetUpdateOne {
+	mutation := newPetMutation(c.config, OpUpdateOne, withPet(pe))
+	return &PetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PetClient) UpdateOneID(id int) *PetUpdateOne {
+	mutation := newPetMutation(c.config, OpUpdateOne, withPetID(id))
+	return &PetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Pet.
+func (c *PetClient) Delete() *PetDelete {
+	mutation := newPetMutation(c.config, OpDelete)
+	return &PetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PetClient) DeleteOne(pe *Pet) *PetDeleteOne {
+	return c.DeleteOneID(pe.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PetClient) DeleteOneID(id int) *PetDeleteOne {
+	builder := c.Delete().Where(pet.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PetDeleteOne{builder}
+}
+
+// Query returns a query builder for Pet.
+func (c *PetClient) Query() *PetQuery {
+	return &PetQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Pet entity by its id.
+func (c *PetClient) Get(ctx context.Context, id int) (*Pet, error) {
+	return c.Query().Where(pet.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PetClient) GetX(ctx context.Context, id int) *Pet {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a Pet.
+func (c *PetClient) QueryOwner(pe *Pet) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pet.Table, pet.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, pet.OwnerTable, pet.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PetClient) Hooks() []Hook {
+	return c.hooks.Pet
+}
+
 // TodoClient is a client for the Todo schema.
 type TodoClient struct {
 	config
@@ -798,6 +911,22 @@ func (c *UserClient) QueryReceived1(u *User) *AttachmentQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, user.Received1Table, user.Received1PrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPet queries the pet edge of a User.
+func (c *UserClient) QueryPet(u *User) *PetQuery {
+	query := &PetQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(pet.Table, pet.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.PetTable, user.PetColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

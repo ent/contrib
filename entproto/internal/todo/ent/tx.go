@@ -20,6 +20,8 @@ type Tx struct {
 	MultiWordSchema *MultiWordSchemaClient
 	// NilExample is the client for interacting with the NilExample builders.
 	NilExample *NilExampleClient
+	// Pet is the client for interacting with the Pet builders.
+	Pet *PetClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -163,6 +165,7 @@ func (tx *Tx) init() {
 	tx.Group = NewGroupClient(tx.config)
 	tx.MultiWordSchema = NewMultiWordSchemaClient(tx.config)
 	tx.NilExample = NewNilExampleClient(tx.config)
+	tx.Pet = NewPetClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

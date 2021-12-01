@@ -49,6 +49,8 @@ const (
 	EdgeAttachment = "attachment"
 	// EdgeReceived1 holds the string denoting the received_1 edge name in mutations.
 	EdgeReceived1 = "received_1"
+	// EdgePet holds the string denoting the pet edge name in mutations.
+	EdgePet = "pet"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupTable is the table that holds the group relation/edge.
@@ -70,6 +72,13 @@ const (
 	// Received1InverseTable is the table name for the Attachment entity.
 	// It exists in this package in order to avoid circular dependency with the "attachment" package.
 	Received1InverseTable = "attachments"
+	// PetTable is the table that holds the pet relation/edge.
+	PetTable = "pets"
+	// PetInverseTable is the table name for the Pet entity.
+	// It exists in this package in order to avoid circular dependency with the "pet" package.
+	PetInverseTable = "pets"
+	// PetColumn is the table column denoting the pet relation/edge.
+	PetColumn = "user_pet"
 )
 
 // Columns holds all SQL columns for user fields.
