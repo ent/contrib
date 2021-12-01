@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
+	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
@@ -66,9 +67,11 @@ type UserEdges struct {
 	Attachment *Attachment `json:"attachment,omitempty"`
 	// Received1 holds the value of the received_1 edge.
 	Received1 []*Attachment `json:"received_1,omitempty"`
+	// Pet holds the value of the pet edge.
+	Pet *Pet `json:"pet,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -106,6 +109,20 @@ func (e UserEdges) Received1OrErr() ([]*Attachment, error) {
 		return e.Received1, nil
 	}
 	return nil, &NotLoadedError{edge: "received_1"}
+}
+
+// PetOrErr returns the Pet value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) PetOrErr() (*Pet, error) {
+	if e.loadedTypes[3] {
+		if e.Pet == nil {
+			// The edge pet was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: pet.Label}
+		}
+		return e.Pet, nil
+	}
+	return nil, &NotLoadedError{edge: "pet"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -271,6 +288,11 @@ func (u *User) QueryAttachment() *AttachmentQuery {
 // QueryReceived1 queries the "received_1" edge of the User entity.
 func (u *User) QueryReceived1() *AttachmentQuery {
 	return (&UserClient{config: u.config}).QueryReceived1(u)
+}
+
+// QueryPet queries the "pet" edge of the User entity.
+func (u *User) QueryPet() *PetQuery {
+	return (&UserClient{config: u.config}).QueryPet(u)
 }
 
 // Update returns a builder for updating this User.

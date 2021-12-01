@@ -8,6 +8,7 @@ import (
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	group "entgo.io/contrib/entproto/internal/todo/ent/group"
+	pet "entgo.io/contrib/entproto/internal/todo/ent/pet"
 	schema "entgo.io/contrib/entproto/internal/todo/ent/schema"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	runtime "entgo.io/contrib/entproto/runtime"
@@ -114,6 +115,12 @@ func toProtoUser(e *ent.User) (*User, error) {
 			Id: id,
 		}
 	}
+	if edg := e.Edges.Pet; edg != nil {
+		id := int32(edg.ID)
+		v.Pet = &Pet{
+			Id: id,
+		}
+	}
 	for _, edg := range e.Edges.Received1 {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -178,13 +185,21 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetStatus(userStatus)
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
-	var userAttachment uuid.UUID
-	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	if user.GetAttachment() != nil {
+		var userAttachment uuid.UUID
+		if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.SetAttachmentID(userAttachment)
 	}
-	m.SetAttachmentID(userAttachment)
-	userGroup := int(user.GetGroup().GetId())
-	m.SetGroupID(userGroup)
+	if user.GetGroup() != nil {
+		userGroup := int(user.GetGroup().GetId())
+		m.SetGroupID(userGroup)
+	}
+	if user.GetPet() != nil {
+		userPet := int(user.GetPet().GetId())
+		m.SetPetID(userPet)
+	}
 	for _, item := range user.GetReceived_1() {
 		var received1 uuid.UUID
 		if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
@@ -228,6 +243,9 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 			}).
 			WithGroup(func(query *ent.GroupQuery) {
 				query.Select(group.FieldID)
+			}).
+			WithPet(func(query *ent.PetQuery) {
+				query.Select(pet.FieldID)
 			}).
 			WithReceived1(func(query *ent.AttachmentQuery) {
 				query.Select(attachment.FieldID)
@@ -299,13 +317,21 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetStatus(userStatus)
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
-	var userAttachment uuid.UUID
-	if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	if user.GetAttachment() != nil {
+		var userAttachment uuid.UUID
+		if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.SetAttachmentID(userAttachment)
 	}
-	m.SetAttachmentID(userAttachment)
-	userGroup := int(user.GetGroup().GetId())
-	m.SetGroupID(userGroup)
+	if user.GetGroup() != nil {
+		userGroup := int(user.GetGroup().GetId())
+		m.SetGroupID(userGroup)
+	}
+	if user.GetPet() != nil {
+		userPet := int(user.GetPet().GetId())
+		m.SetPetID(userPet)
+	}
 	for _, item := range user.GetReceived_1() {
 		var received1 uuid.UUID
 		if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
@@ -387,6 +413,9 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 			}).
 			WithGroup(func(query *ent.GroupQuery) {
 				query.Select(group.FieldID)
+			}).
+			WithPet(func(query *ent.PetQuery) {
+				query.Select(pet.FieldID)
 			}).
 			WithReceived1(func(query *ent.AttachmentQuery) {
 				query.Select(attachment.FieldID)

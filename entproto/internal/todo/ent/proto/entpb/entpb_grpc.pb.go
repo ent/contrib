@@ -706,6 +706,236 @@ var NilExampleService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "entpb/entpb.proto",
 }
 
+// PetServiceClient is the client API for PetService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PetServiceClient interface {
+	Create(ctx context.Context, in *CreatePetRequest, opts ...grpc.CallOption) (*Pet, error)
+	Get(ctx context.Context, in *GetPetRequest, opts ...grpc.CallOption) (*Pet, error)
+	Update(ctx context.Context, in *UpdatePetRequest, opts ...grpc.CallOption) (*Pet, error)
+	Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	List(ctx context.Context, in *ListPetRequest, opts ...grpc.CallOption) (*ListPetResponse, error)
+}
+
+type petServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPetServiceClient(cc grpc.ClientConnInterface) PetServiceClient {
+	return &petServiceClient{cc}
+}
+
+func (c *petServiceClient) Create(ctx context.Context, in *CreatePetRequest, opts ...grpc.CallOption) (*Pet, error) {
+	out := new(Pet)
+	err := c.cc.Invoke(ctx, "/entpb.PetService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *petServiceClient) Get(ctx context.Context, in *GetPetRequest, opts ...grpc.CallOption) (*Pet, error) {
+	out := new(Pet)
+	err := c.cc.Invoke(ctx, "/entpb.PetService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *petServiceClient) Update(ctx context.Context, in *UpdatePetRequest, opts ...grpc.CallOption) (*Pet, error) {
+	out := new(Pet)
+	err := c.cc.Invoke(ctx, "/entpb.PetService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *petServiceClient) Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/entpb.PetService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *petServiceClient) List(ctx context.Context, in *ListPetRequest, opts ...grpc.CallOption) (*ListPetResponse, error) {
+	out := new(ListPetResponse)
+	err := c.cc.Invoke(ctx, "/entpb.PetService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PetServiceServer is the server API for PetService service.
+// All implementations must embed UnimplementedPetServiceServer
+// for forward compatibility
+type PetServiceServer interface {
+	Create(context.Context, *CreatePetRequest) (*Pet, error)
+	Get(context.Context, *GetPetRequest) (*Pet, error)
+	Update(context.Context, *UpdatePetRequest) (*Pet, error)
+	Delete(context.Context, *DeletePetRequest) (*emptypb.Empty, error)
+	List(context.Context, *ListPetRequest) (*ListPetResponse, error)
+	mustEmbedUnimplementedPetServiceServer()
+}
+
+// UnimplementedPetServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPetServiceServer struct {
+}
+
+func (UnimplementedPetServiceServer) Create(context.Context, *CreatePetRequest) (*Pet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedPetServiceServer) Get(context.Context, *GetPetRequest) (*Pet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedPetServiceServer) Update(context.Context, *UpdatePetRequest) (*Pet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedPetServiceServer) Delete(context.Context, *DeletePetRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedPetServiceServer) List(context.Context, *ListPetRequest) (*ListPetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedPetServiceServer) mustEmbedUnimplementedPetServiceServer() {}
+
+// UnsafePetServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PetServiceServer will
+// result in compilation errors.
+type UnsafePetServiceServer interface {
+	mustEmbedUnimplementedPetServiceServer()
+}
+
+func RegisterPetServiceServer(s grpc.ServiceRegistrar, srv PetServiceServer) {
+	s.RegisterService(&PetService_ServiceDesc, srv)
+}
+
+func _PetService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PetServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PetService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PetServiceServer).Create(ctx, req.(*CreatePetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PetService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PetServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PetService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PetServiceServer).Get(ctx, req.(*GetPetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PetService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PetServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PetService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PetServiceServer).Update(ctx, req.(*UpdatePetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PetService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PetServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PetService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PetServiceServer).Delete(ctx, req.(*DeletePetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PetService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PetServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PetService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PetServiceServer).List(ctx, req.(*ListPetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PetService_ServiceDesc is the grpc.ServiceDesc for PetService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PetService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.PetService",
+	HandlerType: (*PetServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _PetService_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _PetService_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _PetService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _PetService_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _PetService_List_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "entpb/entpb.proto",
+}
+
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
