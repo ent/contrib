@@ -33,9 +33,9 @@
     {{- end }}
     {{- range .G.FieldMap.Edges }}
         {{- if .EntEdge.Unique }}
-            {{- $varName := camel (print $reqVar  "_"  .EntEdge.Name) -}}
-            {{- $id := print $reqVar ".Get" .PbStructField "().Get" .EdgeIDPbStructField "()" }}
-            {{- $other := print $reqVar ".Get" .PbStructField "()" }}
+            {{- $varName := camel (printf "%s_%s" $reqVar .EntEdge.Name) -}}
+            {{- $id := printf "%s.Get%s().Get%s()" $reqVar .PbStructField .EdgeIDPbStructField  }}
+            {{- $other := printf "%s.Get%s()" $reqVar .PbStructField }}
             if {{ $other }} != nil {
                 {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
                 m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
@@ -43,7 +43,7 @@
         {{- else }}
             for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
                 {{- $varName  := camel .EntEdge.StructField }}
-                {{- $id := print "item.Get" .EdgeIDPbStructField "()"}}
+                {{- $id := printf "item.Get%s()" .EdgeIDPbStructField }}
                 {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
                 m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
             }
