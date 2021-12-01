@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jhump/protoreflect v1.10.1
 	github.com/mattn/go-sqlite3 v1.14.9
-	github.com/mitchellh/mapstructure v1.4.2
+	github.com/mitchellh/mapstructure v1.4.3
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.7.0
@@ -31,7 +31,6 @@ require (
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
