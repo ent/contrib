@@ -287,11 +287,11 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 					*noder = node
 				}
 			}
+			return noders, nil
 	{{- end }}
 	default:
 		return nil, fmt.Errorf("cannot resolve noders from table %q: %w", table, errNodeInvalidID)
 	}
-	return noders, nil
 }
 
 {{ if $idType.Numeric }}
