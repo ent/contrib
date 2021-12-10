@@ -27,7 +27,7 @@ type (
 		Edges Edges
 	}
 	Edges []*Edge
-	// A step when traversing the schema graph.
+	// A step when traversing the ogenSchema graph.
 	step struct {
 		from *gen.Type
 		over *gen.Edge

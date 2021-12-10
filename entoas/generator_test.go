@@ -21,61 +21,72 @@ import (
 	"net/url"
 	"testing"
 
-	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/entc/load"
 	entfield "entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/ogen-go/ogen"
 	"github.com/stretchr/testify/require"
 )
 
-func TestOASType(t *testing.T) {
+func TestOgenSchema(t *testing.T) {
 	t.Parallel()
-	for d, ex := range map[*entfield.Descriptor]*spec.Type{
+	for d, ex := range map[*entfield.Descriptor]*ogen.Schema{
 		// Numeric
-		entfield.Int("int").Descriptor():         _int32,
-		entfield.Int8("int8").Descriptor():       _int32,
-		entfield.Int16("int16").Descriptor():     _int32,
-		entfield.Int32("int32").Descriptor():     _int32,
-		entfield.Int64("int64").Descriptor():     _int64,
-		entfield.Uint("uint").Descriptor():       _int32,
-		entfield.Uint8("uint8").Descriptor():     _int32,
-		entfield.Uint16("uint16").Descriptor():   _int32,
-		entfield.Uint32("uint32").Descriptor():   _int32,
-		entfield.Uint64("uint64").Descriptor():   _int64,
-		entfield.Float32("float32").Descriptor(): _float,
-		entfield.Float("float64").Descriptor():   _double,
+		entfield.Int("int").Descriptor():         ogen.Int32(),
+		entfield.Int8("int8").Descriptor():       ogen.Int32(),
+		entfield.Int16("int16").Descriptor():     ogen.Int32(),
+		entfield.Int32("int32").Descriptor():     ogen.Int32(),
+		entfield.Int64("int64").Descriptor():     ogen.Int64(),
+		entfield.Uint("uint").Descriptor():       ogen.Int32(),
+		entfield.Uint8("uint8").Descriptor():     ogen.Int32(),
+		entfield.Uint16("uint16").Descriptor():   ogen.Int32(),
+		entfield.Uint32("uint32").Descriptor():   ogen.Int32(),
+		entfield.Uint64("uint64").Descriptor():   ogen.Int64(),
+		entfield.Float32("float32").Descriptor(): ogen.Float(),
+		entfield.Float("float64").Descriptor():   ogen.Double(),
 		// Basic
-		entfield.String("string").Descriptor():                  _string,
-		entfield.Bool("bool").Descriptor():                      _bool,
-		entfield.UUID("uuid", uuid.Nil).Descriptor():            _string,
-		entfield.Time("time").Descriptor():                      _dateTime,
-		entfield.Text("text").Descriptor():                      _string,
-		entfield.Enum("state").Values("on", "off").Descriptor(): _string,
+		entfield.String("string").Descriptor():       ogen.String(),
+		entfield.Bool("bool").Descriptor():           ogen.Bool(),
+		entfield.UUID("uuid", uuid.Nil).Descriptor(): ogen.String(),
+		entfield.Time("time").Descriptor():           ogen.DateTime(),
+		entfield.Text("text").Descriptor():           ogen.String(),
+		// entfield.Enum("state"). TODO: re-enable after https://github.com/ent/ent/pull/2211
+		// 	Values("on", "off").
+		// 	Descriptor(): ogen.String().AsEnum(nil, json.RawMessage("on"), json.RawMessage("off")),
 		// List
-		entfield.Strings("strings").Descriptor(): arr(_string),
-		entfield.Ints("ints").Descriptor():       arr(_int32),
-		entfield.Floats("floats").Descriptor():   arr(_double),
-		entfield.Bytes("bytes").Descriptor():     _bytes,
+		entfield.Strings("strings").Descriptor(): ogen.String().AsArray(),
+		entfield.Ints("ints").Descriptor():       ogen.Int32().AsArray(),
+		entfield.Floats("floats").Descriptor():   ogen.Double().AsArray(),
+		entfield.Bytes("bytes").Descriptor():     ogen.Bytes(),
 		// Custom
-		entfield.JSON("nicknames", []string{}).Descriptor(): arr(_string),
+		entfield.JSON("nicknames", []string{}).Descriptor(): ogen.String().AsArray(),
 		entfield.JSON("json_slice", []http.Dir{}).
-			Annotations(OASType(arr(_string))).Descriptor(): arr(_string),
+			Annotations(Schema(ogen.String().AsArray())).Descriptor(): ogen.String().AsArray(),
 		entfield.JSON("json_obj", url.URL{}).
-			Annotations(OASType(_string)).Descriptor(): _string,
+			Annotations(Schema(ogen.String())).Descriptor(): ogen.String(),
 		entfield.Other("other", &Link{}).
 			SchemaType(map[string]string{dialect.Postgres: "varchar"}).
 			Default(DefaultLink()).
-			Annotations(OASType(_string)).
-			Descriptor(): _string,
+			Annotations(Schema(ogen.String())).
+			Descriptor(): ogen.String(),
 	} {
 		t.Run(d.Name, func(t *testing.T) {
 			f, err := load.NewField(d)
 			require.NoError(t, err)
-			gf := &gen.Field{Name: f.Name, Type: f.Info, Annotations: f.Annotations}
-			ac, err := oasType(gf)
-			if ex == _empty {
+			ens := make([]gen.Enum, len(f.Enums))
+			for i, e := range f.Enums {
+				ens[i] = gen.Enum{Name: e.N, Value: e.V}
+			}
+			gf := &gen.Field{
+				Name:        f.Name,
+				Type:        f.Info,
+				Annotations: f.Annotations,
+				Enums:       ens,
+			}
+			ac, err := ogenSchema(gf)
+			if ex == nil {
 				require.Error(t, err)
 				require.EqualError(t, err, fmt.Sprintf(
 					"no OAS-type exists for type %q of field %s",
@@ -129,5 +140,3 @@ func (l Link) Value() (driver.Value, error) {
 	}
 	return l.String(), nil
 }
-
-func arr(t *spec.Type) *spec.Type { return &spec.Type{Type: "array", Items: t} }

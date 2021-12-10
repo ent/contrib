@@ -18,9 +18,9 @@ import (
 	"encoding/json"
 
 	"entgo.io/contrib/entoas/serialization"
-	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
+	"github.com/ogen-go/ogen"
 )
 
 type (
@@ -28,10 +28,10 @@ type (
 	Annotation struct {
 		// Groups holds the serialization groups to use on this field / edge.
 		Groups serialization.Groups
-		// OpenAPI Specification example value for a schema field.
+		// OpenAPI Specification example value for a ogenSchema field.
 		Example interface{}
-		// OpenAPI Specification type to use for a schema field.
-		OASType *spec.Type
+		// OpenAPI Specification ogenSchema to use for a ogenSchema field.
+		Schema *ogen.Schema
 		// Create has meta information about a creation operation.
 		Create OperationConfig
 		// Read has meta information about a read operation.
@@ -70,8 +70,8 @@ func OperationPolicy(p Policy) OperationConfigOption {
 // Example returns an example annotation.
 func Example(v interface{}) Annotation { return Annotation{Example: v} }
 
-// OASType returns an OASType annotation.
-func OASType(t *spec.Type) Annotation { return Annotation{OASType: t} }
+// Schema returns a Schema annotation.
+func Schema(s *ogen.Schema) Annotation { return Annotation{Schema: s} }
 
 // CreateOperation returns a create operation annotation.
 func CreateOperation(opts ...OperationConfigOption) Annotation {
@@ -125,8 +125,8 @@ func (a Annotation) Merge(o schema.Annotation) schema.Annotation {
 	if ant.Example != nil {
 		a.Example = ant.Example
 	}
-	if ant.OASType != nil {
-		a.OASType = ant.OASType
+	if ant.Schema != nil {
+		a.Schema = ant.Schema
 	}
 	a.Create.merge(ant.Create)
 	a.Read.merge(ant.Read)

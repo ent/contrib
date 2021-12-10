@@ -37,7 +37,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 		if err != nil {
 			return nil, err
 		}
-		// For every operation add a schema to use.
+		// For every operation add a ogenSchema to use.
 		for _, op := range ops {
 			// Skip the delete operation (of course).
 			if op == OpDelete {
@@ -80,7 +80,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 			if err != nil {
 				return nil, err
 			}
-			// For every operation add a schema to use.
+			// For every operation add a ogenSchema to use.
 			for _, op := range ops {
 				// Skip the delete operation (of course).
 				if op == OpDelete {
