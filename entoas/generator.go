@@ -15,7 +15,7 @@
 package entoas
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/entc/gen"
 	"github.com/go-openapi/inflect"
+	"github.com/ogen-go/ogen"
 	"github.com/stoewer/go-strcase"
 )
 
@@ -37,11 +38,12 @@ const (
 	OpList   Operation = "list"
 )
 
-func generate(g *gen.Graph, spec *spec.Spec) error {
+func generate(g *gen.Graph, spec *ogen.Spec) error {
 	// Add all schemas.
 	if err := schemas(g, spec); err != nil {
 		return err
 	}
+	return nil
 	// Add error responses.
 	errorResponses(spec)
 	// Add all paths.
@@ -49,77 +51,76 @@ func generate(g *gen.Graph, spec *spec.Spec) error {
 }
 
 // schemas adds schemas for every node to the spec.
-func schemas(g *gen.Graph, s *spec.Spec) error {
+func schemas(g *gen.Graph, spec *ogen.Spec) error {
 	// Loop over every defined node and add it to the spec.
 	for _, n := range g.Nodes {
-		// Create the schema.
-		s.Components.Schemas[n.Name] = &spec.Schema{
-			Name:   n.Name,
-			Fields: make(spec.Fields, len(n.Fields)+1),
-			Edges:  make(spec.Edges, len(n.Edges)),
-		}
-		// Add all fields and the ID.
+		s := ogen.NewSchema()
 		for _, f := range append([]*gen.Field{n.ID}, n.Fields...) {
-			sf, err := field(f)
+			p, err := property(f)
 			if err != nil {
 				return err
 			}
-			s.Components.Schemas[n.Name].Fields[f.Name] = sf
-		}
-	}
-	// Loop over every node once more to add the edges.
-	for _, n := range g.Nodes {
-		for _, e := range n.Edges {
-			s.Components.Schemas[n.Name].Edges[e.Name] = &spec.Edge{
-				Ref:    s.Components.Schemas[e.Type.Name],
-				Unique: e.Unique,
+			if f.Optional {
+				s.AddOptionalProperties(p)
+			} else {
+				s.AddRequiredProperties(p)
 			}
 		}
+		spec.AddSchema(n.Name, s)
 	}
-	// If the SimpleModels feature is enabled to not generate a schema per response.
-	cfg, err := GetConfig(g.Config)
-	if err != nil {
-		return err
-	}
-	if !cfg.SimpleModels {
-		// Add all the views for the paths to the schemas.
-		vs, err := Views(g)
-		if err != nil {
-			return err
-		}
-		for n, v := range vs {
-			// Create the schema.
-			s.Components.Schemas[n] = &spec.Schema{
-				Name:   n,
-				Fields: make(spec.Fields, len(v.Fields)),
-				Edges:  make(spec.Edges, len(v.Edges)),
-			}
-			// Add all fields (ID is already part of them).
-			for _, f := range v.Fields {
-				sf, err := field(f)
-				if err != nil {
-					return err
-				}
-				s.Components.Schemas[n].Fields[f.Name] = sf
-			}
-		}
-		// Loop over every view once more to add the edges.
-		for n, v := range vs {
-			for _, e := range v.Edges {
-				vn, err := viewNameEdge(strings.Split(n, "_")[0], e)
-				if err != nil {
-					return err
-				}
-				if _, ok := s.Components.Schemas[vn]; !ok {
-					return fmt.Errorf("entoas: view %q does not exist", vn)
-				}
-				s.Components.Schemas[n].Edges[e.Name] = &spec.Edge{
-					Ref:    s.Components.Schemas[vn],
-					Unique: e.Unique,
-				}
-			}
-		}
-	}
+	// // Loop over every node once more to add the edges.
+	// for _, n := range g.Nodes {
+	// 	for _, e := range n.Edges {
+	// 		spec.Components.Schemas[n.Name].Edges[e.Name] = &spec.Edge{
+	// 			Ref:    spec.Components.Schemas[e.Type.Name],
+	// 			Unique: e.Unique,
+	// 		}
+	// 	}
+	// }
+	// // If the SimpleModels feature is enabled to not generate a ogenSchema per response.
+	// cfg, err := GetConfig(g.Config)
+	// if err != nil {
+	// 	return err
+	// }
+	// if !cfg.SimpleModels {
+	// 	// Add all the views for the paths to the schemas.
+	// 	vs, err := Views(g)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	for n, v := range vs {
+	// 		// Create the ogenSchema.
+	// 		spec.Components.Schemas[n] = &spec.Schema{
+	// 			Name:   n,
+	// 			Fields: make(spec.Fields, len(v.Fields)),
+	// 			Edges:  make(spec.Edges, len(v.Edges)),
+	// 		}
+	// 		// Add all fields (ID is already part of them).
+	// 		for _, f := range v.Fields {
+	// 			sf, err := field(f)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			spec.Components.Schemas[n].Fields[f.Name] = sf
+	// 		}
+	// 	}
+	// 	// Loop over every view once more to add the edges.
+	// 	for n, v := range vs {
+	// 		for _, e := range v.Edges {
+	// 			vn, err := viewNameEdge(strings.Split(n, "_")[0], e)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			if _, ok := spec.Components.Schemas[vn]; !ok {
+	// 				return fmt.Errorf("entoas: view %q does not exist", vn)
+	// 			}
+	// 			spec.Components.Schemas[n].Edges[e.Name] = &spec.Edge{
+	// 				Ref:    spec.Components.Schemas[vn],
+	// 				Unique: e.Unique,
+	// 			}
+	// 		}
+	// 	}
+	// }
 	return nil
 }
 
@@ -567,7 +568,72 @@ func listEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error)
 	return op, nil
 }
 
-// field created a spec schema field from an ent schema field.
+// property creates an ogen.Property out of an ent ogenSchema field.
+func property(f *gen.Field) (*ogen.Property, error) {
+	s, err := ogenSchema(f)
+	if err != nil {
+		return nil, err
+	}
+	return ogen.NewProperty().SetName(f.Name).SetSchema(s), nil
+}
+
+var _types = map[string]*ogen.Schema{
+	"bool":      ogen.Bool(),
+	"time.Time": ogen.DateTime(),
+	"string":    ogen.String(),
+	"[]byte":    ogen.Bytes(),
+	"uuid.UUID": ogen.String(),
+	"int":       ogen.Int32(),
+	"int8":      ogen.Int32(),
+	"int16":     ogen.Int32(),
+	"int32":     ogen.Int32(),
+	"uint":      ogen.Int32(),
+	"uint8":     ogen.Int32(),
+	"uint16":    ogen.Int32(),
+	"uint32":    ogen.Int32(),
+	"int64":     ogen.Int64(),
+	"uint64":    ogen.Int64(),
+	"float32":   ogen.Float(),
+	"float64":   ogen.Double(),
+}
+
+// ogenSchema returns the ogen.Schema to use for the given gen.Field.
+func ogenSchema(f *gen.Field) (*ogen.Schema, error) {
+	// If there is a custom property given on the field use it.
+	ant, err := FieldAnnotation(f)
+	if err != nil {
+		return nil, err
+	}
+	if ant.Schema != nil {
+		return ant.Schema, nil
+	}
+	// Enum values need special case.
+	if f.IsEnum() {
+		var d json.RawMessage
+		if f.Default {
+			d = json.RawMessage((f.DefaultValue()).(string))
+		}
+		vs := make([]json.RawMessage, len(f.EnumValues()))
+		for i, v := range f.EnumValues() {
+			vs[i] = json.RawMessage(v)
+		}
+		return ogen.String().AsEnum(d, vs...), nil
+	}
+	s := f.Type.String()
+	// Handle slice types.
+	if strings.HasPrefix(s, "[]") {
+		if t, ok := _types[s[2:]]; ok {
+			return t.AsArray(), nil
+		}
+	}
+	t, ok := _types[s]
+	if !ok {
+		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
+	}
+	return t, nil
+}
+
+// field created a spec ogenSchema field from an ent ogenSchema field.
 func field(f *gen.Field) (*spec.Field, error) {
 	t, err := oasType(f)
 	if err != nil {
@@ -705,65 +771,6 @@ func reqBody(n *gen.Type, op Operation) (*spec.RequestBody, error) {
 		},
 	}
 	return req, nil
-}
-
-var (
-	_empty    = &spec.Type{}
-	_int32    = &spec.Type{Type: "integer", Format: "int32"}
-	_int64    = &spec.Type{Type: "integer", Format: "int64"}
-	_float    = &spec.Type{Type: "number", Format: "float"}
-	_double   = &spec.Type{Type: "number", Format: "double"}
-	_string   = &spec.Type{Type: "string"}
-	_bytes    = &spec.Type{Type: "string", Format: "byte"}
-	_bool     = &spec.Type{Type: "boolean"}
-	_dateTime = &spec.Type{Type: "string", Format: "date-time"}
-	_types    = map[string]*spec.Type{
-		"bool":      _bool,
-		"time.Time": _dateTime,
-		"enum":      _string,
-		"string":    _string,
-		"[]byte":    _bytes,
-		"uuid.UUID": _string,
-		"int":       _int32,
-		"int8":      _int32,
-		"int16":     _int32,
-		"int32":     _int32,
-		"uint":      _int32,
-		"uint8":     _int32,
-		"uint16":    _int32,
-		"uint32":    _int32,
-		"int64":     _int64,
-		"uint64":    _int64,
-		"float32":   _float,
-		"float64":   _double,
-	}
-)
-
-// oasType returns the OAS primitive tye (if any) for the given ent schema field.
-func oasType(f *gen.Field) (*spec.Type, error) {
-	// If there is a custom type given on the field use it.
-	ant, err := FieldAnnotation(f)
-	if err != nil {
-		return nil, err
-	}
-	if ant.OASType != nil {
-		return ant.OASType, nil
-	}
-	if f.IsEnum() {
-		return _string, nil
-	}
-	s := f.Type.String()
-	// Handle slice types.
-	if strings.HasPrefix(s, "[]") {
-		if t, ok := _types[s[2:]]; ok {
-			return &spec.Type{Type: "array", Items: t}, nil
-		}
-	}
-	t, ok := _types[s]
-	if !ok {
-		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
-	}
-	return t, nil
 }
 
 // exampleValue returns the user defined example value for the ent schema field.
