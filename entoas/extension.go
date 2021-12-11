@@ -124,6 +124,7 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 		}
 		// Spec stub to fill.
 		spec := ogen.NewSpec().
+			SetOpenAPI("3.0.3").
 			SetInfo(ogen.NewInfo().
 				SetTitle("Ent Schema API").
 				SetDescription("This is an auto generated API description made out of an Ent schema definition").
