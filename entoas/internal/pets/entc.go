@@ -28,11 +28,10 @@ import (
 
 func main() {
 	ex, err := entoas.NewExtension(
-		entoas.Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
+		entoas.Modify(func(spec *ogen.Spec) {
 			spec.Info.SetTitle("My Pets API").
 				SetDescription("Awesome, Mega Cool API to manage Ariel's Pet Leopards!").
 				SetVersion("0.0.1")
-			return nil
 		}),
 	)
 	if err != nil {

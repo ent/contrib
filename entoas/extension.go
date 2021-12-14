@@ -97,6 +97,14 @@ func Mutations(ms ...MutateFunc) ExtensionOption {
 	}
 }
 
+// Modify calls the closure on the generated OAS document.
+func Modify(m func(*ogen.Spec)) ExtensionOption {
+	return Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
+		m(spec)
+		return nil
+	})
+}
+
 // SimpleModels enables the simple model generation feature.
 //
 // Further information can be found at Config.SimpleModels.
