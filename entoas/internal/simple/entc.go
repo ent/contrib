@@ -29,10 +29,11 @@ import (
 func main() {
 	ex, err := entoas.NewExtension(
 		entoas.SimpleModels(),
-		entoas.ModifySpec(func(spec *ogen.Spec) {
+		entoas.Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
 			spec.Info.SetTitle("My Simple API").
 				SetDescription("API to demonstrate **simple model** generation.").
 				SetVersion("0.0.1")
+			return nil
 		}),
 	)
 	if err != nil {
