@@ -40,7 +40,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryList"
+                  }
                 }
               }
             }
@@ -293,7 +296,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Category_PetsList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category_PetsList"
+                  }
                 }
               }
             }
@@ -406,7 +412,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PetList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PetList"
+                  }
                 }
               }
             }
@@ -701,7 +710,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pet_CategoriesList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pet_CategoriesList"
+                  }
                 }
               }
             }
@@ -845,7 +857,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pet_FriendsList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pet_FriendsList"
+                  }
                 }
               }
             }
@@ -1139,7 +1154,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserList"
+                  }
                 }
               }
             }
@@ -1402,7 +1420,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User_PetsList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User_PetsList"
+                  }
                 }
               }
             }

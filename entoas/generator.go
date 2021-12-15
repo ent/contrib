@@ -507,7 +507,7 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			strconv.Itoa(http.StatusOK),
 			ogen.NewResponse().
 				SetDescription(fmt.Sprintf("result %s list", n.Name)).
-				SetJSONContent(spec.RefSchema(vn).Schema),
+				SetJSONContent(spec.RefSchema(vn).Schema.AsArray()),
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
@@ -552,7 +552,7 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 			strconv.Itoa(http.StatusOK),
 			ogen.NewResponse().
 				SetDescription(fmt.Sprintf("result %s list", rules.Pluralize(strcase.UpperCamelCase(n.Name)))).
-				SetJSONContent(spec.RefSchema(vn).Schema),
+				SetJSONContent(spec.RefSchema(vn).Schema.AsArray()),
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),

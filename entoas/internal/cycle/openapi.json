@@ -40,7 +40,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserList"
+                  }
                 }
               }
             }
@@ -331,7 +334,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User_ChildrenList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User_ChildrenList"
+                  }
                 }
               }
             }
@@ -473,7 +479,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User_FollowersList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User_FollowersList"
+                  }
                 }
               }
             }
@@ -615,7 +624,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User_FollowingList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User_FollowingList"
+                  }
                 }
               }
             }
@@ -757,7 +769,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User_FriendsList"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User_FriendsList"
+                  }
                 }
               }
             }
