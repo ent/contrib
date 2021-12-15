@@ -38,6 +38,6 @@ func TestExtension(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.Equal(t, ex.config.DefaultPolicy, PolicyExpose)
-	require.Len(t, ex.mutations, 4)
+	require.Len(t, ex.mutations, 1)
 	require.Equal(t, ex.out, os.Stdout)
 }
