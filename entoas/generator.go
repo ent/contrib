@@ -16,6 +16,7 @@ package entoas
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -212,42 +213,42 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 				return err
 			}
 		}
-		// // Sub-Resource operations.
-		// for _, e := range n.Edges {
-		// 	subRoot := root + "/{id}/" + strcase.KebabCase(e.Name)
-		// 	ops, err := EdgeOperations(e)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	// Create operation.
-		// 	if contains(ops, OpCreate) {
-		// 		path(spec, subRoot).Post, err = createEdgeOp(spec, n, e)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 	}
-		// 	// Read operation.
-		// 	if contains(ops, OpRead) {
-		// 		path(spec, subRoot).Get, err = readEdgeOp(spec, n, e)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 	}
-		// 	// Delete operation.
-		// 	if contains(ops, OpDelete) {
-		// 		path(spec, subRoot).Delete, err = deleteEdgeOp(spec, n, e)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 	}
-		// 	// List operation.
-		// 	if contains(ops, OpList) {
-		// 		path(spec, subRoot).Get, err = listEdgeOp(spec, n, e)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 	}
-		// }
+		// Sub-Resource operations.
+		for _, e := range n.Edges {
+			subRoot := root + "/{id}/" + strcase.KebabCase(e.Name)
+			ops, err := EdgeOperations(e)
+			if err != nil {
+				return err
+			}
+			// Create operation.
+			if contains(ops, OpCreate) {
+				path(spec, subRoot).Post, err = createEdgeOp(spec, n, e)
+				if err != nil {
+					return err
+				}
+			}
+			// Read operation.
+			if contains(ops, OpRead) {
+				path(spec, subRoot).Get, err = readEdgeOp(spec, n, e)
+				if err != nil {
+					return err
+				}
+			}
+			// Delete operation.
+			if contains(ops, OpDelete) {
+				path(spec, subRoot).Delete, err = deleteEdgeOp(spec, n, e)
+				if err != nil {
+					return err
+				}
+			}
+			// List operation.
+			if contains(ops, OpList) {
+				path(spec, subRoot).Get, err = listEdgeOp(spec, n, e)
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -292,32 +293,39 @@ func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	return op, nil
 }
 
-// // createEdgeOp returns the spec description for a create operation on a subresource.
-// func createEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
-// 	// Create a basic create operation as if this was a first level operation.
-// 	op, err := createOp(s, e.Type)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// But now alter the fields required to make this a second level operation.
-// 	op.Summary = fmt.Sprintf("Create a new %s and attach it to the %s", e.Type.Name, n.Name)
-// 	op.Description = fmt.Sprintf("Creates a new %s and attaches it to the %s", e.Type.Name, n.Name)
-// 	op.Tags = []string{n.Name}
-// 	op.OperationID = string(OpCreate) + n.Name + strcase.UpperCamelCase(e.Name)
-// 	rp := op.Responses[strconv.Itoa(http.StatusOK)].Response
-// 	rp.Description = fmt.Sprintf("%s created and attached to the %s", e.Type.Name, n.Name)
-// 	vn, err := edgeViewName(n, e, OpCreate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	rp.Content[spec.JSON].Ref = s.Components.Schemas[vn]
-// 	id, err := pathParam(n)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	op.Parameters = []*spec.Parameter{id}
-// 	return op, nil
-// }
+// createEdgeOp returns the spec description for a create operation on a subresource.
+func createEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, error) {
+	id, err := pathParam(n)
+	if err != nil {
+		return nil, err
+	}
+	req, err := reqBody(n, OpCreate)
+	if err != nil {
+		return nil, err
+	}
+	vn, err := edgeViewName(n, e, OpCreate)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("Create a new %s and attach it to the %s", e.Type.Name, n.Name)).
+		SetDescription(fmt.Sprintf("Creates a new %s and attaches it to the %s", e.Type.Name, n.Name)).
+		AddTags(n.Name).
+		SetOperationID(string(OpCreate)+n.Name+strcase.UpperCamelCase(e.Name)).
+		SetRequestBody(req).
+		AddParameters(id).
+		AddResponse(
+			strconv.Itoa(http.StatusOK),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("%s created and attached to the %s", e.Type.Name, n.Name)).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
 
 // readOp returns an ogen.Operation for a read operation on the given node.
 func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
@@ -349,35 +357,38 @@ func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	return op, nil
 }
 
-// // readEdgeOp returns the spec description for a read operation on a subresource.
-// func readEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
-// 	if !e.Unique {
-// 		return nil, errors.New("read operations are not allowed on non unique edges")
-// 	}
-// 	// Create a basic read operation as if this was a first level operation.
-// 	op, err := readOp(s, e.Type)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// But now alter the fields required to make this a second level operation.
-// 	op.Summary = fmt.Sprintf("Find the attached %s", e.Type.Name)
-// 	op.Description = fmt.Sprintf("Find the attached %s of the %s with the given ID", e.Type.Name, n.Name)
-// 	op.Tags = []string{n.Name}
-// 	op.OperationID = string(OpRead) + n.Name + strcase.UpperCamelCase(e.Name)
-// 	rp := op.Responses[strconv.Itoa(http.StatusOK)].Response
-// 	rp.Description = fmt.Sprintf("%s attached to %s with requested ID was found", e.Type.Name, n.Name)
-// 	vn, err := edgeViewName(n, e, OpRead)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	rp.Content[spec.JSON].Ref = s.Components.Schemas[vn]
-// 	id, err := pathParam(n)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	op.Parameters = []*spec.Parameter{id}
-// 	return op, nil
-// }
+// readEdgeOp returns the spec description for a read operation on a subresource.
+func readEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, error) {
+	if !e.Unique {
+		return nil, errors.New("read operations are not allowed on non unique edges")
+	}
+	id, err := pathParam(n)
+	if err != nil {
+		return nil, err
+	}
+	vn, err := edgeViewName(n, e, OpRead)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("Find the attached %s", e.Type.Name)).
+		SetDescription(fmt.Sprintf("Find the attached %s of the %s with the given ID", e.Type.Name, n.Name)).
+		AddTags(n.Name).
+		SetOperationID(string(OpRead)+n.Name+strcase.UpperCamelCase(e.Name)).
+		AddParameters(id).
+		AddResponse(
+			strconv.Itoa(http.StatusOK),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("%s attached to %s with requested ID was found", e.Type.Name, n.Name)).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
 
 // updateOp returns a spec.OperationConfig for an update operation on the given node.
 func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
@@ -439,33 +450,35 @@ func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	return op, nil
 }
 
-// // deleteEdgeOp returns the spec description for a delete operation on a subresource.
-// func deleteEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
-// 	if !e.Unique {
-// 		return nil, errors.New("delete operations are not allowed on non unique edges")
-// 	}
-// 	// Create a basic delete operation as if this was a first level operation.
-// 	op, err := deleteOp(s, e.Type)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// But now alter the fields required to make this a second level operation.
-// 	op.Summary = fmt.Sprintf("Delete the attached %s", strcase.UpperCamelCase(e.Name))
-// 	op.Description = fmt.Sprintf(
-// 		"Delete the attached %s of the %s with the given ID", strcase.UpperCamelCase(e.Name), n.Name,
-// 	)
-// 	op.Tags = []string{n.Name}
-// 	op.OperationID = string(OpDelete) + n.Name + strcase.UpperCamelCase(e.Name)
-// 	op.Responses[strconv.Itoa(http.StatusNoContent)].Response.Description = fmt.Sprintf(
-// 		"%s with requested ID was deleted", strcase.UpperCamelCase(e.Name),
-// 	)
-// 	id, err := pathParam(n)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	op.Parameters = []*spec.Parameter{id}
-// 	return op, nil
-// }
+// deleteEdgeOp returns the spec description for a delete operation on a subresource.
+func deleteEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, error) {
+	if !e.Unique {
+		return nil, errors.New("delete operations are not allowed on non unique edges")
+	}
+	id, err := pathParam(n)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("Delete the attached %s", strcase.UpperCamelCase(e.Name))).
+		SetDescription(
+			fmt.Sprintf("Delete the attached %s of the %s with the given ID", strcase.UpperCamelCase(e.Name), n.Name),
+		).
+		AddTags(n.Name).
+		SetOperationID(string(OpDelete)+n.Name+strcase.UpperCamelCase(e.Name)).
+		AddParameters(id).
+		AddResponse(
+			strconv.Itoa(http.StatusNoContent),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("%s with requested ID was deleted", strcase.UpperCamelCase(e.Name))),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
 
 // listOp returns a spec.OperationConfig for a list operation on the given node.
 func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
@@ -504,36 +517,50 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	return op, nil
 }
 
-// // listEdgeOp returns the spec description for a read operation on a subresource.
-// func listEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
-// 	if e.Unique {
-// 		return nil, errors.New("list operations are not allowed on unique edges")
-// 	}
-// 	// Create a basic read operation as if this was a first level operation.
-// 	op, err := listOp(s, e.Type)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// But now alter the fields required to make this a second level operation.
-// 	op.Summary = fmt.Sprintf("List attached %s", rules.Pluralize(strcase.UpperCamelCase(e.Name)))
-// 	op.Description = fmt.Sprintf("List attached %s.", rules.Pluralize(strcase.UpperCamelCase(e.Name)))
-// 	op.Tags = []string{n.Name}
-// 	op.OperationID = string(OpList) + n.Name + strcase.UpperCamelCase(e.Name)
-// 	rp := op.Responses[strconv.Itoa(http.StatusOK)].Response
-// 	rp.Description = fmt.Sprintf("result %s list", rules.Pluralize(strcase.UpperCamelCase(n.Name)))
-// 	vn, err := edgeViewName(n, e, OpList)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	rp.Content[spec.JSON].Ref = s.Components.Schemas[vn]
-// 	id, err := pathParam(n)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	op.Parameters = []*spec.Parameter{id}
-// 	return op, nil
-// }
-//
+// listEdgeOp returns the spec description for a read operation on a subresource.
+func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, error) {
+	if e.Unique {
+		return nil, errors.New("list operations are not allowed on unique edges")
+	}
+	id, err := pathParam(n)
+	if err != nil {
+		return nil, err
+	}
+	vn, err := edgeViewName(n, e, OpList)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("List attached %s", rules.Pluralize(strcase.UpperCamelCase(e.Name)))).
+		SetDescription(fmt.Sprintf("List attached %s.", rules.Pluralize(strcase.UpperCamelCase(e.Name)))).
+		AddTags(n.Name).
+		SetOperationID(string(OpList)+n.Name+strcase.UpperCamelCase(e.Name)).
+		AddParameters( // TODO(masseelch): Add cursor based pagination to entoas and ogent.
+			id,
+			ogen.NewParameter().
+				InQuery().
+				SetName("page").
+				SetDescription("what page to render").
+				SetSchema(ogen.Int32()),
+			ogen.NewParameter().
+				InQuery().
+				SetName("itemsPerPage").
+				SetDescription("item count to render per page").
+				SetSchema(ogen.Int32()),
+		).
+		AddResponse(
+			strconv.Itoa(http.StatusOK),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("result %s list", rules.Pluralize(strcase.UpperCamelCase(n.Name)))).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
 
 // property creates an ogen.Property out of an ent schema field.
 func property(f *gen.Field) (*ogen.Property, error) {
