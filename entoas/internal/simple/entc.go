@@ -23,14 +23,18 @@ import (
 	"entgo.io/contrib/entoas"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"github.com/ogen-go/ogen"
 )
 
 func main() {
 	ex, err := entoas.NewExtension(
-		entoas.SpecTitle("My Simple API"),
-		entoas.SpecDescription("API to demonstrate **simple model** generation."),
-		entoas.SpecVersion("0.0.1"),
 		entoas.SimpleModels(),
+		entoas.Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
+			spec.Info.SetTitle("My Simple API").
+				SetDescription("API to demonstrate **simple model** generation.").
+				SetVersion("0.0.1")
+			return nil
+		}),
 	)
 	if err != nil {
 		log.Fatalf("creating entoas extension: %v", err)

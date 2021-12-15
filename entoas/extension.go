@@ -21,9 +21,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"github.com/ogen-go/ogen"
 )
 
 type (
@@ -54,7 +54,7 @@ type (
 	// ExtensionOption allows managing Extension configuration using functional arguments.
 	ExtensionOption func(*Extension) error
 	// MutateFunc defines a closure to be called on a generated spec.
-	MutateFunc func(*gen.Graph, *spec.Spec) error
+	MutateFunc func(*gen.Graph, *ogen.Spec) error
 )
 
 // NewExtension returns a new entoas extension with default values.
@@ -107,30 +107,6 @@ func SimpleModels() ExtensionOption {
 	}
 }
 
-// SpecTitle sets the title of the Info block.
-func SpecTitle(v string) ExtensionOption {
-	return Mutations(func(_ *gen.Graph, spec *spec.Spec) error {
-		spec.Info.Title = v
-		return nil
-	})
-}
-
-// SpecDescription sets the title of the Info block.
-func SpecDescription(v string) ExtensionOption {
-	return Mutations(func(_ *gen.Graph, spec *spec.Spec) error {
-		spec.Info.Description = v
-		return nil
-	})
-}
-
-// SpecVersion sets the version of the Info block.
-func SpecVersion(v string) ExtensionOption {
-	return Mutations(func(_ *gen.Graph, spec *spec.Spec) error {
-		spec.Info.Version = v
-		return nil
-	})
-}
-
 // WriteTo writes the current specs content to the given io.Writer.
 func WriteTo(out io.Writer) ExtensionOption {
 	return func(ex *Extension) error {
@@ -147,30 +123,25 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			return err
 		}
 		// Spec stub to fill.
-		s := &spec.Spec{
-			Info: &spec.Info{
-				Title:       "Ent Schema API",
-				Description: "This is an auto generated API description made out of an Ent schema definition",
-				Version:     "0.0.0",
-			},
-			Components: &spec.Components{
-				Schemas:    make(map[string]*spec.Schema),
-				Responses:  make(map[string]*spec.Response),
-				Parameters: make(map[string]*spec.Parameter),
-			},
-		}
+		spec := ogen.NewSpec().
+			SetOpenAPI("3.0.3").
+			SetInfo(ogen.NewInfo().
+				SetTitle("Ent Schema API").
+				SetDescription("This is an auto generated API description made out of an Ent schema definition").
+				SetVersion("0.1.0"),
+			)
 		// Run the generator.
-		if err := generate(g, s); err != nil {
+		if err := generate(g, spec); err != nil {
 			return err
 		}
 		// Run the user provided mutations.
 		for _, m := range ex.mutations {
-			if err := m(g, s); err != nil {
+			if err := m(g, spec); err != nil {
 				return err
 			}
 		}
 		// Dump the spec.
-		b, err := json.MarshalIndent(s, "", "  ")
+		b, err := json.MarshalIndent(spec, "", "  ")
 		if err != nil {
 			return err
 		}

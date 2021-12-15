@@ -18,8 +18,8 @@ import (
 	"os"
 	"testing"
 
-	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/entc/gen"
+	"github.com/ogen-go/ogen"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,10 +27,13 @@ func TestExtension(t *testing.T) {
 	t.Parallel()
 	ex, err := NewExtension(
 		DefaultPolicy(PolicyExpose),
-		Mutations(func(graph *gen.Graph, spec *spec.Spec) error { return nil }),
-		SpecTitle("Spec Title"),
-		SpecDescription("Spec Description"),
-		SpecVersion("Spec Version"),
+		Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
+			spec.Info.
+				SetTitle("Spec Title").
+				SetDescription("Spec Description").
+				SetVersion("Spec Version")
+			return nil
+		}),
 		WriteTo(os.Stdout),
 	)
 	require.NoError(t, err)
