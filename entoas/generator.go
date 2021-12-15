@@ -605,11 +605,17 @@ func ogenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if f.IsEnum() {
 		var d json.RawMessage
 		if f.Default {
-			d = json.RawMessage((f.DefaultValue()).(string))
+			d, err = json.Marshal(f.DefaultValue().(string))
+			if err != nil {
+				return nil, err
+			}
 		}
 		vs := make([]json.RawMessage, len(f.EnumValues()))
-		for i, v := range f.EnumValues() {
-			vs[i] = json.RawMessage(v)
+		for i, e := range f.EnumValues() {
+			vs[i], err = json.Marshal(e)
+			if err != nil {
+				return nil, err
+			}
 		}
 		return ogen.String().AsEnum(d, vs...), nil
 	}

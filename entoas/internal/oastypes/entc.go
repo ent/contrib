@@ -26,7 +26,7 @@ import (
 )
 
 func main() {
-	ex, err := entoas.NewExtension()
+	ex, err := entoas.NewExtension(entoas.SimpleModels())
 	if err != nil {
 		log.Fatalf("creating entoas extension: %v", err)
 	}
