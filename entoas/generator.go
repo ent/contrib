@@ -283,7 +283,7 @@ func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		AddResponse(
 			strconv.Itoa(http.StatusOK),
 			ogen.NewResponse().
-				SetDescription(fmt.Sprintf("%s with requested ID was found", n.Name)).
+				SetDescription(fmt.Sprintf("%s created", n.Name)).
 				SetJSONContent(spec.RefSchema(vn).Schema),
 		).
 		AddNamedResponses(
@@ -299,7 +299,7 @@ func createEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, e
 	if err != nil {
 		return nil, err
 	}
-	req, err := reqBody(n, OpCreate)
+	req, err := reqBody(e.Type, OpCreate)
 	if err != nil {
 		return nil, err
 	}

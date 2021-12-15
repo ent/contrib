@@ -111,7 +111,7 @@
         },
         "responses": {
           "200": {
-            "description": "User with requested ID was found",
+            "description": "User created",
             "content": {
               "application/json": {
                 "schema": {

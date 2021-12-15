@@ -92,7 +92,7 @@
         },
         "responses": {
           "200": {
-            "description": "Category with requested ID was found",
+            "description": "Category created",
             "content": {
               "application/json": {
                 "schema": {
@@ -335,7 +335,7 @@
           }
         ],
         "requestBody": {
-          "description": "Category to create",
+          "description": "Pet to create",
           "content": {
             "application/json": {
               "schema": {
@@ -343,7 +343,28 @@
                   "name": {
                     "type": "string"
                   },
-                  "pets": {
+                  "nicknames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "age": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "owner": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -485,7 +506,7 @@
         },
         "responses": {
           "200": {
-            "description": "Pet with requested ID was found",
+            "description": "Pet created",
             "content": {
               "application/json": {
                 "schema": {
@@ -749,7 +770,7 @@
           }
         ],
         "requestBody": {
-          "description": "Pet to create",
+          "description": "Category to create",
           "content": {
             "application/json": {
               "schema": {
@@ -757,28 +778,7 @@
                   "name": {
                     "type": "string"
                   },
-                  "nicknames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "age": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "categories": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "format": "int32"
-                    }
-                  },
-                  "owner": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "friends": {
+                  "pets": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -1022,7 +1022,7 @@
           }
         ],
         "requestBody": {
-          "description": "Pet to create",
+          "description": "User to create",
           "content": {
             "application/json": {
               "schema": {
@@ -1030,28 +1030,11 @@
                   "name": {
                     "type": "string"
                   },
-                  "nicknames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
                   "age": {
                     "type": "integer",
                     "format": "int32"
                   },
-                  "categories": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "format": "int32"
-                    }
-                  },
-                  "owner": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "friends": {
+                  "pets": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -1060,7 +1043,8 @@
                   }
                 },
                 "required": [
-                  "name"
+                  "name",
+                  "age"
                 ]
               }
             }
@@ -1211,7 +1195,7 @@
         },
         "responses": {
           "200": {
-            "description": "User with requested ID was found",
+            "description": "User created",
             "content": {
               "application/json": {
                 "schema": {
@@ -1459,7 +1443,7 @@
           }
         ],
         "requestBody": {
-          "description": "User to create",
+          "description": "Pet to create",
           "content": {
             "application/json": {
               "schema": {
@@ -1467,11 +1451,28 @@
                   "name": {
                     "type": "string"
                   },
+                  "nicknames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "age": {
                     "type": "integer",
                     "format": "int32"
                   },
-                  "pets": {
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "owner": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -1480,8 +1481,7 @@
                   }
                 },
                 "required": [
-                  "name",
-                  "age"
+                  "name"
                 ]
               }
             }
