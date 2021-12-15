@@ -36,11 +36,10 @@ require (
 	github.com/go-faster/jx v0.25.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/kr/pretty v0.2.1 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -49,6 +48,7 @@ require (
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
+	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/sys v0.0.0-20211113001501-0c823b97ae02 // indirect
