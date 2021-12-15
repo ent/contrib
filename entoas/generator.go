@@ -154,38 +154,14 @@ func errorResponses(s *ogen.Spec) {
 			strconv.Itoa(c),
 			ogen.NewResponse().
 				SetDescription(d).
-				SetContent(nil), // TODO: Implement when Content builders are present ...
+				SetJSONContent(ogen.NewSchema().
+					AddOptionalProperties(
+						ogen.Int32().ToProperty("code"),
+						ogen.String().ToProperty("status"),
+						ogen.NewSchema().ToProperty("errors"),
+					),
+				), // TODO(masseelch): Add examples once present https://github.com/ogen-go/ogen/issues/70
 		)
-		// s.Components.Responses[strconv.Itoa(c)] = &spec.Response{
-		// 	Name:        strconv.Itoa(c),
-		// 	Description: d,
-		// 	Headers:     nil, // TODO
-		// 	Content: spec.Content{
-		// 		spec.JSON: &spec.MediaTypeObject{
-		// 			Unique: true,
-		// 			Schema: spec.Schema{
-		// 				Fields: map[string]*spec.Field{
-		// 					"code": {
-		// 						Type:    _int32,
-		// 						Unique:  true,
-		// 						Example: c,
-		// 					},
-		// 					"status": {
-		// 						Type:    _string,
-		// 						Unique:  true,
-		// 						Example: http.StatusText(c),
-		// 					},
-		// 				},
-		// 				Edges: map[string]*spec.Edge{
-		// 					"errors": {
-		// 						Schema: new(spec.Schema),
-		// 						Unique: true,
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// }
 	}
 }
 
@@ -201,41 +177,41 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 		}
 		// root for all operations on this node.
 		root := "/" + rules.Pluralize(strcase.KebabCase(n.Name))
-		// // Create operation.
-		// if contains(ops, OpCreate) {
-		// 	path(spec, root).Post, err = createOp(spec, n)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
-		// Read operation.
-		if contains(ops, OpRead) {
-			path(spec, root+"/{id}").Get, err = readOp(n)
+		// Create operation.
+		if contains(ops, OpCreate) {
+			path(spec, root).Post, err = createOp(spec, n)
 			if err != nil {
 				return err
 			}
 		}
-		// // Update operation.
-		// if contains(ops, OpUpdate) {
-		// 	path(spec, root+"/{id}").Patch, err = updateOp(spec, n)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
-		// // Delete operation.
-		// if contains(ops, OpDelete) {
-		// 	path(spec, root+"/{id}").Delete, err = deleteOp(spec, n)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
-		// // List operation.
-		// if contains(ops, OpList) {
-		// 	path(spec, root).Get, err = listOp(spec, n)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		// Read operation.
+		if contains(ops, OpRead) {
+			path(spec, root+"/{id}").Get, err = readOp(spec, n)
+			if err != nil {
+				return err
+			}
+		}
+		// Update operation.
+		if contains(ops, OpUpdate) {
+			path(spec, root+"/{id}").Patch, err = updateOp(spec, n)
+			if err != nil {
+				return err
+			}
+		}
+		// Delete operation.
+		if contains(ops, OpDelete) {
+			path(spec, root+"/{id}").Delete, err = deleteOp(spec, n)
+			if err != nil {
+				return err
+			}
+		}
+		// List operation.
+		if contains(ops, OpList) {
+			path(spec, root).Get, err = listOp(spec, n)
+			if err != nil {
+				return err
+			}
+		}
 		// // Sub-Resource operations.
 		// for _, e := range n.Edges {
 		// 	subRoot := root + "/{id}/" + strcase.KebabCase(e.Name)
@@ -287,50 +263,35 @@ func path(s *ogen.Spec, root string) *ogen.PathItem {
 	return s.Paths[root]
 }
 
-// // createOp returns the spec description for a create operation on the given node.
-// func createOp(s *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
-// 	req, err := reqBody(n, OpCreate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	vn, err := viewName(n, OpCreate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	op := ogen.NewOperation().
-// 		// SetSummary(fmt.Sprintf("Create a new %s", n.Name)) // TODO: re-enable after https://github.com/ogen-go/ogen/pull/73
-// 		SetDescription(fmt.Sprintf("Creates a new %s and persists it to storage.", n.Name))
-// 	return op, nil
-// 	return &spec.Operation{
-// 		Summary:     fmt.Sprintf("Create a new %s", n.Name),
-// 		Description: fmt.Sprintf("Creates a new %s and persists it to storage.", n.Name),
-// 		Tags:        []string{n.Name},
-// 		OperationID: string(OpCreate) + n.Name,
-// 		RequestBody: req,
-// 		Responses: map[string]*spec.OperationResponse{
-// 			strconv.Itoa(http.StatusOK): {
-// 				Response: &spec.Response{
-// 					Description: fmt.Sprintf("%s created", n.Name),
-// 					Headers:     nil, // TODO
-// 					Content: spec.Content{
-// 						spec.JSON: &spec.MediaTypeObject{
-// 							Unique: true,
-// 							Ref:    s.Components.Schemas[vn],
-// 						},
-// 					},
-// 				},
-// 			},
-// 			strconv.Itoa(http.StatusBadRequest): {
-// 				Ref: s.Components.Responses[strconv.Itoa(http.StatusBadRequest)],
-// 			},
-// 			strconv.Itoa(http.StatusInternalServerError): {
-// 				Ref: s.Components.Responses[strconv.Itoa(http.StatusInternalServerError)],
-// 			},
-// 		},
-// 		// Security: ant.CreateSecurity,
-// 	}, nil
-// }
-//
+// createOp returns an ogen.Operation for a create operation on the given node.
+func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
+	req, err := reqBody(n, OpCreate)
+	if err != nil {
+		return nil, err
+	}
+	vn, err := viewName(n, OpCreate)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("Create a new %s", n.Name)).
+		SetDescription(fmt.Sprintf("Creates a new %s and persists it to storage.", n.Name)).
+		AddTags(n.Name).
+		SetOperationID(string(OpCreate)+n.Name).
+		SetRequestBody(req).
+		AddResponse(
+			strconv.Itoa(http.StatusOK),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("%s with requested ID was found", n.Name)).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
+
 // // createEdgeOp returns the spec description for a create operation on a subresource.
 // func createEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
 // 	// Create a basic create operation as if this was a first level operation.
@@ -358,16 +319,16 @@ func path(s *ogen.Spec, root string) *ogen.PathItem {
 // 	return op, nil
 // }
 
-// readOp returns a spec.OperationConfig for a read operation on the given node.
-func readOp(n *gen.Type) (*ogen.Operation, error) {
+// readOp returns an ogen.Operation for a read operation on the given node.
+func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	id, err := pathParam(n)
 	if err != nil {
 		return nil, err
 	}
-	// vn, err := viewName(n, OpRead)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	vn, err := viewName(n, OpRead)
+	if err != nil {
+		return nil, err
+	}
 	op := ogen.NewOperation().
 		SetSummary(fmt.Sprintf("Find a %s by ID", n.Name)).
 		SetDescription(fmt.Sprintf("Finds the %s with the requested ID and returns it.", n.Name)).
@@ -377,34 +338,15 @@ func readOp(n *gen.Type) (*ogen.Operation, error) {
 		AddResponse(
 			strconv.Itoa(http.StatusOK),
 			ogen.NewResponse().
-				SetDescription(fmt.Sprintf("%s with requested ID was found", n.Name)),
+				SetDescription(fmt.Sprintf("%s with requested ID was found", n.Name)).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
 	return op, nil
-	// return &spec.Operation{
-	// 	Summary:     fmt.Sprintf("Find a %s by ID", n.Name),
-	// 	Description: fmt.Sprintf("Finds the %s with the requested ID and returns it.", n.Name),
-	// 	Tags:        []string{n.Name},
-	// 	OperationID: string(OpRead) + n.Name,
-	// 	Parameters:  []*spec.Parameter{id},
-	// 	Responses: map[string]*spec.OperationResponse{
-	// 		strconv.Itoa(http.StatusOK): {
-	// 			Response: &spec.Response{
-	// 				Description: fmt.Sprintf("%s with requested ID was found", n.Name),
-	// 				Headers:     nil, // TODO
-	// 				Content: spec.Content{
-	// 					spec.JSON: &spec.MediaTypeObject{
-	// 						Unique: true,
-	// 						Ref:    s.Components.Schemas[vn],
-	// 					},
-	// 				},
-	// 			},
-	// 		},
-	// 		strconv.Itoa(http.StatusBadRequest):          {Ref: s.Components.Responses[strconv.Itoa(http.StatusBadRequest)]},
-	// 		strconv.Itoa(http.StatusNotFound):            {Ref: s.Components.Responses[strconv.Itoa(http.StatusNotFound)]},
-	// 		strconv.Itoa(http.StatusInternalServerError): {Ref: s.Components.Responses[strconv.Itoa(http.StatusInternalServerError)]},
-	// 	},
-	// 	// Security: ant.ReadSecurity,
-	// }, nil
 }
 
 // // readEdgeOp returns the spec description for a read operation on a subresource.
@@ -436,74 +378,67 @@ func readOp(n *gen.Type) (*ogen.Operation, error) {
 // 	op.Parameters = []*spec.Parameter{id}
 // 	return op, nil
 // }
-//
-// // updateOp returns a spec.OperationConfig for an update operation on the given node.
-// func updateOp(s *spec.Spec, n *gen.Type) (*spec.Operation, error) {
-// 	req, err := reqBody(n, OpUpdate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	id, err := pathParam(n)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	vn, err := viewName(n, OpUpdate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &spec.Operation{
-// 		Summary:     fmt.Sprintf("Updates a %s", n.Name),
-// 		Description: fmt.Sprintf("Updates a %s and persists changes to storage.", n.Name),
-// 		Tags:        []string{n.Name},
-// 		OperationID: string(OpUpdate) + n.Name,
-// 		Parameters:  []*spec.Parameter{id},
-// 		RequestBody: req,
-// 		Responses: map[string]*spec.OperationResponse{
-// 			strconv.Itoa(http.StatusOK): {
-// 				Response: &spec.Response{
-// 					Description: fmt.Sprintf("%s updated", n.Name),
-// 					Headers:     nil, // TODO
-// 					Content: spec.Content{
-// 						spec.JSON: &spec.MediaTypeObject{
-// 							Unique: true,
-// 							Ref:    s.Components.Schemas[vn],
-// 						},
-// 					},
-// 				},
-// 			},
-// 			strconv.Itoa(http.StatusBadRequest):          {Ref: s.Components.Responses[strconv.Itoa(http.StatusBadRequest)]},
-// 			strconv.Itoa(http.StatusNotFound):            {Ref: s.Components.Responses[strconv.Itoa(http.StatusNotFound)]},
-// 			strconv.Itoa(http.StatusInternalServerError): {Ref: s.Components.Responses[strconv.Itoa(http.StatusInternalServerError)]},
-// 		},
-// 	}, nil
-// }
-//
-// // deleteOp returns a spec.OperationConfig for a delete operation on the given node.
-// func deleteOp(s *spec.Spec, n *gen.Type) (*spec.Operation, error) {
-// 	id, err := pathParam(n)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &spec.Operation{
-// 		Summary:     fmt.Sprintf("Deletes a %s by ID", n.Name),
-// 		Description: fmt.Sprintf("Deletes the %s with the requested ID.", n.Name),
-// 		Tags:        []string{n.Name},
-// 		OperationID: string(OpDelete) + n.Name,
-// 		Parameters:  []*spec.Parameter{id},
-// 		Responses: map[string]*spec.OperationResponse{
-// 			strconv.Itoa(http.StatusNoContent): {
-// 				Response: &spec.Response{
-// 					Description: fmt.Sprintf("%s with requested ID was deleted", n.Name),
-// 					Headers:     nil, // TODO
-// 				},
-// 			},
-// 			strconv.Itoa(http.StatusBadRequest):          {Ref: s.Components.Responses[strconv.Itoa(http.StatusBadRequest)]},
-// 			strconv.Itoa(http.StatusNotFound):            {Ref: s.Components.Responses[strconv.Itoa(http.StatusNotFound)]},
-// 			strconv.Itoa(http.StatusInternalServerError): {Ref: s.Components.Responses[strconv.Itoa(http.StatusInternalServerError)]},
-// 		},
-// 	}, nil
-// }
-//
+
+// updateOp returns a spec.OperationConfig for an update operation on the given node.
+func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
+	req, err := reqBody(n, OpUpdate)
+	if err != nil {
+		return nil, err
+	}
+	id, err := pathParam(n)
+	if err != nil {
+		return nil, err
+	}
+	vn, err := viewName(n, OpUpdate)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("Updates a %s", n.Name)).
+		SetDescription(fmt.Sprintf("Updates a %s and persists changes to storage.", n.Name)).
+		AddTags(n.Name).
+		SetOperationID(string(OpUpdate)+n.Name).
+		AddParameters(id).
+		SetRequestBody(req).
+		AddResponse(
+			strconv.Itoa(http.StatusOK),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("%s updated", n.Name)).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
+
+// deleteOp returns a spec.Operation for a delete operation on the given node.
+func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
+	id, err := pathParam(n)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("Deletes a %s by ID", n.Name)).
+		SetDescription(fmt.Sprintf("Deletes the %s with the requested ID.", n.Name)).
+		AddTags(n.Name).
+		SetOperationID(string(OpDelete)+n.Name).
+		AddParameters(id).
+		AddResponse(
+			strconv.Itoa(http.StatusNoContent),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("%s with requested ID was deleted", n.Name)),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
+
 // // deleteEdgeOp returns the spec description for a delete operation on a subresource.
 // func deleteEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
 // 	if !e.Unique {
@@ -531,48 +466,44 @@ func readOp(n *gen.Type) (*ogen.Operation, error) {
 // 	op.Parameters = []*spec.Parameter{id}
 // 	return op, nil
 // }
-//
-// // listOp returns a spec.OperationConfig for a list operation on the given node.
-// func listOp(s *spec.Spec, n *gen.Type) (*spec.Operation, error) {
-// 	vn, err := viewName(n, OpList)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &spec.Operation{
-// 		Summary:     fmt.Sprintf("List %s", rules.Pluralize(n.Name)),
-// 		Description: fmt.Sprintf("List %s.", rules.Pluralize(n.Name)),
-// 		Tags:        []string{n.Name},
-// 		OperationID: string(OpList) + n.Name,
-// 		Parameters: []*spec.Parameter{{
-// 			Name:        "page",
-// 			In:          spec.InQuery,
-// 			Description: "what page to render",
-// 			Schema:      _int32,
-// 		}, {
-// 			Name:        "itemsPerPage",
-// 			In:          spec.InQuery,
-// 			Description: "item count to render per page",
-// 			Schema:      _int32,
-// 		}},
-// 		Responses: map[string]*spec.OperationResponse{
-// 			strconv.Itoa(http.StatusOK): {
-// 				Response: &spec.Response{
-// 					Description: fmt.Sprintf("result %s list", n.Name),
-// 					Headers:     nil, // TODO
-// 					Content: spec.Content{
-// 						spec.JSON: &spec.MediaTypeObject{
-// 							Ref: s.Components.Schemas[vn],
-// 						},
-// 					},
-// 				},
-// 			},
-// 			strconv.Itoa(http.StatusBadRequest):          {Ref: s.Components.Responses[strconv.Itoa(http.StatusBadRequest)]},
-// 			strconv.Itoa(http.StatusNotFound):            {Ref: s.Components.Responses[strconv.Itoa(http.StatusNotFound)]},
-// 			strconv.Itoa(http.StatusInternalServerError): {Ref: s.Components.Responses[strconv.Itoa(http.StatusInternalServerError)]},
-// 		},
-// 	}, nil
-// }
-//
+
+// listOp returns a spec.OperationConfig for a list operation on the given node.
+func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
+	vn, err := viewName(n, OpList)
+	if err != nil {
+		return nil, err
+	}
+	op := ogen.NewOperation().
+		SetSummary(fmt.Sprintf("List %s", rules.Pluralize(n.Name))).
+		SetDescription(fmt.Sprintf("List %s.", rules.Pluralize(n.Name))).
+		AddTags(n.Name).
+		SetOperationID(string(OpList)+n.Name).
+		AddParameters( // TODO(masseelch): Add cursor based pagination to entoas and ogent.
+			ogen.NewParameter().
+				InQuery().
+				SetName("page").
+				SetDescription("what page to render").
+				SetSchema(ogen.Int32()),
+			ogen.NewParameter().
+				InQuery().
+				SetName("itemsPerPage").
+				SetDescription("item count to render per page").
+				SetSchema(ogen.Int32()),
+		).
+		AddResponse(
+			strconv.Itoa(http.StatusOK),
+			ogen.NewResponse().
+				SetDescription(fmt.Sprintf("result %s list", n.Name)).
+				SetJSONContent(spec.RefSchema(vn).Schema),
+		).
+		AddNamedResponses(
+			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
+			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
+		)
+	return op, nil
+}
+
 // // listEdgeOp returns the spec description for a read operation on a subresource.
 // func listEdgeOp(s *spec.Spec, n *gen.Type, e *gen.Edge) (*spec.Operation, error) {
 // 	if e.Unique {
@@ -669,19 +600,6 @@ func ogenSchema(f *gen.Field) (*ogen.Schema, error) {
 	return t, nil
 }
 
-// // field created a spec schema field from an ent schema field.
-// func field(f *gen.Field) (*spec.Field, error) {
-// 	t, err := oasType(f)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	ex, err := exampleValue(f)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &spec.Field{Unique: true, Required: !f.Optional, Type: t, Example: ex}, nil
-// }
-
 // NodeOperations returns the list of operations to expose for this node.
 func NodeOperations(n *gen.Type) ([]Operation, error) {
 	c, err := GetConfig(n.Config)
@@ -764,51 +682,41 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 	}
 }
 
-// // reqBody returns the request body for the given node and operation.
-// func reqBody(n *gen.Type, op Operation) (*spec.RequestBody, error) {
-// 	req := &spec.RequestBody{}
-// 	switch op {
-// 	case OpCreate:
-// 		req.Description = fmt.Sprintf("%s to create", n.Name)
-// 	case OpUpdate:
-// 		req.Description = fmt.Sprintf("%s properties to update", n.Name)
-// 	default:
-// 		return nil, fmt.Errorf("requestBody: unsupported operation %q", op)
-// 	}
-// 	fs := make(spec.Fields)
-// 	for _, f := range n.Fields {
-// 		if op == OpCreate || !f.Immutable {
-// 			sf, err := field(f)
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			fs[f.Name] = sf
-// 		}
-// 	}
-// 	for _, e := range n.Edges {
-// 		t, err := oasType(e.Type.ID)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		fs[e.Name] = &spec.Field{
-// 			Unique:   e.Unique,
-// 			Required: !e.Optional,
-// 			Type:     t,
-// 			Example:  nil, // TODO: Example for a unique / non-unique edge
-// 		}
-// 	}
-// 	req.Content = spec.Content{
-// 		spec.JSON: &spec.MediaTypeObject{
-// 			Unique: true,
-// 			Schema: spec.Schema{
-// 				Name:   n.Name + op.Title() + "Request",
-// 				Fields: fs,
-// 			},
-// 		},
-// 	}
-// 	return req, nil
-// }
-//
+// reqBody returns the request body for the given node and operation.
+func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
+	req := ogen.NewRequestBody()
+	switch op {
+	case OpCreate:
+		req.SetDescription(fmt.Sprintf("%s to create", n.Name))
+	case OpUpdate:
+		req.SetDescription(fmt.Sprintf("%s properties to update", n.Name))
+	default:
+		return nil, fmt.Errorf("requestBody: unsupported operation %q", op)
+	}
+	c := ogen.NewSchema()
+	for _, f := range n.Fields {
+		if op == OpCreate || !f.Immutable {
+			p, err := property(f)
+			if err != nil {
+				return nil, err
+			}
+			addProperty(c, p, !f.Optional)
+		}
+	}
+	for _, e := range n.Edges {
+		s, err := ogenSchema(e.Type.ID)
+		if err != nil {
+			return nil, err
+		}
+		if !e.Unique {
+			s = s.AsArray()
+		}
+		addProperty(c, s.ToProperty(e.Name), !e.Optional)
+	}
+	req.SetJSONContent(c)
+	return req, nil
+}
+
 // // exampleValue returns the user defined example value for the ent schema field.
 // func exampleValue(f *gen.Field) (interface{}, error) {
 // 	a, err := FieldAnnotation(f)
