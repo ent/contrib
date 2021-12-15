@@ -59,4 +59,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
-replace github.com/ogen-go/ogen => /home/jcl/Code/playground/ogen
+replace github.com/ogen-go/ogen => github.com/masseelch/ogen v0.0.0-20211215102429-fea6b6f2d9d1
