@@ -64,3 +64,9 @@ Observe, that in addition to the files Ent would normally generate, another file
 
 For information about configuring the generator head over to
 the [godoc](https://pkg.go.dev/entgo.io/contrib/entoas) [or Ent documentation](https://entgo.io/).
+
+### BC
+
+[This PR](https://github.com/ent/contrib/pull/181) introduced a slight change in the API. `entoas` now uses `ogen`s OAS
+struct definitions to create the OAS document. This change eases Specification mutations and also enables users to
+use `ogen` to generate both Go client and server implementations for the OAS.
