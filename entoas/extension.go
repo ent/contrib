@@ -50,6 +50,7 @@ type (
 		config    *Config
 		mutations []MutateFunc
 		out       io.Writer
+		spec      *ogen.Spec
 	}
 	// ExtensionOption allows managing Extension configuration using functional arguments.
 	ExtensionOption func(*Extension) error
@@ -115,6 +116,18 @@ func WriteTo(out io.Writer) ExtensionOption {
 	}
 }
 
+// Spec allows to configure a pointer to an existing ogen.Spec where the code generator writes the final result to.
+// Any configured Mutations are run before the spec is written.
+func Spec(spec *ogen.Spec) ExtensionOption {
+	return func(ex *Extension) error {
+		if spec == nil {
+			return errors.New("spec must be non-nil")
+		}
+		ex.spec = spec
+		return nil
+	}
+}
+
 // generator returns a gen.Hook that creates a Spec for the given gen.Graph.
 func (ex *Extension) generate(next gen.Generator) gen.Generator {
 	return gen.GenerateFunc(func(g *gen.Graph) error {
@@ -140,11 +153,16 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 				return err
 			}
 		}
+		// If a spec is given put the generated one into it.
+		if ex.spec != nil {
+			*ex.spec = *spec
+		}
 		// Dump the spec.
 		b, err := json.MarshalIndent(spec, "", "  ")
 		if err != nil {
 			return err
 		}
+		// If a writer is given write the dumped spec into it.
 		if ex.out != nil {
 			_, err = ex.out.Write(b)
 			return err
