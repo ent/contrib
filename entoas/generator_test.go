@@ -16,6 +16,7 @@ package entoas
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -34,7 +35,7 @@ func TestOgenSchema(t *testing.T) {
 	t.Parallel()
 	for d, ex := range map[*entfield.Descriptor]*ogen.Schema{
 		// Numeric
-		entfield.Int("int").Descriptor():         ogen.Int32(),
+		entfield.Int("int").Descriptor():         ogen.Int(),
 		entfield.Int8("int8").Descriptor():       ogen.Int32(),
 		entfield.Int16("int16").Descriptor():     ogen.Int32(),
 		entfield.Int32("int32").Descriptor():     ogen.Int32(),
@@ -49,15 +50,15 @@ func TestOgenSchema(t *testing.T) {
 		// Basic
 		entfield.String("string").Descriptor():       ogen.String(),
 		entfield.Bool("bool").Descriptor():           ogen.Bool(),
-		entfield.UUID("uuid", uuid.Nil).Descriptor(): ogen.String(),
+		entfield.UUID("uuid", uuid.Nil).Descriptor(): ogen.UUID(),
 		entfield.Time("time").Descriptor():           ogen.DateTime(),
 		entfield.Text("text").Descriptor():           ogen.String(),
-		// entfield.Enum("state"). TODO: re-enable after https://github.com/ent/ent/pull/2211
-		// 	Values("on", "off").
-		// 	Descriptor(): ogen.String().AsEnum(nil, json.RawMessage("on"), json.RawMessage("off")),
+		entfield.Enum("state").
+			Values("on", "off").
+			Descriptor(): ogen.String().AsEnum(nil, json.RawMessage(`"on"`), json.RawMessage(`"off"`)),
 		// List
 		entfield.Strings("strings").Descriptor(): ogen.String().AsArray(),
-		entfield.Ints("ints").Descriptor():       ogen.Int32().AsArray(),
+		entfield.Ints("ints").Descriptor():       ogen.Int().AsArray(),
 		entfield.Floats("floats").Descriptor():   ogen.Double().AsArray(),
 		entfield.Bytes("bytes").Descriptor():     ogen.Bytes(),
 		// Custom

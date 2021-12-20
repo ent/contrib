@@ -76,33 +76,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -145,8 +140,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -186,8 +180,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -220,8 +213,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -236,33 +228,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -308,8 +295,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           },
@@ -370,8 +356,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -386,33 +371,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -455,8 +435,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           },
@@ -517,8 +496,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -533,33 +511,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -602,8 +575,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           },
@@ -664,8 +636,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -680,33 +651,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -749,8 +715,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           },
@@ -811,8 +776,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -827,33 +791,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -896,8 +855,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -937,8 +895,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -953,33 +910,28 @@
                   "friends": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "followers": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "following": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   },
                   "parent": {
-                    "type": "integer",
-                    "format": "int32"
+                    "type": "integer"
                   },
                   "children": {
                     "type": "array",
                     "items": {
-                      "type": "integer",
-                      "format": "int32"
+                      "type": "integer"
                     }
                   }
                 }
@@ -1020,8 +972,7 @@
             "in": "path",
             "description": "ID of the User",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "integer"
             },
             "required": true
           }
@@ -1049,8 +1000,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1088,8 +1038,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1100,8 +1049,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1112,8 +1060,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1151,8 +1098,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1190,8 +1136,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1229,8 +1174,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1268,8 +1212,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1307,8 +1250,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           },
           "friends": {
             "type": "array",
@@ -1346,8 +1288,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1358,8 +1299,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1370,8 +1310,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1382,8 +1321,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1394,8 +1332,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1406,8 +1343,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1418,8 +1354,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1430,8 +1365,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1442,8 +1376,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1454,8 +1387,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
@@ -1466,8 +1398,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "integer"
           }
         },
         "required": [
