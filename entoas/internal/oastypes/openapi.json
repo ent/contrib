@@ -71,6 +71,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "int": {
                     "type": "integer",
@@ -216,7 +217,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -338,6 +340,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "int": {
                     "type": "integer",
@@ -483,7 +486,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -512,6 +516,7 @@
   "components": {
     "schemas": {
       "OASTypes": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -668,6 +673,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -687,6 +693,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -706,6 +713,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -725,6 +733,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -744,6 +753,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",

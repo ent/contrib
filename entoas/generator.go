@@ -717,7 +717,7 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 
 // reqBody returns the request body for the given node and operation.
 func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
-	req := ogen.NewRequestBody()
+	req := ogen.NewRequestBody().SetRequired(true)
 	switch op {
 	case OpCreate:
 		req.SetDescription(fmt.Sprintf("%s to create", n.Name))

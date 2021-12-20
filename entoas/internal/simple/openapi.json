@@ -71,6 +71,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -88,7 +89,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -210,6 +212,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -227,7 +230,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -339,6 +343,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -377,7 +382,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -464,6 +470,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -502,7 +509,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -624,6 +632,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -662,7 +671,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -774,6 +784,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -791,7 +802,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -900,6 +912,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -938,7 +951,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1026,6 +1040,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1048,7 +1063,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1169,6 +1185,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1191,7 +1208,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1313,6 +1331,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1335,7 +1354,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1447,6 +1467,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1485,7 +1506,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1511,6 +1533,7 @@
   "components": {
     "schemas": {
       "Category": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1532,6 +1555,7 @@
         ]
       },
       "Pet": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1572,6 +1596,7 @@
         ]
       },
       "User": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1604,6 +1629,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1623,6 +1649,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1642,6 +1669,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1661,6 +1689,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1680,6 +1709,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",

@@ -71,6 +71,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -107,7 +108,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -229,6 +231,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -265,7 +268,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -377,6 +381,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -413,7 +418,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -522,6 +528,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -558,7 +565,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -667,6 +675,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -703,7 +712,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -812,6 +822,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -848,7 +859,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -936,6 +948,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "friends": {
                     "type": "array",
@@ -972,7 +985,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1032,6 +1046,7 @@
   "components": {
     "schemas": {
       "User": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1070,6 +1085,7 @@
         ]
       },
       "UserCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1081,6 +1097,7 @@
         ]
       },
       "UserList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1092,6 +1109,7 @@
         ]
       },
       "UserRead": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1130,6 +1148,7 @@
         ]
       },
       "UserRead_Children": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1168,6 +1187,7 @@
         ]
       },
       "UserRead_Followers": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1206,6 +1226,7 @@
         ]
       },
       "UserRead_Following": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1244,6 +1265,7 @@
         ]
       },
       "UserRead_Friends": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1282,6 +1304,7 @@
         ]
       },
       "UserRead_Parent": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1320,6 +1343,7 @@
         ]
       },
       "UserUpdate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1331,6 +1355,7 @@
         ]
       },
       "User_ChildrenCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1342,6 +1367,7 @@
         ]
       },
       "User_ChildrenList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1353,6 +1379,7 @@
         ]
       },
       "User_FollowersCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1364,6 +1391,7 @@
         ]
       },
       "User_FollowersList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1375,6 +1403,7 @@
         ]
       },
       "User_FollowingCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1386,6 +1415,7 @@
         ]
       },
       "User_FollowingList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1397,6 +1427,7 @@
         ]
       },
       "User_FriendsCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1408,6 +1439,7 @@
         ]
       },
       "User_FriendsList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1419,6 +1451,7 @@
         ]
       },
       "User_ParentCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1430,6 +1463,7 @@
         ]
       },
       "User_ParentRead": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1447,6 +1481,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1466,6 +1501,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1485,6 +1521,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1504,6 +1541,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -1523,6 +1561,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",

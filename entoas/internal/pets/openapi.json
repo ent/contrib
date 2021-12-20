@@ -71,6 +71,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -88,7 +89,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -210,6 +212,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -227,7 +230,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -339,6 +343,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -377,7 +382,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -464,6 +470,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -502,7 +509,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -624,6 +632,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -662,7 +671,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -774,6 +784,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -791,7 +802,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -900,6 +912,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -938,7 +951,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1026,6 +1040,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1048,7 +1063,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1169,6 +1185,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1191,7 +1208,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1313,6 +1331,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1335,7 +1354,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1447,6 +1467,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "type": "object",
                 "properties": {
                   "name": {
                     "type": "string"
@@ -1485,7 +1506,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1511,6 +1533,7 @@
   "components": {
     "schemas": {
       "Category": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1532,6 +1555,7 @@
         ]
       },
       "CategoryCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1547,6 +1571,7 @@
         ]
       },
       "CategoryList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1562,6 +1587,7 @@
         ]
       },
       "CategoryRead": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1577,6 +1603,7 @@
         ]
       },
       "CategoryUpdate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1592,6 +1619,7 @@
         ]
       },
       "Category_PetsCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1617,6 +1645,7 @@
         ]
       },
       "Category_PetsList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1642,6 +1671,7 @@
         ]
       },
       "Pet": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1682,6 +1712,7 @@
         ]
       },
       "PetCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1707,6 +1738,7 @@
         ]
       },
       "PetList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1732,6 +1764,7 @@
         ]
       },
       "PetRead": {
+        "type": "object",
         "properties": {
           "name": {
             "type": "string"
@@ -1755,6 +1788,7 @@
         ]
       },
       "PetRead_Owner": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1775,6 +1809,7 @@
         ]
       },
       "PetUpdate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1800,6 +1835,7 @@
         ]
       },
       "Pet_CategoriesCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1815,6 +1851,7 @@
         ]
       },
       "Pet_CategoriesList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1830,6 +1867,7 @@
         ]
       },
       "Pet_FriendsCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1855,6 +1893,7 @@
         ]
       },
       "Pet_FriendsList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1880,6 +1919,7 @@
         ]
       },
       "Pet_OwnerCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1900,6 +1940,7 @@
         ]
       },
       "Pet_OwnerRead": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1920,6 +1961,7 @@
         ]
       },
       "User": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1946,6 +1988,7 @@
         ]
       },
       "UserCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1966,6 +2009,7 @@
         ]
       },
       "UserList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -1986,6 +2030,7 @@
         ]
       },
       "UserRead": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -2006,6 +2051,7 @@
         ]
       },
       "UserUpdate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -2026,6 +2072,7 @@
         ]
       },
       "User_PetsCreate": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -2051,6 +2098,7 @@
         ]
       },
       "User_PetsList": {
+        "type": "object",
         "properties": {
           "id": {
             "type": "integer",
@@ -2082,6 +2130,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -2101,6 +2150,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -2120,6 +2170,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -2139,6 +2190,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
@@ -2158,6 +2210,7 @@
         "content": {
           "application/json": {
             "schema": {
+              "type": "object",
               "properties": {
                 "code": {
                   "type": "integer",
