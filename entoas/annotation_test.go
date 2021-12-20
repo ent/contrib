@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"entgo.io/contrib/entoas/serialization"
-	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent/entc/gen"
+	"github.com/ogen-go/ogen"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,14 +47,13 @@ func TestAnnotation(t *testing.T) {
 	b := Example("example")
 	require.Equal(t, "example", b.Example)
 
-	st := &spec.Type{Type: "string", Format: "binary"}
-	c := OASType(st)
-	require.Equal(t, st, c.OASType)
+	c := Schema(ogen.Binary())
+	require.Equal(t, ogen.Binary(), c.Schema)
 
 	a = a.Merge(b).(Annotation).Merge(c).(Annotation)
 	ex := Annotation{
 		Example: "example",
-		OASType: st,
+		Schema:  ogen.Binary(),
 		List: OperationConfig{
 			Groups: serialization.Groups{"list", "groups"},
 			Policy: PolicyExpose,

@@ -1,22 +1,18 @@
 {
+  "openapi": "3.0.3",
   "info": {
     "title": "Ent Schema API",
     "description": "This is an auto generated API description made out of an Ent schema definition",
-    "termsOfService": "",
-    "contact": {},
-    "license": {
-      "name": ""
-    },
-    "version": "0.0.0"
+    "version": "0.1.0"
   },
   "paths": {
     "/oas-types": {
       "get": {
-        "summary": "List OASTypes",
-        "description": "List OASTypes.",
         "tags": [
           "OASTypes"
         ],
+        "summary": "List OASTypes",
+        "description": "List OASTypes.",
         "operationId": "listOASTypes",
         "parameters": [
           {
@@ -46,7 +42,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OASTypesList"
+                    "$ref": "#/components/schemas/OASTypes"
                   }
                 }
               }
@@ -64,11 +60,11 @@
         }
       },
       "post": {
-        "summary": "Create a new OASTypes",
-        "description": "Creates a new OASTypes and persists it to storage.",
         "tags": [
           "OASTypes"
         ],
+        "summary": "Create a new OASTypes",
+        "description": "Creates a new OASTypes and persists it to storage.",
         "operationId": "createOASTypes",
         "requestBody": {
           "description": "OASTypes to create",
@@ -76,58 +72,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "bool",
-                  "bytes",
-                  "float32",
-                  "float64",
-                  "floats",
-                  "int",
-                  "int16",
-                  "int32",
-                  "int64",
-                  "int8",
-                  "ints",
-                  "json_obj",
-                  "json_slice",
-                  "nicknames",
-                  "other",
-                  "state",
-                  "string_field",
-                  "strings",
-                  "text",
-                  "time",
-                  "uint",
-                  "uint16",
-                  "uint32",
-                  "uint64",
-                  "uint8",
-                  "uuid"
-                ],
                 "properties": {
-                  "bool": {
-                    "type": "boolean"
-                  },
-                  "bytes": {
-                    "type": "string",
-                    "format": "byte"
-                  },
-                  "float32": {
-                    "type": "number",
-                    "format": "float"
-                  },
-                  "float64": {
-                    "type": "number",
-                    "format": "double"
-                  },
-                  "floats": {
-                    "type": "array",
-                    "items": {
-                      "type": "number",
-                      "format": "double"
-                    }
-                  },
                   "int": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "int8": {
                     "type": "integer",
                     "format": "int32"
                   },
@@ -143,56 +93,11 @@
                     "type": "integer",
                     "format": "int64"
                   },
-                  "int8": {
+                  "uint": {
                     "type": "integer",
                     "format": "int32"
                   },
-                  "ints": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "format": "int32"
-                    }
-                  },
-                  "json_obj": {
-                    "type": "string"
-                  },
-                  "json_slice": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "nicknames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "other": {
-                    "type": "string"
-                  },
-                  "state": {
-                    "type": "string",
-                    "example": "on"
-                  },
-                  "string_field": {
-                    "type": "string"
-                  },
-                  "strings": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "text": {
-                    "type": "string"
-                  },
-                  "time": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "uint": {
+                  "uint8": {
                     "type": "integer",
                     "format": "int32"
                   },
@@ -208,17 +113,112 @@
                     "type": "integer",
                     "format": "int64"
                   },
-                  "uint8": {
-                    "type": "integer",
-                    "format": "int32"
+                  "float32": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "float64": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "string_field": {
+                    "type": "string"
+                  },
+                  "bool": {
+                    "type": "boolean"
                   },
                   "uuid": {
                     "type": "string"
+                  },
+                  "time": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "on",
+                      "off"
+                    ]
+                  },
+                  "strings": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ints": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "floats": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  },
+                  "bytes": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "nicknames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "json_slice": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "json_obj": {
+                    "type": "string"
+                  },
+                  "other": {
+                    "type": "string"
                   }
-                }
+                },
+                "required": [
+                  "int",
+                  "int8",
+                  "int16",
+                  "int32",
+                  "int64",
+                  "uint",
+                  "uint8",
+                  "uint16",
+                  "uint32",
+                  "uint64",
+                  "float32",
+                  "float64",
+                  "string_field",
+                  "bool",
+                  "uuid",
+                  "time",
+                  "text",
+                  "state",
+                  "strings",
+                  "ints",
+                  "floats",
+                  "bytes",
+                  "nicknames",
+                  "json_slice",
+                  "json_obj",
+                  "other"
+                ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -226,7 +226,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OASTypesCreate"
+                  "$ref": "#/components/schemas/OASTypes"
                 }
               }
             }
@@ -242,22 +242,22 @@
     },
     "/oas-types/{id}": {
       "get": {
-        "summary": "Find a OASTypes by ID",
-        "description": "Finds the OASTypes with the requested ID and returns it.",
         "tags": [
           "OASTypes"
         ],
+        "summary": "Find a OASTypes by ID",
+        "description": "Finds the OASTypes with the requested ID and returns it.",
         "operationId": "readOASTypes",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the OASTypes",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "responses": {
@@ -266,7 +266,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OASTypesRead"
+                  "$ref": "#/components/schemas/OASTypes"
                 }
               }
             }
@@ -283,22 +283,22 @@
         }
       },
       "delete": {
-        "summary": "Deletes a OASTypes by ID",
-        "description": "Deletes the OASTypes with the requested ID.",
         "tags": [
           "OASTypes"
         ],
+        "summary": "Deletes a OASTypes by ID",
+        "description": "Deletes the OASTypes with the requested ID.",
         "operationId": "deleteOASTypes",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the OASTypes",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "responses": {
@@ -317,22 +317,22 @@
         }
       },
       "patch": {
-        "summary": "Updates a OASTypes",
-        "description": "Updates a OASTypes and persists changes to storage.",
         "tags": [
           "OASTypes"
         ],
+        "summary": "Updates a OASTypes",
+        "description": "Updates a OASTypes and persists changes to storage.",
         "operationId": "updateOASTypes",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the OASTypes",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -341,58 +341,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "bool",
-                  "bytes",
-                  "float32",
-                  "float64",
-                  "floats",
-                  "int",
-                  "int16",
-                  "int32",
-                  "int64",
-                  "int8",
-                  "ints",
-                  "json_obj",
-                  "json_slice",
-                  "nicknames",
-                  "other",
-                  "state",
-                  "string_field",
-                  "strings",
-                  "text",
-                  "time",
-                  "uint",
-                  "uint16",
-                  "uint32",
-                  "uint64",
-                  "uint8",
-                  "uuid"
-                ],
                 "properties": {
-                  "bool": {
-                    "type": "boolean"
-                  },
-                  "bytes": {
-                    "type": "string",
-                    "format": "byte"
-                  },
-                  "float32": {
-                    "type": "number",
-                    "format": "float"
-                  },
-                  "float64": {
-                    "type": "number",
-                    "format": "double"
-                  },
-                  "floats": {
-                    "type": "array",
-                    "items": {
-                      "type": "number",
-                      "format": "double"
-                    }
-                  },
                   "int": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "int8": {
                     "type": "integer",
                     "format": "int32"
                   },
@@ -408,56 +362,11 @@
                     "type": "integer",
                     "format": "int64"
                   },
-                  "int8": {
+                  "uint": {
                     "type": "integer",
                     "format": "int32"
                   },
-                  "ints": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer",
-                      "format": "int32"
-                    }
-                  },
-                  "json_obj": {
-                    "type": "string"
-                  },
-                  "json_slice": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "nicknames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "other": {
-                    "type": "string"
-                  },
-                  "state": {
-                    "type": "string",
-                    "example": "on"
-                  },
-                  "string_field": {
-                    "type": "string"
-                  },
-                  "strings": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "text": {
-                    "type": "string"
-                  },
-                  "time": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "uint": {
+                  "uint8": {
                     "type": "integer",
                     "format": "int32"
                   },
@@ -473,17 +382,112 @@
                     "type": "integer",
                     "format": "int64"
                   },
-                  "uint8": {
-                    "type": "integer",
-                    "format": "int32"
+                  "float32": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "float64": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "string_field": {
+                    "type": "string"
+                  },
+                  "bool": {
+                    "type": "boolean"
                   },
                   "uuid": {
                     "type": "string"
+                  },
+                  "time": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "on",
+                      "off"
+                    ]
+                  },
+                  "strings": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ints": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "floats": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  },
+                  "bytes": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "nicknames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "json_slice": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "json_obj": {
+                    "type": "string"
+                  },
+                  "other": {
+                    "type": "string"
                   }
-                }
+                },
+                "required": [
+                  "int",
+                  "int8",
+                  "int16",
+                  "int32",
+                  "int64",
+                  "uint",
+                  "uint8",
+                  "uint16",
+                  "uint32",
+                  "uint64",
+                  "float32",
+                  "float64",
+                  "string_field",
+                  "bool",
+                  "uuid",
+                  "time",
+                  "text",
+                  "state",
+                  "strings",
+                  "ints",
+                  "floats",
+                  "bytes",
+                  "nicknames",
+                  "json_slice",
+                  "json_obj",
+                  "other"
+                ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -491,7 +495,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OASTypesUpdate"
+                  "$ref": "#/components/schemas/OASTypes"
                 }
               }
             }
@@ -513,63 +517,16 @@
     "schemas": {
       "OASTypes": {
         "type": "object",
-        "required": [
-          "bool",
-          "bytes",
-          "float32",
-          "float64",
-          "floats",
-          "id",
-          "int",
-          "int16",
-          "int32",
-          "int64",
-          "int8",
-          "ints",
-          "json_obj",
-          "json_slice",
-          "nicknames",
-          "other",
-          "state",
-          "string_field",
-          "strings",
-          "text",
-          "time",
-          "uint",
-          "uint16",
-          "uint32",
-          "uint64",
-          "uint8",
-          "uuid"
-        ],
         "properties": {
-          "bool": {
-            "type": "boolean"
-          },
-          "bytes": {
-            "type": "string",
-            "format": "byte"
-          },
-          "float32": {
-            "type": "number",
-            "format": "float"
-          },
-          "float64": {
-            "type": "number",
-            "format": "double"
-          },
-          "floats": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            }
-          },
           "id": {
             "type": "integer",
             "format": "int32"
           },
           "int": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "int8": {
             "type": "integer",
             "format": "int32"
           },
@@ -585,56 +542,11 @@
             "type": "integer",
             "format": "int64"
           },
-          "int8": {
+          "uint": {
             "type": "integer",
             "format": "int32"
           },
-          "ints": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "json_obj": {
-            "type": "string"
-          },
-          "json_slice": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "other": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string",
-            "example": "on"
-          },
-          "string_field": {
-            "type": "string"
-          },
-          "strings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "text": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "uint": {
+          "uint8": {
             "type": "integer",
             "format": "int32"
           },
@@ -649,54 +561,6 @@
           "uint64": {
             "type": "integer",
             "format": "int64"
-          },
-          "uint8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uuid": {
-            "type": "string"
-          }
-        }
-      },
-      "OASTypesCreate": {
-        "type": "object",
-        "required": [
-          "bool",
-          "bytes",
-          "float32",
-          "float64",
-          "floats",
-          "id",
-          "int",
-          "int16",
-          "int32",
-          "int64",
-          "int8",
-          "ints",
-          "json_obj",
-          "json_slice",
-          "nicknames",
-          "other",
-          "state",
-          "string_field",
-          "strings",
-          "text",
-          "time",
-          "uint",
-          "uint16",
-          "uint32",
-          "uint64",
-          "uint8",
-          "uuid"
-        ],
-        "properties": {
-          "bool": {
-            "type": "boolean"
-          },
-          "bytes": {
-            "type": "string",
-            "format": "byte"
           },
           "float32": {
             "type": "number",
@@ -706,36 +570,34 @@
             "type": "number",
             "format": "double"
           },
-          "floats": {
+          "string_field": {
+            "type": "string"
+          },
+          "bool": {
+            "type": "boolean"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "text": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off"
+            ]
+          },
+          "strings": {
             "type": "array",
             "items": {
-              "type": "number",
-              "format": "double"
+              "type": "string"
             }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "int8": {
-            "type": "integer",
-            "format": "int32"
           },
           "ints": {
             "type": "array",
@@ -744,156 +606,22 @@
               "format": "int32"
             }
           },
-          "json_obj": {
-            "type": "string"
-          },
-          "json_slice": {
+          "floats": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number",
+              "format": "double"
             }
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "other": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string",
-            "example": "on"
-          },
-          "string_field": {
-            "type": "string"
-          },
-          "strings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "text": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "uint": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "uint8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uuid": {
-            "type": "string"
-          }
-        }
-      },
-      "OASTypesList": {
-        "type": "object",
-        "required": [
-          "bool",
-          "bytes",
-          "float32",
-          "float64",
-          "floats",
-          "id",
-          "int",
-          "int16",
-          "int32",
-          "int64",
-          "int8",
-          "ints",
-          "json_obj",
-          "json_slice",
-          "nicknames",
-          "other",
-          "state",
-          "string_field",
-          "strings",
-          "text",
-          "time",
-          "uint",
-          "uint16",
-          "uint32",
-          "uint64",
-          "uint8",
-          "uuid"
-        ],
-        "properties": {
-          "bool": {
-            "type": "boolean"
           },
           "bytes": {
             "type": "string",
             "format": "byte"
           },
-          "float32": {
-            "type": "number",
-            "format": "float"
-          },
-          "float64": {
-            "type": "number",
-            "format": "double"
-          },
-          "floats": {
+          "nicknames": {
             "type": "array",
             "items": {
-              "type": "number",
-              "format": "double"
+              "type": "string"
             }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "int8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ints": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "json_obj": {
-            "type": "string"
           },
           "json_slice": {
             "type": "array",
@@ -901,355 +629,42 @@
               "type": "string"
             }
           },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "json_obj": {
+            "type": "string"
           },
           "other": {
             "type": "string"
-          },
-          "state": {
-            "type": "string",
-            "example": "on"
-          },
-          "string_field": {
-            "type": "string"
-          },
-          "strings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "text": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "uint": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "uint8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uuid": {
-            "type": "string"
           }
-        }
-      },
-      "OASTypesRead": {
-        "type": "object",
+        },
         "required": [
-          "bool",
-          "bytes",
-          "float32",
-          "float64",
-          "floats",
           "id",
           "int",
+          "int8",
           "int16",
           "int32",
           "int64",
-          "int8",
-          "ints",
-          "json_obj",
-          "json_slice",
-          "nicknames",
-          "other",
-          "state",
-          "string_field",
-          "strings",
-          "text",
-          "time",
           "uint",
+          "uint8",
           "uint16",
           "uint32",
           "uint64",
-          "uint8",
-          "uuid"
-        ],
-        "properties": {
-          "bool": {
-            "type": "boolean"
-          },
-          "bytes": {
-            "type": "string",
-            "format": "byte"
-          },
-          "float32": {
-            "type": "number",
-            "format": "float"
-          },
-          "float64": {
-            "type": "number",
-            "format": "double"
-          },
-          "floats": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "int8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ints": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "json_obj": {
-            "type": "string"
-          },
-          "json_slice": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "other": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string",
-            "example": "on"
-          },
-          "string_field": {
-            "type": "string"
-          },
-          "strings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "text": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "uint": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "uint8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uuid": {
-            "type": "string"
-          }
-        }
-      },
-      "OASTypesUpdate": {
-        "type": "object",
-        "required": [
-          "bool",
-          "bytes",
           "float32",
           "float64",
-          "floats",
-          "id",
-          "int",
-          "int16",
-          "int32",
-          "int64",
-          "int8",
-          "ints",
-          "json_obj",
-          "json_slice",
-          "nicknames",
-          "other",
-          "state",
           "string_field",
-          "strings",
-          "text",
+          "bool",
+          "uuid",
           "time",
-          "uint",
-          "uint16",
-          "uint32",
-          "uint64",
-          "uint8",
-          "uuid"
-        ],
-        "properties": {
-          "bool": {
-            "type": "boolean"
-          },
-          "bytes": {
-            "type": "string",
-            "format": "byte"
-          },
-          "float32": {
-            "type": "number",
-            "format": "float"
-          },
-          "float64": {
-            "type": "number",
-            "format": "double"
-          },
-          "floats": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "int64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "int8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "ints": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "json_obj": {
-            "type": "string"
-          },
-          "json_slice": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "other": {
-            "type": "string"
-          },
-          "state": {
-            "type": "string",
-            "example": "on"
-          },
-          "string_field": {
-            "type": "string"
-          },
-          "strings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "text": {
-            "type": "string"
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "uint": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint16": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint32": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uint64": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "uint8": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uuid": {
-            "type": "string"
-          }
-        }
+          "text",
+          "state",
+          "strings",
+          "ints",
+          "floats",
+          "bytes",
+          "nicknames",
+          "json_slice",
+          "json_obj",
+          "other"
+        ]
       }
     },
     "responses": {
@@ -1262,17 +677,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 400
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Bad Request"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1287,17 +697,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 403
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Forbidden"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1312,17 +717,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 404
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Not Found"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1337,17 +737,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 409
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Conflict"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1362,24 +757,17 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 500
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Internal Server Error"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
         }
       }
-    },
-    "parameters": {}
-  },
-  "openapi": "3.0.3"
+    }
+  }
 }

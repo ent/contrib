@@ -23,13 +23,17 @@ import (
 	"entgo.io/contrib/entoas"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"github.com/ogen-go/ogen"
 )
 
 func main() {
 	ex, err := entoas.NewExtension(
-		entoas.SpecTitle("My Pets API"),
-		entoas.SpecDescription("Awesome, Mega Cool API to manage Ariel's Pet Leopards!"),
-		entoas.SpecVersion("0.0.1"),
+		entoas.Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
+			spec.Info.SetTitle("My Pets API").
+				SetDescription("Awesome, Mega Cool API to manage Ariel's Pet Leopards!").
+				SetVersion("0.0.1")
+			return nil
+		}),
 	)
 	if err != nil {
 		log.Fatalf("creating entoas extension: %v", err)

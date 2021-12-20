@@ -21,11 +21,11 @@ import (
 	"net/url"
 
 	"entgo.io/contrib/entoas"
-	"entgo.io/contrib/entoas/spec"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/ogen-go/ogen"
 )
 
 // OASTypes holds the schema definition for the OASTypes entity.
@@ -65,13 +65,13 @@ func (OASTypes) Fields() []ent.Field {
 		// Custom
 		field.JSON("nicknames", []string{}),
 		field.JSON("json_slice", []http.Dir{}).
-			Annotations(entoas.OASType(&spec.Type{Type: "array", Items: &spec.Type{Type: "string"}})),
+			Annotations(entoas.Schema(ogen.String().AsArray())),
 		field.JSON("json_obj", url.URL{}).
-			Annotations(entoas.OASType(&spec.Type{Type: "string"})),
+			Annotations(entoas.Schema(ogen.String())),
 		field.Other("other", &Link{}).
 			SchemaType(map[string]string{dialect.Postgres: "varchar"}).
 			Default(DefaultLink()).
-			Annotations(entoas.OASType(&spec.Type{Type: "string"})),
+			Annotations(entoas.Schema(ogen.String())),
 	}
 }
 

@@ -1,22 +1,18 @@
 {
+  "openapi": "3.0.3",
   "info": {
     "title": "Ent Schema API",
     "description": "This is an auto generated API description made out of an Ent schema definition",
-    "termsOfService": "",
-    "contact": {},
-    "license": {
-      "name": ""
-    },
-    "version": "0.0.0"
+    "version": "0.1.0"
   },
   "paths": {
     "/users": {
       "get": {
-        "summary": "List Users",
-        "description": "List Users.",
         "tags": [
           "User"
         ],
+        "summary": "List Users",
+        "description": "List Users.",
         "operationId": "listUser",
         "parameters": [
           {
@@ -64,11 +60,11 @@
         }
       },
       "post": {
-        "summary": "Create a new User",
-        "description": "Creates a new User and persists it to storage.",
         "tags": [
           "User"
         ],
+        "summary": "Create a new User",
+        "description": "Creates a new User and persists it to storage.",
         "operationId": "createUser",
         "requestBody": {
           "description": "User to create",
@@ -77,7 +73,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -98,21 +94,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -136,22 +133,22 @@
     },
     "/users/{id}": {
       "get": {
-        "summary": "Find a User by ID",
-        "description": "Finds the User with the requested ID and returns it.",
         "tags": [
           "User"
         ],
+        "summary": "Find a User by ID",
+        "description": "Finds the User with the requested ID and returns it.",
         "operationId": "readUser",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "responses": {
@@ -177,22 +174,22 @@
         }
       },
       "delete": {
-        "summary": "Deletes a User by ID",
-        "description": "Deletes the User with the requested ID.",
         "tags": [
           "User"
         ],
+        "summary": "Deletes a User by ID",
+        "description": "Deletes the User with the requested ID.",
         "operationId": "deleteUser",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "responses": {
@@ -211,22 +208,22 @@
         }
       },
       "patch": {
-        "summary": "Updates a User",
-        "description": "Updates a User and persists changes to storage.",
         "tags": [
           "User"
         ],
+        "summary": "Updates a User",
+        "description": "Updates a User and persists changes to storage.",
         "operationId": "updateUser",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -236,7 +233,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -257,21 +254,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -298,18 +296,36 @@
     },
     "/users/{id}/children": {
       "get": {
-        "summary": "List attached Childrens",
-        "description": "List attached Childrens.",
         "tags": [
           "User"
         ],
+        "summary": "List attached Childrens",
+        "description": "List attached Childrens.",
         "operationId": "listUserChildren",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "what page to render",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "description": "item count to render per page",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -342,22 +358,22 @@
         }
       },
       "post": {
-        "summary": "Create a new User and attach it to the User",
-        "description": "Creates a new User and attaches it to the User",
         "tags": [
           "User"
         ],
+        "summary": "Create a new User and attach it to the User",
+        "description": "Creates a new User and attaches it to the User",
         "operationId": "createUserChildren",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -367,7 +383,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -388,21 +404,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -426,18 +443,36 @@
     },
     "/users/{id}/followers": {
       "get": {
-        "summary": "List attached Followers",
-        "description": "List attached Followers.",
         "tags": [
           "User"
         ],
+        "summary": "List attached Followers",
+        "description": "List attached Followers.",
         "operationId": "listUserFollowers",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "what page to render",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "description": "item count to render per page",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -470,22 +505,22 @@
         }
       },
       "post": {
-        "summary": "Create a new User and attach it to the User",
-        "description": "Creates a new User and attaches it to the User",
         "tags": [
           "User"
         ],
+        "summary": "Create a new User and attach it to the User",
+        "description": "Creates a new User and attaches it to the User",
         "operationId": "createUserFollowers",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -495,7 +530,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -516,21 +551,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -554,18 +590,36 @@
     },
     "/users/{id}/following": {
       "get": {
-        "summary": "List attached Followings",
-        "description": "List attached Followings.",
         "tags": [
           "User"
         ],
+        "summary": "List attached Followings",
+        "description": "List attached Followings.",
         "operationId": "listUserFollowing",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "what page to render",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "description": "item count to render per page",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -598,22 +652,22 @@
         }
       },
       "post": {
-        "summary": "Create a new User and attach it to the User",
-        "description": "Creates a new User and attaches it to the User",
         "tags": [
           "User"
         ],
+        "summary": "Create a new User and attach it to the User",
+        "description": "Creates a new User and attaches it to the User",
         "operationId": "createUserFollowing",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -623,7 +677,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -644,21 +698,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -682,18 +737,36 @@
     },
     "/users/{id}/friends": {
       "get": {
-        "summary": "List attached Friends",
-        "description": "List attached Friends.",
         "tags": [
           "User"
         ],
+        "summary": "List attached Friends",
+        "description": "List attached Friends.",
         "operationId": "listUserFriends",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "required": true
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "what page to render",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemsPerPage",
+            "in": "query",
+            "description": "item count to render per page",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -726,22 +799,22 @@
         }
       },
       "post": {
-        "summary": "Create a new User and attach it to the User",
-        "description": "Creates a new User and attaches it to the User",
         "tags": [
           "User"
         ],
+        "summary": "Create a new User and attach it to the User",
+        "description": "Creates a new User and attaches it to the User",
         "operationId": "createUserFriends",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -751,7 +824,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -772,21 +845,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -810,22 +884,22 @@
     },
     "/users/{id}/parent": {
       "get": {
-        "summary": "Find the attached User",
-        "description": "Find the attached User of the User with the given ID",
         "tags": [
           "User"
         ],
+        "summary": "Find the attached User",
+        "description": "Find the attached User of the User with the given ID",
         "operationId": "readUserParent",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "responses": {
@@ -851,22 +925,22 @@
         }
       },
       "post": {
-        "summary": "Create a new User and attach it to the User",
-        "description": "Creates a new User and attaches it to the User",
         "tags": [
           "User"
         ],
+        "summary": "Create a new User and attach it to the User",
+        "description": "Creates a new User and attaches it to the User",
         "operationId": "createUserParent",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "requestBody": {
@@ -876,7 +950,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "children": {
+                  "friends": {
                     "type": "array",
                     "items": {
                       "type": "integer",
@@ -897,21 +971,22 @@
                       "format": "int32"
                     }
                   },
-                  "friends": {
+                  "parent": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "children": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
                     }
-                  },
-                  "parent": {
-                    "type": "integer",
-                    "format": "int32"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -933,22 +1008,22 @@
         }
       },
       "delete": {
-        "summary": "Delete the attached Parent",
-        "description": "Delete the attached Parent of the User with the given ID",
         "tags": [
           "User"
         ],
+        "summary": "Delete the attached Parent",
+        "description": "Delete the attached Parent of the User with the given ID",
         "operationId": "deleteUserParent",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "ID of the User",
-            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
+            },
+            "required": true
           }
         ],
         "responses": {
@@ -972,11 +1047,12 @@
     "schemas": {
       "User": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/User"
@@ -993,411 +1069,410 @@
             "items": {
               "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/User"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
             "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserCreate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserList": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserRead": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Children"
+              "$ref": "#/components/schemas/User"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Followers"
+              "$ref": "#/components/schemas/User"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Following"
+              "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRead_Friends"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
-            "$ref": "#/components/schemas/UserRead_Parent"
+            "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserRead_Children": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Children"
+              "$ref": "#/components/schemas/User"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Followers"
+              "$ref": "#/components/schemas/User"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Following"
+              "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRead_Friends"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
-            "$ref": "#/components/schemas/UserRead_Parent"
+            "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserRead_Followers": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Children"
+              "$ref": "#/components/schemas/User"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Followers"
+              "$ref": "#/components/schemas/User"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Following"
+              "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRead_Friends"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
-            "$ref": "#/components/schemas/UserRead_Parent"
+            "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserRead_Following": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Children"
+              "$ref": "#/components/schemas/User"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Followers"
+              "$ref": "#/components/schemas/User"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Following"
+              "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRead_Friends"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
-            "$ref": "#/components/schemas/UserRead_Parent"
+            "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserRead_Friends": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Children"
+              "$ref": "#/components/schemas/User"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Followers"
+              "$ref": "#/components/schemas/User"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Following"
+              "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRead_Friends"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
-            "$ref": "#/components/schemas/UserRead_Parent"
+            "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserRead_Parent": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
-          "children": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Children"
+              "$ref": "#/components/schemas/User"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Followers"
+              "$ref": "#/components/schemas/User"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UserRead_Following"
+              "$ref": "#/components/schemas/User"
             }
-          },
-          "friends": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRead_Friends"
-            }
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
           },
           "parent": {
-            "$ref": "#/components/schemas/UserRead_Parent"
+            "$ref": "#/components/schemas/User"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "UserUpdate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_ChildrenCreate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_ChildrenList": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_FollowersCreate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_FollowersList": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_FollowingCreate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_FollowingList": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_FriendsCreate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_FriendsList": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_ParentCreate": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "User_ParentRead": {
         "type": "object",
-        "required": [
-          "id"
-        ],
         "properties": {
           "id": {
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       }
     },
     "responses": {
@@ -1410,17 +1485,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 400
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Bad Request"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1435,17 +1505,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 403
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Forbidden"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1460,17 +1525,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 404
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Not Found"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1485,17 +1545,12 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 409
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Conflict"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
@@ -1510,24 +1565,17 @@
               "properties": {
                 "code": {
                   "type": "integer",
-                  "format": "int32",
-                  "example": 500
-                },
-                "errors": {
-                  "type": "object",
-                  "properties": {}
+                  "format": "int32"
                 },
                 "status": {
-                  "type": "string",
-                  "example": "Internal Server Error"
-                }
+                  "type": "string"
+                },
+                "errors": {}
               }
             }
           }
         }
       }
-    },
-    "parameters": {}
-  },
-  "openapi": "3.0.3"
+    }
+  }
 }
