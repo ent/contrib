@@ -1065,28 +1065,28 @@
           "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Friends"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Followers"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Following"
             }
           },
           "parent": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserRead_Parent"
           },
           "children": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Children"
             }
           }
         },
@@ -1103,28 +1103,28 @@
           "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Friends"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Followers"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Following"
             }
           },
           "parent": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserRead_Parent"
           },
           "children": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Children"
             }
           }
         },
@@ -1141,28 +1141,28 @@
           "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Friends"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Followers"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Following"
             }
           },
           "parent": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserRead_Parent"
           },
           "children": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Children"
             }
           }
         },
@@ -1179,28 +1179,28 @@
           "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Friends"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Followers"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Following"
             }
           },
           "parent": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserRead_Parent"
           },
           "children": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Children"
             }
           }
         },
@@ -1217,28 +1217,28 @@
           "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Friends"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Followers"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Following"
             }
           },
           "parent": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserRead_Parent"
           },
           "children": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Children"
             }
           }
         },
@@ -1255,28 +1255,28 @@
           "friends": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Friends"
             }
           },
           "followers": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Followers"
             }
           },
           "following": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Following"
             }
           },
           "parent": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserRead_Parent"
           },
           "children": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/User"
+              "$ref": "#/components/schemas/UserRead_Children"
             }
           }
         },

@@ -1715,7 +1715,7 @@
             "type": "integer"
           },
           "owner": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/PetRead_Owner"
           }
         },
         "required": [

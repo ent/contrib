@@ -106,7 +106,7 @@ func schemas(g *gen.Graph, spec *ogen.Spec) error {
 				if !ok {
 					return fmt.Errorf("schema %q not found for edge %q on %q", vn, e.Name, n)
 				}
-				es = es.ToNamed(e.Type.Name).AsLocalRef()
+				es = es.ToNamed(vn).AsLocalRef()
 				if !e.Unique {
 					es = es.AsArray()
 				}
