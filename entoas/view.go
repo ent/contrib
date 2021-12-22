@@ -43,7 +43,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 			if op == OpDelete {
 				continue
 			}
-			gs, err := groupsForOperation(n.Annotations, op)
+			gs, err := GroupsForOperation(n.Annotations, op)
 			if err != nil {
 				return nil, err
 			}
@@ -86,7 +86,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 				if op == OpDelete {
 					continue
 				}
-				gs, err := groupsForOperation(e.Annotations, op)
+				gs, err := GroupsForOperation(e.Annotations, op)
 				if err != nil {
 					return nil, err
 				}
@@ -188,8 +188,8 @@ func serializeEdge(e *gen.Edge, g serialization.Groups) (bool, error) {
 	return g.Match(ant.Groups), nil
 }
 
-// groupsForOperation returns the requested groups as defined on the given Annotations for the Operation.
-func groupsForOperation(a gen.Annotations, op Operation) (serialization.Groups, error) {
+// GroupsForOperation returns the requested groups as defined on the given Annotations for the Operation.
+func GroupsForOperation(a gen.Annotations, op Operation) (serialization.Groups, error) {
 	// If there are no annotations given do not load any groups.
 	ant := &Annotation{}
 	if a == nil || a[ant.Name()] == nil {
