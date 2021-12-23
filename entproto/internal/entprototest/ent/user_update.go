@@ -10,6 +10,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -39,6 +40,26 @@ func (uu *UserUpdate) SetUserName(s string) *UserUpdate {
 // SetStatus sets the "status" field.
 func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
 	uu.mutation.SetStatus(u)
+	return uu
+}
+
+// SetUnnecessary sets the "unnecessary" field.
+func (uu *UserUpdate) SetUnnecessary(s string) *UserUpdate {
+	uu.mutation.SetUnnecessary(s)
+	return uu
+}
+
+// SetNillableUnnecessary sets the "unnecessary" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUnnecessary(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetUnnecessary(*s)
+	}
+	return uu
+}
+
+// ClearUnnecessary clears the value of the "unnecessary" field.
+func (uu *UserUpdate) ClearUnnecessary() *UserUpdate {
+	uu.mutation.ClearUnnecessary()
 	return uu
 }
 
@@ -76,6 +97,25 @@ func (uu *UserUpdate) SetProfilePic(i *Image) *UserUpdate {
 	return uu.SetProfilePicID(i.ID)
 }
 
+// SetSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID.
+func (uu *UserUpdate) SetSkipEdgeID(id int) *UserUpdate {
+	uu.mutation.SetSkipEdgeID(id)
+	return uu
+}
+
+// SetNillableSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableSkipEdgeID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetSkipEdgeID(*id)
+	}
+	return uu
+}
+
+// SetSkipEdge sets the "skip_edge" edge to the SkipEdgeExample entity.
+func (uu *UserUpdate) SetSkipEdge(s *SkipEdgeExample) *UserUpdate {
+	return uu.SetSkipEdgeID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -105,6 +145,12 @@ func (uu *UserUpdate) RemoveBlogPosts(b ...*BlogPost) *UserUpdate {
 // ClearProfilePic clears the "profile_pic" edge to the Image entity.
 func (uu *UserUpdate) ClearProfilePic() *UserUpdate {
 	uu.mutation.ClearProfilePic()
+	return uu
+}
+
+// ClearSkipEdge clears the "skip_edge" edge to the SkipEdgeExample entity.
+func (uu *UserUpdate) ClearSkipEdge() *UserUpdate {
+	uu.mutation.ClearSkipEdge()
 	return uu
 }
 
@@ -210,6 +256,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldStatus,
 		})
 	}
+	if value, ok := uu.mutation.Unnecessary(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUnnecessary,
+		})
+	}
+	if uu.mutation.UnnecessaryCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldUnnecessary,
+		})
+	}
 	if uu.mutation.BlogPostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -299,6 +358,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.SkipEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.SkipEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -327,6 +421,26 @@ func (uuo *UserUpdateOne) SetUserName(s string) *UserUpdateOne {
 // SetStatus sets the "status" field.
 func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
 	uuo.mutation.SetStatus(u)
+	return uuo
+}
+
+// SetUnnecessary sets the "unnecessary" field.
+func (uuo *UserUpdateOne) SetUnnecessary(s string) *UserUpdateOne {
+	uuo.mutation.SetUnnecessary(s)
+	return uuo
+}
+
+// SetNillableUnnecessary sets the "unnecessary" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUnnecessary(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetUnnecessary(*s)
+	}
+	return uuo
+}
+
+// ClearUnnecessary clears the value of the "unnecessary" field.
+func (uuo *UserUpdateOne) ClearUnnecessary() *UserUpdateOne {
+	uuo.mutation.ClearUnnecessary()
 	return uuo
 }
 
@@ -364,6 +478,25 @@ func (uuo *UserUpdateOne) SetProfilePic(i *Image) *UserUpdateOne {
 	return uuo.SetProfilePicID(i.ID)
 }
 
+// SetSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID.
+func (uuo *UserUpdateOne) SetSkipEdgeID(id int) *UserUpdateOne {
+	uuo.mutation.SetSkipEdgeID(id)
+	return uuo
+}
+
+// SetNillableSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSkipEdgeID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetSkipEdgeID(*id)
+	}
+	return uuo
+}
+
+// SetSkipEdge sets the "skip_edge" edge to the SkipEdgeExample entity.
+func (uuo *UserUpdateOne) SetSkipEdge(s *SkipEdgeExample) *UserUpdateOne {
+	return uuo.SetSkipEdgeID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -393,6 +526,12 @@ func (uuo *UserUpdateOne) RemoveBlogPosts(b ...*BlogPost) *UserUpdateOne {
 // ClearProfilePic clears the "profile_pic" edge to the Image entity.
 func (uuo *UserUpdateOne) ClearProfilePic() *UserUpdateOne {
 	uuo.mutation.ClearProfilePic()
+	return uuo
+}
+
+// ClearSkipEdge clears the "skip_edge" edge to the SkipEdgeExample entity.
+func (uuo *UserUpdateOne) ClearSkipEdge() *UserUpdateOne {
+	uuo.mutation.ClearSkipEdge()
 	return uuo
 }
 
@@ -522,6 +661,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Column: user.FieldStatus,
 		})
 	}
+	if value, ok := uuo.mutation.Unnecessary(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUnnecessary,
+		})
+	}
+	if uuo.mutation.UnnecessaryCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldUnnecessary,
+		})
+	}
 	if uuo.mutation.BlogPostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -603,6 +755,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: image.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.SkipEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.SkipEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
 				},
 			},
 		}

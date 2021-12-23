@@ -15,10 +15,14 @@ const (
 	FieldUserName = "user_name"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldUnnecessary holds the string denoting the unnecessary field in the database.
+	FieldUnnecessary = "unnecessary"
 	// EdgeBlogPosts holds the string denoting the blog_posts edge name in mutations.
 	EdgeBlogPosts = "blog_posts"
 	// EdgeProfilePic holds the string denoting the profile_pic edge name in mutations.
 	EdgeProfilePic = "profile_pic"
+	// EdgeSkipEdge holds the string denoting the skip_edge edge name in mutations.
+	EdgeSkipEdge = "skip_edge"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// BlogPostsTable is the table that holds the blog_posts relation/edge.
@@ -35,6 +39,13 @@ const (
 	ProfilePicInverseTable = "images"
 	// ProfilePicColumn is the table column denoting the profile_pic relation/edge.
 	ProfilePicColumn = "user_profile_pic"
+	// SkipEdgeTable is the table that holds the skip_edge relation/edge.
+	SkipEdgeTable = "skip_edge_examples"
+	// SkipEdgeInverseTable is the table name for the SkipEdgeExample entity.
+	// It exists in this package in order to avoid circular dependency with the "skipedgeexample" package.
+	SkipEdgeInverseTable = "skip_edge_examples"
+	// SkipEdgeColumn is the table column denoting the skip_edge relation/edge.
+	SkipEdgeColumn = "user_skip_edge"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -42,6 +53,7 @@ var Columns = []string{
 	FieldID,
 	FieldUserName,
 	FieldStatus,
+	FieldUnnecessary,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

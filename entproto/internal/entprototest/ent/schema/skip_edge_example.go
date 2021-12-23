@@ -12,21 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package entproto
+package schema
 
 import (
-	"entgo.io/ent/schema"
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 )
 
-const SkipAnnotation = "ProtoSkip"
-
-type skipped struct{}
-
-// Skip annotates an ent.Schema to specify that this field will be skipped during .proto generation.
-func Skip() schema.Annotation {
-	return skipped{}
+type SkipEdgeExample struct {
+	ent.Schema
 }
 
-func (f skipped) Name() string {
-	return SkipAnnotation
+func (SkipEdgeExample) Fields() []ent.Field {
+	return nil
+}
+
+func (SkipEdgeExample) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("user", User.Type).
+			Ref("skip_edge").
+			Unique(),
+	}
 }

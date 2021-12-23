@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -31,6 +32,20 @@ func (uc *UserCreate) SetUserName(s string) *UserCreate {
 // SetStatus sets the "status" field.
 func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
 	uc.mutation.SetStatus(u)
+	return uc
+}
+
+// SetUnnecessary sets the "unnecessary" field.
+func (uc *UserCreate) SetUnnecessary(s string) *UserCreate {
+	uc.mutation.SetUnnecessary(s)
+	return uc
+}
+
+// SetNillableUnnecessary sets the "unnecessary" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUnnecessary(s *string) *UserCreate {
+	if s != nil {
+		uc.SetUnnecessary(*s)
+	}
 	return uc
 }
 
@@ -66,6 +81,25 @@ func (uc *UserCreate) SetNillableProfilePicID(id *uuid.UUID) *UserCreate {
 // SetProfilePic sets the "profile_pic" edge to the Image entity.
 func (uc *UserCreate) SetProfilePic(i *Image) *UserCreate {
 	return uc.SetProfilePicID(i.ID)
+}
+
+// SetSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID.
+func (uc *UserCreate) SetSkipEdgeID(id int) *UserCreate {
+	uc.mutation.SetSkipEdgeID(id)
+	return uc
+}
+
+// SetNillableSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableSkipEdgeID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetSkipEdgeID(*id)
+	}
+	return uc
+}
+
+// SetSkipEdge sets the "skip_edge" edge to the SkipEdgeExample entity.
+func (uc *UserCreate) SetSkipEdge(s *SkipEdgeExample) *UserCreate {
+	return uc.SetSkipEdgeID(s.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -192,6 +226,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		})
 		_node.Status = value
 	}
+	if value, ok := uc.mutation.Unnecessary(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUnnecessary,
+		})
+		_node.Unnecessary = value
+	}
 	if nodes := uc.mutation.BlogPostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -229,6 +271,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_profile_pic = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SkipEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

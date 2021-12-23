@@ -217,6 +217,19 @@ func (f PortalFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return f(ctx, mv)
 }
 
+// The SkipEdgeExampleFunc type is an adapter to allow the use of ordinary
+// function as SkipEdgeExample mutator.
+type SkipEdgeExampleFunc func(context.Context, *ent.SkipEdgeExampleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SkipEdgeExampleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SkipEdgeExampleMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SkipEdgeExampleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TwoMethodServiceFunc type is an adapter to allow the use of ordinary
 // function as TwoMethodService mutator.
 type TwoMethodServiceFunc func(context.Context, *ent.TwoMethodServiceMutation) (ent.Value, error)

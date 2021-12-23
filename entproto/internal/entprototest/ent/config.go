@@ -40,6 +40,7 @@ type hooks struct {
 	MessageWithPackageName []ent.Hook
 	OneMethodService       []ent.Hook
 	Portal                 []ent.Hook
+	SkipEdgeExample        []ent.Hook
 	TwoMethodService       []ent.Hook
 	User                   []ent.Hook
 	ValidMessage           []ent.Hook

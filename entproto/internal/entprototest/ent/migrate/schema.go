@@ -219,6 +219,25 @@ var (
 			},
 		},
 	}
+	// SkipEdgeExamplesColumns holds the columns for the "skip_edge_examples" table.
+	SkipEdgeExamplesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_skip_edge", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// SkipEdgeExamplesTable holds the schema information for the "skip_edge_examples" table.
+	SkipEdgeExamplesTable = &schema.Table{
+		Name:       "skip_edge_examples",
+		Columns:    SkipEdgeExamplesColumns,
+		PrimaryKey: []*schema.Column{SkipEdgeExamplesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "skip_edge_examples_users_skip_edge",
+				Columns:    []*schema.Column{SkipEdgeExamplesColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TwoMethodServicesColumns holds the columns for the "two_method_services" table.
 	TwoMethodServicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -234,6 +253,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "user_name", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "active"}},
+		{Name: "unnecessary", Type: field.TypeString, Nullable: true},
 		{Name: "user_profile_pic", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -244,7 +264,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_images_profile_pic",
-				Columns:    []*schema.Column{UsersColumns[3]},
+				Columns:    []*schema.Column{UsersColumns[4]},
 				RefColumns: []*schema.Column{ImagesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -308,6 +328,7 @@ var (
 		MessageWithPackageNamesTable,
 		OneMethodServicesTable,
 		PortalsTable,
+		SkipEdgeExamplesTable,
 		TwoMethodServicesTable,
 		UsersTable,
 		ValidMessagesTable,
@@ -319,6 +340,7 @@ func init() {
 	BlogPostsTable.ForeignKeys[0].RefTable = UsersTable
 	ImplicitSkippedMessagesTable.ForeignKeys[0].RefTable = DependsOnSkippedsTable
 	PortalsTable.ForeignKeys[0].RefTable = CategoriesTable
+	SkipEdgeExamplesTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = ImagesTable
 	CategoryBlogPostsTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategoryBlogPostsTable.ForeignKeys[1].RefTable = BlogPostsTable

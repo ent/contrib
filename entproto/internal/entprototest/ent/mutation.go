@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/schema"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
 	"github.com/google/uuid"
@@ -54,6 +55,7 @@ const (
 	TypeMessageWithPackageName = "MessageWithPackageName"
 	TypeOneMethodService       = "OneMethodService"
 	TypePortal                 = "Portal"
+	TypeSkipEdgeExample        = "SkipEdgeExample"
 	TypeTwoMethodService       = "TwoMethodService"
 	TypeUser                   = "User"
 	TypeValidMessage           = "ValidMessage"
@@ -6271,6 +6273,324 @@ func (m *PortalMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Portal edge %s", name)
 }
 
+// SkipEdgeExampleMutation represents an operation that mutates the SkipEdgeExample nodes in the graph.
+type SkipEdgeExampleMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*SkipEdgeExample, error)
+	predicates    []predicate.SkipEdgeExample
+}
+
+var _ ent.Mutation = (*SkipEdgeExampleMutation)(nil)
+
+// skipedgeexampleOption allows management of the mutation configuration using functional options.
+type skipedgeexampleOption func(*SkipEdgeExampleMutation)
+
+// newSkipEdgeExampleMutation creates new mutation for the SkipEdgeExample entity.
+func newSkipEdgeExampleMutation(c config, op Op, opts ...skipedgeexampleOption) *SkipEdgeExampleMutation {
+	m := &SkipEdgeExampleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSkipEdgeExample,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSkipEdgeExampleID sets the ID field of the mutation.
+func withSkipEdgeExampleID(id int) skipedgeexampleOption {
+	return func(m *SkipEdgeExampleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SkipEdgeExample
+		)
+		m.oldValue = func(ctx context.Context) (*SkipEdgeExample, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SkipEdgeExample.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSkipEdgeExample sets the old SkipEdgeExample of the mutation.
+func withSkipEdgeExample(node *SkipEdgeExample) skipedgeexampleOption {
+	return func(m *SkipEdgeExampleMutation) {
+		m.oldValue = func(context.Context) (*SkipEdgeExample, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SkipEdgeExampleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SkipEdgeExampleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SkipEdgeExampleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SkipEdgeExampleMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SkipEdgeExample.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *SkipEdgeExampleMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *SkipEdgeExampleMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *SkipEdgeExampleMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *SkipEdgeExampleMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *SkipEdgeExampleMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the SkipEdgeExampleMutation builder.
+func (m *SkipEdgeExampleMutation) Where(ps ...predicate.SkipEdgeExample) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *SkipEdgeExampleMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (SkipEdgeExample).
+func (m *SkipEdgeExampleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SkipEdgeExampleMutation) Fields() []string {
+	fields := make([]string, 0, 0)
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SkipEdgeExampleMutation) Field(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SkipEdgeExampleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown SkipEdgeExample field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SkipEdgeExampleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SkipEdgeExample field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SkipEdgeExampleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SkipEdgeExampleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SkipEdgeExampleMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown SkipEdgeExample numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SkipEdgeExampleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SkipEdgeExampleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SkipEdgeExampleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown SkipEdgeExample nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SkipEdgeExampleMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown SkipEdgeExample field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SkipEdgeExampleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, skipedgeexample.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SkipEdgeExampleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case skipedgeexample.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SkipEdgeExampleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SkipEdgeExampleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SkipEdgeExampleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, skipedgeexample.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SkipEdgeExampleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case skipedgeexample.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SkipEdgeExampleMutation) ClearEdge(name string) error {
+	switch name {
+	case skipedgeexample.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown SkipEdgeExample unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SkipEdgeExampleMutation) ResetEdge(name string) error {
+	switch name {
+	case skipedgeexample.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown SkipEdgeExample edge %s", name)
+}
+
 // TwoMethodServiceMutation represents an operation that mutates the TwoMethodService nodes in the graph.
 type TwoMethodServiceMutation struct {
 	config
@@ -6528,12 +6848,15 @@ type UserMutation struct {
 	id                 *int
 	user_name          *string
 	status             *user.Status
+	unnecessary        *string
 	clearedFields      map[string]struct{}
 	blog_posts         map[int]struct{}
 	removedblog_posts  map[int]struct{}
 	clearedblog_posts  bool
 	profile_pic        *uuid.UUID
 	clearedprofile_pic bool
+	skip_edge          *int
+	clearedskip_edge   bool
 	done               bool
 	oldValue           func(context.Context) (*User, error)
 	predicates         []predicate.User
@@ -6709,6 +7032,55 @@ func (m *UserMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetUnnecessary sets the "unnecessary" field.
+func (m *UserMutation) SetUnnecessary(s string) {
+	m.unnecessary = &s
+}
+
+// Unnecessary returns the value of the "unnecessary" field in the mutation.
+func (m *UserMutation) Unnecessary() (r string, exists bool) {
+	v := m.unnecessary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnnecessary returns the old "unnecessary" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUnnecessary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnnecessary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnnecessary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnnecessary: %w", err)
+	}
+	return oldValue.Unnecessary, nil
+}
+
+// ClearUnnecessary clears the value of the "unnecessary" field.
+func (m *UserMutation) ClearUnnecessary() {
+	m.unnecessary = nil
+	m.clearedFields[user.FieldUnnecessary] = struct{}{}
+}
+
+// UnnecessaryCleared returns if the "unnecessary" field was cleared in this mutation.
+func (m *UserMutation) UnnecessaryCleared() bool {
+	_, ok := m.clearedFields[user.FieldUnnecessary]
+	return ok
+}
+
+// ResetUnnecessary resets all changes to the "unnecessary" field.
+func (m *UserMutation) ResetUnnecessary() {
+	m.unnecessary = nil
+	delete(m.clearedFields, user.FieldUnnecessary)
+}
+
 // AddBlogPostIDs adds the "blog_posts" edge to the BlogPost entity by ids.
 func (m *UserMutation) AddBlogPostIDs(ids ...int) {
 	if m.blog_posts == nil {
@@ -6802,6 +7174,45 @@ func (m *UserMutation) ResetProfilePic() {
 	m.clearedprofile_pic = false
 }
 
+// SetSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by id.
+func (m *UserMutation) SetSkipEdgeID(id int) {
+	m.skip_edge = &id
+}
+
+// ClearSkipEdge clears the "skip_edge" edge to the SkipEdgeExample entity.
+func (m *UserMutation) ClearSkipEdge() {
+	m.clearedskip_edge = true
+}
+
+// SkipEdgeCleared reports if the "skip_edge" edge to the SkipEdgeExample entity was cleared.
+func (m *UserMutation) SkipEdgeCleared() bool {
+	return m.clearedskip_edge
+}
+
+// SkipEdgeID returns the "skip_edge" edge ID in the mutation.
+func (m *UserMutation) SkipEdgeID() (id int, exists bool) {
+	if m.skip_edge != nil {
+		return *m.skip_edge, true
+	}
+	return
+}
+
+// SkipEdgeIDs returns the "skip_edge" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SkipEdgeID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) SkipEdgeIDs() (ids []int) {
+	if id := m.skip_edge; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSkipEdge resets all changes to the "skip_edge" edge.
+func (m *UserMutation) ResetSkipEdge() {
+	m.skip_edge = nil
+	m.clearedskip_edge = false
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -6821,12 +7232,15 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
 	if m.status != nil {
 		fields = append(fields, user.FieldStatus)
+	}
+	if m.unnecessary != nil {
+		fields = append(fields, user.FieldUnnecessary)
 	}
 	return fields
 }
@@ -6840,6 +7254,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.UserName()
 	case user.FieldStatus:
 		return m.Status()
+	case user.FieldUnnecessary:
+		return m.Unnecessary()
 	}
 	return nil, false
 }
@@ -6853,6 +7269,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUserName(ctx)
 	case user.FieldStatus:
 		return m.OldStatus(ctx)
+	case user.FieldUnnecessary:
+		return m.OldUnnecessary(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -6875,6 +7293,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case user.FieldUnnecessary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnnecessary(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -6905,7 +7330,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldUnnecessary) {
+		fields = append(fields, user.FieldUnnecessary)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -6918,6 +7347,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldUnnecessary:
+		m.ClearUnnecessary()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -6931,18 +7365,24 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldStatus:
 		m.ResetStatus()
 		return nil
+	case user.FieldUnnecessary:
+		m.ResetUnnecessary()
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.blog_posts != nil {
 		edges = append(edges, user.EdgeBlogPosts)
 	}
 	if m.profile_pic != nil {
 		edges = append(edges, user.EdgeProfilePic)
+	}
+	if m.skip_edge != nil {
+		edges = append(edges, user.EdgeSkipEdge)
 	}
 	return edges
 }
@@ -6961,13 +7401,17 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile_pic; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeSkipEdge:
+		if id := m.skip_edge; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedblog_posts != nil {
 		edges = append(edges, user.EdgeBlogPosts)
 	}
@@ -6990,12 +7434,15 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedblog_posts {
 		edges = append(edges, user.EdgeBlogPosts)
 	}
 	if m.clearedprofile_pic {
 		edges = append(edges, user.EdgeProfilePic)
+	}
+	if m.clearedskip_edge {
+		edges = append(edges, user.EdgeSkipEdge)
 	}
 	return edges
 }
@@ -7008,6 +7455,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedblog_posts
 	case user.EdgeProfilePic:
 		return m.clearedprofile_pic
+	case user.EdgeSkipEdge:
+		return m.clearedskip_edge
 	}
 	return false
 }
@@ -7018,6 +7467,9 @@ func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
 	case user.EdgeProfilePic:
 		m.ClearProfilePic()
+		return nil
+	case user.EdgeSkipEdge:
+		m.ClearSkipEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
@@ -7032,6 +7484,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeProfilePic:
 		m.ResetProfilePic()
+		return nil
+	case user.EdgeSkipEdge:
+		m.ResetSkipEdge()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
