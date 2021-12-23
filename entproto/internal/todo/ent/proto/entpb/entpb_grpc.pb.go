@@ -4,10 +4,10 @@ package entpb
 
 import (
 	context "context"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,7 +22,7 @@ type AttachmentServiceClient interface {
 	Create(ctx context.Context, in *CreateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
 	Get(ctx context.Context, in *GetAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
 	Update(ctx context.Context, in *UpdateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
-	Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	List(ctx context.Context, in *ListAttachmentRequest, opts ...grpc.CallOption) (*ListAttachmentResponse, error)
 }
 
@@ -61,8 +61,8 @@ func (c *attachmentServiceClient) Update(ctx context.Context, in *UpdateAttachme
 	return out, nil
 }
 
-func (c *attachmentServiceClient) Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *attachmentServiceClient) Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ type AttachmentServiceServer interface {
 	Create(context.Context, *CreateAttachmentRequest) (*Attachment, error)
 	Get(context.Context, *GetAttachmentRequest) (*Attachment, error)
 	Update(context.Context, *UpdateAttachmentRequest) (*Attachment, error)
-	Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error)
+	Delete(context.Context, *DeleteAttachmentRequest) (*empty.Empty, error)
 	List(context.Context, *ListAttachmentRequest) (*ListAttachmentResponse, error)
 	mustEmbedUnimplementedAttachmentServiceServer()
 }
@@ -104,7 +104,7 @@ func (UnimplementedAttachmentServiceServer) Get(context.Context, *GetAttachmentR
 func (UnimplementedAttachmentServiceServer) Update(context.Context, *UpdateAttachmentRequest) (*Attachment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedAttachmentServiceServer) Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error) {
+func (UnimplementedAttachmentServiceServer) Delete(context.Context, *DeleteAttachmentRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedAttachmentServiceServer) List(context.Context, *ListAttachmentRequest) (*ListAttachmentResponse, error) {
@@ -252,7 +252,7 @@ type MultiWordSchemaServiceClient interface {
 	Create(ctx context.Context, in *CreateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Get(ctx context.Context, in *GetMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Update(ctx context.Context, in *UpdateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
-	Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	List(ctx context.Context, in *ListMultiWordSchemaRequest, opts ...grpc.CallOption) (*ListMultiWordSchemaResponse, error)
 }
 
@@ -291,8 +291,8 @@ func (c *multiWordSchemaServiceClient) Update(ctx context.Context, in *UpdateMul
 	return out, nil
 }
 
-func (c *multiWordSchemaServiceClient) Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *multiWordSchemaServiceClient) Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -316,7 +316,7 @@ type MultiWordSchemaServiceServer interface {
 	Create(context.Context, *CreateMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Get(context.Context, *GetMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error)
-	Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error)
+	Delete(context.Context, *DeleteMultiWordSchemaRequest) (*empty.Empty, error)
 	List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error)
 	mustEmbedUnimplementedMultiWordSchemaServiceServer()
 }
@@ -334,7 +334,7 @@ func (UnimplementedMultiWordSchemaServiceServer) Get(context.Context, *GetMultiW
 func (UnimplementedMultiWordSchemaServiceServer) Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedMultiWordSchemaServiceServer) Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error) {
+func (UnimplementedMultiWordSchemaServiceServer) Delete(context.Context, *DeleteMultiWordSchemaRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedMultiWordSchemaServiceServer) List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error) {
@@ -483,7 +483,7 @@ type NilExampleServiceClient interface {
 	Create(ctx context.Context, in *CreateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
 	Get(ctx context.Context, in *GetNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
 	Update(ctx context.Context, in *UpdateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
-	Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	List(ctx context.Context, in *ListNilExampleRequest, opts ...grpc.CallOption) (*ListNilExampleResponse, error)
 }
 
@@ -522,8 +522,8 @@ func (c *nilExampleServiceClient) Update(ctx context.Context, in *UpdateNilExamp
 	return out, nil
 }
 
-func (c *nilExampleServiceClient) Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *nilExampleServiceClient) Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -547,7 +547,7 @@ type NilExampleServiceServer interface {
 	Create(context.Context, *CreateNilExampleRequest) (*NilExample, error)
 	Get(context.Context, *GetNilExampleRequest) (*NilExample, error)
 	Update(context.Context, *UpdateNilExampleRequest) (*NilExample, error)
-	Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error)
+	Delete(context.Context, *DeleteNilExampleRequest) (*empty.Empty, error)
 	List(context.Context, *ListNilExampleRequest) (*ListNilExampleResponse, error)
 	mustEmbedUnimplementedNilExampleServiceServer()
 }
@@ -565,7 +565,7 @@ func (UnimplementedNilExampleServiceServer) Get(context.Context, *GetNilExampleR
 func (UnimplementedNilExampleServiceServer) Update(context.Context, *UpdateNilExampleRequest) (*NilExample, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedNilExampleServiceServer) Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error) {
+func (UnimplementedNilExampleServiceServer) Delete(context.Context, *DeleteNilExampleRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedNilExampleServiceServer) List(context.Context, *ListNilExampleRequest) (*ListNilExampleResponse, error) {
@@ -713,7 +713,7 @@ type PetServiceClient interface {
 	Create(ctx context.Context, in *CreatePetRequest, opts ...grpc.CallOption) (*Pet, error)
 	Get(ctx context.Context, in *GetPetRequest, opts ...grpc.CallOption) (*Pet, error)
 	Update(ctx context.Context, in *UpdatePetRequest, opts ...grpc.CallOption) (*Pet, error)
-	Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	List(ctx context.Context, in *ListPetRequest, opts ...grpc.CallOption) (*ListPetResponse, error)
 }
 
@@ -752,8 +752,8 @@ func (c *petServiceClient) Update(ctx context.Context, in *UpdatePetRequest, opt
 	return out, nil
 }
 
-func (c *petServiceClient) Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *petServiceClient) Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/entpb.PetService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -777,7 +777,7 @@ type PetServiceServer interface {
 	Create(context.Context, *CreatePetRequest) (*Pet, error)
 	Get(context.Context, *GetPetRequest) (*Pet, error)
 	Update(context.Context, *UpdatePetRequest) (*Pet, error)
-	Delete(context.Context, *DeletePetRequest) (*emptypb.Empty, error)
+	Delete(context.Context, *DeletePetRequest) (*empty.Empty, error)
 	List(context.Context, *ListPetRequest) (*ListPetResponse, error)
 	mustEmbedUnimplementedPetServiceServer()
 }
@@ -795,7 +795,7 @@ func (UnimplementedPetServiceServer) Get(context.Context, *GetPetRequest) (*Pet,
 func (UnimplementedPetServiceServer) Update(context.Context, *UpdatePetRequest) (*Pet, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedPetServiceServer) Delete(context.Context, *DeletePetRequest) (*emptypb.Empty, error) {
+func (UnimplementedPetServiceServer) Delete(context.Context, *DeletePetRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedPetServiceServer) List(context.Context, *ListPetRequest) (*ListPetResponse, error) {
@@ -943,7 +943,7 @@ type UserServiceClient interface {
 	Create(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*User, error)
 	Get(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
-	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	List(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
 }
 
@@ -982,8 +982,8 @@ func (c *userServiceClient) Update(ctx context.Context, in *UpdateUserRequest, o
 	return out, nil
 }
 
-func (c *userServiceClient) Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *userServiceClient) Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/entpb.UserService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1007,7 +1007,7 @@ type UserServiceServer interface {
 	Create(context.Context, *CreateUserRequest) (*User, error)
 	Get(context.Context, *GetUserRequest) (*User, error)
 	Update(context.Context, *UpdateUserRequest) (*User, error)
-	Delete(context.Context, *DeleteUserRequest) (*emptypb.Empty, error)
+	Delete(context.Context, *DeleteUserRequest) (*empty.Empty, error)
 	List(context.Context, *ListUserRequest) (*ListUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -1025,7 +1025,7 @@ func (UnimplementedUserServiceServer) Get(context.Context, *GetUserRequest) (*Us
 func (UnimplementedUserServiceServer) Update(context.Context, *UpdateUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedUserServiceServer) Delete(context.Context, *DeleteUserRequest) (*emptypb.Empty, error) {
+func (UnimplementedUserServiceServer) Delete(context.Context, *DeleteUserRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedUserServiceServer) List(context.Context, *ListUserRequest) (*ListUserResponse, error) {

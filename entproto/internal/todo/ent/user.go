@@ -11,6 +11,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
+	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -53,6 +54,8 @@ type User struct {
 	HeightInCm float32 `json:"height_in_cm,omitempty"`
 	// AccountBalance holds the value of the "account_balance" field.
 	AccountBalance float64 `json:"account_balance,omitempty"`
+	// Unnecessary holds the value of the "unnecessary" field.
+	Unnecessary string `json:"unnecessary,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -69,9 +72,11 @@ type UserEdges struct {
 	Received1 []*Attachment `json:"received_1,omitempty"`
 	// Pet holds the value of the pet edge.
 	Pet *Pet `json:"pet,omitempty"`
+	// SkipEdge holds the value of the skip_edge edge.
+	SkipEdge *SkipEdgeExample `json:"skip_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -125,6 +130,20 @@ func (e UserEdges) PetOrErr() (*Pet, error) {
 	return nil, &NotLoadedError{edge: "pet"}
 }
 
+// SkipEdgeOrErr returns the SkipEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) SkipEdgeOrErr() (*SkipEdgeExample, error) {
+	if e.loadedTypes[4] {
+		if e.SkipEdge == nil {
+			// The edge skip_edge was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: skipedgeexample.Label}
+		}
+		return e.SkipEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "skip_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -138,7 +157,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -263,6 +282,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.AccountBalance = value.Float64
 			}
+		case user.FieldUnnecessary:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unnecessary", values[i])
+			} else if value.Valid {
+				u.Unnecessary = value.String
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -293,6 +318,11 @@ func (u *User) QueryReceived1() *AttachmentQuery {
 // QueryPet queries the "pet" edge of the User entity.
 func (u *User) QueryPet() *PetQuery {
 	return (&UserClient{config: u.config}).QueryPet(u)
+}
+
+// QuerySkipEdge queries the "skip_edge" edge of the User entity.
+func (u *User) QuerySkipEdge() *SkipEdgeExampleQuery {
+	return (&UserClient{config: u.config}).QuerySkipEdge(u)
 }
 
 // Update returns a builder for updating this User.
@@ -350,6 +380,8 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.HeightInCm))
 	builder.WriteString(", account_balance=")
 	builder.WriteString(fmt.Sprintf("%v", u.AccountBalance))
+	builder.WriteString(", unnecessary=")
+	builder.WriteString(u.Unnecessary)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -9,6 +9,7 @@ import (
 	multiwordschema "entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -132,7 +133,7 @@ func (svc *MultiWordSchemaService) Update(ctx context.Context, req *UpdateMultiW
 }
 
 // Delete implements MultiWordSchemaServiceServer.Delete
-func (svc *MultiWordSchemaService) Delete(ctx context.Context, req *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error) {
+func (svc *MultiWordSchemaService) Delete(ctx context.Context, req *DeleteMultiWordSchemaRequest) (*empty.Empty, error) {
 	var err error
 	id := int(req.GetId())
 	err = svc.client.MultiWordSchema.DeleteOneID(id).Exec(ctx)

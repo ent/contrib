@@ -80,6 +80,25 @@ var (
 			},
 		},
 	}
+	// SkipEdgeExamplesColumns holds the columns for the "skip_edge_examples" table.
+	SkipEdgeExamplesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_skip_edge", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// SkipEdgeExamplesTable holds the schema information for the "skip_edge_examples" table.
+	SkipEdgeExamplesTable = &schema.Table{
+		Name:       "skip_edge_examples",
+		Columns:    SkipEdgeExamplesColumns,
+		PrimaryKey: []*schema.Column{SkipEdgeExamplesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "skip_edge_examples_users_skip_edge",
+				Columns:    []*schema.Column{SkipEdgeExamplesColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -120,6 +139,7 @@ var (
 		{Name: "b_user_1", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "height_in_cm", Type: field.TypeFloat32, Default: 0},
 		{Name: "account_balance", Type: field.TypeFloat64, Default: 0},
+		{Name: "unnecessary", Type: field.TypeString, Nullable: true},
 		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -130,7 +150,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[17]},
+				Columns:    []*schema.Column{UsersColumns[18]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -168,6 +188,7 @@ var (
 		MultiWordSchemasTable,
 		NilExamplesTable,
 		PetsTable,
+		SkipEdgeExamplesTable,
 		TodosTable,
 		UsersTable,
 		AttachmentRecipientsTable,
@@ -177,6 +198,7 @@ var (
 func init() {
 	AttachmentsTable.ForeignKeys[0].RefTable = UsersTable
 	PetsTable.ForeignKeys[0].RefTable = UsersTable
+	SkipEdgeExamplesTable.ForeignKeys[0].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable
 	AttachmentRecipientsTable.ForeignKeys[0].RefTable = AttachmentsTable
