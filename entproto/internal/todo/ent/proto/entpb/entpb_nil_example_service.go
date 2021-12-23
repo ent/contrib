@@ -10,7 +10,6 @@ import (
 	runtime "entgo.io/contrib/entproto/runtime"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -139,7 +138,7 @@ func (svc *NilExampleService) Update(ctx context.Context, req *UpdateNilExampleR
 }
 
 // Delete implements NilExampleServiceServer.Delete
-func (svc *NilExampleService) Delete(ctx context.Context, req *DeleteNilExampleRequest) (*empty.Empty, error) {
+func (svc *NilExampleService) Delete(ctx context.Context, req *DeleteNilExampleRequest) (*emptypb.Empty, error) {
 	var err error
 	id := int(req.GetId())
 	err = svc.client.NilExample.DeleteOneID(id).Exec(ctx)

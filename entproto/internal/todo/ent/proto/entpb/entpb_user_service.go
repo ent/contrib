@@ -15,7 +15,6 @@ import (
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	errors "errors"
 	fmt "fmt"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -359,7 +358,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 }
 
 // Delete implements UserServiceServer.Delete
-func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*empty.Empty, error) {
+func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
 	var err error
 	id := int(req.GetId())
 	err = svc.client.User.DeleteOneID(id).Exec(ctx)
