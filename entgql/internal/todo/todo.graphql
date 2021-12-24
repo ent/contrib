@@ -38,6 +38,7 @@ type Todo implements Node {
 type Category implements Node {
   id: ID!
   text: String!
+  strings: [String]
 }
 
 input TodoInput {

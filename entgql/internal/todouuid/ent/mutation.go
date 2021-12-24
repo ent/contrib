@@ -60,6 +60,7 @@ type CategoryMutation struct {
 	addduration   *time.Duration
 	count         *uint64
 	addcount      *int64
+	strings       *[]string
 	clearedFields map[string]struct{}
 	todos         map[uuid.UUID]struct{}
 	removedtodos  map[uuid.UUID]struct{}
@@ -434,6 +435,55 @@ func (m *CategoryMutation) ResetCount() {
 	delete(m.clearedFields, category.FieldCount)
 }
 
+// SetStrings sets the "strings" field.
+func (m *CategoryMutation) SetStrings(s []string) {
+	m.strings = &s
+}
+
+// Strings returns the value of the "strings" field in the mutation.
+func (m *CategoryMutation) Strings() (r []string, exists bool) {
+	v := m.strings
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStrings returns the old "strings" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldStrings(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStrings is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStrings requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStrings: %w", err)
+	}
+	return oldValue.Strings, nil
+}
+
+// ClearStrings clears the value of the "strings" field.
+func (m *CategoryMutation) ClearStrings() {
+	m.strings = nil
+	m.clearedFields[category.FieldStrings] = struct{}{}
+}
+
+// StringsCleared returns if the "strings" field was cleared in this mutation.
+func (m *CategoryMutation) StringsCleared() bool {
+	_, ok := m.clearedFields[category.FieldStrings]
+	return ok
+}
+
+// ResetStrings resets all changes to the "strings" field.
+func (m *CategoryMutation) ResetStrings() {
+	m.strings = nil
+	delete(m.clearedFields, category.FieldStrings)
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by ids.
 func (m *CategoryMutation) AddTodoIDs(ids ...uuid.UUID) {
 	if m.todos == nil {
@@ -507,7 +557,7 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
 	}
@@ -522,6 +572,9 @@ func (m *CategoryMutation) Fields() []string {
 	}
 	if m.count != nil {
 		fields = append(fields, category.FieldCount)
+	}
+	if m.strings != nil {
+		fields = append(fields, category.FieldStrings)
 	}
 	return fields
 }
@@ -541,6 +594,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Duration()
 	case category.FieldCount:
 		return m.Count()
+	case category.FieldStrings:
+		return m.Strings()
 	}
 	return nil, false
 }
@@ -560,6 +615,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldDuration(ctx)
 	case category.FieldCount:
 		return m.OldCount(ctx)
+	case category.FieldStrings:
+		return m.OldStrings(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -603,6 +660,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCount(v)
+		return nil
+	case category.FieldStrings:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStrings(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
@@ -670,6 +734,9 @@ func (m *CategoryMutation) ClearedFields() []string {
 	if m.FieldCleared(category.FieldCount) {
 		fields = append(fields, category.FieldCount)
 	}
+	if m.FieldCleared(category.FieldStrings) {
+		fields = append(fields, category.FieldStrings)
+	}
 	return fields
 }
 
@@ -693,6 +760,9 @@ func (m *CategoryMutation) ClearField(name string) error {
 	case category.FieldCount:
 		m.ClearCount()
 		return nil
+	case category.FieldStrings:
+		m.ClearStrings()
+		return nil
 	}
 	return fmt.Errorf("unknown Category nullable field %s", name)
 }
@@ -715,6 +785,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 		return nil
 	case category.FieldCount:
 		m.ResetCount()
+		return nil
+	case category.FieldStrings:
+		m.ResetStrings()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

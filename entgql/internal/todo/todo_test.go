@@ -879,3 +879,27 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.ID)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.Text)
 }
+
+func (s *todoTestSuite) TestQueryJSONFields() {
+	var (
+		ctx = context.Background()
+		cat = s.ent.Category.Create().SetText("Disabled").SetStatus(category.StatusDisabled).SetStrings([]string{"a", "b"}).SetText("category").SaveX(ctx)
+		rsp struct {
+			Node struct {
+				Text    string
+				Strings []string
+			}
+		}
+	)
+	err := s.Post(`query node($id: ID!) {
+	    node(id: $id) {
+	    	... on Category {
+				text
+				strings
+			}
+		}
+	}`, &rsp, client.Var("id", cat.ID))
+	s.Require().NoError(err)
+	s.Require().Equal(cat.Text, rsp.Node.Text)
+	s.Require().Equal(cat.Strings, rsp.Node.Strings)
+}
