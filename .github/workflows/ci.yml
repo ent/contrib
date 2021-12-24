@@ -70,7 +70,7 @@ jobs:
         run: go generate ./...
       - name: Check generated files
         run: |
-          status=$(git status --porcelain)
+          status=$(git status --porcelain | grep -v go.sum)
           if [ -n "$status" ]; then
             echo "you need to run 'go generate ./...' and commit the changes"
             echo "$status"
