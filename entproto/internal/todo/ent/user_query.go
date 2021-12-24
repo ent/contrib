@@ -13,6 +13,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
+	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -34,6 +35,7 @@ type UserQuery struct {
 	withAttachment *AttachmentQuery
 	withReceived1  *AttachmentQuery
 	withPet        *PetQuery
+	withSkipEdge   *SkipEdgeExampleQuery
 	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -152,6 +154,28 @@ func (uq *UserQuery) QueryPet() *PetQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(pet.Table, pet.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.PetTable, user.PetColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySkipEdge chains the current query on the "skip_edge" edge.
+func (uq *UserQuery) QuerySkipEdge() *SkipEdgeExampleQuery {
+	query := &SkipEdgeExampleQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(skipedgeexample.Table, skipedgeexample.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.SkipEdgeTable, user.SkipEdgeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -344,6 +368,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withAttachment: uq.withAttachment.Clone(),
 		withReceived1:  uq.withReceived1.Clone(),
 		withPet:        uq.withPet.Clone(),
+		withSkipEdge:   uq.withSkipEdge.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -391,6 +416,17 @@ func (uq *UserQuery) WithPet(opts ...func(*PetQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withPet = query
+	return uq
+}
+
+// WithSkipEdge tells the query-builder to eager-load the nodes that are connected to
+// the "skip_edge" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithSkipEdge(opts ...func(*SkipEdgeExampleQuery)) *UserQuery {
+	query := &SkipEdgeExampleQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withSkipEdge = query
 	return uq
 }
 
@@ -460,11 +496,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		nodes       = []*User{}
 		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withGroup != nil,
 			uq.withAttachment != nil,
 			uq.withReceived1 != nil,
 			uq.withPet != nil,
+			uq.withSkipEdge != nil,
 		}
 	)
 	if uq.withGroup != nil {
@@ -640,6 +677,34 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "user_pet" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Pet = n
+		}
+	}
+
+	if query := uq.withSkipEdge; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SkipEdgeExample(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.SkipEdgeColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_skip_edge
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_skip_edge" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_skip_edge" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.SkipEdge = n
 		}
 	}
 

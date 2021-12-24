@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -21,6 +22,8 @@ type User struct {
 	UserName string `json:"user_name,omitempty"`
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
+	// Unnecessary holds the value of the "unnecessary" field.
+	Unnecessary string `json:"unnecessary,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges            UserEdges `json:"edges"`
@@ -33,9 +36,11 @@ type UserEdges struct {
 	BlogPosts []*BlogPost `json:"blog_posts,omitempty"`
 	// ProfilePic holds the value of the profile_pic edge.
 	ProfilePic *Image `json:"profile_pic,omitempty"`
+	// SkipEdge holds the value of the skip_edge edge.
+	SkipEdge *SkipEdgeExample `json:"skip_edge,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // BlogPostsOrErr returns the BlogPosts value or an error if the edge
@@ -61,6 +66,20 @@ func (e UserEdges) ProfilePicOrErr() (*Image, error) {
 	return nil, &NotLoadedError{edge: "profile_pic"}
 }
 
+// SkipEdgeOrErr returns the SkipEdge value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) SkipEdgeOrErr() (*SkipEdgeExample, error) {
+	if e.loadedTypes[2] {
+		if e.SkipEdge == nil {
+			// The edge skip_edge was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: skipedgeexample.Label}
+		}
+		return e.SkipEdge, nil
+	}
+	return nil, &NotLoadedError{edge: "skip_edge"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -68,7 +87,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus:
+		case user.FieldUserName, user.FieldStatus, user.FieldUnnecessary:
 			values[i] = new(sql.NullString)
 		case user.ForeignKeys[0]: // user_profile_pic
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
@@ -105,6 +124,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Status = user.Status(value.String)
 			}
+		case user.FieldUnnecessary:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unnecessary", values[i])
+			} else if value.Valid {
+				u.Unnecessary = value.String
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field user_profile_pic", values[i])
@@ -125,6 +150,11 @@ func (u *User) QueryBlogPosts() *BlogPostQuery {
 // QueryProfilePic queries the "profile_pic" edge of the User entity.
 func (u *User) QueryProfilePic() *ImageQuery {
 	return (&UserClient{config: u.config}).QueryProfilePic(u)
+}
+
+// QuerySkipEdge queries the "skip_edge" edge of the User entity.
+func (u *User) QuerySkipEdge() *SkipEdgeExampleQuery {
+	return (&UserClient{config: u.config}).QuerySkipEdge(u)
 }
 
 // Update returns a builder for updating this User.
@@ -154,6 +184,8 @@ func (u *User) String() string {
 	builder.WriteString(u.UserName)
 	builder.WriteString(", status=")
 	builder.WriteString(fmt.Sprintf("%v", u.Status))
+	builder.WriteString(", unnecessary=")
+	builder.WriteString(u.Unnecessary)
 	builder.WriteByte(')')
 	return builder.String()
 }

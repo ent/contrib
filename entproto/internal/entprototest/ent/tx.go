@@ -44,6 +44,8 @@ type Tx struct {
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
 	Portal *PortalClient
+	// SkipEdgeExample is the client for interacting with the SkipEdgeExample builders.
+	SkipEdgeExample *SkipEdgeExampleClient
 	// TwoMethodService is the client for interacting with the TwoMethodService builders.
 	TwoMethodService *TwoMethodServiceClient
 	// User is the client for interacting with the User builders.
@@ -201,6 +203,7 @@ func (tx *Tx) init() {
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
 	tx.OneMethodService = NewOneMethodServiceClient(tx.config)
 	tx.Portal = NewPortalClient(tx.config)
+	tx.SkipEdgeExample = NewSkipEdgeExampleClient(tx.config)
 	tx.TwoMethodService = NewTwoMethodServiceClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.ValidMessage = NewValidMessageClient(tx.config)

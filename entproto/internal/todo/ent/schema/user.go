@@ -105,6 +105,9 @@ func (User) Fields() []ent.Field {
 		field.Float("account_balance").
 			Default(0.0).
 			Annotations(entproto.Field(20)),
+		field.String("unnecessary").
+			Optional().
+			Annotations(entproto.Skip()),
 	}
 }
 
@@ -126,6 +129,9 @@ func (User) Edges() []ent.Edge {
 		edge.To("pet", Pet.Type).
 			Unique().
 			Annotations(entproto.Field(21)),
+		edge.To("skip_edge", SkipEdgeExample.Type).
+			Unique().
+			Annotations(entproto.Skip()),
 	}
 }
 

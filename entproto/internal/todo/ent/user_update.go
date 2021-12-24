@@ -12,6 +12,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
+	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -272,6 +273,26 @@ func (uu *UserUpdate) AddAccountBalance(f float64) *UserUpdate {
 	return uu
 }
 
+// SetUnnecessary sets the "unnecessary" field.
+func (uu *UserUpdate) SetUnnecessary(s string) *UserUpdate {
+	uu.mutation.SetUnnecessary(s)
+	return uu
+}
+
+// SetNillableUnnecessary sets the "unnecessary" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUnnecessary(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetUnnecessary(*s)
+	}
+	return uu
+}
+
+// ClearUnnecessary clears the value of the "unnecessary" field.
+func (uu *UserUpdate) ClearUnnecessary() *UserUpdate {
+	uu.mutation.ClearUnnecessary()
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -344,6 +365,25 @@ func (uu *UserUpdate) SetPet(p *Pet) *UserUpdate {
 	return uu.SetPetID(p.ID)
 }
 
+// SetSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID.
+func (uu *UserUpdate) SetSkipEdgeID(id int) *UserUpdate {
+	uu.mutation.SetSkipEdgeID(id)
+	return uu
+}
+
+// SetNillableSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableSkipEdgeID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetSkipEdgeID(*id)
+	}
+	return uu
+}
+
+// SetSkipEdge sets the "skip_edge" edge to the SkipEdgeExample entity.
+func (uu *UserUpdate) SetSkipEdge(s *SkipEdgeExample) *UserUpdate {
+	return uu.SetSkipEdgeID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -385,6 +425,12 @@ func (uu *UserUpdate) RemoveReceived1(a ...*Attachment) *UserUpdate {
 // ClearPet clears the "pet" edge to the Pet entity.
 func (uu *UserUpdate) ClearPet() *UserUpdate {
 	uu.mutation.ClearPet()
+	return uu
+}
+
+// ClearSkipEdge clears the "skip_edge" edge to the SkipEdgeExample entity.
+func (uu *UserUpdate) ClearSkipEdge() *UserUpdate {
+	uu.mutation.ClearSkipEdge()
 	return uu
 }
 
@@ -667,6 +713,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldAccountBalance,
 		})
 	}
+	if value, ok := uu.mutation.Unnecessary(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUnnecessary,
+		})
+	}
+	if uu.mutation.UnnecessaryCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldUnnecessary,
+		})
+	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -818,6 +877,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: pet.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.SkipEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.SkipEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
 				},
 			},
 		}
@@ -1085,6 +1179,26 @@ func (uuo *UserUpdateOne) AddAccountBalance(f float64) *UserUpdateOne {
 	return uuo
 }
 
+// SetUnnecessary sets the "unnecessary" field.
+func (uuo *UserUpdateOne) SetUnnecessary(s string) *UserUpdateOne {
+	uuo.mutation.SetUnnecessary(s)
+	return uuo
+}
+
+// SetNillableUnnecessary sets the "unnecessary" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUnnecessary(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetUnnecessary(*s)
+	}
+	return uuo
+}
+
+// ClearUnnecessary clears the value of the "unnecessary" field.
+func (uuo *UserUpdateOne) ClearUnnecessary() *UserUpdateOne {
+	uuo.mutation.ClearUnnecessary()
+	return uuo
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uuo *UserUpdateOne) SetGroupID(id int) *UserUpdateOne {
 	uuo.mutation.SetGroupID(id)
@@ -1157,6 +1271,25 @@ func (uuo *UserUpdateOne) SetPet(p *Pet) *UserUpdateOne {
 	return uuo.SetPetID(p.ID)
 }
 
+// SetSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID.
+func (uuo *UserUpdateOne) SetSkipEdgeID(id int) *UserUpdateOne {
+	uuo.mutation.SetSkipEdgeID(id)
+	return uuo
+}
+
+// SetNillableSkipEdgeID sets the "skip_edge" edge to the SkipEdgeExample entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSkipEdgeID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetSkipEdgeID(*id)
+	}
+	return uuo
+}
+
+// SetSkipEdge sets the "skip_edge" edge to the SkipEdgeExample entity.
+func (uuo *UserUpdateOne) SetSkipEdge(s *SkipEdgeExample) *UserUpdateOne {
+	return uuo.SetSkipEdgeID(s.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -1198,6 +1331,12 @@ func (uuo *UserUpdateOne) RemoveReceived1(a ...*Attachment) *UserUpdateOne {
 // ClearPet clears the "pet" edge to the Pet entity.
 func (uuo *UserUpdateOne) ClearPet() *UserUpdateOne {
 	uuo.mutation.ClearPet()
+	return uuo
+}
+
+// ClearSkipEdge clears the "skip_edge" edge to the SkipEdgeExample entity.
+func (uuo *UserUpdateOne) ClearSkipEdge() *UserUpdateOne {
+	uuo.mutation.ClearSkipEdge()
 	return uuo
 }
 
@@ -1504,6 +1643,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Column: user.FieldAccountBalance,
 		})
 	}
+	if value, ok := uuo.mutation.Unnecessary(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldUnnecessary,
+		})
+	}
+	if uuo.mutation.UnnecessaryCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldUnnecessary,
+		})
+	}
 	if uuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1655,6 +1807,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: pet.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.SkipEdgeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.SkipEdgeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.SkipEdgeTable,
+			Columns: []string{user.SkipEdgeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: skipedgeexample.FieldID,
 				},
 			},
 		}

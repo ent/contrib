@@ -16,11 +16,12 @@ package entpb
 
 import (
 	"context"
-	"entgo.io/contrib/entproto"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	"entgo.io/contrib/entproto"
 
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"

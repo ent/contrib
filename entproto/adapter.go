@@ -321,6 +321,10 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 	all = append(all, genType.Fields...)
 
 	for _, f := range all {
+		if _, ok := f.Annotations[SkipAnnotation]; ok {
+			continue
+		}
+
 		protoField, err := toProtoFieldDescriptor(f)
 		if err != nil {
 			return nil, err
@@ -337,6 +341,10 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 	}
 
 	for _, e := range genType.Edges {
+		if _, ok := e.Annotations[SkipAnnotation]; ok {
+			continue
+		}
+
 		descriptor, err := a.extractEdgeFieldDescriptor(genType, e)
 		if err != nil {
 			return nil, err

@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
@@ -63,6 +64,7 @@ func columnChecker(table string) func(string) error {
 		messagewithpackagename.Table: messagewithpackagename.ValidColumn,
 		onemethodservice.Table:       onemethodservice.ValidColumn,
 		portal.Table:                 portal.ValidColumn,
+		skipedgeexample.Table:        skipedgeexample.ValidColumn,
 		twomethodservice.Table:       twomethodservice.ValidColumn,
 		user.Table:                   user.ValidColumn,
 		validmessage.Table:           validmessage.ValidColumn,

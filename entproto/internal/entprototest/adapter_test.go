@@ -99,6 +99,17 @@ func (suite *AdapterTestSuite) TestExplicitSkippedMessage() {
 	suite.EqualError(err, entproto.ErrSchemaSkipped.Error())
 }
 
+func (suite *AdapterTestSuite) TestSkippedFieldAndEdge() {
+	message, err := suite.adapter.GetMessageDescriptor("User")
+	suite.Require().NoError(err)
+
+	postsField := message.FindFieldByName("unnecessary")
+	suite.Require().Nil(postsField)
+
+	edgeField := message.FindFieldByName("skip_edge")
+	suite.Require().Nil(edgeField)
+}
+
 func (suite *AdapterTestSuite) TestInvalidField() {
 	_, err := suite.adapter.GetFileDescriptor("InvalidFieldMessage")
 	suite.EqualError(err, "unsupported field type \"TypeJSON\"")

@@ -26,6 +26,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
@@ -72,6 +73,8 @@ type Client struct {
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
 	Portal *PortalClient
+	// SkipEdgeExample is the client for interacting with the SkipEdgeExample builders.
+	SkipEdgeExample *SkipEdgeExampleClient
 	// TwoMethodService is the client for interacting with the TwoMethodService builders.
 	TwoMethodService *TwoMethodServiceClient
 	// User is the client for interacting with the User builders.
@@ -107,6 +110,7 @@ func (c *Client) init() {
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
 	c.OneMethodService = NewOneMethodServiceClient(c.config)
 	c.Portal = NewPortalClient(c.config)
+	c.SkipEdgeExample = NewSkipEdgeExampleClient(c.config)
 	c.TwoMethodService = NewTwoMethodServiceClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.ValidMessage = NewValidMessageClient(c.config)
@@ -159,6 +163,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
+		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
 		TwoMethodService:       NewTwoMethodServiceClient(cfg),
 		User:                   NewUserClient(cfg),
 		ValidMessage:           NewValidMessageClient(cfg),
@@ -196,6 +201,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
+		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
 		TwoMethodService:       NewTwoMethodServiceClient(cfg),
 		User:                   NewUserClient(cfg),
 		ValidMessage:           NewValidMessageClient(cfg),
@@ -244,6 +250,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.MessageWithPackageName.Use(hooks...)
 	c.OneMethodService.Use(hooks...)
 	c.Portal.Use(hooks...)
+	c.SkipEdgeExample.Use(hooks...)
 	c.TwoMethodService.Use(hooks...)
 	c.User.Use(hooks...)
 	c.ValidMessage.Use(hooks...)
@@ -1785,6 +1792,112 @@ func (c *PortalClient) Hooks() []Hook {
 	return c.hooks.Portal
 }
 
+// SkipEdgeExampleClient is a client for the SkipEdgeExample schema.
+type SkipEdgeExampleClient struct {
+	config
+}
+
+// NewSkipEdgeExampleClient returns a client for the SkipEdgeExample from the given config.
+func NewSkipEdgeExampleClient(c config) *SkipEdgeExampleClient {
+	return &SkipEdgeExampleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `skipedgeexample.Hooks(f(g(h())))`.
+func (c *SkipEdgeExampleClient) Use(hooks ...Hook) {
+	c.hooks.SkipEdgeExample = append(c.hooks.SkipEdgeExample, hooks...)
+}
+
+// Create returns a create builder for SkipEdgeExample.
+func (c *SkipEdgeExampleClient) Create() *SkipEdgeExampleCreate {
+	mutation := newSkipEdgeExampleMutation(c.config, OpCreate)
+	return &SkipEdgeExampleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SkipEdgeExample entities.
+func (c *SkipEdgeExampleClient) CreateBulk(builders ...*SkipEdgeExampleCreate) *SkipEdgeExampleCreateBulk {
+	return &SkipEdgeExampleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SkipEdgeExample.
+func (c *SkipEdgeExampleClient) Update() *SkipEdgeExampleUpdate {
+	mutation := newSkipEdgeExampleMutation(c.config, OpUpdate)
+	return &SkipEdgeExampleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SkipEdgeExampleClient) UpdateOne(see *SkipEdgeExample) *SkipEdgeExampleUpdateOne {
+	mutation := newSkipEdgeExampleMutation(c.config, OpUpdateOne, withSkipEdgeExample(see))
+	return &SkipEdgeExampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SkipEdgeExampleClient) UpdateOneID(id int) *SkipEdgeExampleUpdateOne {
+	mutation := newSkipEdgeExampleMutation(c.config, OpUpdateOne, withSkipEdgeExampleID(id))
+	return &SkipEdgeExampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SkipEdgeExample.
+func (c *SkipEdgeExampleClient) Delete() *SkipEdgeExampleDelete {
+	mutation := newSkipEdgeExampleMutation(c.config, OpDelete)
+	return &SkipEdgeExampleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *SkipEdgeExampleClient) DeleteOne(see *SkipEdgeExample) *SkipEdgeExampleDeleteOne {
+	return c.DeleteOneID(see.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *SkipEdgeExampleClient) DeleteOneID(id int) *SkipEdgeExampleDeleteOne {
+	builder := c.Delete().Where(skipedgeexample.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SkipEdgeExampleDeleteOne{builder}
+}
+
+// Query returns a query builder for SkipEdgeExample.
+func (c *SkipEdgeExampleClient) Query() *SkipEdgeExampleQuery {
+	return &SkipEdgeExampleQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a SkipEdgeExample entity by its id.
+func (c *SkipEdgeExampleClient) Get(ctx context.Context, id int) (*SkipEdgeExample, error) {
+	return c.Query().Where(skipedgeexample.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SkipEdgeExampleClient) GetX(ctx context.Context, id int) *SkipEdgeExample {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a SkipEdgeExample.
+func (c *SkipEdgeExampleClient) QueryUser(see *SkipEdgeExample) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := see.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(skipedgeexample.Table, skipedgeexample.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, skipedgeexample.UserTable, skipedgeexample.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(see.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SkipEdgeExampleClient) Hooks() []Hook {
+	return c.hooks.SkipEdgeExample
+}
+
 // TwoMethodServiceClient is a client for the TwoMethodService schema.
 type TwoMethodServiceClient struct {
 	config
@@ -1985,6 +2098,22 @@ func (c *UserClient) QueryProfilePic(u *User) *ImageQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(image.Table, image.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfilePicTable, user.ProfilePicColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySkipEdge queries the skip_edge edge of a User.
+func (c *UserClient) QuerySkipEdge(u *User) *SkipEdgeExampleQuery {
+	query := &SkipEdgeExampleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(skipedgeexample.Table, skipedgeexample.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.SkipEdgeTable, user.SkipEdgeColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

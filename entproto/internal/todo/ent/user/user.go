@@ -43,6 +43,8 @@ const (
 	FieldHeightInCm = "height_in_cm"
 	// FieldAccountBalance holds the string denoting the account_balance field in the database.
 	FieldAccountBalance = "account_balance"
+	// FieldUnnecessary holds the string denoting the unnecessary field in the database.
+	FieldUnnecessary = "unnecessary"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -51,6 +53,8 @@ const (
 	EdgeReceived1 = "received_1"
 	// EdgePet holds the string denoting the pet edge name in mutations.
 	EdgePet = "pet"
+	// EdgeSkipEdge holds the string denoting the skip_edge edge name in mutations.
+	EdgeSkipEdge = "skip_edge"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupTable is the table that holds the group relation/edge.
@@ -79,6 +83,13 @@ const (
 	PetInverseTable = "pets"
 	// PetColumn is the table column denoting the pet relation/edge.
 	PetColumn = "user_pet"
+	// SkipEdgeTable is the table that holds the skip_edge relation/edge.
+	SkipEdgeTable = "skip_edge_examples"
+	// SkipEdgeInverseTable is the table name for the SkipEdgeExample entity.
+	// It exists in this package in order to avoid circular dependency with the "skipedgeexample" package.
+	SkipEdgeInverseTable = "skip_edge_examples"
+	// SkipEdgeColumn is the table column denoting the skip_edge relation/edge.
+	SkipEdgeColumn = "user_skip_edge"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -100,6 +111,7 @@ var Columns = []string{
 	FieldBUser1,
 	FieldHeightInCm,
 	FieldAccountBalance,
+	FieldUnnecessary,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
