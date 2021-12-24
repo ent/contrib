@@ -321,8 +321,7 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 	all = append(all, genType.Fields...)
 
 	for _, f := range all {
-		_, ok := f.Annotations[SkipAnnotation]
-		if ok {
+		if _, ok := f.Annotations[SkipAnnotation]; ok {
 			continue
 		}
 
@@ -342,8 +341,7 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 	}
 
 	for _, e := range genType.Edges {
-		_, ok := e.Annotations[SkipAnnotation]
-		if ok {
+		if _, ok := e.Annotations[SkipAnnotation]; ok {
 			continue
 		}
 
