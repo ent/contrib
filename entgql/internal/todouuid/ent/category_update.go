@@ -123,6 +123,18 @@ func (cu *CategoryUpdate) ClearCount() *CategoryUpdate {
 	return cu
 }
 
+// SetStrings sets the "strings" field.
+func (cu *CategoryUpdate) SetStrings(s []string) *CategoryUpdate {
+	cu.mutation.SetStrings(s)
+	return cu
+}
+
+// ClearStrings clears the value of the "strings" field.
+func (cu *CategoryUpdate) ClearStrings() *CategoryUpdate {
+	cu.mutation.ClearStrings()
+	return cu
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cu *CategoryUpdate) AddTodoIDs(ids ...uuid.UUID) *CategoryUpdate {
 	cu.mutation.AddTodoIDs(ids...)
@@ -324,6 +336,19 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldCount,
 		})
 	}
+	if value, ok := cu.mutation.Strings(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: category.FieldStrings,
+		})
+	}
+	if cu.mutation.StringsCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: category.FieldStrings,
+		})
+	}
 	if cu.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -472,6 +497,18 @@ func (cuo *CategoryUpdateOne) AddCount(u int64) *CategoryUpdateOne {
 // ClearCount clears the value of the "count" field.
 func (cuo *CategoryUpdateOne) ClearCount() *CategoryUpdateOne {
 	cuo.mutation.ClearCount()
+	return cuo
+}
+
+// SetStrings sets the "strings" field.
+func (cuo *CategoryUpdateOne) SetStrings(s []string) *CategoryUpdateOne {
+	cuo.mutation.SetStrings(s)
+	return cuo
+}
+
+// ClearStrings clears the value of the "strings" field.
+func (cuo *CategoryUpdateOne) ClearStrings() *CategoryUpdateOne {
+	cuo.mutation.ClearStrings()
 	return cuo
 }
 
@@ -698,6 +735,19 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint64,
 			Column: category.FieldCount,
+		})
+	}
+	if value, ok := cuo.mutation.Strings(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: category.FieldStrings,
+		})
+	}
+	if cuo.mutation.StringsCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: category.FieldStrings,
 		})
 	}
 	if cuo.mutation.TodosCleared() {
