@@ -426,6 +426,7 @@ func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
@@ -451,6 +452,7 @@ func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
@@ -481,6 +483,7 @@ func deleteEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, e
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
@@ -518,6 +521,7 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
@@ -563,6 +567,7 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
