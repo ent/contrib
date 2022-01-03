@@ -156,9 +156,11 @@ func errorResponses(s *ogen.Spec) {
 			ogen.NewResponse().
 				SetDescription(d).
 				SetJSONContent(ogen.NewSchema().
-					AddOptionalProperties(
-						ogen.Int32().ToProperty("code"),
+					AddRequiredProperties(
+						ogen.Int().ToProperty("code"),
 						ogen.String().ToProperty("status"),
+					).
+					AddOptionalProperties(
 						ogen.NewSchema().ToProperty("errors"),
 					),
 				), // TODO(masseelch): Add examples once present https://github.com/ogen-go/ogen/issues/70
@@ -288,6 +290,7 @@ func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
 	return op, nil
@@ -322,6 +325,7 @@ func createEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, e
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
 	return op, nil
@@ -351,6 +355,7 @@ func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
@@ -384,6 +389,7 @@ func readEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
+			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
