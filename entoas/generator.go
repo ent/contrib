@@ -98,7 +98,7 @@ func schemas(g *gen.Graph, spec *ogen.Spec) error {
 		// Loop over every view once more to add the edges.
 		for n, v := range vs {
 			for _, e := range v.Edges {
-				vn, err := viewNameEdge(strings.Split(n, "_")[0], e)
+				vn, err := ViewNameEdge(strings.Split(n, "_")[0], e)
 				if err != nil {
 					return err
 				}
@@ -270,7 +270,7 @@ func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err != nil {
 		return nil, err
 	}
-	vn, err := viewName(n, OpCreate)
+	vn, err := ViewName(n, OpCreate)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err != nil {
 		return nil, err
 	}
-	vn, err := viewName(n, OpRead)
+	vn, err := ViewName(n, OpRead)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err != nil {
 		return nil, err
 	}
-	vn, err := viewName(n, OpUpdate)
+	vn, err := ViewName(n, OpUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +482,7 @@ func deleteEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, e
 
 // listOp returns a spec.OperationConfig for a list operation on the given node.
 func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
-	vn, err := viewName(n, OpList)
+	vn, err := ViewName(n, OpList)
 	if err != nil {
 		return nil, err
 	}
@@ -564,7 +564,7 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 
 // property creates an ogen.Property out of an ent schema field.
 func property(f *gen.Field) (*ogen.Property, error) {
-	s, err := ogenSchema(f)
+	s, err := OgenSchema(f)
 	if err != nil {
 		return nil, err
 	}
@@ -591,8 +591,8 @@ var _types = map[string]*ogen.Schema{
 	"float64":   ogen.Double(),
 }
 
-// ogenSchema returns the ogen.Schema to use for the given gen.Field.
-func ogenSchema(f *gen.Field) (*ogen.Schema, error) {
+// OgenSchema returns the ogen.Schema to use for the given gen.Field.
+func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	// If there is a custom property given on the field use it.
 	ant, err := FieldAnnotation(f)
 	if err != nil {
@@ -737,7 +737,7 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		}
 	}
 	for _, e := range n.Edges {
-		s, err := ogenSchema(e.Type.ID)
+		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -777,7 +777,7 @@ func contains(xs []Operation, s Operation) bool {
 
 // pathParam creates a new Parameter in path for the ID of gen.Type.
 func pathParam(n *gen.Type) (*ogen.Parameter, error) {
-	t, err := ogenSchema(n.ID)
+	t, err := OgenSchema(n.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -86,7 +86,7 @@ func TestOgenSchema(t *testing.T) {
 				Annotations: f.Annotations,
 				Enums:       ens,
 			}
-			ac, err := ogenSchema(gf)
+			ac, err := OgenSchema(gf)
 			if ex == nil {
 				require.Error(t, err)
 				require.EqualError(t, err, fmt.Sprintf(
