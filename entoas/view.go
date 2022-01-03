@@ -51,7 +51,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 			if err != nil {
 				return nil, err
 			}
-			vn, err := viewName(n, op)
+			vn, err := ViewName(n, op)
 			if err != nil {
 				return nil, err
 			}
@@ -67,7 +67,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 				if err != nil {
 					return nil, err
 				}
-				evn, err := viewNameEdge(vn, e)
+				evn, err := ViewNameEdge(vn, e)
 				if err != nil {
 					return nil, err
 				}
@@ -110,7 +110,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 					if err != nil {
 						return nil, err
 					}
-					evn, err := viewNameEdge(vn, t)
+					evn, err := ViewNameEdge(vn, t)
 					if err != nil {
 						return nil, err
 					}
@@ -212,8 +212,8 @@ func groupsForOperation(a gen.Annotations, op Operation) (serialization.Groups, 
 	return nil, fmt.Errorf("unknown operation %q", op)
 }
 
-// viewName returns the name for a view for a given operation on a gen.Type.
-func viewName(n *gen.Type, op Operation) (string, error) {
+// ViewName returns the name for a view for a given operation on a gen.Type.
+func ViewName(n *gen.Type, op Operation) (string, error) { // TODO(masseelch): Add tests for collisions
 	cfg, err := GetConfig(n.Config)
 	if err != nil {
 		return "", err
@@ -225,7 +225,7 @@ func viewName(n *gen.Type, op Operation) (string, error) {
 }
 
 // edgeViewName returns the name for a view for a given 2nd leve operation on a gen.Edge.
-func edgeViewName(n *gen.Type, e *gen.Edge, op Operation) (string, error) {
+func edgeViewName(n *gen.Type, e *gen.Edge, op Operation) (string, error) { // TODO(masseelch): Add tests for collisions
 	cfg, err := GetConfig(n.Config)
 	if err != nil {
 		return "", err
@@ -236,8 +236,8 @@ func edgeViewName(n *gen.Type, e *gen.Edge, op Operation) (string, error) {
 	return fmt.Sprintf("%s_%s%s", n.Name, e.StructField(), op.Title()), nil
 }
 
-// viewNameEdge returns the name for a view that is an edge on the given node.
-func viewNameEdge(vn string, e *gen.Edge) (string, error) {
+// ViewNameEdge returns the name for a view that is an edge on the given node.
+func ViewNameEdge(vn string, e *gen.Edge) (string, error) { // TODO(masseelch): Add tests for collisions
 	cfg, err := GetConfig(e.Type.Config)
 	if err != nil {
 		return "", err
