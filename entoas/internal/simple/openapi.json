@@ -225,10 +225,7 @@
                       "type": "integer"
                     }
                   }
-                },
-                "required": [
-                  "name"
-                ]
+                }
               }
             }
           },
@@ -658,10 +655,7 @@
                       "type": "integer"
                     }
                   }
-                },
-                "required": [
-                  "name"
-                ]
+                }
               }
             }
           },
@@ -1337,11 +1331,7 @@
                       "type": "integer"
                     }
                   }
-                },
-                "required": [
-                  "name",
-                  "age"
-                ]
+                }
               }
             }
           },

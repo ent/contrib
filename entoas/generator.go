@@ -746,7 +746,7 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 			if err != nil {
 				return nil, err
 			}
-			addProperty(c, p, !f.Optional)
+			addProperty(c, p, op == OpCreate && !f.Optional)
 		}
 	}
 	for _, e := range n.Edges {
@@ -757,7 +757,7 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		if !e.Unique {
 			s = s.AsArray()
 		}
-		addProperty(c, s.ToProperty(e.Name), !e.Optional)
+		addProperty(c, s.ToProperty(e.Name), op == OpCreate && !e.Optional)
 	}
 	req.SetJSONContent(c)
 	return req, nil
