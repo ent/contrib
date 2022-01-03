@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -673,6 +674,9 @@ func NodeOperations(n *gen.Type) ([]Operation, error) {
 				continue
 			}
 		}
+		sort.Slice(ops, func(i, j int) bool {
+			return ops[i] < ops[j]
+		})
 		return ops, nil
 	}
 }
@@ -717,6 +721,9 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 				continue
 			}
 		}
+		sort.Slice(ops, func(i, j int) bool {
+			return ops[i] < ops[j]
+		})
 		return ops, nil
 	}
 }
