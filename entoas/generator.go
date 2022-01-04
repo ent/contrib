@@ -506,12 +506,12 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 				InQuery().
 				SetName("page").
 				SetDescription("what page to render").
-				SetSchema(ogen.Int32()),
+				SetSchema(ogen.Int()),
 			ogen.NewParameter().
 				InQuery().
 				SetName("itemsPerPage").
 				SetDescription("item count to render per page").
-				SetSchema(ogen.Int32()),
+				SetSchema(ogen.Int()),
 		).
 		AddResponse(
 			strconv.Itoa(http.StatusOK),
