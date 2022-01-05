@@ -124,11 +124,9 @@ func WithConfigPath(path string, option ...api.Option) ExtensionOption {
 			if cfg.Federation.IsDefined() {
 				plugins = append([]plugin.Plugin{federation.New()}, plugins...)
 			}
-
 			for _, o := range option {
 				o(cfg, &plugins)
 			}
-
 			for _, p := range plugins {
 				if inj, ok := p.(plugin.EarlySourceInjector); ok {
 					if s := inj.InjectSourceEarly(); s != nil {
@@ -136,11 +134,9 @@ func WithConfigPath(path string, option ...api.Option) ExtensionOption {
 					}
 				}
 			}
-
 			if err := cfg.LoadSchema(); err != nil {
 				return fmt.Errorf("failed to load schema: %w", err)
 			}
-
 			for _, p := range plugins {
 				if inj, ok := p.(plugin.LateSourceInjector); ok {
 					if s := inj.InjectSourceLate(cfg.Schema); s != nil {
@@ -148,7 +144,6 @@ func WithConfigPath(path string, option ...api.Option) ExtensionOption {
 					}
 				}
 			}
-
 			// LoadSchema again now we have everything
 			if err := cfg.LoadSchema(); err != nil {
 				return fmt.Errorf("failed to load schema: %w", err)
