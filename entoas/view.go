@@ -94,7 +94,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 				if err != nil {
 					return nil, err
 				}
-				vn, err := edgeViewName(n, e, op)
+				vn, err := EdgeViewName(n, e, op)
 				if err != nil {
 					return nil, err
 				}
@@ -224,8 +224,8 @@ func ViewName(n *gen.Type, op Operation) (string, error) { // TODO(masseelch): A
 	return n.Name + op.Title(), nil
 }
 
-// edgeViewName returns the name for a view for a given 2nd leve operation on a gen.Edge.
-func edgeViewName(n *gen.Type, e *gen.Edge, op Operation) (string, error) { // TODO(masseelch): Add tests for collisions
+// EdgeViewName returns the name for a view for a given 2nd leve operation on a gen.Edge.
+func EdgeViewName(n *gen.Type, e *gen.Edge, op Operation) (string, error) { // TODO(masseelch): Add tests for collisions
 	cfg, err := GetConfig(n.Config)
 	if err != nil {
 		return "", err

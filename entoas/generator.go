@@ -307,7 +307,7 @@ func createEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, e
 	if err != nil {
 		return nil, err
 	}
-	vn, err := edgeViewName(n, e, OpCreate)
+	vn, err := EdgeViewName(n, e, OpCreate)
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +372,7 @@ func readEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 	if err != nil {
 		return nil, err
 	}
-	vn, err := edgeViewName(n, e, OpRead)
+	vn, err := EdgeViewName(n, e, OpRead)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +537,7 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 	if err != nil {
 		return nil, err
 	}
-	vn, err := edgeViewName(n, e, OpList)
+	vn, err := EdgeViewName(n, e, OpList)
 	if err != nil {
 		return nil, err
 	}
