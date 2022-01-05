@@ -327,6 +327,7 @@ func createEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, e
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
 			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
+			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
 	return op, nil
