@@ -1,0 +1,4 @@
+{{ define "model/additional/gql_federation" }}
+	// IsEntity implement fedruntime.Entity
+	func ({{ $.Receiver }} {{ $.Name }}) IsEntity() {}
+{{ end }}
