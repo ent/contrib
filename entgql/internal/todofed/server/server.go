@@ -18,7 +18,7 @@ import (
 	"net/http"
 
 	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/internal/todo"
+	"entgo.io/contrib/entgql/internal/todofed"
 	"entgo.io/contrib/entgql/internal/todofed/ent"
 	"entgo.io/contrib/entgql/internal/todofed/ent/migrate"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -53,7 +53,7 @@ func main() {
 		log.Fatal("running schema migration", zap.Error(err))
 	}
 
-	srv := handler.NewDefaultServer(todo.NewSchema(client))
+	srv := handler.NewDefaultServer(todofed.NewSchema(client))
 	srv.Use(entgql.Transactioner{TxOpener: client})
 	if cli.Debug {
 		srv.Use(&debug.Tracer{})

@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
-	gen "entgo.io/contrib/entgql/internal/todo"
+	gen "entgo.io/contrib/entgql/internal/todofed"
 	"entgo.io/contrib/entgql/internal/todofed/ent"
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
 	"entgo.io/contrib/entgql/internal/todofed/ent/enttest"
