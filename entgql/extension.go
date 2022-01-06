@@ -95,7 +95,7 @@ const GQLConfigAnnotation = "GQLConfig"
 //
 // Note that, enabling this option is recommended as it improves the
 // GraphQL integration,
-func WithConfigPath(path string, option ...api.Option) ExtensionOption {
+func WithConfigPath(path string, gqlgenOpts ...api.Option) ExtensionOption {
 	return func(ex *Extension) (err error) {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -124,7 +124,7 @@ func WithConfigPath(path string, option ...api.Option) ExtensionOption {
 			if cfg.Federation.IsDefined() {
 				plugins = append([]plugin.Plugin{federation.New()}, plugins...)
 			}
-			for _, o := range option {
+			for _, o := range gqlgenOpts {
 				o(cfg, &plugins)
 			}
 			for _, p := range plugins {
