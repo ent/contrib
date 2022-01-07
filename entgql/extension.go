@@ -24,7 +24,12 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
+	"github.com/99designs/gqlgen/plugin"
+	"github.com/99designs/gqlgen/plugin/federation"
+	"github.com/99designs/gqlgen/plugin/modelgen"
+	"github.com/99designs/gqlgen/plugin/resolvergen"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/kinds"
@@ -90,7 +95,7 @@ const GQLConfigAnnotation = "GQLConfig"
 //
 // Note that, enabling this option is recommended as it improves the
 // GraphQL integration,
-func WithConfigPath(path string) ExtensionOption {
+func WithConfigPath(path string, gqlgenOptions ...api.Option) ExtensionOption {
 	return func(ex *Extension) (err error) {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -109,8 +114,39 @@ func WithConfigPath(path string) ExtensionOption {
 			return err
 		}
 		if cfg.Schema == nil {
+			// Copied from api/generate.go
+			// https://github.com/99designs/gqlgen/blob/47015f12e3aa26af251fec67eab50d3388c17efe/api/generate.go#L21-L57
+			var plugins []plugin.Plugin
+			if cfg.Model.IsDefined() {
+				plugins = append(plugins, modelgen.New())
+			}
+			plugins = append(plugins, resolvergen.New())
+			if cfg.Federation.IsDefined() {
+				plugins = append([]plugin.Plugin{federation.New()}, plugins...)
+			}
+			for _, opt := range gqlgenOptions {
+				opt(cfg, &plugins)
+			}
+			for _, p := range plugins {
+				if inj, ok := p.(plugin.EarlySourceInjector); ok {
+					if s := inj.InjectSourceEarly(); s != nil {
+						cfg.Sources = append(cfg.Sources, s)
+					}
+				}
+			}
 			if err := cfg.LoadSchema(); err != nil {
-				return err
+				return fmt.Errorf("failed to load schema: %w", err)
+			}
+			for _, p := range plugins {
+				if inj, ok := p.(plugin.LateSourceInjector); ok {
+					if s := inj.InjectSourceLate(cfg.Schema); s != nil {
+						cfg.Sources = append(cfg.Sources, s)
+					}
+				}
+			}
+			// LoadSchema again now we have everything.
+			if err := cfg.LoadSchema(); err != nil {
+				return fmt.Errorf("failed to load schema: %w", err)
 			}
 		}
 		ex.cfg = cfg

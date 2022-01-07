@@ -1,0 +1,98 @@
+interface Node {
+  id: ID!
+}
+
+type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
+enum CategoryStatus {
+  ENABLED
+  DISABLED
+}
+
+enum Status {
+  IN_PROGRESS
+  COMPLETED
+}
+
+scalar Time
+scalar Duration
+scalar Uint64
+
+type Todo implements Node @key(fields: "id") {
+  id: ID!
+  createdAt: Time
+  status: Status!
+  priority: Int!
+  text: String!
+  parent: Todo
+  children: [Todo!]
+  category: Category
+}
+
+type Category implements Node {
+  id: ID!
+  text: String!
+  strings: [String]
+}
+
+input TodoInput {
+  status: Status! = IN_PROGRESS
+  priority: Int
+  text: String!
+  parent: ID
+  category_id: ID
+}
+
+scalar Cursor
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+
+type TodoConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TodoEdge]
+}
+
+type TodoEdge {
+  node: Todo
+  cursor: Cursor!
+}
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+enum TodoOrderField {
+  CREATED_AT
+  PRIORITY
+  STATUS
+  TEXT
+}
+
+input TodoOrder {
+  direction: OrderDirection!
+  field: TodoOrderField
+}
+
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+}
+
+type Mutation {
+  createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
+}
