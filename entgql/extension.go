@@ -95,7 +95,7 @@ const GQLConfigAnnotation = "GQLConfig"
 //
 // Note that, enabling this option is recommended as it improves the
 // GraphQL integration,
-func WithConfigPath(path string, gqlgenOpts ...api.Option) ExtensionOption {
+func WithConfigPath(path string, gqlgenOptions ...api.Option) ExtensionOption {
 	return func(ex *Extension) (err error) {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -116,7 +116,7 @@ func WithConfigPath(path string, gqlgenOpts ...api.Option) ExtensionOption {
 		if cfg.Schema == nil {
 			// Copied from api/generate.go
 			// https://github.com/99designs/gqlgen/blob/47015f12e3aa26af251fec67eab50d3388c17efe/api/generate.go#L21-L57
-			plugins := []plugin.Plugin{}
+			var plugins []plugin.Plugin
 			if cfg.Model.IsDefined() {
 				plugins = append(plugins, modelgen.New())
 			}
@@ -124,8 +124,8 @@ func WithConfigPath(path string, gqlgenOpts ...api.Option) ExtensionOption {
 			if cfg.Federation.IsDefined() {
 				plugins = append([]plugin.Plugin{federation.New()}, plugins...)
 			}
-			for _, o := range gqlgenOpts {
-				o(cfg, &plugins)
+			for _, opt := range gqlgenOptions {
+				opt(cfg, &plugins)
 			}
 			for _, p := range plugins {
 				if inj, ok := p.(plugin.EarlySourceInjector); ok {
@@ -144,7 +144,7 @@ func WithConfigPath(path string, gqlgenOpts ...api.Option) ExtensionOption {
 					}
 				}
 			}
-			// LoadSchema again now we have everything
+			// LoadSchema again now we have everything.
 			if err := cfg.LoadSchema(); err != nil {
 				return fmt.Errorf("failed to load schema: %w", err)
 			}
