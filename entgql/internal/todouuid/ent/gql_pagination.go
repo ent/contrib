@@ -18,6 +18,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -171,6 +172,11 @@ func (c Cursor) MarshalGQL(w io.Writer) {
 	defer w.Write(quote)
 	wc := base64.NewEncoder(base64.RawStdEncoding, w)
 	defer wc.Close()
+
+	if m, ok := c.Value.(driver.Valuer); ok {
+		c.Value, _ = m.Value()
+	}
+
 	_ = msgpack.NewEncoder(wc).Encode(c)
 }
 
