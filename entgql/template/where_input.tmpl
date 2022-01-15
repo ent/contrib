@@ -176,7 +176,7 @@ in the LICENSE file in the root directory of this source tree.
         {{- end }}
         switch len(predicates) {
         case 0:
-            return nil, fmt.Errorf("{{ $.Config.Package }}: empty predicate {{ $input }}")
+            return nil, fmt.Errorf("empty predicate {{ $input }}")
         case 1:
             return predicates[0], nil
         default:
