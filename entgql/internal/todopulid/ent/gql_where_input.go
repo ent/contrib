@@ -350,7 +350,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todopulid/ent: empty predicate CategoryWhereInput")
+		return nil, fmt.Errorf("empty predicate CategoryWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:
@@ -667,7 +667,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todopulid/ent: empty predicate TodoWhereInput")
+		return nil, fmt.Errorf("empty predicate TodoWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:
