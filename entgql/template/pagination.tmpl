@@ -252,20 +252,28 @@ type {{ $opt }} func(*{{ $pager }}) error
 {{ $order := print $name "Order" -}}
 {{ $optOrder := print "With" $order -}}
 // {{ $optOrder }} configures pagination ordering.
-func {{ $optOrder }}(order *{{ $order }}) {{ $opt }} {
-	if order == nil {
-		{{ $defaultOrder := print "Default" $name "Order" -}}
-		order = {{ $defaultOrder }}
+func {{ $optOrder }}(orders ...*{{ $order }}) {{ $opt }} {
+	var filtered []{{ $order }}
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		filtered = append(filtered, *order)
 	}
-	o := *order
+	if len(filtered) == 0 {
+		{{ $defaultOrder := print "Default" $name "Order" -}}
+		filtered = append(filtered, *{{ $defaultOrder }})
+	}
 	return func(pager *{{ $pager }}) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range filtered {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = {{ $defaultOrder }}.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = {{ $defaultOrder }}.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -284,7 +292,7 @@ func {{ $optFilter }}(filter func(*{{ $query }}) (*{{ $query }}, error)) {{ $opt
 }
 
 type {{ $pager }} struct {
-	order *{{ $order }}
+	orders []{{ $order }}
 	filter func(*{{ $query }}) (*{{ $query }}, error)
 }
 
@@ -296,8 +304,8 @@ func {{ $newPager }}(opts []{{ $opt }}) (*{{ $pager }}, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = {{ $defaultOrder }}
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *{{ $defaultOrder }})
 	}
 	return pager, nil
 }
@@ -311,28 +319,37 @@ func (p *{{ $pager }}) applyFilter(query *{{ $query }}) (*{{ $query }}, error) {
 
 {{ $r := $node.Receiver -}}
 func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
-	return p.order.Field.toCursor({{ $r }})
+	return p.orders[0].Field.toCursor({{ $r }})
 }
 
 func (p *{{ $pager }}) applyCursors(query *{{ $query }}, after, before *Cursor) *{{ $query }} {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, {{ $defaultOrder }}.Field.field,
-	) {
-		query = query.Where(predicate)
+	for _, order := range p.orders {
+		for _, predicate := range cursorsToPredicates(
+			order.Direction, after, before,
+			order.Field.field, {{ $defaultOrder }}.Field.field,
+		) {
+			query = query.Where(predicate)
+		}
 	}
 	return query
 }
 
 func (p *{{ $pager }}) applyOrder(query *{{ $query }}, reverse bool) *{{ $query }} {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var columns []string
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		if direction == OrderDirectionAsc {
+			columns = append(columns, sql.Asc(order.Field.field))
+		} else {
+			columns = append(columns, sql.Desc(order.Field.field))
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != {{ $defaultOrder }}.Field {
-		query = query.Order(direction.orderFunc({{ $defaultOrder }}.Field.field))
-	}
+	query.Order(func(selector *sql.Selector) {
+		selector.OrderBy(columns...)
+	})
 	return query
 }
 
