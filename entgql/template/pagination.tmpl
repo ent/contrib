@@ -253,19 +253,19 @@ type {{ $opt }} func(*{{ $pager }}) error
 {{ $optOrder := print "With" $order -}}
 // {{ $optOrder }} configures pagination ordering.
 func {{ $optOrder }}(orders ...*{{ $order }}) {{ $opt }} {
-	var filtered []{{ $order }}
+	var compactedOrder []{{ $order }}
 	for _, order := range orders {
 		if order == nil {
 			continue
 		}
-		filtered = append(filtered, *order)
+		compactedOrder = append(compactedOrder, *order)
 	}
-	if len(filtered) == 0 {
+	if len(compactedOrder) == 0 {
 		{{ $defaultOrder := print "Default" $name "Order" -}}
-		filtered = append(filtered, *{{ $defaultOrder }})
+		compactedOrder = append(compactedOrder, *{{ $defaultOrder }})
 	}
 	return func(pager *{{ $pager }}) error {
-		for _, order := range filtered {
+		for _, order := range compactedOrder {
 			if err := order.Direction.Validate(); err != nil {
 				return err
 			}

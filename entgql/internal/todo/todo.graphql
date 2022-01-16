@@ -89,7 +89,7 @@ input TodoOrder {
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: [TodoOrder], where: TodoWhereInput): TodoConnection
 }
 
 type Mutation {
