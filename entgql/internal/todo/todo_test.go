@@ -865,15 +865,15 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 			}
 		}
 	}
-	err := s.Post(`mutation {
-		createTodo(todo: { text: "OKE", parent: 4294967297 }) {
+	err := s.Post(fmt.Sprintf(`mutation {
+		createTodo(todo: { text: "OKE", parent: %s }) {
 			parent {
 				id
 				text
 			}
 			text
 		}
-	}`, &rsp, client.Var("text", s.T().Name()))
+	}`, strconv.Itoa(idOffset+1)), &rsp, client.Var("text", s.T().Name()))
 	s.Require().NoError(err)
 	s.Require().Equal("OKE", rsp.CreateTodo.Text)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.ID)
