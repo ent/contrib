@@ -25,6 +25,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
+	"entgo.io/contrib/entgql/internal/todofed/ent/document"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -126,6 +127,33 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+func (d *Document) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     d.GlobalID,
+		Type:   "Document",
+		Fields: make([]*Field, 2),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(d.GlobalID); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int",
+		Name:  "global_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(d.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -287,6 +315,15 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			return nil, err
 		}
 		return n, nil
+	case document.Table:
+		n, err := c.Document.Query().
+			Where(document.GlobalID(id)).
+			CollectFields(ctx, "Document").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case todo.Table:
 		n, err := c.Todo.Query().
 			Where(todo.ID(id)).
@@ -379,6 +416,19 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		}
 		for _, node := range nodes {
 			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case document.Table:
+		nodes, err := c.Document.Query().
+			Where(document.GlobalIDIn(ids...)).
+			CollectFields(ctx, "Document").
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.GlobalID] {
 				*noder = node
 			}
 		}

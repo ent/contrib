@@ -23,6 +23,9 @@ import (
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 
+// Document is the predicate function for document builders.
+type Document func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
 

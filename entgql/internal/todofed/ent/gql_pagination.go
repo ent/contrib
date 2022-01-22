@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
+	"entgo.io/contrib/entgql/internal/todofed/ent/document"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
@@ -528,6 +529,233 @@ func (c *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
 	return &CategoryEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// DocumentEdge is the edge representation of Document.
+type DocumentEdge struct {
+	Node   *Document `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// DocumentConnection is the connection containing edges to Document.
+type DocumentConnection struct {
+	Edges      []*DocumentEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+// DocumentPaginateOption enables pagination customization.
+type DocumentPaginateOption func(*documentPager) error
+
+// WithDocumentOrder configures pagination ordering.
+func WithDocumentOrder(order *DocumentOrder) DocumentPaginateOption {
+	if order == nil {
+		order = DefaultDocumentOrder
+	}
+	o := *order
+	return func(pager *documentPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultDocumentOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithDocumentFilter configures pagination filter.
+func WithDocumentFilter(filter func(*DocumentQuery) (*DocumentQuery, error)) DocumentPaginateOption {
+	return func(pager *documentPager) error {
+		if filter == nil {
+			return errors.New("DocumentQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type documentPager struct {
+	order  *DocumentOrder
+	filter func(*DocumentQuery) (*DocumentQuery, error)
+}
+
+func newDocumentPager(opts []DocumentPaginateOption) (*documentPager, error) {
+	pager := &documentPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultDocumentOrder
+	}
+	return pager, nil
+}
+
+func (p *documentPager) applyFilter(query *DocumentQuery) (*DocumentQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *documentPager) toCursor(d *Document) Cursor {
+	return p.order.Field.toCursor(d)
+}
+
+func (p *documentPager) applyCursors(query *DocumentQuery, after, before *Cursor) *DocumentQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultDocumentOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *documentPager) applyOrder(query *DocumentQuery, reverse bool) *DocumentQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultDocumentOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultDocumentOrder.Field.field))
+	}
+	return query
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Document.
+func (d *DocumentQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...DocumentPaginateOption,
+) (*DocumentConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newDocumentPager(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if d, err = pager.applyFilter(d); err != nil {
+		return nil, err
+	}
+
+	conn := &DocumentConnection{Edges: []*DocumentEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) ||
+			hasCollectedField(ctx, pageInfoField) {
+			count, err := d.Count(ctx)
+			if err != nil {
+				return nil, err
+			}
+			conn.TotalCount = count
+			conn.PageInfo.HasNextPage = first != nil && count > 0
+			conn.PageInfo.HasPreviousPage = last != nil && count > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := d.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	d = pager.applyCursors(d, after, before)
+	d = pager.applyOrder(d, last != nil)
+	var limit int
+	if first != nil {
+		limit = *first + 1
+	} else if last != nil {
+		limit = *last + 1
+	}
+	if limit > 0 {
+		d = d.Limit(limit)
+	}
+
+	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
+		d = d.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+
+	nodes, err := d.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+
+	if len(nodes) == limit {
+		conn.PageInfo.HasNextPage = first != nil
+		conn.PageInfo.HasPreviousPage = last != nil
+		nodes = nodes[:len(nodes)-1]
+	}
+
+	var nodeAt func(int) *Document
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Document {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Document {
+			return nodes[i]
+		}
+	}
+
+	conn.Edges = make([]*DocumentEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		conn.Edges[i] = &DocumentEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+	if conn.TotalCount == 0 {
+		conn.TotalCount = len(nodes)
+	}
+
+	return conn, nil
+}
+
+// DocumentOrderField defines the ordering field of Document.
+type DocumentOrderField struct {
+	field    string
+	toCursor func(*Document) Cursor
+}
+
+// DocumentOrder defines the ordering of Document.
+type DocumentOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *DocumentOrderField `json:"field"`
+}
+
+// DefaultDocumentOrder is the default ordering of Document.
+var DefaultDocumentOrder = &DocumentOrder{
+	Direction: OrderDirectionAsc,
+	Field: &DocumentOrderField{
+		field: document.FieldGlobalID,
+		toCursor: func(d *Document) Cursor {
+			return Cursor{ID: d.GlobalID}
+		},
+	},
+}
+
+// ToEdge converts Document into DocumentEdge.
+func (d *Document) ToEdge(order *DocumentOrder) *DocumentEdge {
+	if order == nil {
+		order = DefaultDocumentOrder
+	}
+	return &DocumentEdge{
+		Node:   d,
+		Cursor: order.Field.toCursor(d),
 	}
 }
 

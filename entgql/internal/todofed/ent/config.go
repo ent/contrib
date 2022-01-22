@@ -39,6 +39,7 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	Category   []ent.Hook
+	Document   []ent.Hook
 	Todo       []ent.Hook
 	VerySecret []ent.Hook
 }

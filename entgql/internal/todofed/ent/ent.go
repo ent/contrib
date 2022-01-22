@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
+	"entgo.io/contrib/entgql/internal/todofed/ent/document"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
 	"entgo.io/ent"
@@ -46,6 +47,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		category.Table:   category.ValidColumn,
+		document.Table:   document.ValidColumn,
 		todo.Table:       todo.ValidColumn,
 		verysecret.Table: verysecret.ValidColumn,
 	}

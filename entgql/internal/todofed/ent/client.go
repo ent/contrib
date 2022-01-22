@@ -22,8 +22,10 @@ import (
 	"log"
 
 	"entgo.io/contrib/entgql/internal/todofed/ent/migrate"
+	"github.com/google/uuid"
 
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
+	"entgo.io/contrib/entgql/internal/todofed/ent/document"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
 
@@ -39,6 +41,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
+	// Document is the client for interacting with the Document builders.
+	Document *DocumentClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// VerySecret is the client for interacting with the VerySecret builders.
@@ -59,6 +63,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Category = NewCategoryClient(c.config)
+	c.Document = NewDocumentClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.VerySecret = NewVerySecretClient(c.config)
 }
@@ -95,6 +100,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:        ctx,
 		config:     cfg,
 		Category:   NewCategoryClient(cfg),
+		Document:   NewDocumentClient(cfg),
 		Todo:       NewTodoClient(cfg),
 		VerySecret: NewVerySecretClient(cfg),
 	}, nil
@@ -116,6 +122,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		config:     cfg,
 		Category:   NewCategoryClient(cfg),
+		Document:   NewDocumentClient(cfg),
 		Todo:       NewTodoClient(cfg),
 		VerySecret: NewVerySecretClient(cfg),
 	}, nil
@@ -148,6 +155,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Category.Use(hooks...)
+	c.Document.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.VerySecret.Use(hooks...)
 }
@@ -256,6 +264,96 @@ func (c *CategoryClient) QueryTodos(ca *Category) *TodoQuery {
 // Hooks returns the client hooks.
 func (c *CategoryClient) Hooks() []Hook {
 	return c.hooks.Category
+}
+
+// DocumentClient is a client for the Document schema.
+type DocumentClient struct {
+	config
+}
+
+// NewDocumentClient returns a client for the Document from the given config.
+func NewDocumentClient(c config) *DocumentClient {
+	return &DocumentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `document.Hooks(f(g(h())))`.
+func (c *DocumentClient) Use(hooks ...Hook) {
+	c.hooks.Document = append(c.hooks.Document, hooks...)
+}
+
+// Create returns a create builder for Document.
+func (c *DocumentClient) Create() *DocumentCreate {
+	mutation := newDocumentMutation(c.config, OpCreate)
+	return &DocumentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Document entities.
+func (c *DocumentClient) CreateBulk(builders ...*DocumentCreate) *DocumentCreateBulk {
+	return &DocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Document.
+func (c *DocumentClient) Update() *DocumentUpdate {
+	mutation := newDocumentMutation(c.config, OpUpdate)
+	return &DocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DocumentClient) UpdateOne(d *Document) *DocumentUpdateOne {
+	mutation := newDocumentMutation(c.config, OpUpdateOne, withDocument(d))
+	return &DocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DocumentClient) UpdateOneID(id uuid.UUID) *DocumentUpdateOne {
+	mutation := newDocumentMutation(c.config, OpUpdateOne, withDocumentID(id))
+	return &DocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Document.
+func (c *DocumentClient) Delete() *DocumentDelete {
+	mutation := newDocumentMutation(c.config, OpDelete)
+	return &DocumentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *DocumentClient) DeleteOne(d *Document) *DocumentDeleteOne {
+	return c.DeleteOneID(d.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *DocumentClient) DeleteOneID(id uuid.UUID) *DocumentDeleteOne {
+	builder := c.Delete().Where(document.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DocumentDeleteOne{builder}
+}
+
+// Query returns a query builder for Document.
+func (c *DocumentClient) Query() *DocumentQuery {
+	return &DocumentQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Document entity by its id.
+func (c *DocumentClient) Get(ctx context.Context, id uuid.UUID) (*Document, error) {
+	return c.Query().Where(document.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DocumentClient) GetX(ctx context.Context, id uuid.UUID) *Document {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DocumentClient) Hooks() []Hook {
+	return c.hooks.Document
 }
 
 // TodoClient is a client for the Todo schema.

@@ -43,6 +43,18 @@ func (c *CategoryQuery) collectField(ctx *graphql.OperationContext, field graphq
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (d *DocumentQuery) CollectFields(ctx context.Context, satisfies ...string) *DocumentQuery {
+	if fc := graphql.GetFieldContext(ctx); fc != nil {
+		d = d.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)
+	}
+	return d
+}
+
+func (d *DocumentQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *DocumentQuery {
+	return d
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) *TodoQuery {
 	if fc := graphql.GetFieldContext(ctx); fc != nil {
 		t = t.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)

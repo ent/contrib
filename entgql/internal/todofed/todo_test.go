@@ -69,7 +69,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 1 << 32
+	idOffset = 2 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
