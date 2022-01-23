@@ -1,3 +1,8 @@
+directive @goField(
+	forceResolver: Boolean
+	name: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 interface Node {
   id: ID!
 }
@@ -39,6 +44,12 @@ type Category implements Node {
   id: ID!
   text: String!
   strings: [String]
+}
+
+type Document implements Node {
+  id: ID! @goField(name: "GlobalID")
+  legacyID: ID! @goField(name: "ID")
+  name: String!
 }
 
 input TodoInput {

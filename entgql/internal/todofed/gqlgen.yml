@@ -24,6 +24,7 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.IntID
+      - entgo.io/contrib/entgql/internal/todofed/ent/schema/uuidgql.UUID
   Uint64:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64
