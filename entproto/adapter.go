@@ -104,9 +104,10 @@ func (a *Adapter) parse() error {
 	protoPackages := make(map[string]*descriptorpb.FileDescriptorProto)
 
 	for _, genType := range a.graph.Nodes {
-		messageDescriptor, err := a.toProtoMessageDescriptor(genType)
 
 		// store specific message parse failures
+		messageDescriptors, err := a.toProtoMessageDescriptors(genType)
+
 		if err != nil {
 			a.errors[genType.Name] = err
 			continue
@@ -130,16 +131,18 @@ func (a *Adapter) parse() error {
 			}
 		}
 		fd := protoPackages[protoPkg]
-		fd.MessageType = append(fd.MessageType, messageDescriptor)
-		a.schemaProtoFiles[genType.Name] = *fd.Name
 
-		depPaths, err := a.extractDepPaths(messageDescriptor)
-		if err != nil {
-			a.errors[genType.Name] = err
-			continue
+		for _, messageDescriptor := range messageDescriptors {
+			fd.MessageType = append(fd.MessageType, messageDescriptor)
+			a.schemaProtoFiles[genType.Name] = *fd.Name
+
+			depPaths, err := a.extractDepPaths(messageDescriptor)
+			if err != nil {
+				a.errors[genType.Name] = err
+				continue
+			}
+			fd.Dependency = append(fd.Dependency, depPaths...)
 		}
-		fd.Dependency = append(fd.Dependency, depPaths...)
-
 		svcAnnotation, err := extractServiceAnnotation(genType)
 		if errors.Is(err, errNoServiceDef) {
 			continue
@@ -303,6 +306,142 @@ func (e unsupportedTypeError) Error() string {
 	return fmt.Sprintf("unsupported field type %q", e.Type.ConstName())
 }
 
+func (a *Adapter) toProtoMessageDescriptors(genType *gen.Type) ([]*descriptorpb.DescriptorProto, error) {
+
+	if !genType.ID.UserDefined {
+		genType.ID.Annotations = map[string]interface{}{FieldAnnotation: Field(IDFieldNumber)}
+	}
+
+	descriptions := []*descriptorpb.DescriptorProto{}
+
+	msgAnnot, err := extractMessageAnnotation(genType)
+	if err != nil || !msgAnnot.Generate {
+		return nil, ErrSchemaSkipped
+	}
+
+	if msg := a.extractProtoMessageDescriptor(genType, msgAnnot); msg != nil {
+		descriptions = append(descriptions, msg)
+	}
+
+	for _, d := range a.extractProtoNamedMessagesDescriptor(genType, msgAnnot) {
+		descriptions = append(descriptions, d)
+	}
+
+	if len(descriptions) == 0 {
+		return nil, ErrSchemaSkipped
+	}
+
+	return descriptions, nil
+}
+
+func (a *Adapter) extractProtoMessageDescriptor(genType *gen.Type, message *message) *descriptorpb.DescriptorProto {
+
+	d := &descriptorpb.DescriptorProto{
+		Name:     &genType.Name,
+		EnumType: []*descriptorpb.EnumDescriptorProto(nil),
+	}
+
+	a.inflateMessageDescriptor(genType, protoMessageOptions{}, d, genType.Fields, genType.Edges)
+	return d
+}
+
+type extraField struct {
+	Descriptor pbfield
+	Name       string
+}
+
+type protoMessageOptions struct {
+	SkipID      bool
+	ExtraFields []*extraField
+}
+
+func (a *Adapter) extractProtoNamedMessagesDescriptor(genType *gen.Type, message *message) []*descriptorpb.DescriptorProto {
+
+	dd := []*descriptorpb.DescriptorProto{}
+
+	for _, m := range message.NamedMessages {
+		// Create descriptior for named message
+		d := &descriptorpb.DescriptorProto{
+			Name:     &m.Name,
+			EnumType: []*descriptorpb.EnumDescriptorProto(nil),
+		}
+		// filter based on groups
+		filteredFields := []*gen.Field{}
+		for _, f := range genType.Fields {
+			groupName := extractGroupNameAnnotation(f)
+			if groupName != nil {
+				for _, gn := range m.Groups.Names {
+					if gn == groupName.GroupName {
+						filteredFields = append(filteredFields, f)
+						break
+					}
+				}
+			}
+		}
+
+		a.inflateMessageDescriptor(genType, m.ProtoMessageOptions, d, filteredFields, genType.Edges)
+		dd = append(dd, d)
+
+	}
+
+	return dd
+}
+
+func (a *Adapter) inflateMessageDescriptor(genType *gen.Type, opts protoMessageOptions, msg *descriptorpb.DescriptorProto, fields []*gen.Field, edges []*gen.Edge) error {
+	all := []*gen.Field{}
+	if !opts.SkipID {
+		all = append(all, genType.ID)
+	}
+	all = append(all, fields...)
+
+	for _, f := range all {
+		if _, ok := f.Annotations[SkipAnnotation]; ok {
+			continue
+		}
+
+		protoField, err := toProtoFieldDescriptor(f)
+		if err != nil {
+			return err
+		}
+		// If the field is an enum type, we need to create the enum descriptor as well.
+		if f.Type.Type == field.TypeEnum {
+			dp, err := toProtoEnumDescriptor(f)
+			if err != nil {
+				return err
+			}
+			msg.EnumType = append(msg.EnumType, dp)
+		}
+		msg.Field = append(msg.Field, protoField)
+	}
+
+	for _, f := range opts.ExtraFields {
+		protoField, err := toProtoExtraFieldDescriptor(f)
+		if err != nil {
+			return err
+		}
+		msg.Field = append(msg.Field, protoField)
+	}
+
+	for _, e := range edges {
+		if _, ok := e.Annotations[SkipAnnotation]; ok {
+			continue
+		}
+
+		descriptor, err := a.extractEdgeFieldDescriptor(genType, e)
+		if err != nil {
+			return err
+		}
+		if descriptor != nil {
+			msg.Field = append(msg.Field, descriptor)
+		}
+	}
+
+	if err := verifyNoDuplicateFieldNumbers(msg); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.DescriptorProto, error) {
 	msgAnnot, err := extractMessageAnnotation(genType)
 	if err != nil || !msgAnnot.Generate {
@@ -454,6 +593,26 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 	return dp, nil
 }
 
+func toProtoExtraFieldDescriptor(f *extraField) (*descriptorpb.FieldDescriptorProto, error) {
+
+	fieldNum := int32(f.Descriptor.Number)
+	fieldDesc := &descriptorpb.FieldDescriptorProto{
+		Number: &fieldNum,
+		Name:   &f.Name,
+		Type:   &f.Descriptor.Type,
+	}
+
+	if len(f.Descriptor.TypeName) > 0 {
+		fieldDesc.TypeName = &f.Descriptor.TypeName
+	}
+
+	//dynamic.SetExtension(fieldDesc.Options, ext, "fubar")
+
+	//fmt.Printf("%+v\n", f)
+
+	return fieldDesc, nil
+}
+
 func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, error) {
 	fieldDesc := &descriptorpb.FieldDescriptorProto{
 		Name: &f.Name,
@@ -462,9 +621,14 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	if err != nil {
 		return nil, err
 	}
+
+	if fann.FieldName != "" {
+		fieldDesc.Name = &fann.FieldName
+	}
+
 	fieldNumber := int32(fann.Number)
-	if fieldNumber == 1 && strings.ToUpper(f.Name) != "ID" {
-		return nil, fmt.Errorf("entproto: field %q has number 1 which is reserved for id", f.Name)
+	if fieldNumber == 1 && strings.ToUpper(*fieldDesc.Name) != "ID" {
+		return nil, fmt.Errorf("entproto: field %q has number 1 which is reserved for id", *fieldDesc.Name)
 	}
 	fieldDesc.Number = &fieldNumber
 	if fann.Type != descriptorpb.FieldDescriptorProto_Type(0) {
