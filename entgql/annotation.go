@@ -25,7 +25,7 @@ type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
 	OrderField string `json:"OrderField,omitempty"`
 	// BindDisabled implies the edge field name in graphql schema
-	// is equivalent to the name used in ent schema.
+	// isn't equivalent to the name used in ent schema.
 	BindDisabled bool `json:"BindDisabled,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string `json:"Mapping,omitempty"`
