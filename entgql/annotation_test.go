@@ -45,10 +45,10 @@ func TestAnnotationDecode(t *testing.T) {
 	require.Equal(t, ann, &entgql.Annotation{})
 	ann = &entgql.Annotation{}
 	err = ann.Decode(map[string]interface{}{
-		"OrderField": "NAME",
-		"Bind":       true,
-		"Mapping":    []string{"f1", "f2"},
-		"Skip":       true,
+		"OrderField":   "NAME",
+		"BindDisabled": true,
+		"Mapping":      []string{"f1", "f2"},
+		"Skip":         true,
 	})
 	require.NoError(t, err)
 	require.Equal(t, ann, &entgql.Annotation{
