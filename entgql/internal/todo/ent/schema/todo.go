@@ -69,7 +69,9 @@ func (Todo) Edges() []ent.Edge {
 			Annotations(entgql.Bind()).
 			Unique(),
 		edge.From("category", Category.Type).
+			Annotations(entgql.BindDisabled()).
 			Ref("todos").
+			Annotations(entgql.BindDisabled()).
 			Unique(),
 		edge.To("secret", VerySecret.Type).
 			Unique(),

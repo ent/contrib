@@ -24,9 +24,9 @@ import (
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
 	OrderField string `json:"OrderField,omitempty"`
-	// Bind implies the edge field name in graphql schema
+	// BindDisabled implies the edge field name in graphql schema
 	// is equivalent to the name used in ent schema.
-	Bind bool `json:"Bind,omitempty"`
+	BindDisabled bool `json:"BindDisabled,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string `json:"Mapping,omitempty"`
 	// Type is the underlying GraphQL type name (e.g. Boolean).
@@ -46,8 +46,17 @@ func OrderField(name string) Annotation {
 }
 
 // Bind returns a binding annotation.
+//
+// No-op function to avoid breaking the existing schema.
+// You can safely remove this function from your scheme.
+// To disable Bind, use BindDisabled()
 func Bind() Annotation {
-	return Annotation{Bind: true}
+	return Annotation{}
+}
+
+// BindDisabled returns a disabled binding annotation.
+func BindDisabled() Annotation {
+	return Annotation{BindDisabled: true}
 }
 
 // MapsTo returns a mapping annotation.
@@ -81,8 +90,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.OrderField != "" {
 		a.OrderField = ant.OrderField
 	}
-	if ant.Bind {
-		a.Bind = true
+	if ant.BindDisabled {
+		a.BindDisabled = true
 	}
 	if len(ant.Mapping) != 0 {
 		a.Mapping = ant.Mapping
