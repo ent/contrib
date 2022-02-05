@@ -34,7 +34,7 @@ func TestAnnotation(t *testing.T) {
 
 	names := []string{"foo", "bar", "baz"}
 	annotation = entgql.MapsTo(names...)
-	require.False(t, annotation.BindDisabled)
+	require.True(t, annotation.BindDisabled)
 	require.ElementsMatch(t, names, annotation.Mapping)
 }
 

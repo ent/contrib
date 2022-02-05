@@ -61,7 +61,11 @@ func BindDisabled() Annotation {
 
 // MapsTo returns a mapping annotation.
 func MapsTo(names ...string) Annotation {
-	return Annotation{Mapping: names}
+	return Annotation{
+		Mapping: names,
+		// Disable bind because it cant be used with mapping names
+		BindDisabled: true,
+	}
 }
 
 // Type returns a type mapping annotation.
