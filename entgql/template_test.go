@@ -15,9 +15,10 @@
 package entgql
 
 import (
+	"testing"
+
 	"entgo.io/ent/entc/gen"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var annotationName = Annotation{}.Name()
@@ -99,6 +100,81 @@ func TestFilterEdges(t *testing.T) {
 			Type: &gen.Type{},
 		},
 	}, edges)
+}
+
+func TestFieldCollections(t *testing.T) {
+	edges, err := fieldCollections([]*gen.Edge{
+		{
+			Name: "Edge1",
+			Type: &gen.Type{
+				Name: "Todo",
+			},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{},
+			},
+		},
+		{
+			Name: "Edge2",
+			Type: &gen.Type{
+				Name: "Todo",
+			},
+		},
+		{
+			Name: "BindDisabled",
+			Type: &gen.Type{
+				Name: "Todo",
+			},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{
+					"BindDisabled": true,
+				},
+			},
+		},
+		{
+			Name: "EdgeMapping",
+			Type: &gen.Type{
+				Name: "Todo",
+			},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{
+					"BindDisabled": true,
+					"Mapping":      []string{"field1", "field2"},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, map[string]fieldCollection{
+		"Edge1": {
+			Name:    "Todo",
+			Mapping: []string{"Edge1"},
+		},
+		"Edge2": {
+			Name:    "Todo",
+			Mapping: []string{"Edge2"},
+		},
+		"EdgeMapping": {
+			Name:    "Todo",
+			Mapping: []string{"field1", "field2"},
+		},
+	}, edges)
+
+	_, err = fieldCollections([]*gen.Edge{
+		{
+			Name: "EdgeInvalid",
+			Type: &gen.Type{
+				Name: "Todo",
+			},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{
+					"BindDisabled": false,
+					"Mapping":      []string{"field1", "field2"},
+				},
+			},
+		},
+	})
+	require.Errorf(t, err, "bind and mapping annotations are mutually exclusive")
 }
 
 func TestFilterFields(t *testing.T) {
