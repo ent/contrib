@@ -50,7 +50,10 @@ func OrderField(name string) Annotation {
 // No-op function to avoid breaking the existing schema.
 // You can safely remove this function from your scheme.
 // To disable Bind, use BindDisabled()
-func Bind() Annotation {
+func Bind(binds ...bool) Annotation {
+	if len(binds) > 0 {
+		return Annotation{BindDisabled: !binds[0]}
+	}
 	return Annotation{}
 }
 
