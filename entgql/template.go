@@ -151,7 +151,7 @@ func nodeIDField(n *gen.Type) (*gen.Field, error) {
 			return nil, err
 		}
 
-		if fieldName := ant.NodeIDField; fieldName != "" {
+		if fieldName := ant.NodeID; fieldName != "" {
 			for _, f := range n.Fields {
 				if f.Name == fieldName {
 					return f, nil

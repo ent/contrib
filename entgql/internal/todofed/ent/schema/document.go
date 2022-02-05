@@ -38,8 +38,8 @@ func (Document) Fields() []ent.Field {
 
 func (Document) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.NodeIDField("global_id"),
+		entgql.NodeID("global_id"),
 		// // nodeIDField: unable to find field field_not_exist
-		// entgql.NodeIDField("field_not_exist"),
+		// entgql.NodeID("field_not_exist"),
 	}
 }
