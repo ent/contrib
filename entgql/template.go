@@ -16,6 +16,7 @@ package entgql
 
 import (
 	"embed"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,9 +63,10 @@ var (
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"filterNodes":  filterNodes,
-		"filterEdges":  filterEdges,
-		"filterFields": filterFields,
+		"fieldCollections": fieldCollections,
+		"filterNodes":      filterNodes,
+		"filterEdges":      filterEdges,
+		"filterFields":     filterFields,
 	}
 
 	//go:embed template/*
@@ -76,6 +78,44 @@ func parseT(path string) *gen.Template {
 		Funcs(gen.Funcs).
 		Funcs(TemplateFuncs).
 		ParseFS(templates, path))
+}
+
+type fieldCollection struct {
+	Name    string
+	Mapping []string
+}
+
+func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
+	result := make(map[string]fieldCollection)
+	for _, e := range edges {
+		result[e.Name] = fieldCollection{
+			Name:    e.Type.Name,
+			Mapping: []string{e.Name},
+		}
+
+		ant := &Annotation{}
+		if e.Annotations != nil && e.Annotations[ant.Name()] != nil {
+			if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
+				return nil, err
+			}
+
+			if ant.BindDisabled {
+				delete(result, e.Name)
+			}
+			if len(ant.Mapping) > 0 {
+				if _, bind := result[e.Name]; bind {
+					return nil, errors.New("bind and mapping annotations are mutually exclusive")
+				}
+
+				result[e.Name] = fieldCollection{
+					Name:    e.Type.Name,
+					Mapping: ant.Mapping,
+				}
+			}
+		}
+	}
+
+	return result, nil
 }
 
 func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
