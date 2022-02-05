@@ -51,8 +51,8 @@ func OrderField(name string) Annotation {
 // You can safely remove this function from your scheme.
 // To disable Bind, use BindDisabled()
 func Bind(binds ...bool) Annotation {
-	if len(binds) > 0 {
-		return Annotation{BindDisabled: !binds[0]}
+	if len(binds) > 0 && !binds[0] {
+		return Annotation{BindDisabled: true}
 	}
 	return Annotation{}
 }
