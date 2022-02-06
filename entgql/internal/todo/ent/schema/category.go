@@ -70,6 +70,6 @@ func (Category) Fields() []ent.Field {
 func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("todos", Todo.Type).
-			Annotations(entgql.BindDisabled()),
+			Annotations(entgql.Unbind()),
 	}
 }

@@ -99,7 +99,7 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 				return nil, err
 			}
 
-			if ant.BindDisabled {
+			if ant.Unbind {
 				delete(result, e.Name)
 			}
 			if len(ant.Mapping) > 0 {

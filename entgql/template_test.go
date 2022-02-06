@@ -120,13 +120,13 @@ func TestFieldCollections(t *testing.T) {
 			},
 		},
 		{
-			Name: "BindDisabled",
+			Name: "Unbind",
 			Type: &gen.Type{
 				Name: "Todo",
 			},
 			Annotations: map[string]interface{}{
 				annotationName: map[string]interface{}{
-					"BindDisabled": true,
+					"Unbind": true,
 				},
 			},
 		},
@@ -137,8 +137,8 @@ func TestFieldCollections(t *testing.T) {
 			},
 			Annotations: map[string]interface{}{
 				annotationName: map[string]interface{}{
-					"BindDisabled": true,
-					"Mapping":      []string{"field1", "field2"},
+					"Unbind":  true,
+					"Mapping": []string{"field1", "field2"},
 				},
 			},
 		},
@@ -168,8 +168,8 @@ func TestFieldCollections(t *testing.T) {
 			},
 			Annotations: map[string]interface{}{
 				annotationName: map[string]interface{}{
-					"BindDisabled": false,
-					"Mapping":      []string{"field1", "field2"},
+					"Unbind":  false,
+					"Mapping": []string{"field1", "field2"},
 				},
 			},
 		},
