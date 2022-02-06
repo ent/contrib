@@ -64,8 +64,10 @@ func (Todo) Fields() []ent.Field {
 func (Todo) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("children", Todo.Type).
+			//nolint SA1019 we keep this as the example.
 			Annotations(entgql.Bind()).
 			From("parent").
+			//nolint SA1019 we keep this as the example.
 			Annotations(entgql.Bind()).
 			Unique(),
 		edge.From("category", Category.Type).
