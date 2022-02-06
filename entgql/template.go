@@ -92,29 +92,26 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 			Name:    e.Type.Name,
 			Mapping: []string{e.Name},
 		}
-
 		ant := &Annotation{}
-		if e.Annotations != nil && e.Annotations[ant.Name()] != nil {
-			if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
-				return nil, err
+		if e.Annotations == nil || e.Annotations[ant.Name()] == nil {
+			continue
+		}
+		if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
+			return nil, err
+		}
+		if ant.Unbind {
+			delete(result, e.Name)
+		}
+		if len(ant.Mapping) > 0 {
+			if _, bind := result[e.Name]; bind {
+				return nil, errors.New("bind and mapping annotations are mutually exclusive")
 			}
-
-			if ant.Unbind {
-				delete(result, e.Name)
-			}
-			if len(ant.Mapping) > 0 {
-				if _, bind := result[e.Name]; bind {
-					return nil, errors.New("bind and mapping annotations are mutually exclusive")
-				}
-
-				result[e.Name] = fieldCollection{
-					Name:    e.Type.Name,
-					Mapping: ant.Mapping,
-				}
+			result[e.Name] = fieldCollection{
+				Name:    e.Type.Name,
+				Mapping: ant.Mapping,
 			}
 		}
 	}
-
 	return result, nil
 }
 

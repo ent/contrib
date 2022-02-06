@@ -24,8 +24,10 @@ import (
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
 	OrderField string `json:"OrderField,omitempty"`
-	// Unbind implies the edge field name in graphql schema
-	// isn't equivalent to the name used in ent schema.
+	// Unbind implies the edge field name in GraphQL schema is not equivalent
+	// to the name used in ent schema. That means, by default, edges with this
+	// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
+	// option in order to load edges be different name mapping.
 	Unbind bool `json:"Unbind,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string `json:"Mapping,omitempty"`
@@ -49,12 +51,18 @@ func OrderField(name string) Annotation {
 //
 // No-op function to avoid breaking the existing schema.
 // You can safely remove this function from your scheme.
-// To disable Bind, use Unbind()
+//
+// Deprecated: the Bind option predates the Unbind option, and it is planned
+// to be removed in future versions. Users should not use this annotation as it
+// is a no-op call, or use `Unbind` in order to disable `Bind`.
 func Bind() Annotation {
 	return Annotation{}
 }
 
-// Unbind returns a unbinding annotation.
+// Unbind implies the edge field name in GraphQL schema is not equivalent
+// to the name used in ent schema. That means, by default, edges with this
+// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
+// option in order to load edges be different name mapping.
 func Unbind() Annotation {
 	return Annotation{Unbind: true}
 }
@@ -63,7 +71,7 @@ func Unbind() Annotation {
 func MapsTo(names ...string) Annotation {
 	return Annotation{
 		Mapping: names,
-		Unbind:  true, // Unbind because it cant be used with mapping names
+		Unbind:  true, // Unbind because it cant be used with mapping names.
 	}
 }
 
