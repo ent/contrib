@@ -1,0 +1,68 @@
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
+  | FIELD_DEFINITION
+
+interface Node {
+  id: ID!
+}
+
+type Todo implements Node {
+  id: ID! @goField(name: "GlobalID")
+  text: String!
+}
+
+
+type Post implements Node {
+  id: ID! @goField(name: "GlobalID")
+  text: String!
+}
+
+type User implements Node {
+  id: ID! @goField(name: "GlobalID")
+  name: String!
+}
+
+
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  todos: [Todo!]
+  users: [User!]
+  posts: [Post!]
+}
+
+input CreateTodoInput {
+  text: String!
+  user: ID!
+  clientMutationId: String
+}
+
+type CreateTodoPayload {
+  todo: Todo!
+  clientMutationId: String
+}
+
+input CreateUserInput {
+  name: String!
+  clientMutationId: String
+}
+
+type CreateUserPayload {
+  user: User!
+  clientMutationId: String
+}
+
+input CreatePostInput {
+  text: String!
+  clientMutationId: String
+}
+
+type CreatePostPayload {
+  post: Post!
+  clientMutationId: String
+}
+
+type Mutation {
+  createTodo(input: CreateTodoInput): CreateTodoPayload
+  createUser(input: CreateUserInput): CreateUserPayload
+  createPost(input: CreatePostInput): CreatePostPayload
+}
