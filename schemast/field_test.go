@@ -132,6 +132,11 @@ func TestFromFieldDescriptor(t *testing.T) {
 			}),
 			expectedErrMsg: "schemast: unsupported feature Descriptor.Validators",
 		},
+		{
+			name:     "bytes",
+			field:    field.Bytes("x"),
+			expected: `field.Bytes("x")`,
+		},
 	}
 
 	for _, tt := range tests {
