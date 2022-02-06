@@ -24,9 +24,11 @@ import (
 type Annotation struct {
 	// OrderField is the ordering field as defined in graphql schema.
 	OrderField string `json:"OrderField,omitempty"`
-	// Bind implies the edge field name in graphql schema
-	// is equivalent to the name used in ent schema.
-	Bind bool `json:"Bind,omitempty"`
+	// Unbind implies the edge field name in GraphQL schema is not equivalent
+	// to the name used in ent schema. That means, by default, edges with this
+	// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
+	// option in order to load edges be different name mapping.
+	Unbind bool `json:"Unbind,omitempty"`
 	// Mapping is the edge field names as defined in graphql schema.
 	Mapping []string `json:"Mapping,omitempty"`
 	// Type is the underlying GraphQL type name (e.g. Boolean).
@@ -46,13 +48,31 @@ func OrderField(name string) Annotation {
 }
 
 // Bind returns a binding annotation.
+//
+// No-op function to avoid breaking the existing schema.
+// You can safely remove this function from your scheme.
+//
+// Deprecated: the Bind option predates the Unbind option, and it is planned
+// to be removed in future versions. Users should not use this annotation as it
+// is a no-op call, or use `Unbind` in order to disable `Bind`.
 func Bind() Annotation {
-	return Annotation{Bind: true}
+	return Annotation{}
+}
+
+// Unbind implies the edge field name in GraphQL schema is not equivalent
+// to the name used in ent schema. That means, by default, edges with this
+// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
+// option in order to load edges be different name mapping.
+func Unbind() Annotation {
+	return Annotation{Unbind: true}
 }
 
 // MapsTo returns a mapping annotation.
 func MapsTo(names ...string) Annotation {
-	return Annotation{Mapping: names}
+	return Annotation{
+		Mapping: names,
+		Unbind:  true, // Unbind because it cant be used with mapping names.
+	}
 }
 
 // Type returns a type mapping annotation.
@@ -81,8 +101,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.OrderField != "" {
 		a.OrderField = ant.OrderField
 	}
-	if ant.Bind {
-		a.Bind = true
+	if ant.Unbind {
+		a.Unbind = true
 	}
 	if len(ant.Mapping) != 0 {
 		a.Mapping = ant.Mapping
