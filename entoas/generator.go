@@ -223,23 +223,9 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			if err != nil {
 				return err
 			}
-			// Create operation.
-			if contains(ops, OpCreate) {
-				path(spec, subRoot).Post, err = createEdgeOp(spec, n, e)
-				if err != nil {
-					return err
-				}
-			}
 			// Read operation.
 			if contains(ops, OpRead) {
 				path(spec, subRoot).Get, err = readEdgeOp(spec, n, e)
-				if err != nil {
-					return err
-				}
-			}
-			// Delete operation.
-			if contains(ops, OpDelete) {
-				path(spec, subRoot).Delete, err = deleteEdgeOp(spec, n, e)
 				if err != nil {
 					return err
 				}
@@ -292,42 +278,6 @@ func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
 			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
-			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
-		)
-	return op, nil
-}
-
-// createEdgeOp returns the spec description for a create operation on a subresource.
-func createEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, error) {
-	id, err := pathParam(n)
-	if err != nil {
-		return nil, err
-	}
-	req, err := reqBody(e.Type, OpCreate)
-	if err != nil {
-		return nil, err
-	}
-	vn, err := EdgeViewName(n, e, OpCreate)
-	if err != nil {
-		return nil, err
-	}
-	op := ogen.NewOperation().
-		SetSummary(fmt.Sprintf("Create a new %s and attach it to the %s", e.Type.Name, n.Name)).
-		SetDescription(fmt.Sprintf("Creates a new %s and attaches it to the %s", e.Type.Name, n.Name)).
-		AddTags(n.Name).
-		SetOperationID(string(OpCreate)+n.Name+strcase.UpperCamelCase(e.Name)).
-		SetRequestBody(req).
-		AddParameters(id).
-		AddResponse(
-			strconv.Itoa(http.StatusOK),
-			ogen.NewResponse().
-				SetDescription(fmt.Sprintf("%s created and attached to the %s", e.Type.Name, n.Name)).
-				SetJSONContent(spec.RefSchema(vn).Schema),
-		).
-		AddNamedResponses(
-			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
-			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
-			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
 	return op, nil
@@ -450,37 +400,6 @@ func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			strconv.Itoa(http.StatusNoContent),
 			ogen.NewResponse().
 				SetDescription(fmt.Sprintf("%s with requested ID was deleted", n.Name)),
-		).
-		AddNamedResponses(
-			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
-			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
-			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
-			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
-		)
-	return op, nil
-}
-
-// deleteEdgeOp returns the spec description for a delete operation on a subresource.
-func deleteEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, error) {
-	if !e.Unique {
-		return nil, errors.New("delete operations are not allowed on non unique edges")
-	}
-	id, err := pathParam(n)
-	if err != nil {
-		return nil, err
-	}
-	op := ogen.NewOperation().
-		SetSummary(fmt.Sprintf("Delete the attached %s", strcase.UpperCamelCase(e.Name))).
-		SetDescription(
-			fmt.Sprintf("Delete the attached %s of the %s with the given ID", strcase.UpperCamelCase(e.Name), n.Name),
-		).
-		AddTags(n.Name).
-		SetOperationID(string(OpDelete)+n.Name+strcase.UpperCamelCase(e.Name)).
-		AddParameters(id).
-		AddResponse(
-			strconv.Itoa(http.StatusNoContent),
-			ogen.NewResponse().
-				SetDescription(fmt.Sprintf("%s with requested ID was deleted", strcase.UpperCamelCase(e.Name))),
 		).
 		AddNamedResponses(
 			spec.RefResponse(strconv.Itoa(http.StatusBadRequest)),
