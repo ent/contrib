@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"entgo.io/ent/entc"
@@ -93,16 +94,14 @@ func TestPrintAddImport(t *testing.T) {
 	tt, err := newPrintTest(t)
 	require.NoError(t, err)
 
-	uuidImportRegex := regexp.MustCompile("github.com/google/uuid")
-
 	require.NoError(t, tt.ctx.AppendField("Message", field.UUID("uuid", uuid.UUID{}).Descriptor()))
 	require.NoError(t, tt.ctx.AppendField("Message", field.UUID("hash", uuid.UUID{}).Descriptor()))
 	require.NoError(t, tt.print())
 
 	contents, err := ioutil.ReadFile(filepath.Join(tt.schemaDir(), "message.go"))
 	require.NoError(t, err)
-	matches := uuidImportRegex.FindAllString(string(contents), -1)
-	require.Len(t, matches, 1)
+	matches := strings.Count(string(contents), "github.com/google/uuid")
+	require.Equal(t, matches, 1)
 }
 
 func newPrintTest(t *testing.T) (*printTest, error) {
