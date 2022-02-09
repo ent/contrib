@@ -25,6 +25,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,6 +86,22 @@ func TestPrintHeaderComment(t *testing.T) {
 	contents, err = ioutil.ReadFile(filepath.Join(tt.schemaDir(), "user.go")) // A file that had the header, but not on the first line.
 	require.NoError(t, err)
 	matches := commentRegexp.FindAllString(string(contents), -1)
+	require.Len(t, matches, 1)
+}
+
+func TestPrintAddImport(t *testing.T) {
+	tt, err := newPrintTest(t)
+	require.NoError(t, err)
+
+	uuidImportRegex := regexp.MustCompile("github.com/google/uuid")
+
+	require.NoError(t, tt.ctx.AppendField("Message", field.UUID("uuid", uuid.UUID{}).Descriptor()))
+	require.NoError(t, tt.ctx.AppendField("Message", field.UUID("hash", uuid.UUID{}).Descriptor()))
+	require.NoError(t, tt.print())
+
+	contents, err := ioutil.ReadFile(filepath.Join(tt.schemaDir(), "message.go"))
+	require.NoError(t, err)
+	matches := uuidImportRegex.FindAllString(string(contents), -1)
 	require.Len(t, matches, 1)
 }
 

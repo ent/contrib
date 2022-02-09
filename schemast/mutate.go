@@ -16,9 +16,11 @@ package schemast
 
 import (
 	"go/ast"
+	"go/token"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/field"
 )
 
 // Mutator changes a Context.
@@ -59,6 +61,9 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 	for _, fld := range u.Fields {
 		if err := ctx.AppendField(u.Name, fld.Descriptor()); err != nil {
 			return err
+		}
+		if fld.Descriptor().Info.Type == field.TypeUUID {
+			ctx.appendImport(u.Name, "github.com/google/uuid")
 		}
 	}
 	for _, edg := range u.Edges {
@@ -104,4 +109,10 @@ func (c *Context) appendReturnItem(k kind, typeName string, item ast.Expr) error
 		return err
 	}
 	return appendToReturn(stmt, k.ifaceSelector, item)
+}
+
+func (c *Context) appendImport(typeName, pkgPath string) {
+	if f, ok := c.newTypes[typeName]; ok {
+		f.Imports = append(f.Imports, &ast.ImportSpec{Path: &ast.BasicLit{Value: pkgPath, Kind: token.STRING}})
+	}
 }

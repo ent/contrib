@@ -33,6 +33,15 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 	switch t := desc.Info.Type; {
 	case t.Numeric(), t == field.TypeString, t == field.TypeBool, t == field.TypeTime, t == field.TypeBytes:
 		return fromSimpleType(desc)
+	case t == field.TypeUUID:
+		return fromComplexType(
+			desc,
+			structLit(
+				&ast.SelectorExpr{
+					X:   ast.NewIdent("uuid"),
+					Sel: ast.NewIdent("UUID"),
+				},
+			))
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
 	default:
@@ -112,6 +121,16 @@ func fromEnumType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	builder := &builderCall{curr: call}
 	builder.method(modifier, args...)
 	return builder.curr, nil
+}
+
+func fromComplexType(desc *field.Descriptor, filedType ast.Expr) (*ast.CallExpr, error) {
+	call, err := fromSimpleType(desc)
+	if err != nil {
+		return nil, err
+	}
+
+	call.Args = append(call.Args, filedType)
+	return call, nil
 }
 
 func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
