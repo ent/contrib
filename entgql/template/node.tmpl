@@ -20,7 +20,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ $idType := $.IDType }}
 {{ if gt (len $gqlNodes) 0 }}
 	{{ $idType = (index $gqlNodes 0).ID.Type }}
-	{{ range $n := (slice $.Nodes 1) }}
+	{{ range $n := (slice $gqlNodes 1) }}
 		{{ if ne $idType.Type $n.ID.Type.Type }}
 			{{ fail "node does not support multiple id types" }}
 		{{ end }}
