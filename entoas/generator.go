@@ -617,9 +617,9 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 	if e.Annotations == nil || e.Annotations[ant.Name()] == nil {
 		if c.DefaultPolicy == PolicyExpose {
 			if e.Unique {
-				return []Operation{OpCreate, OpRead, OpDelete}, nil
+				return []Operation{OpRead}, nil
 			} else {
-				return []Operation{OpCreate, OpList}, nil
+				return []Operation{OpList}, nil
 			}
 		}
 		return nil, nil
@@ -633,11 +633,8 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 		var ops []Operation
 		m := make(map[Operation]OperationConfig)
 		if e.Unique {
-			m[OpCreate] = ant.Create
 			m[OpRead] = ant.Read
-			m[OpDelete] = ant.Delete
 		} else {
-			m[OpCreate] = ant.Create
 			m[OpList] = ant.List
 		}
 		for op, opn := range m {
