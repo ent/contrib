@@ -24,6 +24,7 @@ import (
 	"text/template/parse"
 
 	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema/field"
 )
 
 var (
@@ -64,9 +65,10 @@ var (
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
 		"fieldCollections": fieldCollections,
-		"filterNodes":      filterNodes,
 		"filterEdges":      filterEdges,
 		"filterFields":     filterFields,
+		"filterNodes":      filterNodes,
+		"findIDType":       findIDType,
 	}
 
 	//go:embed template/*
@@ -78,6 +80,22 @@ func parseT(path string) *gen.Template {
 		Funcs(gen.Funcs).
 		Funcs(TemplateFuncs).
 		ParseFS(templates, path))
+}
+
+func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
+	t := defaultType
+	if len(nodes) > 0 {
+		t = nodes[0].ID.Type
+
+		// Ensure all id types have the same type.
+		for _, n := range nodes[1:] {
+			if n.ID.Type.Type != t.Type {
+				return nil, errors.New("node does not support multiple id types")
+			}
+		}
+	}
+
+	return t, nil
 }
 
 type fieldCollection struct {
