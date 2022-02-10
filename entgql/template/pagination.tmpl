@@ -18,6 +18,7 @@ in the LICENSE file in the root directory of this source tree.
 {{- end }}
 
 {{ $gqlNodes := filterNodes $.Nodes }}
+{{ $idType := findIDType $gqlNodes $.IDType }}
 
 import (
 	{{- range $n := $gqlNodes }}
@@ -131,8 +132,8 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID {{ $.IDType }} `msgpack:"i"`
-	Value Value       `msgpack:"v,omitempty"`
+	ID {{ $idType }} `msgpack:"i"`
+	Value Value      `msgpack:"v,omitempty"`
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

@@ -15,17 +15,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ end }}
 
 {{ $gqlNodes := filterNodes $.Nodes }}
-
-{{/* Ensure all id types have the same type */}}
-{{ $idType := $.IDType }}
-{{ if gt (len $gqlNodes) 0 }}
-	{{ $idType = (index $gqlNodes 0).ID.Type }}
-	{{ range $n := (slice $gqlNodes 1) }}
-		{{ if ne $idType.Type $n.ID.Type.Type }}
-			{{ fail "node does not support multiple id types" }}
-		{{ end }}
-	{{ end }}
-{{ end }}
+{{ $idType := findIDType $gqlNodes $.IDType }}
 
 import (
 	{{- range $n := $.Nodes }}
@@ -350,7 +340,8 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- if $.IDType.Numeric }}
+	{{- $idType := findIDType (filterNodes $.Nodes) $.IDType }}
+	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables
 	{{- end }}
