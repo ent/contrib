@@ -25,6 +25,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -136,6 +137,11 @@ func TestFromFieldDescriptor(t *testing.T) {
 			name:     "bytes",
 			field:    field.Bytes("x"),
 			expected: `field.Bytes("x")`,
+		},
+		{
+			name:     "uuid",
+			field:    field.UUID("x", uuid.UUID{}),
+			expected: `field.UUID("x", uuid.UUID{})`,
 		},
 	}
 

@@ -107,6 +107,12 @@ func fnCall(sel *ast.SelectorExpr, args ...ast.Expr) *ast.CallExpr {
 	}
 }
 
+func structLit(sel *ast.SelectorExpr) *ast.CompositeLit {
+	return &ast.CompositeLit{
+		Type: sel,
+	}
+}
+
 func appendToReturn(stmt *ast.ReturnStmt, sel *ast.SelectorExpr, exprs ...ast.Expr) error {
 	returned := stmt.Results[0]
 	switch r := returned.(type) {
