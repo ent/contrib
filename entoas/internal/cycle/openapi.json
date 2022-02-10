@@ -897,29 +897,7 @@
           "id"
         ]
       },
-      "User_ChildrenCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
       "User_ChildrenList": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
-      "User_FollowersCreate": {
         "type": "object",
         "properties": {
           "id": {
@@ -941,17 +919,6 @@
           "id"
         ]
       },
-      "User_FollowingCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
       "User_FollowingList": {
         "type": "object",
         "properties": {
@@ -963,29 +930,7 @@
           "id"
         ]
       },
-      "User_FriendsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
       "User_FriendsList": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
-      "User_ParentCreate": {
         "type": "object",
         "properties": {
           "id": {

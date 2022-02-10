@@ -1199,30 +1199,6 @@
           "name"
         ]
       },
-      "Category_PetsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
       "Category_PetsList": {
         "type": "object",
         "properties": {
@@ -1400,21 +1376,6 @@
           "name"
         ]
       },
-      "Pet_CategoriesCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
       "Pet_CategoriesList": {
         "type": "object",
         "properties": {
@@ -1423,30 +1384,6 @@
           },
           "name": {
             "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "Pet_FriendsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
           }
         },
         "required": [
@@ -1476,25 +1413,6 @@
         "required": [
           "id",
           "name"
-        ]
-      },
-      "Pet_OwnerCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "age"
         ]
       },
       "Pet_OwnerRead": {
@@ -1615,30 +1533,6 @@
           "id",
           "name",
           "age"
-        ]
-      },
-      "User_PetsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name"
         ]
       },
       "User_PetsList": {
