@@ -107,9 +107,9 @@ func fnCall(sel *ast.SelectorExpr, args ...ast.Expr) *ast.CallExpr {
 	}
 }
 
-func structLit(sel *ast.SelectorExpr) *ast.CompositeLit {
+func structLit(structType ast.Expr) *ast.CompositeLit {
 	return &ast.CompositeLit{
-		Type: sel,
+		Type: structType,
 	}
 }
 

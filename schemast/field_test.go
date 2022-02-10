@@ -52,9 +52,9 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.Int64("x")`,
 		},
 		{
-			name:           "unsupported type",
-			field:          field.JSON("json_field", &SomeJSON{}),
-			expectedErrMsg: "schemast: unsupported type TypeJSON",
+			name:     "json",
+			field:    field.JSON("json_field", struct{}{}),
+			expected: `field.JSON("json_field", struct{}{})`,
 		},
 		{
 			name:     "time",
@@ -160,9 +160,6 @@ func TestFromFieldDescriptor(t *testing.T) {
 			require.EqualValues(t, tt.expected, buf.String())
 		})
 	}
-}
-
-type SomeJSON struct {
 }
 
 type annotation string

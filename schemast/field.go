@@ -42,6 +42,19 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 					Sel: ast.NewIdent("UUID"),
 				},
 			))
+	case t == field.TypeJSON:
+		return fromComplexType(
+			desc,
+			structLit(
+				&ast.StructType{
+					Fields: &ast.FieldList{
+						// print struct{} >{}< on same line
+						Opening: 1,
+						Closing: 1,
+					},
+				},
+			),
+		)
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
 	default:
