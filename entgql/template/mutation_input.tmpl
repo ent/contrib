@@ -1,0 +1,160 @@
+{{ define "gql_mutation_input" }}
+
+{{- /*gotype: entgo.io/ent/entc/gen.Graph*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{- with extend $ "Package" $pkg }}
+        {{ template "header" . }}
+{{- end }}
+
+{{ template "import" $ }}
+
+{{- range $n := $.Nodes }}
+    {{- $annotation := $n.Annotations.EntGQL }}
+    {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+
+        {{ $input := print "Create" $n.Name "Input" }}
+        // {{ $input }} represents a mutation input for creating {{ plural $n.Name | lower }}.
+        type {{ $input }} struct {
+            {{- range $f := $n.Fields }}
+                {{- $annotation := $f.Annotations.EntGQL }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                    {{ $f.StructField }} {{ if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
+                {{- end }}
+            {{- end }}
+            {{- range $e := $n.Edges }}
+                {{- $annotation := $e.Annotations.EntGQL }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                    {{- if $e.Unique }}
+                        {{- $structField := print (pascal $e.Name) "ID" }}
+                        {{ $structField }} {{ if $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
+                    {{- else }}
+                        {{- $structField := print (singular $e.Name | pascal) "IDs" }}
+                        {{ $structField }} []{{ $e.Type.ID.Type }}
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        }
+
+        // Mutate applies the {{ $input }} on the {{ $n.CreateName }} builder.
+        func (i *{{ $input }}) Mutate(m *{{ $n.CreateName }}) {
+            {{- range $f := $n.Fields }}
+                {{- $annotation := $f.Annotations.EntGQL }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                    {{- if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}
+                        if v := i.{{ $f.StructField }}; v != nil {
+                            m.{{ $f.MutationSet }}(*v)
+                        }
+                    {{- else }}
+                        m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+            {{- range $e := $n.Edges }}
+                {{- $annotation := $e.Annotations.EntGQL }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                    {{- if $e.Unique }}
+                        {{- $structField := print (pascal $e.Name) "ID" }}
+                        {{- if $e.Optional }}
+                            if v := i.{{ $structField }}; v != nil {
+                                m.{{ $e.MutationSet }}(*v)
+                            }
+                        {{- else }}
+                            m.{{ $e.MutationSet }}(i.{{ $structField }})
+                        {{- end }}
+                    {{- else }}
+                        {{- $structField := print (singular $e.Name | pascal) "IDs" }}
+                        if ids := i.{{ $structField }}; len(ids) > 0 {
+                            m.{{ $e.MutationAdd }}(ids...)
+                        }
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        }
+
+        // SetInput applies the change-set in the {{ $input }} on the create builder.
+        func(c *{{ $n.CreateName }}) SetInput(i {{ $input }}) *{{ $n.CreateName }} {
+            i.Mutate(c)
+            return c
+        }
+
+        {{ $input = print "Update" $n.Name "Input" }}
+        // {{ $input }} represents a mutation input for updating {{ plural $n.Name | lower }}.
+        type {{ $input }} struct {
+            {{- range $f := $n.MutableFields }}
+                {{- $annotation := $f.Annotations.EntGQL }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                    {{ $f.StructField }} {{ if not $f.Type.RType.IsPtr }}*{{ end }}{{ $f.Type }}
+                    {{- if $f.Optional }}
+                        {{ print "Clear" $f.StructField }} bool
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+            {{- range $e := $n.Edges }}
+                {{- $annotation := $e.Annotations.EntGQL }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                    {{- if $e.Unique }}
+                        {{- $structField := print (pascal $e.Name) "ID" }}
+                        {{ $structField }} *{{ $e.Type.ID.Type }}
+                        {{ $e.MutationClear }} bool
+                    {{- else }}
+                        {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }}
+                        {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }}
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        }
+
+        // Mutate applies the {{ $input }} on the {{ $n.MutationName }}.
+        func (i *{{ $input }}) Mutate(m *{{ $n.MutationName }}) {
+            {{- range $f := $n.MutableFields }}
+                {{- $annotation := $f.Annotations.EntGQL }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                    {{- if $f.Optional }}
+                        if i.{{ print "Clear" $f.StructField }} {
+                            m.{{ print "Clear" $f.StructField }}()
+                        }
+                    {{- end }}
+                    if v := i.{{ $f.StructField }}; v != nil {
+                        m.{{ $f.MutationSet }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}v)
+                    }
+                {{- end }}
+            {{- end }}
+            {{- range $e := $n.Edges }}
+                {{- $annotation := $e.Annotations.EntGQL }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                    {{- if $e.Unique }}
+                        if i.{{ $e.MutationClear }} {
+                            m.{{ $e.MutationClear }}()
+                        }
+                        {{- $structField := print (pascal $e.Name) "ID" }}
+                        if v := i.{{ $structField }}; v != nil {
+                            m.{{ $e.MutationSet }}(*v)
+                        }
+                    {{- else }}
+                        if ids := i.{{ $e.MutationAdd }}; len(ids) > 0 {
+                            m.{{ $e.MutationAdd }}(ids...)
+                        }
+                        if ids := i.{{ $e.MutationRemove }}; len(ids) > 0 {
+                            m.{{ $e.MutationRemove }}(ids...)
+                        }
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+        }
+
+        // SetInput applies the change-set in the {{ $input }} on the update builder.
+        func(u *{{ $n.UpdateName }}) SetInput(i {{ $input }}) *{{ $n.UpdateName }} {
+            i.Mutate(u.Mutation())
+            return u
+        }
+
+        // SetInput applies the change-set in the {{ $input }} on the update-one builder.
+        func(u *{{ $n.UpdateOneName }}) SetInput(i {{ $input }}) *{{ $n.UpdateOneName }} {
+            i.Mutate(u.Mutation())
+            return u
+        }
+
+    {{- end }}
+{{- end }}
+{{ end }}

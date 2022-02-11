@@ -56,6 +56,9 @@ var (
 	// WhereTemplate adds a template for generating <T>WhereInput filters for each schema type.
 	WhereTemplate = parseT("template/where_input.tmpl")
 
+	// MutationInputTemplate adds a template for generating Create<T>Input and Update<T>Input for each schema type.
+	MutationInputTemplate = parseT("template/mutation_input.tmpl")
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -277,6 +280,8 @@ func skipModeFromString(s string) (SkipMode, error) {
 		return SkipOrderField, nil
 	case "where_input":
 		return SkipWhereInput, nil
+	case "mutation_input":
+		return SkipMutationInput, nil
 	}
 	return 0, fmt.Errorf("invalid skip mode: %s", s)
 }

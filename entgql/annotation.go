@@ -83,12 +83,16 @@ const (
 	// SkipWhereInput skips generating GraphQL WhereInput types.
 	// If defined on a field, the type will be generated without the field.
 	SkipWhereInput
+	// SkipMutationInput skips generating GraphQL MutationInput types.
+	// If defined on a field, the type will be generated without the field.
+	SkipMutationInput
 
 	// SkipAll is default mode to skip all.
 	SkipAll = SkipType |
 		SkipEnumField |
 		SkipOrderField |
-		SkipWhereInput
+		SkipWhereInput |
+		SkipMutationInput
 )
 
 // Name implements ent.Annotation interface.
