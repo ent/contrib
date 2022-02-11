@@ -17,6 +17,7 @@ package entgql
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,6 +70,7 @@ var (
 		"filterFields":     filterFields,
 		"filterNodes":      filterNodes,
 		"findIDType":       findIDType,
+		"nodeIDField":      nodeIDField,
 	}
 
 	//go:embed template/*
@@ -85,11 +87,20 @@ func parseT(path string) *gen.Template {
 func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
 	t := defaultType
 	if len(nodes) > 0 {
-		t = nodes[0].ID.Type
+		f, err := nodeIDField(nodes[0])
+		if err != nil {
+			return nil, err
+		}
+		t = f.Type
 
 		// Ensure all id types have the same type.
 		for _, n := range nodes[1:] {
-			if n.ID.Type.Type != t.Type {
+			f, err = nodeIDField(n)
+			if err != nil {
+				return nil, err
+			}
+
+			if f.Type.Type != t.Type {
 				return nil, errors.New("node does not support multiple id types")
 			}
 		}
@@ -131,6 +142,27 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 		}
 	}
 	return result, nil
+}
+
+func nodeIDField(n *gen.Type) (*gen.Field, error) {
+	ant := &Annotation{}
+	if n.Annotations != nil && n.Annotations[ant.Name()] != nil {
+		if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+			return nil, err
+		}
+
+		if fieldName := ant.NodeIDField; fieldName != "" {
+			for _, f := range n.Fields {
+				if f.Name == fieldName {
+					return f, nil
+				}
+			}
+
+			return nil, fmt.Errorf("unable to find field %s", fieldName)
+		}
+	}
+
+	return n.ID, nil
 }
 
 func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {

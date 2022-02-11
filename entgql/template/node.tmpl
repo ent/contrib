@@ -42,7 +42,7 @@ type Noder interface {
 
 // Node in the graph.
 type Node struct {
-	ID 	   {{ $idType }} `json:"id,omitempty"`// node id.
+	ID     {{ $idType }} `json:"id,omitempty"`// node id.
 	Type   string   `json:"type,omitempty"`   // node type.
 	Fields []*Field `json:"fields,omitempty"` // node fields.
 	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
@@ -65,9 +65,10 @@ type Edge struct {
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
+	{{ $field := (nodeIDField $n).StructField }}
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		node = &Node{
-			ID: {{ $receiver }}.ID,
+			ID: {{ $receiver }}.{{ $field }},
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $n.Fields }}),
 			Edges: make([]*Edge, {{ len (filterEdges $n.Edges) }}),
@@ -176,9 +177,10 @@ func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption
 func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
 	{{- range $n := $gqlNodes }}
+		{{- $field := (nodeIDField $n).StructField }}
 		case {{ $n.Package }}.Table:
 			n, err := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.ID(id)).
+				Where({{ $n.Package }}.{{ $field }}(id)).
 				{{- if hasTemplate "gql_collection" }}
 					CollectFields(ctx, "{{ $n.Name }}").
 				{{- end }}
@@ -262,9 +264,10 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	}
 	switch table {
 	{{- range $n := $gqlNodes }}
+		{{- $field := (nodeIDField $n).StructField }}
 		case {{ $n.Package }}.Table:
 			nodes, err := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.IDIn(ids...)).
+				Where({{ $n.Package }}.{{ $field }}In(ids...)).
 				{{- if hasTemplate "gql_collection" }}
 					CollectFields(ctx, "{{ $n.Name }}").
 				{{- end }}
@@ -273,7 +276,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 				return nil, err
 			}
 			for _, node := range nodes {
-				for _, noder := range idmap[node.ID] {
+				for _, noder := range idmap[node.{{ $field }}] {
 					*noder = node
 				}
 			}

@@ -444,7 +444,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 				field: {{ $node.Package }}.{{ $f.Constant }},
 				toCursor: func({{ $r }} *{{ $name }}) Cursor {
 					return Cursor{
-						ID: {{ $r }}.ID,
+						ID: {{ $r }}.{{ (nodeIDField $node).StructField }},
 						Value: {{ $r }}.{{ $f.StructField }},
 					}
 				},
@@ -503,9 +503,9 @@ type {{ $order }} struct {
 var {{ $defaultOrder }} = &{{ $order }}{
 	Direction: OrderDirectionAsc,
 	Field: &{{ $orderField }}{
-		field: {{ $node.Package }}.{{ $node.ID.Constant }},
+		field: {{ $node.Package }}.{{ (nodeIDField $node).Constant }},
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
-			return Cursor{ID: {{ $r }}.ID}
+			return Cursor{ID: {{ $r }}.{{ (nodeIDField $node).StructField }}}
 		},
 	},
 }

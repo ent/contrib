@@ -22,6 +22,8 @@ import (
 
 // Annotation annotates fields and edges with metadata for templates.
 type Annotation struct {
+	// NodeIDField is the name of the field that used as NodeID.
+	NodeIDField string
 	// OrderField is the ordering field as defined in graphql schema.
 	OrderField string `json:"OrderField,omitempty"`
 	// Unbind implies the edge field name in GraphQL schema is not equivalent
@@ -40,6 +42,11 @@ type Annotation struct {
 // Name implements ent.Annotation interface.
 func (Annotation) Name() string {
 	return "EntGQL"
+}
+
+// NodeIDField returns a node id field annotation.
+func NodeIDField(field string) Annotation {
+	return Annotation{NodeIDField: field}
 }
 
 // OrderField returns an order field annotation.
