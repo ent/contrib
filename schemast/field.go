@@ -35,7 +35,8 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 	case t.Numeric(),
 		t == field.TypeString,
 		t == field.TypeBool,
-		t == field.TypeTime:
+		t == field.TypeTime,
+		t == field.TypeBytes:
 		return fromSimpleType(desc)
 	case t == field.TypeUUID:
 		return fromComplexType(

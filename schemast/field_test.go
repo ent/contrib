@@ -55,11 +55,6 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.Int64("x")`,
 		},
 		{
-			name:           "unsupported type",
-			field:          field.Bytes("unsupported"),
-			expectedErrMsg: "schemast: unsupported type TypeBytes",
-		},
-		{
 			name:     "json_ptr",
 			field:    field.JSON("x", &SomeJSON{}).Optional(),
 			expected: `field.JSON("x", &schemast.SomeJSON{}).Optional()`,
