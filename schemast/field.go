@@ -118,6 +118,8 @@ func fromJSONType(desc *field.Descriptor) (*ast.CallExpr, error) {
 				},
 			},
 		}
+	default:
+		return nil, fmt.Errorf("unknown JSON field type: %q", desc.Info.RType.Kind)
 	}
 	builder.curr.Args = append(builder.curr.Args, c)
 	if err := setFieldOptions(desc, builder); err != nil {
