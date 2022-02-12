@@ -16,8 +16,11 @@ package schemast
 
 import (
 	"bytes"
+	"encoding/json"
 	"go/printer"
 	"go/token"
+	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -53,8 +56,63 @@ func TestFromFieldDescriptor(t *testing.T) {
 		},
 		{
 			name:           "unsupported type",
-			field:          field.JSON("json_field", &SomeJSON{}),
-			expectedErrMsg: "schemast: unsupported type TypeJSON",
+			field:          field.Bytes("unsupported"),
+			expectedErrMsg: "schemast: unsupported type TypeBytes",
+		},
+		{
+			name:     "json_ptr",
+			field:    field.JSON("x", &SomeJSON{}).Optional(),
+			expected: `field.JSON("x", &schemast.SomeJSON{}).Optional()`,
+		},
+		{
+			name:     "json_primitive_slice",
+			field:    field.JSON("x", []string{}),
+			expected: `field.JSON("x", []string{})`,
+		},
+		{
+			name:     "json_type_slice",
+			field:    field.JSON("x", []SomeJSON{}),
+			expected: `field.JSON("x", []schemast.SomeJSON{})`,
+		},
+		{
+			name:     "json_pointer_type_slice",
+			field:    field.JSON("x", []*url.Values{}),
+			expected: `field.JSON("x", []*url.Values{})`,
+		},
+		{
+			name:     "json_map_primitive_types",
+			field:    field.JSON("x", map[string]string{}),
+			expected: `field.JSON("x", map[string]string{})`,
+		},
+		{
+			name:     "json_map_primitive_to_type",
+			field:    field.JSON("x", map[string]url.Values{}),
+			expected: `field.JSON("x", map[string]url.Values{})`,
+		},
+		{
+			name:     "json_map_primitive_to_pointer_type",
+			field:    field.JSON("x", map[string]*url.Values{}),
+			expected: `field.JSON("x", map[string]*url.Values{})`,
+		},
+		{
+			name:     "json_map_primitive_to_interface",
+			field:    field.JSON("x", map[string]interface{}{}),
+			expected: `field.JSON("x", map[string]interface {}{})`,
+		},
+		{
+			name:     "json_ptr_imported_type",
+			field:    field.JSON("x", &url.URL{}),
+			expected: `field.JSON("x", &url.URL{})`,
+		},
+		{
+			name:     "json_slice_imported_type",
+			field:    field.JSON("x", []http.Dir{}).Comment("some_comment"),
+			expected: `field.JSON("x", []http.Dir{}).Comment("some_comment")`,
+		},
+		{
+			name:     "json_type_alias",
+			field:    field.JSON("x", json.RawMessage{}),
+			expected: `field.JSON("x", json.RawMessage{})`,
 		},
 		{
 			name:     "time",
@@ -162,10 +220,10 @@ func TestFromFieldDescriptor(t *testing.T) {
 	}
 }
 
-type SomeJSON struct {
-}
-
-type annotation string
+type (
+	SomeJSON   struct{}
+	annotation string
+)
 
 func (a annotation) Name() string { return string(a) }
 

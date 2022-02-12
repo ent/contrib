@@ -20,6 +20,7 @@ import (
 	"go/ast"
 	"go/token"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -31,7 +32,10 @@ import (
 // to construct it.
 func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 	switch t := desc.Info.Type; {
-	case t.Numeric(), t == field.TypeString, t == field.TypeBool, t == field.TypeTime, t == field.TypeBytes:
+	case t.Numeric(),
+		t == field.TypeString,
+		t == field.TypeBool,
+		t == field.TypeTime:
 		return fromSimpleType(desc)
 	case t == field.TypeUUID:
 		return fromComplexType(
@@ -44,9 +48,70 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 			))
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
+	case t == field.TypeJSON:
+		return fromJSONType(desc)
 	default:
 		return nil, fmt.Errorf("schemast: unsupported type %s", t.ConstName())
 	}
+}
+
+func fromJSONType(desc *field.Descriptor) (*ast.CallExpr, error) {
+	var (
+		builder = newFieldCall(desc)
+		ident   = desc.Info.RType.Ident
+		c       ast.Expr
+	)
+	switch desc.Info.RType.Kind {
+	case reflect.Ptr:
+		s := strings.SplitN(ident, ".", 2)
+		c = &ast.CompositeLit{
+			Type: selectorLit("&"+s[0], s[1]),
+		}
+	case reflect.Slice:
+		// Regular slice.
+		if strings.HasPrefix(ident, "[]") {
+			typ := strings.TrimPrefix(desc.Info.RType.Ident, "[]")
+			s := strings.SplitN(typ, ".", 2)
+			var elt ast.Expr = ast.NewIdent(typ)
+			if len(s) == 2 {
+				elt = selectorLit(s[0], s[1])
+			}
+			c = &ast.CompositeLit{
+				Type: &ast.ArrayType{
+					Elt: elt,
+				},
+			}
+		} else {
+			// Type alias
+			s := strings.SplitN(ident, ".", 2)
+			var elt ast.Expr = ast.NewIdent(ident)
+			if len(s) == 2 {
+				elt = selectorLit(s[0], s[1])
+			}
+			c = &ast.CompositeLit{
+				Type: elt,
+			}
+		}
+	case reflect.Map:
+		mapTypes := regexp.MustCompile("map\\[(.+)\\](.+)")
+		m := mapTypes.FindStringSubmatch(ident)
+		if len(m) != 3 {
+			return nil, fmt.Errorf("schemast: expectged map type but recieved: %q", ident)
+		}
+		kType, vType := m[1], m[2]
+		c = &ast.CompositeLit{
+			Type: &ast.MapType{
+				Key:   ast.NewIdent(kType),
+				Value: ast.NewIdent(vType),
+			},
+		}
+	}
+	builder.curr.Args = append(builder.curr.Args, c)
+	builder, err := fieldOptions(desc, builder)
+	if err != nil {
+		return nil, err
+	}
+	return builder.curr, nil
 }
 
 // AppendField adds a field to the returned values of the Fields method of type typeName.
@@ -135,6 +200,14 @@ func fromComplexType(desc *field.Descriptor, filedType ast.Expr) (*ast.CallExpr,
 
 func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	builder := newFieldCall(desc)
+	builder, err := fieldOptions(desc, builder)
+	if err != nil {
+		return nil, err
+	}
+	return builder.curr, nil
+}
+
+func fieldOptions(desc *field.Descriptor, builder *builderCall) (*builderCall, error) {
 	if desc.Nillable {
 		builder.method("Nillable")
 	}
@@ -187,7 +260,7 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	if unsupported != nil {
 		return nil, unsupported
 	}
-	return builder.curr, nil
+	return builder, nil
 }
 
 func fieldConstructor(dsc *field.Descriptor) string {
