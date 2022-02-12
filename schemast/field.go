@@ -108,6 +108,16 @@ func fromJSONType(desc *field.Descriptor) (*ast.CallExpr, error) {
 				Value: ast.NewIdent(vType),
 			},
 		}
+	case reflect.Struct:
+		c = &ast.CompositeLit{
+			Type: &ast.StructType{
+				Fields: &ast.FieldList{
+					Opening: 1,
+					List:    nil,
+					Closing: 1,
+				},
+			},
+		}
 	}
 	builder.curr.Args = append(builder.curr.Args, c)
 	if err := setFieldOptions(desc, builder); err != nil {

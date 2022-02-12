@@ -110,6 +110,11 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.JSON("x", json.RawMessage{})`,
 		},
 		{
+			name:     "json_struct",
+			field:    field.JSON("x", struct{}{}),
+			expected: `field.JSON("x", struct{}{})`,
+		},
+		{
 			name:     "time",
 			field:    field.Time("time").Default(time.Now),
 			expected: `field.Time("time").Default(time.Now)`,
