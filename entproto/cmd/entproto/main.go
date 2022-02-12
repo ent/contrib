@@ -27,7 +27,7 @@ import (
 func main() {
 	var (
 		schemaPath = flag.String("path", "", "path to schema directory")
-		idtype     = flag.String("idtype", "int", "path to schema directory")
+		idtype     = flag.String("idtype", "int", "ent id type")
 	)
 	flag.Parse()
 	if *schemaPath == "" {
