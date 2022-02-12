@@ -71,9 +71,11 @@ func fromJSONType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	case reflect.Slice:
 		// Regular slice.
 		if strings.HasPrefix(ident, "[]") {
-			typ := strings.TrimPrefix(desc.Info.RType.Ident, "[]")
-			s := strings.SplitN(typ, ".", 2)
-			var elt ast.Expr = ast.NewIdent(typ)
+			var (
+				typ          = strings.TrimPrefix(desc.Info.RType.Ident, "[]")
+				s            = strings.SplitN(typ, ".", 2)
+				elt ast.Expr = ast.NewIdent(typ)
+			)
 			if len(s) == 2 {
 				elt = selectorLit(s[0], s[1])
 			}
@@ -108,8 +110,7 @@ func fromJSONType(desc *field.Descriptor) (*ast.CallExpr, error) {
 		}
 	}
 	builder.curr.Args = append(builder.curr.Args, c)
-	builder, err := fieldOptions(desc, builder)
-	if err != nil {
+	if err := setFieldOptions(desc, builder); err != nil {
 		return nil, err
 	}
 	return builder.curr, nil
@@ -194,21 +195,19 @@ func fromComplexType(desc *field.Descriptor, filedType ast.Expr) (*ast.CallExpr,
 	if err != nil {
 		return nil, err
 	}
-
 	call.Args = append(call.Args, filedType)
 	return call, nil
 }
 
 func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	builder := newFieldCall(desc)
-	builder, err := fieldOptions(desc, builder)
-	if err != nil {
+	if err := setFieldOptions(desc, builder); err != nil {
 		return nil, err
 	}
 	return builder.curr, nil
 }
 
-func fieldOptions(desc *field.Descriptor, builder *builderCall) (*builderCall, error) {
+func setFieldOptions(desc *field.Descriptor, builder *builderCall) error {
 	if desc.Nillable {
 		builder.method("Nillable")
 	}
@@ -239,29 +238,26 @@ func fieldOptions(desc *field.Descriptor, builder *builderCall) (*builderCall, e
 	if len(desc.Annotations) != 0 {
 		annots, err := toAnnotASTs(desc.Annotations)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		builder.annotate(annots...)
 	}
 	if desc.Default != nil {
 		expr, err := defaultExpr(desc.Default)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		builder.method("Default", expr)
 	}
 	// Unsupported features
-	var unsupported error
+	var err error
 	if len(desc.Validators) != 0 {
-		unsupported = combineUnsupported(unsupported, "Descriptor.Validators")
+		err = combineUnsupported(err, "Descriptor.Validators")
 	}
 	if desc.UpdateDefault != nil {
-		unsupported = combineUnsupported(unsupported, "Descriptor.UpdateDefault")
+		err = combineUnsupported(err, "Descriptor.UpdateDefault")
 	}
-	if unsupported != nil {
-		return nil, unsupported
-	}
-	return builder, nil
+	return err
 }
 
 func fieldConstructor(dsc *field.Descriptor) string {
