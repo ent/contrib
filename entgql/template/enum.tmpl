@@ -11,20 +11,19 @@ in the LICENSE file in the root directory of this source tree.
 {{ range $f := $.EnumFields }}
 	{{ $enum := trimPackage $f.Type.String $.Package -}}
 	{{- if not $f.HasGoType }}
-		{{ $receiver := receiver $f.BuilderField -}}
 		// MarshalGQL implements graphql.Marshaler interface.
-		func ({{ $receiver }} {{ $enum }}) MarshalGQL(w io.Writer) {
-			io.WriteString(w, strconv.Quote({{ $receiver }}.String()))
+		func (e {{ $enum }}) MarshalGQL(w io.Writer) {
+			io.WriteString(w, strconv.Quote(e.String()))
 		}
 
 		// UnmarshalGQL implements graphql.Unmarshaler interface.
-		func ({{ $receiver }} *{{ $enum }}) UnmarshalGQL(val interface{}) error {
+		func (e *{{ $enum }}) UnmarshalGQL(val interface{}) error {
 			str, ok := val.(string)
 			if !ok {
 				return fmt.Errorf("enum %T must be a string", val)
 			}
-			*{{ $receiver }} = {{ $enum }}(str)
-			if err := {{ $f.Validator }}(*{{ $receiver }}); err != nil {
+			*e = {{ $enum }}(str)
+			if err := {{ $f.Validator }}(*e); err != nil {
 				return fmt.Errorf("%s is not a valid {{ $enum }}", str)
 			}
 			return nil
