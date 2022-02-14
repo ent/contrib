@@ -104,6 +104,19 @@ func TestPrintAddImport(t *testing.T) {
 	require.Equal(t, matches, 1)
 }
 
+func TestPrintStructOnSameLine(t *testing.T) {
+	tt, err := newPrintTest(t)
+	require.NoError(t, err)
+
+	require.NoError(t, tt.ctx.AppendField("Message", field.String("name").Descriptor()))
+	require.NoError(t, tt.ctx.AppendField("Message", field.JSON("json", struct{}{}).Descriptor()))
+	require.NoError(t, tt.print())
+
+	contents, err := ioutil.ReadFile(filepath.Join(tt.schemaDir(), "message.go"))
+	require.NoError(t, err)
+	require.Contains(t, string(contents), "struct{}{}")
+}
+
 func newPrintTest(t *testing.T) (*printTest, error) {
 	dir, err := ioutil.TempDir(".", "printtest-")
 	if err != nil {

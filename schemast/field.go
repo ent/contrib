@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/parser"
 	"go/token"
 	"reflect"
 	"runtime"
@@ -42,6 +43,23 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 					Sel: ast.NewIdent("UUID"),
 				},
 			))
+	case t == field.TypeJSON:
+		exp, err := parser.ParseExpr("struct{}{}")
+		if err != nil {
+			return nil, fmt.Errorf("schemast: json field %s generation error %w", desc.Name, err)
+		}
+		if c, ok := exp.(*ast.CompositeLit); ok {
+			if v, ok := c.Type.(*ast.StructType); ok {
+				v.Fields = &ast.FieldList{
+					Opening: 1,
+					Closing: 1,
+				}
+			}
+		}
+		return fromComplexType(
+			desc,
+			exp,
+		)
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
 	default:
