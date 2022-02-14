@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/parser"
 	"go/token"
 	"reflect"
 	"runtime"
@@ -43,17 +44,13 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 				},
 			))
 	case t == field.TypeJSON:
+		exp, err := parser.ParseExpr("struct{}{}")
+		if err != nil {
+			return nil, fmt.Errorf("schemast: json field %s generation error %w", desc.Name, err)
+		}
 		return fromComplexType(
 			desc,
-			structLit(
-				&ast.StructType{
-					Fields: &ast.FieldList{
-						// print struct{} >{}< on same line
-						Opening: 1,
-						Closing: 1,
-					},
-				},
-			),
+			exp,
 		)
 	case t == field.TypeEnum:
 		return fromEnumType(desc)
