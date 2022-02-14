@@ -48,6 +48,15 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 		if err != nil {
 			return nil, fmt.Errorf("schemast: json field %s generation error %w", desc.Name, err)
 		}
+		if c, ok := exp.(*ast.CompositeLit); ok {
+			switch v := c.Type.(type) {
+			case *ast.StructType:
+				v.Fields = &ast.FieldList{
+					Opening: 1,
+					Closing: 1,
+				}
+			}
+		}
 		return fromComplexType(
 			desc,
 			exp,
