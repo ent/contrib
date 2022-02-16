@@ -23,9 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/user"
 	"entgo.io/ent"
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -159,7 +157,7 @@ func Sum(field string) AggregateFunc {
 	}
 }
 
-// ValidationError returns when validating a field fails.
+// ValidationError returns when validating a field or edge fails.
 type ValidationError struct {
 	Name string // Field or edge name.
 	err  error
@@ -175,7 +173,7 @@ func (e *ValidationError) Unwrap() error {
 	return e.err
 }
 
-// IsValidationError returns a boolean indicating whether the error is a validaton error.
+// IsValidationError returns a boolean indicating whether the error is a validation error.
 func IsValidationError(err error) bool {
 	if err == nil {
 		return false
@@ -274,22 +272,4 @@ func IsConstraintError(err error) bool {
 	}
 	var e *ConstraintError
 	return errors.As(err, &e)
-}
-
-func isSQLConstraintError(err error) (*ConstraintError, bool) {
-	if sqlgraph.IsConstraintError(err) {
-		return &ConstraintError{err.Error(), err}, true
-	}
-	return nil, false
-}
-
-// rollback calls tx.Rollback and wraps the given error with the rollback error if present.
-func rollback(tx dialect.Tx, err error) error {
-	if rerr := tx.Rollback(); rerr != nil {
-		err = fmt.Errorf("%w: %v", err, rerr)
-	}
-	if err, ok := isSQLConstraintError(err); ok {
-		return err
-	}
-	return err
 }

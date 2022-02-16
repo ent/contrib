@@ -2,6 +2,7 @@
 // This source code is licensed under the Apache 2.0 license found
 // in the LICENSE file in the root directory of this source tree.
 
+//go:build ignore
 // +build ignore
 
 package main
@@ -17,11 +18,13 @@ import (
 
 func main() {
 	opts := []entc.Option{
-		entc.Annotations(entgql.Annotation{GqlScalarMappings: map[string]string{
-			"Time": "Time",
-		}}),
+		entc.Annotations(entgql.Annotation{
+			GqlScalarMappings: map[string]string{
+				"Time": "Time",
+			},
+		}),
 	}
-	err := entc.Generate("./schema", &gen.Config{
+	err := entc.Generate("./ent/schema", &gen.Config{
 		Header: `
 			// Copyright 2019-present Facebook
 			//

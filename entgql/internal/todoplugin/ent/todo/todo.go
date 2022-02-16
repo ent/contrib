@@ -42,11 +42,11 @@ const (
 	EdgeChildren = "children"
 	// Table holds the table name of the todo in the database.
 	Table = "todos"
-	// ParentTable is the table the holds the parent relation/edge.
+	// ParentTable is the table that holds the parent relation/edge.
 	ParentTable = "todos"
 	// ParentColumn is the table column denoting the parent relation/edge.
 	ParentColumn = "todo_children"
-	// ChildrenTable is the table the holds the children relation/edge.
+	// ChildrenTable is the table that holds the children relation/edge.
 	ChildrenTable = "todos"
 	// ChildrenColumn is the table column denoting the children relation/edge.
 	ChildrenColumn = "todo_children"
@@ -115,18 +115,18 @@ func StatusValidator(s Status) error {
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (s Status) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(s.String()))
+func (e Status) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (s *Status) UnmarshalGQL(val interface{}) error {
+func (e *Status) UnmarshalGQL(val interface{}) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("enum %T must be a string", val)
 	}
-	*s = Status(str)
-	if err := StatusValidator(*s); err != nil {
+	*e = Status(str)
+	if err := StatusValidator(*e); err != nil {
 		return fmt.Errorf("%s is not a valid Status", str)
 	}
 	return nil

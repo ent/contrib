@@ -301,8 +301,8 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 //		Select(user.FieldUsername).
 //		Scan(ctx, &v)
 //
-func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
-	uq.fields = append([]string{field}, fields...)
+func (uq *UserQuery) Select(fields ...string) *UserSelect {
+	uq.fields = append(uq.fields, fields...)
 	return &UserSelect{UserQuery: uq}
 }
 
@@ -350,6 +350,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uq.querySpec()
+	_spec.Node.Columns = uq.fields
+	if len(uq.fields) > 0 {
+		_spec.Unique = uq.unique != nil && *uq.unique
+	}
 	return sqlgraph.CountNodes(ctx, uq.driver, _spec)
 }
 
@@ -412,10 +416,17 @@ func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(uq.driver.Dialect())
 	t1 := builder.Table(user.Table)
-	selector := builder.Select(t1.Columns(user.Columns...)...).From(t1)
+	columns := uq.fields
+	if len(columns) == 0 {
+		columns = user.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if uq.sql != nil {
 		selector = uq.sql
-		selector.Select(selector.Columns(user.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
+	}
+	if uq.unique != nil && *uq.unique {
+		selector.Distinct()
 	}
 	for _, p := range uq.predicates {
 		p(selector)
@@ -683,13 +694,22 @@ func (ugb *UserGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ugb *UserGroupBy) sqlQuery() *sql.Selector {
-	selector := ugb.sql
-	columns := make([]string, 0, len(ugb.fields)+len(ugb.fns))
-	columns = append(columns, ugb.fields...)
+	selector := ugb.sql.Select()
+	aggregation := make([]string, 0, len(ugb.fns))
 	for _, fn := range ugb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(ugb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(ugb.fields)+len(ugb.fns))
+		for _, f := range ugb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(ugb.fields...)...)
 }
 
 // UserSelect is the builder for selecting fields of User entities.
@@ -905,16 +925,10 @@ func (us *UserSelect) BoolX(ctx context.Context) bool {
 
 func (us *UserSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := us.sqlQuery().Query()
+	query, args := us.sql.Query()
 	if err := us.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (us *UserSelect) sqlQuery() sql.Querier {
-	selector := us.sql
-	selector.Select(selector.Columns(us.fields...)...)
-	return selector
 }

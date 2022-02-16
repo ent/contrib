@@ -105,9 +105,9 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "parent",
 	}
-	node.Edges[0].IDs, err = t.QueryParent().
+	err = t.QueryParent().
 		Select(todo.FieldID).
-		Ints(ctx)
+		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +115,9 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "children",
 	}
-	node.Edges[1].IDs, err = t.QueryChildren().
+	err = t.QueryChildren().
 		Select(todo.FieldID).
-		Ints(ctx)
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func (t *tables) Load(ctx context.Context, drv dialect.Driver) ([]string, error)
 	return tables, err
 }
 
-func (tables) load(ctx context.Context, drv dialect.Driver) ([]string, error) {
+func (*tables) load(ctx context.Context, drv dialect.Driver) ([]string, error) {
 	rows := &sql.Rows{}
 	query, args := sql.Dialect(drv.Dialect()).
 		Select("type").

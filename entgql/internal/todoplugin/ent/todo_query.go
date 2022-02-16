@@ -374,8 +374,8 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 //		Select(todo.FieldCreatedAt).
 //		Scan(ctx, &v)
 //
-func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
-	tq.fields = append([]string{field}, fields...)
+func (tq *TodoQuery) Select(fields ...string) *TodoSelect {
+	tq.fields = append(tq.fields, fields...)
 	return &TodoSelect{TodoQuery: tq}
 }
 
@@ -494,6 +494,10 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 
 func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tq.querySpec()
+	_spec.Node.Columns = tq.fields
+	if len(tq.fields) > 0 {
+		_spec.Unique = tq.unique != nil && *tq.unique
+	}
 	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
@@ -556,10 +560,17 @@ func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
 func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(tq.driver.Dialect())
 	t1 := builder.Table(todo.Table)
-	selector := builder.Select(t1.Columns(todo.Columns...)...).From(t1)
+	columns := tq.fields
+	if len(columns) == 0 {
+		columns = todo.Columns
+	}
+	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if tq.sql != nil {
 		selector = tq.sql
-		selector.Select(selector.Columns(todo.Columns...)...)
+		selector.Select(selector.Columns(columns...)...)
+	}
+	if tq.unique != nil && *tq.unique {
+		selector.Distinct()
 	}
 	for _, p := range tq.predicates {
 		p(selector)
@@ -827,13 +838,22 @@ func (tgb *TodoGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (tgb *TodoGroupBy) sqlQuery() *sql.Selector {
-	selector := tgb.sql
-	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
-	columns = append(columns, tgb.fields...)
+	selector := tgb.sql.Select()
+	aggregation := make([]string, 0, len(tgb.fns))
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn(selector))
+		aggregation = append(aggregation, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(tgb.fields...)
+	// If no columns were selected in a custom aggregation function, the default
+	// selection is the fields used for "group-by", and the aggregation functions.
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
+		for _, f := range tgb.fields {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	return selector.GroupBy(selector.Columns(tgb.fields...)...)
 }
 
 // TodoSelect is the builder for selecting fields of Todo entities.
@@ -1049,16 +1069,10 @@ func (ts *TodoSelect) BoolX(ctx context.Context) bool {
 
 func (ts *TodoSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := ts.sqlQuery().Query()
+	query, args := ts.sql.Query()
 	if err := ts.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
-}
-
-func (ts *TodoSelect) sqlQuery() sql.Querier {
-	selector := ts.sql
-	selector.Select(selector.Columns(ts.fields...)...)
-	return selector
 }

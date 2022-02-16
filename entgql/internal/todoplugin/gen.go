@@ -14,5 +14,6 @@
 
 package todo
 
+//go:generate go run -mod=mod ./ent/entc.go
 //go:generate go run entgo.io/contrib/entgql/cmd/entgqlgen -path ./ent/schema
-//go:generate go run github.com/google/addlicense -c Facebook -y 2019-present ./
+//go:generate go run -mod=mod github.com/google/addlicense -c Facebook -y 2019-present ./

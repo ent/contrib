@@ -32,11 +32,15 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("username"),
-		field.Int("age").Annotations(entgql.Annotation{
-			Type: "Float",
-		}),
+		field.Int("age").
+			Annotations(entgql.Annotation{
+				Type: "Float",
+			}),
 		field.Float("amount").
-			GoType(Amount(0)),
+			GoType(Amount(0)).
+			Annotations(entgql.Annotation{
+				Type: "Float",
+			}),
 		field.Enum("role").
 			GoType(role.Unknown),
 	}
