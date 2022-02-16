@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/plugin"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
@@ -36,7 +37,18 @@ func main() {
 		log.Fatal("entgqlgen: must specify schema path. use entgqlgen -path ./ent/schema")
 	}
 
-	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
+	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{
+		Annotations: map[string]interface{}{
+			"EntGQL": entgql.Annotation{
+				GQLScalarMappings: map[string]string{
+					"Time":     "Time",
+					"Date":     "Date",
+					"Duration": "Duration",
+					"Uint64":   "Uint64",
+				},
+			},
+		},
+	})
 	if err != nil {
 		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}

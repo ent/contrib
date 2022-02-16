@@ -474,9 +474,6 @@ type CategoryConfig {
   maxMembers: Int
 }
 
-scalar Duration
-scalar Uint64
-
 extend type Todo {
   parent: Todo
   children: [Todo!]
@@ -527,6 +524,8 @@ enum CategoryStatus {
 	DISABLED
 }
 scalar Cursor
+scalar Date
+scalar Duration
 interface Node {
 	id: ID!
 }
@@ -576,6 +575,7 @@ enum TodoOrderField {
 	PRIORITY
 	TEXT
 }
+scalar Uint64
 type User implements Node {
 	id: ID!
 	username: String!
