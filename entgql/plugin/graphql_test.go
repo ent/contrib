@@ -126,7 +126,7 @@ func TestTypes(t *testing.T) {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"skip": true,
+						"Skip": true,
 					},
 				},
 			},

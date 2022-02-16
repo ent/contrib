@@ -58,7 +58,7 @@ func TestEntOrderBy(t *testing.T) {
 						},
 						Annotations: map[string]interface{}{
 							annotationName: map[string]interface{}{
-								"order_field": "NAME",
+								"OrderField": "NAME",
 							},
 						},
 					},
@@ -69,7 +69,7 @@ func TestEntOrderBy(t *testing.T) {
 						},
 						Annotations: map[string]interface{}{
 							annotationName: map[string]interface{}{
-								"order_field": "ACTIVE",
+								"OrderField": "ACTIVE",
 							},
 						},
 					},

@@ -68,7 +68,7 @@ func TestModifyConfig(t *testing.T) {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"skip": true,
+						"Skip": true,
 					},
 				},
 			},
@@ -95,7 +95,7 @@ func TestModifyConfig(t *testing.T) {
 					},
 					Annotations: map[string]interface{}{
 						annotationName: map[string]interface{}{
-							"order_field": "NAME",
+							"OrderField": "NAME",
 						},
 					},
 				}},
