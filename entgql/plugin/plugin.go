@@ -67,7 +67,7 @@ func WithDebug() PluginOption {
 type SchemaHook func(schema *ast.Schema)
 
 func New(graph *gen.Graph, opts ...PluginOption) (*EntGQL, error) {
-	types, err := getTypes(graph)
+	types, err := entgql.FilterNodes(graph.Nodes)
 	if err != nil {
 		return nil, err
 	}
@@ -146,21 +146,4 @@ func (e *EntGQL) print() string {
 	printer := formatter.NewFormatter(sb)
 	printer.FormatSchema(e.schema)
 	return sb.String()
-}
-
-func getTypes(graph *gen.Graph) ([]*gen.Type, error) {
-	var types []*gen.Type
-	for _, n := range graph.Nodes {
-		ann := entgql.Annotation{}
-		err := ann.Decode(n.Annotations[ann.Name()])
-		if err != nil {
-			return nil, err
-		}
-		if ann.Skip {
-			continue
-		}
-
-		types = append(types, n)
-	}
-	return types, nil
 }

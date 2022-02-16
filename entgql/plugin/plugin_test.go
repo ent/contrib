@@ -31,25 +31,6 @@ func TestEmpty(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGetTypes(t *testing.T) {
-	t1 := &gen.Type{
-		Name: "T1",
-	}
-	t2 := &gen.Type{
-		Name: "T1",
-		Annotations: map[string]interface{}{
-			annotationName: map[string]interface{}{
-				"Skip": true,
-			},
-		},
-	}
-	types, err := getTypes(&gen.Graph{
-		Nodes: []*gen.Type{t1, t2},
-	})
-	require.NoError(t, err)
-	require.Equal(t, []*gen.Type{t1}, types)
-}
-
 func TestInjectSourceEarlyEmpty(t *testing.T) {
 	e, err := New(&gen.Graph{
 		Config: &gen.Config{},

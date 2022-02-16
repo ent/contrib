@@ -322,7 +322,7 @@ func (e *Extension) genWhereInputs() gen.Hook {
 		}
 		inputs := make(map[string]*ast.InputObjectDefinition)
 		return gen.GenerateFunc(func(g *gen.Graph) error {
-			nodes, err := filterNodes(g.Nodes)
+			nodes, err := FilterNodes(g.Nodes)
 			if err != nil {
 				return err
 			}

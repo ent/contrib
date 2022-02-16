@@ -67,7 +67,7 @@ var (
 		"fieldCollections": fieldCollections,
 		"filterEdges":      filterEdges,
 		"filterFields":     filterFields,
-		"filterNodes":      filterNodes,
+		"filterNodes":      FilterNodes,
 		"findIDType":       findIDType,
 	}
 
@@ -133,7 +133,7 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 	return result, nil
 }
 
-func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
+func FilterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	var filteredNodes []*gen.Type
 	for _, n := range nodes {
 		ant := &Annotation{}
