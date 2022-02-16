@@ -44,8 +44,6 @@ type Annotation struct {
 	GQLImplements []string `json:"GQLImplements,omitempty"`
 	// GQLDirectives directives to add
 	GQLDirectives []Directive `json:"GQLDirectives,omitempty"`
-	// GQLScalarMappings defines custom scalars mappings, scalars will also be created automatically
-	GQLScalarMappings map[string]string `json:"GQLScalarMappings,omitempty"`
 }
 
 type Directive struct {

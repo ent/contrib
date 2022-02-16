@@ -17,7 +17,6 @@ package plugin
 import (
 	"testing"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"github.com/stretchr/testify/require"
@@ -57,16 +56,13 @@ scalar Time
 }
 
 func TestInjectSourceEarly(t *testing.T) {
-	ann := entgql.Annotation{GQLScalarMappings: map[string]string{
-		"Time": "Time",
-	}}
-	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{
-		Annotations: map[string]interface{}{
-			ann.Name(): ann,
-		},
-	})
+	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
-	plugin, err := New(graph)
+	plugin, err := New(graph,
+		WithScalarMappings(map[string]string{
+			"Time": "Time",
+		}),
+	)
 	require.NoError(t, err)
 	s := plugin.InjectSourceEarly()
 	require.Equal(t, expected, s.Input)

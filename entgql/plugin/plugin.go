@@ -56,6 +56,14 @@ func WithSchemaHooks(hooks ...SchemaHook) PluginOption {
 	}
 }
 
+// WithScalarMappings defines custom scalars mappings, scalars will also be created automatically
+func WithScalarMappings(scalarMappings map[string]string) PluginOption {
+	return func(e *EntGQL) error {
+		e.scalarMappings = scalarMappings
+		return nil
+	}
+}
+
 func WithDebug() PluginOption {
 	return func(e *EntGQL) error {
 		e.debug = true
@@ -75,15 +83,6 @@ func New(graph *gen.Graph, opts ...PluginOption) (*EntGQL, error) {
 	// Include default mapping for time
 	scalarMappings := map[string]string{
 		"Time": "Time",
-	}
-	if graph.Annotations != nil {
-		globalAnn := graph.Annotations[annotationName]
-		// TODO: cleanup assertions
-		if globalAnn != nil {
-			if globalAnn.(entgql.Annotation).GQLScalarMappings != nil {
-				scalarMappings = globalAnn.(entgql.Annotation).GQLScalarMappings
-			}
-		}
 	}
 
 	e := &EntGQL{

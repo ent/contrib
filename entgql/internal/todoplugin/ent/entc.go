@@ -17,13 +17,7 @@ import (
 )
 
 func main() {
-	opts := []entc.Option{
-		entc.Annotations(entgql.Annotation{
-			GQLScalarMappings: map[string]string{
-				"Time": "Time",
-			},
-		}),
-	}
+	opts := []entc.Option{}
 	err := entc.Generate("./ent/schema", &gen.Config{
 		Header: `
 			// Copyright 2019-present Facebook

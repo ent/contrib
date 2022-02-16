@@ -82,21 +82,30 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 
 		if ann.RelayConnection {
 			connection := fmt.Sprintf("%sConnection", obj.Name)
-			edge := fmt.Sprintf("%sEdge", obj.Name)
 			if !cfg.Models.Exists(connection) {
 				cfg.Models.Add(connection, e.entGoType(connection))
 			}
+			edge := fmt.Sprintf("%sEdge", obj.Name)
 			if !cfg.Models.Exists(edge) {
 				cfg.Models.Add(edge, e.entGoType(edge))
 			}
+
 			orderBy, err := hasOrderBy(obj)
 			if err != nil {
 				return err
 			}
 			if orderBy {
 				order := fmt.Sprintf("%sOrder", obj.Name)
-				cfg.Models[order] = config.TypeMapEntry{Model: []string{fmt.Sprintf("%s.%s", e.graph.Package, order)}}
-				cfg.Models[order+"Field"] = config.TypeMapEntry{Model: []string{fmt.Sprintf("%s.%s", e.graph.Package, order+"Field")}}
+				cfg.Models[order] = config.TypeMapEntry{
+					Model: []string{
+						e.entGoType(order),
+					},
+				}
+				cfg.Models[order+"Field"] = config.TypeMapEntry{
+					Model: []string{
+						e.entGoType(order + "Field"),
+					},
+				}
 			}
 		}
 	}

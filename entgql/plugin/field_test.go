@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"testing"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/stretchr/testify/require"
@@ -80,16 +79,11 @@ func TestFields(t *testing.T) {
 		{"json", field.TypeJSON, "", "", fmt.Errorf("json type not implemented")},
 		{"other", field.TypeOther, "", "Invalid", fmt.Errorf("other type must have typed defined")},
 	}
-	e, err := New(&gen.Graph{
-		Config: &gen.Config{
-			Annotations: map[string]interface{}{
-				annotationName: entgql.Annotation{
-					GQLScalarMappings: map[string]string{
-						"Time": "Time",
-					}},
-			},
-		},
-	})
+	e, err := New(&gen.Graph{},
+		WithScalarMappings(map[string]string{
+			"Time": "Time",
+		}),
+	)
 	require.NoError(t, err)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%s(%s)", tc.name, tc.fieldType.ConstName()), func(t *testing.T) {

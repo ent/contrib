@@ -17,7 +17,6 @@ package plugin
 import (
 	"testing"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/stretchr/testify/require"
@@ -68,36 +67,24 @@ func TestScalars(t *testing.T) {
 	require.NoError(t, err)
 	e.scalars()
 	require.Equal(t, "scalar Time\n", e.print())
-	e, err = New(&gen.Graph{
-		Config: &gen.Config{
-			Annotations: map[string]interface{}{
-				"EntGQL": entgql.Annotation{
-					GQLScalarMappings: map[string]string{
-						"Date": "Date",
-					},
-				},
-			},
-		},
-	})
+	e, err = New(&gen.Graph{},
+		WithScalarMappings(map[string]string{
+			"Date": "Date",
+		}),
+	)
 	require.NoError(t, err)
 	e.scalars()
 	require.Equal(t, "scalar Date\n", e.print())
-	e, err = New(&gen.Graph{
-		Config: &gen.Config{
-			Annotations: map[string]interface{}{
-				"EntGQL": entgql.Annotation{
-					GQLScalarMappings: map[string]string{
-						"Time":    "Time",
-						"Int":     "Int",
-						"Float":   "Float",
-						"Boolean": "Boolean",
-						"String":  "String",
-						"ID":      "ID",
-					},
-				},
-			},
-		},
-	})
+	e, err = New(&gen.Graph{},
+		WithScalarMappings(map[string]string{
+			"Time":    "Time",
+			"Int":     "Int",
+			"Float":   "Float",
+			"Boolean": "Boolean",
+			"String":  "String",
+			"ID":      "ID",
+		}),
+	)
 	require.NoError(t, err)
 	e.scalars()
 	require.Equal(t, "scalar Time\n", e.print())
