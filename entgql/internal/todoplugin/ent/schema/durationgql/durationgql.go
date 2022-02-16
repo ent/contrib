@@ -12,26 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package todo
+package durationgql
 
 import (
-	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"strconv"
+	"time"
 
-	"entgo.io/contrib/entgql/internal/todoplugin/ent"
 	"github.com/99designs/gqlgen/graphql"
 )
 
-// Resolver is the resolver root.
-type Resolver struct{ client *ent.Client }
-
-// NewSchema creates a graphql executable schema.
-func NewSchema(client *ent.Client) graphql.ExecutableSchema {
-	return NewExecutableSchema(Config{
-		Resolvers: &Resolver{client},
-		Directives: DirectiveRoot{
-			SomeDirective: func(ctx context.Context, obj interface{}, next graphql.Resolver, stringArg *string, boolArg *bool) (res interface{}, err error) {
-				return next(ctx)
-			},
-		},
+func MarshalDuration(t time.Duration) graphql.Marshaler {
+	return graphql.WriterFunc(func(w io.Writer) {
+		_, _ = io.WriteString(w, strconv.FormatInt(int64(t), 10))
 	})
+}
+
+func UnmarshalDuration(v interface{}) (time.Duration, error) {
+	switch v := v.(type) {
+	case int64:
+		return time.Duration(v), nil
+	case string:
+		return time.ParseDuration(v)
+	case json.Number:
+		i, err := v.Int64()
+		if err != nil {
+			return 0, err
+		}
+		return time.Duration(i), nil
+	default:
+		return 0, fmt.Errorf("invalid type %T, expect string", v)
+	}
 }

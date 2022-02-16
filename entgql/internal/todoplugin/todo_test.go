@@ -26,11 +26,12 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
-	gen "entgo.io/contrib/entgql/internal/todo"
-	"entgo.io/contrib/entgql/internal/todo/ent"
-	"entgo.io/contrib/entgql/internal/todo/ent/enttest"
-	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
-	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	gen "entgo.io/contrib/entgql/internal/todoplugin"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/enttest"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/migrate"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/ent/dialect"
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
@@ -69,6 +70,7 @@ const (
 		}
 	}`
 	maxTodos = 32
+	idOffset = 1 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -79,7 +81,7 @@ func (s *todoTestSuite) SetupTest() {
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
 
-	srv := handler.New(gen.NewSchema(s.ent))
+	srv := handler.NewDefaultServer(gen.NewSchema(s.ent))
 	srv.AddTransport(transport.POST{})
 	srv.Use(entgql.Transactioner{TxOpener: s.ent})
 	s.Client = client.New(srv)
@@ -95,14 +97,14 @@ func (s *todoTestSuite) SetupTest() {
 				ID string
 			}
 		}
-		root = 1
+		root = idOffset + 1
 	)
 	for i := 1; i <= maxTodos; i++ {
-		id := strconv.Itoa(i)
+		id := strconv.Itoa(idOffset + i)
 		var parent *int
-		if i != root {
+		if i != 1 {
 			if i%2 != 0 {
-				parent = pointer.ToInt(i - 2)
+				parent = pointer.ToInt(idOffset + i - 2)
 			} else {
 				parent = pointer.ToInt(root)
 			}
@@ -131,6 +133,9 @@ type response struct {
 				Priority  int
 				Status    todo.Status
 				Text      string
+				Parent    struct {
+					ID string
+				}
 			}
 			Cursor string
 		}
@@ -179,7 +184,7 @@ func (s *todoTestSuite) TestQueryAll() {
 		*rsp.Todos.PageInfo.EndCursor,
 	)
 	for i, edge := range rsp.Todos.Edges {
-		s.Require().Equal(strconv.Itoa(i+1), edge.Node.ID)
+		s.Require().Equal(strconv.Itoa(idOffset+i+1), edge.Node.ID)
 		s.Require().EqualValues(todo.StatusCompleted, edge.Node.Status)
 		s.Require().NotEmpty(edge.Cursor)
 	}
@@ -207,7 +212,7 @@ func (s *todoTestSuite) TestPageForward() {
 	var (
 		after interface{}
 		rsp   response
-		id    = 1
+		id    = idOffset + 1
 	)
 	for i := 0; i < maxTodos/first; i++ {
 		err := s.Post(query, &rsp,
@@ -280,7 +285,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 	var (
 		before interface{}
 		rsp    response
-		id     = maxTodos
+		id     = idOffset + maxTodos
 	)
 	for i := 0; i < maxTodos/last; i++ {
 		err := s.Post(query, &rsp,
@@ -319,7 +324,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 		s.Require().NotEmpty(edge.Cursor)
 		id--
 	}
-	s.Require().Zero(id)
+	s.Require().Equal(idOffset, id)
 
 	before = rsp.Todos.PageInfo.StartCursor
 	rsp = response{}
@@ -336,7 +341,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 
 func (s *todoTestSuite) TestPaginationOrder() {
 	const (
-		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $direction: OrderDirection!, $field: TodoOrderField) {
+		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $direction: OrderDirection!, $field: TodoOrderField!) {
 			todos(after: $after, first: $first, before: $before, last: $last, orderBy: { direction: $direction, field: $field }) {
 				totalCount
 				edges {
@@ -405,6 +410,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 				client.Var("after", rsp.Todos.PageInfo.EndCursor),
 				client.Var("first", step),
 				client.Var("direction", "DESC"),
+				client.Var("field", "TEXT"),
 			)
 			s.Require().NoError(err)
 			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
@@ -520,7 +526,7 @@ func (s *todoTestSuite) TestNode() {
 		}`
 	)
 	var rsp struct{ Todo struct{ Priority int } }
-	err := s.Post(query, &rsp, client.Var("id", maxTodos))
+	err := s.Post(query, &rsp, client.Var("id", idOffset+maxTodos))
 	s.Require().NoError(err)
 	err = s.Post(query, &rsp, client.Var("id", -1))
 	var jerr client.RawJsonError
@@ -545,12 +551,15 @@ func (s *todoTestSuite) TestNodes() {
 	)
 	var rsp struct{ Todos []*struct{ Text string } }
 	ids := []int{1, 2, 3, 3, 3, maxTodos + 1, 2, 2, maxTodos + 5}
+	for i := range ids {
+		ids[i] = idOffset + ids[i]
+	}
 	err := s.Post(query, &rsp, client.Var("ids", ids))
 	s.Require().Error(err)
 	s.Require().Len(rsp.Todos, len(ids))
 	errmsgs := make([]string, 0, 2)
 	for i, id := range ids {
-		if id <= maxTodos {
+		if id <= idOffset+maxTodos {
 			s.Require().Equal(strconv.Itoa(id), rsp.Todos[i].Text)
 		} else {
 			s.Require().Nil(rsp.Todos[i])
@@ -609,35 +618,35 @@ func (s *todoTestSuite) TestNodeCollection() {
 			}
 		}
 	}
-	err := s.Post(query, &rsp, client.Var("id", 1))
+	err := s.Post(query, &rsp, client.Var("id", idOffset+1))
 	s.Require().NoError(err)
 	s.Require().Nil(rsp.Todo.Parent)
 	s.Require().Len(rsp.Todo.Children, maxTodos/2+1)
 	s.Require().Condition(func() bool {
 		for _, child := range rsp.Todo.Children {
-			if child.Text == "3" {
+			if child.Text == strconv.Itoa(idOffset+3) {
 				s.Require().Len(child.Children, 1)
-				s.Require().Equal("5", child.Children[0].Text)
+				s.Require().Equal(strconv.Itoa(idOffset+5), child.Children[0].Text)
 				return true
 			}
 		}
 		return false
 	})
 
-	err = s.Post(query, &rsp, client.Var("id", 4))
+	err = s.Post(query, &rsp, client.Var("id", idOffset+4))
 	s.Require().NoError(err)
 	s.Require().NotNil(rsp.Todo.Parent)
-	s.Require().Equal("1", rsp.Todo.Parent.Text)
+	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.Todo.Parent.Text)
 	s.Require().Empty(rsp.Todo.Children)
 
-	err = s.Post(query, &rsp, client.Var("id", 5))
+	err = s.Post(query, &rsp, client.Var("id", strconv.Itoa(idOffset+5)))
 	s.Require().NoError(err)
 	s.Require().NotNil(rsp.Todo.Parent)
-	s.Require().Equal("3", rsp.Todo.Parent.Text)
+	s.Require().Equal(strconv.Itoa(idOffset+3), rsp.Todo.Parent.Text)
 	s.Require().NotNil(rsp.Todo.Parent.Parent)
-	s.Require().Equal("1", rsp.Todo.Parent.Parent.Text)
+	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.Todo.Parent.Parent.Text)
 	s.Require().Len(rsp.Todo.Children, 1)
-	s.Require().Equal("7", rsp.Todo.Children[0].Text)
+	s.Require().Equal(strconv.Itoa(idOffset+7), rsp.Todo.Children[0].Text)
 }
 
 func (s *todoTestSuite) TestConnCollection() {
@@ -687,7 +696,7 @@ func (s *todoTestSuite) TestConnCollection() {
 			s.Require().NotNil(edge.Node.Parent)
 			id, err := strconv.Atoi(edge.Node.Parent.ID)
 			s.Require().NoError(err)
-			s.Require().Equal(i-1, id)
+			s.Require().Equal(idOffset+i-1, id)
 			if i < len(rsp.Todos.Edges)-2 {
 				s.Require().Len(edge.Node.Children, 1)
 			} else {
@@ -695,7 +704,7 @@ func (s *todoTestSuite) TestConnCollection() {
 			}
 		case i%2 != 0:
 			s.Require().NotNil(edge.Node.Parent)
-			s.Require().Equal("1", edge.Node.Parent.ID)
+			s.Require().Equal(strconv.Itoa(idOffset+1), edge.Node.Parent.ID)
 			s.Require().Empty(edge.Node.Children)
 		}
 	}
@@ -755,7 +764,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 		}
 	}
 	err := s.Post(`mutation {
-		createTodo(todo: { text: "OKE", parent: 1 }) {
+		createTodo(todo: { text: "OKE", parent: 4294967297 }) {
 			parent {
 				id
 				text
@@ -765,6 +774,30 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 	}`, &rsp, client.Var("text", s.T().Name()))
 	s.Require().NoError(err)
 	s.Require().Equal("OKE", rsp.CreateTodo.Text)
-	s.Require().Equal("1", rsp.CreateTodo.Parent.ID)
-	s.Require().Equal("1", rsp.CreateTodo.Parent.Text)
+	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.ID)
+	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.Text)
+}
+
+func (s *todoTestSuite) TestQueryJSONFields() {
+	var (
+		ctx = context.Background()
+		cat = s.ent.Category.Create().SetText("Disabled").SetStatus(category.StatusDisabled).SetStrings([]string{"a", "b"}).SetText("category").SaveX(ctx)
+		rsp struct {
+			Node struct {
+				Text    string
+				Strings []string
+			}
+		}
+	)
+	err := s.Post(`query node($id: ID!) {
+	    node(id: $id) {
+	    	... on Category {
+				text
+				strings
+			}
+		}
+	}`, &rsp, client.Var("id", cat.ID))
+	s.Require().NoError(err)
+	s.Require().Equal(cat.Text, rsp.Node.Text)
+	s.Require().Equal(cat.Strings, rsp.Node.Strings)
 }

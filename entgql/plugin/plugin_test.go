@@ -72,7 +72,28 @@ func TestInjectSourceEarly(t *testing.T) {
 	require.Equal(t, expected, s.Input)
 }
 
-var expected = `scalar Cursor
+var expected = `type Category implements Node {
+	id: ID!
+	text: String!
+	status: CategoryStatus!
+	config: CategoryConfig!
+	duration: Duration!
+	count: Uint64!
+	strings: [String]!
+}
+input CategoryOrder {
+	direction: OrderDirection!
+	field: CategoryOrderField!
+}
+enum CategoryOrderField {
+	TEXT
+	DURATION
+}
+enum CategoryStatus {
+	ENABLED
+	DISABLED
+}
+scalar Cursor
 interface Node {
 	id: ID!
 }

@@ -3,6 +3,13 @@ directive @someDirective(stringArg: String, boolArg: Boolean) on OBJECT
     | SCALAR
     | FIELD_DEFINITION
 
+type CategoryConfig {
+  maxMembers: Int
+}
+
+scalar Duration
+scalar Uint64
+
 extend type Todo {
   parent: Todo
   children: [Todo!]

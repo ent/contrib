@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/user"
 	"entgo.io/ent/dialect/sql"
@@ -246,6 +247,290 @@ const (
 	pageInfoField   = "pageInfo"
 	totalCountField = "totalCount"
 )
+
+// CategoryEdge is the edge representation of Category.
+type CategoryEdge struct {
+	Node   *Category `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// CategoryConnection is the connection containing edges to Category.
+type CategoryConnection struct {
+	Edges      []*CategoryEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+// CategoryPaginateOption enables pagination customization.
+type CategoryPaginateOption func(*categoryPager) error
+
+// WithCategoryOrder configures pagination ordering.
+func WithCategoryOrder(order *CategoryOrder) CategoryPaginateOption {
+	if order == nil {
+		order = DefaultCategoryOrder
+	}
+	o := *order
+	return func(pager *categoryPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCategoryOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCategoryFilter configures pagination filter.
+func WithCategoryFilter(filter func(*CategoryQuery) (*CategoryQuery, error)) CategoryPaginateOption {
+	return func(pager *categoryPager) error {
+		if filter == nil {
+			return errors.New("CategoryQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type categoryPager struct {
+	order  *CategoryOrder
+	filter func(*CategoryQuery) (*CategoryQuery, error)
+}
+
+func newCategoryPager(opts []CategoryPaginateOption) (*categoryPager, error) {
+	pager := &categoryPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCategoryOrder
+	}
+	return pager, nil
+}
+
+func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *categoryPager) toCursor(c *Category) Cursor {
+	return p.order.Field.toCursor(c)
+}
+
+func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultCategoryOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *categoryPager) applyOrder(query *CategoryQuery, reverse bool) *CategoryQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultCategoryOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultCategoryOrder.Field.field))
+	}
+	return query
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Category.
+func (c *CategoryQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CategoryPaginateOption,
+) (*CategoryConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCategoryPager(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if c, err = pager.applyFilter(c); err != nil {
+		return nil, err
+	}
+
+	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) ||
+			hasCollectedField(ctx, pageInfoField) {
+			count, err := c.Count(ctx)
+			if err != nil {
+				return nil, err
+			}
+			conn.TotalCount = count
+			conn.PageInfo.HasNextPage = first != nil && count > 0
+			conn.PageInfo.HasPreviousPage = last != nil && count > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := c.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	c = pager.applyCursors(c, after, before)
+	c = pager.applyOrder(c, last != nil)
+	var limit int
+	if first != nil {
+		limit = *first + 1
+	} else if last != nil {
+		limit = *last + 1
+	}
+	if limit > 0 {
+		c = c.Limit(limit)
+	}
+
+	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
+		c = c.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+
+	nodes, err := c.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+
+	if len(nodes) == limit {
+		conn.PageInfo.HasNextPage = first != nil
+		conn.PageInfo.HasPreviousPage = last != nil
+		nodes = nodes[:len(nodes)-1]
+	}
+
+	var nodeAt func(int) *Category
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Category {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Category {
+			return nodes[i]
+		}
+	}
+
+	conn.Edges = make([]*CategoryEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		conn.Edges[i] = &CategoryEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+	if conn.TotalCount == 0 {
+		conn.TotalCount = len(nodes)
+	}
+
+	return conn, nil
+}
+
+var (
+	// CategoryOrderFieldText orders Category by text.
+	CategoryOrderFieldText = &CategoryOrderField{
+		field: category.FieldText,
+		toCursor: func(c *Category) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.Text,
+			}
+		},
+	}
+	// CategoryOrderFieldDuration orders Category by duration.
+	CategoryOrderFieldDuration = &CategoryOrderField{
+		field: category.FieldDuration,
+		toCursor: func(c *Category) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.Duration,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f CategoryOrderField) String() string {
+	var str string
+	switch f.field {
+	case category.FieldText:
+		str = "TEXT"
+	case category.FieldDuration:
+		str = "DURATION"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f CategoryOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *CategoryOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("CategoryOrderField %T must be a string", v)
+	}
+	switch str {
+	case "TEXT":
+		*f = *CategoryOrderFieldText
+	case "DURATION":
+		*f = *CategoryOrderFieldDuration
+	default:
+		return fmt.Errorf("%s is not a valid CategoryOrderField", str)
+	}
+	return nil
+}
+
+// CategoryOrderField defines the ordering field of Category.
+type CategoryOrderField struct {
+	field    string
+	toCursor func(*Category) Cursor
+}
+
+// CategoryOrder defines the ordering of Category.
+type CategoryOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *CategoryOrderField `json:"field"`
+}
+
+// DefaultCategoryOrder is the default ordering of Category.
+var DefaultCategoryOrder = &CategoryOrder{
+	Direction: OrderDirectionAsc,
+	Field: &CategoryOrderField{
+		field: category.FieldID,
+		toCursor: func(c *Category) Cursor {
+			return Cursor{ID: c.ID}
+		},
+	},
+}
+
+// ToEdge converts Category into CategoryEdge.
+func (c *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
+	if order == nil {
+		order = DefaultCategoryOrder
+	}
+	return &CategoryEdge{
+		Node:   c,
+		Cursor: order.Field.toCursor(c),
+	}
+}
 
 // TodoEdge is the edge representation of Todo.
 type TodoEdge struct {

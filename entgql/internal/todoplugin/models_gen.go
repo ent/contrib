@@ -3,12 +3,63 @@
 package todo
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
+	"entgo.io/contrib/entgql/internal/todoplugin/ent"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 )
+
+type CategoryOrder struct {
+	Direction ent.OrderDirection `json:"direction"`
+	Field     CategoryOrderField `json:"field"`
+}
 
 type TodoInput struct {
 	Status   todo.Status `json:"status"`
 	Priority *int        `json:"priority"`
 	Text     string      `json:"text"`
 	Parent   *int        `json:"parent"`
+}
+
+type CategoryOrderField string
+
+const (
+	CategoryOrderFieldText     CategoryOrderField = "TEXT"
+	CategoryOrderFieldDuration CategoryOrderField = "DURATION"
+)
+
+var AllCategoryOrderField = []CategoryOrderField{
+	CategoryOrderFieldText,
+	CategoryOrderFieldDuration,
+}
+
+func (e CategoryOrderField) IsValid() bool {
+	switch e {
+	case CategoryOrderFieldText, CategoryOrderFieldDuration:
+		return true
+	}
+	return false
+}
+
+func (e CategoryOrderField) String() string {
+	return string(e)
+}
+
+func (e *CategoryOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CategoryOrderField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CategoryOrderField", str)
+	}
+	return nil
+}
+
+func (e CategoryOrderField) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

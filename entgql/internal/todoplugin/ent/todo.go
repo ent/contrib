@@ -40,8 +40,9 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
-	Edges         TodoEdges `json:"edges"`
-	todo_children *int
+	Edges          TodoEdges `json:"edges"`
+	category_todos *int
+	todo_children  *int
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -89,7 +90,9 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case todo.ForeignKeys[0]: // todo_children
+		case todo.ForeignKeys[0]: // category_todos
+			values[i] = new(sql.NullInt64)
+		case todo.ForeignKeys[1]: // todo_children
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
@@ -137,6 +140,13 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				t.Text = value.String
 			}
 		case todo.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field category_todos", value)
+			} else if value.Valid {
+				t.category_todos = new(int)
+				*t.category_todos = int(value.Int64)
+			}
+		case todo.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field todo_children", value)
 			} else if value.Valid {

@@ -24,6 +24,7 @@ import (
 	"sync/atomic"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/user"
 	"entgo.io/ent/dialect"
@@ -59,6 +60,75 @@ type Edge struct {
 	Type string `json:"type,omitempty"` // edge type.
 	Name string `json:"name,omitempty"` // edge name.
 	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (c *Category) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     c.ID,
+		Type:   "Category",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(c.Text); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "text",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "category.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Config); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "*schematype.CategoryConfig",
+		Name:  "config",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Duration); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Duration",
+		Name:  "duration",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Count); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "uint64",
+		Name:  "count",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Strings); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]string",
+		Name:  "strings",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Todo",
+		Name: "todos",
+	}
+	err = c.QueryTodos().
+		Select(todo.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
 }
 
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
@@ -234,6 +304,15 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
+	case category.Table:
+		n, err := c.Category.Query().
+			Where(category.ID(id)).
+			CollectFields(ctx, "Category").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case todo.Table:
 		n, err := c.Todo.Query().
 			Where(todo.ID(id)).
@@ -325,6 +404,19 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case category.Table:
+		nodes, err := c.Category.Query().
+			Where(category.IDIn(ids...)).
+			CollectFields(ctx, "Category").
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case todo.Table:
 		nodes, err := c.Todo.Query().
 			Where(todo.IDIn(ids...)).

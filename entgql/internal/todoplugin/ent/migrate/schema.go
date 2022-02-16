@@ -22,6 +22,22 @@ import (
 )
 
 var (
+	// CategoriesColumns holds the columns for the "categories" table.
+	CategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ENABLED", "DISABLED"}},
+		{Name: "config", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"sqlite3": "json"}},
+		{Name: "duration", Type: field.TypeInt64, Nullable: true},
+		{Name: "count", Type: field.TypeUint64, Nullable: true},
+		{Name: "strings", Type: field.TypeJSON, Nullable: true},
+	}
+	// CategoriesTable holds the schema information for the "categories" table.
+	CategoriesTable = &schema.Table{
+		Name:       "categories",
+		Columns:    CategoriesColumns,
+		PrimaryKey: []*schema.Column{CategoriesColumns[0]},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -29,6 +45,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED"}},
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "category_todos", Type: field.TypeInt, Nullable: true},
 		{Name: "todo_children", Type: field.TypeInt, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
@@ -38,8 +55,14 @@ var (
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "todos_todos_children",
+				Symbol:     "todos_categories_todos",
 				Columns:    []*schema.Column{TodosColumns[5]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "todos_todos_children",
+				Columns:    []*schema.Column{TodosColumns[6]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -61,11 +84,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CategoriesTable,
 		TodosTable,
 		UsersTable,
 	}
 )
 
 func init() {
-	TodosTable.ForeignKeys[0].RefTable = TodosTable
+	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
+	TodosTable.ForeignKeys[1].RefTable = TodosTable
 }

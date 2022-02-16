@@ -19,6 +19,7 @@ package ent
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 )
@@ -27,6 +28,12 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	categoryFields := schema.Category{}.Fields()
+	_ = categoryFields
+	// categoryDescText is the schema descriptor for text field.
+	categoryDescText := categoryFields[0].Descriptor()
+	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescCreatedAt is the schema descriptor for created_at field.
