@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/jhump/protoreflect v1.10.1
+	github.com/jhump/protoreflect v1.11.0
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/ogen-go/ogen v0.1.1-0.20211220145210-5927cf47f01a
@@ -24,7 +24,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.8
-	google.golang.org/grpc v1.36.0
+	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.27.1
 )
 
@@ -36,7 +36,6 @@ require (
 	github.com/go-faster/jx v0.25.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
