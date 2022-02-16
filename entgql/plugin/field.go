@@ -96,7 +96,7 @@ func (e *EntGQL) entTypToGqlType(f *gen.Field, idField bool, userDefinedType str
 		return namedType("ID", false), nil
 	case f.IsEnum():
 		// Guess enum type
-		return namedType(f.StructField(), nillable), nil
+		return namedType(strings.Title(f.Name), nillable), nil
 	case typ.Float():
 		return namedType("Float", nillable), nil
 	case typ.Integer():

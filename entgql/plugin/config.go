@@ -16,6 +16,7 @@ package plugin
 
 import (
 	"fmt"
+	"strings"
 
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/codegen/config"
@@ -69,7 +70,7 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 				continue
 			}
 
-			name := f.StructField()
+			name := strings.Title(f.Name)
 			if ann.Type != "" {
 				name = ann.Type
 			}
