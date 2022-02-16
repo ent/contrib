@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	entgo.io/ent v0.9.2-0.20211220092907-4d01a56b8de7
-	github.com/99designs/gqlgen v0.15.2-0.20220119135911-986650718267
+	github.com/99designs/gqlgen v0.16.1-0.20220209020931-d7da5b0d3b3c
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
@@ -18,7 +18,7 @@ require (
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.7.0
-	github.com/vektah/gqlparser/v2 v2.2.0
+	github.com/vektah/gqlparser/v2 v2.3.1
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.16.0
