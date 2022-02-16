@@ -15,13 +15,14 @@
 package plugin
 
 import (
+	"fmt"
+	"testing"
+
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"github.com/vektah/gqlparser/v2/ast"
-	"testing"
 )
 
 func TestTypeFields(t *testing.T) {

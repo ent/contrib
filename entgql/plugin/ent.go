@@ -15,12 +15,13 @@
 package plugin
 
 import (
-	"entgo.io/contrib/entgql"
 	"fmt"
+
+	"entgo.io/contrib/entgql"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func (e *Entgqlgen) entBuiltins() {
+func (e *EntGQL) entBuiltins() {
 	e.insertDefinitions([]*ast.Definition{
 		{
 			Name: "OrderDirection",
@@ -37,7 +38,7 @@ func (e *Entgqlgen) entBuiltins() {
 	})
 }
 
-func (e *Entgqlgen) entOrderBy() error {
+func (e *EntGQL) entOrderBy() error {
 	for _, obj := range e.genTypes {
 		ann := &entgql.Annotation{}
 		err := ann.Decode(obj.Annotations[ann.Name()])
@@ -87,5 +88,6 @@ func (e *Entgqlgen) entOrderBy() error {
 			})
 		}
 	}
+
 	return nil
 }

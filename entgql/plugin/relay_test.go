@@ -15,9 +15,10 @@
 package plugin
 
 import (
+	"testing"
+
 	"entgo.io/ent/entc/gen"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestRelayBuiltins(t *testing.T) {

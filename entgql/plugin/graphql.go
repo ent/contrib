@@ -15,13 +15,14 @@
 package plugin
 
 import (
-	"entgo.io/contrib/entgql"
 	"fmt"
-	"github.com/vektah/gqlparser/v2/ast"
 	"strings"
+
+	"entgo.io/contrib/entgql"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func (e *Entgqlgen) scalars() {
+func (e *EntGQL) scalars() {
 	for scalar := range e.scalarMappings {
 		switch scalar {
 		case "Int", "Float", "String", "Boolean", "ID":
@@ -35,7 +36,7 @@ func (e *Entgqlgen) scalars() {
 	}
 }
 
-func (e *Entgqlgen) enums() error {
+func (e *EntGQL) enums() error {
 	enums := make(map[string][]string)
 	for _, t := range e.genTypes {
 		for _, f := range t.Fields {
@@ -94,7 +95,7 @@ func unorderedEqual(first, second []string) bool {
 	return true
 }
 
-func (e *Entgqlgen) types() error {
+func (e *EntGQL) types() error {
 	for _, t := range e.genTypes {
 		// TODO: make relay config opt in
 		interfaces := []string{"Node"}
@@ -122,7 +123,7 @@ func (e *Entgqlgen) types() error {
 	return nil
 }
 
-func (e *Entgqlgen) directives(directives []entgql.Directive) ast.DirectiveList {
+func (e *EntGQL) directives(directives []entgql.Directive) ast.DirectiveList {
 	var list ast.DirectiveList
 	for _, d := range directives {
 		var args ast.ArgumentList
@@ -143,12 +144,12 @@ func (e *Entgqlgen) directives(directives []entgql.Directive) ast.DirectiveList 
 	return list
 }
 
-func (e *Entgqlgen) insertDefinitions(defs []*ast.Definition) {
+func (e *EntGQL) insertDefinitions(defs []*ast.Definition) {
 	for _, d := range defs {
 		e.schema.Types[d.Name] = d
 	}
 }
 
-func (e *Entgqlgen) insertDefinition(d *ast.Definition) {
+func (e *EntGQL) insertDefinition(d *ast.Definition) {
 	e.schema.Types[d.Name] = d
 }

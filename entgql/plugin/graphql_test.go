@@ -15,11 +15,12 @@
 package plugin
 
 import (
+	"testing"
+
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 /*

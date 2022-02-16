@@ -15,15 +15,16 @@
 package plugin
 
 import (
+	"fmt"
+	"strings"
+
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
-	"fmt"
 	"github.com/vektah/gqlparser/v2/ast"
-	"strings"
 )
 
-func (e *Entgqlgen) typeFields(t *gen.Type) (ast.FieldList, error) {
+func (e *EntGQL) typeFields(t *gen.Type) (ast.FieldList, error) {
 	var fields ast.FieldList
 	if t.ID != nil {
 		f, err := e.typeField(t.ID, true)
@@ -46,7 +47,7 @@ func (e *Entgqlgen) typeFields(t *gen.Type) (ast.FieldList, error) {
 	return fields, nil
 }
 
-func (e *Entgqlgen) typeField(f *gen.Field, idField bool) (*ast.FieldDefinition, error) {
+func (e *EntGQL) typeField(f *gen.Field, idField bool) (*ast.FieldDefinition, error) {
 	ann := &entgql.Annotation{}
 	err := ann.Decode(f.Annotations[ann.Name()])
 	if err != nil {
@@ -73,7 +74,7 @@ func namedType(name string, nillable bool) *ast.Type {
 	return ast.NamedType(name, nil)
 }
 
-func (e *Entgqlgen) entTypToGqlType(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
+func (e *EntGQL) entTypToGqlType(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
 	nillable := f.Nillable
 	typ := f.Type.Type
 	typeName := strings.TrimPrefix(typ.ConstName(), "Type")

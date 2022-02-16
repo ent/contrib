@@ -15,8 +15,9 @@
 package plugin
 
 import (
-	"entgo.io/ent/entc/gen"
 	"fmt"
+
+	"entgo.io/ent/entc/gen"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -26,7 +27,7 @@ var (
 	RelayPageInfo = "PageInfo"
 )
 
-func (e *Entgqlgen) relayBuiltins() {
+func (e *EntGQL) relayBuiltins() {
 	e.insertDefinitions([]*ast.Definition{
 		{
 			Name: RelayCursor,
@@ -67,7 +68,7 @@ func (e *Entgqlgen) relayBuiltins() {
 	})
 }
 
-func (e *Entgqlgen) relayConnection(t *gen.Type) {
+func (e *EntGQL) relayConnection(t *gen.Type) {
 	e.insertDefinition(&ast.Definition{
 		Name: fmt.Sprintf("%sEdge", t.Name),
 		Kind: ast.Object,

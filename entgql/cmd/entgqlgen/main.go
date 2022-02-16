@@ -15,18 +15,18 @@
 package main
 
 import (
-	"entgo.io/contrib/entgql/plugin"
 	"flag"
 	"fmt"
+	"log"
+	"os"
+
+	"entgo.io/contrib/entgql/plugin"
+	"entgo.io/ent/entc"
+	"entgo.io/ent/entc/gen"
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/99designs/gqlgen/plugin/modelgen"
 	"github.com/99designs/gqlgen/plugin/resolvergen"
-	"log"
-	"os"
-
-	"entgo.io/ent/entc"
-	"entgo.io/ent/entc/gen"
 )
 
 func main() {
@@ -37,15 +37,18 @@ func main() {
 	if *schemaPath == "" {
 		log.Fatal("entgqlgen: must specify schema path. use entgqlgen -path ./ent/schema")
 	}
+
 	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
 	if err != nil {
 		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}
+
 	cfg, err := config.LoadConfigFromDefaultLocations()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to load config", err.Error())
 		os.Exit(2)
 	}
+
 	entgqlPlugin, err := plugin.New(graph)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to create entgql plugin", err.Error())

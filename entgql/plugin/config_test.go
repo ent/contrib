@@ -15,11 +15,12 @@
 package plugin
 
 import (
+	"testing"
+
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestModifyConfig_empty(t *testing.T) {

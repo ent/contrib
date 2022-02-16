@@ -15,12 +15,13 @@
 package plugin
 
 import (
-	"entgo.io/contrib/entgql"
 	"fmt"
+
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/codegen/config"
 )
 
-func (e *Entgqlgen) MutateConfig(cfg *config.Config) error {
+func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 	if !cfg.Models.Exists(RelayPageInfo) {
 		cfg.Models.Add(RelayPageInfo, e.entGoType(RelayPageInfo))
 	}
@@ -67,9 +68,10 @@ func (e *Entgqlgen) MutateConfig(cfg *config.Config) error {
 			}
 		}
 	}
+
 	return nil
 }
 
-func (e *Entgqlgen) entGoType(name string) string {
+func (e *EntGQL) entGoType(name string) string {
 	return fmt.Sprintf("%s.%s", e.graph.Package, name)
 }

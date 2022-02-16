@@ -15,11 +15,12 @@
 package plugin
 
 import (
+	"testing"
+
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestEmpty(t *testing.T) {

@@ -26,6 +26,7 @@ func TestAnnotation(t *testing.T) {
 	annotation := entgql.OrderField("foo")
 	require.Equal(t, "foo", annotation.OrderField)
 
+	//nolint SA1019 we keep this as the example.
 	annotation = entgql.Bind()
 	require.False(t, annotation.Unbind)
 	annotation = entgql.Unbind()
