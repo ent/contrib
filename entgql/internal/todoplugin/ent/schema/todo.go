@@ -48,7 +48,7 @@ func (Todo) Fields() []ent.Field {
 			Annotations(
 				entgql.Annotation{
 					OrderField: "STATUS",
-					GqlDirectives: []entgql.Directive{
+					GQLDirectives: []entgql.Directive{
 						{
 							Name: "someDirective",
 							Arguments: []entgql.DirectiveArgument{
@@ -98,7 +98,7 @@ func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.Annotation{
 			RelayConnection: true,
-			GqlDirectives: []entgql.Directive{
+			GQLDirectives: []entgql.Directive{
 				{
 					Name: "someDirective",
 				},

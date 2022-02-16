@@ -82,7 +82,7 @@ func TestModifyConfig(t *testing.T) {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"relay_connection": true,
+						"RelayConnection": true,
 					},
 				},
 			},
@@ -101,7 +101,7 @@ func TestModifyConfig(t *testing.T) {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"relay_connection": true,
+						"RelayConnection": true,
 					},
 				},
 			},

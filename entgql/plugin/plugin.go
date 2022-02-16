@@ -80,8 +80,8 @@ func New(graph *gen.Graph, opts ...PluginOption) (*EntGQL, error) {
 		globalAnn := graph.Annotations[annotationName]
 		// TODO: cleanup assertions
 		if globalAnn != nil {
-			if globalAnn.(entgql.Annotation).GqlScalarMappings != nil {
-				scalarMappings = globalAnn.(entgql.Annotation).GqlScalarMappings
+			if globalAnn.(entgql.Annotation).GQLScalarMappings != nil {
+				scalarMappings = globalAnn.(entgql.Annotation).GQLScalarMappings
 			}
 		}
 	}

@@ -57,7 +57,7 @@ scalar Time
 }
 
 func TestInjectSourceEarly(t *testing.T) {
-	ann := entgql.Annotation{GqlScalarMappings: map[string]string{
+	ann := entgql.Annotation{GQLScalarMappings: map[string]string{
 		"Time": "Time",
 	}}
 	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{

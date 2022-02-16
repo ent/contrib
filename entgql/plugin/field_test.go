@@ -84,7 +84,7 @@ func TestFields(t *testing.T) {
 		Config: &gen.Config{
 			Annotations: map[string]interface{}{
 				annotationName: entgql.Annotation{
-					GqlScalarMappings: map[string]string{
+					GQLScalarMappings: map[string]string{
 						"Time": "Time",
 					}},
 			},

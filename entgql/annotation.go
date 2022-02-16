@@ -37,15 +37,15 @@ type Annotation struct {
 	// Skip exclude the type
 	Skip bool `json:"Skip,omitempty"`
 	// RelayConnection expose this node as a relay connection
-	RelayConnection bool `json:"relay_connection,omitempty"`
-	// GqlName provide alternative name. see: https://gqlgen.com/config/#inline-config-with-directives
-	GqlName string `json:"gql_name,omitempty"`
-	// GqlImplements extra interfaces that are implemented
-	GqlImplements []string `json:"gql_implements,omitempty"`
-	// GqlDirectives directives to add
-	GqlDirectives []Directive `json:"gql_directives,omitempty"`
-	// GqlScalarMappings defines custom scalars mappings, scalars will also be created automatically
-	GqlScalarMappings map[string]string `json:"gql_scalar_mappings,omitempty"`
+	RelayConnection bool `json:"RelayConnection,omitempty"`
+	// GQLName provide alternative name. see: https://gqlgen.com/config/#inline-config-with-directives
+	GQLName string `json:"GQLName,omitempty"`
+	// GQLImplements extra interfaces that are implemented
+	GQLImplements []string `json:"GQLImplements,omitempty"`
+	// GQLDirectives directives to add
+	GQLDirectives []Directive `json:"GQLDirectives,omitempty"`
+	// GQLScalarMappings defines custom scalars mappings, scalars will also be created automatically
+	GQLScalarMappings map[string]string `json:"GQLScalarMappings,omitempty"`
 }
 
 type Directive struct {
@@ -138,14 +138,14 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.RelayConnection {
 		a.RelayConnection = true
 	}
-	if ant.GqlName != "" {
-		a.GqlName = ant.GqlName
+	if ant.GQLName != "" {
+		a.GQLName = ant.GQLName
 	}
-	if len(ant.GqlDirectives) > 0 {
-		a.GqlDirectives = ant.GqlDirectives
+	if len(ant.GQLDirectives) > 0 {
+		a.GQLDirectives = ant.GQLDirectives
 	}
-	if len(ant.GqlImplements) > 0 {
-		a.GqlImplements = ant.GqlImplements
+	if len(ant.GQLImplements) > 0 {
+		a.GQLImplements = ant.GQLImplements
 	}
 	return a
 }

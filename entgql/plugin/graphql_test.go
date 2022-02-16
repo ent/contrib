@@ -72,7 +72,7 @@ func TestScalars(t *testing.T) {
 		Config: &gen.Config{
 			Annotations: map[string]interface{}{
 				"EntGQL": entgql.Annotation{
-					GqlScalarMappings: map[string]string{
+					GQLScalarMappings: map[string]string{
 						"Date": "Date",
 					},
 				},
@@ -86,7 +86,7 @@ func TestScalars(t *testing.T) {
 		Config: &gen.Config{
 			Annotations: map[string]interface{}{
 				"EntGQL": entgql.Annotation{
-					GqlScalarMappings: map[string]string{
+					GQLScalarMappings: map[string]string{
 						"Time":    "Time",
 						"Int":     "Int",
 						"Float":   "Float",
@@ -140,8 +140,8 @@ func TestTypes(t *testing.T) {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"relay_connection": true,
-						"gql_implements":   []string{"SomeInterface"},
+						"RelayConnection": true,
+						"GQLImplements":   []string{"SomeInterface"},
 					},
 				},
 			},

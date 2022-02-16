@@ -104,7 +104,7 @@ func (e *EntGQL) types() error {
 		if err != nil {
 			return err
 		}
-		interfaces = append(interfaces, ann.GqlImplements...)
+		interfaces = append(interfaces, ann.GQLImplements...)
 		fields, err := e.typeFields(t)
 		if err != nil {
 			return fmt.Errorf("type(%s): %w", t.Name, err)
@@ -114,7 +114,7 @@ func (e *EntGQL) types() error {
 			Kind:       ast.Object,
 			Fields:     fields,
 			Interfaces: interfaces,
-			Directives: e.directives(ann.GqlDirectives),
+			Directives: e.directives(ann.GQLDirectives),
 		})
 		if ann.RelayConnection {
 			e.relayConnection(t)

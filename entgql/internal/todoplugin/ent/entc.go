@@ -19,7 +19,7 @@ import (
 func main() {
 	opts := []entc.Option{
 		entc.Annotations(entgql.Annotation{
-			GqlScalarMappings: map[string]string{
+			GQLScalarMappings: map[string]string{
 				"Time": "Time",
 			},
 		}),
