@@ -50,8 +50,8 @@ func (e *EntGQL) enums() error {
 			}
 			if f.IsEnum() {
 				enumName := strings.Title(f.Name)
-				if ann.GqlType != "" {
-					enumName = ann.GqlType
+				if ann.Type != "" {
+					enumName = ann.Type
 				}
 				if values, ok := enums[enumName]; ok {
 					if !unorderedEqual(values, f.EnumValues()) {

@@ -40,8 +40,6 @@ type Annotation struct {
 	RelayConnection bool `json:"relay_connection,omitempty"`
 	// GqlName provide alternative name. see: https://gqlgen.com/config/#inline-config-with-directives
 	GqlName string `json:"gql_name,omitempty"`
-	// GqlType override type
-	GqlType string `json:"gql_type,omitempty"`
 	// GqlImplements extra interfaces that are implemented
 	GqlImplements []string `json:"gql_implements,omitempty"`
 	// GqlDirectives directives to add
@@ -142,9 +140,6 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.GqlName != "" {
 		a.GqlName = ant.GqlName
-	}
-	if ant.GqlType != "" {
-		a.GqlType = ant.GqlType
 	}
 	if len(ant.GqlDirectives) > 0 {
 		a.GqlDirectives = ant.GqlDirectives

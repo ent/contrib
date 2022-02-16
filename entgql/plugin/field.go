@@ -56,7 +56,7 @@ func (e *EntGQL) typeField(f *gen.Field, idField bool) (*ast.FieldDefinition, er
 	if ann.Skip {
 		return nil, nil
 	}
-	ft, err := e.entTypToGqlType(f, idField, ann.GqlType)
+	ft, err := e.entTypToGqlType(f, idField, ann.Type)
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}

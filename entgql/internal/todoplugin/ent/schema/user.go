@@ -33,7 +33,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("username"),
 		field.Int("age").Annotations(entgql.Annotation{
-			GqlType: "Float",
+			Type: "Float",
 		}),
 		field.Float("amount").
 			GoType(Amount(0)),
