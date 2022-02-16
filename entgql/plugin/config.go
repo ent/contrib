@@ -48,6 +48,37 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 		if !cfg.Models.Exists(obj.Name) {
 			cfg.Models.Add(obj.Name, e.entGoType(obj.Name))
 		}
+
+		for _, f := range obj.Fields {
+			ann := &entgql.Annotation{}
+			err := ann.Decode(f.Annotations[ann.Name()])
+			if err != nil {
+				return err
+			}
+			if ann.Skip {
+				continue
+			}
+
+			goType := ""
+			switch {
+			case f.IsEnum():
+				goType = fmt.Sprintf("%s/%s", e.graph.Package, f.Type.Ident)
+			case f.IsOther():
+				goType = fmt.Sprintf("%s.%s", f.Type.RType.PkgPath, f.Type.RType.Name)
+			default:
+				continue
+			}
+
+			name := f.StructField()
+			if ann.Type != "" {
+				name = ann.Type
+			}
+
+			if !cfg.Models.Exists(name) {
+				cfg.Models.Add(name, goType)
+			}
+		}
+
 		if ann.RelayConnection {
 			connection := fmt.Sprintf("%sConnection", obj.Name)
 			edge := fmt.Sprintf("%sEdge", obj.Name)

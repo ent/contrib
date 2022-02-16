@@ -79,7 +79,7 @@ var expected = `type Category implements Node {
 	config: CategoryConfig!
 	duration: Duration!
 	count: Uint64!
-	strings: [String]!
+	strings: [String!]
 }
 input CategoryOrder {
 	direction: OrderDirection!

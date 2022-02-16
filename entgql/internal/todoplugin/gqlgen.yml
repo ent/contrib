@@ -19,20 +19,3 @@ models:
   Duration:
     model:
       - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/durationgql.Duration
-  # Custom mapping from GraphQL `CategoryStatus`
-  # to the generated `category.Status` enum type.
-  CategoryStatus:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status
-  # Custom mapping from GraphQL `CategoryConfig` and
-  # `CategoryConfigInput` to `schematype.CategoryConfig`.
-  CategoryConfig:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig
-  # TODO: can this be removed
-  Status:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status
-  Role:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role

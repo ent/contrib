@@ -16,6 +16,7 @@ package plugin
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"entgo.io/contrib/entgql"
@@ -74,6 +75,13 @@ func namedType(name string, nillable bool) *ast.Type {
 	return ast.NamedType(name, nil)
 }
 
+func listNamedType(name string, nillable bool) *ast.Type {
+	if !nillable {
+		return ast.NonNullListType(namedType(name, false), nil)
+	}
+	return ast.ListType(namedType(name, false), nil)
+}
+
 func (e *EntGQL) entTypToGqlType(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
 	nillable := f.Nillable
 	typ := f.Type.Type
@@ -88,7 +96,7 @@ func (e *EntGQL) entTypToGqlType(f *gen.Field, idField bool, userDefinedType str
 		return namedType("ID", false), nil
 	case f.IsEnum():
 		// Guess enum type
-		return namedType(strings.Title(f.Name), nillable), nil
+		return namedType(f.StructField(), nillable), nil
 	case typ.Float():
 		return namedType("Float", nillable), nil
 	case typ.Integer():
@@ -100,6 +108,19 @@ func (e *EntGQL) entTypToGqlType(f *gen.Field, idField bool, userDefinedType str
 	case typ == field.TypeBytes:
 		return nil, fmt.Errorf("bytes type not implemented")
 	case typ == field.TypeJSON:
+		if f.Type.RType != nil {
+			switch f.Type.RType.Kind {
+			case reflect.Slice, reflect.Array:
+				switch f.Type.RType.Ident {
+				case "[]float64":
+					return listNamedType("Float", f.Optional), nil
+				case "[]int":
+					return listNamedType("Int", f.Optional), nil
+				case "[]string":
+					return listNamedType("String", f.Optional), nil
+				}
+			}
+		}
 		return nil, fmt.Errorf("json type not implemented")
 	case typ == field.TypeOther:
 		return nil, fmt.Errorf("other type must have typed defined")
