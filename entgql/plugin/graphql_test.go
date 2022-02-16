@@ -140,13 +140,31 @@ func TestTypes(t *testing.T) {
 	require.Equal(t, `type Group implements Node & SomeInterface {
 	name: String!
 }
+"""
+A connection to a list of items.
+"""
 type GroupConnection {
+	"""
+	A list of edges.
+	"""
 	edges: [GroupEdge]
+	"""
+	Information to aid in pagination.
+	"""
 	pageInfo: PageInfo!
 	totalCount: Int!
 }
+"""
+An edge in a connection.
+"""
 type GroupEdge {
+	"""
+	The item at the end of the edge
+	"""
 	node: Group
+	"""
+	A cursor for use in pagination
+	"""
 	cursor: Cursor
 }
 type Todo implements Node {

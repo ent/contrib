@@ -40,6 +40,9 @@ type (
 		graph          *gen.Graph
 	}
 
+	// SchemaHook hook to modify schema before printing
+	SchemaHook func(*gen.Graph, *ast.Schema)
+
 	PluginOption func(*EntGQL) error
 )
 
@@ -70,9 +73,6 @@ func WithDebug() PluginOption {
 		return nil
 	}
 }
-
-// SchemaHook hook to modify schema before printing
-type SchemaHook func(schema *ast.Schema)
 
 func New(graph *gen.Graph, opts ...PluginOption) (*EntGQL, error) {
 	types, err := entgql.FilterNodes(graph.Nodes)
@@ -126,8 +126,9 @@ func (e *EntGQL) InjectSourceEarly() *ast.Source {
 		panic(err)
 	}
 	for _, h := range e.hooks {
-		h(e.schema)
+		h(e.graph, e.schema)
 	}
+
 	input := e.print()
 	if e.debug {
 		fmt.Printf("Generated Graphql:\n%s", input)

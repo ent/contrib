@@ -37,18 +37,45 @@ func TestInjectSourceEarlyEmpty(t *testing.T) {
 	require.NoError(t, err)
 	s := e.InjectSourceEarly()
 	require.False(t, s.BuiltIn)
-	require.Equal(t, `scalar Cursor
+	require.Equal(t, `"""
+Define a Relay Cursor type:
+https://relay.dev/graphql/connections.htm#sec-Cursor
+"""
+scalar Cursor
+"""
+An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
+"""
 interface Node {
+	"""
+	The id of the object.
+	"""
 	id: ID!
 }
 enum OrderDirection {
 	ASC
 	DESC
 }
+"""
+Information about pagination in a connection.
+https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
+"""
 type PageInfo {
+	"""
+	When paginating forwards, are there more items?
+	"""
 	hasNextPage: Boolean!
+	"""
+	When paginating backwards, are there more items?
+	"""
 	hasPreviousPage: Boolean!
+	"""
+	When paginating backwards, the cursor to continue.
+	"""
 	startCursor: Cursor
+	"""
+	When paginating forwards, the cursor to continue.
+	"""
 	endCursor: Cursor
 }
 scalar Time
@@ -89,18 +116,45 @@ enum CategoryStatus {
 	ENABLED
 	DISABLED
 }
+"""
+Define a Relay Cursor type:
+https://relay.dev/graphql/connections.htm#sec-Cursor
+"""
 scalar Cursor
+"""
+An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
+"""
 interface Node {
+	"""
+	The id of the object.
+	"""
 	id: ID!
 }
 enum OrderDirection {
 	ASC
 	DESC
 }
+"""
+Information about pagination in a connection.
+https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
+"""
 type PageInfo {
+	"""
+	When paginating forwards, are there more items?
+	"""
 	hasNextPage: Boolean!
+	"""
+	When paginating backwards, are there more items?
+	"""
 	hasPreviousPage: Boolean!
+	"""
+	When paginating backwards, the cursor to continue.
+	"""
 	startCursor: Cursor
+	"""
+	When paginating forwards, the cursor to continue.
+	"""
 	endCursor: Cursor
 }
 enum Role {
@@ -120,13 +174,31 @@ type Todo implements Node @someDirective {
 	priority: Int!
 	text: String!
 }
+"""
+A connection to a list of items.
+"""
 type TodoConnection {
+	"""
+	A list of edges.
+	"""
 	edges: [TodoEdge]
+	"""
+	Information to aid in pagination.
+	"""
 	pageInfo: PageInfo!
 	totalCount: Int!
 }
+"""
+An edge in a connection.
+"""
 type TodoEdge {
+	"""
+	The item at the end of the edge
+	"""
 	node: Todo
+	"""
+	A cursor for use in pagination
+	"""
 	cursor: Cursor
 }
 input TodoOrder {
