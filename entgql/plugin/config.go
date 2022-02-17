@@ -19,10 +19,22 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/codegen/config"
 )
 
 func (e *EntGQL) MutateConfig(cfg *config.Config) error {
+	idType, err := entgql.FindIDType(e.genTypes, e.graph.IDType)
+	if err != nil {
+		return err
+	}
+	// TODO: Add a warning for failure guess?
+	if idType := guessTypeID(idType); idType != "" {
+		cfg.Models["ID"] = config.TypeMapEntry{
+			Model: []string{idType},
+		}
+	}
+
 	if !cfg.Models.Exists(RelayPageInfo) {
 		cfg.Models.Add(RelayPageInfo, e.entGoType(RelayPageInfo))
 	}
@@ -115,4 +127,23 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 
 func (e *EntGQL) entGoType(name string) string {
 	return fmt.Sprintf("%s.%s", e.graph.Package, name)
+}
+
+func guessTypeID(idType *field.TypeInfo) string {
+	if idType == nil {
+		return ""
+	}
+
+	t := idType.Type
+	switch {
+	case idType.RType != nil:
+		return fmt.Sprintf("%s.%s", idType.RType.PkgPath, idType.RType.Name)
+	case t == field.TypeInt, t == field.TypeInt32, t == field.TypeInt64:
+		name := strings.TrimPrefix(t.ConstName(), "Type")
+		return fmt.Sprintf("github.com/99designs/gqlgen/graphql.%sID", name)
+	case t == field.TypeString:
+		return "github.com/99designs/gqlgen/graphql.ID"
+	}
+
+	return ""
 }

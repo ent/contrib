@@ -10,9 +10,6 @@ resolver:
   dir: .
 
 models:
-  ID:
-    model:
-      - github.com/99designs/gqlgen/graphql.IntID
   Uint64:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64

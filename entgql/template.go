@@ -68,7 +68,7 @@ var (
 		"filterEdges":      filterEdges,
 		"filterFields":     filterFields,
 		"filterNodes":      FilterNodes,
-		"findIDType":       findIDType,
+		"findIDType":       FindIDType,
 	}
 
 	//go:embed template/*
@@ -82,13 +82,18 @@ func parseT(path string) *gen.Template {
 		ParseFS(templates, path))
 }
 
-func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
+func FindIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
 	t := defaultType
 	if len(nodes) > 0 {
-		t = nodes[0].ID.Type
+		if nodes[0].ID != nil {
+			t = nodes[0].ID.Type
+		}
 
 		// Ensure all id types have the same type.
 		for _, n := range nodes[1:] {
+			if n.ID == nil {
+				continue
+			}
 			if n.ID.Type.Type != t.Type {
 				return nil, errors.New("node does not support multiple id types")
 			}

@@ -47,6 +47,9 @@ func TestModifyConfig(t *testing.T) {
 	e, err := New(&gen.Graph{
 		Config: &gen.Config{
 			Package: "example.com",
+			IDType: &field.TypeInfo{
+				Type: field.TypeInt,
+			},
 		},
 		Nodes: []*gen.Type{
 			{
@@ -116,6 +119,7 @@ func TestModifyConfig(t *testing.T) {
 		"Node":                    {Model: []string{"example.com.Noder"}},
 		"PageInfo":                {Model: []string{"example.com.PageInfo"}},
 		"Cursor":                  {Model: []string{"example.com.Cursor"}},
+		"ID":                      {Model: []string{"github.com/99designs/gqlgen/graphql.IntID"}},
 		"OrderDirection":          {Model: []string{"example.com.OrderDirection"}},
 		"Todo":                    {Model: []string{"example.com.Todo"}},
 		"Group":                   {Model: []string{"example.com.Group"}},
