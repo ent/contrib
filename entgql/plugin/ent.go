@@ -78,6 +78,10 @@ func (e *EntGQL) entOrderBy() error {
 						{
 							Name: "direction",
 							Type: ast.NonNullNamedType("OrderDirection", nil),
+							DefaultValue: &ast.Value{
+								Raw:  "ASC",
+								Kind: ast.EnumValue,
+							},
 						},
 						{
 							Name: "field",

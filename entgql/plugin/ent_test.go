@@ -87,7 +87,7 @@ func TestEntOrderBy(t *testing.T) {
 	err = e.entOrderBy()
 	require.NoError(t, err)
 	require.Equal(t, `input IncludedOrder {
-	direction: OrderDirection!
+	direction: OrderDirection! = ASC
 	field: IncludedOrderField!
 }
 enum IncludedOrderField {

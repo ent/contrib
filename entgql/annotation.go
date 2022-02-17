@@ -105,6 +105,11 @@ func Skip() Annotation {
 	return Annotation{Skip: true}
 }
 
+// Skip returns a relay connection annotation.
+func RelayConnection() Annotation {
+	return Annotation{RelayConnection: true}
+}
+
 // Merge implements the schema.Merger interface.
 func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	var ant Annotation
@@ -140,10 +145,10 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 		a.GQLName = ant.GQLName
 	}
 	if len(ant.GQLDirectives) > 0 {
-		a.GQLDirectives = ant.GQLDirectives
+		a.GQLDirectives = append(a.GQLDirectives, ant.GQLDirectives...)
 	}
 	if len(ant.GQLImplements) > 0 {
-		a.GQLImplements = ant.GQLImplements
+		a.GQLImplements = append(a.GQLImplements, ant.GQLImplements...)
 	}
 	return a
 }

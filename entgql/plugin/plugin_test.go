@@ -104,8 +104,35 @@ var expected = `type Category implements Node {
 	count: Uint64!
 	strings: [String!]
 }
+"""
+A connection to a list of items.
+"""
+type CategoryConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [CategoryEdge]
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type CategoryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Category
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: Cursor!
+}
 input CategoryOrder {
-	direction: OrderDirection!
+	direction: OrderDirection! = ASC
 	field: CategoryOrderField!
 }
 enum CategoryOrderField {
@@ -202,7 +229,7 @@ type TodoEdge {
 	cursor: Cursor!
 }
 input TodoOrder {
-	direction: OrderDirection!
+	direction: OrderDirection! = ASC
 	field: TodoOrderField!
 }
 enum TodoOrderField {

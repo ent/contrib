@@ -66,6 +66,17 @@ type ComplexityRoot struct {
 		MaxMembers func(childComplexity int) int
 	}
 
+	CategoryConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	CategoryEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Mutation struct {
 		ClearTodos func(childComplexity int) int
 		CreateTodo func(childComplexity int, todo TodoInput) int
@@ -198,6 +209,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CategoryConfig.MaxMembers(childComplexity), true
+
+	case "CategoryConnection.edges":
+		if e.complexity.CategoryConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.CategoryConnection.Edges(childComplexity), true
+
+	case "CategoryConnection.pageInfo":
+		if e.complexity.CategoryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.CategoryConnection.PageInfo(childComplexity), true
+
+	case "CategoryConnection.totalCount":
+		if e.complexity.CategoryConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.CategoryConnection.TotalCount(childComplexity), true
+
+	case "CategoryEdge.cursor":
+		if e.complexity.CategoryEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.CategoryEdge.Cursor(childComplexity), true
+
+	case "CategoryEdge.node":
+		if e.complexity.CategoryEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.CategoryEdge.Node(childComplexity), true
 
 	case "Mutation.clearTodos":
 		if e.complexity.Mutation.ClearTodos == nil {
@@ -511,8 +557,35 @@ type Mutation {
 	count: Uint64!
 	strings: [String!]
 }
+"""
+A connection to a list of items.
+"""
+type CategoryConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [CategoryEdge]
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type CategoryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Category
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: Cursor!
+}
 input CategoryOrder {
-	direction: OrderDirection!
+	direction: OrderDirection! = ASC
 	field: CategoryOrderField!
 }
 enum CategoryOrderField {
@@ -611,7 +684,7 @@ type TodoEdge {
 	cursor: Cursor!
 }
 input TodoOrder {
-	direction: OrderDirection!
+	direction: OrderDirection! = ASC
 	field: TodoOrderField!
 }
 enum TodoOrderField {
@@ -1096,6 +1169,175 @@ func (ec *executionContext) _CategoryConfig_maxMembers(ctx context.Context, fiel
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CategoryConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CategoryConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CategoryEdge)
+	fc.Result = res
+	return ec.marshalOCategoryEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.CategoryConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CategoryConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.CategoryConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CategoryConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CategoryEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CategoryEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CategoryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.CategoryEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CategoryEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3418,11 +3660,15 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj interface{}) (CategoryOrder, error) {
-	var it CategoryOrder
+func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj interface{}) (ent.CategoryOrder, error) {
+	var it ent.CategoryOrder
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
 	}
 
 	for k, v := range asMap {
@@ -3439,7 +3685,7 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNCategoryOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚐCategoryOrderField(ctx, v)
+			it.Field, err = ec.unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3505,6 +3751,10 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
 	}
 
 	for k, v := range asMap {
@@ -3668,6 +3918,92 @@ func (ec *executionContext) _CategoryConfig(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = innerFunc(ctx)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var categoryConnectionImplementors = []string{"CategoryConnection"}
+
+func (ec *executionContext) _CategoryConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.CategoryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, categoryConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CategoryConnection")
+		case "edges":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CategoryConnection_edges(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageInfo":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CategoryConnection_pageInfo(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CategoryConnection_totalCount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var categoryEdgeImplementors = []string{"CategoryEdge"}
+
+func (ec *executionContext) _CategoryEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CategoryEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, categoryEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CategoryEdge")
+		case "node":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CategoryEdge_node(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "cursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._CategoryEdge_cursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4607,13 +4943,19 @@ func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋent
 	return ec._CategoryConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCategoryOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚐCategoryOrderField(ctx context.Context, v interface{}) (CategoryOrderField, error) {
-	var res CategoryOrderField
+func (ec *executionContext) unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryOrderField(ctx context.Context, v interface{}) (*ent.CategoryOrderField, error) {
+	var res = new(ent.CategoryOrderField)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCategoryOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚐCategoryOrderField(ctx context.Context, sel ast.SelectionSet, v CategoryOrderField) graphql.Marshaler {
+func (ec *executionContext) marshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.CategoryOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
 	return v
 }
 
@@ -5158,6 +5500,61 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategory(ctx context.Context, sel ast.SelectionSet, v *ent.Category) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Category(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCategoryEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.CategoryEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCategoryEdge2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCategoryEdge2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryEdge(ctx context.Context, sel ast.SelectionSet, v *ent.CategoryEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CategoryEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
