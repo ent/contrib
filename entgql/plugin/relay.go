@@ -92,7 +92,7 @@ func (e *EntGQL) relayConnection(t *gen.Type) {
 			},
 			{
 				Name:        "cursor",
-				Type:        ast.NamedType("Cursor", nil),
+				Type:        ast.NonNullNamedType("Cursor", nil),
 				Description: "A cursor for use in pagination",
 			},
 		},

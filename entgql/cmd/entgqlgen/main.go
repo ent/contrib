@@ -38,7 +38,7 @@ func main() {
 
 	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
 	if err != nil {
-		log.Fatalf("entproto: failed loading ent graph: %v", err)
+		log.Fatalf("entgqlgen: failed loading ent graph: %v", err)
 	}
 
 	cfg, err := config.LoadConfigFromDefaultLocations()

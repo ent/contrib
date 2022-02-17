@@ -100,7 +100,7 @@ type TodoEdge {
 	"""
 	A cursor for use in pagination
 	"""
-	cursor: Cursor
+	cursor: Cursor!
 }
 `, e.print())
 }

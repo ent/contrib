@@ -608,7 +608,7 @@ type TodoEdge {
 	"""
 	A cursor for use in pagination
 	"""
-	cursor: Cursor
+	cursor: Cursor!
 }
 input TodoOrder {
 	direction: OrderDirection!
@@ -2104,11 +2104,14 @@ func (ec *executionContext) _TodoEdge_cursor(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(ent.Cursor)
 	fc.Result = res
-	return ec.marshalOCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
@@ -4065,6 +4068,9 @@ func (ec *executionContext) _TodoEdge(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = innerFunc(ctx)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4621,6 +4627,16 @@ func (ec *executionContext) marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgql
 	return v
 }
 
+func (ec *executionContext) unmarshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
+	var res ent.Cursor
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNDuration2timeᚐDuration(ctx context.Context, v interface{}) (time.Duration, error) {
 	res, err := durationgql.UnmarshalDuration(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5142,16 +5158,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
-	var res ent.Cursor
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {

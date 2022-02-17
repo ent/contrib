@@ -165,7 +165,7 @@ type GroupEdge {
 	"""
 	A cursor for use in pagination
 	"""
-	cursor: Cursor
+	cursor: Cursor!
 }
 type Todo implements Node {
 	name: String!
