@@ -110,11 +110,12 @@ func (e *EntGQL) types() error {
 			return fmt.Errorf("type(%s): %w", t.Name, err)
 		}
 		e.insertDefinition(&ast.Definition{
-			Name:       t.Name,
-			Kind:       ast.Object,
-			Fields:     fields,
-			Interfaces: interfaces,
-			Directives: e.directives(ann.GQLDirectives),
+			Name:        t.Name,
+			Kind:        ast.Object,
+			Fields:      fields,
+			Description: ann.Description,
+			Interfaces:  interfaces,
+			Directives:  e.directives(ann.GQLDirectives),
 		})
 		if ann.RelayConnection {
 			e.relayConnection(t)

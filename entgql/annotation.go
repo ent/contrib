@@ -36,6 +36,8 @@ type Annotation struct {
 	Type string `json:"Type,omitempty"`
 	// Skip exclude the type
 	Skip bool `json:"Skip,omitempty"`
+	// Description is description of the GQL field/type
+	Description string `json:"Description,omitempty"`
 	// RelayConnection expose this node as a relay connection
 	RelayConnection bool `json:"RelayConnection,omitempty"`
 	// GQLName provide alternative name. see: https://gqlgen.com/config/#inline-config-with-directives
@@ -105,6 +107,11 @@ func Skip() Annotation {
 	return Annotation{Skip: true}
 }
 
+// Description returns an description annotation.
+func Description(description string) Annotation {
+	return Annotation{Description: description}
+}
+
 // Skip returns a relay connection annotation.
 func RelayConnection() Annotation {
 	return Annotation{RelayConnection: true}
@@ -137,6 +144,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.Skip {
 		a.Skip = true
+	}
+	if ant.Description != "" {
+		a.Description = ant.Description
 	}
 	if ant.RelayConnection {
 		a.RelayConnection = true

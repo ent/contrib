@@ -548,7 +548,10 @@ type Mutation {
   clearTodos: Int!
 }
 `, BuiltIn: false},
-	{Name: "entgql.graphql", Input: `type Category implements Node {
+	{Name: "entgql.graphql", Input: `"""
+Category is the category of Todo
+"""
+type Category implements Node {
 	id: ID!
 	text: String!
 	status: CategoryStatus!

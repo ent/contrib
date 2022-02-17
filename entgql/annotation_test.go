@@ -37,6 +37,9 @@ func TestAnnotation(t *testing.T) {
 	annotation = entgql.MapsTo(names...)
 	require.True(t, annotation.Unbind)
 	require.ElementsMatch(t, names, annotation.Mapping)
+
+	annotation = entgql.Description("foo field")
+	require.Equal(t, "foo field", annotation.Description)
 }
 
 func TestAnnotationDecode(t *testing.T) {

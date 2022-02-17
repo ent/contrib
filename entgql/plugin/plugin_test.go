@@ -95,7 +95,10 @@ func TestInjectSourceEarly(t *testing.T) {
 	require.Equal(t, expected, s.Input)
 }
 
-var expected = `type Category implements Node {
+var expected = `"""
+Category is the category of Todo
+"""
+type Category implements Node {
 	id: ID!
 	text: String!
 	status: CategoryStatus!
