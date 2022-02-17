@@ -46,31 +46,29 @@ func (Todo) Fields() []ent.Field {
 				"Completed", "COMPLETED",
 			).
 			Annotations(
-				entgql.Annotation{
-					OrderField: "STATUS",
-					GQLDirectives: []entgql.Directive{
-						{
-							Name: "someDirective",
-							Arguments: []entgql.DirectiveArgument{
-								{
-									Name:  "stringArg",
-									Value: "someString",
-									Kind:  ast.StringValue,
-								},
-								{
-									Name:  "boolArg",
-									Value: "FALSE",
-									Kind:  ast.BooleanValue,
-								},
-							},
+				entgql.OrderField("STATUS"),
+				entgql.Directives(
+					entgql.NewDirective("someDirective",
+						entgql.DirectiveArgument{
+							Name:  "stringArg",
+							Value: "someString",
+							Kind:  ast.StringValue,
 						},
-					},
-				},
+						entgql.DirectiveArgument{
+							Name:  "boolArg",
+							Value: "FALSE",
+							Kind:  ast.BooleanValue,
+						},
+					),
+				),
 			),
 		field.Int("priority").
 			Default(0).
 			Annotations(
 				entgql.OrderField("PRIORITY"),
+				entgql.Directives(
+					entgql.DeprecatedDirective("We don't use this field anymore"),
+				),
 			),
 		field.Text("text").
 			NotEmpty().
@@ -84,11 +82,7 @@ func (Todo) Fields() []ent.Field {
 func (Todo) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("children", Todo.Type).
-			//nolint SA1019 we keep this as the example.
-			Annotations(entgql.Bind()).
 			From("parent").
-			//nolint SA1019 we keep this as the example.
-			Annotations(entgql.Bind()).
 			Unique(),
 	}
 }
@@ -97,12 +91,6 @@ func (Todo) Edges() []ent.Edge {
 func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
-		entgql.Annotation{
-			GQLDirectives: []entgql.Directive{
-				{
-					Name: "someDirective",
-				},
-			},
-		},
+		entgql.Directives(entgql.NewDirective("someDirective")),
 	}
 }

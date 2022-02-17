@@ -115,7 +115,7 @@ func (e *EntGQL) types() error {
 			Fields:      fields,
 			Description: ann.Description,
 			Interfaces:  interfaces,
-			Directives:  e.directives(ann.GQLDirectives),
+			Directives:  e.directives(ann.Directives),
 		})
 		if ann.RelayConnection {
 			e.relayConnection(t)

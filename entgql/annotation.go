@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 
 	"entgo.io/ent/schema"
-	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // Annotation annotates fields and edges with metadata for templates.
@@ -36,27 +35,16 @@ type Annotation struct {
 	Type string `json:"Type,omitempty"`
 	// Skip exclude the type
 	Skip bool `json:"Skip,omitempty"`
-	// Description is description of the GQL field/type
+	// Description is description of the GQL field/type.
 	Description string `json:"Description,omitempty"`
-	// RelayConnection expose this node as a relay connection
+	// Directives to add on the field/type.
+	Directives []Directive `json:"Directives,omitempty"`
+	// RelayConnection expose this node as a relay connection.
 	RelayConnection bool `json:"RelayConnection,omitempty"`
 	// GQLName provide alternative name. see: https://gqlgen.com/config/#inline-config-with-directives
 	GQLName string `json:"GQLName,omitempty"`
-	// GQLImplements extra interfaces that are implemented
+	// GQLImplements extra interfaces that are implemented.
 	GQLImplements []string `json:"GQLImplements,omitempty"`
-	// GQLDirectives directives to add
-	GQLDirectives []Directive `json:"GQLDirectives,omitempty"`
-}
-
-type Directive struct {
-	Name      string              `json:"name,omitempty"`
-	Arguments []DirectiveArgument `json:"arguments,omitempty"`
-}
-
-type DirectiveArgument struct {
-	Name  string        `json:"name,omitempty"`
-	Value string        `json:"value,omitempty"`
-	Kind  ast.ValueKind `json:"kind,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
@@ -112,7 +100,12 @@ func Description(description string) Annotation {
 	return Annotation{Description: description}
 }
 
-// Skip returns a relay connection annotation.
+// Directives returns an directives annotation.
+func Directives(directives ...Directive) Annotation {
+	return Annotation{Directives: directives}
+}
+
+// RelayConnection returns a relay connection annotation.
 func RelayConnection() Annotation {
 	return Annotation{RelayConnection: true}
 }
@@ -154,8 +147,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.GQLName != "" {
 		a.GQLName = ant.GQLName
 	}
-	if len(ant.GQLDirectives) > 0 {
-		a.GQLDirectives = append(a.GQLDirectives, ant.GQLDirectives...)
+	if len(ant.Directives) > 0 {
+		a.Directives = append(a.Directives, ant.Directives...)
 	}
 	if len(ant.GQLImplements) > 0 {
 		a.GQLImplements = append(a.GQLImplements, ant.GQLImplements...)

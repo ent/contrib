@@ -201,7 +201,7 @@ type Todo implements Node @someDirective {
 	id: ID!
 	createdAt: Time!
 	status: Status! @someDirective(stringArg: "someString", boolArg: FALSE)
-	priority: Int!
+	priority: Int! @deprecated(reason: "We don't use this field anymore")
 	text: String!
 }
 """

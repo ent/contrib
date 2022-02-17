@@ -65,7 +65,7 @@ func (e *EntGQL) typeField(f *gen.Field, idField bool) (*ast.FieldDefinition, er
 		Name:        camel(f.Name),
 		Type:        ft,
 		Description: ann.Description,
-		Directives:  e.directives(ann.GQLDirectives),
+		Directives:  e.directives(ann.Directives),
 	}, nil
 }
 
