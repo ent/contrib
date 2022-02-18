@@ -77,7 +77,6 @@ var (
 
 func parseT(path string) *gen.Template {
 	return gen.MustParse(gen.NewTemplate(path).
-		Funcs(gen.Funcs).
 		Funcs(TemplateFuncs).
 		ParseFS(templates, path))
 }
