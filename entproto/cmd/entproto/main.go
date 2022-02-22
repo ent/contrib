@@ -15,6 +15,7 @@
 package main
 
 import (
+	"entgo.io/ent/schema/field"
 	"flag"
 	"log"
 
@@ -26,16 +27,32 @@ import (
 func main() {
 	var (
 		schemaPath = flag.String("path", "", "path to schema directory")
+		idtype     = flag.String("idtype", "int", "ent id type")
 	)
 	flag.Parse()
 	if *schemaPath == "" {
 		log.Fatal("entproto: must specify schema path. use entproto -path ./ent/schema")
 	}
-	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
+	cfg := &gen.Config{}
+	cfg.IDType = &field.TypeInfo{Type: str2Type(idtype)}
+	graph, err := entc.LoadGraph(*schemaPath, cfg)
 	if err != nil {
 		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}
 	if err := entproto.Generate(graph); err != nil {
 		log.Fatalf("entproto: failed generating protos: %s", err)
+	}
+}
+
+func str2Type(t *string) field.Type {
+	switch *t {
+	case field.TypeInt.String():
+		return field.TypeInt
+	case field.TypeInt64.String():
+		return field.TypeInt64
+	case field.TypeString.String():
+		return field.TypeString
+	default:
+		return field.TypeInvalid
 	}
 }
