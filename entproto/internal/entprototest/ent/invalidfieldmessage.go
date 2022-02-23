@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/invalidfieldmessage"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/schema"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/schema"
 	"entgo.io/ent/dialect/sql"
 )
 

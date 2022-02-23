@@ -3,9 +3,9 @@
 package ent
 
 import (
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/attachment"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/schema"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/user"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/attachment"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/schema"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/user"
 	"github.com/google/uuid"
 )
 

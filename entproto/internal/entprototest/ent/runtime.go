@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/schema"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

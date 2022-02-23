@@ -18,7 +18,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"flag"
 	"fmt"
-	"github.com/bionicstork/bionicstork/pkg/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"log"
 
 	"entgo.io/ent/entc"

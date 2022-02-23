@@ -5,8 +5,8 @@ package user
 import (
 	"time"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/predicate"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/schema"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"

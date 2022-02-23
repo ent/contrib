@@ -22,7 +22,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
-	"github.com/bionicstork/bionicstork/pkg/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
@@ -106,7 +106,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor, no
 	case efld.Type.Numeric():
 		out.ToEntConversion = efld.Type.String()
 	case efld.IsTime():
-		out.ToEntConstructor = protogen.GoImportPath("github.com/bionicstork/bionicstork/pkg/entproto/runtime").Ident("ExtractTime")
+		out.ToEntConstructor = protogen.GoImportPath("github.com/bionicstork/contrib/entproto/runtime").Ident("ExtractTime")
 	case efld.IsEnum():
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)

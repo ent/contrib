@@ -21,11 +21,11 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/bionicstork/contrib/entproto"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/descriptorpb"
 )

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/predicate"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/twomethodservice"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

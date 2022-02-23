@@ -4,9 +4,9 @@ package entpb
 import (
 	context "context"
 	base64 "encoding/base64"
-	entproto "github.com/bionicstork/bionicstork/pkg/entproto"
-	ent "github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent"
-	multiwordschema "github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/multiwordschema"
+	entproto "github.com/bionicstork/contrib/entproto"
+	ent "github.com/bionicstork/contrib/entproto/internal/todo/ent"
+	multiwordschema "github.com/bionicstork/contrib/entproto/internal/todo/ent/multiwordschema"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
 	codes "google.golang.org/grpc/codes"

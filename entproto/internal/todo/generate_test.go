@@ -23,7 +23,7 @@ import (
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"github.com/bionicstork/bionicstork/pkg/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"github.com/stretchr/testify/require"
 )
 

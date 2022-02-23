@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/enttest"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/enttest"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"

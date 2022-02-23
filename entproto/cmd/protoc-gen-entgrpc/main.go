@@ -30,17 +30,17 @@ import (
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"github.com/bionicstork/bionicstork/pkg/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 var (
-	entSchemaPath     *string
-	entSchemaTarget   *string
-	idType   		  *string
-	snake         = gen.Funcs["snake"].(func(string) string)
-	status        = protogen.GoImportPath("google.golang.org/grpc/status")
-	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
+	entSchemaPath   *string
+	entSchemaTarget *string
+	idType          *string
+	snake           = gen.Funcs["snake"].(func(string) string)
+	status          = protogen.GoImportPath("google.golang.org/grpc/status")
+	codes           = protogen.GoImportPath("google.golang.org/grpc/codes")
 )
 
 func main() {

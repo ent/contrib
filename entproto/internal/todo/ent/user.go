@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/attachment"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/group"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/pet"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/schema"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/skipedgeexample"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/user"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/attachment"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/group"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/pet"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/schema"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/skipedgeexample"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )

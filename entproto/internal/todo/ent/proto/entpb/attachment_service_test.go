@@ -20,9 +20,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/enttest"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/user"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/enttest"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/user"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"

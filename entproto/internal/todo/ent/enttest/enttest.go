@@ -5,9 +5,9 @@ package enttest
 import (
 	"context"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent"
 	// required by schema hooks.
-	_ "github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/runtime"
+	_ "github.com/bionicstork/contrib/entproto/internal/todo/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

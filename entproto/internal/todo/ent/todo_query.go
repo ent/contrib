@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/predicate"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/todo"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/user"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/todo"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

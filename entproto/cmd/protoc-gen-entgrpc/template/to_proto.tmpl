@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/bionicstork/bionicstork/pkg/entproto/cmd/protoc-gen-entgrpc.toProtoGenerator */ -}}
+{{- /*gotype: github.com/bionicstork/contrib/entproto/cmd/protoc-gen-entgrpc.toProtoGenerator */ -}}
 {{ define "to_proto_func" }}
     {{ $firstNode := index .Nodes 0 }}
     package {{ $firstNode.File.GoPackageName }}

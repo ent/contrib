@@ -15,10 +15,10 @@
 package schema
 
 import (
-	"github.com/bionicstork/bionicstork/pkg/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
+	"github.com/bionicstork/contrib/entproto"
 )
 
 // MessageWithID holds the schema definition for the MessageWithID entity.

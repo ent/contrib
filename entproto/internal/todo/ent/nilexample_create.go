@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/nilexample"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/twomethodservice"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

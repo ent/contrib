@@ -3,7 +3,7 @@
 package user
 
 import (
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )

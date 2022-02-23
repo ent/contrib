@@ -11,7 +11,7 @@
     case pageSize < 0:
     return nil, {{ statusErrf "InvalidArgument" "page size cannot be less than zero" }}
     case pageSize == 0 || pageSize > entproto.MaxPageSize:
-    pageSize = {{ qualify "github.com/bionicstork/bionicstork/pkg/entproto" "MaxPageSize" }}
+    pageSize = {{ qualify "github.com/bionicstork/contrib/entproto" "MaxPageSize" }}
     }
     listQuery := svc.client.{{ .G.EntType.Name }}.Query().WhereByEdge(req.Id, req.Type).
     Order(database.Desc({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "FieldID" }})).

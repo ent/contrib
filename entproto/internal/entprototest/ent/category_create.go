@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/blogpost"
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/category"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/blogpost"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

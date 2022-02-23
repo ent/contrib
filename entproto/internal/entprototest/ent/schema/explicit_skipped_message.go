@@ -19,7 +19,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/mixin"
 
-	"github.com/bionicstork/bionicstork/pkg/entproto"
+	"github.com/bionicstork/contrib/entproto"
 )
 
 // ExplicitSkippedMessage holds the schema definition for the ExplicitSkippedMessage entity.

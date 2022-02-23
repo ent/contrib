@@ -3,7 +3,7 @@
 package multiwordschema
 
 import (
-	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 )
 
