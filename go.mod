@@ -1,4 +1,4 @@
-module entgo.io/contrib
+module github.com/bionicstork/contrib
 
 go 1.17
 
