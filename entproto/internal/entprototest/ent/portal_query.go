@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/category"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/portal"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

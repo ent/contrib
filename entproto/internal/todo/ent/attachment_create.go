@@ -6,8 +6,8 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
-	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/attachment"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"

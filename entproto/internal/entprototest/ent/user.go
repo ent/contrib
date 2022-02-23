@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/image"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/skipedgeexample"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )

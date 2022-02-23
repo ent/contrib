@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent"
 )
 
 // The AllMethodsServiceFunc type is an adapter to allow the use of ordinary

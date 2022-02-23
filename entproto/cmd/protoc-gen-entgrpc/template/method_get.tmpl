@@ -1,4 +1,4 @@
-{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
+{{- /*gotype: github.com/bionicstork/bionicstork/pkg/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_get" }}
     {{- $idField := .G.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
@@ -16,7 +16,7 @@
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
             {{ range .G.FieldMap.Edges }}
                 {{- $et := .EntEdge.Type -}}
-                With{{ .EntEdge.StructField }}(func(query *ent.{{ $et.Name }}Query) {
+                With{{ .EntEdge.StructField }}(func(query *database.{{ $et.Name }}Query) {
                     query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
                 }).
             {{ end }}

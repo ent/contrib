@@ -17,6 +17,7 @@ package entproto
 import (
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"path"
 	"path/filepath"
 	"strings"
@@ -34,6 +35,7 @@ import (
 const (
 	DefaultProtoPackageName = "entpb"
 	IDFieldNumber           = 1
+	NodesTypesEnumName      = "EntityTypes"
 )
 
 var (
@@ -56,14 +58,19 @@ var (
 )
 
 // LoadAdapter takes a *gen.Graph and parses it into protobuf file descriptors
-func LoadAdapter(graph *gen.Graph) (*Adapter, error) {
+func LoadAdapter(graph *gen.Graph, goPackagePath string) (*Adapter, error) {
 	a := &Adapter{
 		graph:            graph,
 		descriptors:      make(map[string]*desc.FileDescriptor),
 		schemaProtoFiles: make(map[string]string),
 		errors:           make(map[string]error),
+		goPackagePath:    goPackagePath,
 	}
 	if err := a.parse(); err != nil {
+		log.Error("The following errors occurred during the schema parsing:")
+		for name, e := range a.errors {
+			log.Errorf("%s - %v", name, e)
+		}
 		return nil, err
 	}
 	return a, nil
@@ -75,6 +82,7 @@ type Adapter struct {
 	descriptors      map[string]*desc.FileDescriptor
 	schemaProtoFiles map[string]string
 	errors           map[string]error
+	goPackagePath    string
 }
 
 // AllFileDescriptors returns a file descriptor per proto package for each package that contains
@@ -100,11 +108,22 @@ func (a *Adapter) GetMessageDescriptor(schemaName string) (*desc.MessageDescript
 // parse transforms the ent gen.Type objects into file descriptors
 func (a *Adapter) parse() error {
 	var dpbDescriptors []*descriptorpb.FileDescriptorProto
+	var createdQueryByEdgeRequest bool
+
+	nodeTypesEnum := descriptorpb.EnumDescriptorProto{Name: strptr(NodesTypesEnumName),
+		Value: []*descriptorpb.EnumValueDescriptorProto{
+			{Number: int32ptr(0), Name: strptr("Unspecified")},
+		},
+	}
+	// This is a hack the relay on us using only one package
+	var pkgName string
 
 	protoPackages := make(map[string]*descriptorpb.FileDescriptorProto)
 
 	for _, genType := range a.graph.Nodes {
 		messageDescriptor, err := a.toProtoMessageDescriptor(genType)
+
+		nodeTypesEnum = a.appendTypesEnum(nodeTypesEnum, genType)
 
 		// store specific message parse failures
 		if err != nil {
@@ -119,6 +138,7 @@ func (a *Adapter) parse() error {
 		}
 
 		if _, ok := protoPackages[protoPkg]; !ok {
+			pkgName = protoPkg
 			goPkg := a.goPackageName(protoPkg)
 			protoPackages[protoPkg] = &descriptorpb.FileDescriptorProto{
 				Name:    relFileName(protoPkg),
@@ -147,7 +167,13 @@ func (a *Adapter) parse() error {
 		if err != nil {
 			return err
 		}
+
 		if svcAnnotation.Generate {
+			// Only add QueryByEdge once, otherwise there's a duplication between the services
+			if !createdQueryByEdgeRequest {
+				fd.MessageType = append(fd.MessageType, &queryByEdgeRequest, &queryByEdgeRequestPaginated)
+				createdQueryByEdgeRequest = true
+			}
 			svcResources, err := a.createServiceResources(genType, svcAnnotation.Methods)
 			if err != nil {
 				return err
@@ -167,6 +193,9 @@ func (a *Adapter) parse() error {
 		dpbDescriptors = append(dpbDescriptors, typeDesc.AsFileDescriptorProto())
 	}
 
+	if protoPackages[pkgName] != nil {
+		protoPackages[pkgName].EnumType = append(protoPackages[pkgName].EnumType, &nodeTypesEnum)
+	}
 	for _, fd := range protoPackages {
 		fd.Dependency = dedupe(fd.Dependency)
 		dpbDescriptors = append(dpbDescriptors, fd)
@@ -203,6 +232,9 @@ func (a *Adapter) parse() error {
 }
 
 func (a *Adapter) goPackageName(protoPkgName string) string {
+	if a.goPackagePath != "" {
+		return a.goPackagePath
+	}
 	// TODO(rotemtam): make this configurable from an annotation
 	entBase := a.graph.Config.Package
 	slashed := strings.ReplaceAll(protoPkgName, ".", "/")
@@ -229,7 +261,7 @@ func (a *Adapter) GetFileDescriptor(schemaName string) (*desc.FileDescriptor, er
 }
 
 func protoPackageName(genType *gen.Type) (string, error) {
-	msgAnnot, err := extractMessageAnnotation(genType)
+	msgAnnot, err := ExtractMessageAnnotation(genType)
 	if err != nil {
 		return "", err
 	}
@@ -296,15 +328,16 @@ func extractLastFqnPart(fqn string) string {
 }
 
 type unsupportedTypeError struct {
-	Type *field.TypeInfo
+	Type  *field.TypeInfo
+	Ident string
 }
 
 func (e unsupportedTypeError) Error() string {
-	return fmt.Sprintf("unsupported field type %q", e.Type.ConstName())
+	return fmt.Sprintf("unsupported field type %q (%s)", e.Type.ConstName(), e.Ident)
 }
 
 func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.DescriptorProto, error) {
-	msgAnnot, err := extractMessageAnnotation(genType)
+	msgAnnot, err := ExtractMessageAnnotation(genType)
 	if err != nil || !msgAnnot.Generate {
 		return nil, ErrSchemaSkipped
 	}
@@ -402,12 +435,12 @@ func (a *Adapter) extractEdgeFieldDescriptor(source *gen.Type, e *gen.Edge) (*de
 	if err != nil {
 		return nil, err
 	}
-	dstAnnotation, err := extractMessageAnnotation(relType)
+	dstAnnotation, err := ExtractMessageAnnotation(relType)
 	if err != nil || !dstAnnotation.Generate {
 		return nil, fmt.Errorf("entproto: message %q is not generated", msgTypeName)
 	}
 
-	sourceAnnotation, err := extractMessageAnnotation(source)
+	sourceAnnotation, err := ExtractMessageAnnotation(source)
 	if err != nil {
 		return nil, err
 	}
@@ -419,6 +452,21 @@ func (a *Adapter) extractEdgeFieldDescriptor(source *gen.Type, e *gen.Edge) (*de
 	}
 
 	return fieldDesc, nil
+}
+
+func (a *Adapter) appendTypesEnum(typesEnum descriptorpb.EnumDescriptorProto, genType *gen.Type) descriptorpb.EnumDescriptorProto {
+	msg, err := ExtractMessageAnnotation(genType)
+	if err != nil {
+		return typesEnum
+	}
+	if msg.TableNumber == 0 {
+		return typesEnum
+	}
+	typesEnum.Value = append(typesEnum.Value, &descriptorpb.EnumValueDescriptorProto{
+		Number: int32ptr(msg.TableNumber),
+		// so enum name will be different from message name
+		Name: strptr(genType.Name + "Entity")})
+	return typesEnum
 }
 
 func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, error) {
@@ -462,6 +510,7 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	if err != nil {
 		return nil, err
 	}
+
 	fieldNumber := int32(fann.Number)
 	if fieldNumber == 1 && strings.ToUpper(f.Name) != "ID" {
 		return nil, fmt.Errorf("entproto: field %q has number 1 which is reserved for id", f.Name)
@@ -479,6 +528,7 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 		return nil, err
 	}
 	fieldDesc.Type = &typeDetails.protoType
+	fieldDesc.Label = &typeDetails.protoLabel
 	if typeDetails.messageName != "" {
 		fieldDesc.TypeName = &typeDetails.messageName
 	}
@@ -491,14 +541,11 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	if f.Optional {
-		if cfg.optionalType == "" {
-			return fieldType{}, unsupportedTypeError{Type: f.Type}
+	if cfg.getByIdent != nil {
+		cfg = cfg.getByIdent(f)
+		if !ok || cfg.unsupported {
+			return fieldType{}, unsupportedTypeError{Type: f.Type, Ident: f.Type.Ident}
 		}
-		return fieldType{
-			protoType:   descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
-			messageName: cfg.optionalType,
-		}, nil
 	}
 	name := cfg.msgTypeName
 	if cfg.namer != nil {
@@ -506,6 +553,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	}
 	return fieldType{
 		protoType:   cfg.pbType,
+		protoLabel:  cfg.pbLabel,
 		messageName: name,
 	}, nil
 }
@@ -513,6 +561,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 type fieldType struct {
 	messageName string
 	protoType   descriptorpb.FieldDescriptorProto_Type
+	protoLabel  descriptorpb.FieldDescriptorProto_Label
 }
 
 func strptr(s string) *string {

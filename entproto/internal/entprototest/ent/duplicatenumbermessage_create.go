@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/duplicatenumbermessage"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

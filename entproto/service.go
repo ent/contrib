@@ -15,6 +15,7 @@
 package entproto
 
 import (
+	"entgo.io/ent/schema/field"
 	"errors"
 	"fmt"
 
@@ -40,12 +41,80 @@ const (
 	MethodDelete
 	// MethodList generates a List gRPC service method for the entproto.Service.
 	MethodList
+
+	MethodListByRelatedTo
+
+	MethodListByRelatedToPaginated
 	// MethodAll generates all service methods for the entproto.Service. This is the same behavior as not including entproto.Methods.
-	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete | MethodList
+	MethodAll = MethodCreate | MethodGet | MethodUpdate | MethodDelete | MethodList | MethodListByRelatedTo | MethodListByRelatedToPaginated
 )
 
 var (
 	errNoServiceDef = errors.New("entproto: annotation entproto.Service missing")
+
+	int32FieldType        = descriptorpb.FieldDescriptorProto_TYPE_INT32
+	uint64FieldType       = descriptorpb.FieldDescriptorProto_TYPE_UINT64
+	stringFieldType       = descriptorpb.FieldDescriptorProto_TYPE_STRING
+	protoEnumFieldType    = descriptorpb.FieldDescriptorProto_TYPE_ENUM
+	protoMessageFieldType = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
+
+	queryByEdgeRequest = descriptorpb.DescriptorProto{
+		Name: strptr("ByEntityRequest"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:   strptr("id"),
+				Number: int32ptr(1),
+				Type:   &uint64FieldType,
+			},
+			{
+				Name:     strptr("type"),
+				Number:   int32ptr(2),
+				Type:     &protoEnumFieldType,
+				TypeName: strptr(NodesTypesEnumName),
+			},
+		},
+	}
+
+	queryByEdgeRequestPaginated = descriptorpb.DescriptorProto{
+		Name: strptr("ByEntityRequestPaginated"),
+		Field: []*descriptorpb.FieldDescriptorProto{
+			{
+				Name:   strptr("id"),
+				Number: int32ptr(1),
+				Type:   &uint64FieldType,
+			},
+			{
+				Name:     strptr("type"),
+				Number:   int32ptr(2),
+				Type:     &protoEnumFieldType,
+				TypeName: strptr(NodesTypesEnumName),
+			},
+			{
+				Name:   strptr("page_size"),
+				Number: int32ptr(3),
+				Type:   &int32FieldType,
+			},
+			{
+				Name:   strptr("page_token"),
+				Number: int32ptr(4),
+				Type:   &stringFieldType,
+			},
+			{
+				Name:     strptr("view"),
+				Number:   int32ptr(5),
+				Type:     &protoEnumFieldType,
+				TypeName: strptr("View"),
+			},
+		},
+		EnumType: []*descriptorpb.EnumDescriptorProto{{
+			Name: strptr("View"),
+			Value: []*descriptorpb.EnumValueDescriptorProto{
+				{Number: int32ptr(0), Name: strptr("VIEW_UNSPECIFIED")},
+				{Number: int32ptr(1), Name: strptr("BASIC")},
+				{Number: int32ptr(2), Name: strptr("WITH_EDGE_IDS")},
+			},
+		},
+		}}
 )
 
 type Method uint
@@ -97,7 +166,7 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 		},
 	}
 
-	for _, m := range []Method{MethodCreate, MethodGet, MethodUpdate, MethodDelete, MethodList} {
+	for _, m := range []Method{MethodCreate, MethodGet, MethodUpdate, MethodDelete, MethodList, MethodListByRelatedTo, MethodListByRelatedToPaginated} {
 		if !methods.Is(m) {
 			continue
 		}
@@ -119,8 +188,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	if err != nil {
 		return methodResources{}, err
 	}
-	protoMessageFieldType := descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
-	protoEnumFieldType := descriptorpb.FieldDescriptorProto_TYPE_ENUM
+
 	singleMessageField := &descriptorpb.FieldDescriptorProto{
 		Name:     strptr(snake(genType.Name)),
 		Number:   int32ptr(1),
@@ -154,6 +222,48 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		})
 		outputName = genType.Name
 		messages = append(messages, input)
+	case MethodListByRelatedTo:
+		methodName = "ListByRelatedTo"
+
+		input = &queryByEdgeRequest
+		outputName = fmt.Sprintf("List%sResponse", genType.Name)
+		output := &descriptorpb.DescriptorProto{
+			Name: &outputName,
+			Field: []*descriptorpb.FieldDescriptorProto{
+				{
+					Name:     strptr(snake(genType.Name) + "_list"),
+					Number:   int32ptr(1),
+					Label:    &repeatedFieldLabel,
+					Type:     &protoMessageFieldType,
+					TypeName: strptr(genType.Name),
+				},
+			},
+		}
+		messages = append(messages, output)
+
+	case MethodListByRelatedToPaginated:
+		methodName = "ListByRelatedToPaginated"
+
+		input = &queryByEdgeRequestPaginated
+		outputName = fmt.Sprintf("List%sPaginatedResponse", genType.Name)
+		output := &descriptorpb.DescriptorProto{
+			Name: &outputName,
+			Field: []*descriptorpb.FieldDescriptorProto{
+				{
+					Name:     strptr(snake(genType.Name) + "_list"),
+					Number:   int32ptr(1),
+					Label:    &repeatedFieldLabel,
+					Type:     &protoMessageFieldType,
+					TypeName: strptr(genType.Name),
+				},
+				{
+					Name:   strptr("next_page_token"),
+					Number: int32ptr(2),
+					Type:   &stringFieldType,
+				},
+			},
+		}
+		messages = append(messages, output)
 	case MethodCreate:
 		methodName = "Create"
 		input.Name = strptr(fmt.Sprintf("Create%sRequest", genType.Name))
@@ -173,16 +283,15 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		outputName = "google.protobuf.Empty"
 		messages = append(messages, input)
 	case MethodList:
-		if !(genType.ID.IsInt() || genType.ID.IsUUID() || genType.ID.IsString()) {
+		if !(genType.ID.IsInt() || genType.ID.IsUUID() || genType.ID.IsString() || (genType.ID.Type != nil && genType.ID.Type.Type == field.TypeUint64)) {
 			return methodResources{}, fmt.Errorf("entproto: list method does not support schema %q id type %q",
 				genType.Name, genType.ID.Type.String())
 		}
 
 		methodName = "List"
-		int32FieldType := descriptorpb.FieldDescriptorProto_TYPE_INT32
-		stringFieldType := descriptorpb.FieldDescriptorProto_TYPE_STRING
-		repeatedFieldLabel := descriptorpb.FieldDescriptorProto_LABEL_REPEATED
-		input.Name = strptr(fmt.Sprintf("List%sRequest", genType.Name))
+		// TODO: changed the original name (List%sRequest) to ListAll%sRequest because otherwise it clashed with
+		//       ListByRelatedTo response type and raises a duplication error. Should be handled if we ever use this API.
+		input.Name = strptr(fmt.Sprintf("ListAll%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{
 			{
 				Name:   strptr("page_size"),

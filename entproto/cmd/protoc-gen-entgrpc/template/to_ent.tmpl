@@ -1,7 +1,7 @@
-{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.serviceGenerator*/ -}}
+{{- /*gotype: github.com/bionicstork/bionicstork/pkg/entproto/cmd/protoc-gen-entgrpc.serviceGenerator*/ -}}
 {{ define "field_to_ent" }}
     {{- $id := .Ident -}}
-    {{- $conv := newConverter .Field -}}
+    {{- $conv := newConverter .Field "" -}}
     {{- if $conv.ToEntModifier -}}
         {{- $id = print $id $conv.ToEntModifier -}}
     {{- end -}}

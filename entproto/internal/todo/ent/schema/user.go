@@ -21,7 +21,7 @@ import (
 	"math/big"
 	"strings"
 
-	"entgo.io/contrib/entproto"
+	"github.com/bionicstork/bionicstork/pkg/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"

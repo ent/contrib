@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/ent/dialect/sql"
 )
 

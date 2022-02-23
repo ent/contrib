@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"math"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/image"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/predicate"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

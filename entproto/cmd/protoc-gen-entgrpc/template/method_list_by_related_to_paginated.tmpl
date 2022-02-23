@@ -1,0 +1,77 @@
+{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
+{{ define "method_list_by_related_to_paginated" }}
+    {{- $inputName := .Method.Input.GoIdent.GoName -}}
+    var (
+    err error
+    entList []*database.{{ .G.EntType.Name }}
+    pageSize int
+    )
+    pageSize = int(req.GetPageSize())
+    switch {
+    case pageSize < 0:
+    return nil, {{ statusErrf "InvalidArgument" "page size cannot be less than zero" }}
+    case pageSize == 0 || pageSize > entproto.MaxPageSize:
+    pageSize = {{ qualify "github.com/bionicstork/bionicstork/pkg/entproto" "MaxPageSize" }}
+    }
+    listQuery := svc.client.{{ .G.EntType.Name }}.Query().WhereByEdge(req.Id, req.Type).
+    Order(database.Desc({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "FieldID" }})).
+    Limit(pageSize + 1)
+    if req.GetPageToken() != "" {
+    bytes, err := {{ qualify "encoding/base64" "StdEncoding.DecodeString" }}(req.PageToken)
+    if err != nil {
+    return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+    }
+    {{- if .G.EntType.ID.IsInt }}
+        token, err := {{ qualify "strconv" "ParseInt" }}(string(bytes), 10, 32)
+        if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+        }
+        pageToken := uint64(token)
+    {{- else if .G.EntType.ID.IsUUID }}
+        pageToken, err := {{ qualify "github.com/google/uuid" "ParseBytes" }}(bytes)
+        if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+        }
+    {{- else if .G.EntType.ID.IsString }}
+        pageToken := string(bytes)
+    {{- end }}
+    listQuery = listQuery.
+    Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken))
+    }
+    switch req.GetView() {
+    case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
+    entList, err = listQuery.All(ctx)
+    case {{ $inputName }}_WITH_EDGE_IDS:
+    entList, err = listQuery.
+    {{ range .G.FieldMap.Edges }}
+        {{- $et := .EntEdge.Type -}}
+        With{{ .EntEdge.StructField }}(func(query *database.{{ $et.Name }}Query) {
+        query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
+        }).
+    {{ end }}
+    All(ctx)
+    }
+    switch {
+    case err == nil:
+    var nextPageToken string
+    if len(entList) == pageSize + 1 {
+    nextPageToken = {{ qualify "encoding/base64" "StdEncoding.EncodeToString" }}(
+    []byte({{ qualify "fmt" "Sprintf" }}("%v", entList[len(entList)-1].ID)))
+    entList = entList[:len(entList)-1]
+    }
+    var pbList []*{{ .G.EntType.Name }}
+    for _, entEntity := range entList {
+    pbEntity, err := toProto{{ .G.EntType.Name }}(entEntity)
+    if err != nil {
+    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+    }
+    pbList = append(pbList, pbEntity)
+    }
+    return &List{{ .G.EntType.Name }}PaginatedResponse{
+    {{ .G.EntType.Name }}List: pbList,
+    NextPageToken: nextPageToken,
+    }, nil
+    default:
+    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+    }
+{{ end }}

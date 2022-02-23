@@ -3,8 +3,8 @@
 package messagewithid
 
 import (
-	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

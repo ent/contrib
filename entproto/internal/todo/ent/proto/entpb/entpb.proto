@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 
 import "google/protobuf/wrappers.proto";
 
-option go_package = "entgo.io/contrib/entproto/internal/todo/ent/proto/entpb";
+option go_package = "github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/proto/entpb";
 
 message Attachment {
   bytes id = 1;

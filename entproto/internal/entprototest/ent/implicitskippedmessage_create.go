@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/implicitskippedmessage"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

@@ -18,9 +18,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"github.com/bionicstork/bionicstork/pkg/entproto"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -36,7 +36,7 @@ func (suite *AdapterTestSuite) SetupSuite() {
 	if err != nil {
 		suite.FailNowf("test suite init failed", "%v", err)
 	}
-	adapter, err := entproto.LoadAdapter(graph)
+	adapter, err := entproto.LoadAdapter(graph, "")
 	if err != nil {
 		suite.FailNowf("test suite failed", "%v", err)
 	}
@@ -53,7 +53,7 @@ func (suite *AdapterTestSuite) TestValidMessage() {
 
 	suite.Equal(filepath.Join("entpb", "entpb.proto"), fd.GetName())
 
-	suite.Equal("entgo.io/contrib/entproto/internal/entprototest/ent/proto/entpb",
+	suite.Equal("github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/proto/entpb",
 		fd.GetFileOptions().GetGoPackage())
 	message := fd.FindMessage("entpb.ValidMessage")
 	suite.Len(message.GetFields(), 6)
@@ -129,7 +129,7 @@ func (suite *AdapterTestSuite) TestMessageWithPackageName() {
 	fd, err := suite.adapter.GetFileDescriptor("MessageWithPackageName")
 	suite.NoError(err)
 	suite.Equal(filepath.Join("io", "entgo", "apps", "todo", "todo.proto"), fd.GetName())
-	suite.Equal("entgo.io/contrib/entproto/internal/entprototest/ent/proto/io/entgo/apps/todo",
+	suite.Equal("github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/proto/io/entgo/apps/todo",
 		fd.GetFileOptions().GetGoPackage())
 }
 

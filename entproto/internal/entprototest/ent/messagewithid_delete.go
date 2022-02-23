@@ -6,8 +6,8 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/messagewithid"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

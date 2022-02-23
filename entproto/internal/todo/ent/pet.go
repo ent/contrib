@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entproto/internal/todo/ent/pet"
-	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/pet"
+	"github.com/bionicstork/bionicstork/pkg/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 )
 
