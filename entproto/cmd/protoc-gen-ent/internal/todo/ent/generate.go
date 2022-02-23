@@ -14,6 +14,6 @@
 
 package ent
 
-//go:generate go get entgo.io/contrib/entproto/cmd/protoc-gen-ent
+//go:generate go get github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent
 //go:generate protoc -I=../../../ --ent_out=. --ent_opt=schemadir=./schema ../../../internal/todo/ent/proto/todo/task.proto
 //go:generate go run -mod=mod entgo.io/ent/cmd/ent generate ./schema

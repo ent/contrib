@@ -7,7 +7,7 @@ A protoc plugin to generate ent schemas from .proto files.
 Install the plugin:
 
 ```shell
-go get entgo.io/contrib/entproto/cmd/protoc-gen-ent
+go get github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent
 ```
 
 Get `entproto/cmd/protoc-gen-ent/options/opts.proto` from this repository and place it in your project. For example,

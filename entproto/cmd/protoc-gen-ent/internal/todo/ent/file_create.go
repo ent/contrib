@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/file"
+	"github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/file"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

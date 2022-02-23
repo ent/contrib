@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 
-	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/predicate"
-	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/task"
+	"github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/task"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
