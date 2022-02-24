@@ -23,7 +23,7 @@ import (
 )
 
 func (e *EntGQL) scalars() {
-	for scalar := range e.scalarMappings {
+	for _, scalar := range e.scalarMappings {
 		switch scalar {
 		case "Int", "Float", "String", "Boolean", "ID":
 			// Ignore builtins
