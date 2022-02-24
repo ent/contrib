@@ -30,6 +30,8 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
+	// FieldVisibilityStatus holds the string denoting the visibility_status field in the database.
+	FieldVisibilityStatus = "visibility_status"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldPriority holds the string denoting the priority field in the database.
@@ -56,6 +58,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
+	FieldVisibilityStatus,
 	FieldStatus,
 	FieldPriority,
 	FieldText,
@@ -92,6 +95,32 @@ var (
 	TextValidator func(string) error
 )
 
+// VisibilityStatus defines the type for the "visibility_status" enum field.
+type VisibilityStatus string
+
+// VisibilityStatusHidden is the default value of the VisibilityStatus enum.
+const DefaultVisibilityStatus = VisibilityStatusHidden
+
+// VisibilityStatus values.
+const (
+	VisibilityStatusListing VisibilityStatus = "LISTING"
+	VisibilityStatusHidden  VisibilityStatus = "HIDDEN"
+)
+
+func (vs VisibilityStatus) String() string {
+	return string(vs)
+}
+
+// VisibilityStatusValidator is a validator for the "visibility_status" field enum values. It is called by the builders before save.
+func VisibilityStatusValidator(vs VisibilityStatus) error {
+	switch vs {
+	case VisibilityStatusListing, VisibilityStatusHidden:
+		return nil
+	default:
+		return fmt.Errorf("todo: invalid enum value for visibility_status field: %q", vs)
+	}
+}
+
 // Status defines the type for the "status" enum field.
 type Status string
 
@@ -113,6 +142,24 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("todo: invalid enum value for status field: %q", s)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e VisibilityStatus) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *VisibilityStatus) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = VisibilityStatus(str)
+	if err := VisibilityStatusValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid VisibilityStatus", str)
+	}
+	return nil
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

@@ -48,6 +48,20 @@ func (tc *TodoCreate) SetNillableCreatedAt(t *time.Time) *TodoCreate {
 	return tc
 }
 
+// SetVisibilityStatus sets the "visibility_status" field.
+func (tc *TodoCreate) SetVisibilityStatus(ts todo.VisibilityStatus) *TodoCreate {
+	tc.mutation.SetVisibilityStatus(ts)
+	return tc
+}
+
+// SetNillableVisibilityStatus sets the "visibility_status" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableVisibilityStatus(ts *todo.VisibilityStatus) *TodoCreate {
+	if ts != nil {
+		tc.SetVisibilityStatus(*ts)
+	}
+	return tc
+}
+
 // SetStatus sets the "status" field.
 func (tc *TodoCreate) SetStatus(t todo.Status) *TodoCreate {
 	tc.mutation.SetStatus(t)
@@ -183,6 +197,10 @@ func (tc *TodoCreate) defaults() {
 		v := todo.DefaultCreatedAt()
 		tc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := tc.mutation.VisibilityStatus(); !ok {
+		v := todo.DefaultVisibilityStatus
+		tc.mutation.SetVisibilityStatus(v)
+	}
 	if _, ok := tc.mutation.Priority(); !ok {
 		v := todo.DefaultPriority
 		tc.mutation.SetPriority(v)
@@ -193,6 +211,14 @@ func (tc *TodoCreate) defaults() {
 func (tc *TodoCreate) check() error {
 	if _, ok := tc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Todo.created_at"`)}
+	}
+	if _, ok := tc.mutation.VisibilityStatus(); !ok {
+		return &ValidationError{Name: "visibility_status", err: errors.New(`ent: missing required field "Todo.visibility_status"`)}
+	}
+	if v, ok := tc.mutation.VisibilityStatus(); ok {
+		if err := todo.VisibilityStatusValidator(v); err != nil {
+			return &ValidationError{Name: "visibility_status", err: fmt.Errorf(`ent: validator failed for field "Todo.visibility_status": %w`, err)}
+		}
 	}
 	if _, ok := tc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Todo.status"`)}
@@ -247,6 +273,14 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Column: todo.FieldCreatedAt,
 		})
 		_node.CreatedAt = value
+	}
+	if value, ok := tc.mutation.VisibilityStatus(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldVisibilityStatus,
+		})
+		_node.VisibilityStatus = value
 	}
 	if value, ok := tc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

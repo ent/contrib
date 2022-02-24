@@ -736,6 +736,16 @@ var (
 			}
 		},
 	}
+	// TodoOrderFieldVisibilityStatus orders Todo by visibility_status.
+	TodoOrderFieldVisibilityStatus = &TodoOrderField{
+		field: todo.FieldVisibilityStatus,
+		toCursor: func(t *Todo) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.VisibilityStatus,
+			}
+		},
+	}
 	// TodoOrderFieldStatus orders Todo by status.
 	TodoOrderFieldStatus = &TodoOrderField{
 		field: todo.FieldStatus,
@@ -774,6 +784,8 @@ func (f TodoOrderField) String() string {
 	switch f.field {
 	case todo.FieldCreatedAt:
 		str = "CREATED_AT"
+	case todo.FieldVisibilityStatus:
+		str = "VISIBILITY_STATUS"
 	case todo.FieldStatus:
 		str = "STATUS"
 	case todo.FieldPriority:
@@ -798,6 +810,8 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 	switch str {
 	case "CREATED_AT":
 		*f = *TodoOrderFieldCreatedAt
+	case "VISIBILITY_STATUS":
+		*f = *TodoOrderFieldVisibilityStatus
 	case "STATUS":
 		*f = *TodoOrderFieldStatus
 	case "PRIORITY":

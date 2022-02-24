@@ -41,11 +41,11 @@ func init() {
 	// todo.DefaultCreatedAt holds the default value on creation for the created_at field.
 	todo.DefaultCreatedAt = todoDescCreatedAt.Default.(func() time.Time)
 	// todoDescPriority is the schema descriptor for priority field.
-	todoDescPriority := todoFields[2].Descriptor()
+	todoDescPriority := todoFields[3].Descriptor()
 	// todo.DefaultPriority holds the default value on creation for the priority field.
 	todo.DefaultPriority = todoDescPriority.Default.(int)
 	// todoDescText is the schema descriptor for text field.
-	todoDescText := todoFields[3].Descriptor()
+	todoDescText := todoFields[4].Descriptor()
 	// todo.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	todo.TextValidator = todoDescText.Validators[0].(func(string) error)
 }

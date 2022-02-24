@@ -875,23 +875,24 @@ func (m *CategoryMutation) ResetEdge(name string) error {
 // TodoMutation represents an operation that mutates the Todo nodes in the graph.
 type TodoMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	created_at      *time.Time
-	status          *todo.Status
-	priority        *int
-	addpriority     *int
-	text            *string
-	clearedFields   map[string]struct{}
-	parent          *int
-	clearedparent   bool
-	children        map[int]struct{}
-	removedchildren map[int]struct{}
-	clearedchildren bool
-	done            bool
-	oldValue        func(context.Context) (*Todo, error)
-	predicates      []predicate.Todo
+	op                Op
+	typ               string
+	id                *int
+	created_at        *time.Time
+	visibility_status *todo.VisibilityStatus
+	status            *todo.Status
+	priority          *int
+	addpriority       *int
+	text              *string
+	clearedFields     map[string]struct{}
+	parent            *int
+	clearedparent     bool
+	children          map[int]struct{}
+	removedchildren   map[int]struct{}
+	clearedchildren   bool
+	done              bool
+	oldValue          func(context.Context) (*Todo, error)
+	predicates        []predicate.Todo
 }
 
 var _ ent.Mutation = (*TodoMutation)(nil)
@@ -1026,6 +1027,42 @@ func (m *TodoMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error
 // ResetCreatedAt resets all changes to the "created_at" field.
 func (m *TodoMutation) ResetCreatedAt() {
 	m.created_at = nil
+}
+
+// SetVisibilityStatus sets the "visibility_status" field.
+func (m *TodoMutation) SetVisibilityStatus(ts todo.VisibilityStatus) {
+	m.visibility_status = &ts
+}
+
+// VisibilityStatus returns the value of the "visibility_status" field in the mutation.
+func (m *TodoMutation) VisibilityStatus() (r todo.VisibilityStatus, exists bool) {
+	v := m.visibility_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVisibilityStatus returns the old "visibility_status" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldVisibilityStatus(ctx context.Context) (v todo.VisibilityStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVisibilityStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVisibilityStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVisibilityStatus: %w", err)
+	}
+	return oldValue.VisibilityStatus, nil
+}
+
+// ResetVisibilityStatus resets all changes to the "visibility_status" field.
+func (m *TodoMutation) ResetVisibilityStatus() {
+	m.visibility_status = nil
 }
 
 // SetStatus sets the "status" field.
@@ -1268,9 +1305,12 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
+	}
+	if m.visibility_status != nil {
+		fields = append(fields, todo.FieldVisibilityStatus)
 	}
 	if m.status != nil {
 		fields = append(fields, todo.FieldStatus)
@@ -1291,6 +1331,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case todo.FieldCreatedAt:
 		return m.CreatedAt()
+	case todo.FieldVisibilityStatus:
+		return m.VisibilityStatus()
 	case todo.FieldStatus:
 		return m.Status()
 	case todo.FieldPriority:
@@ -1308,6 +1350,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case todo.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case todo.FieldVisibilityStatus:
+		return m.OldVisibilityStatus(ctx)
 	case todo.FieldStatus:
 		return m.OldStatus(ctx)
 	case todo.FieldPriority:
@@ -1329,6 +1373,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case todo.FieldVisibilityStatus:
+		v, ok := value.(todo.VisibilityStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVisibilityStatus(v)
 		return nil
 	case todo.FieldStatus:
 		v, ok := value.(todo.Status)
@@ -1417,6 +1468,9 @@ func (m *TodoMutation) ResetField(name string) error {
 	switch name {
 	case todo.FieldCreatedAt:
 		m.ResetCreatedAt()
+		return nil
+	case todo.FieldVisibilityStatus:
+		m.ResetVisibilityStatus()
 		return nil
 	case todo.FieldStatus:
 		m.ResetStatus()

@@ -96,13 +96,14 @@ type ComplexityRoot struct {
 	}
 
 	Todo struct {
-		Children  func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Parent    func(childComplexity int) int
-		Priority  func(childComplexity int) int
-		Status    func(childComplexity int) int
-		Text      func(childComplexity int) int
+		Children         func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Parent           func(childComplexity int) int
+		Priority         func(childComplexity int) int
+		Status           func(childComplexity int) int
+		Text             func(childComplexity int) int
+		VisibilityStatus func(childComplexity int) int
 	}
 
 	TodoConnection struct {
@@ -376,6 +377,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.Text(childComplexity), true
+
+	case "Todo.visibilityStatus":
+		if e.complexity.Todo.VisibilityStatus == nil {
+			break
+		}
+
+		return e.complexity.Todo.VisibilityStatus(childComplexity), true
 
 	case "TodoConnection.edges":
 		if e.complexity.TodoConnection.Edges == nil {
@@ -655,6 +663,7 @@ scalar Time
 type Todo implements Node @someDirective {
 	id: ID!
 	createdAt: Time!
+	visibilityStatus: Visibility_status!
 	status: Status! @someDirective(stringArg: "someString", boolArg: FALSE)
 	priority: Int! @deprecated(reason: "We don't use this field anymore")
 	text: String!
@@ -692,6 +701,7 @@ input TodoOrder {
 }
 enum TodoOrderField {
 	CREATED_AT
+	VISIBILITY_STATUS
 	STATUS
 	PRIORITY
 	TEXT
@@ -703,6 +713,10 @@ type User implements Node {
 	age: Float!
 	amount: Float!
 	role: Role!
+}
+enum Visibility_status {
+	LISTING
+	HIDDEN
 }
 `, BuiltIn: false},
 }
@@ -1873,6 +1887,61 @@ func (ec *executionContext) _Todo_createdAt(ctx context.Context, field graphql.C
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Todo_visibilityStatus(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.VisibilityStatus, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.SomeDirective == nil {
+				return nil, errors.New("directive someDirective is not implemented")
+			}
+			return ec.directives.SomeDirective(ctx, obj, directive0, nil, nil)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(todo.VisibilityStatus); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(todo.VisibilityStatus)
+	fc.Result = res
+	return ec.marshalNVisibility_status2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋtodoᚐVisibilityStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Todo_status(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
@@ -4260,6 +4329,16 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "visibilityStatus":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Todo_visibilityStatus(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "status":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Todo_status(ctx, field, obj)
@@ -5224,6 +5303,16 @@ func (ec *executionContext) marshalNUint642uint64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNVisibility_status2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋtodoᚐVisibilityStatus(ctx context.Context, v interface{}) (todo.VisibilityStatus, error) {
+	var res todo.VisibilityStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNVisibility_status2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋtodoᚐVisibilityStatus(ctx context.Context, sel ast.SelectionSet, v todo.VisibilityStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

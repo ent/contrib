@@ -40,6 +40,15 @@ func (Todo) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("CREATED_AT"),
 			),
+		field.Enum("visibility_status").
+			NamedValues(
+				"Listing", "LISTING",
+				"Hidden", "HIDDEN",
+			).
+			Default("HIDDEN").
+			Annotations(
+				entgql.OrderField("VISIBILITY_STATUS"),
+			),
 		field.Enum("status").
 			NamedValues(
 				"InProgress", "IN_PROGRESS",

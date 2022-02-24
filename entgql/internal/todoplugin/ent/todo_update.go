@@ -41,6 +41,20 @@ func (tu *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
 	return tu
 }
 
+// SetVisibilityStatus sets the "visibility_status" field.
+func (tu *TodoUpdate) SetVisibilityStatus(ts todo.VisibilityStatus) *TodoUpdate {
+	tu.mutation.SetVisibilityStatus(ts)
+	return tu
+}
+
+// SetNillableVisibilityStatus sets the "visibility_status" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableVisibilityStatus(ts *todo.VisibilityStatus) *TodoUpdate {
+	if ts != nil {
+		tu.SetVisibilityStatus(*ts)
+	}
+	return tu
+}
+
 // SetStatus sets the "status" field.
 func (tu *TodoUpdate) SetStatus(t todo.Status) *TodoUpdate {
 	tu.mutation.SetStatus(t)
@@ -202,6 +216,11 @@ func (tu *TodoUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (tu *TodoUpdate) check() error {
+	if v, ok := tu.mutation.VisibilityStatus(); ok {
+		if err := todo.VisibilityStatusValidator(v); err != nil {
+			return &ValidationError{Name: "visibility_status", err: fmt.Errorf(`ent: validator failed for field "Todo.visibility_status": %w`, err)}
+		}
+	}
 	if v, ok := tu.mutation.Status(); ok {
 		if err := todo.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Todo.status": %w`, err)}
@@ -232,6 +251,13 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tu.mutation.VisibilityStatus(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldVisibilityStatus,
+		})
 	}
 	if value, ok := tu.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -367,6 +393,20 @@ type TodoUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TodoMutation
+}
+
+// SetVisibilityStatus sets the "visibility_status" field.
+func (tuo *TodoUpdateOne) SetVisibilityStatus(ts todo.VisibilityStatus) *TodoUpdateOne {
+	tuo.mutation.SetVisibilityStatus(ts)
+	return tuo
+}
+
+// SetNillableVisibilityStatus sets the "visibility_status" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableVisibilityStatus(ts *todo.VisibilityStatus) *TodoUpdateOne {
+	if ts != nil {
+		tuo.SetVisibilityStatus(*ts)
+	}
+	return tuo
 }
 
 // SetStatus sets the "status" field.
@@ -537,6 +577,11 @@ func (tuo *TodoUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (tuo *TodoUpdateOne) check() error {
+	if v, ok := tuo.mutation.VisibilityStatus(); ok {
+		if err := todo.VisibilityStatusValidator(v); err != nil {
+			return &ValidationError{Name: "visibility_status", err: fmt.Errorf(`ent: validator failed for field "Todo.visibility_status": %w`, err)}
+		}
+	}
 	if v, ok := tuo.mutation.Status(); ok {
 		if err := todo.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Todo.status": %w`, err)}
@@ -584,6 +629,13 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tuo.mutation.VisibilityStatus(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldVisibilityStatus,
+		})
 	}
 	if value, ok := tuo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
