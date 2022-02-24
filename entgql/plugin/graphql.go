@@ -70,7 +70,7 @@ func (e *EntGQL) enums() error {
 				Name: v,
 			})
 		}
-		e.insertDefinition(&ast.Definition{
+		e.insertDefinitions(&ast.Definition{
 			Name:       name,
 			Kind:       ast.Enum,
 			EnumValues: valueDefinitions,
@@ -109,7 +109,7 @@ func (e *EntGQL) types() error {
 		if err != nil {
 			return fmt.Errorf("type(%s): %w", t.Name, err)
 		}
-		e.insertDefinition(&ast.Definition{
+		e.insertDefinitions(&ast.Definition{
 			Name:        t.Name,
 			Kind:        ast.Object,
 			Fields:      fields,
@@ -145,12 +145,8 @@ func (e *EntGQL) directives(directives []entgql.Directive) ast.DirectiveList {
 	return list
 }
 
-func (e *EntGQL) insertDefinitions(defs []*ast.Definition) {
+func (e *EntGQL) insertDefinitions(defs ...*ast.Definition) {
 	for _, d := range defs {
 		e.schema.Types[d.Name] = d
 	}
-}
-
-func (e *EntGQL) insertDefinition(d *ast.Definition) {
-	e.schema.Types[d.Name] = d
 }

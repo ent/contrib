@@ -22,17 +22,15 @@ import (
 )
 
 func (e *EntGQL) entBuiltins() {
-	e.insertDefinitions([]*ast.Definition{
-		{
-			Name: "OrderDirection",
-			Kind: ast.Enum,
-			EnumValues: ast.EnumValueList{
-				&ast.EnumValueDefinition{
-					Name: "ASC",
-				},
-				&ast.EnumValueDefinition{
-					Name: "DESC",
-				},
+	e.insertDefinitions(&ast.Definition{
+		Name: "OrderDirection",
+		Kind: ast.Enum,
+		EnumValues: ast.EnumValueList{
+			&ast.EnumValueDefinition{
+				Name: "ASC",
+			},
+			&ast.EnumValueDefinition{
+				Name: "DESC",
 			},
 		},
 	})
@@ -65,13 +63,13 @@ func (e *EntGQL) entOrderBy() error {
 			}
 		}
 		if enumValues != nil {
-			e.insertDefinitions([]*ast.Definition{
-				{
+			e.insertDefinitions(
+				&ast.Definition{
 					Name:       fmt.Sprintf("%sOrderField", obj.Name),
 					Kind:       ast.Enum,
 					EnumValues: enumValues,
 				},
-				{
+				&ast.Definition{
 					Name: fmt.Sprintf("%sOrder", obj.Name),
 					Kind: ast.InputObject,
 					Fields: ast.FieldList{
@@ -89,7 +87,7 @@ func (e *EntGQL) entOrderBy() error {
 						},
 					},
 				},
-			})
+			)
 		}
 	}
 

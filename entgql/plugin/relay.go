@@ -28,14 +28,14 @@ var (
 )
 
 func (e *EntGQL) relayBuiltins() {
-	e.insertDefinitions([]*ast.Definition{
-		{
+	e.insertDefinitions(
+		&ast.Definition{
 			Name: RelayCursor,
 			Kind: ast.Scalar,
 			Description: `Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor`,
 		},
-		{
+		&ast.Definition{
 			Kind: ast.Interface,
 			Name: RelayNode,
 			Description: `An object with an ID.
@@ -48,7 +48,7 @@ Follows the [Relay Global Object Identification Specification](https://relay.dev
 				},
 			},
 		},
-		{
+		&ast.Definition{
 			Name: RelayPageInfo,
 			Kind: ast.Object,
 			Description: `Information about pagination in a connection.
@@ -76,11 +76,11 @@ https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo`,
 				},
 			},
 		},
-	})
+	)
 }
 
 func (e *EntGQL) relayConnection(t *gen.Type) {
-	e.insertDefinition(&ast.Definition{
+	e.insertDefinitions(&ast.Definition{
 		Name:        fmt.Sprintf("%sEdge", t.Name),
 		Kind:        ast.Object,
 		Description: "An edge in a connection.",
@@ -97,7 +97,7 @@ func (e *EntGQL) relayConnection(t *gen.Type) {
 			},
 		},
 	})
-	e.insertDefinition(&ast.Definition{
+	e.insertDefinitions(&ast.Definition{
 		Name:        fmt.Sprintf("%sConnection", t.Name),
 		Kind:        ast.Object,
 		Description: "A connection to a list of items.",

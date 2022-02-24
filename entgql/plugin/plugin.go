@@ -102,6 +102,10 @@ func New(graph *gen.Graph, opts ...PluginOption) (*EntGQL, error) {
 		}
 	}
 
+	if err := e.prepareSchema(); err != nil {
+		return nil, fmt.Errorf("entgql: failed to generate GQL schema: %w", err)
+	}
+
 	return e, nil
 }
 
@@ -110,25 +114,6 @@ func (e *EntGQL) Name() string {
 }
 
 func (e *EntGQL) InjectSourceEarly() *ast.Source {
-	e.scalars()
-	e.relayBuiltins()
-	e.entBuiltins()
-	err := e.entOrderBy()
-	if err != nil {
-		panic(err)
-	}
-	err = e.enums()
-	if err != nil {
-		panic(err)
-	}
-	err = e.types()
-	if err != nil {
-		panic(err)
-	}
-	for _, h := range e.hooks {
-		h(e.graph, e.schema)
-	}
-
 	input := e.print()
 	if e.debug {
 		fmt.Printf("Generated Graphql:\n%s", input)
@@ -139,6 +124,29 @@ func (e *EntGQL) InjectSourceEarly() *ast.Source {
 		Input:   input,
 		BuiltIn: false,
 	}
+}
+
+func (e *EntGQL) prepareSchema() error {
+	e.scalars()
+	e.relayBuiltins()
+	e.entBuiltins()
+	err := e.entOrderBy()
+	if err != nil {
+		return err
+	}
+	err = e.enums()
+	if err != nil {
+		return err
+	}
+	err = e.types()
+	if err != nil {
+		return err
+	}
+	for _, h := range e.hooks {
+		h(e.graph, e.schema)
+	}
+
+	return nil
 }
 
 func (e *EntGQL) print() string {
