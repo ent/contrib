@@ -15,7 +15,7 @@
 package todopulid
 
 import (
-	"entgo.io/contrib/entgql/internal/todopulid/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todopulid/ent"
 	"github.com/99designs/gqlgen/graphql"
 )
 

@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent"
-	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
-	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/schema/schematype"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/todo"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/99designs/gqlgen/plugin/federation/fedruntime"

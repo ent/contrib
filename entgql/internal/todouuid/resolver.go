@@ -15,7 +15,7 @@
 package todo
 
 import (
-	"entgo.io/contrib/entgql/internal/todouuid/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent"
 	"github.com/99designs/gqlgen/graphql"
 )
 

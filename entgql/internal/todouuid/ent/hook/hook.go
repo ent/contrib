@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entgql/internal/todouuid/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent"
 )
 
 // The CategoryFunc type is an adapter to allow the use of ordinary

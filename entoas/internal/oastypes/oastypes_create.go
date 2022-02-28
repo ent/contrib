@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"time"
 
-	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
-	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"github.com/bionicstork/contrib/entoas/internal/oastypes/oastypes"
+	"github.com/bionicstork/contrib/entoas/internal/oastypes/schema"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"

@@ -3,7 +3,7 @@
 package withfields
 
 import (
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 )
 

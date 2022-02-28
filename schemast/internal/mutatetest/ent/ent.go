@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/user"
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/withnilfields"
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/withoutfields"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/user"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/withfields"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/withnilfields"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/withoutfields"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )

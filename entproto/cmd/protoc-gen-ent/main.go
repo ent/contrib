@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	entopts "github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent/options/ent"
-	"entgo.io/contrib/schemast"
+	"github.com/bionicstork/contrib/schemast"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"

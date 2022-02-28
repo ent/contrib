@@ -10,7 +10,7 @@ package main
 import (
 	"log"
 
-	"entgo.io/contrib/entgql"
+	"github.com/bionicstork/contrib/entgql"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 )

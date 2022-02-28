@@ -20,8 +20,8 @@ package todopulid
 import (
 	"context"
 
-	"entgo.io/contrib/entgql/internal/todopulid/ent"
-	pulid1 "entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"github.com/bionicstork/contrib/entgql/internal/todopulid/ent"
+	pulid1 "github.com/bionicstork/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {

@@ -15,8 +15,8 @@
 package entoas
 
 import (
-	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
+	"github.com/bionicstork/contrib/entoas/serialization"
 )
 
 type (

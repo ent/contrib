@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/schemast/internal/mutatetest/ent"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent"
 )
 
 // The UserFunc type is an adapter to allow the use of ordinary

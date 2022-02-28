@@ -21,8 +21,8 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent/predicate"
-	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

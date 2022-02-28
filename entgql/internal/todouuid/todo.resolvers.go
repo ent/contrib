@@ -20,8 +20,8 @@ package todo
 import (
 	"context"
 
-	"entgo.io/contrib/entgql/internal/todouuid/ent"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
 )
 

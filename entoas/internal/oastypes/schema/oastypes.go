@@ -20,10 +20,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"entgo.io/contrib/entoas"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/field"
+	"github.com/bionicstork/contrib/entoas"
 	"github.com/google/uuid"
 	"github.com/ogen-go/ogen"
 )

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/schemast/internal/loadtest/ent"
+	"github.com/bionicstork/contrib/schemast/internal/loadtest/ent"
 )
 
 // The MessageFunc type is an adapter to allow the use of ordinary

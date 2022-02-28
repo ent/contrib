@@ -12,7 +12,7 @@ at [elk](https://github.com/masseelch/elk).
 Download the module:
 
 ```console
-go get -u entgo.io/contrib/entoas
+go get -u github.com/bionicstork/contrib/entoas
 ```
 
 Setup code generation with `entc` package: and register the `entoas` extension:
@@ -29,7 +29,7 @@ import (
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"entgo.io/contrib/entoas"
+	"github.com/bionicstork/contrib/entoas"
 )
 
 func main() {
@@ -63,7 +63,7 @@ go generate ./...
 Observe, that in addition to the files Ent would normally generate, another file called `openapi.json` was generated.
 
 For information about configuring the generator head over to
-the [godoc](https://pkg.go.dev/entgo.io/contrib/entoas) [or Ent documentation](https://entgo.io/).
+the [godoc](https://pkg.go.dev/github.com/bionicstork/contrib/entoas) [or Ent documentation](https://entgo.io/).
 
 ### BC
 

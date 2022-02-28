@@ -20,7 +20,7 @@ package todo
 import (
 	"context"
 
-	"entgo.io/contrib/entgql/internal/todo/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {

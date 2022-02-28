@@ -15,8 +15,8 @@
 package todo
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent"
 )
 
 // Resolver is the resolver root.

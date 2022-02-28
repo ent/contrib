@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/schemast/internal/loadtest/ent/message"
+	"github.com/bionicstork/contrib/schemast/internal/loadtest/ent/message"
 	"entgo.io/ent/dialect/sql"
 )
 

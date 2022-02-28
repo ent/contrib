@@ -5,8 +5,8 @@ package oastypes
 import (
 	"time"
 
-	"entgo.io/contrib/entoas/internal/oastypes/predicate"
-	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"github.com/bionicstork/contrib/entoas/internal/oastypes/predicate"
+	"github.com/bionicstork/contrib/entoas/internal/oastypes/schema"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )

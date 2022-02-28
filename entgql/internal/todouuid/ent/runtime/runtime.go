@@ -16,7 +16,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in entgo.io/contrib/entgql/internal/todouuid/ent/runtime.go
+// The schema-stitching logic is generated in github.com/bionicstork/contrib/entgql/internal/todouuid/ent/runtime.go
 
 const (
 	Version = "v0.9.2-0.20211220092907-4d01a56b8de7"            // Version of ent codegen.

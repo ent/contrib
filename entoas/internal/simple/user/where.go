@@ -3,7 +3,7 @@
 package user
 
 import (
-	"entgo.io/contrib/entoas/internal/simple/predicate"
+	"github.com/bionicstork/contrib/entoas/internal/simple/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )

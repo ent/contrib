@@ -19,7 +19,7 @@ import (
 	"go/ast"
 	"sort"
 
-	"entgo.io/contrib/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"github.com/mitchellh/mapstructure"
