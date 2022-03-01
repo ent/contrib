@@ -322,7 +322,7 @@ func (e *Extension) genWhereInputs() gen.Hook {
 		}
 		inputs := make(map[string]*ast.InputObjectDefinition)
 		return gen.GenerateFunc(func(g *gen.Graph) error {
-			nodes, err := filterNodes(g.Nodes)
+			nodes, err := FilterNodes(g.Nodes)
 			if err != nil {
 				return err
 			}
@@ -416,7 +416,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition, 
 			}),
 		}))
 	}
-	fields, err := filterFields(append(t.Fields, t.ID))
+	fields, err := FilterFields(append(t.Fields, t.ID))
 	if err != nil {
 		return "", nil, err
 	}
@@ -434,7 +434,7 @@ func (e *Extension) whereType(t *gen.Type) (string, *ast.InputObjectDefinition, 
 			input.Fields = append(input.Fields, fd)
 		}
 	}
-	edges, err := filterEdges(t.Edges)
+	edges, err := FilterEdges(t.Edges)
 	if err != nil {
 		return "", nil, err
 	}

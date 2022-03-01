@@ -65,10 +65,10 @@ var (
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
 		"fieldCollections": fieldCollections,
-		"filterEdges":      filterEdges,
-		"filterFields":     filterFields,
-		"filterNodes":      filterNodes,
-		"findIDType":       findIDType,
+		"filterEdges":      FilterEdges,
+		"filterFields":     FilterFields,
+		"filterNodes":      FilterNodes,
+		"findIDType":       FindIDType,
 	}
 
 	//go:embed template/*
@@ -81,7 +81,7 @@ func parseT(path string) *gen.Template {
 		ParseFS(templates, path))
 }
 
-func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
+func FindIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
 	t := defaultType
 	if len(nodes) > 0 {
 		t = nodes[0].ID.Type
@@ -132,7 +132,7 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 	return result, nil
 }
 
-func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
+func FilterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	var filteredNodes []*gen.Type
 	for _, n := range nodes {
 		ant := &Annotation{}
@@ -149,7 +149,7 @@ func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	return filteredNodes, nil
 }
 
-func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
+func FilterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 	var filteredEdges []*gen.Edge
 	for _, e := range edges {
 		ant := &Annotation{}
@@ -175,7 +175,7 @@ func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 	return filteredEdges, nil
 }
 
-func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
+func FilterFields(fields []*gen.Field) ([]*gen.Field, error) {
 	var filteredFields []*gen.Field
 	for _, f := range fields {
 		ant := &Annotation{}
