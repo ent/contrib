@@ -29,6 +29,8 @@ const (
 	FieldID = "id"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
+	// FieldUUIDA holds the string denoting the uuid_a field in the database.
+	FieldUUIDA = "uuid_a"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldConfig holds the string denoting the config field in the database.
@@ -37,8 +39,6 @@ const (
 	FieldDuration = "duration"
 	// FieldCount holds the string denoting the count field in the database.
 	FieldCount = "count"
-	// FieldStrings holds the string denoting the strings field in the database.
-	FieldStrings = "strings"
 	// EdgeTodos holds the string denoting the todos edge name in mutations.
 	EdgeTodos = "todos"
 	// Table holds the table name of the category in the database.
@@ -56,11 +56,11 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldText,
+	FieldUUIDA,
 	FieldStatus,
 	FieldConfig,
 	FieldDuration,
 	FieldCount,
-	FieldStrings,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

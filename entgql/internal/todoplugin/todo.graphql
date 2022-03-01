@@ -1,7 +1,7 @@
-directive @someDirective(stringArg: String, boolArg: Boolean) on OBJECT
-    | INPUT_OBJECT
-    | SCALAR
-    | FIELD_DEFINITION
+directive @someDirective(
+  stringArg: String
+  boolArg: Boolean
+) on OBJECT | INPUT_OBJECT | SCALAR | FIELD_DEFINITION
 
 interface Node {
   id: ID!
@@ -28,6 +28,7 @@ enum Status {
 scalar Time
 scalar Duration
 scalar Uint64
+scalar UUID
 
 type Todo implements Node {
   id: ID!
@@ -43,7 +44,12 @@ type Todo implements Node {
 type Category implements Node {
   id: ID!
   text: String!
-  strings: [String]
+  uuidA: UUID
+  status: CategoryStatus!
+  config: CategoryConfig!
+  duration: Duration!
+  count: Uint64!
+  # strings: [String]
 }
 
 input TodoInput {
@@ -92,23 +98,29 @@ input TodoOrder {
 }
 
 enum Role {
-	ADMIN
-	USER
-	UNKNOWN
+  ADMIN
+  USER
+  UNKNOWN
 }
 
 type User implements Node {
-	id: ID!
-	username: String!
-	age: Float!
-	amount: Float!
-	role: Role!
+  id: ID!
+  username: String!
+  age: Float!
+  amount: Float!
+  role: Role!
 }
 
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  todos(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: TodoOrder
+  ): TodoConnection
 }
 
 type Mutation {

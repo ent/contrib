@@ -78,10 +78,18 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Status); err != nil {
+	if buf, err = json.Marshal(c.UUIDA); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "uuid_a",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
 		Type:  "category.Status",
 		Name:  "status",
 		Value: string(buf),
@@ -89,7 +97,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Config); err != nil {
 		return nil, err
 	}
-	node.Fields[2] = &Field{
+	node.Fields[3] = &Field{
 		Type:  "*schematype.CategoryConfig",
 		Name:  "config",
 		Value: string(buf),
@@ -97,7 +105,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Duration); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[4] = &Field{
 		Type:  "time.Duration",
 		Name:  "duration",
 		Value: string(buf),
@@ -105,17 +113,9 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Count); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "uint64",
 		Name:  "count",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(c.Strings); err != nil {
-		return nil, err
-	}
-	node.Fields[5] = &Field{
-		Type:  "[]string",
-		Name:  "strings",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

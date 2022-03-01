@@ -23,6 +23,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
 )
@@ -40,6 +41,9 @@ func (Category) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("TEXT"),
 			),
+		field.UUID("uuid_a", uuid.New()).
+			Nillable().
+			Optional(),
 		field.Enum("status").
 			NamedValues(
 				"Enabled", "ENABLED",
@@ -52,10 +56,7 @@ func (Category) Fields() []ent.Field {
 			SchemaType(map[string]string{
 				dialect.SQLite: "json",
 			}).
-			Optional().
-			Annotations(
-				entgql.Type("CategoryConfig"),
-			),
+			Optional(),
 		field.Int64("duration").
 			GoType(time.Duration(0)).
 			Optional().
@@ -68,8 +69,8 @@ func (Category) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("Uint64"),
 			),
-		field.Strings("strings").
-			Optional(),
+		// field.Strings("strings").
+		// 	Optional(),
 	}
 }
 

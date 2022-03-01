@@ -26,11 +26,11 @@ var (
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "uuid_a", Type: field.TypeUUID, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ENABLED", "DISABLED"}},
 		{Name: "config", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"sqlite3": "json"}},
 		{Name: "duration", Type: field.TypeInt64, Nullable: true},
 		{Name: "count", Type: field.TypeUint64, Nullable: true},
-		{Name: "strings", Type: field.TypeJSON, Nullable: true},
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{

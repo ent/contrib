@@ -17,7 +17,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -25,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // Category is the model entity for the Category schema.
@@ -34,6 +34,8 @@ type Category struct {
 	ID int `json:"id,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// UUIDA holds the value of the "uuid_a" field.
+	UUIDA *uuid.UUID `json:"uuid_a,omitempty"`
 	// Status holds the value of the "status" field.
 	Status category.Status `json:"status,omitempty"`
 	// Config holds the value of the "config" field.
@@ -42,8 +44,6 @@ type Category struct {
 	Duration time.Duration `json:"duration,omitempty"`
 	// Count holds the value of the "count" field.
 	Count uint64 `json:"count,omitempty"`
-	// Strings holds the value of the "strings" field.
-	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
 	Edges CategoryEdges `json:"edges"`
@@ -72,8 +72,8 @@ func (*Category) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case category.FieldStrings:
-			values[i] = new([]byte)
+		case category.FieldUUIDA:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case category.FieldConfig:
 			values[i] = new(schematype.CategoryConfig)
 		case category.FieldID, category.FieldDuration, category.FieldCount:
@@ -107,6 +107,13 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				c.Text = value.String
 			}
+		case category.FieldUUIDA:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field uuid_a", values[i])
+			} else if value.Valid {
+				c.UUIDA = new(uuid.UUID)
+				*c.UUIDA = *value.S.(*uuid.UUID)
+			}
 		case category.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -130,14 +137,6 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field count", values[i])
 			} else if value.Valid {
 				c.Count = uint64(value.Int64)
-			}
-		case category.FieldStrings:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field strings", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &c.Strings); err != nil {
-					return fmt.Errorf("unmarshal field strings: %w", err)
-				}
 			}
 		}
 	}
@@ -174,6 +173,10 @@ func (c *Category) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", c.ID))
 	builder.WriteString(", text=")
 	builder.WriteString(c.Text)
+	if v := c.UUIDA; v != nil {
+		builder.WriteString(", uuid_a=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", status=")
 	builder.WriteString(fmt.Sprintf("%v", c.Status))
 	builder.WriteString(", config=")
@@ -182,8 +185,6 @@ func (c *Category) String() string {
 	builder.WriteString(fmt.Sprintf("%v", c.Duration))
 	builder.WriteString(", count=")
 	builder.WriteString(fmt.Sprintf("%v", c.Count))
-	builder.WriteString(", strings=")
-	builder.WriteString(fmt.Sprintf("%v", c.Strings))
 	builder.WriteByte(')')
 	return builder.String()
 }

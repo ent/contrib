@@ -25,6 +25,9 @@ models:
   Duration:
     model:
       - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/durationgql.Duration
+  UUID:
+    model:
+      - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/uuidgql.UUID
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todoplugin/ent.Noder

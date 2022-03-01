@@ -13,11 +13,15 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todoplugin/ent"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/role"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/durationgql"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/uuidgql"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/google/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -52,9 +56,13 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Category struct {
-		ID      func(childComplexity int) int
-		Strings func(childComplexity int) int
-		Text    func(childComplexity int) int
+		Config   func(childComplexity int) int
+		Count    func(childComplexity int) int
+		Duration func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Status   func(childComplexity int) int
+		Text     func(childComplexity int) int
+		UUIDA    func(childComplexity int) int
 	}
 
 	CategoryConfig struct {
@@ -142,6 +150,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Category.config":
+		if e.complexity.Category.Config == nil {
+			break
+		}
+
+		return e.complexity.Category.Config(childComplexity), true
+
+	case "Category.count":
+		if e.complexity.Category.Count == nil {
+			break
+		}
+
+		return e.complexity.Category.Count(childComplexity), true
+
+	case "Category.duration":
+		if e.complexity.Category.Duration == nil {
+			break
+		}
+
+		return e.complexity.Category.Duration(childComplexity), true
+
 	case "Category.id":
 		if e.complexity.Category.ID == nil {
 			break
@@ -149,12 +178,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Category.ID(childComplexity), true
 
-	case "Category.strings":
-		if e.complexity.Category.Strings == nil {
+	case "Category.status":
+		if e.complexity.Category.Status == nil {
 			break
 		}
 
-		return e.complexity.Category.Strings(childComplexity), true
+		return e.complexity.Category.Status(childComplexity), true
 
 	case "Category.text":
 		if e.complexity.Category.Text == nil {
@@ -162,6 +191,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Category.Text(childComplexity), true
+
+	case "Category.uuidA":
+		if e.complexity.Category.UUIDA == nil {
+			break
+		}
+
+		return e.complexity.Category.UUIDA(childComplexity), true
 
 	case "CategoryConfig.maxMembers":
 		if e.complexity.CategoryConfig.MaxMembers == nil {
@@ -443,10 +479,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "todo.graphql", Input: `directive @someDirective(stringArg: String, boolArg: Boolean) on OBJECT
-    | INPUT_OBJECT
-    | SCALAR
-    | FIELD_DEFINITION
+	{Name: "todo.graphql", Input: `directive @someDirective(
+  stringArg: String
+  boolArg: Boolean
+) on OBJECT | INPUT_OBJECT | SCALAR | FIELD_DEFINITION
 
 interface Node {
   id: ID!
@@ -473,6 +509,7 @@ enum Status {
 scalar Time
 scalar Duration
 scalar Uint64
+scalar UUID
 
 type Todo implements Node {
   id: ID!
@@ -488,7 +525,12 @@ type Todo implements Node {
 type Category implements Node {
   id: ID!
   text: String!
-  strings: [String]
+  uuidA: UUID
+  status: CategoryStatus!
+  config: CategoryConfig!
+  duration: Duration!
+  count: Uint64!
+  # strings: [String]
 }
 
 input TodoInput {
@@ -537,23 +579,29 @@ input TodoOrder {
 }
 
 enum Role {
-	ADMIN
-	USER
-	UNKNOWN
+  ADMIN
+  USER
+  UNKNOWN
 }
 
 type User implements Node {
-	id: ID!
-	username: String!
-	age: Float!
-	amount: Float!
-	role: Role!
+  id: ID!
+  username: String!
+  age: Float!
+  amount: Float!
+  role: Role!
 }
 
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  todos(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: TodoOrder
+  ): TodoConnection
 }
 
 type Mutation {
@@ -826,7 +874,7 @@ func (ec *executionContext) _Category_text(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Category_strings(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+func (ec *executionContext) _Category_uuidA(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -844,7 +892,7 @@ func (ec *executionContext) _Category_strings(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Strings, nil
+		return obj.UUIDA, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -853,9 +901,149 @@ func (ec *executionContext) _Category_strings(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Category_status(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(category.Status)
+	fc.Result = res
+	return ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋcategoryᚐStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Category_config(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Config, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*schematype.CategoryConfig)
+	fc.Result = res
+	return ec.marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Category_duration(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Duration)
+	fc.Result = res
+	return ec.marshalNDuration2timeᚐDuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Category_count(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CategoryConfig_maxMembers(ctx context.Context, field graphql.CollectedField, obj *schematype.CategoryConfig) (ret graphql.Marshaler) {
@@ -3208,13 +3396,53 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "strings":
+		case "uuidA":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Category_strings(ctx, field, obj)
+				return ec._Category_uuidA(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
 
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Category_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "config":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Category_config(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "duration":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Category_duration(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Category_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4186,6 +4414,26 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CategoryConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋcategoryᚐStatus(ctx context.Context, v interface{}) (category.Status, error) {
+	var res category.Status
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋcategoryᚐStatus(ctx context.Context, sel ast.SelectionSet, v category.Status) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
 	var res ent.Cursor
 	err := res.UnmarshalGQL(v)
@@ -4194,6 +4442,21 @@ func (ec *executionContext) unmarshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋint
 
 func (ec *executionContext) marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNDuration2timeᚐDuration(ctx context.Context, v interface{}) (time.Duration, error) {
+	res, err := durationgql.UnmarshalDuration(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDuration2timeᚐDuration(ctx context.Context, sel ast.SelectionSet, v time.Duration) graphql.Marshaler {
+	res := durationgql.MarshalDuration(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
@@ -4377,6 +4640,21 @@ func (ec *executionContext) marshalNTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 func (ec *executionContext) unmarshalNTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
 	res, err := ec.unmarshalInputTodoInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUint642uint64(ctx context.Context, v interface{}) (uint64, error) {
+	res, err := graphql.UnmarshalUint64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUint642uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
+	res := graphql.MarshalUint64(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -4740,38 +5018,6 @@ func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalOString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -4929,6 +5175,22 @@ func (ec *executionContext) marshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋent
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := uuidgql.UnmarshalUUID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := uuidgql.MarshalUUID(*v)
+	return res
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

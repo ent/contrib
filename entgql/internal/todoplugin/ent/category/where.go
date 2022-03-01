@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
@@ -112,6 +113,13 @@ func IDLTE(id int) predicate.Category {
 func Text(v string) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldText), v))
+	})
+}
+
+// UUIDA applies equality check predicate on the "uuid_a" field. It's identical to UUIDAEQ.
+func UUIDA(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUUIDA), v))
 	})
 }
 
@@ -245,6 +253,96 @@ func TextEqualFold(v string) predicate.Category {
 func TextContainsFold(v string) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldText), v))
+	})
+}
+
+// UUIDAEQ applies the EQ predicate on the "uuid_a" field.
+func UUIDAEQ(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUUIDA), v))
+	})
+}
+
+// UUIDANEQ applies the NEQ predicate on the "uuid_a" field.
+func UUIDANEQ(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUUIDA), v))
+	})
+}
+
+// UUIDAIn applies the In predicate on the "uuid_a" field.
+func UUIDAIn(vs ...uuid.UUID) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUUIDA), v...))
+	})
+}
+
+// UUIDANotIn applies the NotIn predicate on the "uuid_a" field.
+func UUIDANotIn(vs ...uuid.UUID) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUUIDA), v...))
+	})
+}
+
+// UUIDAGT applies the GT predicate on the "uuid_a" field.
+func UUIDAGT(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldUUIDA), v))
+	})
+}
+
+// UUIDAGTE applies the GTE predicate on the "uuid_a" field.
+func UUIDAGTE(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUUIDA), v))
+	})
+}
+
+// UUIDALT applies the LT predicate on the "uuid_a" field.
+func UUIDALT(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUUIDA), v))
+	})
+}
+
+// UUIDALTE applies the LTE predicate on the "uuid_a" field.
+func UUIDALTE(v uuid.UUID) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUUIDA), v))
+	})
+}
+
+// UUIDAIsNil applies the IsNil predicate on the "uuid_a" field.
+func UUIDAIsNil() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldUUIDA)))
+	})
+}
+
+// UUIDANotNil applies the NotNil predicate on the "uuid_a" field.
+func UUIDANotNil() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldUUIDA)))
 	})
 }
 
@@ -569,20 +667,6 @@ func CountIsNil() predicate.Category {
 func CountNotNil() predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldCount)))
-	})
-}
-
-// StringsIsNil applies the IsNil predicate on the "strings" field.
-func StringsIsNil() predicate.Category {
-	return predicate.Category(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldStrings)))
-	})
-}
-
-// StringsNotNil applies the NotNil predicate on the "strings" field.
-func StringsNotNil() predicate.Category {
-	return predicate.Category(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldStrings)))
 	})
 }
 

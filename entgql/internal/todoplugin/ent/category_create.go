@@ -27,6 +27,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // CategoryCreate is the builder for creating a Category entity.
@@ -39,6 +40,12 @@ type CategoryCreate struct {
 // SetText sets the "text" field.
 func (cc *CategoryCreate) SetText(s string) *CategoryCreate {
 	cc.mutation.SetText(s)
+	return cc
+}
+
+// SetUUIDA sets the "uuid_a" field.
+func (cc *CategoryCreate) SetUUIDA(u uuid.UUID) *CategoryCreate {
+	cc.mutation.SetUUIDA(u)
 	return cc
 }
 
@@ -79,12 +86,6 @@ func (cc *CategoryCreate) SetNillableCount(u *uint64) *CategoryCreate {
 	if u != nil {
 		cc.SetCount(*u)
 	}
-	return cc
-}
-
-// SetStrings sets the "strings" field.
-func (cc *CategoryCreate) SetStrings(s []string) *CategoryCreate {
-	cc.mutation.SetStrings(s)
 	return cc
 }
 
@@ -224,6 +225,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 		})
 		_node.Text = value
 	}
+	if value, ok := cc.mutation.UUIDA(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: category.FieldUUIDA,
+		})
+		_node.UUIDA = &value
+	}
 	if value, ok := cc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
@@ -255,14 +264,6 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldCount,
 		})
 		_node.Count = value
-	}
-	if value, ok := cc.mutation.Strings(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
-		_node.Strings = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

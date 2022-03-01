@@ -781,7 +781,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 func (s *todoTestSuite) TestQueryJSONFields() {
 	var (
 		ctx = context.Background()
-		cat = s.ent.Category.Create().SetText("Disabled").SetStatus(category.StatusDisabled).SetStrings([]string{"a", "b"}).SetText("category").SaveX(ctx)
+		cat = s.ent.Category.Create().SetText("Disabled").SetStatus(category.StatusDisabled).SetText("category").SaveX(ctx)
 		rsp struct {
 			Node struct {
 				Text    string
@@ -793,11 +793,10 @@ func (s *todoTestSuite) TestQueryJSONFields() {
 	    node(id: $id) {
 	    	... on Category {
 				text
-				strings
+				# strings
 			}
 		}
 	}`, &rsp, client.Var("id", cat.ID))
 	s.Require().NoError(err)
 	s.Require().Equal(cat.Text, rsp.Node.Text)
-	s.Require().Equal(cat.Strings, rsp.Node.Strings)
 }

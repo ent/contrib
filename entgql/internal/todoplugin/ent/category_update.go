@@ -29,6 +29,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // CategoryUpdate is the builder for updating Category entities.
@@ -47,6 +48,18 @@ func (cu *CategoryUpdate) Where(ps ...predicate.Category) *CategoryUpdate {
 // SetText sets the "text" field.
 func (cu *CategoryUpdate) SetText(s string) *CategoryUpdate {
 	cu.mutation.SetText(s)
+	return cu
+}
+
+// SetUUIDA sets the "uuid_a" field.
+func (cu *CategoryUpdate) SetUUIDA(u uuid.UUID) *CategoryUpdate {
+	cu.mutation.SetUUIDA(u)
+	return cu
+}
+
+// ClearUUIDA clears the value of the "uuid_a" field.
+func (cu *CategoryUpdate) ClearUUIDA() *CategoryUpdate {
+	cu.mutation.ClearUUIDA()
 	return cu
 }
 
@@ -119,18 +132,6 @@ func (cu *CategoryUpdate) AddCount(u int64) *CategoryUpdate {
 // ClearCount clears the value of the "count" field.
 func (cu *CategoryUpdate) ClearCount() *CategoryUpdate {
 	cu.mutation.ClearCount()
-	return cu
-}
-
-// SetStrings sets the "strings" field.
-func (cu *CategoryUpdate) SetStrings(s []string) *CategoryUpdate {
-	cu.mutation.SetStrings(s)
-	return cu
-}
-
-// ClearStrings clears the value of the "strings" field.
-func (cu *CategoryUpdate) ClearStrings() *CategoryUpdate {
-	cu.mutation.ClearStrings()
 	return cu
 }
 
@@ -275,6 +276,19 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldText,
 		})
 	}
+	if value, ok := cu.mutation.UUIDA(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: category.FieldUUIDA,
+		})
+	}
+	if cu.mutation.UUIDACleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Column: category.FieldUUIDA,
+		})
+	}
 	if value, ok := cu.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
@@ -333,19 +347,6 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint64,
 			Column: category.FieldCount,
-		})
-	}
-	if value, ok := cu.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
-	}
-	if cu.mutation.StringsCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: category.FieldStrings,
 		})
 	}
 	if cu.mutation.TodosCleared() {
@@ -427,6 +428,18 @@ func (cuo *CategoryUpdateOne) SetText(s string) *CategoryUpdateOne {
 	return cuo
 }
 
+// SetUUIDA sets the "uuid_a" field.
+func (cuo *CategoryUpdateOne) SetUUIDA(u uuid.UUID) *CategoryUpdateOne {
+	cuo.mutation.SetUUIDA(u)
+	return cuo
+}
+
+// ClearUUIDA clears the value of the "uuid_a" field.
+func (cuo *CategoryUpdateOne) ClearUUIDA() *CategoryUpdateOne {
+	cuo.mutation.ClearUUIDA()
+	return cuo
+}
+
 // SetStatus sets the "status" field.
 func (cuo *CategoryUpdateOne) SetStatus(c category.Status) *CategoryUpdateOne {
 	cuo.mutation.SetStatus(c)
@@ -496,18 +509,6 @@ func (cuo *CategoryUpdateOne) AddCount(u int64) *CategoryUpdateOne {
 // ClearCount clears the value of the "count" field.
 func (cuo *CategoryUpdateOne) ClearCount() *CategoryUpdateOne {
 	cuo.mutation.ClearCount()
-	return cuo
-}
-
-// SetStrings sets the "strings" field.
-func (cuo *CategoryUpdateOne) SetStrings(s []string) *CategoryUpdateOne {
-	cuo.mutation.SetStrings(s)
-	return cuo
-}
-
-// ClearStrings clears the value of the "strings" field.
-func (cuo *CategoryUpdateOne) ClearStrings() *CategoryUpdateOne {
-	cuo.mutation.ClearStrings()
 	return cuo
 }
 
@@ -676,6 +677,19 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			Column: category.FieldText,
 		})
 	}
+	if value, ok := cuo.mutation.UUIDA(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: category.FieldUUIDA,
+		})
+	}
+	if cuo.mutation.UUIDACleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Column: category.FieldUUIDA,
+		})
+	}
 	if value, ok := cuo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
@@ -734,19 +748,6 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint64,
 			Column: category.FieldCount,
-		})
-	}
-	if value, ok := cuo.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
-	}
-	if cuo.mutation.StringsCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: category.FieldStrings,
 		})
 	}
 	if cuo.mutation.TodosCleared() {
