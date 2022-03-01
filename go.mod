@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.3.1
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
-	go.uber.org/multierr v1.7.0
+	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.8
@@ -36,7 +36,6 @@ require (
 	github.com/go-faster/jx v0.25.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
