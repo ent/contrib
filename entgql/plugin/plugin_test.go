@@ -41,6 +41,13 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	duration: Duration!
 	count: Uint64!
 }
+type MasterUser {
+	id: ID!
+	username: String!
+	age: Float!
+	amount: Float!
+	role: Role!
+}
 type Todo {
 	id: ID!
 	createdAt: Time!
@@ -48,13 +55,6 @@ type Todo {
 	status: Status!
 	priority: Int!
 	text: String!
-}
-type User {
-	id: ID!
-	username: String!
-	age: Float!
-	amount: Float!
-	role: Role!
 }
 `, printSchema(&ast.Schema{
 		Types: types,

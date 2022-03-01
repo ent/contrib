@@ -18,6 +18,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/role"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 
@@ -43,5 +44,12 @@ func (User) Fields() []ent.Field {
 			}),
 		field.Enum("role").
 			GoType(role.Unknown),
+	}
+}
+
+// Annotations returns user annotations.
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.Type("MasterUser"),
 	}
 }

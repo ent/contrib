@@ -39,10 +39,12 @@ type (
 )
 
 var (
-	camel = gen.Funcs["camel"].(func(string) string)
+	annotationName = entgql.Annotation{}.Name()
+	camel          = gen.Funcs["camel"].(func(string) string)
 
 	_ plugin.Plugin              = (*EntGQL)(nil)
 	_ plugin.EarlySourceInjector = (*EntGQL)(nil)
+	_ plugin.ConfigMutator       = (*EntGQL)(nil)
 )
 
 // NewEntGQLPlugin creates a new EntGQL plugin
