@@ -38,73 +38,75 @@ func TestModifyConfig_empty(t *testing.T) {
 	require.Equal(t, expected, cfg)
 }
 
+var g = &gen.Graph{
+	Config: &gen.Config{
+		Package: "example.com",
+		IDType: &field.TypeInfo{
+			Type: field.TypeInt,
+		},
+	},
+	Nodes: []*gen.Type{
+		{
+			Name: "Todo",
+			Fields: []*gen.Field{{
+				Name: "Name",
+				Type: &field.TypeInfo{
+					Type: field.TypeString,
+				},
+			}},
+		},
+		{
+			Name: "User",
+			Fields: []*gen.Field{{
+				Name: "Name",
+				Type: &field.TypeInfo{
+					Type: field.TypeString,
+				},
+			}},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{
+					"Skip": true,
+				},
+			},
+		},
+		{
+			Name: "Group",
+			Fields: []*gen.Field{{
+				Name: "Name",
+				Type: &field.TypeInfo{
+					Type: field.TypeString,
+				},
+			}},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{
+					"RelayConnection": true,
+				},
+			},
+		},
+		{
+			Name: "GroupWithSort",
+			Fields: []*gen.Field{{
+				Name: "Name",
+				Type: &field.TypeInfo{
+					Type: field.TypeString,
+				},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"OrderField": "NAME",
+					},
+				},
+			}},
+			Annotations: map[string]interface{}{
+				annotationName: map[string]interface{}{
+					"RelayConnection": true,
+				},
+			},
+		},
+	},
+}
+
 func TestModifyConfig(t *testing.T) {
-	e, err := NewEntGQLPlugin(&gen.Graph{
-		Config: &gen.Config{
-			Package: "example.com",
-			IDType: &field.TypeInfo{
-				Type: field.TypeInt,
-			},
-		},
-		Nodes: []*gen.Type{
-			{
-				Name: "Todo",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-				}},
-			},
-			{
-				Name: "User",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-				}},
-				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{
-						"Skip": true,
-					},
-				},
-			},
-			{
-				Name: "Group",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-				}},
-				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{
-						"RelayConnection": true,
-					},
-				},
-			},
-			{
-				Name: "GroupWithSort",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-					Annotations: map[string]interface{}{
-						annotationName: map[string]interface{}{
-							"OrderField": "NAME",
-						},
-					},
-				}},
-				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{
-						"RelayConnection": true,
-					},
-				},
-			},
-		},
-	})
+	e, err := NewEntGQLPlugin(g)
 	require.NoError(t, err)
 	cfg := config.DefaultConfig()
 	err = e.MutateConfig(cfg)
@@ -119,72 +121,7 @@ func TestModifyConfig(t *testing.T) {
 }
 
 func TestModifyConfig_relay(t *testing.T) {
-	e, err := NewEntGQLPlugin(&gen.Graph{
-		Config: &gen.Config{
-			Package: "example.com",
-			IDType: &field.TypeInfo{
-				Type: field.TypeInt,
-			},
-		},
-		Nodes: []*gen.Type{
-			{
-				Name: "Todo",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-				}},
-			},
-			{
-				Name: "User",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-				}},
-				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{
-						"Skip": true,
-					},
-				},
-			},
-			{
-				Name: "Group",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-				}},
-				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{
-						"RelayConnection": true,
-					},
-				},
-			},
-			{
-				Name: "GroupWithSort",
-				Fields: []*gen.Field{{
-					Name: "Name",
-					Type: &field.TypeInfo{
-						Type: field.TypeString,
-					},
-					Annotations: map[string]interface{}{
-						annotationName: map[string]interface{}{
-							"OrderField": "NAME",
-						},
-					},
-				}},
-				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{
-						"RelayConnection": true,
-					},
-				},
-			},
-		},
-	}, WithRelaySpecification(true))
+	e, err := NewEntGQLPlugin(g, WithRelaySpecification(true))
 	require.NoError(t, err)
 	cfg := config.DefaultConfig()
 	err = e.MutateConfig(cfg)
