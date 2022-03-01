@@ -32,6 +32,8 @@ type (
 		graph  *gen.Graph
 		nodes  []*gen.Type
 		schema *ast.Schema
+
+		relaySpec bool
 	}
 
 	// EntGQLPluginOption is a option for the EntGQL plugin
@@ -46,6 +48,14 @@ var (
 	_ plugin.EarlySourceInjector = (*EntGQL)(nil)
 	_ plugin.ConfigMutator       = (*EntGQL)(nil)
 )
+
+// WithRelaySpecification adds the Relay specification to the schema
+func WithRelaySpecification(relaySpec bool) EntGQLPluginOption {
+	return func(e *EntGQL) error {
+		e.relaySpec = relaySpec
+		return nil
+	}
+}
 
 // NewEntGQLPlugin creates a new EntGQL plugin
 func NewEntGQLPlugin(graph *gen.Graph, opts ...EntGQLPluginOption) (*EntGQL, error) {
@@ -112,6 +122,10 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 		}
 
 		var interfaces []string
+		if e.relaySpec {
+			interfaces = append(interfaces, "Node")
+		}
+
 		types[name] = &ast.Definition{
 			Name:       name,
 			Kind:       ast.Object,
@@ -156,7 +170,7 @@ func (e *EntGQL) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, err
 		return nil, nil
 	}
 
-	ft, err := typeFromField(f, isID, ant.Type)
+	ft, err := e.typeFromField(f, isID, ant.Type)
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}
@@ -178,20 +192,19 @@ func namedType(name string, nullable bool) *ast.Type {
 	return ast.NonNullNamedType(name, nil)
 }
 
-func typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
+func (e *EntGQL) typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
 	nillable := f.Nillable
 	typ := f.Type.Type
 
 	// TODO(giautm): Support custom scalar types
 	// TODO(giautm): Support Edge Field
-	// TODO(giautm): Support nullable ID for non-relay
 	// TODO(giautm): Support some built-in JSON types: Ints(), Floats(), Strings()
 	scalar := f.Type.String()
 	switch {
 	case userDefinedType != "":
 		return namedType(userDefinedType, nillable), nil
 	case idField:
-		return namedType("ID", false), nil
+		return namedType("ID", !e.relaySpec && nillable), nil
 	case typ.Float():
 		return namedType("Float", nillable), nil
 	case typ.Integer():

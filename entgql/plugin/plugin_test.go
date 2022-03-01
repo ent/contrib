@@ -42,13 +42,51 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	count: Uint64!
 }
 type MasterUser {
-	id: ID!
+	id: ID
 	username: String!
 	age: Float!
 	amount: Float!
 	role: Role!
 }
 type Todo {
+	id: ID!
+	createdAt: Time!
+	visibilityStatus: VisibilityStatus!
+	status: Status!
+	priority: Int!
+	text: String!
+}
+`, printSchema(&ast.Schema{
+		Types: types,
+	}))
+}
+
+func TestEntGQL_buildTypes_relay(t *testing.T) {
+	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
+	require.NoError(t, err)
+	plugin, err := NewEntGQLPlugin(graph, WithRelaySpecification(true))
+
+	require.NoError(t, err)
+	types, err := plugin.buildTypes()
+	require.NoError(t, err)
+
+	require.Equal(t, `type Category implements Node {
+	id: ID!
+	text: String!
+	uuidA: UUID
+	status: CategoryStatus!
+	config: CategoryConfig!
+	duration: Duration!
+	count: Uint64!
+}
+type MasterUser implements Node {
+	id: ID!
+	username: String!
+	age: Float!
+	amount: Float!
+	role: Role!
+}
+type Todo implements Node {
 	id: ID!
 	createdAt: Time!
 	visibilityStatus: VisibilityStatus!

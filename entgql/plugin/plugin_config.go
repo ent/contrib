@@ -20,8 +20,30 @@ import (
 	"github.com/99designs/gqlgen/codegen/config"
 )
 
+var (
+	// RelayCursor is the name of the cursor type
+	RelayCursor = "Cursor"
+	// RelayNode is the name of the interface that all nodes implement
+	RelayNode = "Node"
+	// RelayPageInfo is the name of the PageInfo type
+	RelayPageInfo = "PageInfo"
+)
+
 // MutateConfig implements the ConfigMutator interface
 func (e *EntGQL) MutateConfig(cfg *config.Config) error {
+	if e.relaySpec {
+		if !cfg.Models.Exists(RelayPageInfo) {
+			cfg.Models.Add(RelayPageInfo, e.entGoType(RelayPageInfo))
+		}
+		if !cfg.Models.Exists(RelayNode) {
+			// Bind to Noder interface
+			cfg.Models.Add(RelayNode, e.entGoType("Noder"))
+		}
+		if !cfg.Models.Exists(RelayCursor) {
+			cfg.Models.Add(RelayCursor, e.entGoType(RelayCursor))
+		}
+	}
+
 	for _, node := range e.nodes {
 		ant, err := decodeAnnotation(node.Annotations)
 		if err != nil {

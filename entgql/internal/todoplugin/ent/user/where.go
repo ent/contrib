@@ -106,6 +106,20 @@ func IDLTE(id int) predicate.User {
 	})
 }
 
+// IDIsNil applies the IsNil predicate on the ID field.
+func IDIsNil(id int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldID)))
+	})
+}
+
+// IDNotNil applies the NotNil predicate on the ID field.
+func IDNotNil(id int) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldID)))
+	})
+}
+
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

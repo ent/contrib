@@ -117,3 +117,86 @@ func TestModifyConfig(t *testing.T) {
 	}
 	require.Equal(t, expected, cfg)
 }
+
+func TestModifyConfig_relay(t *testing.T) {
+	e, err := NewEntGQLPlugin(&gen.Graph{
+		Config: &gen.Config{
+			Package: "example.com",
+			IDType: &field.TypeInfo{
+				Type: field.TypeInt,
+			},
+		},
+		Nodes: []*gen.Type{
+			{
+				Name: "Todo",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+				}},
+			},
+			{
+				Name: "User",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+				}},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"Skip": true,
+					},
+				},
+			},
+			{
+				Name: "Group",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+				}},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"RelayConnection": true,
+					},
+				},
+			},
+			{
+				Name: "GroupWithSort",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+					Annotations: map[string]interface{}{
+						annotationName: map[string]interface{}{
+							"OrderField": "NAME",
+						},
+					},
+				}},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"RelayConnection": true,
+					},
+				},
+			},
+		},
+	}, WithRelaySpecification(true))
+	require.NoError(t, err)
+	cfg := config.DefaultConfig()
+	err = e.MutateConfig(cfg)
+	require.NoError(t, err)
+	expected := config.DefaultConfig()
+	expected.Models = map[string]config.TypeMapEntry{
+		"Cursor":        {Model: []string{"example.com.Cursor"}},
+		"Group":         {Model: []string{"example.com.Group"}},
+		"GroupWithSort": {Model: []string{"example.com.GroupWithSort"}},
+		"Node":          {Model: []string{"example.com.Noder"}},
+		"PageInfo":      {Model: []string{"example.com.PageInfo"}},
+		"Todo":          {Model: []string{"example.com.Todo"}},
+	}
+	require.Equal(t, expected, cfg)
+}

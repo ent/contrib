@@ -32,6 +32,10 @@ type User struct {
 // Fields returns User fields.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("id").
+			Nillable().
+			Optional().
+			Unique(),
 		field.String("username"),
 		field.Int("age").
 			Annotations(entgql.Annotation{
