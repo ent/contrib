@@ -15,17 +15,23 @@
 package plugin
 
 import (
+	"fmt"
+	"strings"
+
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/plugin"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/formatter"
 )
 
 type (
 	// EntGQL is a plugin that generates GQL schema from the Ent's Graph
 	EntGQL struct {
-		graph *gen.Graph
-		nodes []*gen.Type
+		graph  *gen.Graph
+		nodes  []*gen.Type
+		schema *ast.Schema
 	}
 
 	// EntGQLPluginOption is a option for the EntGQL plugin
@@ -33,6 +39,8 @@ type (
 )
 
 var (
+	camel = gen.Funcs["camel"].(func(string) string)
+
 	_ plugin.Plugin              = (*EntGQL)(nil)
 	_ plugin.EarlySourceInjector = (*EntGQL)(nil)
 )
@@ -54,6 +62,14 @@ func NewEntGQLPlugin(graph *gen.Graph, opts ...EntGQLPluginOption) (*EntGQL, err
 		}
 	}
 
+	types, err := e.buildTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	e.schema = &ast.Schema{
+		Types: types,
+	}
 	return e, nil
 }
 
@@ -65,4 +81,154 @@ func (*EntGQL) Name() string {
 // InjectSourceEarly implements the EarlySourceInjector interface.
 func (e *EntGQL) InjectSourceEarly() *ast.Source {
 	return nil
+	// return &ast.Source{
+	// 	Name:    "entgql.graphql",
+	// 	Input:   printSchema(e.schema),
+	// 	BuiltIn: false,
+	// }
+}
+
+func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
+	types := map[string]*ast.Definition{}
+	for _, node := range e.nodes {
+		ant, err := decodeAnnotation(node.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if ant.Skip {
+			continue
+		}
+
+		fields, err := e.buildTypeFields(node)
+		if err != nil {
+			return nil, err
+		}
+
+		name := node.Name
+		if ant.Type != "" {
+			name = ant.Type
+		}
+
+		var interfaces []string
+		types[name] = &ast.Definition{
+			Name:       name,
+			Kind:       ast.Object,
+			Fields:     fields,
+			Interfaces: interfaces,
+		}
+	}
+
+	return types, nil
+}
+
+func (e *EntGQL) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
+	var fields ast.FieldList
+	if t.ID != nil {
+		f, err := e.typeField(t.ID, true)
+		if err != nil {
+			return nil, err
+		}
+		if f != nil {
+			fields = append(fields, f...)
+		}
+	}
+
+	for _, f := range t.Fields {
+		f, err := e.typeField(f, false)
+		if err != nil {
+			return nil, err
+		}
+		if f != nil {
+			fields = append(fields, f...)
+		}
+	}
+	return fields, nil
+}
+
+func (e *EntGQL) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
+	ant, err := decodeAnnotation(f.Annotations)
+	if err != nil {
+		return nil, err
+	}
+	if ant.Skip {
+		return nil, nil
+	}
+
+	ft, err := typeFromField(f, isID, ant.Type)
+	if err != nil {
+		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
+	}
+
+	// TODO(giautm): support rename field
+	// TODO(giautm): support mapping single field to multiple GQL fields
+	return []*ast.FieldDefinition{
+		{
+			Name: camel(f.Name),
+			Type: ft,
+		},
+	}, nil
+}
+
+func namedType(name string, nullable bool) *ast.Type {
+	if nullable {
+		return ast.NamedType(name, nil)
+	}
+	return ast.NonNullNamedType(name, nil)
+}
+
+func typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
+	nillable := f.Nillable
+	typ := f.Type.Type
+
+	// TODO(giautm): Support custom scalar types
+	// TODO(giautm): Support Edge Field
+	// TODO(giautm): Support nullable ID for non-relay
+	// TODO(giautm): Support some built-in JSON types: Ints(), Floats(), Strings()
+	scalar := f.Type.String()
+	switch {
+	case userDefinedType != "":
+		return namedType(userDefinedType, nillable), nil
+	case idField:
+		return namedType("ID", false), nil
+	case typ.Float():
+		return namedType("Float", nillable), nil
+	case typ.Integer():
+		return namedType("Int", nillable), nil
+	case typ == field.TypeString:
+		return namedType("String", nillable), nil
+	case typ == field.TypeBool:
+		return namedType("Boolean", nillable), nil
+	case typ == field.TypeBytes:
+		return nil, fmt.Errorf("bytes type not implemented")
+	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
+		scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		return namedType(scalar, nillable), nil
+	case typ == field.TypeJSON:
+		return nil, fmt.Errorf("json type not implemented")
+	case typ == field.TypeOther:
+		return nil, fmt.Errorf("other type must have typed defined")
+	default:
+		return nil, fmt.Errorf("unexpected type: %s", typ.String())
+	}
+}
+
+func decodeAnnotation(annotations gen.Annotations) (*entgql.Annotation, error) {
+	ant := &entgql.Annotation{}
+	if annotations == nil || annotations[ant.Name()] == nil {
+		return ant, nil
+	}
+
+	err := ant.Decode(annotations[ant.Name()])
+	if err != nil {
+		return nil, err
+	}
+	return ant, nil
+}
+
+func printSchema(schema *ast.Schema) string {
+	sb := &strings.Builder{}
+	formatter.
+		NewFormatter(sb).
+		FormatSchema(schema)
+	return sb.String()
 }
