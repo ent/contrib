@@ -10,11 +10,6 @@ resolver:
   layout: follow-schema
   dir: .
 
-autobind:
-  - entgo.io/contrib/entgql/internal/todoplugin/ent
-  # Auto-bind the generated `Status` enum to GraphQL.
-  - entgo.io/contrib/entgql/internal/todoplugin/ent/todo
-
 models:
   ID:
     model:
@@ -28,22 +23,7 @@ models:
   UUID:
     model:
       - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/uuidgql.UUID
-  Node:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent.Noder
-  # Custom mapping from GraphQL `CategoryStatus`
-  # to the generated `category.Status` enum type.
-  CategoryStatus:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status
-  Role:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role
-  # Custom mapping from GraphQL `CategoryConfig` and
-  # `CategoryConfigInput` to `schematype.CategoryConfig`.
-  CategoryConfig:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig
+  # Custom mapping from GraphQL `CategoryConfigInput` to `schematype.CategoryConfig`.
   CategoryConfigInput:
     model:
       - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig
