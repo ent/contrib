@@ -36,8 +36,8 @@ type (
 		relaySpec bool
 	}
 
-	// EntGQLPluginOption is a option for the EntGQL plugin
-	EntGQLPluginOption func(*EntGQL) error
+	// EntGQLOption is a option for the EntGQL plugin
+	EntGQLOption func(*EntGQL) error
 )
 
 var (
@@ -50,7 +50,7 @@ var (
 )
 
 // WithRelaySpecification adds the Relay specification to the schema
-func WithRelaySpecification(relaySpec bool) EntGQLPluginOption {
+func WithRelaySpecification(relaySpec bool) EntGQLOption {
 	return func(e *EntGQL) error {
 		e.relaySpec = relaySpec
 		return nil
@@ -58,7 +58,7 @@ func WithRelaySpecification(relaySpec bool) EntGQLPluginOption {
 }
 
 // NewEntGQLPlugin creates a new EntGQL plugin
-func NewEntGQLPlugin(graph *gen.Graph, opts ...EntGQLPluginOption) (*EntGQL, error) {
+func NewEntGQLPlugin(graph *gen.Graph, opts ...EntGQLOption) (*EntGQL, error) {
 	nodes, err := entgql.FilterNodes(graph.Nodes)
 	if err != nil {
 		return nil, err

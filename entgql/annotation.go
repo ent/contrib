@@ -133,8 +133,7 @@ func DecodeAnnotation(annotations gen.Annotations) (*Annotation, error) {
 		return ant, nil
 	}
 
-	err := ant.Decode(annotations[ant.Name()])
-	if err != nil {
+	if err := ant.Decode(annotations[ant.Name()]); err != nil {
 		return nil, err
 	}
 	return ant, nil

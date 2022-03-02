@@ -14,6 +14,5 @@
 
 package todoplugin
 
-//go:generate go run -mod=mod ./ent/entc.go
 //go:generate go run -mod=mod ./cmd/entgqlgen.go -path ./ent/schema
 //go:generate go run -mod=mod github.com/google/addlicense -c Facebook -y 2019-present ./
