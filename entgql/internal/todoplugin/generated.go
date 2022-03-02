@@ -44,10 +44,10 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	MasterUser() MasterUserResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Todo() TodoResolver
-	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -67,6 +67,25 @@ type ComplexityRoot struct {
 
 	CategoryConfig struct {
 		MaxMembers func(childComplexity int) int
+	}
+
+	MasterUser struct {
+		Age      func(childComplexity int) int
+		Amount   func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Role     func(childComplexity int) int
+		Username func(childComplexity int) int
+	}
+
+	MasterUserConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	MasterUserEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -108,16 +127,12 @@ type ComplexityRoot struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
 	}
-
-	User struct {
-		Age      func(childComplexity int) int
-		Amount   func(childComplexity int) int
-		ID       func(childComplexity int) int
-		Role     func(childComplexity int) int
-		Username func(childComplexity int) int
-	}
 }
 
+type MasterUserResolver interface {
+	Age(ctx context.Context, obj *ent.User) (float64, error)
+	Amount(ctx context.Context, obj *ent.User) (float64, error)
+}
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error)
 	ClearTodos(ctx context.Context) (int, error)
@@ -129,10 +144,6 @@ type QueryResolver interface {
 }
 type TodoResolver interface {
 	Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error)
-}
-type UserResolver interface {
-	Age(ctx context.Context, obj *ent.User) (float64, error)
-	Amount(ctx context.Context, obj *ent.User) (float64, error)
 }
 
 type executableSchema struct {
@@ -205,6 +216,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CategoryConfig.MaxMembers(childComplexity), true
+
+	case "MasterUser.age":
+		if e.complexity.MasterUser.Age == nil {
+			break
+		}
+
+		return e.complexity.MasterUser.Age(childComplexity), true
+
+	case "MasterUser.amount":
+		if e.complexity.MasterUser.Amount == nil {
+			break
+		}
+
+		return e.complexity.MasterUser.Amount(childComplexity), true
+
+	case "MasterUser.id":
+		if e.complexity.MasterUser.ID == nil {
+			break
+		}
+
+		return e.complexity.MasterUser.ID(childComplexity), true
+
+	case "MasterUser.role":
+		if e.complexity.MasterUser.Role == nil {
+			break
+		}
+
+		return e.complexity.MasterUser.Role(childComplexity), true
+
+	case "MasterUser.username":
+		if e.complexity.MasterUser.Username == nil {
+			break
+		}
+
+		return e.complexity.MasterUser.Username(childComplexity), true
+
+	case "MasterUserConnection.edges":
+		if e.complexity.MasterUserConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.MasterUserConnection.Edges(childComplexity), true
+
+	case "MasterUserConnection.pageInfo":
+		if e.complexity.MasterUserConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MasterUserConnection.PageInfo(childComplexity), true
+
+	case "MasterUserConnection.totalCount":
+		if e.complexity.MasterUserConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.MasterUserConnection.TotalCount(childComplexity), true
+
+	case "MasterUserEdge.cursor":
+		if e.complexity.MasterUserEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.MasterUserEdge.Cursor(childComplexity), true
+
+	case "MasterUserEdge.node":
+		if e.complexity.MasterUserEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.MasterUserEdge.Node(childComplexity), true
 
 	case "Mutation.clearTodos":
 		if e.complexity.Mutation.ClearTodos == nil {
@@ -380,41 +461,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TodoEdge.Node(childComplexity), true
 
-	case "User.age":
-		if e.complexity.User.Age == nil {
-			break
-		}
-
-		return e.complexity.User.Age(childComplexity), true
-
-	case "User.amount":
-		if e.complexity.User.Amount == nil {
-			break
-		}
-
-		return e.complexity.User.Amount(childComplexity), true
-
-	case "User.id":
-		if e.complexity.User.ID == nil {
-			break
-		}
-
-		return e.complexity.User.ID(childComplexity), true
-
-	case "User.role":
-		if e.complexity.User.Role == nil {
-			break
-		}
-
-		return e.complexity.User.Role(childComplexity), true
-
-	case "User.username":
-		if e.complexity.User.Username == nil {
-			break
-		}
-
-		return e.complexity.User.Username(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -584,12 +630,23 @@ enum Role {
   UNKNOWN
 }
 
-type User implements Node {
+type MasterUser implements Node {
   id: ID!
   username: String!
   age: Float!
   amount: Float!
   role: Role!
+}
+
+type MasterUserConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MasterUserEdge]
+}
+
+type MasterUserEdge {
+  node: MasterUser
+  cursor: Cursor!
 }
 
 type Query {
@@ -1076,6 +1133,350 @@ func (ec *executionContext) _CategoryConfig_maxMembers(ctx context.Context, fiel
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUser_id(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUser_username(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUser_age(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MasterUser().Age(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUser_amount(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MasterUser().Amount(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUser_role(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUser",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(role.Role)
+	fc.Result = res
+	return ec.marshalNRole2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋroleᚐRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUserConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.MasterUserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUserConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUserConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.MasterUserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUserConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.MasterUserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUserConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.MasterUserEdge)
+	fc.Result = res
+	return ec.marshalOMasterUserEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUserEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.MasterUserEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUserEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOMasterUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MasterUserEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.MasterUserEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "MasterUserEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1915,181 +2316,6 @@ func (ec *executionContext) _TodoEdge_cursor(ctx context.Context, field graphql.
 	res := resTmp.(ent.Cursor)
 	fc.Result = res
 	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCursor(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Username, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_age(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Age(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_amount(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Amount(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_role(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Role, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(role.Role)
-	fc.Result = res
-	return ec.marshalNRole2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋroleᚐRole(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3356,7 +3582,7 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 		if obj == nil {
 			return graphql.Null
 		}
-		return ec._User(ctx, sel, obj)
+		return ec._MasterUser(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -3471,6 +3697,183 @@ func (ec *executionContext) _CategoryConfig(ctx context.Context, sel ast.Selecti
 
 			out.Values[i] = innerFunc(ctx)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var masterUserImplementors = []string{"MasterUser", "Node"}
+
+func (ec *executionContext) _MasterUser(ctx context.Context, sel ast.SelectionSet, obj *ent.User) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, masterUserImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MasterUser")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUser_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "username":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUser_username(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "age":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MasterUser_age(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "amount":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MasterUser_amount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "role":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUser_role(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var masterUserConnectionImplementors = []string{"MasterUserConnection"}
+
+func (ec *executionContext) _MasterUserConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.MasterUserConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, masterUserConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MasterUserConnection")
+		case "totalCount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUserConnection_totalCount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUserConnection_pageInfo(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "edges":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUserConnection_edges(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var masterUserEdgeImplementors = []string{"MasterUserEdge"}
+
+func (ec *executionContext) _MasterUserEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.MasterUserEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, masterUserEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MasterUserEdge")
+		case "node":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUserEdge_node(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "cursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._MasterUserEdge_cursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3887,97 +4290,6 @@ func (ec *executionContext) _TodoEdge(ctx context.Context, sel ast.SelectionSet,
 
 			if out.Values[i] == graphql.Null {
 				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var userImplementors = []string{"User", "Node"}
-
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *ent.User) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("User")
-		case "id":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_id(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "username":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_username(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "age":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_age(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "amount":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_amount(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
-		case "role":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_role(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -4999,6 +5311,61 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOMasterUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MasterUser(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOMasterUserEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.MasterUserEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOMasterUserEdge2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOMasterUserEdge2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserEdge(ctx context.Context, sel ast.SelectionSet, v *ent.MasterUserEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MasterUserEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONode2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {

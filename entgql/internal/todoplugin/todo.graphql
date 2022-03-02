@@ -103,12 +103,23 @@ enum Role {
   UNKNOWN
 }
 
-type User implements Node {
+type MasterUser implements Node {
   id: ID!
   username: String!
   age: Float!
   amount: Float!
   role: Role!
+}
+
+type MasterUserConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MasterUserEdge]
+}
+
+type MasterUserEdge {
+  node: MasterUser
+  cursor: Cursor!
 }
 
 type Query {

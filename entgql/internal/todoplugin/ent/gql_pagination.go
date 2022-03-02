@@ -858,43 +858,46 @@ func (t *Todo) ToEdge(order *TodoOrder) *TodoEdge {
 	}
 }
 
-// UserEdge is the edge representation of User.
-type UserEdge struct {
-	Node   *User  `json:"node"`
-	Cursor Cursor `json:"cursor"`
+// MasterUser is the type alias for User.
+type MasterUser = User
+
+// MasterUserEdge is the edge representation of MasterUser.
+type MasterUserEdge struct {
+	Node   *MasterUser `json:"node"`
+	Cursor Cursor      `json:"cursor"`
 }
 
-// UserConnection is the connection containing edges to User.
-type UserConnection struct {
-	Edges      []*UserEdge `json:"edges"`
-	PageInfo   PageInfo    `json:"pageInfo"`
-	TotalCount int         `json:"totalCount"`
+// MasterUserConnection is the connection containing edges to MasterUser.
+type MasterUserConnection struct {
+	Edges      []*MasterUserEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
 }
 
-// UserPaginateOption enables pagination customization.
-type UserPaginateOption func(*userPager) error
+// MasterUserPaginateOption enables pagination customization.
+type MasterUserPaginateOption func(*masterUserPager) error
 
-// WithUserOrder configures pagination ordering.
-func WithUserOrder(order *UserOrder) UserPaginateOption {
+// WithMasterUserOrder configures pagination ordering.
+func WithMasterUserOrder(order *MasterUserOrder) MasterUserPaginateOption {
 	if order == nil {
-		order = DefaultUserOrder
+		order = DefaultMasterUserOrder
 	}
 	o := *order
-	return func(pager *userPager) error {
+	return func(pager *masterUserPager) error {
 		if err := o.Direction.Validate(); err != nil {
 			return err
 		}
 		if o.Field == nil {
-			o.Field = DefaultUserOrder.Field
+			o.Field = DefaultMasterUserOrder.Field
 		}
 		pager.order = &o
 		return nil
 	}
 }
 
-// WithUserFilter configures pagination filter.
-func WithUserFilter(filter func(*UserQuery) (*UserQuery, error)) UserPaginateOption {
-	return func(pager *userPager) error {
+// WithMasterUserFilter configures pagination filter.
+func WithMasterUserFilter(filter func(*UserQuery) (*UserQuery, error)) MasterUserPaginateOption {
+	return func(pager *masterUserPager) error {
 		if filter == nil {
 			return errors.New("UserQuery filter cannot be nil")
 		}
@@ -903,66 +906,66 @@ func WithUserFilter(filter func(*UserQuery) (*UserQuery, error)) UserPaginateOpt
 	}
 }
 
-type userPager struct {
-	order  *UserOrder
+type masterUserPager struct {
+	order  *MasterUserOrder
 	filter func(*UserQuery) (*UserQuery, error)
 }
 
-func newUserPager(opts []UserPaginateOption) (*userPager, error) {
-	pager := &userPager{}
+func newMasterUserPager(opts []MasterUserPaginateOption) (*masterUserPager, error) {
+	pager := &masterUserPager{}
 	for _, opt := range opts {
 		if err := opt(pager); err != nil {
 			return nil, err
 		}
 	}
 	if pager.order == nil {
-		pager.order = DefaultUserOrder
+		pager.order = DefaultMasterUserOrder
 	}
 	return pager, nil
 }
 
-func (p *userPager) applyFilter(query *UserQuery) (*UserQuery, error) {
+func (p *masterUserPager) applyFilter(query *UserQuery) (*UserQuery, error) {
 	if p.filter != nil {
 		return p.filter(query)
 	}
 	return query, nil
 }
 
-func (p *userPager) toCursor(u *User) Cursor {
+func (p *masterUserPager) toCursor(u *MasterUser) Cursor {
 	return p.order.Field.toCursor(u)
 }
 
-func (p *userPager) applyCursors(query *UserQuery, after, before *Cursor) *UserQuery {
+func (p *masterUserPager) applyCursors(query *UserQuery, after, before *Cursor) *UserQuery {
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
-		p.order.Field.field, DefaultUserOrder.Field.field,
+		p.order.Field.field, DefaultMasterUserOrder.Field.field,
 	) {
 		query = query.Where(predicate)
 	}
 	return query
 }
 
-func (p *userPager) applyOrder(query *UserQuery, reverse bool) *UserQuery {
+func (p *masterUserPager) applyOrder(query *UserQuery, reverse bool) *UserQuery {
 	direction := p.order.Direction
 	if reverse {
 		direction = direction.reverse()
 	}
 	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultUserOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultUserOrder.Field.field))
+	if p.order.Field != DefaultMasterUserOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultMasterUserOrder.Field.field))
 	}
 	return query
 }
 
-// Paginate executes the query and returns a relay based cursor connection to User.
+// Paginate executes the query and returns a relay based cursor connection to MasterUser.
 func (u *UserQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...UserPaginateOption,
-) (*UserConnection, error) {
+	before *Cursor, last *int, opts ...MasterUserPaginateOption,
+) (*MasterUserConnection, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
-	pager, err := newUserPager(opts)
+	pager, err := newMasterUserPager(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -971,7 +974,7 @@ func (u *UserQuery) Paginate(
 		return nil, err
 	}
 
-	conn := &UserConnection{Edges: []*UserEdge{}}
+	conn := &MasterUserConnection{Edges: []*MasterUserEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) ||
 			hasCollectedField(ctx, pageInfoField) {
@@ -1021,22 +1024,22 @@ func (u *UserQuery) Paginate(
 		nodes = nodes[:len(nodes)-1]
 	}
 
-	var nodeAt func(int) *User
+	var nodeAt func(int) *MasterUser
 	if last != nil {
 		n := len(nodes) - 1
-		nodeAt = func(i int) *User {
+		nodeAt = func(i int) *MasterUser {
 			return nodes[n-i]
 		}
 	} else {
-		nodeAt = func(i int) *User {
+		nodeAt = func(i int) *MasterUser {
 			return nodes[i]
 		}
 	}
 
-	conn.Edges = make([]*UserEdge, len(nodes))
+	conn.Edges = make([]*MasterUserEdge, len(nodes))
 	for i := range nodes {
 		node := nodeAt(i)
-		conn.Edges[i] = &UserEdge{
+		conn.Edges[i] = &MasterUserEdge{
 			Node:   node,
 			Cursor: pager.toCursor(node),
 		}
@@ -1051,35 +1054,35 @@ func (u *UserQuery) Paginate(
 	return conn, nil
 }
 
-// UserOrderField defines the ordering field of User.
-type UserOrderField struct {
+// MasterUserOrderField defines the ordering field of User.
+type MasterUserOrderField struct {
 	field    string
-	toCursor func(*User) Cursor
+	toCursor func(*MasterUser) Cursor
 }
 
-// UserOrder defines the ordering of User.
-type UserOrder struct {
-	Direction OrderDirection  `json:"direction"`
-	Field     *UserOrderField `json:"field"`
+// MasterUserOrder defines the ordering of User.
+type MasterUserOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *MasterUserOrderField `json:"field"`
 }
 
-// DefaultUserOrder is the default ordering of User.
-var DefaultUserOrder = &UserOrder{
+// DefaultMasterUserOrder is the default ordering of User.
+var DefaultMasterUserOrder = &MasterUserOrder{
 	Direction: OrderDirectionAsc,
-	Field: &UserOrderField{
+	Field: &MasterUserOrderField{
 		field: user.FieldID,
-		toCursor: func(u *User) Cursor {
+		toCursor: func(u *MasterUser) Cursor {
 			return Cursor{ID: u.ID}
 		},
 	},
 }
 
-// ToEdge converts User into UserEdge.
-func (u *User) ToEdge(order *UserOrder) *UserEdge {
+// ToEdge converts MasterUser into MasterUserEdge.
+func (u *MasterUser) ToEdge(order *MasterUserOrder) *MasterUserEdge {
 	if order == nil {
-		order = DefaultUserOrder
+		order = DefaultMasterUserOrder
 	}
-	return &UserEdge{
+	return &MasterUserEdge{
 		Node:   u,
 		Cursor: order.Field.toCursor(u),
 	}

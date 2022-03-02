@@ -17,6 +17,7 @@ package entgql
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,11 +65,12 @@ var (
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"fieldCollections": fieldCollections,
-		"filterEdges":      FilterEdges,
-		"filterFields":     FilterFields,
-		"filterNodes":      FilterNodes,
-		"findIDType":       FindIDType,
+		"fieldCollections":    fieldCollections,
+		"filterEdges":         FilterEdges,
+		"filterFields":        FilterFields,
+		"filterNodes":         FilterNodes,
+		"findIDType":          FindIDType,
+		"nodePaginationNames": NodePaginationNames,
 	}
 
 	//go:embed template/*
@@ -81,6 +83,7 @@ func parseT(path string) *gen.Template {
 		ParseFS(templates, path))
 }
 
+// FindIDType returns the type of the ID field of the given type.
 func FindIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
 	t := defaultType
 	if len(nodes) > 0 {
@@ -132,6 +135,7 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 	return result, nil
 }
 
+// FilterNodes filters out nodes that should not be included in the GraphQL schema.
 func FilterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	var filteredNodes []*gen.Type
 	for _, n := range nodes {
@@ -149,6 +153,7 @@ func FilterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	return filteredNodes, nil
 }
 
+// FilterEdges filters out edges that should not be included in the GraphQL schema.
 func FilterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 	var filteredEdges []*gen.Edge
 	for _, e := range edges {
@@ -175,6 +180,7 @@ func FilterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 	return filteredEdges, nil
 }
 
+// FilterFields filters out fields that should not be included in the GraphQL schema.
 func FilterFields(fields []*gen.Field) ([]*gen.Field, error) {
 	var filteredFields []*gen.Field
 	for _, f := range fields {
@@ -190,6 +196,33 @@ func FilterFields(fields []*gen.Field) ([]*gen.Field, error) {
 		filteredFields = append(filteredFields, f)
 	}
 	return filteredFields, nil
+}
+
+// PaginationNames holds the names of the pagination fields.
+type PaginationNames struct {
+	Node string
+	Edge string
+	Conn string
+}
+
+// NodePaginationNames returns the names of the pagination types for the node.
+func NodePaginationNames(t *gen.Type) (*PaginationNames, error) {
+	node := t.Name
+	ant, err := DecodeAnnotation(t.Annotations)
+	if err != nil {
+		return nil, err
+	}
+	if ant.Type != "" {
+		node = ant.Type
+	}
+	connName := fmt.Sprintf("%sConnection", node)
+	edgeName := fmt.Sprintf("%sEdge", node)
+
+	return &PaginationNames{
+		Conn: connName,
+		Edge: edgeName,
+		Node: node,
+	}, nil
 }
 
 // removeOldAssets removes files that were generated before v0.1.0.

@@ -24,6 +24,14 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent"
 )
 
+func (r *masterUserResolver) Age(ctx context.Context, obj *ent.User) (float64, error) {
+	return float64(obj.Age), nil
+}
+
+func (r *masterUserResolver) Amount(ctx context.Context, obj *ent.User) (float64, error) {
+	return float64(obj.Amount), nil
+}
+
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
 	client := ent.FromContext(ctx)
 	return client.Todo.
@@ -61,13 +69,8 @@ func (r *todoResolver) Category(ctx context.Context, obj *ent.Todo) (*ent.Catego
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *userResolver) Age(ctx context.Context, obj *ent.User) (float64, error) {
-	return float64(obj.Age), nil
-}
-
-func (r *userResolver) Amount(ctx context.Context, obj *ent.User) (float64, error) {
-	return float64(obj.Amount), nil
-}
+// MasterUser returns MasterUserResolver implementation.
+func (r *Resolver) MasterUser() MasterUserResolver { return &masterUserResolver{r} }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -78,10 +81,7 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // Todo returns TodoResolver implementation.
 func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
 
-// User returns UserResolver implementation.
-func (r *Resolver) User() UserResolver { return &userResolver{r} }
-
+type masterUserResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
-type userResolver struct{ *Resolver }

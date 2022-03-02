@@ -229,15 +229,22 @@ const (
 	{{- end }}
 {{- end }}
 
-{{ $name := $node.Name -}}
-{{ $edge := print $name "Edge" -}}
+{{ $names := nodePaginationNames $node -}}
+{{ $name := $names.Node -}}
+{{ $conn := $names.Conn -}}
+{{ $edge := $names.Edge -}}
+
+{{- if not (eq $name $node.Name) }}
+// {{ $name }} is the type alias for {{ $node.Name }}.
+type {{ $name }} = {{ $node.Name }}
+{{- end}}
+
 // {{ $edge }} is the edge representation of {{ $name }}.
 type {{ $edge }} struct {
 	Node *{{ $name }} `json:"node"`
 	Cursor Cursor     `json:"cursor"`
 }
 
-{{ $conn := print $name "Connection" -}}
 // {{ $conn }} is the connection containing edges to {{ $name }}.
 type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
