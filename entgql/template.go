@@ -200,9 +200,11 @@ func FilterFields(fields []*gen.Field) ([]*gen.Field, error) {
 
 // PaginationNames holds the names of the pagination fields.
 type PaginationNames struct {
-	Node string
-	Edge string
-	Conn string
+	Connection string
+	Edge       string
+	Node       string
+	Order      string
+	OrderField string
 }
 
 // NodePaginationNames returns the names of the pagination types for the node.
@@ -215,13 +217,13 @@ func NodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 	if ant.Type != "" {
 		node = ant.Type
 	}
-	connName := fmt.Sprintf("%sConnection", node)
-	edgeName := fmt.Sprintf("%sEdge", node)
 
 	return &PaginationNames{
-		Conn: connName,
-		Edge: edgeName,
-		Node: node,
+		Connection: fmt.Sprintf("%sConnection", node),
+		Edge:       fmt.Sprintf("%sEdge", node),
+		Node:       node,
+		Order:      fmt.Sprintf("%sOrder", node),
+		OrderField: fmt.Sprintf("%sOrderField", node),
 	}, nil
 }
 

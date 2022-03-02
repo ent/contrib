@@ -106,7 +106,7 @@ func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
 			},
 		},
 		{
-			Name:        pagination.Conn,
+			Name:        pagination.Connection,
 			Kind:        ast.Object,
 			Description: "A connection to a list of items.",
 			Fields: []*ast.FieldDefinition{

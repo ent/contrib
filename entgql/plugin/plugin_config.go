@@ -53,6 +53,7 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 			cfg.Models.Add(name, e.entGoType(node.Name))
 		}
 
+		hasOrderBy := false
 		for _, field := range node.Fields {
 			ant, err := entgql.DecodeAnnotation(field.Annotations)
 			if err != nil {
@@ -60,6 +61,11 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 			}
 			if ant.Skip {
 				continue
+			}
+
+			// Check if this node has an OrderBy object
+			if ant.OrderField != "" {
+				hasOrderBy = true
 			}
 
 			goType := ""
@@ -92,11 +98,23 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 				return err
 			}
 
-			if !cfg.Models.Exists(pagination.Conn) {
-				cfg.Models.Add(pagination.Conn, e.entGoType(pagination.Conn))
+			if !cfg.Models.Exists(pagination.Connection) {
+				cfg.Models.Add(pagination.Connection, e.entGoType(pagination.Connection))
 			}
 			if !cfg.Models.Exists(pagination.Edge) {
 				cfg.Models.Add(pagination.Edge, e.entGoType(pagination.Edge))
+			}
+
+			if hasOrderBy {
+				if !cfg.Models.Exists("OrderDirection") {
+					cfg.Models.Add("OrderDirection", e.entGoType("OrderDirection"))
+				}
+				cfg.Models[pagination.Order] = config.TypeMapEntry{
+					Model: []string{e.entGoType(pagination.Order)},
+				}
+				cfg.Models[pagination.OrderField] = config.TypeMapEntry{
+					Model: []string{e.entGoType(pagination.OrderField)},
+				}
 			}
 		}
 	}
