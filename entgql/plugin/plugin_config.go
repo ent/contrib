@@ -17,16 +17,8 @@ package plugin
 import (
 	"fmt"
 
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/codegen/config"
-)
-
-var (
-	// RelayCursor is the name of the cursor type
-	RelayCursor = "Cursor"
-	// RelayNode is the name of the interface that all nodes implement
-	RelayNode = "Node"
-	// RelayPageInfo is the name of the PageInfo type
-	RelayPageInfo = "PageInfo"
 )
 
 // MutateConfig implements the ConfigMutator interface
@@ -45,7 +37,7 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 	}
 
 	for _, node := range e.nodes {
-		ant, err := decodeAnnotation(node.Annotations)
+		ant, err := entgql.DecodeAnnotation(node.Annotations)
 		if err != nil {
 			return err
 		}

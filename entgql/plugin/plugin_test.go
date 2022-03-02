@@ -79,12 +79,66 @@ func TestEntGQL_buildTypes_relay(t *testing.T) {
 	duration: Duration!
 	count: Uint64!
 }
+"""
+A connection to a list of items.
+"""
+type CategoryConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [CategoryEdge]
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type CategoryEdge {
+	"""
+	The item at the end of the edge.
+	"""
+	node: Category
+	"""
+	A cursor for use in pagination.
+	"""
+	cursor: Cursor!
+}
 type MasterUser implements Node {
 	id: ID!
 	username: String!
 	age: Float!
 	amount: Float!
 	role: Role!
+}
+"""
+A connection to a list of items.
+"""
+type MasterUserConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [MasterUserEdge]
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type MasterUserEdge {
+	"""
+	The item at the end of the edge.
+	"""
+	node: MasterUser
+	"""
+	A cursor for use in pagination.
+	"""
+	cursor: Cursor!
 }
 type Todo implements Node {
 	id: ID!
@@ -93,6 +147,33 @@ type Todo implements Node {
 	status: Status!
 	priority: Int!
 	text: String!
+}
+"""
+A connection to a list of items.
+"""
+type TodoConnection {
+	"""
+	A list of edges.
+	"""
+	edges: [TodoEdge]
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type TodoEdge {
+	"""
+	The item at the end of the edge.
+	"""
+	node: Todo
+	"""
+	A cursor for use in pagination.
+	"""
+	cursor: Cursor!
 }
 `, printSchema(&ast.Schema{
 		Types: types,

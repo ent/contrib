@@ -48,7 +48,9 @@ func main() {
 		os.Exit(2)
 	}
 
-	entgqlPlugin, err := plugin.NewEntGQLPlugin(graph)
+	entgqlPlugin, err := plugin.NewEntGQLPlugin(graph,
+		plugin.WithRelaySpecification(true),
+	)
 	if err != nil {
 		log.Fatalf("creating entgql plugin: %v", err)
 	}

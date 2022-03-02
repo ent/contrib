@@ -103,7 +103,7 @@ func (e *EntGQL) InjectSourceEarly() *ast.Source {
 func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 	types := map[string]*ast.Definition{}
 	for _, node := range e.nodes {
-		ant, err := decodeAnnotation(node.Annotations)
+		ant, err := entgql.DecodeAnnotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
@@ -131,6 +131,16 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 			Kind:       ast.Object,
 			Fields:     fields,
 			Interfaces: interfaces,
+		}
+
+		// TODO(giautm): Added RelayConnection annotation check
+		if e.relaySpec {
+			defs, err := relayConnectionTypes(node)
+			if err != nil {
+				return nil, err
+			}
+
+			insertDefinitions(types, defs...)
 		}
 	}
 
@@ -162,7 +172,7 @@ func (e *EntGQL) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 }
 
 func (e *EntGQL) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
-	ant, err := decodeAnnotation(f.Annotations)
+	ant, err := entgql.DecodeAnnotation(f.Annotations)
 	if err != nil {
 		return nil, err
 	}
@@ -225,19 +235,6 @@ func (e *EntGQL) typeFromField(f *gen.Field, idField bool, userDefinedType strin
 	default:
 		return nil, fmt.Errorf("unexpected type: %s", typ.String())
 	}
-}
-
-func decodeAnnotation(annotations gen.Annotations) (*entgql.Annotation, error) {
-	ant := &entgql.Annotation{}
-	if annotations == nil || annotations[ant.Name()] == nil {
-		return ant, nil
-	}
-
-	err := ant.Decode(annotations[ant.Name()])
-	if err != nil {
-		return nil, err
-	}
-	return ant, nil
 }
 
 func printSchema(schema *ast.Schema) string {
