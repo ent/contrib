@@ -81,6 +81,26 @@ func (uu *UserUpdate) SetRole(r role.Role) *UserUpdate {
 	return uu
 }
 
+// SetNullableString sets the "nullable_string" field.
+func (uu *UserUpdate) SetNullableString(s string) *UserUpdate {
+	uu.mutation.SetNullableString(s)
+	return uu
+}
+
+// SetNillableNullableString sets the "nullable_string" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableNullableString(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetNullableString(*s)
+	}
+	return uu
+}
+
+// ClearNullableString clears the value of the "nullable_string" field.
+func (uu *UserUpdate) ClearNullableString() *UserUpdate {
+	uu.mutation.ClearNullableString()
+	return uu
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -216,6 +236,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldRole,
 		})
 	}
+	if value, ok := uu.mutation.NullableString(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldNullableString,
+		})
+	}
+	if uu.mutation.NullableStringCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldNullableString,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -270,6 +303,26 @@ func (uuo *UserUpdateOne) AddAmount(s schema.Amount) *UserUpdateOne {
 // SetRole sets the "role" field.
 func (uuo *UserUpdateOne) SetRole(r role.Role) *UserUpdateOne {
 	uuo.mutation.SetRole(r)
+	return uuo
+}
+
+// SetNullableString sets the "nullable_string" field.
+func (uuo *UserUpdateOne) SetNullableString(s string) *UserUpdateOne {
+	uuo.mutation.SetNullableString(s)
+	return uuo
+}
+
+// SetNillableNullableString sets the "nullable_string" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableNullableString(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetNullableString(*s)
+	}
+	return uuo
+}
+
+// ClearNullableString clears the value of the "nullable_string" field.
+func (uuo *UserUpdateOne) ClearNullableString() *UserUpdateOne {
+	uuo.mutation.ClearNullableString()
 	return uuo
 }
 
@@ -430,6 +483,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeEnum,
 			Value:  value,
 			Column: user.FieldRole,
+		})
+	}
+	if value, ok := uuo.mutation.NullableString(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldNullableString,
+		})
+	}
+	if uuo.mutation.NullableStringCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldNullableString,
 		})
 	}
 	_node = &User{config: uuo.config}

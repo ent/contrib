@@ -1591,19 +1591,20 @@ func (m *TodoMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	username      *string
-	age           *int
-	addage        *int
-	amount        *schema.Amount
-	addamount     *schema.Amount
-	role          *role.Role
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op              Op
+	typ             string
+	id              *int
+	username        *string
+	age             *int
+	addage          *int
+	amount          *schema.Amount
+	addamount       *schema.Amount
+	role            *role.Role
+	nullable_string *string
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*User, error)
+	predicates      []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1894,6 +1895,55 @@ func (m *UserMutation) ResetRole() {
 	m.role = nil
 }
 
+// SetNullableString sets the "nullable_string" field.
+func (m *UserMutation) SetNullableString(s string) {
+	m.nullable_string = &s
+}
+
+// NullableString returns the value of the "nullable_string" field in the mutation.
+func (m *UserMutation) NullableString() (r string, exists bool) {
+	v := m.nullable_string
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNullableString returns the old "nullable_string" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldNullableString(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNullableString is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNullableString requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNullableString: %w", err)
+	}
+	return oldValue.NullableString, nil
+}
+
+// ClearNullableString clears the value of the "nullable_string" field.
+func (m *UserMutation) ClearNullableString() {
+	m.nullable_string = nil
+	m.clearedFields[user.FieldNullableString] = struct{}{}
+}
+
+// NullableStringCleared returns if the "nullable_string" field was cleared in this mutation.
+func (m *UserMutation) NullableStringCleared() bool {
+	_, ok := m.clearedFields[user.FieldNullableString]
+	return ok
+}
+
+// ResetNullableString resets all changes to the "nullable_string" field.
+func (m *UserMutation) ResetNullableString() {
+	m.nullable_string = nil
+	delete(m.clearedFields, user.FieldNullableString)
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -1913,7 +1963,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -1925,6 +1975,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, user.FieldRole)
+	}
+	if m.nullable_string != nil {
+		fields = append(fields, user.FieldNullableString)
 	}
 	return fields
 }
@@ -1942,6 +1995,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Amount()
 	case user.FieldRole:
 		return m.Role()
+	case user.FieldNullableString:
+		return m.NullableString()
 	}
 	return nil, false
 }
@@ -1959,6 +2014,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldAmount(ctx)
 	case user.FieldRole:
 		return m.OldRole(ctx)
+	case user.FieldNullableString:
+		return m.OldNullableString(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1995,6 +2052,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRole(v)
+		return nil
+	case user.FieldNullableString:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNullableString(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -2052,7 +2116,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldNullableString) {
+		fields = append(fields, user.FieldNullableString)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2065,6 +2133,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldNullableString:
+		m.ClearNullableString()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -2083,6 +2156,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRole:
 		m.ResetRole()
+		return nil
+	case user.FieldNullableString:
+		m.ResetNullableString()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

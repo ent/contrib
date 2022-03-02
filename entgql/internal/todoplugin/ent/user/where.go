@@ -142,6 +142,13 @@ func Amount(v schema.Amount) predicate.User {
 	})
 }
 
+// NullableString applies equality check predicate on the "nullable_string" field. It's identical to NullableStringEQ.
+func NullableString(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNullableString), v))
+	})
+}
+
 // UsernameEQ applies the EQ predicate on the "username" field.
 func UsernameEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -458,6 +465,131 @@ func RoleNotIn(vs ...role.Role) predicate.User {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldRole), v...))
+	})
+}
+
+// NullableStringEQ applies the EQ predicate on the "nullable_string" field.
+func NullableStringEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringNEQ applies the NEQ predicate on the "nullable_string" field.
+func NullableStringNEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringIn applies the In predicate on the "nullable_string" field.
+func NullableStringIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldNullableString), v...))
+	})
+}
+
+// NullableStringNotIn applies the NotIn predicate on the "nullable_string" field.
+func NullableStringNotIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldNullableString), v...))
+	})
+}
+
+// NullableStringGT applies the GT predicate on the "nullable_string" field.
+func NullableStringGT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringGTE applies the GTE predicate on the "nullable_string" field.
+func NullableStringGTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringLT applies the LT predicate on the "nullable_string" field.
+func NullableStringLT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringLTE applies the LTE predicate on the "nullable_string" field.
+func NullableStringLTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringContains applies the Contains predicate on the "nullable_string" field.
+func NullableStringContains(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringHasPrefix applies the HasPrefix predicate on the "nullable_string" field.
+func NullableStringHasPrefix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringHasSuffix applies the HasSuffix predicate on the "nullable_string" field.
+func NullableStringHasSuffix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringIsNil applies the IsNil predicate on the "nullable_string" field.
+func NullableStringIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldNullableString)))
+	})
+}
+
+// NullableStringNotNil applies the NotNil predicate on the "nullable_string" field.
+func NullableStringNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldNullableString)))
+	})
+}
+
+// NullableStringEqualFold applies the EqualFold predicate on the "nullable_string" field.
+func NullableStringEqualFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldNullableString), v))
+	})
+}
+
+// NullableStringContainsFold applies the ContainsFold predicate on the "nullable_string" field.
+func NullableStringContainsFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldNullableString), v))
 	})
 }
 

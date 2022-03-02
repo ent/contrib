@@ -52,6 +52,53 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 		if !cfg.Models.Exists(name) {
 			cfg.Models.Add(name, e.entGoType(node.Name))
 		}
+
+		for _, field := range node.Fields {
+			ant, err := entgql.DecodeAnnotation(field.Annotations)
+			if err != nil {
+				return err
+			}
+			if ant.Skip {
+				continue
+			}
+
+			goType := ""
+			switch {
+			case field.IsEnum():
+				goType = fmt.Sprintf("%s/%s", e.graph.Package, field.Type.Ident)
+			case field.IsOther():
+				goType = fmt.Sprintf("%s.%s", field.Type.RType.PkgPath, field.Type.RType.Name)
+			default:
+				continue
+			}
+
+			// NOTE(giautm): I'm not sure this is
+			// the right approach, but it passed the test
+			defs, err := e.typeFromField(field, false, ant.Type)
+			if err != nil {
+				return err
+			}
+			name := defs.Name()
+
+			if !cfg.Models.Exists(name) {
+				cfg.Models.Add(name, goType)
+			}
+		}
+
+		// TODO(giautm): Added RelayConnection annotation check
+		if e.relaySpec {
+			pagination, err := entgql.NodePaginationNames(node)
+			if err != nil {
+				return err
+			}
+
+			if !cfg.Models.Exists(pagination.Conn) {
+				cfg.Models.Add(pagination.Conn, e.entGoType(pagination.Conn))
+			}
+			if !cfg.Models.Exists(pagination.Edge) {
+				cfg.Models.Add(pagination.Edge, e.entGoType(pagination.Edge))
+			}
+		}
 	}
 
 	return nil

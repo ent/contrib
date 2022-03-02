@@ -76,6 +76,7 @@ var (
 		{Name: "age", Type: field.TypeInt},
 		{Name: "amount", Type: field.TypeFloat64},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"ADMIN", "USER", "UNKNOWN"}},
+		{Name: "nullable_string", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

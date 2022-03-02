@@ -47,6 +47,7 @@ type MasterUser {
 	age: Float!
 	amount: Float!
 	role: Role!
+	nullableString: String
 }
 type Todo {
 	id: ID!
@@ -61,7 +62,7 @@ type Todo {
 	}))
 }
 
-func TestEntGQL_buildTypes_relay(t *testing.T) {
+func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
 	plugin, err := NewEntGQLPlugin(graph, WithRelaySpecification(true))
@@ -112,6 +113,7 @@ type MasterUser implements Node {
 	age: Float!
 	amount: Float!
 	role: Role!
+	nullableString: String
 }
 """
 A connection to a list of items.

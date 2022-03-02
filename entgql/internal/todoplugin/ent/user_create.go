@@ -59,6 +59,20 @@ func (uc *UserCreate) SetRole(r role.Role) *UserCreate {
 	return uc
 }
 
+// SetNullableString sets the "nullable_string" field.
+func (uc *UserCreate) SetNullableString(s string) *UserCreate {
+	uc.mutation.SetNullableString(s)
+	return uc
+}
+
+// SetNillableNullableString sets the "nullable_string" field if the given value is not nil.
+func (uc *UserCreate) SetNillableNullableString(s *string) *UserCreate {
+	if s != nil {
+		uc.SetNullableString(*s)
+	}
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(i int) *UserCreate {
 	uc.mutation.SetID(i)
@@ -224,6 +238,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldRole,
 		})
 		_node.Role = value
+	}
+	if value, ok := uc.mutation.NullableString(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldNullableString,
+		})
+		_node.NullableString = &value
 	}
 	return _node, _spec
 }

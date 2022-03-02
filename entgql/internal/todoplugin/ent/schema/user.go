@@ -48,6 +48,9 @@ func (User) Fields() []ent.Field {
 			}),
 		field.Enum("role").
 			GoType(role.Unknown),
+		field.String("nullable_string").
+			Nillable().
+			Optional(),
 	}
 }
 

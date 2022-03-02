@@ -39,6 +39,8 @@ type User struct {
 	Amount schema.Amount `json:"amount,omitempty"`
 	// Role holds the value of the "role" field.
 	Role role.Role `json:"role,omitempty"`
+	// NullableString holds the value of the "nullable_string" field.
+	NullableString *string `json:"nullable_string,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -50,7 +52,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldID, user.FieldAge:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUsername, user.FieldRole:
+		case user.FieldUsername, user.FieldRole, user.FieldNullableString:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -97,6 +99,13 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Role = role.Role(value.String)
 			}
+		case user.FieldNullableString:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field nullable_string", values[i])
+			} else if value.Valid {
+				u.NullableString = new(string)
+				*u.NullableString = value.String
+			}
 		}
 	}
 	return nil
@@ -133,6 +142,10 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Amount))
 	builder.WriteString(", role=")
 	builder.WriteString(fmt.Sprintf("%v", u.Role))
+	if v := u.NullableString; v != nil {
+		builder.WriteString(", nullable_string=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

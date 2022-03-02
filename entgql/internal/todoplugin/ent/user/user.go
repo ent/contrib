@@ -36,6 +36,8 @@ const (
 	FieldAmount = "amount"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldNullableString holds the string denoting the nullable_string field in the database.
+	FieldNullableString = "nullable_string"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldAge,
 	FieldAmount,
 	FieldRole,
+	FieldNullableString,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

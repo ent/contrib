@@ -17,6 +17,7 @@ package plugin
 import (
 	"testing"
 
+	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/codegen/config"
@@ -128,12 +129,73 @@ func TestModifyConfig_relay(t *testing.T) {
 	require.NoError(t, err)
 	expected := config.DefaultConfig()
 	expected.Models = map[string]config.TypeMapEntry{
-		"Cursor":        {Model: []string{"example.com.Cursor"}},
-		"Group":         {Model: []string{"example.com.Group"}},
-		"GroupWithSort": {Model: []string{"example.com.GroupWithSort"}},
-		"Node":          {Model: []string{"example.com.Noder"}},
-		"PageInfo":      {Model: []string{"example.com.PageInfo"}},
-		"Todo":          {Model: []string{"example.com.Todo"}},
+		"Cursor":                  {Model: []string{"example.com.Cursor"}},
+		"Group":                   {Model: []string{"example.com.Group"}},
+		"GroupConnection":         {Model: []string{"example.com.GroupConnection"}},
+		"GroupEdge":               {Model: []string{"example.com.GroupEdge"}},
+		"GroupWithSort":           {Model: []string{"example.com.GroupWithSort"}},
+		"GroupWithSortConnection": {Model: []string{"example.com.GroupWithSortConnection"}},
+		"GroupWithSortEdge":       {Model: []string{"example.com.GroupWithSortEdge"}},
+		"Node":                    {Model: []string{"example.com.Noder"}},
+		"PageInfo":                {Model: []string{"example.com.PageInfo"}},
+		"Todo":                    {Model: []string{"example.com.Todo"}},
+		"TodoConnection":          {Model: []string{"example.com.TodoConnection"}},
+		"TodoEdge":                {Model: []string{"example.com.TodoEdge"}},
+	}
+	require.Equal(t, expected, cfg)
+}
+
+func TestModifyConfig_todoplugin(t *testing.T) {
+	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
+	require.NoError(t, err)
+
+	e, err := NewEntGQLPlugin(graph)
+	require.NoError(t, err)
+	cfg := config.DefaultConfig()
+	err = e.MutateConfig(cfg)
+	require.NoError(t, err)
+	expected := config.DefaultConfig()
+	expected.Models = map[string]config.TypeMapEntry{
+		"Category":         {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Category"}},
+		"CategoryStatus":   {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status"}},
+		"CategoryConfig":   {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig"}},
+		"MasterUser":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.User"}},
+		"Role":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role"}},
+		"Status":           {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status"}},
+		"Todo":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Todo"}},
+		"VisibilityStatus": {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus"}},
+	}
+	require.Equal(t, expected, cfg)
+}
+
+func TestModifyConfig_todoplugin_relay(t *testing.T) {
+	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
+	require.NoError(t, err)
+
+	e, err := NewEntGQLPlugin(graph, WithRelaySpecification(true))
+	require.NoError(t, err)
+	cfg := config.DefaultConfig()
+	err = e.MutateConfig(cfg)
+	require.NoError(t, err)
+	expected := config.DefaultConfig()
+	expected.Models = map[string]config.TypeMapEntry{
+		"Category":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Category"}},
+		"CategoryConfig":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig"}},
+		"CategoryConnection":   {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryConnection"}},
+		"CategoryEdge":         {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryEdge"}},
+		"CategoryStatus":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status"}},
+		"Cursor":               {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Cursor"}},
+		"MasterUser":           {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.User"}},
+		"MasterUserConnection": {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.MasterUserConnection"}},
+		"MasterUserEdge":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.MasterUserEdge"}},
+		"Node":                 {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Noder"}},
+		"PageInfo":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.PageInfo"}},
+		"Role":                 {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role"}},
+		"Status":               {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status"}},
+		"Todo":                 {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Todo"}},
+		"TodoConnection":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.TodoConnection"}},
+		"TodoEdge":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.TodoEdge"}},
+		"VisibilityStatus":     {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus"}},
 	}
 	require.Equal(t, expected, cfg)
 }
