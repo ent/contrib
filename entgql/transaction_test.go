@@ -19,8 +19,8 @@ import (
 	"errors"
 	"testing"
 
-	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/mocks"
+	"github.com/bionicstork/contrib/entgql"
+	"github.com/bionicstork/contrib/entgql/mocks"
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler/testserver"

@@ -3,7 +3,7 @@
 package task
 
 import (
-	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 )
 

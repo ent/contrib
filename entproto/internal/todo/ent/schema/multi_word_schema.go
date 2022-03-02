@@ -15,10 +15,10 @@
 package schema
 
 import (
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
+	"github.com/bionicstork/contrib/entproto"
 )
 
 // MultiWordSchema holds the schema definition for the MultiWordSchema entity.

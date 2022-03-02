@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/blogpost"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/category"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

@@ -15,9 +15,9 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/schema"
+	"github.com/bionicstork/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
 // VerySecret defines the todo type schema.

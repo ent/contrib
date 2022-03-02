@@ -15,9 +15,9 @@
 package schema
 
 import (
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"github.com/bionicstork/contrib/entproto"
 )
 
 // TwoMethodService holds the schema definition for the TwoMethodService entity.

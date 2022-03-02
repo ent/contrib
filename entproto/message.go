@@ -55,9 +55,17 @@ func PackageName(pkg string) MessageOption {
 	}
 }
 
+// TableNumber sets the index of the node in the node types enum
+func TableNumber(index int32) MessageOption {
+	return func(msg *message) {
+		msg.TableNumber = index
+	}
+}
+
 type message struct {
-	Generate bool
-	Package  string
+	Generate    bool
+	Package     string
+	TableNumber int32
 }
 
 func (m message) Name() string {
@@ -68,7 +76,7 @@ func (message) Merge(other schema.Annotation) schema.Annotation {
 	return other
 }
 
-func extractMessageAnnotation(sch *gen.Type) (*message, error) {
+func ExtractMessageAnnotation(sch *gen.Type) (*message, error) {
 	annot, ok := sch.Annotations[MessageAnnotation]
 	if !ok {
 		return nil, fmt.Errorf("entproto: schema %q does not have an entproto.Message annotation", sch.Name)

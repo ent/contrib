@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entoas/internal/pets/pet"
-	"entgo.io/contrib/entoas/internal/pets/user"
+	"github.com/bionicstork/contrib/entoas/internal/pets/pet"
+	"github.com/bionicstork/contrib/entoas/internal/pets/user"
 	"entgo.io/ent/dialect/sql"
 )
 

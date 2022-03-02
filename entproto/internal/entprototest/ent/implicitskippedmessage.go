@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
 	"entgo.io/ent/dialect/sql"
 )
 

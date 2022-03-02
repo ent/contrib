@@ -20,10 +20,10 @@ import (
 	"go/token"
 	"testing"
 
-	"entgo.io/contrib/entproto"
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/schema"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
+	"github.com/bionicstork/contrib/entproto"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/schema"
 	"github.com/stretchr/testify/require"
 )
 

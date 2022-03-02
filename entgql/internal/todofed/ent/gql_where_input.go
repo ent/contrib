@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent/category"
-	"entgo.io/contrib/entgql/internal/todofed/ent/predicate"
-	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
-	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/schema/schematype"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/todo"
 )
 
 // CategoryWhereInput represents a where input for filtering Category queries.
@@ -349,7 +349,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todofed/ent: empty predicate CategoryWhereInput")
+		return nil, fmt.Errorf("github.com/bionicstork/contrib/entgql/internal/todofed/ent: empty predicate CategoryWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:
@@ -666,7 +666,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todofed/ent: empty predicate TodoWhereInput")
+		return nil, fmt.Errorf("github.com/bionicstork/contrib/entgql/internal/todofed/ent: empty predicate TodoWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:

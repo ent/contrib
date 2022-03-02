@@ -15,10 +15,10 @@
 package schema
 
 import (
-	"entgo.io/contrib/entoas"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
+	"github.com/bionicstork/contrib/entoas"
 )
 
 // User holds the schema definition for the User entity.

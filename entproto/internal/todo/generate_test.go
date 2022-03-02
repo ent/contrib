@@ -21,9 +21,9 @@ import (
 	"strings"
 	"testing"
 
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
+	"github.com/bionicstork/contrib/entproto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +36,7 @@ func TestGenerate(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = entproto.Generate(graph)
+	err = entproto.Generate(graph, "")
 	require.NoError(t, err)
 
 	bytes, err := ioutil.ReadFile(filepath.Join(tgt, "proto", "entpb", "entpb.proto"))

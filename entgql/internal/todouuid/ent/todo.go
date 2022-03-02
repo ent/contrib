@@ -21,9 +21,9 @@ import (
 	"strings"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )

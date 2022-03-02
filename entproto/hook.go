@@ -46,7 +46,7 @@ func Hook() gen.Hook {
 			if err != nil {
 				return err
 			}
-			return Generate(g)
+			return Generate(g, "")
 		})
 	}
 }
@@ -54,9 +54,9 @@ func Hook() gen.Hook {
 // Generate takes a *gen.Graph and creates .proto files. Next to each .proto file, Generate creates a generate.go
 // file containing a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
 // If generate.go already exists next to the .proto file, this step is skipped.
-func Generate(g *gen.Graph) error {
-	entProtoDir := path.Join(g.Config.Target, "proto")
-	adapter, err := LoadAdapter(g)
+func Generate(g *gen.Graph, targetGoPackage string) error {
+	entProtoDir := path.Join(g.Config.Target)
+	adapter, err := LoadAdapter(g, targetGoPackage)
 	if err != nil {
 		return fmt.Errorf("entproto: failed parsing ent graph: %w", err)
 	}
@@ -78,6 +78,7 @@ func Generate(g *gen.Graph) error {
 
 	// Print the .proto files.
 	var printer protoprint.Printer
+	printer.Compact = true
 	if err = printer.PrintProtosToFileSystem(allDescriptors, entProtoDir); err != nil {
 		return fmt.Errorf("entproto: failed writing .proto files: %w", err)
 	}

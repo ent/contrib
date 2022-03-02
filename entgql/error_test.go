@@ -17,7 +17,7 @@ package entgql_test
 import (
 	"testing"
 
-	"entgo.io/contrib/entgql"
+	"github.com/bionicstork/contrib/entgql"
 	"github.com/stretchr/testify/require"
 )
 

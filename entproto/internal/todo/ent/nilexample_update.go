@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
-	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/nilexample"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

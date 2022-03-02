@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 
-	"entgo.io/contrib/schemast/internal/printtest/ent/predicate"
-	"entgo.io/contrib/schemast/internal/printtest/ent/user"
+	"github.com/bionicstork/contrib/schemast/internal/printtest/ent/predicate"
+	"github.com/bionicstork/contrib/schemast/internal/printtest/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

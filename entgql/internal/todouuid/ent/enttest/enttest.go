@@ -19,9 +19,9 @@ package enttest
 import (
 	"context"
 
-	"entgo.io/contrib/entgql/internal/todouuid/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent"
 	// required by schema hooks.
-	_ "entgo.io/contrib/entgql/internal/todouuid/ent/runtime"
+	_ "github.com/bionicstork/contrib/entgql/internal/todouuid/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

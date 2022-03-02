@@ -20,9 +20,9 @@ import (
 	"reflect"
 	"strings"
 
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"github.com/bionicstork/contrib/entproto"
 	"github.com/jhump/protoreflect/desc"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
@@ -50,7 +50,7 @@ type converter struct {
 	ToProtoValuer                string
 }
 
-func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*converter, error) {
+func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor, nodeName string) (*converter, error) {
 	out := &converter{}
 	pbd := fld.PbFieldDescriptor
 	switch pbd.GetType() {
@@ -64,7 +64,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		method := fmt.Sprintf("toProto%s_%s", g.EntType.Name, enumName)
+		method := fmt.Sprintf("toProto%s_%s", nodeName, enumName)
 		out.ToProtoConstructor = g.File.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
@@ -106,11 +106,18 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	case efld.Type.Numeric():
 		out.ToEntConversion = efld.Type.String()
 	case efld.IsTime():
-		out.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractTime")
+		out.ToEntConstructor = protogen.GoImportPath("github.com/bionicstork/contrib/entproto/runtime").Ident("ExtractTime")
 	case efld.IsEnum():
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
 		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
+	case efld.IsJSON():
+		switch efld.Type.Ident {
+		case "[]string", "[]int":
+		default:
+			return nil, fmt.Errorf("entproto: no mapping to ent field type %q - %s", efld.Type.ConstName(), efld.Type.Ident)
+		}
+
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}

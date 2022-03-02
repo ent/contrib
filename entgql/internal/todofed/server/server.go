@@ -17,17 +17,17 @@ import (
 	"context"
 	"net/http"
 
-	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/internal/todofed"
-	"entgo.io/contrib/entgql/internal/todofed/ent"
-	"entgo.io/contrib/entgql/internal/todofed/ent/migrate"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/alecthomas/kong"
+	"github.com/bionicstork/contrib/entgql"
+	"github.com/bionicstork/contrib/entgql/internal/todofed"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/migrate"
 	"go.uber.org/zap"
 
-	_ "entgo.io/contrib/entgql/internal/todofed/ent/runtime"
+	_ "github.com/bionicstork/contrib/entgql/internal/todofed/ent/runtime"
 	_ "github.com/mattn/go-sqlite3"
 )
 

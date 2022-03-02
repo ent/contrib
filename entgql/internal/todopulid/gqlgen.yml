@@ -12,33 +12,33 @@ resolver:
   dir: .
 
 autobind:
-  - entgo.io/contrib/entgql/internal/todopulid/ent
+  - github.com/bionicstork/contrib/entgql/internal/todopulid/ent
   # Auto-bind the generated `Status` enum to GraphQL.
-  - entgo.io/contrib/entgql/internal/todopulid/ent/todo
+  - github.com/bionicstork/contrib/entgql/internal/todopulid/ent/todo
 
 models:
   ID:
     model:
-      - entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid.ID
+      - github.com/bionicstork/contrib/entgql/internal/todopulid/ent/schema/pulid.ID
   Uint64:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64
   Duration:
     model:
-      - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
+      - github.com/bionicstork/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
   Node:
     model:
-      - entgo.io/contrib/entgql/internal/todopulid/ent.Noder
+      - github.com/bionicstork/contrib/entgql/internal/todopulid/ent.Noder
   # Custom mapping from GraphQL `CategoryStatus`
   # to the generated `category.Status` enum type.
   CategoryStatus:
     model:
-      - entgo.io/contrib/entgql/internal/todopulid/ent/category.Status
+      - github.com/bionicstork/contrib/entgql/internal/todopulid/ent/category.Status
   # Custom mapping from GraphQL `CategoryConfig` and
   # `CategoryConfigInput` to `schematype.CategoryConfig`.
   CategoryConfig:
     model:
-      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+      - github.com/bionicstork/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
   CategoryConfigInput:
     model:
-      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+      - github.com/bionicstork/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig

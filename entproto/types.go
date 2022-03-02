@@ -23,7 +23,13 @@ import (
 var typeMap = map[field.Type]typeConfig{
 	field.TypeBool:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_BOOL, optionalType: "google.protobuf.BoolValue"},
 	field.TypeTime:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, msgTypeName: "google.protobuf.Timestamp", optionalType: "google.protobuf.Timestamp"},
-	field.TypeJSON:  {unsupported: true},
+	field.TypeJSON:  {getByIdent: func(fld *gen.Field) typeConfig {
+		if cfg, ok := jsonTypeMap[fld.Type.Ident]; ok {
+			return cfg
+		} else {
+			return typeConfig{unsupported: true}
+		}
+	}},
 	field.TypeOther: {unsupported: true},
 	field.TypeUUID:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_BYTES, optionalType: "google.protobuf.BytesValue"},
 	field.TypeBytes: {pbType: descriptorpb.FieldDescriptorProto_TYPE_BYTES, optionalType: "google.protobuf.BytesValue"},
@@ -45,10 +51,17 @@ var typeMap = map[field.Type]typeConfig{
 	field.TypeFloat64: {pbType: descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, optionalType: "google.protobuf.DoubleValue"},
 }
 
+var jsonTypeMap = map[string]typeConfig{
+	"[]string": {pbType: descriptorpb.FieldDescriptorProto_TYPE_STRING, pbLabel: descriptorpb.FieldDescriptorProto_LABEL_REPEATED, optionalType: "google.protobuf.StringValue"},
+	"[]int":    {pbType: descriptorpb.FieldDescriptorProto_TYPE_INT32, pbLabel: descriptorpb.FieldDescriptorProto_LABEL_REPEATED, optionalType: "google.protobuf.Int32Value"},
+}
+
 type typeConfig struct {
 	unsupported  bool
 	pbType       descriptorpb.FieldDescriptorProto_Type
+	pbLabel      descriptorpb.FieldDescriptorProto_Label
 	msgTypeName  string
 	optionalType string
 	namer        func(fld *gen.Field) string
+	getByIdent   func(fld *gen.Field) typeConfig
 }

@@ -15,27 +15,62 @@
 package main
 
 import (
+	"entgo.io/ent/schema/field"
 	"flag"
+	"fmt"
+	"github.com/bionicstork/contrib/entproto"
 	"log"
 
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 )
 
 func main() {
 	var (
-		schemaPath = flag.String("path", "", "path to schema directory")
+		schemaPath      = flag.String("path", "", "path to schema directory")
+		protoTarget     = flag.String("target", "", "proto schema target")
+		targetGoPackage = flag.String("target-go-package", "", "pb.go package path, used for setting the \"go_package\" in the proto files")
+		idType          = flag.String("idtype", "", "type of the table's primary key")
 	)
 	flag.Parse()
 	if *schemaPath == "" {
 		log.Fatal("entproto: must specify schema path. use entproto -path ./ent/schema")
 	}
-	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
+
+	idConfigType := IDType(field.TypeInt)
+	if *idType != "" {
+		err := idConfigType.Set(*idType)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{Target: *protoTarget, IDType: &field.TypeInfo{Type: field.Type(idConfigType)}})
 	if err != nil {
 		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}
-	if err := entproto.Generate(graph); err != nil {
+	if err := entproto.Generate(graph, *targetGoPackage); err != nil {
 		log.Fatalf("entproto: failed generating protos: %s", err)
 	}
+}
+
+// IDType is a custom ID implementation for pflag.
+type IDType field.Type
+
+// Set implements the Set method of the flag.Value interface.
+func (t *IDType) Set(s string) error {
+	switch s {
+	case field.TypeInt.String():
+		*t = IDType(field.TypeInt)
+	case field.TypeInt64.String():
+		*t = IDType(field.TypeInt64)
+	case field.TypeUint.String():
+		*t = IDType(field.TypeUint)
+	case field.TypeUint64.String():
+		*t = IDType(field.TypeUint64)
+	case field.TypeString.String():
+		*t = IDType(field.TypeString)
+	default:
+		return fmt.Errorf("invalid type %q", s)
+	}
+	return nil
 }

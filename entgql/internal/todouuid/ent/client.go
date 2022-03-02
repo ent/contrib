@@ -21,12 +21,12 @@ import (
 	"fmt"
 	"log"
 
-	"entgo.io/contrib/entgql/internal/todouuid/ent/migrate"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/migrate"
 	"github.com/google/uuid"
 
-	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/verysecret"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"

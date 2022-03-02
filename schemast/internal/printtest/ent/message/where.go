@@ -3,7 +3,7 @@
 package message
 
 import (
-	"entgo.io/contrib/schemast/internal/printtest/ent/predicate"
+	"github.com/bionicstork/contrib/schemast/internal/printtest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 )
 

@@ -10,12 +10,12 @@ Prerequesites:
 
 Download the module:
 ```console
-go get -u entgo.io/contrib/entproto
+go get -u github.com/bionicstork/contrib/entproto
 ```
 
 Install `protoc-gen-entgrpc` (ent's gRPC service implementation generator): 
 ```console
-go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc
+go get github.com/bionicstork/contrib/entproto/cmd/protoc-gen-entgrpc
 ```
 
 Annotate the schema with `entproto.Message()` and all fields with the desired proto field numbers (notice the field number 1 is reserved for the schema's `ID` field:
@@ -26,7 +26,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
-	"entgo.io/contrib/entproto"
+	"github.com/bionicstork/contrib/entproto"
 )
 
 type User struct {
@@ -49,7 +49,7 @@ func (User) Fields() []ent.Field {
 ```
 Run the code generation:
 ```console
-go run entgo.io/contrib/entproto/cmd/entproto -path ./ent/schema
+go run github.com/bionicstork/contrib/entproto/cmd/entproto -path ./ent/schema
 ```
 
 
@@ -60,7 +60,7 @@ syntax = "proto3";
 
 package entpb;
 
-option go_package = "entgo.io/contrib/entproto/internal/todo/ent/proto/entpb";
+option go_package = "github.com/bionicstork/contrib/entproto/internal/todo/ent/proto/entpb";
 
 message User {
   int32 id = 1;
@@ -123,7 +123,7 @@ package main
 import (
 	"log"
 	
-	"entgo.io/contrib/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 )
@@ -445,7 +445,7 @@ To rebuild the `protoc-gen-entgrpc` plugin, regenerate the code and run all test
 
 ```shell
 go generate ./cmd/protoc-gen-entgrpc/... && 
-  go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
+  go get github.com/bionicstork/contrib/entproto/cmd/protoc-gen-entgrpc &&
   go generate ./... &&
   go test ./... 
 ```
@@ -470,7 +470,7 @@ From within the Docker image, compile and install your current `protoc-gen-entgr
 binary, regenerate all code and run the tests. 
 ```shell
 go generate ./cmd/protoc-gen-entgrpc/... && 
-  go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
+  go get github.com/bionicstork/contrib/entproto/cmd/protoc-gen-entgrpc &&
   go generate ./... &&
   go test ./... 
 ```

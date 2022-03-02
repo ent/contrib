@@ -3,7 +3,7 @@
 package todo
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/todo"
 )
 
 type TodoInput struct {

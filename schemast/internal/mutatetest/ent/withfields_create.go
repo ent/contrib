@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/withfields"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

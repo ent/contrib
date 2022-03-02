@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
+	"github.com/bionicstork/contrib/entoas/serialization"
 )
 
 // A View is a subset of a gen.Type. It may hold fewer Fields and Edges than the gen.Type it is derived from.

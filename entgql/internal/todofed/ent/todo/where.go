@@ -19,7 +19,7 @@ package todo
 import (
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )

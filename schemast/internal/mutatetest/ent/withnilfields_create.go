@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/schemast/internal/mutatetest/ent/withnilfields"
+	"github.com/bionicstork/contrib/schemast/internal/mutatetest/ent/withnilfields"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )

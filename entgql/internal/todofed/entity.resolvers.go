@@ -20,7 +20,7 @@ package todofed
 import (
 	"context"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent"
 )
 
 func (r *entityResolver) FindTodoByID(ctx context.Context, id int) (*ent.Todo, error) {

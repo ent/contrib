@@ -23,11 +23,11 @@ import (
 	"sync"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
-	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/schema/schematype"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todouuid/ent/verysecret"
 	"github.com/google/uuid"
 
 	"entgo.io/ent"

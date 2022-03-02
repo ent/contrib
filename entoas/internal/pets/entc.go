@@ -20,7 +20,7 @@ package main
 import (
 	"log"
 
-	"entgo.io/contrib/entoas"
+	"github.com/bionicstork/contrib/entoas"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"github.com/ogen-go/ogen"

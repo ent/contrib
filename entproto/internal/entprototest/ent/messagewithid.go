@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/messagewithid"
 	"entgo.io/ent/dialect/sql"
 )
 

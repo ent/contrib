@@ -19,9 +19,9 @@ package ent
 import (
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todo/ent/category"
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
-	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/schema"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/todo"
 )
 
 // The init function reads all schema descriptors with runtime code

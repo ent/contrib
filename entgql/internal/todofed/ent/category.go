@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent/category"
-	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/schema/schematype"
 	"entgo.io/ent/dialect/sql"
 )
 

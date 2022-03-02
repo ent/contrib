@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"log"
 
-	"entgo.io/contrib/entoas/internal/cycle/migrate"
+	"github.com/bionicstork/contrib/entoas/internal/cycle/migrate"
 
-	"entgo.io/contrib/entoas/internal/cycle/user"
+	"github.com/bionicstork/contrib/entoas/internal/cycle/user"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"

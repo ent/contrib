@@ -1,0 +1,33 @@
+{{- /*gotype: github.com/bionicstork/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
+{{ define "method_list_by_related_to" }}
+    {{- $inputName := .Method.Input.GoIdent.GoName -}}
+    var (
+    err error
+    entList []*database.{{ .G.EntType.Name }}
+    )
+
+    listQuery := svc.client.{{ .G.EntType.Name }}.Query().WhereByEdge(req.Id, req.Type)
+    entList, err = listQuery.
+    {{ range .G.FieldMap.Edges }}
+        {{- $et := .EntEdge.Type -}}
+        With{{ .EntEdge.StructField }}().
+    {{ end }}
+    All(ctx)
+
+    switch {
+    case err == nil:
+    var pbList []*{{ .G.EntType.Name }}
+    for _, entEntity := range entList {
+    pbEntity, err := toProto{{ .G.EntType.Name }}(entEntity)
+    if err != nil {
+    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+    }
+    pbList = append(pbList, pbEntity)
+    }
+    return &List{{ .G.EntType.Name }}Response{
+    {{ .G.EntType.Name }}List: pbList,
+    }, nil
+    default:
+    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+    }
+{{ end }}

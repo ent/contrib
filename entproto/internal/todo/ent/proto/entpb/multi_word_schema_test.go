@@ -16,8 +16,8 @@ package entpb
 
 import (
 	"context"
-	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
-	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/enttest"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent/multiwordschema"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

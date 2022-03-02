@@ -3,8 +3,8 @@
 package todopulid
 
 import (
-	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"github.com/bionicstork/contrib/entgql/internal/todopulid/ent/todo"
 )
 
 type TodoInput struct {

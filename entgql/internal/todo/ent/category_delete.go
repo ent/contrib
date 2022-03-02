@@ -20,8 +20,8 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entgql/internal/todo/ent/category"
-	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

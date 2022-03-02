@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entgql/internal/todopulid/ent"
+	"github.com/bionicstork/contrib/entgql/internal/todopulid/ent"
 )
 
 // The CategoryFunc type is an adapter to allow the use of ordinary

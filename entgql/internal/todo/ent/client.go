@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"log"
 
-	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/migrate"
 
-	"entgo.io/contrib/entgql/internal/todo/ent/category"
-	"entgo.io/contrib/entgql/internal/todo/ent/todo"
-	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/verysecret"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"

@@ -15,7 +15,7 @@
 package schema
 
 import (
-	"entgo.io/contrib/entproto"
+	"github.com/bionicstork/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"

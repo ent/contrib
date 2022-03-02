@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"math"
 
-	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
-	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/dependsonskipped"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
+	"github.com/bionicstork/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 )
 

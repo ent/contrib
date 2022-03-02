@@ -5,9 +5,9 @@ package enttest
 import (
 	"context"
 
-	"entgo.io/contrib/entoas/internal/cycle"
+	"github.com/bionicstork/contrib/entoas/internal/cycle"
 	// required by schema hooks.
-	_ "entgo.io/contrib/entoas/internal/cycle/runtime"
+	_ "github.com/bionicstork/contrib/entoas/internal/cycle/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

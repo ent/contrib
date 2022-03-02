@@ -15,8 +15,8 @@
 package todofed
 
 import (
-	"entgo.io/contrib/entgql/internal/todofed/ent"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent"
 )
 
 // Resolver is the resolver root.

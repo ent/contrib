@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
+	"github.com/bionicstork/contrib/entoas/internal/oastypes/oastypes"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )

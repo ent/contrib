@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todo/ent/category"
-	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
-	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
-	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/schema/schematype"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/todo"
 )
 
 // CategoryWhereInput represents a where input for filtering Category queries.

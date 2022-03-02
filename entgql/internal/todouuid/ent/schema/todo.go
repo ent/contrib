@@ -15,9 +15,9 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
+	"github.com/bionicstork/contrib/entgql/internal/todo/ent/schema"
 
 	"github.com/google/uuid"
 )

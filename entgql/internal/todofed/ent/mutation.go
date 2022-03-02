@@ -23,11 +23,11 @@ import (
 	"sync"
 	"time"
 
-	"entgo.io/contrib/entgql/internal/todofed/ent/category"
-	"entgo.io/contrib/entgql/internal/todofed/ent/predicate"
-	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
-	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
-	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/category"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/predicate"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/schema/schematype"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/todo"
+	"github.com/bionicstork/contrib/entgql/internal/todofed/ent/verysecret"
 
 	"entgo.io/ent"
 )

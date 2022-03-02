@@ -5,7 +5,7 @@ package oastypes
 import (
 	"fmt"
 
-	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"github.com/bionicstork/contrib/entoas/internal/oastypes/schema"
 	"github.com/google/uuid"
 )
 

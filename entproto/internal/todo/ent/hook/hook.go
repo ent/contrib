@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"entgo.io/contrib/entproto/internal/todo/ent"
+	"github.com/bionicstork/contrib/entproto/internal/todo/ent"
 )
 
 // The AttachmentFunc type is an adapter to allow the use of ordinary
