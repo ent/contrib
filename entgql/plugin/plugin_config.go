@@ -70,10 +70,10 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 
 			goType := ""
 			switch {
+			case field.IsOther() || (field.IsEnum() && field.HasGoType()):
+				goType = fmt.Sprintf("%s.%s", field.Type.RType.PkgPath, field.Type.RType.Name)
 			case field.IsEnum():
 				goType = fmt.Sprintf("%s/%s", e.graph.Package, field.Type.Ident)
-			case field.IsOther():
-				goType = fmt.Sprintf("%s.%s", field.Type.RType.PkgPath, field.Type.RType.Name)
 			default:
 				continue
 			}
