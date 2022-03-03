@@ -12,90 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package entgql
 
 import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
-	"github.com/99designs/gqlgen/plugin"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 )
 
 type (
-	// EntGQL is a plugin that generates GQL schema from the Ent's Graph
-	EntGQL struct {
+	// TODO(giautm): refactor internal APIs
+	schemaGenerator struct {
 		graph     *gen.Graph
 		nodes     []*gen.Type
-		schema    *ast.Schema
 		relaySpec bool
 	}
-
-	// EntGQLOption is a option for the EntGQL plugin
-	EntGQLOption func(*EntGQL) error
 )
 
-var (
-	annotationName = entgql.Annotation{}.Name()
-	camel          = gen.Funcs["camel"].(func(string) string)
-
-	_ plugin.Plugin              = (*EntGQL)(nil)
-	_ plugin.EarlySourceInjector = (*EntGQL)(nil)
-	_ plugin.ConfigMutator       = (*EntGQL)(nil)
-)
-
-// WithRelaySpecification adds the Relay specification to the schema
-func WithRelaySpecification(relaySpec bool) EntGQLOption {
-	return func(e *EntGQL) error {
-		e.relaySpec = relaySpec
-		return nil
-	}
-}
-
-// NewEntGQLPlugin creates a new EntGQL plugin
-func NewEntGQLPlugin(graph *gen.Graph, opts ...EntGQLOption) (*EntGQL, error) {
-	nodes, err := entgql.FilterNodes(graph.Nodes)
+func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
+	nodes, err := FilterNodes(g.Nodes)
 	if err != nil {
 		return nil, err
 	}
 
-	e := &EntGQL{
-		graph: graph,
+	return &schemaGenerator{
+		graph: g,
 		nodes: nodes,
-	}
-	for _, opt := range opts {
-		if err = opt(e); err != nil {
-			return nil, err
-		}
-	}
-
-	e.schema, err = e.prepareSchema()
-	if err != nil {
-		return nil, fmt.Errorf("entgql: failed to prepare the GQL schema: %w", err)
-	}
-
-	return e, nil
+		// TODO(giautm): relaySpec enable by default.
+		// Add an option to disable it.
+		relaySpec: true,
+	}, nil
 }
 
-// Name implements the Plugin interface.
-func (*EntGQL) Name() string {
-	return "entgql"
-}
-
-// InjectSourceEarly implements the EarlySourceInjector interface.
-func (e *EntGQL) InjectSourceEarly() *ast.Source {
-	return &ast.Source{
-		Name:    "entgql.graphql",
-		Input:   printSchema(e.schema),
-		BuiltIn: false,
-	}
-}
-
-func (e *EntGQL) prepareSchema() (*ast.Schema, error) {
+func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 	types, err := e.buildTypes()
 	if err != nil {
 		return nil, err
@@ -109,10 +62,11 @@ func (e *EntGQL) prepareSchema() (*ast.Schema, error) {
 	}, nil
 }
 
-func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
+func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 	types := map[string]*ast.Definition{}
+
 	for _, node := range e.nodes {
-		ant, err := entgql.DecodeAnnotation(node.Annotations)
+		ant, err := DecodeAnnotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +98,7 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 
 		var enumOrderByValues ast.EnumValueList
 		for _, field := range node.Fields {
-			ant, err := entgql.DecodeAnnotation(field.Annotations)
+			ant, err := DecodeAnnotation(field.Annotations)
 			if err != nil {
 				return nil, err
 			}
@@ -177,7 +131,7 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 
 			insertDefinitions(types, defs...)
 			if enumOrderByValues != nil {
-				pagination, err := entgql.NodePaginationNames(node)
+				pagination, err := NodePaginationNames(node)
 				if err != nil {
 					return nil, err
 				}
@@ -212,7 +166,7 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 	return types, nil
 }
 
-func (e *EntGQL) buildEnum(f *gen.Field, ant *entgql.Annotation) (*ast.Definition, error) {
+func (e *schemaGenerator) buildEnum(f *gen.Field, ant *Annotation) (*ast.Definition, error) {
 	if !f.IsEnum() {
 		return nil, nil
 	}
@@ -240,7 +194,7 @@ func (e *EntGQL) buildEnum(f *gen.Field, ant *entgql.Annotation) (*ast.Definitio
 	}, nil
 }
 
-func (e *EntGQL) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
+func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 	var fields ast.FieldList
 	if t.ID != nil {
 		f, err := e.typeField(t.ID, true)
@@ -264,8 +218,8 @@ func (e *EntGQL) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 	return fields, nil
 }
 
-func (e *EntGQL) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
-	ant, err := entgql.DecodeAnnotation(f.Annotations)
+func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
+	ant, err := DecodeAnnotation(f.Annotations)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +249,7 @@ func namedType(name string, nullable bool) *ast.Type {
 	return ast.NonNullNamedType(name, nil)
 }
 
-func (e *EntGQL) typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
+func (e *schemaGenerator) typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
 	nillable := f.Nillable
 	typ := f.Type.Type
 

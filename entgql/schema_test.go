@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package entgql
 
 import (
 	"testing"
@@ -24,11 +24,12 @@ import (
 )
 
 func TestEntGQL_buildTypes(t *testing.T) {
-	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
+	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
-	plugin, err := NewEntGQLPlugin(graph)
+	plugin, err := newSchemaGenerator(graph)
+	require.NoError(t, err)
+	plugin.relaySpec = false
 
-	require.NoError(t, err)
 	types, err := plugin.buildTypes()
 	require.NoError(t, err)
 
@@ -92,9 +93,9 @@ enum VisibilityStatus {
 }
 
 func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
-	graph, err := entc.LoadGraph("../internal/todoplugin/ent/schema", &gen.Config{})
+	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
-	plugin, err := NewEntGQLPlugin(graph, WithRelaySpecification(true))
+	plugin, err := newSchemaGenerator(graph)
 
 	require.NoError(t, err)
 	types, err := plugin.buildTypes()

@@ -12,34 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package entgql
 
 import (
 	"fmt"
-
-	"entgo.io/contrib/entgql"
-	"github.com/99designs/gqlgen/codegen/config"
 )
 
-// MutateConfig implements the ConfigMutator interface
-func (e *EntGQL) MutateConfig(cfg *config.Config) error {
-	if e.relaySpec {
-		if !cfg.Models.Exists(RelayPageInfo) {
-			cfg.Models.Add(RelayPageInfo, e.entGoType(RelayPageInfo))
-		}
-		if !cfg.Models.Exists(RelayNode) {
-			// Bind to Noder interface
-			cfg.Models.Add(RelayNode, e.entGoType("Noder"))
-		}
-		if !cfg.Models.Exists(RelayCursor) {
-			cfg.Models.Add(RelayCursor, e.entGoType(RelayCursor))
-		}
-	}
+func (e *schemaGenerator) genModels() (map[string]string, error) {
+	models := map[string]string{}
 
+	if e.relaySpec {
+		models[RelayPageInfo] = e.entGoType(RelayPageInfo)
+		models[RelayNode] = e.entGoType("Noder")
+		models[RelayCursor] = e.entGoType(RelayCursor)
+	}
 	for _, node := range e.nodes {
-		ant, err := entgql.DecodeAnnotation(node.Annotations)
+		ant, err := DecodeAnnotation(node.Annotations)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if ant.Skip {
 			continue
@@ -49,15 +39,13 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 		if ant.Type != "" {
 			name = ant.Type
 		}
-		if !cfg.Models.Exists(name) {
-			cfg.Models.Add(name, e.entGoType(node.Name))
-		}
+		models[name] = e.entGoType(node.Name)
 
 		hasOrderBy := false
 		for _, field := range node.Fields {
-			ant, err := entgql.DecodeAnnotation(field.Annotations)
+			ant, err := DecodeAnnotation(field.Annotations)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if ant.Skip {
 				continue
@@ -82,46 +70,34 @@ func (e *EntGQL) MutateConfig(cfg *config.Config) error {
 			// the right approach, but it passed the test
 			defs, err := e.typeFromField(field, false, ant.Type)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			name := defs.Name()
 
-			if !cfg.Models.Exists(name) {
-				cfg.Models.Add(name, goType)
-			}
+			models[name] = goType
 		}
 
 		// TODO(giautm): Added RelayConnection annotation check
 		if e.relaySpec {
-			pagination, err := entgql.NodePaginationNames(node)
+			pagination, err := NodePaginationNames(node)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			if !cfg.Models.Exists(pagination.Connection) {
-				cfg.Models.Add(pagination.Connection, e.entGoType(pagination.Connection))
-			}
-			if !cfg.Models.Exists(pagination.Edge) {
-				cfg.Models.Add(pagination.Edge, e.entGoType(pagination.Edge))
-			}
+			models[pagination.Connection] = e.entGoType(pagination.Connection)
+			models[pagination.Edge] = e.entGoType(pagination.Edge)
 
 			if hasOrderBy {
-				if !cfg.Models.Exists("OrderDirection") {
-					cfg.Models.Add("OrderDirection", e.entGoType("OrderDirection"))
-				}
-				cfg.Models[pagination.Order] = config.TypeMapEntry{
-					Model: []string{e.entGoType(pagination.Order)},
-				}
-				cfg.Models[pagination.OrderField] = config.TypeMapEntry{
-					Model: []string{e.entGoType(pagination.OrderField)},
-				}
+				models["OrderDirection"] = e.entGoType("OrderDirection")
+				models[pagination.Order] = e.entGoType(pagination.Order)
+				models[pagination.OrderField] = e.entGoType(pagination.OrderField)
 			}
 		}
 	}
 
-	return nil
+	return models, nil
 }
 
-func (e *EntGQL) entGoType(name string) string {
+func (e *schemaGenerator) entGoType(name string) string {
 	return fmt.Sprintf("%s.%s", e.graph.Package, name)
 }

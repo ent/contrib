@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package entgql
 
 import (
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent/entc/gen"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -82,7 +81,7 @@ https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo`,
 }
 
 func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
-	pagination, err := entgql.NodePaginationNames(t)
+	pagination, err := NodePaginationNames(t)
 	if err != nil {
 		return nil, err
 	}
