@@ -16,9 +16,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"os"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/plugin"
@@ -44,15 +42,14 @@ func main() {
 
 	cfg, err := config.LoadConfigFromDefaultLocations()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to load config", err.Error())
-		os.Exit(2)
+		log.Fatalf("failed to load config %v", err)
 	}
 
 	entgqlPlugin, err := plugin.NewEntGQLPlugin(graph,
 		plugin.WithRelaySpecification(true),
 	)
 	if err != nil {
-		log.Fatalf("creating entgql plugin: %v", err)
+		log.Fatalf("failed to create entgql plugin: %v", err)
 	}
 
 	ex, err := entgql.NewExtension()
@@ -81,15 +78,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}
+
+	err = api.Generate(cfg, api.PrependPlugin(entgqlPlugin))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to create entgql plugin", err.Error())
-		os.Exit(2)
-	}
-	err = api.Generate(cfg,
-		api.PrependPlugin(entgqlPlugin),
-	)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(3)
+		log.Fatalf("running gqlgen: %v", err)
 	}
 }
