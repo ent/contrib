@@ -41,6 +41,13 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	duration: Duration!
 	count: Uint64!
 }
+"""
+CategoryStatus is enum for the field status
+"""
+enum CategoryStatus {
+	ENABLED
+	DISABLED
+}
 type MasterUser {
 	id: ID
 	username: String!
@@ -49,6 +56,21 @@ type MasterUser {
 	role: Role!
 	nullableString: String
 }
+"""
+Role is enum for the field role
+"""
+enum Role {
+	ADMIN
+	USER
+	UNKNOWN
+}
+"""
+Status is enum for the field status
+"""
+enum Status {
+	IN_PROGRESS
+	COMPLETED
+}
 type Todo {
 	id: ID!
 	createdAt: Time!
@@ -56,6 +78,13 @@ type Todo {
 	status: Status!
 	priority: Int!
 	text: String!
+}
+"""
+VisibilityStatus is enum for the field visibility_status
+"""
+enum VisibilityStatus {
+	LISTING
+	HIDDEN
 }
 `, printSchema(&ast.Schema{
 		Types: types,
@@ -107,6 +136,13 @@ type CategoryEdge {
 	"""
 	cursor: Cursor!
 }
+"""
+CategoryStatus is enum for the field status
+"""
+enum CategoryStatus {
+	ENABLED
+	DISABLED
+}
 type MasterUser implements Node {
 	id: ID!
 	username: String!
@@ -142,6 +178,21 @@ type MasterUserEdge {
 	"""
 	cursor: Cursor!
 }
+"""
+Role is enum for the field role
+"""
+enum Role {
+	ADMIN
+	USER
+	UNKNOWN
+}
+"""
+Status is enum for the field status
+"""
+enum Status {
+	IN_PROGRESS
+	COMPLETED
+}
 type Todo implements Node {
 	id: ID!
 	createdAt: Time!
@@ -176,6 +227,13 @@ type TodoEdge {
 	A cursor for use in pagination.
 	"""
 	cursor: Cursor!
+}
+"""
+VisibilityStatus is enum for the field visibility_status
+"""
+enum VisibilityStatus {
+	LISTING
+	HIDDEN
 }
 `, printSchema(&ast.Schema{
 		Types: types,

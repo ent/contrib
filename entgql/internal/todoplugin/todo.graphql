@@ -6,16 +6,6 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-enum CategoryStatus {
-  ENABLED
-  DISABLED
-}
-
-enum Status {
-  IN_PROGRESS
-  COMPLETED
-}
-
 scalar Time
 scalar Duration
 scalar Uint64
@@ -50,17 +40,6 @@ enum TodoOrderField {
 input TodoOrder {
   direction: OrderDirection!
   field: TodoOrderField
-}
-
-enum VisibilityStatus {
-  LISTING
-  HIDDEN
-}
-
-enum Role {
-  ADMIN
-  USER
-  UNKNOWN
 }
 
 type Query {

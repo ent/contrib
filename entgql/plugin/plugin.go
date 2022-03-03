@@ -142,6 +142,16 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 			Interfaces: interfaces,
 		}
 
+		for _, field := range node.Fields {
+			enum, err := e.buildEnum(field)
+			if err != nil {
+				return nil, err
+			}
+			if enum != nil {
+				types[enum.Name] = enum
+			}
+		}
+
 		// TODO(giautm): Added RelayConnection annotation check
 		if e.relaySpec {
 			defs, err := relayConnectionTypes(node)
@@ -154,6 +164,39 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 	}
 
 	return types, nil
+}
+
+func (e *EntGQL) buildEnum(f *gen.Field) (*ast.Definition, error) {
+	if !f.IsEnum() {
+		return nil, nil
+	}
+
+	ant, err := entgql.DecodeAnnotation(f.Annotations)
+	if err != nil {
+		return nil, err
+	}
+
+	// NOTE(giautm): I'm not sure this is
+	// the right approach, but it passed the test
+	defs, err := e.typeFromField(f, false, ant.Type)
+	if err != nil {
+		return nil, err
+	}
+	name := defs.Name()
+
+	valueDefs := make(ast.EnumValueList, 0, len(f.Enums))
+	for _, v := range f.Enums {
+		valueDefs = append(valueDefs, &ast.EnumValueDefinition{
+			Name: v.Value,
+		})
+	}
+
+	return &ast.Definition{
+		Name:        name,
+		Kind:        ast.Enum,
+		Description: fmt.Sprintf("%s is enum for the field %s", name, f.Name),
+		EnumValues:  valueDefs,
+	}, nil
 }
 
 func (e *EntGQL) buildTypeFields(t *gen.Type) (ast.FieldList, error) {

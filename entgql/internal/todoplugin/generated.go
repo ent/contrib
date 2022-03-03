@@ -594,16 +594,6 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-enum CategoryStatus {
-  ENABLED
-  DISABLED
-}
-
-enum Status {
-  IN_PROGRESS
-  COMPLETED
-}
-
 scalar Time
 scalar Duration
 scalar Uint64
@@ -638,17 +628,6 @@ enum TodoOrderField {
 input TodoOrder {
   direction: OrderDirection!
   field: TodoOrderField
-}
-
-enum VisibilityStatus {
-  LISTING
-  HIDDEN
-}
-
-enum Role {
-  ADMIN
-  USER
-  UNKNOWN
 }
 
 type Query {
@@ -703,6 +682,13 @@ type CategoryEdge {
 	A cursor for use in pagination.
 	"""
 	cursor: Cursor!
+}
+"""
+CategoryStatus is enum for the field status
+"""
+enum CategoryStatus {
+	ENABLED
+	DISABLED
 }
 """
 Define a Relay Cursor type:
@@ -776,6 +762,21 @@ type PageInfo {
 	"""
 	endCursor: Cursor
 }
+"""
+Role is enum for the field role
+"""
+enum Role {
+	ADMIN
+	USER
+	UNKNOWN
+}
+"""
+Status is enum for the field status
+"""
+enum Status {
+	IN_PROGRESS
+	COMPLETED
+}
 type Todo implements Node {
 	id: ID!
 	createdAt: Time!
@@ -810,6 +811,13 @@ type TodoEdge {
 	A cursor for use in pagination.
 	"""
 	cursor: Cursor!
+}
+"""
+VisibilityStatus is enum for the field visibility_status
+"""
+enum VisibilityStatus {
+	LISTING
+	HIDDEN
 }
 `, BuiltIn: false},
 }
