@@ -18,7 +18,7 @@
     case err == nil:
     var pbList []*{{ .G.EntType.Name }}
     for _, entEntity := range entList {
-    pbEntity, err := toProto{{ .G.EntType.Name }}(entEntity)
+    pbEntity, err := ToProto{{ .G.EntType.Name }}(entEntity)
     if err != nil {
     return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
     }

@@ -10,8 +10,8 @@
 
     {{- range .Nodes }}
         {{ $nodeName := .EntType.Name }}
-        // toProto{{ .EntType.Name }} transforms the ent type to the pb type
-        func toProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
+        // ToProto{{ .EntType.Name }} transforms the ent type to the pb type
+        func ToProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
             v := &{{ .EntType.Name }}{}
             {{- range .FieldMap.Fields }}
                 {{- $varNameBase := camel .EntField.StructField -}}
@@ -33,7 +33,7 @@
                 {{- $nameSingle := .EntEdge.Type.Name -}}
                 {{- if .EntEdge.Unique }}
                     if edg := e.Edges.{{ $name }}; edg != nil {
-                        edgeProto, err := toProto{{ $nameSingle }}(edg)
+                        edgeProto, err := ToProto{{ $nameSingle }}(edg)
                         if err != nil {
                             return nil, err
                         }
@@ -41,7 +41,7 @@
                     }
                 {{- else }}
                     for _, edg := range e.Edges.{{ $name }} {
-                        edgeProto, err := toProto{{ $nameSingle }}(edg)
+                        edgeProto, err := ToProto{{ $nameSingle }}(edg)
                         if err != nil {
                             return nil, err
                         }
