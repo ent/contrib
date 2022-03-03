@@ -19,11 +19,11 @@ models:
       - github.com/99designs/gqlgen/graphql.Uint64
   Duration:
     model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/durationgql.Duration
-  UUID:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/uuidgql.UUID
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
   # Custom mapping from GraphQL `CategoryConfigInput` to `schematype.CategoryConfig`.
   CategoryConfigInput:
     model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  UUID:
+    model:
+      - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID

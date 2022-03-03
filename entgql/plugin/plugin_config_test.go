@@ -161,7 +161,7 @@ func TestModifyConfig_todoplugin(t *testing.T) {
 	expected.Models = map[string]config.TypeMapEntry{
 		"Category":         {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Category"}},
 		"CategoryStatus":   {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status"}},
-		"CategoryConfig":   {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig"}},
+		"CategoryConfig":   {Model: []string{"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig"}},
 		"MasterUser":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.User"}},
 		"Role":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role"}},
 		"Status":           {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status"}},
@@ -183,7 +183,7 @@ func TestModifyConfig_todoplugin_relay(t *testing.T) {
 	expected := config.DefaultConfig()
 	expected.Models = map[string]config.TypeMapEntry{
 		"Category":             {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.Category"}},
-		"CategoryConfig":       {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype.CategoryConfig"}},
+		"CategoryConfig":       {Model: []string{"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig"}},
 		"CategoryConnection":   {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryConnection"}},
 		"CategoryEdge":         {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryEdge"}},
 		"CategoryOrder":        {Model: []string{"entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryOrder"}},

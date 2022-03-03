@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )

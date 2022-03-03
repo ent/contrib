@@ -1,8 +1,3 @@
-directive @someDirective(
-  stringArg: String
-  boolArg: Boolean
-) on OBJECT | INPUT_OBJECT | SCALAR | FIELD_DEFINITION
-
 type CategoryConfig {
   maxMembers: Int
 }

@@ -24,7 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/role"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema"
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/user"
 )

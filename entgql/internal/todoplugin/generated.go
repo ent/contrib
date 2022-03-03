@@ -12,13 +12,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/role"
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/durationgql"
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/uuidgql"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/google/uuid"
@@ -51,7 +51,6 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	SomeDirective func(ctx context.Context, obj interface{}, next graphql.Resolver, stringArg *string, boolArg *bool) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -587,12 +586,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "todo.graphql", Input: `directive @someDirective(
-  stringArg: String
-  boolArg: Boolean
-) on OBJECT | INPUT_OBJECT | SCALAR | FIELD_DEFINITION
-
-type CategoryConfig {
+	{Name: "todo.graphql", Input: `type CategoryConfig {
   maxMembers: Int
 }
 
@@ -824,30 +818,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) dir_someDirective_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["stringArg"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringArg"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["stringArg"] = arg0
-	var arg1 *bool
-	if tmp, ok := rawArgs["boolArg"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("boolArg"))
-		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["boolArg"] = arg1
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1182,7 +1152,7 @@ func (ec *executionContext) _Category_config(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*schematype.CategoryConfig)
 	fc.Result = res
-	return ec.marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
+	return ec.marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Category_duration(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
@@ -5223,7 +5193,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryConfig) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

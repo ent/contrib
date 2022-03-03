@@ -15,8 +15,6 @@
 package todoplugin
 
 import (
-	"context"
-
 	"entgo.io/contrib/entgql/internal/todoplugin/ent"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -27,11 +25,7 @@ type Resolver struct{ client *ent.Client }
 // NewSchema creates a graphql executable schema.
 func NewSchema(client *ent.Client) graphql.ExecutableSchema {
 	return NewExecutableSchema(Config{
-		Resolvers: &Resolver{client},
-		Directives: DirectiveRoot{
-			SomeDirective: func(ctx context.Context, obj interface{}, next graphql.Resolver, stringArg *string, boolArg *bool) (res interface{}, err error) {
-				return next(ctx)
-			},
-		},
+		Resolvers:  &Resolver{client},
+		Directives: DirectiveRoot{},
 	})
 }

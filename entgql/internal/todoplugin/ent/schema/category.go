@@ -25,7 +25,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema/schematype"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 )
 
 // Category holds the schema definition for the Category entity.
