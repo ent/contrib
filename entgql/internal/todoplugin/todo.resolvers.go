@@ -19,18 +19,11 @@ package todoplugin
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todoplugin/ent"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 )
-
-func (r *masterUserResolver) Age(ctx context.Context, obj *ent.User) (float64, error) {
-	return float64(obj.Age), nil
-}
-
-func (r *masterUserResolver) Amount(ctx context.Context, obj *ent.User) (float64, error) {
-	return float64(obj.Amount), nil
-}
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
 	client := ent.FromContext(ctx)
@@ -66,11 +59,12 @@ func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int
 }
 
 func (r *todoResolver) Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error) {
-	panic(fmt.Errorf("not implemented"))
+	e, err := r.client.Category.
+		Query().
+		Where(category.HasTodosWith(todo.ID(obj.ID))).
+		First(ctx)
+	return e, ent.MaskNotFound(err)
 }
-
-// MasterUser returns MasterUserResolver implementation.
-func (r *Resolver) MasterUser() MasterUserResolver { return &masterUserResolver{r} }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -78,10 +72,5 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// Todo returns TodoResolver implementation.
-func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
-
-type masterUserResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type todoResolver struct{ *Resolver }

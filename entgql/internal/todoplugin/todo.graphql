@@ -3,10 +3,6 @@ directive @someDirective(
   boolArg: Boolean
 ) on OBJECT | INPUT_OBJECT | SCALAR | FIELD_DEFINITION
 
-interface Node {
-  id: ID!
-}
-
 type CategoryConfig {
   maxMembers: Int
 }
@@ -30,26 +26,10 @@ scalar Duration
 scalar Uint64
 scalar UUID
 
-type Todo implements Node {
-  id: ID!
-  createdAt: Time
-  status: Status!
-  priority: Int!
-  text: String!
-  parent: Todo
-  children: [Todo!]
+extend type Todo {
   category: Category
-}
-
-type Category implements Node {
-  id: ID!
-  text: String!
-  uuidA: UUID
-  status: CategoryStatus!
-  config: CategoryConfig!
-  duration: Duration!
-  count: Uint64!
-  # strings: [String]
+  children: [Todo!]
+  parent: Todo
 }
 
 input TodoInput {
@@ -58,26 +38,6 @@ input TodoInput {
   text: String!
   parent: ID
   category_id: ID
-}
-
-scalar Cursor
-
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: Cursor
-  endCursor: Cursor
-}
-
-type TodoConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TodoEdge]
-}
-
-type TodoEdge {
-  node: Todo
-  cursor: Cursor!
 }
 
 enum OrderDirection {
@@ -97,29 +57,15 @@ input TodoOrder {
   field: TodoOrderField
 }
 
+enum VisibilityStatus {
+  LISTING
+  HIDDEN
+}
+
 enum Role {
   ADMIN
   USER
   UNKNOWN
-}
-
-type MasterUser implements Node {
-  id: ID!
-  username: String!
-  age: Float!
-  amount: Float!
-  role: Role!
-}
-
-type MasterUserConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [MasterUserEdge]
-}
-
-type MasterUserEdge {
-  node: MasterUser
-  cursor: Cursor!
 }
 
 type Query {

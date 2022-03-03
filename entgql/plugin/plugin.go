@@ -29,10 +29,9 @@ import (
 type (
 	// EntGQL is a plugin that generates GQL schema from the Ent's Graph
 	EntGQL struct {
-		graph  *gen.Graph
-		nodes  []*gen.Type
-		schema *ast.Schema
-
+		graph     *gen.Graph
+		nodes     []*gen.Type
+		schema    *ast.Schema
 		relaySpec bool
 	}
 
@@ -74,14 +73,11 @@ func NewEntGQLPlugin(graph *gen.Graph, opts ...EntGQLOption) (*EntGQL, error) {
 		}
 	}
 
-	types, err := e.buildTypes()
+	e.schema, err = e.prepareSchema()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("entgql: failed to prepare the GQL schema: %w", err)
 	}
 
-	e.schema = &ast.Schema{
-		Types: types,
-	}
 	return e, nil
 }
 
@@ -92,12 +88,25 @@ func (*EntGQL) Name() string {
 
 // InjectSourceEarly implements the EarlySourceInjector interface.
 func (e *EntGQL) InjectSourceEarly() *ast.Source {
-	return nil
-	// return &ast.Source{
-	// 	Name:    "entgql.graphql",
-	// 	Input:   printSchema(e.schema),
-	// 	BuiltIn: false,
-	// }
+	return &ast.Source{
+		Name:    "entgql.graphql",
+		Input:   printSchema(e.schema),
+		BuiltIn: false,
+	}
+}
+
+func (e *EntGQL) prepareSchema() (*ast.Schema, error) {
+	types, err := e.buildTypes()
+	if err != nil {
+		return nil, err
+	}
+	if e.relaySpec {
+		insertDefinitions(types, relayBuiltinTypes()...)
+	}
+
+	return &ast.Schema{
+		Types: types,
+	}, nil
 }
 
 func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
