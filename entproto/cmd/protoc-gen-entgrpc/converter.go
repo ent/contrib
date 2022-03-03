@@ -64,7 +64,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor, no
 		}
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
-		method := fmt.Sprintf("toProto%s_%s", nodeName, enumName)
+		method := fmt.Sprintf("ToProto%s_%s", nodeName, enumName)
 		out.ToProtoConstructor = g.File.GoImportPath.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
