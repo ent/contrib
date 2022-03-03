@@ -142,8 +142,24 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 			Interfaces: interfaces,
 		}
 
+		var enumOrderByValues ast.EnumValueList
 		for _, field := range node.Fields {
-			enum, err := e.buildEnum(field)
+			ant, err := entgql.DecodeAnnotation(field.Annotations)
+			if err != nil {
+				return nil, err
+			}
+			if ant.Skip {
+				continue
+			}
+
+			// Check if this node has an OrderBy object
+			if ant.OrderField != "" {
+				enumOrderByValues = append(enumOrderByValues, &ast.EnumValueDefinition{
+					Name: ant.OrderField,
+				})
+			}
+
+			enum, err := e.buildEnum(field, ant)
 			if err != nil {
 				return nil, err
 			}
@@ -160,20 +176,45 @@ func (e *EntGQL) buildTypes() (map[string]*ast.Definition, error) {
 			}
 
 			insertDefinitions(types, defs...)
+			if enumOrderByValues != nil {
+				pagination, err := entgql.NodePaginationNames(node)
+				if err != nil {
+					return nil, err
+				}
+
+				types[pagination.OrderField] = &ast.Definition{
+					Name:       pagination.OrderField,
+					Kind:       ast.Enum,
+					EnumValues: enumOrderByValues,
+				}
+				types[pagination.Order] = &ast.Definition{
+					Name: pagination.Order,
+					Kind: ast.InputObject,
+					Fields: ast.FieldList{
+						{
+							Name: "direction",
+							Type: ast.NonNullNamedType("OrderDirection", nil),
+							DefaultValue: &ast.Value{
+								Raw:  "ASC",
+								Kind: ast.EnumValue,
+							},
+						},
+						{
+							Name: "field",
+							Type: ast.NonNullNamedType(pagination.OrderField, nil),
+						},
+					},
+				}
+			}
 		}
 	}
 
 	return types, nil
 }
 
-func (e *EntGQL) buildEnum(f *gen.Field) (*ast.Definition, error) {
+func (e *EntGQL) buildEnum(f *gen.Field, ant *entgql.Annotation) (*ast.Definition, error) {
 	if !f.IsEnum() {
 		return nil, nil
-	}
-
-	ant, err := entgql.DecodeAnnotation(f.Annotations)
-	if err != nil {
-		return nil, err
 	}
 
 	// NOTE(giautm): I'm not sure this is

@@ -618,18 +618,6 @@ enum OrderDirection {
   DESC
 }
 
-enum TodoOrderField {
-  CREATED_AT
-  PRIORITY
-  STATUS
-  TEXT
-}
-
-input TodoOrder {
-  direction: OrderDirection!
-  field: TodoOrderField
-}
-
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
@@ -682,6 +670,14 @@ type CategoryEdge {
 	A cursor for use in pagination.
 	"""
 	cursor: Cursor!
+}
+input CategoryOrder {
+	direction: OrderDirection! = ASC
+	field: CategoryOrderField!
+}
+enum CategoryOrderField {
+	TEXT
+	DURATION
 }
 """
 CategoryStatus is enum for the field status
@@ -811,6 +807,17 @@ type TodoEdge {
 	A cursor for use in pagination.
 	"""
 	cursor: Cursor!
+}
+input TodoOrder {
+	direction: OrderDirection! = ASC
+	field: TodoOrderField!
+}
+enum TodoOrderField {
+	CREATED_AT
+	VISIBILITY_STATUS
+	STATUS
+	PRIORITY
+	TEXT
 }
 """
 VisibilityStatus is enum for the field visibility_status
@@ -3839,6 +3846,41 @@ func (ec *executionContext) unmarshalInputCategoryConfigInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj interface{}) (ent.CategoryOrder, error) {
+	var it ent.CategoryOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj interface{}) (TodoInput, error) {
 	var it TodoInput
 	asMap := map[string]interface{}{}
@@ -3905,6 +3947,10 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
 	for k, v := range asMap {
 		switch k {
 		case "direction":
@@ -3919,7 +3965,7 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoOrderField(ctx, v)
+			it.Field, err = ec.unmarshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5211,6 +5257,22 @@ func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋent
 	return ec._CategoryConfig(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryOrderField(ctx context.Context, v interface{}) (*ent.CategoryOrderField, error) {
+	var res = new(ent.CategoryOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐCategoryOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.CategoryOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚋcategoryᚐStatus(ctx context.Context, v interface{}) (category.Status, error) {
 	var res category.Status
 	err := res.UnmarshalGQL(v)
@@ -5442,6 +5504,22 @@ func (ec *executionContext) marshalNTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 func (ec *executionContext) unmarshalNTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
 	res, err := ec.unmarshalInputTodoInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoOrderField(ctx context.Context, v interface{}) (*ent.TodoOrderField, error) {
+	var res = new(ent.TodoOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.TodoOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalNUint642uint64(ctx context.Context, v interface{}) (uint64, error) {
@@ -6064,22 +6142,6 @@ func (ec *executionContext) unmarshalOTodoOrder2ᚖentgoᚗioᚋcontribᚋentgql
 	}
 	res, err := ec.unmarshalInputTodoOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoOrderField(ctx context.Context, v interface{}) (*ent.TodoOrderField, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(ent.TodoOrderField)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.TodoOrderField) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {

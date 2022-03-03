@@ -136,6 +136,14 @@ type CategoryEdge {
 	"""
 	cursor: Cursor!
 }
+input CategoryOrder {
+	direction: OrderDirection! = ASC
+	field: CategoryOrderField!
+}
+enum CategoryOrderField {
+	TEXT
+	DURATION
+}
 """
 CategoryStatus is enum for the field status
 """
@@ -227,6 +235,17 @@ type TodoEdge {
 	A cursor for use in pagination.
 	"""
 	cursor: Cursor!
+}
+input TodoOrder {
+	direction: OrderDirection! = ASC
+	field: TodoOrderField!
+}
+enum TodoOrderField {
+	CREATED_AT
+	VISIBILITY_STATUS
+	STATUS
+	PRIORITY
+	TEXT
 }
 """
 VisibilityStatus is enum for the field visibility_status
