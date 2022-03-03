@@ -52,7 +52,7 @@ func Validator(e Role) error {
 
 // MarshalGQL implements graphql.Marshaler interface.
 func (e Role) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(e.String()))
+	_, _ = io.WriteString(w, strconv.Quote(e.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
