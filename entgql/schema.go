@@ -34,7 +34,7 @@ type (
 )
 
 func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
-	nodes, err := FilterNodes(g.Nodes)
+	nodes, err := filterNodes(g.Nodes)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 	types := map[string]*ast.Definition{}
 
 	for _, node := range e.nodes {
-		ant, err := DecodeAnnotation(node.Annotations)
+		ant, err := decodeAnnotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +98,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 
 		var enumOrderByValues ast.EnumValueList
 		for _, field := range node.Fields {
-			ant, err := DecodeAnnotation(field.Annotations)
+			ant, err := decodeAnnotation(field.Annotations)
 			if err != nil {
 				return nil, err
 			}
@@ -131,7 +131,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 
 			insertDefinitions(types, defs...)
 			if enumOrderByValues != nil {
-				pagination, err := NodePaginationNames(node)
+				pagination, err := nodePaginationNames(node)
 				if err != nil {
 					return nil, err
 				}
@@ -219,7 +219,7 @@ func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 }
 
 func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
-	ant, err := DecodeAnnotation(f.Annotations)
+	ant, err := decodeAnnotation(f.Annotations)
 	if err != nil {
 		return nil, err
 	}

@@ -126,8 +126,8 @@ func (a *Annotation) Decode(annotation interface{}) error {
 	return json.Unmarshal(buf, a)
 }
 
-// DecodeAnnotation decodes the annotation from the schema.
-func DecodeAnnotation(annotations gen.Annotations) (*Annotation, error) {
+// decodeAnnotation decodes the annotation from the schema.
+func decodeAnnotation(annotations gen.Annotations) (*Annotation, error) {
 	ant := &Annotation{}
 	if annotations == nil || annotations[ant.Name()] == nil {
 		return ant, nil

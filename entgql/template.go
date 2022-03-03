@@ -66,11 +66,11 @@ var (
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
 		"fieldCollections":    fieldCollections,
-		"filterEdges":         FilterEdges,
-		"filterFields":        FilterFields,
-		"filterNodes":         FilterNodes,
-		"findIDType":          FindIDType,
-		"nodePaginationNames": NodePaginationNames,
+		"filterEdges":         filterEdges,
+		"filterFields":        filterFields,
+		"filterNodes":         filterNodes,
+		"findIDType":          findIDType,
+		"nodePaginationNames": nodePaginationNames,
 	}
 
 	//go:embed template/*
@@ -83,8 +83,8 @@ func parseT(path string) *gen.Template {
 		ParseFS(templates, path))
 }
 
-// FindIDType returns the type of the ID field of the given type.
-func FindIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
+// findIDType returns the type of the ID field of the given type.
+func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
 	t := defaultType
 	if len(nodes) > 0 {
 		t = nodes[0].ID.Type
@@ -135,8 +135,8 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 	return result, nil
 }
 
-// FilterNodes filters out nodes that should not be included in the GraphQL schema.
-func FilterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
+// filterNodes filters out nodes that should not be included in the GraphQL schema.
+func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	var filteredNodes []*gen.Type
 	for _, n := range nodes {
 		ant := &Annotation{}
@@ -153,8 +153,8 @@ func FilterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 	return filteredNodes, nil
 }
 
-// FilterEdges filters out edges that should not be included in the GraphQL schema.
-func FilterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
+// filterEdges filters out edges that should not be included in the GraphQL schema.
+func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 	var filteredEdges []*gen.Edge
 	for _, e := range edges {
 		ant := &Annotation{}
@@ -180,8 +180,8 @@ func FilterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 	return filteredEdges, nil
 }
 
-// FilterFields filters out fields that should not be included in the GraphQL schema.
-func FilterFields(fields []*gen.Field) ([]*gen.Field, error) {
+// filterFields filters out fields that should not be included in the GraphQL schema.
+func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
 	var filteredFields []*gen.Field
 	for _, f := range fields {
 		ant := &Annotation{}
@@ -207,10 +207,10 @@ type PaginationNames struct {
 	OrderField string
 }
 
-// NodePaginationNames returns the names of the pagination types for the node.
-func NodePaginationNames(t *gen.Type) (*PaginationNames, error) {
+// nodePaginationNames returns the names of the pagination types for the node.
+func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 	node := t.Name
-	ant, err := DecodeAnnotation(t.Annotations)
+	ant, err := decodeAnnotation(t.Annotations)
 	if err != nil {
 		return nil, err
 	}

@@ -24,7 +24,7 @@ import (
 var annotationName = Annotation{}.Name()
 
 func TestFilterNodes(t *testing.T) {
-	nodes, err := FilterNodes([]*gen.Type{
+	nodes, err := filterNodes([]*gen.Type{
 		{
 			Name: "Type1",
 			Annotations: map[string]interface{}{
@@ -58,7 +58,7 @@ func TestFilterNodes(t *testing.T) {
 }
 
 func TestFilterEdges(t *testing.T) {
-	edges, err := FilterEdges([]*gen.Edge{
+	edges, err := filterEdges([]*gen.Edge{
 		{
 			Name: "Edge1",
 			Type: &gen.Type{},
@@ -178,7 +178,7 @@ func TestFieldCollections(t *testing.T) {
 }
 
 func TestFilterFields(t *testing.T) {
-	fields, err := FilterFields([]*gen.Field{
+	fields, err := filterFields([]*gen.Field{
 		{
 			Name: "Field1",
 			Annotations: map[string]interface{}{

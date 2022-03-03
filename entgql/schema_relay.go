@@ -81,7 +81,7 @@ https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo`,
 }
 
 func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
-	pagination, err := NodePaginationNames(t)
+	pagination, err := nodePaginationNames(t)
 	if err != nil {
 		return nil, err
 	}

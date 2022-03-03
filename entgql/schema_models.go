@@ -27,7 +27,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		models[RelayCursor] = e.entGoType(RelayCursor)
 	}
 	for _, node := range e.nodes {
-		ant, err := DecodeAnnotation(node.Annotations)
+		ant, err := decodeAnnotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +43,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 
 		hasOrderBy := false
 		for _, field := range node.Fields {
-			ant, err := DecodeAnnotation(field.Annotations)
+			ant, err := decodeAnnotation(field.Annotations)
 			if err != nil {
 				return nil, err
 			}
@@ -79,7 +79,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 
 		// TODO(giautm): Added RelayConnection annotation check
 		if e.relaySpec {
-			pagination, err := NodePaginationNames(node)
+			pagination, err := nodePaginationNames(node)
 			if err != nil {
 				return nil, err
 			}
