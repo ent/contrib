@@ -9,28 +9,34 @@
     )
     {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
     switch req.GetView() {
-        case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
-            get, err = svc.client.{{ .G.EntType.Name }}.Get(ctx, {{ $varName }})
-        case {{ $inputName }}_WITH_EDGE_IDS:
-            get, err = svc.client.{{ .G.EntType.Name }}.Query().
-            Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
-            {{ range .G.FieldMap.Edges }}
-                {{- $et := .EntEdge.Type -}}
-                With{{ .EntEdge.StructField }}(func(query *database.{{ $et.Name }}Query) {
-                    query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
-                }).
-            {{ end }}
-            Only(ctx)
-        default:
-            return nil, {{ statusErr "InvalidArgument" "invalid argument: unknown view"}}
+    case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
+    get, err = svc.client.{{ .G.EntType.Name }}.Query().
+    Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
+    {{ range .G.FieldMap.Edges }}
+        {{- $et := .EntEdge.Type -}}
+        With{{ .EntEdge.StructField }}().
+    {{ end }}
+    Only(ctx)
+    case {{ $inputName }}_WITH_EDGE_IDS:
+    get, err = svc.client.{{ .G.EntType.Name }}.Query().
+    Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
+    {{ range .G.FieldMap.Edges }}
+        {{- $et := .EntEdge.Type -}}
+        With{{ .EntEdge.StructField }}(func(query *database.{{ $et.Name }}Query) {
+        query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
+        }).
+    {{ end }}
+    Only(ctx)
+    default:
+    return nil, {{ statusErr "InvalidArgument" "invalid argument: unknown view"}}
     }
     switch {
-        case err == nil:
-            return toProto{{ .G.EntType.Name }}(get)
-        case {{ .G.EntPackage.Ident "IsNotFound" | ident }}(err):
-            return nil, {{ statusErrf "NotFound" "not found: %s" "err" }}
-        default:
-            return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+    case err == nil:
+    return ToProto{{ .G.EntType.Name }}(get)
+    case {{ .G.EntPackage.Ident "IsNotFound" | ident }}(err):
+    return nil, {{ statusErrf "NotFound" "not found: %s" "err" }}
+    default:
+    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
     }
     return nil, nil
 {{ end }}
