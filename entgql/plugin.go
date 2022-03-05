@@ -69,6 +69,5 @@ func (e *gqlgenPlugin) MutateConfig(cfg *config.Config) error {
 			}
 		}
 	}
-
 	return nil
 }

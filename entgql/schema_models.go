@@ -19,7 +19,7 @@ import (
 )
 
 func (e *schemaGenerator) genModels() (map[string]string, error) {
-	models := map[string]string{}
+	models := make(map[string]string)
 
 	if e.relaySpec {
 		models[RelayPageInfo] = e.entGoType(RelayPageInfo)
@@ -41,7 +41,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		}
 		models[name] = e.entGoType(node.Name)
 
-		hasOrderBy := false
+		var hasOrderBy bool
 		for _, field := range node.Fields {
 			ant, err := decodeAnnotation(field.Annotations)
 			if err != nil {
@@ -56,7 +56,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 				hasOrderBy = true
 			}
 
-			goType := ""
+			var goType string
 			switch {
 			case field.IsOther() || (field.IsEnum() && field.HasGoType()):
 				goType = fmt.Sprintf("%s.%s", field.Type.RType.PkgPath, field.Type.RType.Name)
