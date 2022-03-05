@@ -63,8 +63,7 @@ func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 }
 
 func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
-	types := map[string]*ast.Definition{}
-
+	types := make(map[string]*ast.Definition)
 	for _, node := range e.nodes {
 		ant, err := decodeAnnotation(node.Annotations)
 		if err != nil {
@@ -97,8 +96,8 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		}
 
 		var enumOrderByValues ast.EnumValueList
-		for _, field := range node.Fields {
-			ant, err := decodeAnnotation(field.Annotations)
+		for _, f := range node.Fields {
+			ant, err := decodeAnnotation(f.Annotations)
 			if err != nil {
 				return nil, err
 			}
@@ -113,7 +112,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 				})
 			}
 
-			enum, err := e.buildEnum(field, ant)
+			enum, err := e.buildEnum(f, ant)
 			if err != nil {
 				return nil, err
 			}
