@@ -37,6 +37,8 @@ import (
 	"github.com/graphql-go/graphql/language/printer"
 	"github.com/graphql-go/graphql/language/source"
 	"github.com/graphql-go/graphql/language/visitor"
+
+	ast2 "github.com/vektah/gqlparser/v2/ast"
 )
 
 type (
@@ -49,6 +51,9 @@ type (
 		hooks      []gen.Hook
 		templates  []*gen.Template
 		scalarFunc func(*gen.Field, gen.Op) string
+
+		schema *ast2.Schema
+		models map[string]string
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -188,6 +193,14 @@ func WithWhereFilters(b bool) ExtensionOption {
 	}
 }
 
+// WithSchemaGenerator add a hook for generate GQL schema
+func WithSchemaGenerator() ExtensionOption {
+	return func(e *Extension) error {
+		e.hooks = append(e.hooks, e.genSchema())
+		return nil
+	}
+}
+
 // WithMapScalarFunc allows users to provides a custom function that
 // maps an ent.Field (*gen.Field) into its GraphQL scalar type. If the
 // function returns an empty string, the extension fallbacks to the its
@@ -311,6 +324,31 @@ func (e *Extension) isInput(name string) bool {
 		return t.IsInputType()
 	}
 	return false
+}
+
+// genSchema returns a new hook for generating
+// the GraphQL schema from the graph.
+func (e *Extension) genSchema() gen.Hook {
+	return func(next gen.Generator) gen.Generator {
+		return gen.GenerateFunc(func(g *gen.Graph) error {
+			if err := next.Generate(g); err != nil {
+				return err
+			}
+
+			genSchema, err := newSchemaGenerator(g)
+			if err != nil {
+				return err
+			}
+			if e.schema, err = genSchema.prepareSchema(); err != nil {
+				return err
+			}
+			if e.models, err = genSchema.genModels(); err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }
 
 // genWhereInputs returns a new hook for generating

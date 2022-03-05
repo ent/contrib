@@ -17,6 +17,7 @@ package entgql
 import (
 	"encoding/json"
 
+	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 )
 
@@ -123,6 +124,19 @@ func (a *Annotation) Decode(annotation interface{}) error {
 		return err
 	}
 	return json.Unmarshal(buf, a)
+}
+
+// decodeAnnotation decodes the annotation from the schema.
+func decodeAnnotation(annotations gen.Annotations) (*Annotation, error) {
+	ant := &Annotation{}
+	if annotations == nil || annotations[ant.Name()] == nil {
+		return ant, nil
+	}
+
+	if err := ant.Decode(annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	return ant, nil
 }
 
 var (

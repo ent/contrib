@@ -1,0 +1,29 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+schema:
+  - todo.graphql
+
+resolver:
+  package: todoplugin
+  layout: follow-schema
+  dir: .
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
+  Uint64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Uint64
+  Duration:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
+  # Custom mapping from GraphQL `CategoryConfigInput` to `schematype.CategoryConfig`.
+  CategoryConfigInput:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  UUID:
+    model:
+      - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID

@@ -1,0 +1,48 @@
+type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
+scalar Time
+scalar Duration
+scalar Uint64
+scalar UUID
+
+extend type Todo {
+  category: Category
+  children: [Todo!]
+  parent: Todo
+}
+
+input TodoInput {
+  status: Status! = IN_PROGRESS
+  priority: Int
+  text: String!
+  parent: ID
+  category_id: ID
+}
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  todos(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    orderBy: TodoOrder
+  ): TodoConnection
+}
+
+type Mutation {
+  createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
+}

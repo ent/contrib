@@ -229,15 +229,22 @@ const (
 	{{- end }}
 {{- end }}
 
-{{ $name := $node.Name -}}
-{{ $edge := print $name "Edge" -}}
+{{ $names := nodePaginationNames $node -}}
+{{ $name := $names.Node -}}
+
+{{- if not (eq $name $node.Name) }}
+// {{ $name }} is the type alias for {{ $node.Name }}.
+type {{ $name }} = {{ $node.Name }}
+{{- end}}
+
+{{ $edge := $names.Edge -}}
 // {{ $edge }} is the edge representation of {{ $name }}.
 type {{ $edge }} struct {
 	Node *{{ $name }} `json:"node"`
 	Cursor Cursor     `json:"cursor"`
 }
 
-{{ $conn := print $name "Connection" -}}
+{{ $conn := $names.Connection -}}
 // {{ $conn }} is the connection containing edges to {{ $name }}.
 type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
@@ -250,7 +257,7 @@ type {{ $conn }} struct {
 // {{ $opt }} enables pagination customization.
 type {{ $opt }} func(*{{ $pager }}) error
 
-{{ $order := print $name "Order" -}}
+{{ $order := $names.Order -}}
 {{ $optOrder := print "With" $order -}}
 // {{ $optOrder }} configures pagination ordering.
 func {{ $optOrder }}(order *{{ $order }}) {{ $opt }} {
@@ -434,7 +441,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 	return conn, nil
 }
 
-{{ $orderField := print $name "OrderField" -}}
+{{ $orderField := $names.OrderField -}}
 {{- if $orderFields }}
 	var (
 		{{- range $f := $orderFields }}
