@@ -16,6 +16,8 @@ package entgql
 
 import (
 	"fmt"
+
+	"entgo.io/ent/entc/gen"
 )
 
 func (e *schemaGenerator) genModels() (map[string]string, error) {
@@ -50,22 +52,15 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 			if ant.Skip {
 				continue
 			}
-
 			// Check if this node has an OrderBy object
 			if ant.OrderField != "" {
 				hasOrderBy = true
 			}
 
-			var goType string
-			switch {
-			case field.IsOther() || (field.IsEnum() && field.HasGoType()):
-				goType = fmt.Sprintf("%s.%s", field.Type.RType.PkgPath, field.Type.RType.Name)
-			case field.IsEnum():
-				goType = fmt.Sprintf("%s/%s", e.graph.Package, field.Type.Ident)
-			default:
+			goType, ok := e.fieldGoType(field)
+			if !ok {
 				continue
 			}
-
 			// NOTE(giautm): I'm not sure this is
 			// the right approach, but it passed the test
 			defs, err := e.typeFromField(field, false, ant.Type)
@@ -73,7 +68,6 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 				return nil, err
 			}
 			name := defs.Name()
-
 			models[name] = goType
 		}
 
@@ -100,4 +94,15 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 
 func (e *schemaGenerator) entGoType(name string) string {
 	return fmt.Sprintf("%s.%s", e.graph.Package, name)
+}
+
+func (e *schemaGenerator) fieldGoType(f *gen.Field) (string, bool) {
+	switch {
+	case f.IsOther() || (f.IsEnum() && f.HasGoType()):
+		return fmt.Sprintf("%s.%s", f.Type.RType.PkgPath, f.Type.RType.Name), true
+	case f.IsEnum():
+		return fmt.Sprintf("%s/%s", e.graph.Package, f.Type.Ident), true
+	default:
+		return "", false
+	}
 }

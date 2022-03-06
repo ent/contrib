@@ -128,16 +128,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		}
 		if ant.Type != "" {
 			typ.Name = ant.Type
-			typ.Directives = append(typ.Directives, &ast.Directive{
-				Name:     "goModel",
-				Location: ast.LocationObject,
-				Arguments: ast.ArgumentList{
-					{
-						Name:  "model",
-						Value: &ast.Value{Kind: ast.StringValue, Raw: e.entGoType(node.Name)},
-					},
-				},
-			})
+			typ.Directives = append(typ.Directives, goModel(e.entGoType(node.Name)))
 		}
 		if e.relaySpec {
 			typ.Interfaces = append(typ.Interfaces, "Node")
@@ -161,11 +152,11 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 				})
 			}
 
-			enum, err := e.buildEnum(f, ant)
-			if err != nil {
-				return nil, err
-			}
-			if enum != nil {
+			if f.IsEnum() {
+				enum, err := e.buildEnum(f, ant)
+				if err != nil {
+					return nil, err
+				}
 				types[enum.Name] = enum
 			}
 		}
@@ -215,10 +206,10 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 }
 
 func (e *schemaGenerator) buildEnum(f *gen.Field, ant *Annotation) (*ast.Definition, error) {
-	if !f.IsEnum() {
-		return nil, nil
+	goType, ok := e.fieldGoType(f)
+	if !ok {
+		return nil, fmt.Errorf("unexpected missing GoType info for enum %q", f.Name)
 	}
-
 	// NOTE(giautm): I'm not sure this is
 	// the right approach, but it passed the test
 	defs, err := e.typeFromField(f, false, ant.Type)
@@ -233,12 +224,12 @@ func (e *schemaGenerator) buildEnum(f *gen.Field, ant *Annotation) (*ast.Definit
 			Name: v.Value,
 		})
 	}
-
 	return &ast.Definition{
 		Name:        name,
 		Kind:        ast.Enum,
 		Description: fmt.Sprintf("%s is enum for the field %s", name, f.Name),
 		EnumValues:  valueDefs,
+		Directives:  ast.DirectiveList{goModel(goType)},
 	}, nil
 }
 
@@ -338,4 +329,20 @@ func printSchema(schema *ast.Schema) string {
 		NewFormatter(sb).
 		FormatSchema(schema)
 	return sb.String()
+}
+
+func goModel(ident string) *ast.Directive {
+	return &ast.Directive{
+		Name:     "goModel",
+		Location: ast.LocationObject,
+		Arguments: ast.ArgumentList{
+			{
+				Name: "model",
+				Value: &ast.Value{
+					Kind: ast.StringValue,
+					Raw:  ident,
+				},
+			},
+		},
+	}
 }
