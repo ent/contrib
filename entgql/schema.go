@@ -16,6 +16,7 @@ package entgql
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"entgo.io/ent/entc/gen"
@@ -297,13 +298,20 @@ func namedType(name string, nullable bool) *ast.Type {
 	return ast.NonNullNamedType(name, nil)
 }
 
+func listNamedType(name string, nullable bool) *ast.Type {
+	t := ast.NonNullNamedType(name, nil)
+	if nullable {
+		return ast.ListType(t, nil)
+	}
+	return ast.NonNullListType(t, nil)
+}
+
 func (e *schemaGenerator) typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
 	nillable := f.Nillable
 	typ := f.Type.Type
 
 	// TODO(giautm): Support custom scalar types
 	// TODO(giautm): Support Edge Field
-	// TODO(giautm): Support some built-in JSON types: Ints(), Floats(), Strings()
 	scalar := f.Type.String()
 	switch {
 	case userDefinedType != "":
@@ -324,6 +332,19 @@ func (e *schemaGenerator) typeFromField(f *gen.Field, idField bool, userDefinedT
 		scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
 		return namedType(scalar, nillable), nil
 	case typ == field.TypeJSON:
+		if f.Type.RType != nil {
+			switch f.Type.RType.Kind {
+			case reflect.Slice, reflect.Array:
+				switch f.Type.RType.Ident {
+				case "[]float64":
+					return listNamedType("Float", f.Optional), nil
+				case "[]int":
+					return listNamedType("Int", f.Optional), nil
+				case "[]string":
+					return listNamedType("String", f.Optional), nil
+				}
+			}
+		}
 		return nil, fmt.Errorf("json type not implemented")
 	case typ == field.TypeOther:
 		return nil, fmt.Errorf("other type must have typed defined")

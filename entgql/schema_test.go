@@ -41,6 +41,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	config: CategoryConfig!
 	duration: Duration!
 	count: Uint64!
+	strings: [String!]
 }
 """
 CategoryStatus is enum for the field status
@@ -109,6 +110,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	config: CategoryConfig!
 	duration: Duration!
 	count: Uint64!
+	strings: [String!]
 }
 """
 A connection to a list of items.

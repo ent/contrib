@@ -670,6 +670,20 @@ func CountNotNil() predicate.Category {
 	})
 }
 
+// StringsIsNil applies the IsNil predicate on the "strings" field.
+func StringsIsNil() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldStrings)))
+	})
+}
+
+// StringsNotNil applies the NotNil predicate on the "strings" field.
+func StringsNotNil() predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldStrings)))
+	})
+}
+
 // HasTodos applies the HasEdge predicate on the "todos" edge.
 func HasTodos() predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
