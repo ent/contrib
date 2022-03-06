@@ -97,6 +97,12 @@ func (cc *CategoryCreate) SetNillableCount(u *uint64) *CategoryCreate {
 	return cc
 }
 
+// SetStrings sets the "strings" field.
+func (cc *CategoryCreate) SetStrings(s []string) *CategoryCreate {
+	cc.mutation.SetStrings(s)
+	return cc
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cc *CategoryCreate) AddTodoIDs(ids ...int) *CategoryCreate {
 	cc.mutation.AddTodoIDs(ids...)
@@ -272,6 +278,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldCount,
 		})
 		_node.Count = value
+	}
+	if value, ok := cc.mutation.Strings(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: category.FieldStrings,
+		})
+		_node.Strings = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
