@@ -95,6 +95,14 @@ func (cc *CategoryCreate) SetID(u uuid.UUID) *CategoryCreate {
 	return cc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *CategoryCreate) SetNillableID(u *uuid.UUID) *CategoryCreate {
+	if u != nil {
+		cc.SetID(*u)
+	}
+	return cc
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cc *CategoryCreate) AddTodoIDs(ids ...uuid.UUID) *CategoryCreate {
 	cc.mutation.AddTodoIDs(ids...)

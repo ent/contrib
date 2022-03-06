@@ -206,6 +206,14 @@ func (otu *OASTypesUpdate) SetUUID(u uuid.UUID) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableUUID sets the "uuid" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableUUID(u *uuid.UUID) *OASTypesUpdate {
+	if u != nil {
+		otu.SetUUID(*u)
+	}
+	return otu
+}
+
 // SetTime sets the "time" field.
 func (otu *OASTypesUpdate) SetTime(t time.Time) *OASTypesUpdate {
 	otu.mutation.SetTime(t)
@@ -821,6 +829,14 @@ func (otuo *OASTypesUpdateOne) SetBool(b bool) *OASTypesUpdateOne {
 // SetUUID sets the "uuid" field.
 func (otuo *OASTypesUpdateOne) SetUUID(u uuid.UUID) *OASTypesUpdateOne {
 	otuo.mutation.SetUUID(u)
+	return otuo
+}
+
+// SetNillableUUID sets the "uuid" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableUUID(u *uuid.UUID) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetUUID(*u)
+	}
 	return otuo
 }
 

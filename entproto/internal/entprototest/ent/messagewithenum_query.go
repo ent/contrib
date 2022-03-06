@@ -106,7 +106,7 @@ func (mweq *MessageWithEnumQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single MessageWithEnum entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one MessageWithEnum entity is not found.
+// Returns a *NotSingularError when more than one MessageWithEnum entity is found.
 // Returns a *NotFoundError when no MessageWithEnum entities are found.
 func (mweq *MessageWithEnumQuery) Only(ctx context.Context) (*MessageWithEnum, error) {
 	nodes, err := mweq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (mweq *MessageWithEnumQuery) OnlyX(ctx context.Context) *MessageWithEnum {
 }
 
 // OnlyID is like Only, but returns the only MessageWithEnum ID in the query.
-// Returns a *NotSingularError when exactly one MessageWithEnum ID is not found.
+// Returns a *NotSingularError when more than one MessageWithEnum ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (mweq *MessageWithEnumQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 		order:      append([]OrderFunc{}, mweq.order...),
 		predicates: append([]predicate.MessageWithEnum{}, mweq.predicates...),
 		// clone intermediate query.
-		sql:  mweq.sql.Clone(),
-		path: mweq.path,
+		sql:    mweq.sql.Clone(),
+		path:   mweq.path,
+		unique: mweq.unique,
 	}
 }
 

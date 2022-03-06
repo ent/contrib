@@ -24,12 +24,56 @@ import (
 	"github.com/vektah/gqlparser/v2/formatter"
 )
 
-type (
-	// TODO(giautm): refactor internal APIs
-	schemaGenerator struct {
-		graph     *gen.Graph
-		nodes     []*gen.Type
-		relaySpec bool
+// TODO(giautm): refactor internal APIs
+type schemaGenerator struct {
+	graph     *gen.Graph
+	nodes     []*gen.Type
+	relaySpec bool
+}
+
+var (
+	pos        = &ast.Position{Src: &ast.Source{BuiltIn: false}}
+	directives = map[string]*ast.DirectiveDefinition{
+		"goModel": {
+			Name:     "goModel",
+			Position: pos,
+			Arguments: ast.ArgumentDefinitionList{
+				{
+					Name: "model",
+					Type: ast.NamedType("String", nil),
+				},
+				{
+					Name: "models",
+					Type: ast.ListType(ast.NonNullNamedType("String", nil), nil),
+				},
+			},
+			Locations: []ast.DirectiveLocation{
+				ast.LocationObject,
+				ast.LocationInputObject,
+				ast.LocationScalar,
+				ast.LocationEnum,
+				ast.LocationInterface,
+				ast.LocationUnion,
+			},
+		},
+		"goField": {
+			Name:     "goField",
+			Position: pos,
+			Arguments: ast.ArgumentDefinitionList{
+				{
+					Name: "forceResolver",
+					Type: ast.NamedType("Boolean", nil),
+				},
+				{
+					Name: "name",
+					Type: ast.NamedType("String", nil),
+				},
+			},
+			Locations: []ast.DirectiveLocation{
+				ast.LocationFieldDefinition,
+				ast.LocationInputFieldDefinition,
+			},
+		},
 	}
 )
 
@@ -56,9 +100,9 @@ func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 	if e.relaySpec {
 		insertDefinitions(types, relayBuiltinTypes()...)
 	}
-
 	return &ast.Schema{
-		Types: types,
+		Types:      types,
+		Directives: directives,
 	}, nil
 }
 
@@ -77,23 +121,28 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		name := node.Name
+		typ := &ast.Definition{
+			Name:   node.Name,
+			Kind:   ast.Object,
+			Fields: fields,
+		}
 		if ant.Type != "" {
-			name = ant.Type
+			typ.Name = ant.Type
+			typ.Directives = append(typ.Directives, &ast.Directive{
+				Name:     "goModel",
+				Location: ast.LocationObject,
+				Arguments: ast.ArgumentList{
+					{
+						Name:  "model",
+						Value: &ast.Value{Kind: ast.StringValue, Raw: e.entGoType(node.Name)},
+					},
+				},
+			})
 		}
-
-		var interfaces []string
 		if e.relaySpec {
-			interfaces = append(interfaces, "Node")
+			typ.Interfaces = append(typ.Interfaces, "Node")
 		}
-
-		types[name] = &ast.Definition{
-			Name:       name,
-			Kind:       ast.Object,
-			Fields:     fields,
-			Interfaces: interfaces,
-		}
+		types[typ.Name] = typ
 
 		var enumOrderByValues ast.EnumValueList
 		for _, f := range node.Fields {

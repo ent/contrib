@@ -106,7 +106,7 @@ func (aq *AttachmentQuery) FirstIDX(ctx context.Context) string {
 }
 
 // Only returns a single Attachment entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Attachment entity is not found.
+// Returns a *NotSingularError when more than one Attachment entity is found.
 // Returns a *NotFoundError when no Attachment entities are found.
 func (aq *AttachmentQuery) Only(ctx context.Context) (*Attachment, error) {
 	nodes, err := aq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (aq *AttachmentQuery) OnlyX(ctx context.Context) *Attachment {
 }
 
 // OnlyID is like Only, but returns the only Attachment ID in the query.
-// Returns a *NotSingularError when exactly one Attachment ID is not found.
+// Returns a *NotSingularError when more than one Attachment ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (aq *AttachmentQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
@@ -242,8 +242,9 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 		order:      append([]OrderFunc{}, aq.order...),
 		predicates: append([]predicate.Attachment{}, aq.predicates...),
 		// clone intermediate query.
-		sql:  aq.sql.Clone(),
-		path: aq.path,
+		sql:    aq.sql.Clone(),
+		path:   aq.path,
+		unique: aq.unique,
 	}
 }
 

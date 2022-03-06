@@ -106,7 +106,7 @@ func (mwsq *MultiWordSchemaQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single MultiWordSchema entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one MultiWordSchema entity is not found.
+// Returns a *NotSingularError when more than one MultiWordSchema entity is found.
 // Returns a *NotFoundError when no MultiWordSchema entities are found.
 func (mwsq *MultiWordSchemaQuery) Only(ctx context.Context) (*MultiWordSchema, error) {
 	nodes, err := mwsq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (mwsq *MultiWordSchemaQuery) OnlyX(ctx context.Context) *MultiWordSchema {
 }
 
 // OnlyID is like Only, but returns the only MultiWordSchema ID in the query.
-// Returns a *NotSingularError when exactly one MultiWordSchema ID is not found.
+// Returns a *NotSingularError when more than one MultiWordSchema ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (mwsq *MultiWordSchemaQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 		order:      append([]OrderFunc{}, mwsq.order...),
 		predicates: append([]predicate.MultiWordSchema{}, mwsq.predicates...),
 		// clone intermediate query.
-		sql:  mwsq.sql.Clone(),
-		path: mwsq.path,
+		sql:    mwsq.sql.Clone(),
+		path:   mwsq.path,
+		unique: mwsq.unique,
 	}
 }
 

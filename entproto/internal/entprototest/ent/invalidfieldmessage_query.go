@@ -106,7 +106,7 @@ func (ifmq *InvalidFieldMessageQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single InvalidFieldMessage entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one InvalidFieldMessage entity is not found.
+// Returns a *NotSingularError when more than one InvalidFieldMessage entity is found.
 // Returns a *NotFoundError when no InvalidFieldMessage entities are found.
 func (ifmq *InvalidFieldMessageQuery) Only(ctx context.Context) (*InvalidFieldMessage, error) {
 	nodes, err := ifmq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (ifmq *InvalidFieldMessageQuery) OnlyX(ctx context.Context) *InvalidFieldMe
 }
 
 // OnlyID is like Only, but returns the only InvalidFieldMessage ID in the query.
-// Returns a *NotSingularError when exactly one InvalidFieldMessage ID is not found.
+// Returns a *NotSingularError when more than one InvalidFieldMessage ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (ifmq *InvalidFieldMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (ifmq *InvalidFieldMessageQuery) Clone() *InvalidFieldMessageQuery {
 		order:      append([]OrderFunc{}, ifmq.order...),
 		predicates: append([]predicate.InvalidFieldMessage{}, ifmq.predicates...),
 		// clone intermediate query.
-		sql:  ifmq.sql.Clone(),
-		path: ifmq.path,
+		sql:    ifmq.sql.Clone(),
+		path:   ifmq.path,
+		unique: ifmq.unique,
 	}
 }
 

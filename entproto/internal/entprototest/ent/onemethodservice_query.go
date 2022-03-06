@@ -106,7 +106,7 @@ func (omsq *OneMethodServiceQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single OneMethodService entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one OneMethodService entity is not found.
+// Returns a *NotSingularError when more than one OneMethodService entity is found.
 // Returns a *NotFoundError when no OneMethodService entities are found.
 func (omsq *OneMethodServiceQuery) Only(ctx context.Context) (*OneMethodService, error) {
 	nodes, err := omsq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (omsq *OneMethodServiceQuery) OnlyX(ctx context.Context) *OneMethodService 
 }
 
 // OnlyID is like Only, but returns the only OneMethodService ID in the query.
-// Returns a *NotSingularError when exactly one OneMethodService ID is not found.
+// Returns a *NotSingularError when more than one OneMethodService ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (omsq *OneMethodServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (omsq *OneMethodServiceQuery) Clone() *OneMethodServiceQuery {
 		order:      append([]OrderFunc{}, omsq.order...),
 		predicates: append([]predicate.OneMethodService{}, omsq.predicates...),
 		// clone intermediate query.
-		sql:  omsq.sql.Clone(),
-		path: omsq.path,
+		sql:    omsq.sql.Clone(),
+		path:   omsq.path,
+		unique: omsq.unique,
 	}
 }
 

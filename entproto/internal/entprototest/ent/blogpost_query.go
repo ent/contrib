@@ -157,7 +157,7 @@ func (bpq *BlogPostQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single BlogPost entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one BlogPost entity is not found.
+// Returns a *NotSingularError when more than one BlogPost entity is found.
 // Returns a *NotFoundError when no BlogPost entities are found.
 func (bpq *BlogPostQuery) Only(ctx context.Context) (*BlogPost, error) {
 	nodes, err := bpq.Limit(2).All(ctx)
@@ -184,7 +184,7 @@ func (bpq *BlogPostQuery) OnlyX(ctx context.Context) *BlogPost {
 }
 
 // OnlyID is like Only, but returns the only BlogPost ID in the query.
-// Returns a *NotSingularError when exactly one BlogPost ID is not found.
+// Returns a *NotSingularError when more than one BlogPost ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (bpq *BlogPostQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -295,8 +295,9 @@ func (bpq *BlogPostQuery) Clone() *BlogPostQuery {
 		withAuthor:     bpq.withAuthor.Clone(),
 		withCategories: bpq.withCategories.Clone(),
 		// clone intermediate query.
-		sql:  bpq.sql.Clone(),
-		path: bpq.path,
+		sql:    bpq.sql.Clone(),
+		path:   bpq.path,
+		unique: bpq.unique,
 	}
 }
 

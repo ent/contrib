@@ -106,7 +106,7 @@ func (otq *OASTypesQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single OASTypes entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one OASTypes entity is not found.
+// Returns a *NotSingularError when more than one OASTypes entity is found.
 // Returns a *NotFoundError when no OASTypes entities are found.
 func (otq *OASTypesQuery) Only(ctx context.Context) (*OASTypes, error) {
 	nodes, err := otq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (otq *OASTypesQuery) OnlyX(ctx context.Context) *OASTypes {
 }
 
 // OnlyID is like Only, but returns the only OASTypes ID in the query.
-// Returns a *NotSingularError when exactly one OASTypes ID is not found.
+// Returns a *NotSingularError when more than one OASTypes ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (otq *OASTypesQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (otq *OASTypesQuery) Clone() *OASTypesQuery {
 		order:      append([]OrderFunc{}, otq.order...),
 		predicates: append([]predicate.OASTypes{}, otq.predicates...),
 		// clone intermediate query.
-		sql:  otq.sql.Clone(),
-		path: otq.path,
+		sql:    otq.sql.Clone(),
+		path:   otq.path,
+		unique: otq.unique,
 	}
 }
 

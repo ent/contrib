@@ -106,7 +106,7 @@ func (dnmq *DuplicateNumberMessageQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single DuplicateNumberMessage entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one DuplicateNumberMessage entity is not found.
+// Returns a *NotSingularError when more than one DuplicateNumberMessage entity is found.
 // Returns a *NotFoundError when no DuplicateNumberMessage entities are found.
 func (dnmq *DuplicateNumberMessageQuery) Only(ctx context.Context) (*DuplicateNumberMessage, error) {
 	nodes, err := dnmq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (dnmq *DuplicateNumberMessageQuery) OnlyX(ctx context.Context) *DuplicateNu
 }
 
 // OnlyID is like Only, but returns the only DuplicateNumberMessage ID in the query.
-// Returns a *NotSingularError when exactly one DuplicateNumberMessage ID is not found.
+// Returns a *NotSingularError when more than one DuplicateNumberMessage ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (dnmq *DuplicateNumberMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (dnmq *DuplicateNumberMessageQuery) Clone() *DuplicateNumberMessageQuery {
 		order:      append([]OrderFunc{}, dnmq.order...),
 		predicates: append([]predicate.DuplicateNumberMessage{}, dnmq.predicates...),
 		// clone intermediate query.
-		sql:  dnmq.sql.Clone(),
-		path: dnmq.path,
+		sql:    dnmq.sql.Clone(),
+		path:   dnmq.path,
+		unique: dnmq.unique,
 	}
 }
 

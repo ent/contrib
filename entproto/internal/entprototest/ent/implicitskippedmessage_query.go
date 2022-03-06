@@ -107,7 +107,7 @@ func (ismq *ImplicitSkippedMessageQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single ImplicitSkippedMessage entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one ImplicitSkippedMessage entity is not found.
+// Returns a *NotSingularError when more than one ImplicitSkippedMessage entity is found.
 // Returns a *NotFoundError when no ImplicitSkippedMessage entities are found.
 func (ismq *ImplicitSkippedMessageQuery) Only(ctx context.Context) (*ImplicitSkippedMessage, error) {
 	nodes, err := ismq.Limit(2).All(ctx)
@@ -134,7 +134,7 @@ func (ismq *ImplicitSkippedMessageQuery) OnlyX(ctx context.Context) *ImplicitSki
 }
 
 // OnlyID is like Only, but returns the only ImplicitSkippedMessage ID in the query.
-// Returns a *NotSingularError when exactly one ImplicitSkippedMessage ID is not found.
+// Returns a *NotSingularError when more than one ImplicitSkippedMessage ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (ismq *ImplicitSkippedMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -243,8 +243,9 @@ func (ismq *ImplicitSkippedMessageQuery) Clone() *ImplicitSkippedMessageQuery {
 		order:      append([]OrderFunc{}, ismq.order...),
 		predicates: append([]predicate.ImplicitSkippedMessage{}, ismq.predicates...),
 		// clone intermediate query.
-		sql:  ismq.sql.Clone(),
-		path: ismq.path,
+		sql:    ismq.sql.Clone(),
+		path:   ismq.path,
+		unique: ismq.unique,
 	}
 }
 

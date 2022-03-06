@@ -132,7 +132,7 @@ func (wmfq *WithModifiedFieldQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single WithModifiedField entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one WithModifiedField entity is not found.
+// Returns a *NotSingularError when more than one WithModifiedField entity is found.
 // Returns a *NotFoundError when no WithModifiedField entities are found.
 func (wmfq *WithModifiedFieldQuery) Only(ctx context.Context) (*WithModifiedField, error) {
 	nodes, err := wmfq.Limit(2).All(ctx)
@@ -159,7 +159,7 @@ func (wmfq *WithModifiedFieldQuery) OnlyX(ctx context.Context) *WithModifiedFiel
 }
 
 // OnlyID is like Only, but returns the only WithModifiedField ID in the query.
-// Returns a *NotSingularError when exactly one WithModifiedField ID is not found.
+// Returns a *NotSingularError when more than one WithModifiedField ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (wmfq *WithModifiedFieldQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -269,8 +269,9 @@ func (wmfq *WithModifiedFieldQuery) Clone() *WithModifiedFieldQuery {
 		predicates: append([]predicate.WithModifiedField{}, wmfq.predicates...),
 		withOwner:  wmfq.withOwner.Clone(),
 		// clone intermediate query.
-		sql:  wmfq.sql.Clone(),
-		path: wmfq.path,
+		sql:    wmfq.sql.Clone(),
+		path:   wmfq.path,
+		unique: wmfq.unique,
 	}
 }
 

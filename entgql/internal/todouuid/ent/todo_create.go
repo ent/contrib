@@ -89,6 +89,14 @@ func (tc *TodoCreate) SetID(u uuid.UUID) *TodoCreate {
 	return tc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableID(u *uuid.UUID) *TodoCreate {
+	if u != nil {
+		tc.SetID(*u)
+	}
+	return tc
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tc *TodoCreate) SetParentID(id uuid.UUID) *TodoCreate {
 	tc.mutation.SetParentID(id)

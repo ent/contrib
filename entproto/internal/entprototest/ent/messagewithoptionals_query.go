@@ -106,7 +106,7 @@ func (mwoq *MessageWithOptionalsQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single MessageWithOptionals entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one MessageWithOptionals entity is not found.
+// Returns a *NotSingularError when more than one MessageWithOptionals entity is found.
 // Returns a *NotFoundError when no MessageWithOptionals entities are found.
 func (mwoq *MessageWithOptionalsQuery) Only(ctx context.Context) (*MessageWithOptionals, error) {
 	nodes, err := mwoq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (mwoq *MessageWithOptionalsQuery) OnlyX(ctx context.Context) *MessageWithOp
 }
 
 // OnlyID is like Only, but returns the only MessageWithOptionals ID in the query.
-// Returns a *NotSingularError when exactly one MessageWithOptionals ID is not found.
+// Returns a *NotSingularError when more than one MessageWithOptionals ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (mwoq *MessageWithOptionalsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (mwoq *MessageWithOptionalsQuery) Clone() *MessageWithOptionalsQuery {
 		order:      append([]OrderFunc{}, mwoq.order...),
 		predicates: append([]predicate.MessageWithOptionals{}, mwoq.predicates...),
 		// clone intermediate query.
-		sql:  mwoq.sql.Clone(),
-		path: mwoq.path,
+		sql:    mwoq.sql.Clone(),
+		path:   mwoq.path,
+		unique: mwoq.unique,
 	}
 }
 

@@ -114,6 +114,14 @@ func (otc *OASTypesCreate) SetUUID(u uuid.UUID) *OASTypesCreate {
 	return otc
 }
 
+// SetNillableUUID sets the "uuid" field if the given value is not nil.
+func (otc *OASTypesCreate) SetNillableUUID(u *uuid.UUID) *OASTypesCreate {
+	if u != nil {
+		otc.SetUUID(*u)
+	}
+	return otc
+}
+
 // SetTime sets the "time" field.
 func (otc *OASTypesCreate) SetTime(t time.Time) *OASTypesCreate {
 	otc.mutation.SetTime(t)

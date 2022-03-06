@@ -57,6 +57,14 @@ func (cu *CategoryUpdate) SetUUIDA(u uuid.UUID) *CategoryUpdate {
 	return cu
 }
 
+// SetNillableUUIDA sets the "uuid_a" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableUUIDA(u *uuid.UUID) *CategoryUpdate {
+	if u != nil {
+		cu.SetUUIDA(*u)
+	}
+	return cu
+}
+
 // ClearUUIDA clears the value of the "uuid_a" field.
 func (cu *CategoryUpdate) ClearUUIDA() *CategoryUpdate {
 	cu.mutation.ClearUUIDA()
@@ -431,6 +439,14 @@ func (cuo *CategoryUpdateOne) SetText(s string) *CategoryUpdateOne {
 // SetUUIDA sets the "uuid_a" field.
 func (cuo *CategoryUpdateOne) SetUUIDA(u uuid.UUID) *CategoryUpdateOne {
 	cuo.mutation.SetUUIDA(u)
+	return cuo
+}
+
+// SetNillableUUIDA sets the "uuid_a" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableUUIDA(u *uuid.UUID) *CategoryUpdateOne {
+	if u != nil {
+		cuo.SetUUIDA(*u)
+	}
 	return cuo
 }
 

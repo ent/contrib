@@ -106,7 +106,7 @@ func (mwiq *MessageWithIDQuery) FirstIDX(ctx context.Context) int32 {
 }
 
 // Only returns a single MessageWithID entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one MessageWithID entity is not found.
+// Returns a *NotSingularError when more than one MessageWithID entity is found.
 // Returns a *NotFoundError when no MessageWithID entities are found.
 func (mwiq *MessageWithIDQuery) Only(ctx context.Context) (*MessageWithID, error) {
 	nodes, err := mwiq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (mwiq *MessageWithIDQuery) OnlyX(ctx context.Context) *MessageWithID {
 }
 
 // OnlyID is like Only, but returns the only MessageWithID ID in the query.
-// Returns a *NotSingularError when exactly one MessageWithID ID is not found.
+// Returns a *NotSingularError when more than one MessageWithID ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (mwiq *MessageWithIDQuery) OnlyID(ctx context.Context) (id int32, err error) {
 	var ids []int32
@@ -242,8 +242,9 @@ func (mwiq *MessageWithIDQuery) Clone() *MessageWithIDQuery {
 		order:      append([]OrderFunc{}, mwiq.order...),
 		predicates: append([]predicate.MessageWithID{}, mwiq.predicates...),
 		// clone intermediate query.
-		sql:  mwiq.sql.Clone(),
-		path: mwiq.path,
+		sql:    mwiq.sql.Clone(),
+		path:   mwiq.path,
+		unique: mwiq.unique,
 	}
 }
 

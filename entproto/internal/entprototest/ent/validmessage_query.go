@@ -106,7 +106,7 @@ func (vmq *ValidMessageQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single ValidMessage entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one ValidMessage entity is not found.
+// Returns a *NotSingularError when more than one ValidMessage entity is found.
 // Returns a *NotFoundError when no ValidMessage entities are found.
 func (vmq *ValidMessageQuery) Only(ctx context.Context) (*ValidMessage, error) {
 	nodes, err := vmq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (vmq *ValidMessageQuery) OnlyX(ctx context.Context) *ValidMessage {
 }
 
 // OnlyID is like Only, but returns the only ValidMessage ID in the query.
-// Returns a *NotSingularError when exactly one ValidMessage ID is not found.
+// Returns a *NotSingularError when more than one ValidMessage ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (vmq *ValidMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 		order:      append([]OrderFunc{}, vmq.order...),
 		predicates: append([]predicate.ValidMessage{}, vmq.predicates...),
 		// clone intermediate query.
-		sql:  vmq.sql.Clone(),
-		path: vmq.path,
+		sql:    vmq.sql.Clone(),
+		path:   vmq.path,
+		unique: vmq.unique,
 	}
 }
 

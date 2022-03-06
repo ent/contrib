@@ -85,7 +85,6 @@ func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return []*ast.Definition{
 		{
 			Name:        pagination.Edge,

@@ -46,6 +46,14 @@ func (vsc *VerySecretCreate) SetID(u uuid.UUID) *VerySecretCreate {
 	return vsc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (vsc *VerySecretCreate) SetNillableID(u *uuid.UUID) *VerySecretCreate {
+	if u != nil {
+		vsc.SetID(*u)
+	}
+	return vsc
+}
+
 // Mutation returns the VerySecretMutation object of the builder.
 func (vsc *VerySecretCreate) Mutation() *VerySecretMutation {
 	return vsc.mutation

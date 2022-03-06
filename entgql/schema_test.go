@@ -49,7 +49,7 @@ enum CategoryStatus {
 	ENABLED
 	DISABLED
 }
-type MasterUser {
+type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
 	id: ID
 	username: String!
 	age: Float!
@@ -152,7 +152,7 @@ enum CategoryStatus {
 	ENABLED
 	DISABLED
 }
-type MasterUser implements Node {
+type MasterUser implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
 	id: ID!
 	username: String!
 	age: Float!

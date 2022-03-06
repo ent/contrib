@@ -169,7 +169,7 @@ func (tq *TodoQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single Todo entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Todo entity is not found.
+// Returns a *NotSingularError when more than one Todo entity is found.
 // Returns a *NotFoundError when no Todo entities are found.
 func (tq *TodoQuery) Only(ctx context.Context) (*Todo, error) {
 	nodes, err := tq.Limit(2).All(ctx)
@@ -196,7 +196,7 @@ func (tq *TodoQuery) OnlyX(ctx context.Context) *Todo {
 }
 
 // OnlyID is like Only, but returns the only Todo ID in the query.
-// Returns a *NotSingularError when exactly one Todo ID is not found.
+// Returns a *NotSingularError when more than one Todo ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (tq *TodoQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -307,8 +307,9 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		withParent:   tq.withParent.Clone(),
 		withChildren: tq.withChildren.Clone(),
 		// clone intermediate query.
-		sql:  tq.sql.Clone(),
-		path: tq.path,
+		sql:    tq.sql.Clone(),
+		path:   tq.path,
+		unique: tq.unique,
 	}
 }
 

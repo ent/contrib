@@ -106,7 +106,7 @@ func (mwpnq *MessageWithPackageNameQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single MessageWithPackageName entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one MessageWithPackageName entity is not found.
+// Returns a *NotSingularError when more than one MessageWithPackageName entity is found.
 // Returns a *NotFoundError when no MessageWithPackageName entities are found.
 func (mwpnq *MessageWithPackageNameQuery) Only(ctx context.Context) (*MessageWithPackageName, error) {
 	nodes, err := mwpnq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (mwpnq *MessageWithPackageNameQuery) OnlyX(ctx context.Context) *MessageWit
 }
 
 // OnlyID is like Only, but returns the only MessageWithPackageName ID in the query.
-// Returns a *NotSingularError when exactly one MessageWithPackageName ID is not found.
+// Returns a *NotSingularError when more than one MessageWithPackageName ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (mwpnq *MessageWithPackageNameQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 		order:      append([]OrderFunc{}, mwpnq.order...),
 		predicates: append([]predicate.MessageWithPackageName{}, mwpnq.predicates...),
 		// clone intermediate query.
-		sql:  mwpnq.sql.Clone(),
-		path: mwpnq.path,
+		sql:    mwpnq.sql.Clone(),
+		path:   mwpnq.path,
+		unique: mwpnq.unique,
 	}
 }
 
