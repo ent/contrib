@@ -57,6 +57,7 @@ func (User) Fields() []ent.Field {
 // Annotations returns user annotations.
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.RelayConnection(),
 		entgql.Type("MasterUser"),
 	}
 }

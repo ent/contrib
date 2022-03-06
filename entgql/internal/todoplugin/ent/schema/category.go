@@ -84,5 +84,7 @@ func (Category) Edges() []ent.Edge {
 
 // Annotations returns todo annotations.
 func (Category) Annotations() []schema.Annotation {
-	return []schema.Annotation{}
+	return []schema.Annotation{
+		entgql.RelayConnection(),
+	}
 }

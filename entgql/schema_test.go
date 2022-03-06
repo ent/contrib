@@ -26,6 +26,7 @@ import (
 func TestEntGQL_buildTypes(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
+	disableRelayConnection(graph)
 	plugin, err := newSchemaGenerator(graph)
 	require.NoError(t, err)
 	plugin.relaySpec = false
@@ -260,4 +261,14 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
 `, printSchema(&ast.Schema{
 		Types: types,
 	}))
+}
+
+func disableRelayConnection(g *gen.Graph) {
+	for _, n := range g.Nodes {
+		if ant, ok := n.Annotations[annotationName]; ok {
+			if m, ok := ant.(map[string]interface{}); ok {
+				m["RelayConnection"] = false
+			}
+		}
+	}
 }

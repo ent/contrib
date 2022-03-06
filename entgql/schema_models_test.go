@@ -39,75 +39,82 @@ func TestModifyConfig_empty(t *testing.T) {
 	require.Equal(t, expected, cfg)
 }
 
-var g = &gen.Graph{
-	Config: &gen.Config{
-		Package: "example.com",
-		IDType: &field.TypeInfo{
-			Type: field.TypeInt,
-		},
-	},
-	Nodes: []*gen.Type{
-		{
-			Name: "Todo",
-			Fields: []*gen.Field{{
-				Name: "Name",
-				Type: &field.TypeInfo{
-					Type: field.TypeString,
-				},
-			}},
-		},
-		{
-			Name: "User",
-			Fields: []*gen.Field{{
-				Name: "Name",
-				Type: &field.TypeInfo{
-					Type: field.TypeString,
-				},
-			}},
-			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{
-					"Skip": true,
-				},
+func createGraph(relayConnection bool) *gen.Graph {
+	return &gen.Graph{
+		Config: &gen.Config{
+			Package: "example.com",
+			IDType: &field.TypeInfo{
+				Type: field.TypeInt,
 			},
 		},
-		{
-			Name: "Group",
-			Fields: []*gen.Field{{
-				Name: "Name",
-				Type: &field.TypeInfo{
-					Type: field.TypeString,
-				},
-			}},
-			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{
-					"RelayConnection": true,
-				},
-			},
-		},
-		{
-			Name: "GroupWithSort",
-			Fields: []*gen.Field{{
-				Name: "Name",
-				Type: &field.TypeInfo{
-					Type: field.TypeString,
-				},
+		Nodes: []*gen.Type{
+			{
+				Name: "Todo",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"OrderField": "NAME",
+						"RelayConnection": relayConnection,
 					},
 				},
-			}},
-			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{
-					"RelayConnection": true,
+			},
+			{
+				Name: "User",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+				}},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"Skip": true,
+					},
+				},
+			},
+			{
+				Name: "Group",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+				}},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"RelayConnection": relayConnection,
+					},
+				},
+			},
+			{
+				Name: "GroupWithSort",
+				Fields: []*gen.Field{{
+					Name: "Name",
+					Type: &field.TypeInfo{
+						Type: field.TypeString,
+					},
+					Annotations: map[string]interface{}{
+						annotationName: map[string]interface{}{
+							"OrderField": "NAME",
+						},
+					},
+				}},
+				Annotations: map[string]interface{}{
+					annotationName: map[string]interface{}{
+						"RelayConnection": relayConnection,
+					},
 				},
 			},
 		},
-	},
+	}
 }
 
 func TestModifyConfig(t *testing.T) {
-	e, err := newSchemaGenerator(g)
+	e, err := newSchemaGenerator(createGraph(false))
 	require.NoError(t, err)
 
 	e.relaySpec = false
@@ -122,9 +129,14 @@ func TestModifyConfig(t *testing.T) {
 }
 
 func TestModifyConfig_relay(t *testing.T) {
+	g := createGraph(true)
 	e, err := newSchemaGenerator(g)
+	e.relaySpec = false
 	require.NoError(t, err)
+	_, err = e.genModels()
+	require.Error(t, err, ErrRelaySpecDisabled)
 
+	e.relaySpec = true
 	cfg, err := e.genModels()
 	require.NoError(t, err)
 	expected := map[string]string{
@@ -150,6 +162,7 @@ func TestModifyConfig_relay(t *testing.T) {
 func TestModifyConfig_todoplugin(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
+	disableRelayConnection(graph)
 
 	e, err := newSchemaGenerator(graph)
 	require.NoError(t, err)
