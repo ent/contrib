@@ -106,7 +106,7 @@ func (tmsq *TwoMethodServiceQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single TwoMethodService entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one TwoMethodService entity is not found.
+// Returns a *NotSingularError when more than one TwoMethodService entity is found.
 // Returns a *NotFoundError when no TwoMethodService entities are found.
 func (tmsq *TwoMethodServiceQuery) Only(ctx context.Context) (*TwoMethodService, error) {
 	nodes, err := tmsq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (tmsq *TwoMethodServiceQuery) OnlyX(ctx context.Context) *TwoMethodService 
 }
 
 // OnlyID is like Only, but returns the only TwoMethodService ID in the query.
-// Returns a *NotSingularError when exactly one TwoMethodService ID is not found.
+// Returns a *NotSingularError when more than one TwoMethodService ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (tmsq *TwoMethodServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (tmsq *TwoMethodServiceQuery) Clone() *TwoMethodServiceQuery {
 		order:      append([]OrderFunc{}, tmsq.order...),
 		predicates: append([]predicate.TwoMethodService{}, tmsq.predicates...),
 		// clone intermediate query.
-		sql:  tmsq.sql.Clone(),
-		path: tmsq.path,
+		sql:    tmsq.sql.Clone(),
+		path:   tmsq.path,
+		unique: tmsq.unique,
 	}
 }
 

@@ -49,6 +49,14 @@ func (cc *CategoryCreate) SetUUIDA(u uuid.UUID) *CategoryCreate {
 	return cc
 }
 
+// SetNillableUUIDA sets the "uuid_a" field if the given value is not nil.
+func (cc *CategoryCreate) SetNillableUUIDA(u *uuid.UUID) *CategoryCreate {
+	if u != nil {
+		cc.SetUUIDA(*u)
+	}
+	return cc
+}
+
 // SetStatus sets the "status" field.
 func (cc *CategoryCreate) SetStatus(c category.Status) *CategoryCreate {
 	cc.mutation.SetStatus(c)

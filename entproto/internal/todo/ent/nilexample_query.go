@@ -106,7 +106,7 @@ func (neq *NilExampleQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single NilExample entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one NilExample entity is not found.
+// Returns a *NotSingularError when more than one NilExample entity is found.
 // Returns a *NotFoundError when no NilExample entities are found.
 func (neq *NilExampleQuery) Only(ctx context.Context) (*NilExample, error) {
 	nodes, err := neq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (neq *NilExampleQuery) OnlyX(ctx context.Context) *NilExample {
 }
 
 // OnlyID is like Only, but returns the only NilExample ID in the query.
-// Returns a *NotSingularError when exactly one NilExample ID is not found.
+// Returns a *NotSingularError when more than one NilExample ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (neq *NilExampleQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 		order:      append([]OrderFunc{}, neq.order...),
 		predicates: append([]predicate.NilExample{}, neq.predicates...),
 		// clone intermediate query.
-		sql:  neq.sql.Clone(),
-		path: neq.path,
+		sql:    neq.sql.Clone(),
+		path:   neq.path,
+		unique: neq.unique,
 	}
 }
 

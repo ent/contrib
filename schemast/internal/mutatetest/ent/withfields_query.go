@@ -106,7 +106,7 @@ func (wfq *WithFieldsQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single WithFields entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one WithFields entity is not found.
+// Returns a *NotSingularError when more than one WithFields entity is found.
 // Returns a *NotFoundError when no WithFields entities are found.
 func (wfq *WithFieldsQuery) Only(ctx context.Context) (*WithFields, error) {
 	nodes, err := wfq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (wfq *WithFieldsQuery) OnlyX(ctx context.Context) *WithFields {
 }
 
 // OnlyID is like Only, but returns the only WithFields ID in the query.
-// Returns a *NotSingularError when exactly one WithFields ID is not found.
+// Returns a *NotSingularError when more than one WithFields ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (wfq *WithFieldsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 		order:      append([]OrderFunc{}, wfq.order...),
 		predicates: append([]predicate.WithFields{}, wfq.predicates...),
 		// clone intermediate query.
-		sql:  wfq.sql.Clone(),
-		path: wfq.path,
+		sql:    wfq.sql.Clone(),
+		path:   wfq.path,
+		unique: wfq.unique,
 	}
 }
 

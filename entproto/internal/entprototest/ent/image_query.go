@@ -133,7 +133,7 @@ func (iq *ImageQuery) FirstIDX(ctx context.Context) uuid.UUID {
 }
 
 // Only returns a single Image entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Image entity is not found.
+// Returns a *NotSingularError when more than one Image entity is found.
 // Returns a *NotFoundError when no Image entities are found.
 func (iq *ImageQuery) Only(ctx context.Context) (*Image, error) {
 	nodes, err := iq.Limit(2).All(ctx)
@@ -160,7 +160,7 @@ func (iq *ImageQuery) OnlyX(ctx context.Context) *Image {
 }
 
 // OnlyID is like Only, but returns the only Image ID in the query.
-// Returns a *NotSingularError when exactly one Image ID is not found.
+// Returns a *NotSingularError when more than one Image ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (iq *ImageQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
@@ -270,8 +270,9 @@ func (iq *ImageQuery) Clone() *ImageQuery {
 		predicates:         append([]predicate.Image{}, iq.predicates...),
 		withUserProfilePic: iq.withUserProfilePic.Clone(),
 		// clone intermediate query.
-		sql:  iq.sql.Clone(),
-		path: iq.path,
+		sql:    iq.sql.Clone(),
+		path:   iq.path,
+		unique: iq.unique,
 	}
 }
 

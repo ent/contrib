@@ -147,7 +147,7 @@ func (cq *CategoryQuery) FirstIDX(ctx context.Context) uuid.UUID {
 }
 
 // Only returns a single Category entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Category entity is not found.
+// Returns a *NotSingularError when more than one Category entity is found.
 // Returns a *NotFoundError when no Category entities are found.
 func (cq *CategoryQuery) Only(ctx context.Context) (*Category, error) {
 	nodes, err := cq.Limit(2).All(ctx)
@@ -174,7 +174,7 @@ func (cq *CategoryQuery) OnlyX(ctx context.Context) *Category {
 }
 
 // OnlyID is like Only, but returns the only Category ID in the query.
-// Returns a *NotSingularError when exactly one Category ID is not found.
+// Returns a *NotSingularError when more than one Category ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (cq *CategoryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
@@ -284,8 +284,9 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 		predicates: append([]predicate.Category{}, cq.predicates...),
 		withTodos:  cq.withTodos.Clone(),
 		// clone intermediate query.
-		sql:  cq.sql.Clone(),
-		path: cq.path,
+		sql:    cq.sql.Clone(),
+		path:   cq.path,
+		unique: cq.unique,
 	}
 }
 

@@ -102,6 +102,14 @@ func (mwoc *MessageWithOptionalsCreate) SetUUIDOptional(u uuid.UUID) *MessageWit
 	return mwoc
 }
 
+// SetNillableUUIDOptional sets the "uuid_optional" field if the given value is not nil.
+func (mwoc *MessageWithOptionalsCreate) SetNillableUUIDOptional(u *uuid.UUID) *MessageWithOptionalsCreate {
+	if u != nil {
+		mwoc.SetUUIDOptional(*u)
+	}
+	return mwoc
+}
+
 // SetTimeOptional sets the "time_optional" field.
 func (mwoc *MessageWithOptionalsCreate) SetTimeOptional(t time.Time) *MessageWithOptionalsCreate {
 	mwoc.mutation.SetTimeOptional(t)

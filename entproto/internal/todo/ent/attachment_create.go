@@ -26,6 +26,14 @@ func (ac *AttachmentCreate) SetID(u uuid.UUID) *AttachmentCreate {
 	return ac
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ac *AttachmentCreate) SetNillableID(u *uuid.UUID) *AttachmentCreate {
+	if u != nil {
+		ac.SetID(*u)
+	}
+	return ac
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (ac *AttachmentCreate) SetUserID(id int) *AttachmentCreate {
 	ac.mutation.SetUserID(id)

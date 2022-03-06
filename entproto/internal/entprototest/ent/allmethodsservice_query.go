@@ -106,7 +106,7 @@ func (amsq *AllMethodsServiceQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single AllMethodsService entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one AllMethodsService entity is not found.
+// Returns a *NotSingularError when more than one AllMethodsService entity is found.
 // Returns a *NotFoundError when no AllMethodsService entities are found.
 func (amsq *AllMethodsServiceQuery) Only(ctx context.Context) (*AllMethodsService, error) {
 	nodes, err := amsq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (amsq *AllMethodsServiceQuery) OnlyX(ctx context.Context) *AllMethodsServic
 }
 
 // OnlyID is like Only, but returns the only AllMethodsService ID in the query.
-// Returns a *NotSingularError when exactly one AllMethodsService ID is not found.
+// Returns a *NotSingularError when more than one AllMethodsService ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (amsq *AllMethodsServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (amsq *AllMethodsServiceQuery) Clone() *AllMethodsServiceQuery {
 		order:      append([]OrderFunc{}, amsq.order...),
 		predicates: append([]predicate.AllMethodsService{}, amsq.predicates...),
 		// clone intermediate query.
-		sql:  amsq.sql.Clone(),
-		path: amsq.path,
+		sql:    amsq.sql.Clone(),
+		path:   amsq.path,
+		unique: amsq.unique,
 	}
 }
 

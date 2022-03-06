@@ -168,6 +168,14 @@ func (mwou *MessageWithOptionalsUpdate) SetUUIDOptional(u uuid.UUID) *MessageWit
 	return mwou
 }
 
+// SetNillableUUIDOptional sets the "uuid_optional" field if the given value is not nil.
+func (mwou *MessageWithOptionalsUpdate) SetNillableUUIDOptional(u *uuid.UUID) *MessageWithOptionalsUpdate {
+	if u != nil {
+		mwou.SetUUIDOptional(*u)
+	}
+	return mwou
+}
+
 // ClearUUIDOptional clears the value of the "uuid_optional" field.
 func (mwou *MessageWithOptionalsUpdate) ClearUUIDOptional() *MessageWithOptionalsUpdate {
 	mwou.mutation.ClearUUIDOptional()
@@ -551,6 +559,14 @@ func (mwouo *MessageWithOptionalsUpdateOne) ClearBytesOptional() *MessageWithOpt
 // SetUUIDOptional sets the "uuid_optional" field.
 func (mwouo *MessageWithOptionalsUpdateOne) SetUUIDOptional(u uuid.UUID) *MessageWithOptionalsUpdateOne {
 	mwouo.mutation.SetUUIDOptional(u)
+	return mwouo
+}
+
+// SetNillableUUIDOptional sets the "uuid_optional" field if the given value is not nil.
+func (mwouo *MessageWithOptionalsUpdateOne) SetNillableUUIDOptional(u *uuid.UUID) *MessageWithOptionalsUpdateOne {
+	if u != nil {
+		mwouo.SetUUIDOptional(*u)
+	}
 	return mwouo
 }
 

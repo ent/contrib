@@ -53,7 +53,6 @@ func (e *gqlgenPlugin) InjectSourceEarly() *ast.Source {
 
 	sb := &strings.Builder{}
 	formatter.NewFormatter(sb).FormatSchema(e.schema)
-
 	return &ast.Source{
 		Name:    "entgql.graphql",
 		Input:   sb.String(),

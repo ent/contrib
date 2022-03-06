@@ -132,7 +132,7 @@ func (seeq *SkipEdgeExampleQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single SkipEdgeExample entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one SkipEdgeExample entity is not found.
+// Returns a *NotSingularError when more than one SkipEdgeExample entity is found.
 // Returns a *NotFoundError when no SkipEdgeExample entities are found.
 func (seeq *SkipEdgeExampleQuery) Only(ctx context.Context) (*SkipEdgeExample, error) {
 	nodes, err := seeq.Limit(2).All(ctx)
@@ -159,7 +159,7 @@ func (seeq *SkipEdgeExampleQuery) OnlyX(ctx context.Context) *SkipEdgeExample {
 }
 
 // OnlyID is like Only, but returns the only SkipEdgeExample ID in the query.
-// Returns a *NotSingularError when exactly one SkipEdgeExample ID is not found.
+// Returns a *NotSingularError when more than one SkipEdgeExample ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (seeq *SkipEdgeExampleQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -269,8 +269,9 @@ func (seeq *SkipEdgeExampleQuery) Clone() *SkipEdgeExampleQuery {
 		predicates: append([]predicate.SkipEdgeExample{}, seeq.predicates...),
 		withUser:   seeq.withUser.Clone(),
 		// clone intermediate query.
-		sql:  seeq.sql.Clone(),
-		path: seeq.path,
+		sql:    seeq.sql.Clone(),
+		path:   seeq.path,
+		unique: seeq.unique,
 	}
 }
 

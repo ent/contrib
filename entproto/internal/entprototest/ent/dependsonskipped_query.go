@@ -132,7 +132,7 @@ func (dosq *DependsOnSkippedQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single DependsOnSkipped entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one DependsOnSkipped entity is not found.
+// Returns a *NotSingularError when more than one DependsOnSkipped entity is found.
 // Returns a *NotFoundError when no DependsOnSkipped entities are found.
 func (dosq *DependsOnSkippedQuery) Only(ctx context.Context) (*DependsOnSkipped, error) {
 	nodes, err := dosq.Limit(2).All(ctx)
@@ -159,7 +159,7 @@ func (dosq *DependsOnSkippedQuery) OnlyX(ctx context.Context) *DependsOnSkipped 
 }
 
 // OnlyID is like Only, but returns the only DependsOnSkipped ID in the query.
-// Returns a *NotSingularError when exactly one DependsOnSkipped ID is not found.
+// Returns a *NotSingularError when more than one DependsOnSkipped ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (dosq *DependsOnSkippedQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -269,8 +269,9 @@ func (dosq *DependsOnSkippedQuery) Clone() *DependsOnSkippedQuery {
 		predicates:  append([]predicate.DependsOnSkipped{}, dosq.predicates...),
 		withSkipped: dosq.withSkipped.Clone(),
 		// clone intermediate query.
-		sql:  dosq.sql.Clone(),
-		path: dosq.path,
+		sql:    dosq.sql.Clone(),
+		path:   dosq.path,
+		unique: dosq.unique,
 	}
 }
 

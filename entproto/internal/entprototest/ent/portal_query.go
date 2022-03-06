@@ -132,7 +132,7 @@ func (pq *PortalQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single Portal entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Portal entity is not found.
+// Returns a *NotSingularError when more than one Portal entity is found.
 // Returns a *NotFoundError when no Portal entities are found.
 func (pq *PortalQuery) Only(ctx context.Context) (*Portal, error) {
 	nodes, err := pq.Limit(2).All(ctx)
@@ -159,7 +159,7 @@ func (pq *PortalQuery) OnlyX(ctx context.Context) *Portal {
 }
 
 // OnlyID is like Only, but returns the only Portal ID in the query.
-// Returns a *NotSingularError when exactly one Portal ID is not found.
+// Returns a *NotSingularError when more than one Portal ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (pq *PortalQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -269,8 +269,9 @@ func (pq *PortalQuery) Clone() *PortalQuery {
 		predicates:   append([]predicate.Portal{}, pq.predicates...),
 		withCategory: pq.withCategory.Clone(),
 		// clone intermediate query.
-		sql:  pq.sql.Clone(),
-		path: pq.path,
+		sql:    pq.sql.Clone(),
+		path:   pq.path,
+		unique: pq.unique,
 	}
 }
 

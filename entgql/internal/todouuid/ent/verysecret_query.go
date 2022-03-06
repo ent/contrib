@@ -121,7 +121,7 @@ func (vsq *VerySecretQuery) FirstIDX(ctx context.Context) uuid.UUID {
 }
 
 // Only returns a single VerySecret entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one VerySecret entity is not found.
+// Returns a *NotSingularError when more than one VerySecret entity is found.
 // Returns a *NotFoundError when no VerySecret entities are found.
 func (vsq *VerySecretQuery) Only(ctx context.Context) (*VerySecret, error) {
 	nodes, err := vsq.Limit(2).All(ctx)
@@ -148,7 +148,7 @@ func (vsq *VerySecretQuery) OnlyX(ctx context.Context) *VerySecret {
 }
 
 // OnlyID is like Only, but returns the only VerySecret ID in the query.
-// Returns a *NotSingularError when exactly one VerySecret ID is not found.
+// Returns a *NotSingularError when more than one VerySecret ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (vsq *VerySecretQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
@@ -257,8 +257,9 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 		order:      append([]OrderFunc{}, vsq.order...),
 		predicates: append([]predicate.VerySecret{}, vsq.predicates...),
 		// clone intermediate query.
-		sql:  vsq.sql.Clone(),
-		path: vsq.path,
+		sql:    vsq.sql.Clone(),
+		path:   vsq.path,
+		unique: vsq.unique,
 	}
 }
 

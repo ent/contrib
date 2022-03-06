@@ -106,7 +106,7 @@ func (mwfoq *MessageWithFieldOneQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single MessageWithFieldOne entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one MessageWithFieldOne entity is not found.
+// Returns a *NotSingularError when more than one MessageWithFieldOne entity is found.
 // Returns a *NotFoundError when no MessageWithFieldOne entities are found.
 func (mwfoq *MessageWithFieldOneQuery) Only(ctx context.Context) (*MessageWithFieldOne, error) {
 	nodes, err := mwfoq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (mwfoq *MessageWithFieldOneQuery) OnlyX(ctx context.Context) *MessageWithFi
 }
 
 // OnlyID is like Only, but returns the only MessageWithFieldOne ID in the query.
-// Returns a *NotSingularError when exactly one MessageWithFieldOne ID is not found.
+// Returns a *NotSingularError when more than one MessageWithFieldOne ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (mwfoq *MessageWithFieldOneQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 		order:      append([]OrderFunc{}, mwfoq.order...),
 		predicates: append([]predicate.MessageWithFieldOne{}, mwfoq.predicates...),
 		// clone intermediate query.
-		sql:  mwfoq.sql.Clone(),
-		path: mwfoq.path,
+		sql:    mwfoq.sql.Clone(),
+		path:   mwfoq.path,
+		unique: mwfoq.unique,
 	}
 }
 

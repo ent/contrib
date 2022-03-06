@@ -106,7 +106,7 @@ func (wnfq *WithNilFieldsQuery) FirstIDX(ctx context.Context) int {
 }
 
 // Only returns a single WithNilFields entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one WithNilFields entity is not found.
+// Returns a *NotSingularError when more than one WithNilFields entity is found.
 // Returns a *NotFoundError when no WithNilFields entities are found.
 func (wnfq *WithNilFieldsQuery) Only(ctx context.Context) (*WithNilFields, error) {
 	nodes, err := wnfq.Limit(2).All(ctx)
@@ -133,7 +133,7 @@ func (wnfq *WithNilFieldsQuery) OnlyX(ctx context.Context) *WithNilFields {
 }
 
 // OnlyID is like Only, but returns the only WithNilFields ID in the query.
-// Returns a *NotSingularError when exactly one WithNilFields ID is not found.
+// Returns a *NotSingularError when more than one WithNilFields ID is found.
 // Returns a *NotFoundError when no entities are found.
 func (wnfq *WithNilFieldsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
@@ -242,8 +242,9 @@ func (wnfq *WithNilFieldsQuery) Clone() *WithNilFieldsQuery {
 		order:      append([]OrderFunc{}, wnfq.order...),
 		predicates: append([]predicate.WithNilFields{}, wnfq.predicates...),
 		// clone intermediate query.
-		sql:  wnfq.sql.Clone(),
-		path: wnfq.path,
+		sql:    wnfq.sql.Clone(),
+		path:   wnfq.path,
+		unique: wnfq.unique,
 	}
 }
 
