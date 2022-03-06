@@ -69,8 +69,8 @@ func (Category) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("Uint64"),
 			),
-		// field.Strings("strings").
-		// 	Optional(),
+		field.Strings("strings").
+			Optional(),
 	}
 }
 

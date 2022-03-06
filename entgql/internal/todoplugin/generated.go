@@ -60,6 +60,7 @@ type ComplexityRoot struct {
 		Duration func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Status   func(childComplexity int) int
+		Strings  func(childComplexity int) int
 		Text     func(childComplexity int) int
 		UUIDA    func(childComplexity int) int
 	}
@@ -207,6 +208,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Category.Status(childComplexity), true
+
+	case "Category.strings":
+		if e.complexity.Category.Strings == nil {
+			break
+		}
+
+		return e.complexity.Category.Strings(childComplexity), true
 
 	case "Category.text":
 		if e.complexity.Category.Text == nil {
@@ -645,6 +653,7 @@ type Category implements Node {
 	config: CategoryConfig!
 	duration: Duration!
 	count: Uint64!
+	strings: [String!]
 }
 """
 A connection to a list of items.
@@ -1240,6 +1249,38 @@ func (ec *executionContext) _Category_count(ctx context.Context, field graphql.C
 	res := resTmp.(uint64)
 	fc.Result = res
 	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Category_strings(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Strings, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CategoryConfig_maxMembers(ctx context.Context, field graphql.CollectedField, obj *schematype.CategoryConfig) (ret graphql.Marshaler) {
@@ -4086,6 +4127,13 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "strings":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Category_strings(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
