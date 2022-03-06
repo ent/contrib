@@ -23,74 +23,74 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func TestEntGQL_buildTypes(t *testing.T) {
-	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
-	require.NoError(t, err)
-	plugin, err := newSchemaGenerator(graph)
-	require.NoError(t, err)
-	plugin.relaySpec = false
+// func TestEntGQL_buildTypes(t *testing.T) {
+// 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
+// 	require.NoError(t, err)
+// 	plugin, err := newSchemaGenerator(graph)
+// 	require.NoError(t, err)
+// 	plugin.relaySpec = false
 
-	types, err := plugin.buildTypes()
-	require.NoError(t, err)
+// 	types, err := plugin.buildTypes()
+// 	require.NoError(t, err)
 
-	require.Equal(t, `type Category {
-	id: ID!
-	text: String!
-	uuidA: UUID
-	status: CategoryStatus!
-	config: CategoryConfig!
-	duration: Duration!
-	count: Uint64!
-}
-"""
-CategoryStatus is enum for the field status
-"""
-enum CategoryStatus {
-	ENABLED
-	DISABLED
-}
-type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
-	id: ID
-	username: String!
-	age: Float!
-	amount: Float!
-	role: Role!
-	nullableString: String
-}
-"""
-Role is enum for the field role
-"""
-enum Role {
-	ADMIN
-	USER
-	UNKNOWN
-}
-"""
-Status is enum for the field status
-"""
-enum Status {
-	IN_PROGRESS
-	COMPLETED
-}
-type Todo {
-	id: ID!
-	createdAt: Time!
-	visibilityStatus: VisibilityStatus!
-	status: Status!
-	priority: Int!
-	text: String!
-}
-"""
-VisibilityStatus is enum for the field visibility_status
-"""
-enum VisibilityStatus {
-	LISTING
-	HIDDEN
-}
-`, printSchema(&ast.Schema{
-		Types: types,
-	}))
-}
+// 	require.Equal(t, `type Category {
+// 	id: ID!
+// 	text: String!
+// 	uuidA: UUID
+// 	status: CategoryStatus!
+// 	config: CategoryConfig!
+// 	duration: Duration!
+// 	count: Uint64!
+// }
+// """
+// CategoryStatus is enum for the field status
+// """
+// enum CategoryStatus {
+// 	ENABLED
+// 	DISABLED
+// }
+// type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
+// 	id: ID
+// 	username: String!
+// 	age: Float!
+// 	amount: Float!
+// 	role: Role!
+// 	nullableString: String
+// }
+// """
+// Role is enum for the field role
+// """
+// enum Role {
+// 	ADMIN
+// 	USER
+// 	UNKNOWN
+// }
+// """
+// Status is enum for the field status
+// """
+// enum Status {
+// 	IN_PROGRESS
+// 	COMPLETED
+// }
+// type Todo {
+// 	id: ID!
+// 	createdAt: Time!
+// 	visibilityStatus: VisibilityStatus!
+// 	status: Status!
+// 	priority: Int!
+// 	text: String!
+// }
+// """
+// VisibilityStatus is enum for the field visibility_status
+// """
+// enum VisibilityStatus {
+// 	LISTING
+// 	HIDDEN
+// }
+// `, printSchema(&ast.Schema{
+// 		Types: types,
+// 	}))
+// }
 
 func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})

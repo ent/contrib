@@ -15,6 +15,7 @@
 package entgql
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -22,6 +23,11 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
+)
+
+var (
+	// ErrRelaySpecDisabled is the error returned when the relay specification is disabled
+	ErrRelaySpecDisabled = errors.New("entgql: must enable relay specification via the WithRelaySpecification option")
 )
 
 // TODO(giautm): refactor internal APIs
@@ -108,6 +114,10 @@ func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 
 func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 	types := make(map[string]*ast.Definition)
+	var defaultImplementedInterfaces []string
+	if e.relaySpec {
+		defaultImplementedInterfaces = append(defaultImplementedInterfaces, "Node")
+	}
 	for _, node := range e.nodes {
 		ant, err := decodeAnnotation(node.Annotations)
 		if err != nil {
@@ -122,9 +132,11 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			return nil, err
 		}
 		typ := &ast.Definition{
-			Name:   node.Name,
-			Kind:   ast.Object,
-			Fields: fields,
+			Name:       node.Name,
+			Kind:       ast.Object,
+			Fields:     fields,
+			Directives: e.buildDirectives(ant.Directives),
+			Interfaces: defaultImplementedInterfaces,
 		}
 		if ant.Type != "" {
 			typ.Name = ant.Type
@@ -139,10 +151,10 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 				},
 			})
 		}
-		if e.relaySpec {
-			typ.Interfaces = append(typ.Interfaces, "Node")
+		if len(ant.Implemented) > 0 {
+			typ.Interfaces = append(typ.Interfaces, ant.Implemented...)
 		}
-		types[typ.Name] = typ
+		insertDefinitions(types, typ)
 
 		var enumOrderByValues ast.EnumValueList
 		for _, f := range node.Fields {
@@ -166,12 +178,15 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 				return nil, err
 			}
 			if enum != nil {
-				types[enum.Name] = enum
+				insertDefinitions(types, enum)
 			}
 		}
 
-		// TODO(giautm): Added RelayConnection annotation check
-		if e.relaySpec {
+		if ant.RelayConnection {
+			if !e.relaySpec {
+				return nil, ErrRelaySpecDisabled
+			}
+
 			defs, err := relayConnectionTypes(node)
 			if err != nil {
 				return nil, err
@@ -184,29 +199,31 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 					return nil, err
 				}
 
-				types[pagination.OrderField] = &ast.Definition{
-					Name:       pagination.OrderField,
-					Kind:       ast.Enum,
-					EnumValues: enumOrderByValues,
-				}
-				types[pagination.Order] = &ast.Definition{
-					Name: pagination.Order,
-					Kind: ast.InputObject,
-					Fields: ast.FieldList{
-						{
-							Name: "direction",
-							Type: ast.NonNullNamedType("OrderDirection", nil),
-							DefaultValue: &ast.Value{
-								Raw:  "ASC",
-								Kind: ast.EnumValue,
+				insertDefinitions(types,
+					&ast.Definition{
+						Name:       pagination.OrderField,
+						Kind:       ast.Enum,
+						EnumValues: enumOrderByValues,
+					},
+					&ast.Definition{
+						Name: pagination.Order,
+						Kind: ast.InputObject,
+						Fields: ast.FieldList{
+							{
+								Name: "direction",
+								Type: ast.NonNullNamedType("OrderDirection", nil),
+								DefaultValue: &ast.Value{
+									Raw:  "ASC",
+									Kind: ast.EnumValue,
+								},
+							},
+							{
+								Name: "field",
+								Type: ast.NonNullNamedType(pagination.OrderField, nil),
 							},
 						},
-						{
-							Name: "field",
-							Type: ast.NonNullNamedType(pagination.OrderField, nil),
-						},
 					},
-				}
+				)
 			}
 		}
 	}
@@ -240,6 +257,27 @@ func (e *schemaGenerator) buildEnum(f *gen.Field, ant *Annotation) (*ast.Definit
 		Description: fmt.Sprintf("%s is enum for the field %s", name, f.Name),
 		EnumValues:  valueDefs,
 	}, nil
+}
+
+func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveList {
+	list := make(ast.DirectiveList, 0, len(directives))
+	for _, d := range directives {
+		args := make(ast.ArgumentList, 0, len(d.Arguments))
+		for _, a := range d.Arguments {
+			args = append(args, &ast.Argument{
+				Name: a.Name,
+				Value: &ast.Value{
+					Raw:  a.Value,
+					Kind: a.Kind,
+				},
+			})
+		}
+		list = append(list, &ast.Directive{
+			Name:      d.Name,
+			Arguments: args,
+		})
+	}
+	return list
 }
 
 func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
@@ -284,8 +322,9 @@ func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefini
 	// TODO(giautm): support mapping single field to multiple GQL fields
 	return []*ast.FieldDefinition{
 		{
-			Name: camel(f.Name),
-			Type: ft,
+			Name:       camel(f.Name),
+			Type:       ft,
+			Directives: e.buildDirectives(ant.Directives),
 		},
 	}, nil
 }

@@ -36,6 +36,13 @@ type Annotation struct {
 	Type string `json:"Type,omitempty"`
 	// Skip exclude the type
 	Skip bool `json:"Skip,omitempty"`
+	// RelayConnection enables the Relay Connection specification for the entity.
+	// It's also can apply on an edge to create the Relay-style filter.
+	RelayConnection bool `json:"RelayConnection,omitempty"`
+	// Implemented are extra interfaces that are implemented.
+	Implemented []string `json:"Implemented,omitempty"`
+	// Directives to add on the field/type.
+	Directives []Directive `json:"Directives,omitempty"`
 }
 
 // Name implements ent.Annotation interface.
@@ -86,6 +93,21 @@ func Skip() Annotation {
 	return Annotation{Skip: true}
 }
 
+// RelayConnection returns a relay connection annotation.
+func RelayConnection() Annotation {
+	return Annotation{RelayConnection: true}
+}
+
+// Implemented returns an Implemented annotation.
+func Implemented(interfaces ...string) Annotation {
+	return Annotation{Implemented: interfaces}
+}
+
+// Directives returns a Directives annotation.
+func Directives(directives ...Directive) Annotation {
+	return Annotation{Directives: directives}
+}
+
 // Merge implements the schema.Merger interface.
 func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	var ant Annotation
@@ -113,6 +135,15 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.Skip {
 		a.Skip = true
+	}
+	if ant.RelayConnection {
+		a.RelayConnection = true
+	}
+	if len(ant.Implemented) > 0 {
+		a.Implemented = append(a.Implemented, ant.Implemented...)
+	}
+	if len(ant.Directives) > 0 {
+		a.Directives = append(a.Directives, ant.Directives...)
 	}
 	return a
 }
