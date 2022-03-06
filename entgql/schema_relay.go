@@ -67,12 +67,12 @@ https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo`,
 				},
 				{
 					Name:        "startCursor",
-					Type:        ast.NamedType("Cursor", nil),
+					Type:        ast.NamedType(RelayCursor, nil),
 					Description: "When paginating backwards, the cursor to continue.",
 				},
 				{
 					Name:        "endCursor",
-					Type:        ast.NamedType("Cursor", nil),
+					Type:        ast.NamedType(RelayCursor, nil),
 					Description: "When paginating forwards, the cursor to continue.",
 				},
 			},
@@ -98,7 +98,7 @@ func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
 				},
 				{
 					Name:        "cursor",
-					Type:        ast.NonNullNamedType("Cursor", nil),
+					Type:        ast.NonNullNamedType(RelayCursor, nil),
 					Description: "A cursor for use in pagination.",
 				},
 			},
