@@ -28,7 +28,7 @@ import (
 
 var (
 	// ErrRelaySpecDisabled is the error returned when the relay specification is disabled
-	ErrRelaySpecDisabled = errors.New("entgql: must enable relay specification via the WithRelaySpecification option")
+	ErrRelaySpecDisabled = errors.New("entgql: must enable relay specification via the WithRelaySpec option")
 )
 
 // TODO(giautm): refactor internal APIs
@@ -116,9 +116,9 @@ func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 
 func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 	types := make(map[string]*ast.Definition)
-	var defaultImplementedInterfaces []string
+	var defaultInterfaces []string
 	if e.relaySpec {
-		defaultImplementedInterfaces = append(defaultImplementedInterfaces, "Node")
+		defaultInterfaces = append(defaultInterfaces, "Node")
 	}
 	for _, node := range e.nodes {
 		ant, err := decodeAnnotation(node.Annotations)
@@ -138,7 +138,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			Kind:       ast.Object,
 			Fields:     fields,
 			Directives: e.buildDirectives(ant.Directives),
-			Interfaces: defaultImplementedInterfaces,
+			Interfaces: defaultInterfaces,
 		}
 		if ant.Type != "" {
 			typ.Name = ant.Type

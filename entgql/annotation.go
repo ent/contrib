@@ -19,31 +19,47 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// Annotation annotates fields and edges with metadata for templates.
-type Annotation struct {
-	// OrderField is the ordering field as defined in graphql schema.
-	OrderField string `json:"OrderField,omitempty"`
-	// Unbind implies the edge field name in GraphQL schema is not equivalent
-	// to the name used in ent schema. That means, by default, edges with this
-	// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
-	// option in order to load edges be different name mapping.
-	Unbind bool `json:"Unbind,omitempty"`
-	// Mapping is the edge field names as defined in graphql schema.
-	Mapping []string `json:"Mapping,omitempty"`
-	// Type is the underlying GraphQL type name (e.g. Boolean).
-	Type string `json:"Type,omitempty"`
-	// Skip exclude the type
-	Skip bool `json:"Skip,omitempty"`
-	// RelayConnection enables the Relay Connection specification for the entity.
-	// It's also can apply on an edge to create the Relay-style filter.
-	RelayConnection bool `json:"RelayConnection,omitempty"`
-	// Implemented are extra interfaces that are implemented.
-	Implemented []string `json:"Implemented,omitempty"`
-	// Directives to add on the field/type.
-	Directives []Directive `json:"Directives,omitempty"`
-}
+type (
+	// Annotation annotates fields and edges with metadata for templates.
+	Annotation struct {
+		// OrderField is the ordering field as defined in graphql schema.
+		OrderField string `json:"OrderField,omitempty"`
+		// Unbind implies the edge field name in GraphQL schema is not equivalent
+		// to the name used in ent schema. That means, by default, edges with this
+		// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
+		// option in order to load edges be different name mapping.
+		Unbind bool `json:"Unbind,omitempty"`
+		// Mapping is the edge field names as defined in graphql schema.
+		Mapping []string `json:"Mapping,omitempty"`
+		// Type is the underlying GraphQL type name (e.g. Boolean).
+		Type string `json:"Type,omitempty"`
+		// Skip exclude the type
+		Skip bool `json:"Skip,omitempty"`
+		// RelayConnection enables the Relay Connection specification for the entity.
+		// It's also can apply on an edge to create the Relay-style filter.
+		RelayConnection bool `json:"RelayConnection,omitempty"`
+		// Implemented are extra interfaces that are implemented.
+		Implemented []string `json:"Implemented,omitempty"`
+		// Directives to add on the field/type.
+		Directives []Directive `json:"Directives,omitempty"`
+	}
+
+	// Directive to apply on the field/type
+	Directive struct {
+		Name      string              `json:"name,omitempty"`
+		Arguments []DirectiveArgument `json:"arguments,omitempty"`
+	}
+
+	// DirectiveArgument return a GraphQL directive argument
+	DirectiveArgument struct {
+		Name  string        `json:"name,omitempty"`
+		Value string        `json:"value,omitempty"`
+		Kind  ast.ValueKind `json:"kind,omitempty"`
+	}
+)
 
 // Name implements ent.Annotation interface.
 func (Annotation) Name() string {
@@ -174,3 +190,25 @@ var (
 	_ schema.Annotation = (*Annotation)(nil)
 	_ schema.Merger     = (*Annotation)(nil)
 )
+
+// NewDirective return a GraphQL directive
+func NewDirective(name string, args ...DirectiveArgument) Directive {
+	return Directive{
+		Name:      name,
+		Arguments: args,
+	}
+}
+
+// Deprecated create `@deprecated` directive to apply on the field/type
+func Deprecated(reason string) Directive {
+	var args []DirectiveArgument
+	if reason != "" {
+		args = append(args, DirectiveArgument{
+			Name:  "reason",
+			Kind:  ast.StringValue,
+			Value: reason,
+		})
+	}
+
+	return NewDirective("deprecated", args...)
+}
