@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	entgo.io/ent v0.10.1
-	github.com/99designs/gqlgen v0.16.1-0.20220209020931-d7da5b0d3b3c
+	github.com/99designs/gqlgen v0.17.2-0.20220303201913-f85d59d30ae0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
@@ -18,12 +18,12 @@ require (
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.7.1-0.20210427113832-6241f9ab9942
-	github.com/vektah/gqlparser/v2 v2.3.1
+	github.com/vektah/gqlparser/v2 v2.4.0
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.17.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/tools v0.1.9-0.20211216111533-8d383106f7e7
+	golang.org/x/tools v0.1.9
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
 )
