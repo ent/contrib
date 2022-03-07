@@ -98,6 +98,7 @@ func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 	if err != nil {
 		return nil, err
 	}
+	insertDefinitions(types, builtinTypes()...)
 	if e.relaySpec {
 		insertDefinitions(types, relayBuiltinTypes()...)
 	}
@@ -196,7 +197,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 					Fields: ast.FieldList{
 						{
 							Name: "direction",
-							Type: ast.NonNullNamedType("OrderDirection", nil),
+							Type: ast.NonNullNamedType(OrderDirection, nil),
 							DefaultValue: &ast.Value{
 								Raw:  "ASC",
 								Kind: ast.EnumValue,

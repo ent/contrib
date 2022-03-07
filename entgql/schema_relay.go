@@ -20,6 +20,8 @@ import (
 )
 
 var (
+	// OrderDirection is the name of enum OrderDirection
+	OrderDirection = "OrderDirection"
 	// RelayCursor is the name of the cursor type
 	RelayCursor = "Cursor"
 	// RelayNode is the name of the interface that all nodes implement
@@ -27,6 +29,19 @@ var (
 	// RelayPageInfo is the name of the PageInfo type
 	RelayPageInfo = "PageInfo"
 )
+
+func builtinTypes() []*ast.Definition {
+	return []*ast.Definition{
+		{
+			Name: OrderDirection,
+			Kind: ast.Enum,
+			EnumValues: []*ast.EnumValueDefinition{
+				{Name: "ASC"},
+				{Name: "DESC"},
+			},
+		},
+	}
+}
 
 func relayBuiltinTypes() []*ast.Definition {
 	return []*ast.Definition{

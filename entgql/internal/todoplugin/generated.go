@@ -621,11 +621,6 @@ input TodoInput {
   category_id: ID
 }
 
-enum OrderDirection {
-  ASC
-  DESC
-}
-
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
@@ -746,6 +741,10 @@ interface Node {
 	The id of the object.
 	"""
 	id: ID!
+}
+enum OrderDirection {
+	ASC
+	DESC
 }
 """
 Information about pagination in a connection.
