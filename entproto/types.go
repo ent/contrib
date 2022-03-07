@@ -31,7 +31,7 @@ var typeMap = map[field.Type]typeConfig{
 		return pascal(fld.Name)
 	}},
 	field.TypeString:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_STRING, optionalType: "google.protobuf.StringValue"},
-	field.TypeInt:     {pbType: descriptorpb.FieldDescriptorProto_TYPE_INT32, optionalType: "google.protobuf.Int32Value"},
+	field.TypeInt:     {pbType: descriptorpb.FieldDescriptorProto_TYPE_INT64, optionalType: "google.protobuf.Int64Value"},
 	field.TypeInt8:    {pbType: descriptorpb.FieldDescriptorProto_TYPE_INT32, optionalType: "google.protobuf.Int32Value"},
 	field.TypeInt16:   {pbType: descriptorpb.FieldDescriptorProto_TYPE_INT32, optionalType: "google.protobuf.Int32Value"},
 	field.TypeInt32:   {pbType: descriptorpb.FieldDescriptorProto_TYPE_INT32, optionalType: "google.protobuf.Int32Value"},

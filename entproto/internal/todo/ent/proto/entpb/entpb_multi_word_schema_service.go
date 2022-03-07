@@ -46,7 +46,7 @@ func toEntMultiWordSchema_Unit(e MultiWordSchema_Unit) multiwordschema.Unit {
 // toProtoMultiWordSchema transforms the ent type to the pb type
 func toProtoMultiWordSchema(e *ent.MultiWordSchema) (*MultiWordSchema, error) {
 	v := &MultiWordSchema{}
-	id := int32(e.ID)
+	id := int64(e.ID)
 	v.Id = id
 	unit := toProtoMultiWordSchema_Unit(e.Unit)
 	v.Unit = unit

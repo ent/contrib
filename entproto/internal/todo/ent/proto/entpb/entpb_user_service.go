@@ -57,7 +57,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
 	accountbalance := e.AccountBalance
 	v.AccountBalance = accountbalance
-	buser1 := wrapperspb.Int32(int32(e.BUser1))
+	buser1 := wrapperspb.Int64(int64(e.BUser1))
 	v.BUser_1 = buser1
 	banned := e.Banned
 	v.Banned = banned
@@ -80,17 +80,17 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.CustomPb = custompb
 	exp := e.Exp
 	v.Exp = exp
-	externalid := int32(e.ExternalID)
+	externalid := int64(e.ExternalID)
 	v.ExternalId = externalid
 	heightincm := e.HeightInCm
 	v.HeightInCm = heightincm
-	id := int32(e.ID)
+	id := int64(e.ID)
 	v.Id = id
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
 	optbool := wrapperspb.Bool(e.OptBool)
 	v.OptBool = optbool
-	optnum := wrapperspb.Int32(int32(e.OptNum))
+	optnum := wrapperspb.Int64(int64(e.OptNum))
 	v.OptNum = optnum
 	optstr := wrapperspb.String(e.OptStr)
 	v.OptStr = optstr
@@ -110,13 +110,13 @@ func toProtoUser(e *ent.User) (*User, error) {
 		}
 	}
 	if edg := e.Edges.Group; edg != nil {
-		id := int32(edg.ID)
+		id := int64(edg.ID)
 		v.Group = &Group{
 			Id: id,
 		}
 	}
 	if edg := e.Edges.Pet; edg != nil {
-		id := int32(edg.ID)
+		id := int64(edg.ID)
 		v.Pet = &Pet{
 			Id: id,
 		}

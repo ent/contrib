@@ -30,7 +30,7 @@ func TestMultiWordSchemaService_Get(t *testing.T) {
 	entry := client.MultiWordSchema.Create().
 		SetUnit(multiwordschema.UnitFt).
 		SaveX(ctx)
-	get, err := svc.Get(ctx, &GetMultiWordSchemaRequest{Id: int32(entry.ID)})
+	get, err := svc.Get(ctx, &GetMultiWordSchemaRequest{Id: int64(entry.ID)})
 	require.NoError(t, err)
 	require.EqualValues(t, MultiWordSchema_FT, get.GetUnit())
 }
