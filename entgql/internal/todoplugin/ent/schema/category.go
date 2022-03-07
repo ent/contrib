@@ -68,7 +68,7 @@ func (Category) Fields() []ent.Field {
 			Optional().
 			Annotations(
 				entgql.Type("Uint64"),
-				entgql.Directives(entgql.DeprecatedDirective("We don't use this field anymore")),
+				entgql.Directives(entgql.Deprecated("We don't use this field anymore")),
 			),
 		field.Strings("strings").
 			Optional(),
@@ -87,6 +87,6 @@ func (Category) Edges() []ent.Edge {
 func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
-		entgql.Implemented("Entity"),
+		entgql.Implements("Entity"),
 	}
 }

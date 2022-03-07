@@ -41,8 +41,8 @@ type (
 		// RelayConnection enables the Relay Connection specification for the entity.
 		// It's also can apply on an edge to create the Relay-style filter.
 		RelayConnection bool `json:"RelayConnection,omitempty"`
-		// Implemented are extra interfaces that are implemented.
-		Implemented []string `json:"Implemented,omitempty"`
+		// Implements defines a list of interfaces implemented by the type.
+		Implements []string `json:"Implements,omitempty"`
 		// Directives to add on the field/type.
 		Directives []Directive `json:"Directives,omitempty"`
 	}
@@ -114,9 +114,9 @@ func RelayConnection() Annotation {
 	return Annotation{RelayConnection: true}
 }
 
-// Implemented returns an Implemented annotation.
-func Implemented(interfaces ...string) Annotation {
-	return Annotation{Implemented: interfaces}
+// Implements returns an Implements annotation.
+func Implements(interfaces ...string) Annotation {
+	return Annotation{Implements: interfaces}
 }
 
 // Directives returns a Directives annotation.
@@ -155,8 +155,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.RelayConnection {
 		a.RelayConnection = true
 	}
-	if len(ant.Implemented) > 0 {
-		a.Implemented = append(a.Implemented, ant.Implemented...)
+	if len(ant.Implements) > 0 {
+		a.Implements = append(a.Implements, ant.Implements...)
 	}
 	if len(ant.Directives) > 0 {
 		a.Directives = append(a.Directives, ant.Directives...)

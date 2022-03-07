@@ -144,8 +144,8 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			typ.Name = ant.Type
 			typ.Directives = append(typ.Directives, goModel(e.entGoType(node.Name)))
 		}
-		if len(ant.Implemented) > 0 {
-			typ.Interfaces = append(typ.Interfaces, ant.Implemented...)
+		if len(ant.Implements) > 0 {
+			typ.Interfaces = append(typ.Interfaces, ant.Implements...)
 		}
 		insertDefinitions(types, typ)
 
