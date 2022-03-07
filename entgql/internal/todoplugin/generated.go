@@ -602,11 +602,6 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-scalar Time
-scalar Duration
-scalar Uint64
-scalar UUID
-
 extend type Todo {
   category: Category
   children: [Todo!]
@@ -697,6 +692,7 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+scalar Duration @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration")
 type MasterUser implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
 	id: ID!
 	username: String!
@@ -783,6 +779,7 @@ enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/tod
 	IN_PROGRESS
 	COMPLETED
 }
+scalar Time
 type Todo implements Node {
 	id: ID!
 	createdAt: Time!
@@ -829,6 +826,8 @@ enum TodoOrderField {
 	PRIORITY
 	TEXT
 }
+scalar UUID @goModel(model: "entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID") @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+scalar Uint64
 """
 VisibilityStatus is enum for the field visibility_status
 """

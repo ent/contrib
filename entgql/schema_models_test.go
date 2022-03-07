@@ -28,7 +28,7 @@ func TestModifyConfig_empty(t *testing.T) {
 		Config: &gen.Config{
 			Package: "example.com",
 		},
-	})
+	}, nil)
 	require.NoError(t, err)
 	e.relaySpec = false
 
@@ -107,7 +107,7 @@ var g = &gen.Graph{
 }
 
 func TestModifyConfig(t *testing.T) {
-	e, err := newSchemaGenerator(g)
+	e, err := newSchemaGenerator(g, nil)
 	require.NoError(t, err)
 
 	e.relaySpec = false
@@ -122,7 +122,7 @@ func TestModifyConfig(t *testing.T) {
 }
 
 func TestModifyConfig_relay(t *testing.T) {
-	e, err := newSchemaGenerator(g)
+	e, err := newSchemaGenerator(g, nil)
 	require.NoError(t, err)
 
 	cfg, err := e.genModels()
@@ -151,7 +151,7 @@ func TestModifyConfig_todoplugin(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
 
-	e, err := newSchemaGenerator(graph)
+	e, err := newSchemaGenerator(graph, nil)
 	require.NoError(t, err)
 	e.relaySpec = false
 
@@ -175,7 +175,7 @@ func TestModifyConfig_todoplugin_relay(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
 
-	e, err := newSchemaGenerator(graph)
+	e, err := newSchemaGenerator(graph, nil)
 	require.NoError(t, err)
 	cfg, err := e.genModels()
 	require.NoError(t, err)

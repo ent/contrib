@@ -6,11 +6,6 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-scalar Time
-scalar Duration
-scalar Uint64
-scalar UUID
-
 extend type Todo {
   category: Category
   children: [Todo!]

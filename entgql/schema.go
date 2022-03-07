@@ -29,6 +29,7 @@ import (
 type schemaGenerator struct {
 	graph     *gen.Graph
 	nodes     []*gen.Type
+	scalars   []CustomScalar
 	relaySpec bool
 }
 
@@ -78,19 +79,40 @@ var (
 	}
 )
 
-func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
+func newSchemaGenerator(g *gen.Graph, scalars []CustomScalar) (*schemaGenerator, error) {
 	nodes, err := filterNodes(g.Nodes)
 	if err != nil {
 		return nil, err
 	}
 
 	return &schemaGenerator{
-		graph: g,
-		nodes: nodes,
+		graph:   g,
+		nodes:   nodes,
+		scalars: scalars,
 		// TODO(giautm): relaySpec enable by default.
 		// Add an option to disable it.
 		relaySpec: true,
 	}, nil
+}
+
+func buildScalarTypes(scalars []CustomScalar) []*ast.Definition {
+	types := make([]*ast.Definition, 0, len(scalars))
+	for _, s := range scalars {
+		var directives ast.DirectiveList
+		if s.GoModel != "" {
+			directives = append(directives, goModel(s.GoModel))
+		}
+		if s.SpecifiedByURL != "" {
+			directives = append(directives, specifiedBy(s.SpecifiedByURL))
+		}
+		types = append(types, &ast.Definition{
+			Name:        s.Name,
+			Kind:        ast.Scalar,
+			Description: s.Description,
+			Directives:  directives,
+		})
+	}
+	return types
 }
 
 func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
@@ -99,6 +121,7 @@ func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
 		return nil, err
 	}
 	insertDefinitions(types, builtinTypes()...)
+	insertDefinitions(types, buildScalarTypes(e.scalars)...)
 	if e.relaySpec {
 		insertDefinitions(types, relayBuiltinTypes()...)
 	}
@@ -364,6 +387,18 @@ func goModel(ident string) *ast.Directive {
 					Kind: ast.StringValue,
 					Raw:  ident,
 				},
+			},
+		},
+	}
+}
+
+func specifiedBy(url string) *ast.Directive {
+	return &ast.Directive{
+		Name: "specifiedBy",
+		Arguments: ast.ArgumentList{
+			{
+				Name:  "url",
+				Value: &ast.Value{Kind: ast.StringValue, Raw: url},
 			},
 		},
 	}

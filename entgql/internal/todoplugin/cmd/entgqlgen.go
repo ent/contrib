@@ -36,6 +36,23 @@ func main() {
 
 	exEntGQL, err := entgql.NewExtension(
 		entgql.WithSchemaGenerator(),
+		entgql.WithCustomScalars(
+			entgql.CustomScalar{
+				Name: "Time",
+			},
+			entgql.CustomScalar{
+				Name:    "Duration",
+				GoModel: "entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration",
+			},
+			entgql.CustomScalar{
+				Name: "Uint64",
+			},
+			entgql.CustomScalar{
+				Name:           "UUID",
+				GoModel:        "entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID",
+				SpecifiedByURL: "https://tools.ietf.org/html/rfc4122",
+			},
+		),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)

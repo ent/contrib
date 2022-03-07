@@ -42,6 +42,14 @@ import (
 )
 
 type (
+	// CustomScalar holds information about a custom scalar type.
+	CustomScalar struct {
+		Name           string
+		Description    string
+		SpecifiedByURL string
+		GoModel        string
+	}
+
 	// Extension implements the entc.Extension for providing GraphQL integration.
 	Extension struct {
 		entc.DefaultExtension
@@ -51,9 +59,9 @@ type (
 		hooks      []gen.Hook
 		templates  []*gen.Template
 		scalarFunc func(*gen.Field, gen.Op) string
-
-		schema *ast2.Schema
-		models map[string]string
+		scalars    []CustomScalar
+		schema     *ast2.Schema
+		models     map[string]string
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -201,6 +209,14 @@ func WithSchemaGenerator() ExtensionOption {
 	}
 }
 
+// WithCustomScalars adds custom scalar types to the schema.
+func WithCustomScalars(scalars ...CustomScalar) ExtensionOption {
+	return func(e *Extension) error {
+		e.scalars = scalars
+		return nil
+	}
+}
+
 // WithMapScalarFunc allows users to provides a custom function that
 // maps an ent.Field (*gen.Field) into its GraphQL scalar type. If the
 // function returns an empty string, the extension fallbacks to the its
@@ -335,7 +351,7 @@ func (e *Extension) genSchema() gen.Hook {
 				return err
 			}
 
-			genSchema, err := newSchemaGenerator(g)
+			genSchema, err := newSchemaGenerator(g, e.scalars)
 			if err != nil {
 				return err
 			}

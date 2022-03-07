@@ -26,7 +26,7 @@ import (
 func TestEntGQL_buildTypes(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
-	plugin, err := newSchemaGenerator(graph)
+	plugin, err := newSchemaGenerator(graph, nil)
 	require.NoError(t, err)
 	plugin.relaySpec = false
 
@@ -96,7 +96,7 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
 func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
-	plugin, err := newSchemaGenerator(graph)
+	plugin, err := newSchemaGenerator(graph, nil)
 
 	require.NoError(t, err)
 	types, err := plugin.buildTypes()
@@ -257,6 +257,32 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
 	LISTING
 	HIDDEN
 }
+`, printSchema(&ast.Schema{
+		Types: types,
+	}))
+}
+
+func TestEntGQL_buildScalarTypes(t *testing.T) {
+	defs := buildScalarTypes([]CustomScalar{
+		{
+			Name:    "Duration",
+			GoModel: "entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration",
+		},
+		{Name: "Time"},
+		{Name: "Uint64"},
+		{
+			Name:           "UUID",
+			GoModel:        "entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID",
+			SpecifiedByURL: "https://tools.ietf.org/html/rfc4122",
+		},
+	})
+	types := make(map[string]*ast.Definition)
+	insertDefinitions(types, defs...)
+
+	require.Equal(t, `scalar Duration @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration")
+scalar Time
+scalar UUID @goModel(model: "entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID") @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+scalar Uint64
 `, printSchema(&ast.Schema{
 		Types: types,
 	}))
