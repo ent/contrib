@@ -613,6 +613,10 @@ extend type Todo {
   parent: Todo
 }
 
+interface Entity {
+  id: ID!
+}
+
 input TodoInput {
   status: Status! = IN_PROGRESS
   priority: Int
@@ -640,14 +644,14 @@ type Mutation {
 `, BuiltIn: false},
 	{Name: "entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
-type Category implements Node {
+type Category implements Node & Entity {
 	id: ID!
 	text: String!
 	uuidA: UUID
 	status: CategoryStatus!
 	config: CategoryConfig!
 	duration: Duration!
-	count: Uint64!
+	count: Uint64! @deprecated(reason: "We don't use this field anymore")
 	strings: [String!]
 }
 """
@@ -4021,6 +4025,22 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet, obj Entity) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case ent.Category:
+		return ec._Category(ctx, sel, &obj)
+	case *ent.Category:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Category(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj ent.Noder) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
@@ -4049,7 +4069,7 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 
 // region    **************************** object.gotpl ****************************
 
-var categoryImplementors = []string{"Category", "Node"}
+var categoryImplementors = []string{"Category", "Node", "Entity"}
 
 func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet, obj *ent.Category) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, categoryImplementors)

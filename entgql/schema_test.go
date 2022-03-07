@@ -26,6 +26,7 @@ import (
 func TestEntGQL_buildTypes(t *testing.T) {
 	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
 	require.NoError(t, err)
+	disableRelayConnection(graph)
 	plugin, err := newSchemaGenerator(graph)
 	require.NoError(t, err)
 	plugin.relaySpec = false
@@ -33,14 +34,14 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	types, err := plugin.buildTypes()
 	require.NoError(t, err)
 
-	require.Equal(t, `type Category {
+	require.Equal(t, `type Category implements Entity {
 	id: ID!
 	text: String!
 	uuidA: UUID
 	status: CategoryStatus!
 	config: CategoryConfig!
 	duration: Duration!
-	count: Uint64!
+	count: Uint64! @deprecated(reason: "We don't use this field anymore")
 	strings: [String!]
 }
 """
@@ -102,14 +103,14 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	types, err := plugin.buildTypes()
 	require.NoError(t, err)
 
-	require.Equal(t, `type Category implements Node {
+	require.Equal(t, `type Category implements Node & Entity {
 	id: ID!
 	text: String!
 	uuidA: UUID
 	status: CategoryStatus!
 	config: CategoryConfig!
 	duration: Duration!
-	count: Uint64!
+	count: Uint64! @deprecated(reason: "We don't use this field anymore")
 	strings: [String!]
 }
 """
@@ -260,4 +261,14 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
 `, printSchema(&ast.Schema{
 		Types: types,
 	}))
+}
+
+func disableRelayConnection(g *gen.Graph) {
+	for _, n := range g.Nodes {
+		if ant, ok := n.Annotations[annotationName]; ok {
+			if m, ok := ant.(map[string]interface{}); ok {
+				m["RelayConnection"] = false
+			}
+		}
+	}
 }

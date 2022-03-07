@@ -71,8 +71,10 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 			models[name] = goType
 		}
 
-		// TODO(giautm): Added RelayConnection annotation check
-		if e.relaySpec {
+		if ant.RelayConnection {
+			if !e.relaySpec {
+				return nil, ErrRelaySpecDisabled
+			}
 			pagination, err := nodePaginationNames(node)
 			if err != nil {
 				return nil, err

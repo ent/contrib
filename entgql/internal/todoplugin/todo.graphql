@@ -17,6 +17,10 @@ extend type Todo {
   parent: Todo
 }
 
+interface Entity {
+  id: ID!
+}
+
 input TodoInput {
   status: Status! = IN_PROGRESS
   priority: Int
