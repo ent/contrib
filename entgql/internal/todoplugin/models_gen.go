@@ -6,6 +6,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 )
 
+type Entity interface {
+	IsEntity()
+}
+
 type TodoInput struct {
 	Status     todo.Status `json:"status"`
 	Priority   *int        `json:"priority"`

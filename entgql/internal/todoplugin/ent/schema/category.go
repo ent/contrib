@@ -87,5 +87,6 @@ func (Category) Edges() []ent.Edge {
 func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
+		entgql.Implemented("Entity"),
 	}
 }

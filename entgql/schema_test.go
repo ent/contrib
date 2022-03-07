@@ -34,7 +34,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	types, err := plugin.buildTypes()
 	require.NoError(t, err)
 
-	require.Equal(t, `type Category {
+	require.Equal(t, `type Category implements Entity {
 	id: ID!
 	text: String!
 	uuidA: UUID
@@ -103,7 +103,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	types, err := plugin.buildTypes()
 	require.NoError(t, err)
 
-	require.Equal(t, `type Category implements Node {
+	require.Equal(t, `type Category implements Node & Entity {
 	id: ID!
 	text: String!
 	uuidA: UUID
