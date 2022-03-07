@@ -41,7 +41,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	status: CategoryStatus!
 	config: CategoryConfig!
 	duration: Duration!
-	count: Uint64!
+	count: Uint64! @deprecated(reason: "We don't use this field anymore")
 	strings: [String!]
 }
 """
@@ -110,7 +110,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	status: CategoryStatus!
 	config: CategoryConfig!
 	duration: Duration!
-	count: Uint64!
+	count: Uint64! @deprecated(reason: "We don't use this field anymore")
 	strings: [String!]
 }
 """

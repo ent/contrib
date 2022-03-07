@@ -68,6 +68,7 @@ func (Category) Fields() []ent.Field {
 			Optional().
 			Annotations(
 				entgql.Type("Uint64"),
+				entgql.Directives(entgql.DeprecatedDirective("We don't use this field anymore")),
 			),
 		field.Strings("strings").
 			Optional(),

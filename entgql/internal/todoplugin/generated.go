@@ -647,7 +647,7 @@ type Category implements Node {
 	status: CategoryStatus!
 	config: CategoryConfig!
 	duration: Duration!
-	count: Uint64!
+	count: Uint64! @deprecated(reason: "We don't use this field anymore")
 	strings: [String!]
 }
 """
