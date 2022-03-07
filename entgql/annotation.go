@@ -209,6 +209,5 @@ func Deprecated(reason string) Directive {
 			Value: reason,
 		})
 	}
-
 	return NewDirective("deprecated", args...)
 }
