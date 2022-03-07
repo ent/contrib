@@ -46,7 +46,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 """
 CategoryStatus is enum for the field status
 """
-enum CategoryStatus {
+enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
 	ENABLED
 	DISABLED
 }
@@ -61,7 +61,7 @@ type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent
 """
 Role is enum for the field role
 """
-enum Role {
+enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
 	ADMIN
 	USER
 	UNKNOWN
@@ -69,7 +69,7 @@ enum Role {
 """
 Status is enum for the field status
 """
-enum Status {
+enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status") {
 	IN_PROGRESS
 	COMPLETED
 }
@@ -84,7 +84,7 @@ type Todo {
 """
 VisibilityStatus is enum for the field visibility_status
 """
-enum VisibilityStatus {
+enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
 	LISTING
 	HIDDEN
 }
@@ -150,7 +150,7 @@ enum CategoryOrderField {
 """
 CategoryStatus is enum for the field status
 """
-enum CategoryStatus {
+enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
 	ENABLED
 	DISABLED
 }
@@ -192,7 +192,7 @@ type MasterUserEdge {
 """
 Role is enum for the field role
 """
-enum Role {
+enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
 	ADMIN
 	USER
 	UNKNOWN
@@ -200,7 +200,7 @@ enum Role {
 """
 Status is enum for the field status
 """
-enum Status {
+enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status") {
 	IN_PROGRESS
 	COMPLETED
 }
@@ -253,7 +253,7 @@ enum TodoOrderField {
 """
 VisibilityStatus is enum for the field visibility_status
 """
-enum VisibilityStatus {
+enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
 	LISTING
 	HIDDEN
 }
