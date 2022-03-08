@@ -32,10 +32,10 @@ func NewPetService(client *ent.Client) *PetService {
 // toProtoPet transforms the ent type to the pb type
 func toProtoPet(e *ent.Pet) (*Pet, error) {
 	v := &Pet{}
-	id := int32(e.ID)
+	id := int64(e.ID)
 	v.Id = id
 	if edg := e.Edges.Owner; edg != nil {
-		id := int32(edg.ID)
+		id := int64(edg.ID)
 		v.Owner = &User{
 			Id: id,
 		}

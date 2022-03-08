@@ -53,7 +53,7 @@ func TestUserService_Create(t *testing.T) {
 		Status:     User_ACTIVE,
 		ExternalId: 1,
 		Group: &Group{
-			Id: int32(group.ID),
+			Id: int64(group.ID),
 		},
 		CrmId:          crmID,
 		Attachment:     &Attachment{Id: attachmentID},
@@ -104,7 +104,7 @@ func TestUserService_Get(t *testing.T) {
 		SetAccountBalance(2000.50).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
-		Id: int32(created.ID),
+		Id: int64(created.ID),
 	})
 	require.NoError(t, err)
 	require.EqualValues(t, created.UserName, get.UserName)
@@ -138,7 +138,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetCustomPb(1).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
-		Id: int32(created.ID),
+		Id: int64(created.ID),
 	})
 	require.NoError(t, err)
 	require.NotNil(t, d)
@@ -180,7 +180,7 @@ func TestUserService_Update(t *testing.T) {
 	require.NoError(t, err, "Converting UUID to Bytes: %v", crmID)
 
 	inputUser := &User{
-		Id:         int32(created.ID),
+		Id:         int64(created.ID),
 		UserName:   "rotemtam",
 		Joined:     timestamppb.Now(),
 		Exp:        999,
@@ -188,7 +188,7 @@ func TestUserService_Update(t *testing.T) {
 		ExternalId: 1,
 		Status:     User_ACTIVE,
 		Group: &Group{
-			Id: int32(group.ID),
+			Id: int64(group.ID),
 		},
 		Attachment: &Attachment{
 			Id: attachmentID,

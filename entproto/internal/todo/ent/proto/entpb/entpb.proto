@@ -68,7 +68,7 @@ message ListAttachmentResponse {
 }
 
 message Group {
-  int32 id = 1;
+  int64 id = 1;
 
   string name = 2;
 
@@ -76,7 +76,7 @@ message Group {
 }
 
 message MultiWordSchema {
-  int32 id = 1;
+  int64 id = 1;
 
   Unit unit = 2;
 
@@ -92,7 +92,7 @@ message CreateMultiWordSchemaRequest {
 }
 
 message GetMultiWordSchemaRequest {
-  int32 id = 1;
+  int64 id = 1;
 
   View view = 2;
 
@@ -110,7 +110,7 @@ message UpdateMultiWordSchemaRequest {
 }
 
 message DeleteMultiWordSchemaRequest {
-  int32 id = 1;
+  int64 id = 1;
 }
 
 message ListMultiWordSchemaRequest {
@@ -136,7 +136,7 @@ message ListMultiWordSchemaResponse {
 }
 
 message NilExample {
-  int32 id = 1;
+  int64 id = 1;
 
   google.protobuf.StringValue str_nil = 2;
 
@@ -148,7 +148,7 @@ message CreateNilExampleRequest {
 }
 
 message GetNilExampleRequest {
-  int32 id = 1;
+  int64 id = 1;
 
   View view = 2;
 
@@ -166,7 +166,7 @@ message UpdateNilExampleRequest {
 }
 
 message DeleteNilExampleRequest {
-  int32 id = 1;
+  int64 id = 1;
 }
 
 message ListNilExampleRequest {
@@ -192,7 +192,7 @@ message ListNilExampleResponse {
 }
 
 message Pet {
-  int32 id = 1;
+  int64 id = 1;
 
   User owner = 2;
 }
@@ -202,7 +202,7 @@ message CreatePetRequest {
 }
 
 message GetPetRequest {
-  int32 id = 1;
+  int64 id = 1;
 
   View view = 2;
 
@@ -220,7 +220,7 @@ message UpdatePetRequest {
 }
 
 message DeletePetRequest {
-  int32 id = 1;
+  int64 id = 1;
 }
 
 message ListPetRequest {
@@ -246,7 +246,7 @@ message ListPetResponse {
 }
 
 message Todo {
-  int32 id = 1;
+  int64 id = 1;
 
   string task = 2;
 
@@ -264,7 +264,7 @@ message Todo {
 }
 
 message User {
-  int32 id = 1;
+  int64 id = 1;
 
   string user_name = 2;
 
@@ -276,7 +276,7 @@ message User {
 
   Status status = 6;
 
-  int32 external_id = 8;
+  int64 external_id = 8;
 
   bytes crm_id = 9;
 
@@ -284,7 +284,7 @@ message User {
 
   uint64 custom_pb = 12;
 
-  google.protobuf.Int32Value opt_num = 13;
+  google.protobuf.Int64Value opt_num = 13;
 
   google.protobuf.StringValue opt_str = 14;
 
@@ -292,7 +292,7 @@ message User {
 
   google.protobuf.StringValue big_int = 17;
 
-  google.protobuf.Int32Value b_user_1 = 18;
+  google.protobuf.Int64Value b_user_1 = 18;
 
   float height_in_cm = 19;
 
@@ -320,7 +320,7 @@ message CreateUserRequest {
 }
 
 message GetUserRequest {
-  int32 id = 1;
+  int64 id = 1;
 
   View view = 2;
 
@@ -338,7 +338,7 @@ message UpdateUserRequest {
 }
 
 message DeleteUserRequest {
-  int32 id = 1;
+  int64 id = 1;
 }
 
 message ListUserRequest {

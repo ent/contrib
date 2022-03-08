@@ -34,7 +34,7 @@ func TestNilExampleService_Get(t *testing.T) {
 		SetStrNil("str").
 		SetTimeNil(time.Now()).
 		SaveX(ctx)
-	get, err := svc.Get(ctx, &GetNilExampleRequest{Id: int32(nex.ID)})
+	get, err := svc.Get(ctx, &GetNilExampleRequest{Id: int64(nex.ID)})
 	require.NoError(t, err)
 	require.EqualValues(t, nex.TimeNil.Unix(), get.GetTimeNil().AsTime().Unix())
 	require.EqualValues(t, *nex.StrNil, get.GetStrNil().GetValue())

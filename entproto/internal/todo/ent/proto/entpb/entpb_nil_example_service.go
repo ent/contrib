@@ -34,7 +34,7 @@ func NewNilExampleService(client *ent.Client) *NilExampleService {
 // toProtoNilExample transforms the ent type to the pb type
 func toProtoNilExample(e *ent.NilExample) (*NilExample, error) {
 	v := &NilExample{}
-	id := int32(e.ID)
+	id := int64(e.ID)
 	v.Id = id
 	if e.StrNil != nil {
 		strnil := wrapperspb.String(*e.StrNil)
