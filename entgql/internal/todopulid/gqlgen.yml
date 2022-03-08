@@ -42,3 +42,6 @@ models:
   CategoryConfigInput:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  BigInt:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.BigInt

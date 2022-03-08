@@ -393,7 +393,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../todo/todo.graphql", Input: `interface Node {
+	{Name: "../todo/todo.graphql", Input: `"BigInt is a large integer represented as a string."
+scalar BigInt
+
+interface Node {
   id: ID!
 }
 
@@ -622,6 +625,18 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
+  
+  """big_int field predicates"""
+  bigInt: BigInt
+  bigIntNEQ: BigInt
+  bigIntIn: [BigInt!]
+  bigIntNotIn: [BigInt!]
+  bigIntGT: BigInt
+  bigIntGTE: BigInt
+  bigIntLT: BigInt
+  bigIntLTE: BigInt
+  bigIntIsNil: Boolean
+  bigIntNotNil: Boolean
   
   """id field predicates"""
   id: ID
@@ -3833,6 +3848,86 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
+		case "bigInt":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigInt"))
+			it.BigInt, err = ec.unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntNEQ"))
+			it.BigIntNEQ, err = ec.unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntIn"))
+			it.BigIntIn, err = ec.unmarshalOBigInt2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntNotIn"))
+			it.BigIntNotIn, err = ec.unmarshalOBigInt2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntGT"))
+			it.BigIntGT, err = ec.unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntGTE"))
+			it.BigIntGTE, err = ec.unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntLT"))
+			it.BigIntLT, err = ec.unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntLTE"))
+			it.BigIntLTE, err = ec.unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntIsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntIsNil"))
+			it.BigIntIsNil, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bigIntNotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bigIntNotNil"))
+			it.BigIntNotNil, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "id":
 			var err error
 
@@ -4880,6 +4975,16 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNBigInt2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx context.Context, v interface{}) (schematype.BigInt, error) {
+	var res schematype.BigInt
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBigInt2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx context.Context, sel ast.SelectionSet, v schematype.BigInt) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5384,6 +5489,60 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalOBigInt2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigIntᚄ(ctx context.Context, v interface{}) ([]schematype.BigInt, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]schematype.BigInt, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBigInt2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOBigInt2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigIntᚄ(ctx context.Context, sel ast.SelectionSet, v []schematype.BigInt) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNBigInt2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx context.Context, v interface{}) (*schematype.BigInt, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(schematype.BigInt)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBigInt2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐBigInt(ctx context.Context, sel ast.SelectionSet, v *schematype.BigInt) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

@@ -414,6 +414,18 @@ type TodoWhereInput struct {
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
+	// "big_int" field predicates.
+	BigInt       *schematype.BigInt  `json:"bigInt,omitempty"`
+	BigIntNEQ    *schematype.BigInt  `json:"bigIntNEQ,omitempty"`
+	BigIntIn     []schematype.BigInt `json:"bigIntIn,omitempty"`
+	BigIntNotIn  []schematype.BigInt `json:"bigIntNotIn,omitempty"`
+	BigIntGT     *schematype.BigInt  `json:"bigIntGT,omitempty"`
+	BigIntGTE    *schematype.BigInt  `json:"bigIntGTE,omitempty"`
+	BigIntLT     *schematype.BigInt  `json:"bigIntLT,omitempty"`
+	BigIntLTE    *schematype.BigInt  `json:"bigIntLTE,omitempty"`
+	BigIntIsNil  bool                `json:"bigIntIsNil,omitempty"`
+	BigIntNotNil bool                `json:"bigIntNotNil,omitempty"`
+
 	// "parent" edge predicates.
 	HasParent     *bool             `json:"hasParent,omitempty"`
 	HasParentWith []*TodoWhereInput `json:"hasParentWith,omitempty"`
@@ -608,6 +620,36 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, todo.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.BigInt != nil {
+		predicates = append(predicates, todo.BigIntEQ(*i.BigInt))
+	}
+	if i.BigIntNEQ != nil {
+		predicates = append(predicates, todo.BigIntNEQ(*i.BigIntNEQ))
+	}
+	if len(i.BigIntIn) > 0 {
+		predicates = append(predicates, todo.BigIntIn(i.BigIntIn...))
+	}
+	if len(i.BigIntNotIn) > 0 {
+		predicates = append(predicates, todo.BigIntNotIn(i.BigIntNotIn...))
+	}
+	if i.BigIntGT != nil {
+		predicates = append(predicates, todo.BigIntGT(*i.BigIntGT))
+	}
+	if i.BigIntGTE != nil {
+		predicates = append(predicates, todo.BigIntGTE(*i.BigIntGTE))
+	}
+	if i.BigIntLT != nil {
+		predicates = append(predicates, todo.BigIntLT(*i.BigIntLT))
+	}
+	if i.BigIntLTE != nil {
+		predicates = append(predicates, todo.BigIntLTE(*i.BigIntLTE))
+	}
+	if i.BigIntIsNil {
+		predicates = append(predicates, todo.BigIntIsNil())
+	}
+	if i.BigIntNotNil {
+		predicates = append(predicates, todo.BigIntNotNil())
 	}
 
 	if i.HasParent != nil {

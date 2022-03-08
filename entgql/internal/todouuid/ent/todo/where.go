@@ -19,6 +19,7 @@ package todo
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -133,6 +134,13 @@ func Text(v string) predicate.Todo {
 func Blob(v []byte) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldBlob), v))
+	})
+}
+
+// BigInt applies equality check predicate on the "big_int" field. It's identical to BigIntEQ.
+func BigInt(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBigInt), v))
 	})
 }
 
@@ -534,6 +542,96 @@ func BlobIsNil() predicate.Todo {
 func BlobNotNil() predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldBlob)))
+	})
+}
+
+// BigIntEQ applies the EQ predicate on the "big_int" field.
+func BigIntEQ(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBigInt), v))
+	})
+}
+
+// BigIntNEQ applies the NEQ predicate on the "big_int" field.
+func BigIntNEQ(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBigInt), v))
+	})
+}
+
+// BigIntIn applies the In predicate on the "big_int" field.
+func BigIntIn(vs ...schematype.BigInt) predicate.Todo {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Todo(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldBigInt), v...))
+	})
+}
+
+// BigIntNotIn applies the NotIn predicate on the "big_int" field.
+func BigIntNotIn(vs ...schematype.BigInt) predicate.Todo {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Todo(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldBigInt), v...))
+	})
+}
+
+// BigIntGT applies the GT predicate on the "big_int" field.
+func BigIntGT(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldBigInt), v))
+	})
+}
+
+// BigIntGTE applies the GTE predicate on the "big_int" field.
+func BigIntGTE(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldBigInt), v))
+	})
+}
+
+// BigIntLT applies the LT predicate on the "big_int" field.
+func BigIntLT(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldBigInt), v))
+	})
+}
+
+// BigIntLTE applies the LTE predicate on the "big_int" field.
+func BigIntLTE(v schematype.BigInt) predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldBigInt), v))
+	})
+}
+
+// BigIntIsNil applies the IsNil predicate on the "big_int" field.
+func BigIntIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldBigInt)))
+	})
+}
+
+// BigIntNotNil applies the NotNil predicate on the "big_int" field.
+func BigIntNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldBigInt)))
 	})
 }
 

@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
@@ -43,6 +44,8 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 	// Blob holds the value of the "blob" field.
 	Blob []byte `json:"blob,omitempty"`
+	// BigInt holds the value of the "big_int" field.
+	BigInt schematype.BigInt `json:"big_int,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges          TodoEdges `json:"edges"`
@@ -126,6 +129,8 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new([]byte)
 		case todo.FieldID:
 			values[i] = new(pulid.ID)
+		case todo.FieldBigInt:
+			values[i] = new(schematype.BigInt)
 		case todo.FieldPriority:
 			values[i] = new(sql.NullInt64)
 		case todo.FieldStatus, todo.FieldText:
@@ -188,6 +193,12 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field blob", values[i])
 			} else if value != nil {
 				t.Blob = *value
+			}
+		case todo.FieldBigInt:
+			if value, ok := values[i].(*schematype.BigInt); !ok {
+				return fmt.Errorf("unexpected type %T for field big_int", values[i])
+			} else if value != nil {
+				t.BigInt = *value
 			}
 		case todo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -268,6 +279,8 @@ func (t *Todo) String() string {
 	builder.WriteString(t.Text)
 	builder.WriteString(", blob=")
 	builder.WriteString(fmt.Sprintf("%v", t.Blob))
+	builder.WriteString(", big_int=")
+	builder.WriteString(fmt.Sprintf("%v", t.BigInt))
 	builder.WriteByte(')')
 	return builder.String()
 }

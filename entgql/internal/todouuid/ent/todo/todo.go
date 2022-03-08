@@ -40,6 +40,8 @@ const (
 	FieldText = "text"
 	// FieldBlob holds the string denoting the blob field in the database.
 	FieldBlob = "blob"
+	// FieldBigInt holds the string denoting the big_int field in the database.
+	FieldBigInt = "big_int"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -82,6 +84,7 @@ var Columns = []string{
 	FieldPriority,
 	FieldText,
 	FieldBlob,
+	FieldBigInt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"

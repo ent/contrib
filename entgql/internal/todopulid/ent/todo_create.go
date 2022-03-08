@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
@@ -80,6 +81,20 @@ func (tc *TodoCreate) SetText(s string) *TodoCreate {
 // SetBlob sets the "blob" field.
 func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
 	tc.mutation.SetBlob(b)
+	return tc
+}
+
+// SetBigInt sets the "big_int" field.
+func (tc *TodoCreate) SetBigInt(si schematype.BigInt) *TodoCreate {
+	tc.mutation.SetBigInt(si)
+	return tc
+}
+
+// SetNillableBigInt sets the "big_int" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableBigInt(si *schematype.BigInt) *TodoCreate {
+	if si != nil {
+		tc.SetBigInt(*si)
+	}
 	return tc
 }
 
@@ -353,6 +368,14 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Column: todo.FieldBlob,
 		})
 		_node.Blob = value
+	}
+	if value, ok := tc.mutation.BigInt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: todo.FieldBigInt,
+		})
+		_node.BigInt = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

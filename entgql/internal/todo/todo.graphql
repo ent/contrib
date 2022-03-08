@@ -1,3 +1,6 @@
+"BigInt is a large integer represented as a string."
+scalar BigInt
+
 interface Node {
   id: ID!
 }
