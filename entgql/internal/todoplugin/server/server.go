@@ -18,16 +18,16 @@ import (
 	"net/http"
 
 	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/internal/todo"
-	"entgo.io/contrib/entgql/internal/todo/ent"
-	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
+	"entgo.io/contrib/entgql/internal/todoplugin"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent"
+	"entgo.io/contrib/entgql/internal/todoplugin/ent/migrate"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/debug"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/alecthomas/kong"
 	"go.uber.org/zap"
 
-	_ "entgo.io/contrib/entgql/internal/todo/ent/runtime"
+	_ "entgo.io/contrib/entgql/internal/todoplugin/ent/runtime"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -53,7 +53,7 @@ func main() {
 		log.Fatal("running schema migration", zap.Error(err))
 	}
 
-	srv := handler.NewDefaultServer(todo.NewSchema(client))
+	srv := handler.NewDefaultServer(todoplugin.NewSchema(client))
 	srv.Use(entgql.Transactioner{TxOpener: client})
 	if cli.Debug {
 		srv.Use(&debug.Tracer{})
