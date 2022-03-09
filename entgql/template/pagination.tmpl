@@ -18,7 +18,7 @@ in the LICENSE file in the root directory of this source tree.
 {{- end }}
 
 {{ $gqlNodes := filterNodes $.Nodes }}
-{{ $idType := findIDType $gqlNodes $.IDType }}
+{{ $gqlID := findIDType $gqlNodes $.IDType }}
 
 import (
 	{{- range $n := $gqlNodes }}
@@ -132,7 +132,7 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID {{ $idType }} `msgpack:"i"`
+	ID {{ $gqlID.Type }} `msgpack:"i"`
 	Value Value      `msgpack:"v,omitempty"`
 }
 
@@ -450,8 +450,15 @@ func ({{ $r }} *{{ $query }}) Paginate(
 			{{ $var }} = &{{ $orderField }}{
 				field: {{ $node.Package }}.{{ $f.Constant }},
 				toCursor: func({{ $r }} *{{ $name }}) Cursor {
+					{{- if $gqlID.Marshal $node.ID.Type }}
+						var buf bytes.Buffer
+						{{ $r }}.ID.MarshalGQL(&buf)
+						id := buf.String()
+					{{- else}}
+						id := {{ $r }}.ID
+					{{- end}}
 					return Cursor{
-						ID: {{ $r }}.ID,
+						ID: id,
 						Value: {{ $r }}.{{ $f.StructField }},
 					}
 				},
@@ -512,7 +519,14 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	Field: &{{ $orderField }}{
 		field: {{ $node.Package }}.{{ $node.ID.Constant }},
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
-			return Cursor{ID: {{ $r }}.ID}
+			{{- if $gqlID.Marshal $node.ID.Type }}
+				var buf bytes.Buffer
+				{{ $r }}.ID.MarshalGQL(&buf)
+				id := buf.String()
+			{{- else}}
+				id := {{ $r }}.ID
+			{{- end}}
+			return Cursor{ID: id}
 		},
 	},
 }

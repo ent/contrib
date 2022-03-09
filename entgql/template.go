@@ -20,12 +20,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"text/template"
 	"text/template/parse"
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"github.com/99designs/gqlgen/graphql"
 )
 
 var (
@@ -71,6 +73,8 @@ var (
 		"filterNodes":         filterNodes,
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
+		"marshaler":           marshaler,
+		"unmarshaler":         unmarshaler,
 	}
 
 	//go:embed template/*
@@ -83,21 +87,80 @@ func parseT(path string) *gen.Template {
 		ParseFS(templates, path))
 }
 
+var marshalerType = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
+
+func marshaler(t *field.TypeInfo) bool {
+	return t.RType.Implements(marshalerType)
+}
+
+var unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
+
+func unmarshaler(t *field.TypeInfo) bool {
+	return t.RType.Implements(unmarshalerType)
+}
+
+type GQLID struct {
+	Type        *field.TypeInfo
+	polymorphic bool
+}
+
+func (id *GQLID) Marshal(t *field.TypeInfo) bool {
+	if !id.polymorphic {
+		return false
+	}
+
+	return marshaler(t) || unmarshaler(t)
+}
+
 // findIDType returns the type of the ID field of the given type.
-func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
-	t := defaultType
+func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*GQLID, error) {
+	// Copy type by value to avoid affecting downstream generation
+	gqlType := *defaultType
+
+	// If the ID type is polymorphic, i.e. uses `GoTypes` to represent different id's
+	// that are marshalled to a same base type, we use the primitive type as the id.
+	polymorphic := false
+
 	if len(nodes) > 0 {
-		t = nodes[0].ID.Type
+		gqlType = *nodes[0].ID.Type
 
 		// Ensure all id types have the same type.
 		for _, n := range nodes[1:] {
-			if n.ID.Type.Type != t.Type {
+			if n.ID.Type.Type != gqlType.Type {
 				return nil, errors.New("node does not support multiple id types")
+			}
+		}
+
+		// Infer if we're using a polymorphic ID type.
+		for _, n := range nodes[1:] {
+			if n.ID.Type.Ident != gqlType.Ident {
+				polymorphic = true
+				break
+			}
+		}
+
+		// If using a polymorphic type, ensure all implment graphql.Marshaler and graphql.Unmarshaler.
+		if polymorphic {
+			for _, n := range nodes[1:] {
+				if n.ID.Type.RType != nil && !(marshaler(n.ID.Type) || unmarshaler(n.ID.Type)) {
+					return nil, errors.New("polymorphic id types must implement graphql.Marshaler and graphql.Unmarshaler")
+				}
 			}
 		}
 	}
 
-	return t, nil
+	// If default type is a custom type, reset type info to use base type.
+	if polymorphic {
+		gqlType.Ident = ""
+		gqlType.PkgName = ""
+		gqlType.PkgPath = ""
+		gqlType.RType = nil
+	}
+
+	return &GQLID{
+		Type:        &gqlType,
+		polymorphic: polymorphic,
+	}, nil
 }
 
 type fieldCollection struct {
