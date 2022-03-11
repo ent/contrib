@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.10.1
 	github.com/99designs/gqlgen v0.16.1-0.20220209020931-d7da5b0d3b3c
 	github.com/AlekSi/pointer v1.1.0
-	github.com/alecthomas/kong v0.2.11
+	github.com/alecthomas/kong v0.5.0
 	github.com/go-openapi/inflect v0.19.0
 	github.com/google/uuid v1.3.0
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
@@ -39,7 +39,6 @@ require (
 	github.com/go-faster/jx v0.25.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -49,7 +48,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
