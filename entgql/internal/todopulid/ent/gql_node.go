@@ -57,8 +57,9 @@ type Edge struct {
 }
 
 func (c *Category) Node(ctx context.Context) (node *Node, err error) {
+	id := c.ID
 	node = &Node{
-		ID:     c.ID,
+		ID:     id,
 		Type:   "Category",
 		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 1),
@@ -126,8 +127,9 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 }
 
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
+	id := t.ID
 	node = &Node{
-		ID:     t.ID,
+		ID:     id,
 		Type:   "Todo",
 		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
@@ -274,8 +276,10 @@ func (c *Client) Noder(ctx context.Context, id pulid.ID, opts ...NodeOption) (_ 
 func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, error) {
 	switch table {
 	case category.Table:
+		var uid pulid.ID
+		uid = id
 		n, err := c.Category.Query().
-			Where(category.ID(id)).
+			Where(category.ID(uid)).
 			CollectFields(ctx, "Category").
 			Only(ctx)
 		if err != nil {
@@ -283,8 +287,10 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case todo.Table:
+		var uid pulid.ID
+		uid = id
 		n, err := c.Todo.Query().
-			Where(todo.ID(id)).
+			Where(todo.ID(uid)).
 			CollectFields(ctx, "Todo").
 			Only(ctx)
 		if err != nil {
@@ -365,28 +371,36 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	}
 	switch table {
 	case category.Table:
-		nodes, err := c.Category.Query().
-			Where(category.IDIn(ids...)).
+		q := c.Category.Query()
+		q.Where(category.IDIn(ids...))
+
+		nodes, err := q.
 			CollectFields(ctx, "Category").
 			All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
+			id := node.ID
+
+			for _, noder := range idmap[id] {
 				*noder = node
 			}
 		}
 	case todo.Table:
-		nodes, err := c.Todo.Query().
-			Where(todo.IDIn(ids...)).
+		q := c.Todo.Query()
+		q.Where(todo.IDIn(ids...))
+
+		nodes, err := q.
 			CollectFields(ctx, "Todo").
 			All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
+			id := node.ID
+
+			for _, noder := range idmap[id] {
 				*noder = node
 			}
 		}

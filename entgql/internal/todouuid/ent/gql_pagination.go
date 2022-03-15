@@ -446,8 +446,9 @@ var (
 	CategoryOrderFieldText = &CategoryOrderField{
 		field: category.FieldText,
 		toCursor: func(c *Category) Cursor {
+			id := c.ID
 			return Cursor{
-				ID:    c.ID,
+				ID:    id,
 				Value: c.Text,
 			}
 		},
@@ -456,8 +457,9 @@ var (
 	CategoryOrderFieldDuration = &CategoryOrderField{
 		field: category.FieldDuration,
 		toCursor: func(c *Category) Cursor {
+			id := c.ID
 			return Cursor{
-				ID:    c.ID,
+				ID:    id,
 				Value: c.Duration,
 			}
 		},
@@ -516,7 +518,8 @@ var DefaultCategoryOrder = &CategoryOrder{
 	Field: &CategoryOrderField{
 		field: category.FieldID,
 		toCursor: func(c *Category) Cursor {
-			return Cursor{ID: c.ID}
+			id := c.ID
+			return Cursor{ID: id}
 		},
 	},
 }
@@ -730,8 +733,9 @@ var (
 	TodoOrderFieldCreatedAt = &TodoOrderField{
 		field: todo.FieldCreatedAt,
 		toCursor: func(t *Todo) Cursor {
+			id := t.ID
 			return Cursor{
-				ID:    t.ID,
+				ID:    id,
 				Value: t.CreatedAt,
 			}
 		},
@@ -740,8 +744,9 @@ var (
 	TodoOrderFieldStatus = &TodoOrderField{
 		field: todo.FieldStatus,
 		toCursor: func(t *Todo) Cursor {
+			id := t.ID
 			return Cursor{
-				ID:    t.ID,
+				ID:    id,
 				Value: t.Status,
 			}
 		},
@@ -750,8 +755,9 @@ var (
 	TodoOrderFieldPriority = &TodoOrderField{
 		field: todo.FieldPriority,
 		toCursor: func(t *Todo) Cursor {
+			id := t.ID
 			return Cursor{
-				ID:    t.ID,
+				ID:    id,
 				Value: t.Priority,
 			}
 		},
@@ -760,8 +766,9 @@ var (
 	TodoOrderFieldText = &TodoOrderField{
 		field: todo.FieldText,
 		toCursor: func(t *Todo) Cursor {
+			id := t.ID
 			return Cursor{
-				ID:    t.ID,
+				ID:    id,
 				Value: t.Text,
 			}
 		},
@@ -828,7 +835,8 @@ var DefaultTodoOrder = &TodoOrder{
 	Field: &TodoOrderField{
 		field: todo.FieldID,
 		toCursor: func(t *Todo) Cursor {
-			return Cursor{ID: t.ID}
+			id := t.ID
+			return Cursor{ID: id}
 		},
 	},
 }
