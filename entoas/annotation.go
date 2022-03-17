@@ -32,6 +32,8 @@ type (
 		Example interface{}
 		// OpenAPI Specification schema to use for a schema field.
 		Schema *ogen.Schema
+		// FieldConfig has meta information about a schema field.
+		Field FieldConfig
 		// Create has meta information about a creation operation.
 		Create OperationConfig
 		// Read has meta information about a read operation.
