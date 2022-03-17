@@ -50,6 +50,10 @@ type (
 	}
 	// OperationConfigOption allows managing OperationConfig using functional arguments.
 	OperationConfigOption func(*OperationConfig)
+	// FieldConfig hold meta information aboat a REST field (parameter)
+	FieldConfig struct {
+		ReadOnly bool
+	}
 )
 
 // Groups returns a OperationConfigOption that adds the given serialization groups to a OperationConfig.
