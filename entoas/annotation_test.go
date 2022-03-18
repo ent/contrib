@@ -64,6 +64,10 @@ func TestAnnotation(t *testing.T) {
 	}
 	require.Equal(t, ex, a)
 
+	a = a.Merge(ReadOnly(true)).(Annotation)
+	ex.ReadOnly = true
+	require.Equal(t, ex, a)
+
 	ac, err := SchemaAnnotation(new(gen.Type))
 	require.NoError(t, err)
 	require.NotNil(t, ac)

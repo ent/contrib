@@ -140,6 +140,9 @@ func (a Annotation) Merge(o schema.Annotation) schema.Annotation {
 	a.Update.merge(ant.Update)
 	a.Delete.merge(ant.Delete)
 	a.List.merge(ant.List)
+	if ant.ReadOnly {
+		a.ReadOnly = true
+	}
 	return a
 }
 
