@@ -37,6 +37,7 @@ type CategoryMutation struct {
 	typ           string
 	id            *int
 	name          *string
+	readonly      *string
 	clearedFields map[string]struct{}
 	pets          map[int]struct{}
 	removedpets   map[int]struct{}
@@ -180,6 +181,42 @@ func (m *CategoryMutation) ResetName() {
 	m.name = nil
 }
 
+// SetReadonly sets the "readonly" field.
+func (m *CategoryMutation) SetReadonly(s string) {
+	m.readonly = &s
+}
+
+// Readonly returns the value of the "readonly" field in the mutation.
+func (m *CategoryMutation) Readonly() (r string, exists bool) {
+	v := m.readonly
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReadonly returns the old "readonly" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldReadonly(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReadonly is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReadonly requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReadonly: %w", err)
+	}
+	return oldValue.Readonly, nil
+}
+
+// ResetReadonly resets all changes to the "readonly" field.
+func (m *CategoryMutation) ResetReadonly() {
+	m.readonly = nil
+}
+
 // AddPetIDs adds the "pets" edge to the Pet entity by ids.
 func (m *CategoryMutation) AddPetIDs(ids ...int) {
 	if m.pets == nil {
@@ -253,9 +290,12 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.name != nil {
 		fields = append(fields, category.FieldName)
+	}
+	if m.readonly != nil {
+		fields = append(fields, category.FieldReadonly)
 	}
 	return fields
 }
@@ -267,6 +307,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case category.FieldName:
 		return m.Name()
+	case category.FieldReadonly:
+		return m.Readonly()
 	}
 	return nil, false
 }
@@ -278,6 +320,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case category.FieldName:
 		return m.OldName(ctx)
+	case category.FieldReadonly:
+		return m.OldReadonly(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -293,6 +337,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case category.FieldReadonly:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReadonly(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
@@ -345,6 +396,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 	switch name {
 	case category.FieldName:
 		m.ResetName()
+		return nil
+	case category.FieldReadonly:
+		m.ResetReadonly()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

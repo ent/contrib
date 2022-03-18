@@ -32,8 +32,6 @@ type (
 		Example interface{}
 		// OpenAPI Specification schema to use for a schema field.
 		Schema *ogen.Schema
-		// FieldConfig has meta information about a schema field.
-		Field FieldConfig
 		// Create has meta information about a creation operation.
 		Create OperationConfig
 		// Read has meta information about a read operation.
@@ -44,6 +42,8 @@ type (
 		Delete OperationConfig
 		// List has meta information about a list operation.
 		List OperationConfig
+		// ReadOnly specifies that the field/edge is read only (no create/update parameter)
+		ReadOnly bool
 	}
 	// OperationConfig holds meta information about a REST operation.
 	OperationConfig struct {
@@ -52,10 +52,6 @@ type (
 	}
 	// OperationConfigOption allows managing OperationConfig using functional arguments.
 	OperationConfigOption func(*OperationConfig)
-	// FieldConfig hold meta information aboat a REST field (parameter)
-	FieldConfig struct {
-		ReadOnly bool
-	}
 )
 
 // Groups returns a OperationConfigOption that adds the given serialization groups to a OperationConfig.
@@ -102,6 +98,11 @@ func DeleteOperation(opts ...OperationConfigOption) Annotation {
 // ListOperation returns a list operation annotation.
 func ListOperation(opts ...OperationConfigOption) Annotation {
 	return Annotation{List: operationsConfig(opts)}
+}
+
+// ReadOnly returns a read only field/edge annotation
+func ReadOnly(readonly bool) Annotation {
+	return Annotation{ReadOnly: readonly}
 }
 
 func operationsConfig(opts []OperationConfigOption) OperationConfig {

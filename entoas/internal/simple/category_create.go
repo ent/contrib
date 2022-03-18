@@ -26,6 +26,12 @@ func (cc *CategoryCreate) SetName(s string) *CategoryCreate {
 	return cc
 }
 
+// SetReadonly sets the "readonly" field.
+func (cc *CategoryCreate) SetReadonly(s string) *CategoryCreate {
+	cc.mutation.SetReadonly(s)
+	return cc
+}
+
 // AddPetIDs adds the "pets" edge to the Pet entity by IDs.
 func (cc *CategoryCreate) AddPetIDs(ids ...int) *CategoryCreate {
 	cc.mutation.AddPetIDs(ids...)
@@ -114,6 +120,9 @@ func (cc *CategoryCreate) check() error {
 	if _, ok := cc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`simple: missing required field "Category.name"`)}
 	}
+	if _, ok := cc.mutation.Readonly(); !ok {
+		return &ValidationError{Name: "readonly", err: errors.New(`simple: missing required field "Category.readonly"`)}
+	}
 	return nil
 }
 
@@ -148,6 +157,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldName,
 		})
 		_node.Name = value
+	}
+	if value, ok := cc.mutation.Readonly(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: category.FieldReadonly,
+		})
+		_node.Readonly = value
 	}
 	if nodes := cc.mutation.PetsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

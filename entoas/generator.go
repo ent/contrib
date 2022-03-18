@@ -667,7 +667,7 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		if err != nil {
 			return nil, err
 		}
-		if (a != nil && !a.Field.ReadOnly) && (op == OpCreate || !f.Immutable) {
+		if (a != nil && !a.ReadOnly) && (op == OpCreate || !f.Immutable) {
 			p, err := property(f)
 			if err != nil {
 				return nil, err
