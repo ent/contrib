@@ -9,6 +9,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldReadonly holds the string denoting the readonly field in the database.
+	FieldReadonly = "readonly"
 	// EdgePets holds the string denoting the pets edge name in mutations.
 	EdgePets = "pets"
 	// Table holds the table name of the category in the database.
@@ -24,6 +26,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldReadonly,
 }
 
 var (

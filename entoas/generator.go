@@ -663,7 +663,11 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 	}
 	c := ogen.NewSchema()
 	for _, f := range n.Fields {
-		if op == OpCreate || !f.Immutable {
+		a, err := FieldAnnotation(f)
+		if err != nil {
+			return nil, err
+		}
+		if (a != nil && !a.ReadOnly) && (op == OpCreate || !f.Immutable) {
 			p, err := property(f)
 			if err != nil {
 				return nil, err

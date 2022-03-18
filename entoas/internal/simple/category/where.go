@@ -98,6 +98,13 @@ func Name(v string) predicate.Category {
 	})
 }
 
+// Readonly applies equality check predicate on the "readonly" field. It's identical to ReadonlyEQ.
+func Readonly(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReadonly), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
@@ -206,6 +213,117 @@ func NameEqualFold(v string) predicate.Category {
 func NameContainsFold(v string) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// ReadonlyEQ applies the EQ predicate on the "readonly" field.
+func ReadonlyEQ(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyNEQ applies the NEQ predicate on the "readonly" field.
+func ReadonlyNEQ(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyIn applies the In predicate on the "readonly" field.
+func ReadonlyIn(vs ...string) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldReadonly), v...))
+	})
+}
+
+// ReadonlyNotIn applies the NotIn predicate on the "readonly" field.
+func ReadonlyNotIn(vs ...string) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldReadonly), v...))
+	})
+}
+
+// ReadonlyGT applies the GT predicate on the "readonly" field.
+func ReadonlyGT(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyGTE applies the GTE predicate on the "readonly" field.
+func ReadonlyGTE(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyLT applies the LT predicate on the "readonly" field.
+func ReadonlyLT(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyLTE applies the LTE predicate on the "readonly" field.
+func ReadonlyLTE(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyContains applies the Contains predicate on the "readonly" field.
+func ReadonlyContains(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyHasPrefix applies the HasPrefix predicate on the "readonly" field.
+func ReadonlyHasPrefix(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyHasSuffix applies the HasSuffix predicate on the "readonly" field.
+func ReadonlyHasSuffix(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyEqualFold applies the EqualFold predicate on the "readonly" field.
+func ReadonlyEqualFold(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldReadonly), v))
+	})
+}
+
+// ReadonlyContainsFold applies the ContainsFold predicate on the "readonly" field.
+func ReadonlyContainsFold(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldReadonly), v))
 	})
 }
 

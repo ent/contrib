@@ -17,6 +17,8 @@ type Category struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Readonly holds the value of the "readonly" field.
+	Readonly string `json:"readonly,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
 	Edges CategoryEdges `json:"edges"`
@@ -47,7 +49,7 @@ func (*Category) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case category.FieldID:
 			values[i] = new(sql.NullInt64)
-		case category.FieldName:
+		case category.FieldName, category.FieldReadonly:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
@@ -75,6 +77,12 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				c.Name = value.String
+			}
+		case category.FieldReadonly:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field readonly", values[i])
+			} else if value.Valid {
+				c.Readonly = value.String
 			}
 		}
 	}
@@ -111,6 +119,8 @@ func (c *Category) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", c.ID))
 	builder.WriteString(", name=")
 	builder.WriteString(c.Name)
+	builder.WriteString(", readonly=")
+	builder.WriteString(c.Readonly)
 	builder.WriteByte(')')
 	return builder.String()
 }
