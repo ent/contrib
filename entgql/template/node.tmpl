@@ -15,13 +15,13 @@ in the LICENSE file in the root directory of this source tree.
 {{ end }}
 
 {{ $gqlNodes := filterNodes $.Nodes }}
-{{ $gqlID := findIDType $gqlNodes $.IDType }}
+{{ $idType := findIDType $gqlNodes $.IDType (or $.Annotations.GQLStringID false) }}
 
 import (
 	{{- range $n := $.Nodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
-	{{- with $package := $gqlID.Type.PkgPath }}
+	{{- with $package := $idType.PkgPath }}
 		"{{ $package }}"
 	{{- end }}
 )
@@ -42,7 +42,7 @@ type Noder interface {
 
 // Node in the graph.
 type Node struct {
-	ID 	   {{ $gqlID.Type }} `json:"id,omitempty"`// node id.
+	ID 	   {{ $idType }} `json:"id,omitempty"`// node id.
 	Type   string   `json:"type,omitempty"`   // node type.
 	Fields []*Field `json:"fields,omitempty"` // node fields.
 	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
@@ -59,22 +59,24 @@ type Field struct {
 type Edge struct {
 	Type string   `json:"type,omitempty"` // edge type.
 	Name string   `json:"name,omitempty"` // edge name.
-	IDs  []{{ $gqlID.Type }} `json:"ids,omitempty"`  // node ids (where this edge point to).
+	IDs  []{{ $idType }} `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
+		{{- $marshalID := marshalerID $n.ID.Type (or $.Annotations.GQLStringID false) }}
+		{{- if $marshalID }}
+		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
+			var buf bytes.Buffer
+			{{ $receiver }}.ID.MarshalGQL(&buf)
+			return buf.String()
+		}
+		{{- end }}
+
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
-		{{- if $gqlID.Marshal $n.ID.Type }}
-			var b bytes.Buffer
-			{{ $receiver }}.ID.MarshalGQL(&b)
-			id := b.String()
-		{{- else}}
-			id := {{ $receiver }}.ID
-		{{- end}}
 		node = &Node{
-			ID: id,
+			ID: {{ $receiver }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $n.Fields }}),
 			Edges: make([]*Edge, {{ len (filterEdges $n.Edges) }}),
@@ -111,7 +113,7 @@ type Edge struct {
 {{ end }}
 
 {{/* Add the node api to the client */}}
-func (c *Client) Node(ctx context.Context, id {{ $gqlID.Type }}) (*Node, error) {
+func (c *Client) Node(ctx context.Context, id {{ $idType }}) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -127,7 +129,7 @@ type NodeOption func(*nodeOptions)
 // WithNodeType sets the node Type resolver function (i.e. the table to query).
 // If was not provided, the table will be derived from the universal-id
 // configuration as described in: https://entgo.io/docs/migrate/#universal-ids.
-func WithNodeType(f func(context.Context, {{ $gqlID.Type }}) (string, error)) NodeOption {
+func WithNodeType(f func(context.Context, {{ $idType }}) (string, error)) NodeOption {
 	return func(o *nodeOptions) {
 		o.nodeType = f
 	}
@@ -135,13 +137,13 @@ func WithNodeType(f func(context.Context, {{ $gqlID.Type }}) (string, error)) No
 
 // WithFixedNodeType sets the Type of the node to a fixed value.
 func WithFixedNodeType(t string) NodeOption {
-	return WithNodeType(func(context.Context, {{ $gqlID.Type }}) (string, error) {
+	return WithNodeType(func(context.Context, {{ $idType }}) (string, error) {
 		return t, nil
 	})
 }
 
 type nodeOptions struct {
-	nodeType func(context.Context, {{ $gqlID.Type }}) (string, error)
+	nodeType func(context.Context, {{ $idType }}) (string, error)
 }
 
 func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
@@ -150,8 +152,8 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 		opt(nopts)
 	}
 	if nopts.nodeType == nil {
-		nopts.nodeType = func(ctx context.Context, id {{ $gqlID.Type }}) (string, error) {
-			{{- if $gqlID.Type.Numeric }}
+		nopts.nodeType = func(ctx context.Context, id {{ $idType }}) (string, error) {
+			{{- if $idType.Numeric }}
 				return c.tables.nodeType(ctx, c.driver, id)
 			{{- else }}
 				return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
@@ -167,7 +169,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 //		c.Noder(ctx, id)
 //		c.Noder(ctx, id, ent.WithNodeType(pet.Table))
 //
-func (c *Client) Noder(ctx context.Context, id {{ $gqlID.Type }}, opts ...NodeOption) (_ Noder, err error) {
+func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption) (_ Noder, err error) {
 	defer func() {
 		if IsNotFound(err) {
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
@@ -180,20 +182,19 @@ func (c *Client) Noder(ctx context.Context, id {{ $gqlID.Type }}, opts ...NodeOp
 	return c.noder(ctx, table, id)
 }
 
-func (c *Client) noder(ctx context.Context, table string, id {{ $gqlID.Type }}) (Noder, error) {
+func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
-			var uid {{ $n.ID.Type }}
-			{{- if $gqlID.Marshal $n.ID.Type }}
+			{{- $unmarshalID := unmarshalerID $n.ID.Type (or $.Annotations.GQLStringID false) }}
+			{{- if $unmarshalID }}
+				var uid {{ $n.ID.Type }}
 				if err := uid.UnmarshalGQL(id); err != nil {
 					return nil, err
 				}
-			{{- else}}
-				uid = id
-			{{- end}}
+			{{- end }}
 			n, err := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.ID(uid)).
+				Where({{ $n.Package }}.ID({{ if $unmarshalID }}u{{ end }}id)).
 				{{- if hasTemplate "gql_collection" }}
 					CollectFields(ctx, "{{ $n.Name }}").
 				{{- end }}
@@ -208,7 +209,7 @@ func (c *Client) noder(ctx context.Context, table string, id {{ $gqlID.Type }}) 
 	}
 }
 
-func (c *Client) Noders(ctx context.Context, ids []{{ $gqlID.Type }}, opts ...NodeOption) ([]Noder, error) {
+func (c *Client) Noders(ctx context.Context, ids []{{ $idType }}, opts ...NodeOption) ([]Noder, error) {
 	switch len(ids) {
 	case 1:
 		noder, err := c.Noder(ctx, ids[0], opts...)
@@ -222,8 +223,8 @@ func (c *Client) Noders(ctx context.Context, ids []{{ $gqlID.Type }}, opts ...No
 
 	noders := make([]Noder, len(ids))
 	errors := make([]error, len(ids))
-	tables := make(map[string][]{{ $gqlID.Type }})
-	id2idx := make(map[{{ $gqlID.Type }}][]int, len(ids))
+	tables := make(map[string][]{{ $idType }})
+	id2idx := make(map[{{ $idType }}][]int, len(ids))
 	nopts := c.newNodeOpts(opts)
 	for i, id := range ids {
 		table, err := nopts.nodeType(ctx, id)
@@ -269,29 +270,26 @@ func (c *Client) Noders(ctx context.Context, ids []{{ $gqlID.Type }}, opts ...No
 	return noders, nil
 }
 
-func (c *Client) noders(ctx context.Context, table string, ids []{{ $gqlID.Type }}) ([]Noder, error) {
+func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) ([]Noder, error) {
 	noders := make([]Noder, len(ids))
-	idmap := make(map[{{ $gqlID.Type }}][]*Noder, len(ids))
+	idmap := make(map[{{ $idType }}][]*Noder, len(ids))
 	for i, id := range ids {
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
-			q := c.{{ $n.Name }}.Query()
-			{{- if $gqlID.Marshal $n.ID.Type }}
+			{{- $unmarshalID := unmarshalerID $n.ID.Type (or $.Annotations.GQLStringID false) }}
+			{{- if $unmarshalID }}
 				uids := make([]{{ $n.ID.Type }}, len(ids))
 				for i, id := range ids {
 					if err := uids[i].UnmarshalGQL(id); err != nil {
 						return nil, err
 					}
 				}
-				q.Where({{ $n.Package }}.IDIn(uids...))
-			{{- else}}
-				q.Where({{ $n.Package }}.IDIn(ids...))
-			{{- end}}
-
-			nodes, err := q.
+			{{- end }}
+			nodes, err := c.{{ $n.Name }}.Query().
+				Where({{ $n.Package }}.IDIn({{ if $unmarshalID }}u{{ end }}ids...)).
 				{{- if hasTemplate "gql_collection" }}
 					CollectFields(ctx, "{{ $n.Name }}").
 				{{- end }}
@@ -299,16 +297,9 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $gqlID.Type 
 			if err != nil {
 				return nil, err
 			}
+			{{- $marshalID := marshalerID $n.ID.Type (or $.Annotations.GQLStringID false) }}
 			for _, node := range nodes {
-				{{- if $gqlID.Marshal $n.ID.Type }}
-					var buf bytes.Buffer
-					node.ID.MarshalGQL(&buf)
-					id := buf.String()
-				{{- else}}
-					id := node.ID
-				{{- end}}
-
-				for _, noder := range idmap[id] {
+				for _, noder := range idmap[node.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}] {
 					*noder = node
 				}
 			}
@@ -319,14 +310,14 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $gqlID.Type 
 	return noders, nil
 }
 
-{{ if $gqlID.Type.Numeric }}
+{{ if $idType.Numeric }}
 	type tables struct {
 		once  sync.Once
 		sem   *semaphore.Weighted
 		value atomic.Value
 	}
 
-	func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id {{ $gqlID.Type }}) (string, error) {
+	func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id {{ $idType }}) (string, error) {
 		tables, err := t.Load(ctx, drv)
 		if err != nil {
 			return "", err
@@ -375,7 +366,8 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $gqlID.Type 
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- if $.IDType.Numeric }}
+	{{- $idType := findIDType (filterNodes $.Nodes) $.IDType (or $.Annotations.GQLStringID false) }}
+	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables
 	{{- end }}

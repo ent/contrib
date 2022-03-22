@@ -18,7 +18,7 @@ in the LICENSE file in the root directory of this source tree.
 {{- end }}
 
 {{ $gqlNodes := filterNodes $.Nodes }}
-{{ $gqlID := findIDType $gqlNodes $.IDType }}
+{{ $idType := findIDType $gqlNodes $.IDType (or $.Annotations.GQLStringID false) }}
 
 import (
 	{{- range $n := $gqlNodes }}
@@ -132,7 +132,7 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID {{ $gqlID.Type }} `msgpack:"i"`
+	ID {{ $idType }} `msgpack:"i"`
 	Value Value      `msgpack:"v,omitempty"`
 }
 
@@ -450,15 +450,9 @@ func ({{ $r }} *{{ $query }}) Paginate(
 			{{ $var }} = &{{ $orderField }}{
 				field: {{ $node.Package }}.{{ $f.Constant }},
 				toCursor: func({{ $r }} *{{ $name }}) Cursor {
-					{{- if $gqlID.Marshal $node.ID.Type }}
-						var buf bytes.Buffer
-						{{ $r }}.ID.MarshalGQL(&buf)
-						id := buf.String()
-					{{- else}}
-						id := {{ $r }}.ID
-					{{- end}}
+					{{- $marshalID := marshalerID $node.ID.Type (or $.Annotations.GQLStringID false) }}
 					return Cursor{
-						ID: id,
+						ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 						Value: {{ $r }}.{{ $f.StructField }},
 					}
 				},
@@ -519,14 +513,8 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	Field: &{{ $orderField }}{
 		field: {{ $node.Package }}.{{ $node.ID.Constant }},
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
-			{{- if $gqlID.Marshal $node.ID.Type }}
-				var buf bytes.Buffer
-				{{ $r }}.ID.MarshalGQL(&buf)
-				id := buf.String()
-			{{- else}}
-				id := {{ $r }}.ID
-			{{- end}}
-			return Cursor{ID: id}
+			{{- $marshalID := marshalerID $node.ID.Type (or $.Annotations.GQLStringID false) }}
+			return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
 		},
 	},
 }

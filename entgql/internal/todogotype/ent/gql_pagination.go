@@ -17,7 +17,6 @@
 package ent
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -446,11 +445,8 @@ var (
 	CategoryOrderFieldText = &CategoryOrderField{
 		field: category.FieldText,
 		toCursor: func(c *Category) Cursor {
-			var buf bytes.Buffer
-			c.ID.MarshalGQL(&buf)
-			id := buf.String()
 			return Cursor{
-				ID:    id,
+				ID:    c.marshalID(),
 				Value: c.Text,
 			}
 		},
@@ -459,11 +455,8 @@ var (
 	CategoryOrderFieldDuration = &CategoryOrderField{
 		field: category.FieldDuration,
 		toCursor: func(c *Category) Cursor {
-			var buf bytes.Buffer
-			c.ID.MarshalGQL(&buf)
-			id := buf.String()
 			return Cursor{
-				ID:    id,
+				ID:    c.marshalID(),
 				Value: c.Duration,
 			}
 		},
@@ -522,10 +515,7 @@ var DefaultCategoryOrder = &CategoryOrder{
 	Field: &CategoryOrderField{
 		field: category.FieldID,
 		toCursor: func(c *Category) Cursor {
-			var buf bytes.Buffer
-			c.ID.MarshalGQL(&buf)
-			id := buf.String()
-			return Cursor{ID: id}
+			return Cursor{ID: c.marshalID()}
 		},
 	},
 }
@@ -739,9 +729,8 @@ var (
 	TodoOrderFieldCreatedAt = &TodoOrderField{
 		field: todo.FieldCreatedAt,
 		toCursor: func(t *Todo) Cursor {
-			id := t.ID
 			return Cursor{
-				ID:    id,
+				ID:    t.ID,
 				Value: t.CreatedAt,
 			}
 		},
@@ -750,9 +739,8 @@ var (
 	TodoOrderFieldStatus = &TodoOrderField{
 		field: todo.FieldStatus,
 		toCursor: func(t *Todo) Cursor {
-			id := t.ID
 			return Cursor{
-				ID:    id,
+				ID:    t.ID,
 				Value: t.Status,
 			}
 		},
@@ -761,9 +749,8 @@ var (
 	TodoOrderFieldPriority = &TodoOrderField{
 		field: todo.FieldPriority,
 		toCursor: func(t *Todo) Cursor {
-			id := t.ID
 			return Cursor{
-				ID:    id,
+				ID:    t.ID,
 				Value: t.Priority,
 			}
 		},
@@ -772,9 +759,8 @@ var (
 	TodoOrderFieldText = &TodoOrderField{
 		field: todo.FieldText,
 		toCursor: func(t *Todo) Cursor {
-			id := t.ID
 			return Cursor{
-				ID:    id,
+				ID:    t.ID,
 				Value: t.Text,
 			}
 		},
@@ -841,8 +827,7 @@ var DefaultTodoOrder = &TodoOrder{
 	Field: &TodoOrderField{
 		field: todo.FieldID,
 		toCursor: func(t *Todo) Cursor {
-			id := t.ID
-			return Cursor{ID: id}
+			return Cursor{ID: t.ID}
 		},
 	},
 }

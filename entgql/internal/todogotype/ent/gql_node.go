@@ -57,12 +57,15 @@ type Edge struct {
 	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
+func (c Category) marshalID() string {
+	var buf bytes.Buffer
+	c.ID.MarshalGQL(&buf)
+	return buf.String()
+}
+
 func (c *Category) Node(ctx context.Context) (node *Node, err error) {
-	var b bytes.Buffer
-	c.ID.MarshalGQL(&b)
-	id := b.String()
 	node = &Node{
-		ID:     id,
+		ID:     c.marshalID(),
 		Type:   "Category",
 		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 1),
@@ -130,9 +133,8 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 }
 
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
-	id := t.ID
 	node = &Node{
-		ID:     id,
+		ID:     t.ID,
 		Type:   "Todo",
 		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
@@ -292,10 +294,8 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 		}
 		return n, nil
 	case todo.Table:
-		var uid string
-		uid = id
 		n, err := c.Todo.Query().
-			Where(todo.ID(uid)).
+			Where(todo.ID(id)).
 			CollectFields(ctx, "Todo").
 			Only(ctx)
 		if err != nil {
@@ -376,44 +376,34 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 	}
 	switch table {
 	case category.Table:
-		q := c.Category.Query()
 		uids := make([]bigintgql.BigInt, len(ids))
 		for i, id := range ids {
 			if err := uids[i].UnmarshalGQL(id); err != nil {
 				return nil, err
 			}
 		}
-		q.Where(category.IDIn(uids...))
-
-		nodes, err := q.
+		nodes, err := c.Category.Query().
+			Where(category.IDIn(uids...)).
 			CollectFields(ctx, "Category").
 			All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, node := range nodes {
-			var buf bytes.Buffer
-			node.ID.MarshalGQL(&buf)
-			id := buf.String()
-
-			for _, noder := range idmap[id] {
+			for _, noder := range idmap[node.marshalID()] {
 				*noder = node
 			}
 		}
 	case todo.Table:
-		q := c.Todo.Query()
-		q.Where(todo.IDIn(ids...))
-
-		nodes, err := q.
+		nodes, err := c.Todo.Query().
+			Where(todo.IDIn(ids...)).
 			CollectFields(ctx, "Todo").
 			All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, node := range nodes {
-			id := node.ID
-
-			for _, noder := range idmap[id] {
+			for _, noder := range idmap[node.ID] {
 				*noder = node
 			}
 		}

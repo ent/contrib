@@ -62,9 +62,8 @@ type Edge struct {
 }
 
 func (c *Category) Node(ctx context.Context) (node *Node, err error) {
-	id := c.ID
 	node = &Node{
-		ID:     id,
+		ID:     c.ID,
 		Type:   "Category",
 		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 1),
@@ -132,9 +131,8 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 }
 
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
-	id := t.ID
 	node = &Node{
-		ID:     id,
+		ID:     t.ID,
 		Type:   "Todo",
 		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
@@ -281,10 +279,8 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
 	case category.Table:
-		var uid int
-		uid = id
 		n, err := c.Category.Query().
-			Where(category.ID(uid)).
+			Where(category.ID(id)).
 			CollectFields(ctx, "Category").
 			Only(ctx)
 		if err != nil {
@@ -292,10 +288,8 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		}
 		return n, nil
 	case todo.Table:
-		var uid int
-		uid = id
 		n, err := c.Todo.Query().
-			Where(todo.ID(uid)).
+			Where(todo.ID(id)).
 			CollectFields(ctx, "Todo").
 			Only(ctx)
 		if err != nil {
@@ -376,36 +370,28 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	}
 	switch table {
 	case category.Table:
-		q := c.Category.Query()
-		q.Where(category.IDIn(ids...))
-
-		nodes, err := q.
+		nodes, err := c.Category.Query().
+			Where(category.IDIn(ids...)).
 			CollectFields(ctx, "Category").
 			All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, node := range nodes {
-			id := node.ID
-
-			for _, noder := range idmap[id] {
+			for _, noder := range idmap[node.ID] {
 				*noder = node
 			}
 		}
 	case todo.Table:
-		q := c.Todo.Query()
-		q.Where(todo.IDIn(ids...))
-
-		nodes, err := q.
+		nodes, err := c.Todo.Query().
+			Where(todo.IDIn(ids...)).
 			CollectFields(ctx, "Todo").
 			All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, node := range nodes {
-			id := node.ID
-
-			for _, noder := range idmap[id] {
+			for _, noder := range idmap[node.ID] {
 				*noder = node
 			}
 		}

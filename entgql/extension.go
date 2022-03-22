@@ -91,9 +91,14 @@ func WithSchemaPath(path string) ExtensionOption {
 	}
 }
 
-// GQLConfigAnnotation is the annotation key/name that holds gqlgen
-// configuration if it was provided by the `WithConfigPath` option.
-const GQLConfigAnnotation = "GQLConfig"
+const (
+	// GQLConfigAnnotation is the annotation key/name that holds gqlgen
+	// configuration if it was provided by the `WithConfigPath` option.
+	GQLConfigAnnotation = "GQLConfig"
+	// GQLStringID is the annotation key/name that holds StringID
+	// configuration if it was provided by the `WithStringID` option.
+	GQLStringID = "GQLStringID"
+)
 
 // WithConfigPath sets the filepath to gqlgen.yml configuration file
 // and injects its parsed version to the global annotations.
@@ -197,6 +202,22 @@ func WithWhereFilters(b bool) ExtensionOption {
 func WithSchemaGenerator() ExtensionOption {
 	return func(e *Extension) error {
 		e.hooks = append(e.hooks, e.genSchema())
+		return nil
+	}
+}
+
+// WithStringID enable GQL ID as string
+func WithStringID() ExtensionOption {
+	return func(e *Extension) error {
+		e.hooks = append(e.hooks, func(next gen.Generator) gen.Generator {
+			return gen.GenerateFunc(func(g *gen.Graph) error {
+				if g.Annotations == nil {
+					g.Annotations = gen.Annotations{}
+				}
+				g.Annotations[GQLStringID] = true
+				return next.Generate(g)
+			})
+		})
 		return nil
 	}
 }
