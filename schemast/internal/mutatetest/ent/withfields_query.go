@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 //		Scan(ctx, &v)
 //
 func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsGroupBy {
-	group := &WithFieldsGroupBy{config: wfq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &WithFieldsGroupBy{config: wfq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := wfq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return wfq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = withfields.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsG
 //
 func (wfq *WithFieldsQuery) Select(fields ...string) *WithFieldsSelect {
 	wfq.fields = append(wfq.fields, fields...)
-	return &WithFieldsSelect{WithFieldsQuery: wfq}
+	selbuild := &WithFieldsSelect{WithFieldsQuery: wfq}
+	selbuild.label = withfields.Label
+	selbuild.flds, selbuild.scan = &wfq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (wfq *WithFieldsQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (wfq *WithFieldsQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (wfq *WithFieldsQuery) sqlAll(ctx context.Context) ([]*WithFields, error) {
+func (wfq *WithFieldsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*WithFields, error) {
 	var (
 		nodes = []*WithFields{}
 		_spec = wfq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &WithFields{config: wfq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*WithFields).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &WithFields{config: wfq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wfq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // WithFieldsGroupBy is the group-by builder for WithFields entities.
 type WithFieldsGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (wfgb *WithFieldsGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	wfgb.sql = query
 	return wfgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := wfgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(wfgb.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := wfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) StringsX(ctx context.Context) []string {
-	v, err := wfgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = wfgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) StringX(ctx context.Context) string {
-	v, err := wfgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(wfgb.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := wfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) IntsX(ctx context.Context) []int {
-	v, err := wfgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = wfgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) IntX(ctx context.Context) int {
-	v, err := wfgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(wfgb.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := wfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := wfgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = wfgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := wfgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(wfgb.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := wfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := wfgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wfgb *WithFieldsGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = wfgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (wfgb *WithFieldsGroupBy) BoolX(ctx context.Context) bool {
-	v, err := wfgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (wfgb *WithFieldsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (wfgb *WithFieldsGroupBy) sqlQuery() *sql.Selector {
 // WithFieldsSelect is the builder for selecting fields of WithFields entities.
 type WithFieldsSelect struct {
 	*WithFieldsQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (wfs *WithFieldsSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	wfs.sql = wfs.WithFieldsQuery.sqlQuery(ctx)
 	return wfs.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (wfs *WithFieldsSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := wfs.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(wfs.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := wfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (wfs *WithFieldsSelect) StringsX(ctx context.Context) []string {
-	v, err := wfs.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = wfs.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (wfs *WithFieldsSelect) StringX(ctx context.Context) string {
-	v, err := wfs.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(wfs.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := wfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (wfs *WithFieldsSelect) IntsX(ctx context.Context) []int {
-	v, err := wfs.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = wfs.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (wfs *WithFieldsSelect) IntX(ctx context.Context) int {
-	v, err := wfs.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(wfs.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := wfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (wfs *WithFieldsSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := wfs.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = wfs.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (wfs *WithFieldsSelect) Float64X(ctx context.Context) float64 {
-	v, err := wfs.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(wfs.fields) > 1 {
-		return nil, errors.New("ent: WithFieldsSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := wfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (wfs *WithFieldsSelect) BoolsX(ctx context.Context) []bool {
-	v, err := wfs.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (wfs *WithFieldsSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = wfs.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withfields.Label}
-	default:
-		err = fmt.Errorf("ent: WithFieldsSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (wfs *WithFieldsSelect) BoolX(ctx context.Context) bool {
-	v, err := wfs.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (wfs *WithFieldsSelect) sqlScan(ctx context.Context, v interface{}) error {

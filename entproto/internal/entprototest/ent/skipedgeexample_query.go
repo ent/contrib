@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -289,22 +288,27 @@ func (seeq *SkipEdgeExampleQuery) WithUser(opts ...func(*UserQuery)) *SkipEdgeEx
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (seeq *SkipEdgeExampleQuery) GroupBy(field string, fields ...string) *SkipEdgeExampleGroupBy {
-	group := &SkipEdgeExampleGroupBy{config: seeq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &SkipEdgeExampleGroupBy{config: seeq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := seeq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return seeq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = skipedgeexample.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (seeq *SkipEdgeExampleQuery) Select(fields ...string) *SkipEdgeExampleSelect {
 	seeq.fields = append(seeq.fields, fields...)
-	return &SkipEdgeExampleSelect{SkipEdgeExampleQuery: seeq}
+	selbuild := &SkipEdgeExampleSelect{SkipEdgeExampleQuery: seeq}
+	selbuild.label = skipedgeexample.Label
+	selbuild.flds, selbuild.scan = &seeq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (seeq *SkipEdgeExampleQuery) prepareQuery(ctx context.Context) error {
@@ -323,7 +327,7 @@ func (seeq *SkipEdgeExampleQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (seeq *SkipEdgeExampleQuery) sqlAll(ctx context.Context) ([]*SkipEdgeExample, error) {
+func (seeq *SkipEdgeExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*SkipEdgeExample, error) {
 	var (
 		nodes       = []*SkipEdgeExample{}
 		withFKs     = seeq.withFKs
@@ -339,17 +343,16 @@ func (seeq *SkipEdgeExampleQuery) sqlAll(ctx context.Context) ([]*SkipEdgeExampl
 		_spec.Node.Columns = append(_spec.Node.Columns, skipedgeexample.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &SkipEdgeExample{config: seeq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*SkipEdgeExample).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &SkipEdgeExample{config: seeq.config}
+		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, seeq.driver, _spec); err != nil {
 		return nil, err
@@ -490,6 +493,7 @@ func (seeq *SkipEdgeExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // SkipEdgeExampleGroupBy is the group-by builder for SkipEdgeExample entities.
 type SkipEdgeExampleGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -511,209 +515,6 @@ func (seegb *SkipEdgeExampleGroupBy) Scan(ctx context.Context, v interface{}) er
 	}
 	seegb.sql = query
 	return seegb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := seegb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(seegb.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := seegb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) StringsX(ctx context.Context) []string {
-	v, err := seegb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = seegb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) StringX(ctx context.Context) string {
-	v, err := seegb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(seegb.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := seegb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) IntsX(ctx context.Context) []int {
-	v, err := seegb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = seegb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) IntX(ctx context.Context) int {
-	v, err := seegb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(seegb.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := seegb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := seegb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = seegb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := seegb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(seegb.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := seegb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := seegb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (seegb *SkipEdgeExampleGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = seegb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (seegb *SkipEdgeExampleGroupBy) BoolX(ctx context.Context) bool {
-	v, err := seegb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (seegb *SkipEdgeExampleGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -757,6 +558,7 @@ func (seegb *SkipEdgeExampleGroupBy) sqlQuery() *sql.Selector {
 // SkipEdgeExampleSelect is the builder for selecting fields of SkipEdgeExample entities.
 type SkipEdgeExampleSelect struct {
 	*SkipEdgeExampleQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -768,201 +570,6 @@ func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v interface{}) erro
 	}
 	sees.sql = sees.SkipEdgeExampleQuery.sqlQuery(ctx)
 	return sees.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := sees.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(sees.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := sees.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) StringsX(ctx context.Context) []string {
-	v, err := sees.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = sees.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) StringX(ctx context.Context) string {
-	v, err := sees.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(sees.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := sees.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) IntsX(ctx context.Context) []int {
-	v, err := sees.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = sees.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) IntX(ctx context.Context) int {
-	v, err := sees.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(sees.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := sees.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := sees.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = sees.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) Float64X(ctx context.Context) float64 {
-	v, err := sees.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(sees.fields) > 1 {
-		return nil, errors.New("ent: SkipEdgeExampleSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := sees.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) BoolsX(ctx context.Context) []bool {
-	v, err := sees.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (sees *SkipEdgeExampleSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = sees.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{skipedgeexample.Label}
-	default:
-		err = fmt.Errorf("ent: SkipEdgeExampleSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (sees *SkipEdgeExampleSelect) BoolX(ctx context.Context) bool {
-	v, err := sees.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (sees *SkipEdgeExampleSelect) sqlScan(ctx context.Context, v interface{}) error {

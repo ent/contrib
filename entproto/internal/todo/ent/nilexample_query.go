@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 //		Scan(ctx, &v)
 //
 func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleGroupBy {
-	group := &NilExampleGroupBy{config: neq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &NilExampleGroupBy{config: neq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := neq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return neq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = nilexample.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleG
 //
 func (neq *NilExampleQuery) Select(fields ...string) *NilExampleSelect {
 	neq.fields = append(neq.fields, fields...)
-	return &NilExampleSelect{NilExampleQuery: neq}
+	selbuild := &NilExampleSelect{NilExampleQuery: neq}
+	selbuild.label = nilexample.Label
+	selbuild.flds, selbuild.scan = &neq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (neq *NilExampleQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (neq *NilExampleQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (neq *NilExampleQuery) sqlAll(ctx context.Context) ([]*NilExample, error) {
+func (neq *NilExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NilExample, error) {
 	var (
 		nodes = []*NilExample{}
 		_spec = neq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &NilExample{config: neq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*NilExample).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &NilExample{config: neq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, neq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (neq *NilExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // NilExampleGroupBy is the group-by builder for NilExample entities.
 type NilExampleGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (negb *NilExampleGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	negb.sql = query
 	return negb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (negb *NilExampleGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := negb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(negb.fields) > 1 {
-		return nil, errors.New("ent: NilExampleGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := negb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (negb *NilExampleGroupBy) StringsX(ctx context.Context) []string {
-	v, err := negb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = negb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (negb *NilExampleGroupBy) StringX(ctx context.Context) string {
-	v, err := negb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(negb.fields) > 1 {
-		return nil, errors.New("ent: NilExampleGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := negb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (negb *NilExampleGroupBy) IntsX(ctx context.Context) []int {
-	v, err := negb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = negb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (negb *NilExampleGroupBy) IntX(ctx context.Context) int {
-	v, err := negb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(negb.fields) > 1 {
-		return nil, errors.New("ent: NilExampleGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := negb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (negb *NilExampleGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := negb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = negb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (negb *NilExampleGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := negb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(negb.fields) > 1 {
-		return nil, errors.New("ent: NilExampleGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := negb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (negb *NilExampleGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := negb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (negb *NilExampleGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = negb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (negb *NilExampleGroupBy) BoolX(ctx context.Context) bool {
-	v, err := negb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (negb *NilExampleGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (negb *NilExampleGroupBy) sqlQuery() *sql.Selector {
 // NilExampleSelect is the builder for selecting fields of NilExample entities.
 type NilExampleSelect struct {
 	*NilExampleQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (nes *NilExampleSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	nes.sql = nes.NilExampleQuery.sqlQuery(ctx)
 	return nes.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (nes *NilExampleSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := nes.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(nes.fields) > 1 {
-		return nil, errors.New("ent: NilExampleSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := nes.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (nes *NilExampleSelect) StringsX(ctx context.Context) []string {
-	v, err := nes.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = nes.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (nes *NilExampleSelect) StringX(ctx context.Context) string {
-	v, err := nes.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(nes.fields) > 1 {
-		return nil, errors.New("ent: NilExampleSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := nes.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (nes *NilExampleSelect) IntsX(ctx context.Context) []int {
-	v, err := nes.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = nes.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (nes *NilExampleSelect) IntX(ctx context.Context) int {
-	v, err := nes.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(nes.fields) > 1 {
-		return nil, errors.New("ent: NilExampleSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := nes.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (nes *NilExampleSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := nes.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = nes.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (nes *NilExampleSelect) Float64X(ctx context.Context) float64 {
-	v, err := nes.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(nes.fields) > 1 {
-		return nil, errors.New("ent: NilExampleSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := nes.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (nes *NilExampleSelect) BoolsX(ctx context.Context) []bool {
-	v, err := nes.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (nes *NilExampleSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = nes.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{nilexample.Label}
-	default:
-		err = fmt.Errorf("ent: NilExampleSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (nes *NilExampleSelect) BoolX(ctx context.Context) bool {
-	v, err := nes.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (nes *NilExampleSelect) sqlScan(ctx context.Context, v interface{}) error {

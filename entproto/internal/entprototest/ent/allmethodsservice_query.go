@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -251,22 +250,27 @@ func (amsq *AllMethodsServiceQuery) Clone() *AllMethodsServiceQuery {
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (amsq *AllMethodsServiceQuery) GroupBy(field string, fields ...string) *AllMethodsServiceGroupBy {
-	group := &AllMethodsServiceGroupBy{config: amsq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &AllMethodsServiceGroupBy{config: amsq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := amsq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return amsq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = allmethodsservice.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (amsq *AllMethodsServiceQuery) Select(fields ...string) *AllMethodsServiceSelect {
 	amsq.fields = append(amsq.fields, fields...)
-	return &AllMethodsServiceSelect{AllMethodsServiceQuery: amsq}
+	selbuild := &AllMethodsServiceSelect{AllMethodsServiceQuery: amsq}
+	selbuild.label = allmethodsservice.Label
+	selbuild.flds, selbuild.scan = &amsq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (amsq *AllMethodsServiceQuery) prepareQuery(ctx context.Context) error {
@@ -285,22 +289,21 @@ func (amsq *AllMethodsServiceQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (amsq *AllMethodsServiceQuery) sqlAll(ctx context.Context) ([]*AllMethodsService, error) {
+func (amsq *AllMethodsServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AllMethodsService, error) {
 	var (
 		nodes = []*AllMethodsService{}
 		_spec = amsq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &AllMethodsService{config: amsq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*AllMethodsService).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &AllMethodsService{config: amsq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, amsq.driver, _spec); err != nil {
 		return nil, err
@@ -411,6 +414,7 @@ func (amsq *AllMethodsServiceQuery) sqlQuery(ctx context.Context) *sql.Selector 
 // AllMethodsServiceGroupBy is the group-by builder for AllMethodsService entities.
 type AllMethodsServiceGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -432,209 +436,6 @@ func (amsgb *AllMethodsServiceGroupBy) Scan(ctx context.Context, v interface{}) 
 	}
 	amsgb.sql = query
 	return amsgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := amsgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(amsgb.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := amsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) StringsX(ctx context.Context) []string {
-	v, err := amsgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = amsgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) StringX(ctx context.Context) string {
-	v, err := amsgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(amsgb.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := amsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) IntsX(ctx context.Context) []int {
-	v, err := amsgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = amsgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) IntX(ctx context.Context) int {
-	v, err := amsgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(amsgb.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := amsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := amsgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = amsgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := amsgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(amsgb.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := amsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := amsgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (amsgb *AllMethodsServiceGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = amsgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (amsgb *AllMethodsServiceGroupBy) BoolX(ctx context.Context) bool {
-	v, err := amsgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (amsgb *AllMethodsServiceGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -678,6 +479,7 @@ func (amsgb *AllMethodsServiceGroupBy) sqlQuery() *sql.Selector {
 // AllMethodsServiceSelect is the builder for selecting fields of AllMethodsService entities.
 type AllMethodsServiceSelect struct {
 	*AllMethodsServiceQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -689,201 +491,6 @@ func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v interface{}) er
 	}
 	amss.sql = amss.AllMethodsServiceQuery.sqlQuery(ctx)
 	return amss.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := amss.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(amss.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := amss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) StringsX(ctx context.Context) []string {
-	v, err := amss.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = amss.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) StringX(ctx context.Context) string {
-	v, err := amss.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(amss.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := amss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) IntsX(ctx context.Context) []int {
-	v, err := amss.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = amss.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) IntX(ctx context.Context) int {
-	v, err := amss.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(amss.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := amss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := amss.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = amss.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) Float64X(ctx context.Context) float64 {
-	v, err := amss.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(amss.fields) > 1 {
-		return nil, errors.New("ent: AllMethodsServiceSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := amss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) BoolsX(ctx context.Context) []bool {
-	v, err := amss.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (amss *AllMethodsServiceSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = amss.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{allmethodsservice.Label}
-	default:
-		err = fmt.Errorf("ent: AllMethodsServiceSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (amss *AllMethodsServiceSelect) BoolX(ctx context.Context) bool {
-	v, err := amss.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (amss *AllMethodsServiceSelect) sqlScan(ctx context.Context, v interface{}) error {

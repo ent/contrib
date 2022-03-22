@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 //		Scan(ctx, &v)
 //
 func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *MultiWordSchemaGroupBy {
-	group := &MultiWordSchemaGroupBy{config: mwsq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &MultiWordSchemaGroupBy{config: mwsq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := mwsq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return mwsq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = multiwordschema.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *Multi
 //
 func (mwsq *MultiWordSchemaQuery) Select(fields ...string) *MultiWordSchemaSelect {
 	mwsq.fields = append(mwsq.fields, fields...)
-	return &MultiWordSchemaSelect{MultiWordSchemaQuery: mwsq}
+	selbuild := &MultiWordSchemaSelect{MultiWordSchemaQuery: mwsq}
+	selbuild.label = multiwordschema.Label
+	selbuild.flds, selbuild.scan = &mwsq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (mwsq *MultiWordSchemaQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (mwsq *MultiWordSchemaQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (mwsq *MultiWordSchemaQuery) sqlAll(ctx context.Context) ([]*MultiWordSchema, error) {
+func (mwsq *MultiWordSchemaQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MultiWordSchema, error) {
 	var (
 		nodes = []*MultiWordSchema{}
 		_spec = mwsq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &MultiWordSchema{config: mwsq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*MultiWordSchema).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &MultiWordSchema{config: mwsq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, mwsq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (mwsq *MultiWordSchemaQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // MultiWordSchemaGroupBy is the group-by builder for MultiWordSchema entities.
 type MultiWordSchemaGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (mwsgb *MultiWordSchemaGroupBy) Scan(ctx context.Context, v interface{}) er
 	}
 	mwsgb.sql = query
 	return mwsgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := mwsgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(mwsgb.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := mwsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) StringsX(ctx context.Context) []string {
-	v, err := mwsgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwsgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) StringX(ctx context.Context) string {
-	v, err := mwsgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(mwsgb.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := mwsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) IntsX(ctx context.Context) []int {
-	v, err := mwsgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwsgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) IntX(ctx context.Context) int {
-	v, err := mwsgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwsgb.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := mwsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := mwsgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwsgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := mwsgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwsgb.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := mwsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := mwsgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwsgb *MultiWordSchemaGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwsgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwsgb *MultiWordSchemaGroupBy) BoolX(ctx context.Context) bool {
-	v, err := mwsgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwsgb *MultiWordSchemaGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (mwsgb *MultiWordSchemaGroupBy) sqlQuery() *sql.Selector {
 // MultiWordSchemaSelect is the builder for selecting fields of MultiWordSchema entities.
 type MultiWordSchemaSelect struct {
 	*MultiWordSchemaQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v interface{}) erro
 	}
 	mwss.sql = mwss.MultiWordSchemaQuery.sqlQuery(ctx)
 	return mwss.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := mwss.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(mwss.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := mwss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) StringsX(ctx context.Context) []string {
-	v, err := mwss.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwss.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) StringX(ctx context.Context) string {
-	v, err := mwss.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(mwss.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := mwss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) IntsX(ctx context.Context) []int {
-	v, err := mwss.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwss.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) IntX(ctx context.Context) int {
-	v, err := mwss.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwss.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := mwss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := mwss.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwss.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) Float64X(ctx context.Context) float64 {
-	v, err := mwss.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwss.fields) > 1 {
-		return nil, errors.New("ent: MultiWordSchemaSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := mwss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) BoolsX(ctx context.Context) []bool {
-	v, err := mwss.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (mwss *MultiWordSchemaSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwss.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{multiwordschema.Label}
-	default:
-		err = fmt.Errorf("ent: MultiWordSchemaSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwss *MultiWordSchemaSelect) BoolX(ctx context.Context) bool {
-	v, err := mwss.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwss *MultiWordSchemaSelect) sqlScan(ctx context.Context, v interface{}) error {

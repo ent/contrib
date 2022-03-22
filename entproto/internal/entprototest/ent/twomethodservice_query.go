@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -251,22 +250,27 @@ func (tmsq *TwoMethodServiceQuery) Clone() *TwoMethodServiceQuery {
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (tmsq *TwoMethodServiceQuery) GroupBy(field string, fields ...string) *TwoMethodServiceGroupBy {
-	group := &TwoMethodServiceGroupBy{config: tmsq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &TwoMethodServiceGroupBy{config: tmsq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := tmsq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return tmsq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = twomethodservice.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (tmsq *TwoMethodServiceQuery) Select(fields ...string) *TwoMethodServiceSelect {
 	tmsq.fields = append(tmsq.fields, fields...)
-	return &TwoMethodServiceSelect{TwoMethodServiceQuery: tmsq}
+	selbuild := &TwoMethodServiceSelect{TwoMethodServiceQuery: tmsq}
+	selbuild.label = twomethodservice.Label
+	selbuild.flds, selbuild.scan = &tmsq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (tmsq *TwoMethodServiceQuery) prepareQuery(ctx context.Context) error {
@@ -285,22 +289,21 @@ func (tmsq *TwoMethodServiceQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (tmsq *TwoMethodServiceQuery) sqlAll(ctx context.Context) ([]*TwoMethodService, error) {
+func (tmsq *TwoMethodServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*TwoMethodService, error) {
 	var (
 		nodes = []*TwoMethodService{}
 		_spec = tmsq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &TwoMethodService{config: tmsq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*TwoMethodService).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &TwoMethodService{config: tmsq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, tmsq.driver, _spec); err != nil {
 		return nil, err
@@ -411,6 +414,7 @@ func (tmsq *TwoMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // TwoMethodServiceGroupBy is the group-by builder for TwoMethodService entities.
 type TwoMethodServiceGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -432,209 +436,6 @@ func (tmsgb *TwoMethodServiceGroupBy) Scan(ctx context.Context, v interface{}) e
 	}
 	tmsgb.sql = query
 	return tmsgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := tmsgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(tmsgb.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := tmsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) StringsX(ctx context.Context) []string {
-	v, err := tmsgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = tmsgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) StringX(ctx context.Context) string {
-	v, err := tmsgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(tmsgb.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := tmsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) IntsX(ctx context.Context) []int {
-	v, err := tmsgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = tmsgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) IntX(ctx context.Context) int {
-	v, err := tmsgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(tmsgb.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := tmsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := tmsgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = tmsgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := tmsgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(tmsgb.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := tmsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := tmsgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (tmsgb *TwoMethodServiceGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = tmsgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (tmsgb *TwoMethodServiceGroupBy) BoolX(ctx context.Context) bool {
-	v, err := tmsgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (tmsgb *TwoMethodServiceGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -678,6 +479,7 @@ func (tmsgb *TwoMethodServiceGroupBy) sqlQuery() *sql.Selector {
 // TwoMethodServiceSelect is the builder for selecting fields of TwoMethodService entities.
 type TwoMethodServiceSelect struct {
 	*TwoMethodServiceQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -689,201 +491,6 @@ func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v interface{}) err
 	}
 	tmss.sql = tmss.TwoMethodServiceQuery.sqlQuery(ctx)
 	return tmss.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := tmss.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(tmss.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := tmss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) StringsX(ctx context.Context) []string {
-	v, err := tmss.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = tmss.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) StringX(ctx context.Context) string {
-	v, err := tmss.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(tmss.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := tmss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) IntsX(ctx context.Context) []int {
-	v, err := tmss.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = tmss.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) IntX(ctx context.Context) int {
-	v, err := tmss.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(tmss.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := tmss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := tmss.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = tmss.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) Float64X(ctx context.Context) float64 {
-	v, err := tmss.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(tmss.fields) > 1 {
-		return nil, errors.New("ent: TwoMethodServiceSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := tmss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) BoolsX(ctx context.Context) []bool {
-	v, err := tmss.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (tmss *TwoMethodServiceSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = tmss.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{twomethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: TwoMethodServiceSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (tmss *TwoMethodServiceSelect) BoolX(ctx context.Context) bool {
-	v, err := tmss.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (tmss *TwoMethodServiceSelect) sqlScan(ctx context.Context, v interface{}) error {

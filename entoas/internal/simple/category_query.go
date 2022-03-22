@@ -5,7 +5,6 @@ package simple
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"math"
 
@@ -302,15 +301,17 @@ func (cq *CategoryQuery) WithPets(opts ...func(*PetQuery)) *CategoryQuery {
 //		Scan(ctx, &v)
 //
 func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupBy {
-	group := &CategoryGroupBy{config: cq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &CategoryGroupBy{config: cq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return cq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = category.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -328,7 +329,10 @@ func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupB
 //
 func (cq *CategoryQuery) Select(fields ...string) *CategorySelect {
 	cq.fields = append(cq.fields, fields...)
-	return &CategorySelect{CategoryQuery: cq}
+	selbuild := &CategorySelect{CategoryQuery: cq}
+	selbuild.label = category.Label
+	selbuild.flds, selbuild.scan = &cq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (cq *CategoryQuery) prepareQuery(ctx context.Context) error {
@@ -347,7 +351,7 @@ func (cq *CategoryQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
+func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Category, error) {
 	var (
 		nodes       = []*Category{}
 		_spec       = cq.querySpec()
@@ -356,17 +360,16 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &Category{config: cq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*Category).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("simple: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &Category{config: cq.config}
+		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
 		return nil, err
@@ -376,66 +379,54 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 	}
 
 	if query := cq.withPets; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*Category, len(nodes))
-		for _, node := range nodes {
-			ids[node.ID] = node
-			fks = append(fks, node.ID)
+		edgeids := make([]driver.Value, len(nodes))
+		byid := make(map[int]*Category)
+		nids := make(map[int]map[*Category]struct{})
+		for i, node := range nodes {
+			edgeids[i] = node.ID
+			byid[node.ID] = node
 			node.Edges.Pets = []*Pet{}
 		}
-		var (
-			edgeids []int
-			edges   = make(map[int][]*Category)
-		)
-		_spec := &sqlgraph.EdgeQuerySpec{
-			Edge: &sqlgraph.EdgeSpec{
-				Inverse: false,
-				Table:   category.PetsTable,
-				Columns: category.PetsPrimaryKey,
-			},
-			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(category.PetsPrimaryKey[0], fks...))
-			},
-			ScanValues: func() [2]interface{} {
-				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
-			},
-			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*sql.NullInt64)
-				if !ok || eout == nil {
-					return fmt.Errorf("unexpected id value for edge-out")
+		query.Where(func(s *sql.Selector) {
+			joinT := sql.Table(category.PetsTable)
+			s.Join(joinT).On(s.C(pet.FieldID), joinT.C(category.PetsPrimaryKey[1]))
+			s.Where(sql.InValues(joinT.C(category.PetsPrimaryKey[0]), edgeids...))
+			columns := s.SelectedColumns()
+			s.Select(joinT.C(category.PetsPrimaryKey[0]))
+			s.AppendSelect(columns...)
+			s.SetDistinct(false)
+		})
+		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]interface{}, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
 				}
-				ein, ok := in.(*sql.NullInt64)
-				if !ok || ein == nil {
-					return fmt.Errorf("unexpected id value for edge-in")
+				return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []interface{}) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Category]struct{}{byid[outValue]: struct{}{}}
+					return assign(columns[1:], values[1:])
 				}
-				outValue := int(eout.Int64)
-				inValue := int(ein.Int64)
-				node, ok := ids[outValue]
-				if !ok {
-					return fmt.Errorf("unexpected node id in edges: %v", outValue)
-				}
-				if _, ok := edges[inValue]; !ok {
-					edgeids = append(edgeids, inValue)
-				}
-				edges[inValue] = append(edges[inValue], node)
+				nids[inValue][byid[outValue]] = struct{}{}
 				return nil
-			},
-		}
-		if err := sqlgraph.QueryEdges(ctx, cq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "pets": %w`, err)
-		}
-		query.Where(pet.IDIn(edgeids...))
-		neighbors, err := query.All(ctx)
+			}
+		})
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := edges[n.ID]
+			nodes, ok := nids[n.ID]
 			if !ok {
 				return nil, fmt.Errorf(`unexpected "pets" node returned %v`, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Pets = append(nodes[i].Edges.Pets, n)
+			for kn := range nodes {
+				kn.Edges.Pets = append(kn.Edges.Pets, n)
 			}
 		}
 	}
@@ -543,6 +534,7 @@ func (cq *CategoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // CategoryGroupBy is the group-by builder for Category entities.
 type CategoryGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -564,209 +556,6 @@ func (cgb *CategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	cgb.sql = query
 	return cgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (cgb *CategoryGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := cgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(cgb.fields) > 1 {
-		return nil, errors.New("simple: CategoryGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := cgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (cgb *CategoryGroupBy) StringsX(ctx context.Context) []string {
-	v, err := cgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = cgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategoryGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (cgb *CategoryGroupBy) StringX(ctx context.Context) string {
-	v, err := cgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(cgb.fields) > 1 {
-		return nil, errors.New("simple: CategoryGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := cgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (cgb *CategoryGroupBy) IntsX(ctx context.Context) []int {
-	v, err := cgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = cgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategoryGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (cgb *CategoryGroupBy) IntX(ctx context.Context) int {
-	v, err := cgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(cgb.fields) > 1 {
-		return nil, errors.New("simple: CategoryGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := cgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (cgb *CategoryGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := cgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = cgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategoryGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (cgb *CategoryGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := cgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(cgb.fields) > 1 {
-		return nil, errors.New("simple: CategoryGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := cgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (cgb *CategoryGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := cgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (cgb *CategoryGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = cgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategoryGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (cgb *CategoryGroupBy) BoolX(ctx context.Context) bool {
-	v, err := cgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (cgb *CategoryGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -810,6 +599,7 @@ func (cgb *CategoryGroupBy) sqlQuery() *sql.Selector {
 // CategorySelect is the builder for selecting fields of Category entities.
 type CategorySelect struct {
 	*CategoryQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -821,201 +611,6 @@ func (cs *CategorySelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	cs.sql = cs.CategoryQuery.sqlQuery(ctx)
 	return cs.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (cs *CategorySelect) ScanX(ctx context.Context, v interface{}) {
-	if err := cs.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Strings(ctx context.Context) ([]string, error) {
-	if len(cs.fields) > 1 {
-		return nil, errors.New("simple: CategorySelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := cs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (cs *CategorySelect) StringsX(ctx context.Context) []string {
-	v, err := cs.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = cs.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategorySelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (cs *CategorySelect) StringX(ctx context.Context) string {
-	v, err := cs.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Ints(ctx context.Context) ([]int, error) {
-	if len(cs.fields) > 1 {
-		return nil, errors.New("simple: CategorySelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := cs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (cs *CategorySelect) IntsX(ctx context.Context) []int {
-	v, err := cs.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = cs.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategorySelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (cs *CategorySelect) IntX(ctx context.Context) int {
-	v, err := cs.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(cs.fields) > 1 {
-		return nil, errors.New("simple: CategorySelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := cs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (cs *CategorySelect) Float64sX(ctx context.Context) []float64 {
-	v, err := cs.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = cs.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategorySelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (cs *CategorySelect) Float64X(ctx context.Context) float64 {
-	v, err := cs.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(cs.fields) > 1 {
-		return nil, errors.New("simple: CategorySelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := cs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (cs *CategorySelect) BoolsX(ctx context.Context) []bool {
-	v, err := cs.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (cs *CategorySelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = cs.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{category.Label}
-	default:
-		err = fmt.Errorf("simple: CategorySelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (cs *CategorySelect) BoolX(ctx context.Context) bool {
-	v, err := cs.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (cs *CategorySelect) sqlScan(ctx context.Context, v interface{}) error {

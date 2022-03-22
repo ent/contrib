@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 //		Scan(ctx, &v)
 //
 func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMessageGroupBy {
-	group := &ValidMessageGroupBy{config: vmq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &ValidMessageGroupBy{config: vmq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := vmq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return vmq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = validmessage.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMess
 //
 func (vmq *ValidMessageQuery) Select(fields ...string) *ValidMessageSelect {
 	vmq.fields = append(vmq.fields, fields...)
-	return &ValidMessageSelect{ValidMessageQuery: vmq}
+	selbuild := &ValidMessageSelect{ValidMessageQuery: vmq}
+	selbuild.label = validmessage.Label
+	selbuild.flds, selbuild.scan = &vmq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (vmq *ValidMessageQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (vmq *ValidMessageQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (vmq *ValidMessageQuery) sqlAll(ctx context.Context) ([]*ValidMessage, error) {
+func (vmq *ValidMessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ValidMessage, error) {
 	var (
 		nodes = []*ValidMessage{}
 		_spec = vmq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &ValidMessage{config: vmq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*ValidMessage).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &ValidMessage{config: vmq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, vmq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ValidMessageGroupBy is the group-by builder for ValidMessage entities.
 type ValidMessageGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (vmgb *ValidMessageGroupBy) Scan(ctx context.Context, v interface{}) error 
 	}
 	vmgb.sql = query
 	return vmgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := vmgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(vmgb.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := vmgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) StringsX(ctx context.Context) []string {
-	v, err := vmgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = vmgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) StringX(ctx context.Context) string {
-	v, err := vmgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(vmgb.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := vmgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) IntsX(ctx context.Context) []int {
-	v, err := vmgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = vmgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) IntX(ctx context.Context) int {
-	v, err := vmgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(vmgb.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := vmgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := vmgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = vmgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := vmgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(vmgb.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := vmgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := vmgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vmgb *ValidMessageGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = vmgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (vmgb *ValidMessageGroupBy) BoolX(ctx context.Context) bool {
-	v, err := vmgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (vmgb *ValidMessageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (vmgb *ValidMessageGroupBy) sqlQuery() *sql.Selector {
 // ValidMessageSelect is the builder for selecting fields of ValidMessage entities.
 type ValidMessageSelect struct {
 	*ValidMessageQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (vms *ValidMessageSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	vms.sql = vms.ValidMessageQuery.sqlQuery(ctx)
 	return vms.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (vms *ValidMessageSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := vms.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(vms.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := vms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (vms *ValidMessageSelect) StringsX(ctx context.Context) []string {
-	v, err := vms.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = vms.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (vms *ValidMessageSelect) StringX(ctx context.Context) string {
-	v, err := vms.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(vms.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := vms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (vms *ValidMessageSelect) IntsX(ctx context.Context) []int {
-	v, err := vms.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = vms.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (vms *ValidMessageSelect) IntX(ctx context.Context) int {
-	v, err := vms.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(vms.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := vms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (vms *ValidMessageSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := vms.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = vms.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (vms *ValidMessageSelect) Float64X(ctx context.Context) float64 {
-	v, err := vms.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(vms.fields) > 1 {
-		return nil, errors.New("ent: ValidMessageSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := vms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (vms *ValidMessageSelect) BoolsX(ctx context.Context) []bool {
-	v, err := vms.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (vms *ValidMessageSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = vms.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{validmessage.Label}
-	default:
-		err = fmt.Errorf("ent: ValidMessageSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (vms *ValidMessageSelect) BoolX(ctx context.Context) bool {
-	v, err := vms.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (vms *ValidMessageSelect) sqlScan(ctx context.Context, v interface{}) error {

@@ -64,7 +64,7 @@ func ValidColumn(column string) bool {
 
 // RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
 func RoleValidator(r role.Role) error {
-	switch r {
+	switch r.String() {
 	case "ADMIN", "USER", "UNKNOWN":
 		return nil
 	default:

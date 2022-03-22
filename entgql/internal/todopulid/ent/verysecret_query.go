@@ -18,7 +18,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -279,15 +278,17 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 //		Scan(ctx, &v)
 //
 func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretGroupBy {
-	group := &VerySecretGroupBy{config: vsq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &VerySecretGroupBy{config: vsq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := vsq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return vsq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = verysecret.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -305,7 +306,10 @@ func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretG
 //
 func (vsq *VerySecretQuery) Select(fields ...string) *VerySecretSelect {
 	vsq.fields = append(vsq.fields, fields...)
-	return &VerySecretSelect{VerySecretQuery: vsq}
+	selbuild := &VerySecretSelect{VerySecretQuery: vsq}
+	selbuild.label = verysecret.Label
+	selbuild.flds, selbuild.scan = &vsq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (vsq *VerySecretQuery) prepareQuery(ctx context.Context) error {
@@ -324,22 +328,21 @@ func (vsq *VerySecretQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (vsq *VerySecretQuery) sqlAll(ctx context.Context) ([]*VerySecret, error) {
+func (vsq *VerySecretQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*VerySecret, error) {
 	var (
 		nodes = []*VerySecret{}
 		_spec = vsq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &VerySecret{config: vsq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*VerySecret).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &VerySecret{config: vsq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, vsq.driver, _spec); err != nil {
 		return nil, err
@@ -450,6 +453,7 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // VerySecretGroupBy is the group-by builder for VerySecret entities.
 type VerySecretGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -471,209 +475,6 @@ func (vsgb *VerySecretGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	vsgb.sql = query
 	return vsgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := vsgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(vsgb.fields) > 1 {
-		return nil, errors.New("ent: VerySecretGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := vsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) StringsX(ctx context.Context) []string {
-	v, err := vsgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = vsgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) StringX(ctx context.Context) string {
-	v, err := vsgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(vsgb.fields) > 1 {
-		return nil, errors.New("ent: VerySecretGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := vsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) IntsX(ctx context.Context) []int {
-	v, err := vsgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = vsgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) IntX(ctx context.Context) int {
-	v, err := vsgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(vsgb.fields) > 1 {
-		return nil, errors.New("ent: VerySecretGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := vsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := vsgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = vsgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := vsgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(vsgb.fields) > 1 {
-		return nil, errors.New("ent: VerySecretGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := vsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := vsgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (vsgb *VerySecretGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = vsgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (vsgb *VerySecretGroupBy) BoolX(ctx context.Context) bool {
-	v, err := vsgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (vsgb *VerySecretGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -717,6 +518,7 @@ func (vsgb *VerySecretGroupBy) sqlQuery() *sql.Selector {
 // VerySecretSelect is the builder for selecting fields of VerySecret entities.
 type VerySecretSelect struct {
 	*VerySecretQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -728,201 +530,6 @@ func (vss *VerySecretSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	vss.sql = vss.VerySecretQuery.sqlQuery(ctx)
 	return vss.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (vss *VerySecretSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := vss.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(vss.fields) > 1 {
-		return nil, errors.New("ent: VerySecretSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := vss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (vss *VerySecretSelect) StringsX(ctx context.Context) []string {
-	v, err := vss.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = vss.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (vss *VerySecretSelect) StringX(ctx context.Context) string {
-	v, err := vss.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(vss.fields) > 1 {
-		return nil, errors.New("ent: VerySecretSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := vss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (vss *VerySecretSelect) IntsX(ctx context.Context) []int {
-	v, err := vss.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = vss.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (vss *VerySecretSelect) IntX(ctx context.Context) int {
-	v, err := vss.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(vss.fields) > 1 {
-		return nil, errors.New("ent: VerySecretSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := vss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (vss *VerySecretSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := vss.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = vss.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (vss *VerySecretSelect) Float64X(ctx context.Context) float64 {
-	v, err := vss.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(vss.fields) > 1 {
-		return nil, errors.New("ent: VerySecretSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := vss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (vss *VerySecretSelect) BoolsX(ctx context.Context) []bool {
-	v, err := vss.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (vss *VerySecretSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = vss.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{verysecret.Label}
-	default:
-		err = fmt.Errorf("ent: VerySecretSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (vss *VerySecretSelect) BoolX(ctx context.Context) bool {
-	v, err := vss.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (vss *VerySecretSelect) sqlScan(ctx context.Context, v interface{}) error {

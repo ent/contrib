@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 //		Scan(ctx, &v)
 //
 func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string) *MessageWithPackageNameGroupBy {
-	group := &MessageWithPackageNameGroupBy{config: mwpnq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &MessageWithPackageNameGroupBy{config: mwpnq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := mwpnq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return mwpnq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = messagewithpackagename.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string
 //
 func (mwpnq *MessageWithPackageNameQuery) Select(fields ...string) *MessageWithPackageNameSelect {
 	mwpnq.fields = append(mwpnq.fields, fields...)
-	return &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}
+	selbuild := &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}
+	selbuild.label = messagewithpackagename.Label
+	selbuild.flds, selbuild.scan = &mwpnq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (mwpnq *MessageWithPackageNameQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (mwpnq *MessageWithPackageNameQuery) prepareQuery(ctx context.Context) erro
 	return nil
 }
 
-func (mwpnq *MessageWithPackageNameQuery) sqlAll(ctx context.Context) ([]*MessageWithPackageName, error) {
+func (mwpnq *MessageWithPackageNameQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MessageWithPackageName, error) {
 	var (
 		nodes = []*MessageWithPackageName{}
 		_spec = mwpnq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &MessageWithPackageName{config: mwpnq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*MessageWithPackageName).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &MessageWithPackageName{config: mwpnq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, mwpnq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Sel
 // MessageWithPackageNameGroupBy is the group-by builder for MessageWithPackageName entities.
 type MessageWithPackageNameGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (mwpngb *MessageWithPackageNameGroupBy) Scan(ctx context.Context, v interfa
 	}
 	mwpngb.sql = query
 	return mwpngb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := mwpngb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(mwpngb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := mwpngb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) StringsX(ctx context.Context) []string {
-	v, err := mwpngb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwpngb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) StringX(ctx context.Context) string {
-	v, err := mwpngb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(mwpngb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := mwpngb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) IntsX(ctx context.Context) []int {
-	v, err := mwpngb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwpngb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) IntX(ctx context.Context) int {
-	v, err := mwpngb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwpngb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := mwpngb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := mwpngb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwpngb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := mwpngb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwpngb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := mwpngb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := mwpngb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwpngb *MessageWithPackageNameGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwpngb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwpngb *MessageWithPackageNameGroupBy) BoolX(ctx context.Context) bool {
-	v, err := mwpngb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwpngb *MessageWithPackageNameGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (mwpngb *MessageWithPackageNameGroupBy) sqlQuery() *sql.Selector {
 // MessageWithPackageNameSelect is the builder for selecting fields of MessageWithPackageName entities.
 type MessageWithPackageNameSelect struct {
 	*MessageWithPackageNameQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v interface
 	}
 	mwpns.sql = mwpns.MessageWithPackageNameQuery.sqlQuery(ctx)
 	return mwpns.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := mwpns.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(mwpns.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := mwpns.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) StringsX(ctx context.Context) []string {
-	v, err := mwpns.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwpns.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) StringX(ctx context.Context) string {
-	v, err := mwpns.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(mwpns.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := mwpns.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) IntsX(ctx context.Context) []int {
-	v, err := mwpns.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwpns.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) IntX(ctx context.Context) int {
-	v, err := mwpns.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwpns.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := mwpns.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := mwpns.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwpns.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) Float64X(ctx context.Context) float64 {
-	v, err := mwpns.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwpns.fields) > 1 {
-		return nil, errors.New("ent: MessageWithPackageNameSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := mwpns.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) BoolsX(ctx context.Context) []bool {
-	v, err := mwpns.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (mwpns *MessageWithPackageNameSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwpns.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithpackagename.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithPackageNameSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwpns *MessageWithPackageNameSelect) BoolX(ctx context.Context) bool {
-	v, err := mwpns.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, v interface{}) error {

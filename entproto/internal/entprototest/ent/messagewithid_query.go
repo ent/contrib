@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -251,22 +250,27 @@ func (mwiq *MessageWithIDQuery) Clone() *MessageWithIDQuery {
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (mwiq *MessageWithIDQuery) GroupBy(field string, fields ...string) *MessageWithIDGroupBy {
-	group := &MessageWithIDGroupBy{config: mwiq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &MessageWithIDGroupBy{config: mwiq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := mwiq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return mwiq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = messagewithid.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (mwiq *MessageWithIDQuery) Select(fields ...string) *MessageWithIDSelect {
 	mwiq.fields = append(mwiq.fields, fields...)
-	return &MessageWithIDSelect{MessageWithIDQuery: mwiq}
+	selbuild := &MessageWithIDSelect{MessageWithIDQuery: mwiq}
+	selbuild.label = messagewithid.Label
+	selbuild.flds, selbuild.scan = &mwiq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (mwiq *MessageWithIDQuery) prepareQuery(ctx context.Context) error {
@@ -285,22 +289,21 @@ func (mwiq *MessageWithIDQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (mwiq *MessageWithIDQuery) sqlAll(ctx context.Context) ([]*MessageWithID, error) {
+func (mwiq *MessageWithIDQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MessageWithID, error) {
 	var (
 		nodes = []*MessageWithID{}
 		_spec = mwiq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &MessageWithID{config: mwiq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*MessageWithID).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &MessageWithID{config: mwiq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, mwiq.driver, _spec); err != nil {
 		return nil, err
@@ -411,6 +414,7 @@ func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // MessageWithIDGroupBy is the group-by builder for MessageWithID entities.
 type MessageWithIDGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -432,209 +436,6 @@ func (mwigb *MessageWithIDGroupBy) Scan(ctx context.Context, v interface{}) erro
 	}
 	mwigb.sql = query
 	return mwigb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := mwigb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(mwigb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := mwigb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) StringsX(ctx context.Context) []string {
-	v, err := mwigb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwigb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) StringX(ctx context.Context) string {
-	v, err := mwigb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(mwigb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := mwigb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) IntsX(ctx context.Context) []int {
-	v, err := mwigb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwigb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) IntX(ctx context.Context) int {
-	v, err := mwigb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwigb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := mwigb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := mwigb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwigb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := mwigb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwigb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := mwigb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := mwigb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwigb *MessageWithIDGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwigb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwigb *MessageWithIDGroupBy) BoolX(ctx context.Context) bool {
-	v, err := mwigb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwigb *MessageWithIDGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -678,6 +479,7 @@ func (mwigb *MessageWithIDGroupBy) sqlQuery() *sql.Selector {
 // MessageWithIDSelect is the builder for selecting fields of MessageWithID entities.
 type MessageWithIDSelect struct {
 	*MessageWithIDQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -689,201 +491,6 @@ func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v interface{}) error 
 	}
 	mwis.sql = mwis.MessageWithIDQuery.sqlQuery(ctx)
 	return mwis.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := mwis.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(mwis.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := mwis.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) StringsX(ctx context.Context) []string {
-	v, err := mwis.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwis.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) StringX(ctx context.Context) string {
-	v, err := mwis.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(mwis.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := mwis.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) IntsX(ctx context.Context) []int {
-	v, err := mwis.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwis.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) IntX(ctx context.Context) int {
-	v, err := mwis.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwis.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := mwis.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := mwis.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwis.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) Float64X(ctx context.Context) float64 {
-	v, err := mwis.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwis.fields) > 1 {
-		return nil, errors.New("ent: MessageWithIDSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := mwis.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) BoolsX(ctx context.Context) []bool {
-	v, err := mwis.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (mwis *MessageWithIDSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwis.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithid.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithIDSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwis *MessageWithIDSelect) BoolX(ctx context.Context) bool {
-	v, err := mwis.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, v interface{}) error {

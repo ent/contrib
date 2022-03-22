@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -302,15 +301,17 @@ func (wmfq *WithModifiedFieldQuery) WithOwner(opts ...func(*UserQuery)) *WithMod
 //		Scan(ctx, &v)
 //
 func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *WithModifiedFieldGroupBy {
-	group := &WithModifiedFieldGroupBy{config: wmfq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &WithModifiedFieldGroupBy{config: wmfq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := wmfq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return wmfq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = withmodifiedfield.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -328,7 +329,10 @@ func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *Wit
 //
 func (wmfq *WithModifiedFieldQuery) Select(fields ...string) *WithModifiedFieldSelect {
 	wmfq.fields = append(wmfq.fields, fields...)
-	return &WithModifiedFieldSelect{WithModifiedFieldQuery: wmfq}
+	selbuild := &WithModifiedFieldSelect{WithModifiedFieldQuery: wmfq}
+	selbuild.label = withmodifiedfield.Label
+	selbuild.flds, selbuild.scan = &wmfq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (wmfq *WithModifiedFieldQuery) prepareQuery(ctx context.Context) error {
@@ -347,7 +351,7 @@ func (wmfq *WithModifiedFieldQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (wmfq *WithModifiedFieldQuery) sqlAll(ctx context.Context) ([]*WithModifiedField, error) {
+func (wmfq *WithModifiedFieldQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*WithModifiedField, error) {
 	var (
 		nodes       = []*WithModifiedField{}
 		withFKs     = wmfq.withFKs
@@ -363,17 +367,16 @@ func (wmfq *WithModifiedFieldQuery) sqlAll(ctx context.Context) ([]*WithModified
 		_spec.Node.Columns = append(_spec.Node.Columns, withmodifiedfield.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &WithModifiedField{config: wmfq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*WithModifiedField).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &WithModifiedField{config: wmfq.config}
+		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wmfq.driver, _spec); err != nil {
 		return nil, err
@@ -514,6 +517,7 @@ func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector 
 // WithModifiedFieldGroupBy is the group-by builder for WithModifiedField entities.
 type WithModifiedFieldGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -535,209 +539,6 @@ func (wmfgb *WithModifiedFieldGroupBy) Scan(ctx context.Context, v interface{}) 
 	}
 	wmfgb.sql = query
 	return wmfgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := wmfgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(wmfgb.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := wmfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) StringsX(ctx context.Context) []string {
-	v, err := wmfgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = wmfgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) StringX(ctx context.Context) string {
-	v, err := wmfgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(wmfgb.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := wmfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) IntsX(ctx context.Context) []int {
-	v, err := wmfgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = wmfgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) IntX(ctx context.Context) int {
-	v, err := wmfgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(wmfgb.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := wmfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := wmfgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = wmfgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := wmfgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(wmfgb.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := wmfgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := wmfgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (wmfgb *WithModifiedFieldGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = wmfgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (wmfgb *WithModifiedFieldGroupBy) BoolX(ctx context.Context) bool {
-	v, err := wmfgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (wmfgb *WithModifiedFieldGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -781,6 +582,7 @@ func (wmfgb *WithModifiedFieldGroupBy) sqlQuery() *sql.Selector {
 // WithModifiedFieldSelect is the builder for selecting fields of WithModifiedField entities.
 type WithModifiedFieldSelect struct {
 	*WithModifiedFieldQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -792,201 +594,6 @@ func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v interface{}) er
 	}
 	wmfs.sql = wmfs.WithModifiedFieldQuery.sqlQuery(ctx)
 	return wmfs.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := wmfs.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(wmfs.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := wmfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) StringsX(ctx context.Context) []string {
-	v, err := wmfs.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = wmfs.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) StringX(ctx context.Context) string {
-	v, err := wmfs.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(wmfs.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := wmfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) IntsX(ctx context.Context) []int {
-	v, err := wmfs.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = wmfs.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) IntX(ctx context.Context) int {
-	v, err := wmfs.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(wmfs.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := wmfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := wmfs.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = wmfs.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) Float64X(ctx context.Context) float64 {
-	v, err := wmfs.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(wmfs.fields) > 1 {
-		return nil, errors.New("ent: WithModifiedFieldSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := wmfs.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) BoolsX(ctx context.Context) []bool {
-	v, err := wmfs.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (wmfs *WithModifiedFieldSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = wmfs.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{withmodifiedfield.Label}
-	default:
-		err = fmt.Errorf("ent: WithModifiedFieldSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (wmfs *WithModifiedFieldSelect) BoolX(ctx context.Context) bool {
-	v, err := wmfs.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, v interface{}) error {

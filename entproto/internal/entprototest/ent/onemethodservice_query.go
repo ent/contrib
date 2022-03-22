@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -251,22 +250,27 @@ func (omsq *OneMethodServiceQuery) Clone() *OneMethodServiceQuery {
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (omsq *OneMethodServiceQuery) GroupBy(field string, fields ...string) *OneMethodServiceGroupBy {
-	group := &OneMethodServiceGroupBy{config: omsq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &OneMethodServiceGroupBy{config: omsq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := omsq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return omsq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = onemethodservice.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (omsq *OneMethodServiceQuery) Select(fields ...string) *OneMethodServiceSelect {
 	omsq.fields = append(omsq.fields, fields...)
-	return &OneMethodServiceSelect{OneMethodServiceQuery: omsq}
+	selbuild := &OneMethodServiceSelect{OneMethodServiceQuery: omsq}
+	selbuild.label = onemethodservice.Label
+	selbuild.flds, selbuild.scan = &omsq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (omsq *OneMethodServiceQuery) prepareQuery(ctx context.Context) error {
@@ -285,22 +289,21 @@ func (omsq *OneMethodServiceQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (omsq *OneMethodServiceQuery) sqlAll(ctx context.Context) ([]*OneMethodService, error) {
+func (omsq *OneMethodServiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OneMethodService, error) {
 	var (
 		nodes = []*OneMethodService{}
 		_spec = omsq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &OneMethodService{config: omsq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*OneMethodService).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &OneMethodService{config: omsq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, omsq.driver, _spec); err != nil {
 		return nil, err
@@ -411,6 +414,7 @@ func (omsq *OneMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // OneMethodServiceGroupBy is the group-by builder for OneMethodService entities.
 type OneMethodServiceGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -432,209 +436,6 @@ func (omsgb *OneMethodServiceGroupBy) Scan(ctx context.Context, v interface{}) e
 	}
 	omsgb.sql = query
 	return omsgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := omsgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(omsgb.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := omsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) StringsX(ctx context.Context) []string {
-	v, err := omsgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = omsgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) StringX(ctx context.Context) string {
-	v, err := omsgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(omsgb.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := omsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) IntsX(ctx context.Context) []int {
-	v, err := omsgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = omsgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) IntX(ctx context.Context) int {
-	v, err := omsgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(omsgb.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := omsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := omsgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = omsgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := omsgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(omsgb.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := omsgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := omsgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (omsgb *OneMethodServiceGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = omsgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (omsgb *OneMethodServiceGroupBy) BoolX(ctx context.Context) bool {
-	v, err := omsgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (omsgb *OneMethodServiceGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -678,6 +479,7 @@ func (omsgb *OneMethodServiceGroupBy) sqlQuery() *sql.Selector {
 // OneMethodServiceSelect is the builder for selecting fields of OneMethodService entities.
 type OneMethodServiceSelect struct {
 	*OneMethodServiceQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -689,201 +491,6 @@ func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v interface{}) err
 	}
 	omss.sql = omss.OneMethodServiceQuery.sqlQuery(ctx)
 	return omss.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := omss.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(omss.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := omss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) StringsX(ctx context.Context) []string {
-	v, err := omss.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = omss.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) StringX(ctx context.Context) string {
-	v, err := omss.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(omss.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := omss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) IntsX(ctx context.Context) []int {
-	v, err := omss.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = omss.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) IntX(ctx context.Context) int {
-	v, err := omss.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(omss.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := omss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := omss.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = omss.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) Float64X(ctx context.Context) float64 {
-	v, err := omss.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(omss.fields) > 1 {
-		return nil, errors.New("ent: OneMethodServiceSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := omss.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) BoolsX(ctx context.Context) []bool {
-	v, err := omss.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (omss *OneMethodServiceSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = omss.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{onemethodservice.Label}
-	default:
-		err = fmt.Errorf("ent: OneMethodServiceSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (omss *OneMethodServiceSelect) BoolX(ctx context.Context) bool {
-	v, err := omss.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (omss *OneMethodServiceSelect) sqlScan(ctx context.Context, v interface{}) error {

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 //		Scan(ctx, &v)
 //
 func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *MessageWithFieldOneGroupBy {
-	group := &MessageWithFieldOneGroupBy{config: mwfoq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &MessageWithFieldOneGroupBy{config: mwfoq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := mwfoq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return mwfoq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = messagewithfieldone.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *
 //
 func (mwfoq *MessageWithFieldOneQuery) Select(fields ...string) *MessageWithFieldOneSelect {
 	mwfoq.fields = append(mwfoq.fields, fields...)
-	return &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}
+	selbuild := &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}
+	selbuild.label = messagewithfieldone.Label
+	selbuild.flds, selbuild.scan = &mwfoq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (mwfoq *MessageWithFieldOneQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (mwfoq *MessageWithFieldOneQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (mwfoq *MessageWithFieldOneQuery) sqlAll(ctx context.Context) ([]*MessageWithFieldOne, error) {
+func (mwfoq *MessageWithFieldOneQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MessageWithFieldOne, error) {
 	var (
 		nodes = []*MessageWithFieldOne{}
 		_spec = mwfoq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &MessageWithFieldOne{config: mwfoq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*MessageWithFieldOne).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &MessageWithFieldOne{config: mwfoq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, mwfoq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Select
 // MessageWithFieldOneGroupBy is the group-by builder for MessageWithFieldOne entities.
 type MessageWithFieldOneGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (mwfogb *MessageWithFieldOneGroupBy) Scan(ctx context.Context, v interface{
 	}
 	mwfogb.sql = query
 	return mwfogb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := mwfogb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(mwfogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := mwfogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) StringsX(ctx context.Context) []string {
-	v, err := mwfogb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwfogb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) StringX(ctx context.Context) string {
-	v, err := mwfogb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(mwfogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := mwfogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) IntsX(ctx context.Context) []int {
-	v, err := mwfogb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwfogb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) IntX(ctx context.Context) int {
-	v, err := mwfogb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwfogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := mwfogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := mwfogb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwfogb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := mwfogb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwfogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := mwfogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := mwfogb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwfogb *MessageWithFieldOneGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwfogb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwfogb *MessageWithFieldOneGroupBy) BoolX(ctx context.Context) bool {
-	v, err := mwfogb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwfogb *MessageWithFieldOneGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (mwfogb *MessageWithFieldOneGroupBy) sqlQuery() *sql.Selector {
 // MessageWithFieldOneSelect is the builder for selecting fields of MessageWithFieldOne entities.
 type MessageWithFieldOneSelect struct {
 	*MessageWithFieldOneQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v interface{})
 	}
 	mwfos.sql = mwfos.MessageWithFieldOneQuery.sqlQuery(ctx)
 	return mwfos.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := mwfos.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(mwfos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := mwfos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) StringsX(ctx context.Context) []string {
-	v, err := mwfos.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwfos.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) StringX(ctx context.Context) string {
-	v, err := mwfos.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(mwfos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := mwfos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) IntsX(ctx context.Context) []int {
-	v, err := mwfos.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwfos.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) IntX(ctx context.Context) int {
-	v, err := mwfos.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwfos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := mwfos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := mwfos.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwfos.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) Float64X(ctx context.Context) float64 {
-	v, err := mwfos.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwfos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithFieldOneSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := mwfos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) BoolsX(ctx context.Context) []bool {
-	v, err := mwfos.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (mwfos *MessageWithFieldOneSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwfos.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithfieldone.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithFieldOneSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwfos *MessageWithFieldOneSelect) BoolX(ctx context.Context) bool {
-	v, err := mwfos.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, v interface{}) error {

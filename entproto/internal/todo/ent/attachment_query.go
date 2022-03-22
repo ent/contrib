@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"math"
 
@@ -326,22 +325,27 @@ func (aq *AttachmentQuery) WithRecipients(opts ...func(*UserQuery)) *AttachmentQ
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGroupBy {
-	group := &AttachmentGroupBy{config: aq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &AttachmentGroupBy{config: aq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := aq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return aq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = attachment.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (aq *AttachmentQuery) Select(fields ...string) *AttachmentSelect {
 	aq.fields = append(aq.fields, fields...)
-	return &AttachmentSelect{AttachmentQuery: aq}
+	selbuild := &AttachmentSelect{AttachmentQuery: aq}
+	selbuild.label = attachment.Label
+	selbuild.flds, selbuild.scan = &aq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (aq *AttachmentQuery) prepareQuery(ctx context.Context) error {
@@ -360,7 +364,7 @@ func (aq *AttachmentQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (aq *AttachmentQuery) sqlAll(ctx context.Context) ([]*Attachment, error) {
+func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Attachment, error) {
 	var (
 		nodes       = []*Attachment{}
 		withFKs     = aq.withFKs
@@ -377,17 +381,16 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context) ([]*Attachment, error) {
 		_spec.Node.Columns = append(_spec.Node.Columns, attachment.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &Attachment{config: aq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*Attachment).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &Attachment{config: aq.config}
+		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, aq.driver, _spec); err != nil {
 		return nil, err
@@ -426,66 +429,54 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context) ([]*Attachment, error) {
 	}
 
 	if query := aq.withRecipients; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[uuid.UUID]*Attachment, len(nodes))
-		for _, node := range nodes {
-			ids[node.ID] = node
-			fks = append(fks, node.ID)
+		edgeids := make([]driver.Value, len(nodes))
+		byid := make(map[uuid.UUID]*Attachment)
+		nids := make(map[int]map[*Attachment]struct{})
+		for i, node := range nodes {
+			edgeids[i] = node.ID
+			byid[node.ID] = node
 			node.Edges.Recipients = []*User{}
 		}
-		var (
-			edgeids []int
-			edges   = make(map[int][]*Attachment)
-		)
-		_spec := &sqlgraph.EdgeQuerySpec{
-			Edge: &sqlgraph.EdgeSpec{
-				Inverse: false,
-				Table:   attachment.RecipientsTable,
-				Columns: attachment.RecipientsPrimaryKey,
-			},
-			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(attachment.RecipientsPrimaryKey[0], fks...))
-			},
-			ScanValues: func() [2]interface{} {
-				return [2]interface{}{new(uuid.UUID), new(sql.NullInt64)}
-			},
-			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*uuid.UUID)
-				if !ok || eout == nil {
-					return fmt.Errorf("unexpected id value for edge-out")
+		query.Where(func(s *sql.Selector) {
+			joinT := sql.Table(attachment.RecipientsTable)
+			s.Join(joinT).On(s.C(user.FieldID), joinT.C(attachment.RecipientsPrimaryKey[1]))
+			s.Where(sql.InValues(joinT.C(attachment.RecipientsPrimaryKey[0]), edgeids...))
+			columns := s.SelectedColumns()
+			s.Select(joinT.C(attachment.RecipientsPrimaryKey[0]))
+			s.AppendSelect(columns...)
+			s.SetDistinct(false)
+		})
+		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]interface{}, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
 				}
-				ein, ok := in.(*sql.NullInt64)
-				if !ok || ein == nil {
-					return fmt.Errorf("unexpected id value for edge-in")
+				return append([]interface{}{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []interface{}) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Attachment]struct{}{byid[outValue]: struct{}{}}
+					return assign(columns[1:], values[1:])
 				}
-				outValue := *eout
-				inValue := int(ein.Int64)
-				node, ok := ids[outValue]
-				if !ok {
-					return fmt.Errorf("unexpected node id in edges: %v", outValue)
-				}
-				if _, ok := edges[inValue]; !ok {
-					edgeids = append(edgeids, inValue)
-				}
-				edges[inValue] = append(edges[inValue], node)
+				nids[inValue][byid[outValue]] = struct{}{}
 				return nil
-			},
-		}
-		if err := sqlgraph.QueryEdges(ctx, aq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "recipients": %w`, err)
-		}
-		query.Where(user.IDIn(edgeids...))
-		neighbors, err := query.All(ctx)
+			}
+		})
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := edges[n.ID]
+			nodes, ok := nids[n.ID]
 			if !ok {
 				return nil, fmt.Errorf(`unexpected "recipients" node returned %v`, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Recipients = append(nodes[i].Edges.Recipients, n)
+			for kn := range nodes {
+				kn.Edges.Recipients = append(kn.Edges.Recipients, n)
 			}
 		}
 	}
@@ -593,6 +584,7 @@ func (aq *AttachmentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // AttachmentGroupBy is the group-by builder for Attachment entities.
 type AttachmentGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -614,209 +606,6 @@ func (agb *AttachmentGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	agb.sql = query
 	return agb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (agb *AttachmentGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := agb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(agb.fields) > 1 {
-		return nil, errors.New("ent: AttachmentGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := agb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (agb *AttachmentGroupBy) StringsX(ctx context.Context) []string {
-	v, err := agb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = agb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (agb *AttachmentGroupBy) StringX(ctx context.Context) string {
-	v, err := agb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(agb.fields) > 1 {
-		return nil, errors.New("ent: AttachmentGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := agb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (agb *AttachmentGroupBy) IntsX(ctx context.Context) []int {
-	v, err := agb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = agb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (agb *AttachmentGroupBy) IntX(ctx context.Context) int {
-	v, err := agb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(agb.fields) > 1 {
-		return nil, errors.New("ent: AttachmentGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := agb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (agb *AttachmentGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := agb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = agb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (agb *AttachmentGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := agb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(agb.fields) > 1 {
-		return nil, errors.New("ent: AttachmentGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := agb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (agb *AttachmentGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := agb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (agb *AttachmentGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = agb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (agb *AttachmentGroupBy) BoolX(ctx context.Context) bool {
-	v, err := agb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (agb *AttachmentGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -860,6 +649,7 @@ func (agb *AttachmentGroupBy) sqlQuery() *sql.Selector {
 // AttachmentSelect is the builder for selecting fields of Attachment entities.
 type AttachmentSelect struct {
 	*AttachmentQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -871,201 +661,6 @@ func (as *AttachmentSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	as.sql = as.AttachmentQuery.sqlQuery(ctx)
 	return as.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (as *AttachmentSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := as.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(as.fields) > 1 {
-		return nil, errors.New("ent: AttachmentSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := as.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (as *AttachmentSelect) StringsX(ctx context.Context) []string {
-	v, err := as.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = as.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (as *AttachmentSelect) StringX(ctx context.Context) string {
-	v, err := as.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(as.fields) > 1 {
-		return nil, errors.New("ent: AttachmentSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := as.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (as *AttachmentSelect) IntsX(ctx context.Context) []int {
-	v, err := as.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = as.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (as *AttachmentSelect) IntX(ctx context.Context) int {
-	v, err := as.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(as.fields) > 1 {
-		return nil, errors.New("ent: AttachmentSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := as.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (as *AttachmentSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := as.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = as.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (as *AttachmentSelect) Float64X(ctx context.Context) float64 {
-	v, err := as.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(as.fields) > 1 {
-		return nil, errors.New("ent: AttachmentSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := as.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (as *AttachmentSelect) BoolsX(ctx context.Context) []bool {
-	v, err := as.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (as *AttachmentSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = as.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{attachment.Label}
-	default:
-		err = fmt.Errorf("ent: AttachmentSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (as *AttachmentSelect) BoolX(ctx context.Context) bool {
-	v, err := as.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (as *AttachmentSelect) sqlScan(ctx context.Context, v interface{}) error {
