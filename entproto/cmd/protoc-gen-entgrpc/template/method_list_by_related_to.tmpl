@@ -6,6 +6,10 @@
     entList []*database.{{ .G.EntType.Name }}
     )
 
+    if !svc.client.{{ .G.EntType.Name }}.HasEdgeType(req.Type) {
+        return nil, {{ statusErrf "InvalidArgument" "Has no direct relation with type %s" "req.Type"}}
+    }
+
     listQuery := svc.client.{{ .G.EntType.Name }}.Query().WhereByEdge(req.Id, req.Type)
     entList, err = listQuery.
     {{ range .G.FieldMap.Edges }}

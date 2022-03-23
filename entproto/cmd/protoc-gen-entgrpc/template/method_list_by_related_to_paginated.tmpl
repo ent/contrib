@@ -6,6 +6,11 @@
     entList []*database.{{ .G.EntType.Name }}
     pageSize int
     )
+
+    if !svc.client.{{ .G.EntType.Name }}.HasEdgeType(req.Type) {
+        return nil, {{ statusErrf "InvalidArgument" "Has no direct relation with type %s" "req.Type"}}
+    }
+
     pageSize = int(req.GetPageSize())
     switch {
     case pageSize < 0:
