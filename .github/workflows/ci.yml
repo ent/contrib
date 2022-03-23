@@ -63,9 +63,9 @@ jobs:
           version: v3.17.3
       - name: Install protoc plugins
         run: |
-          go get google.golang.org/protobuf/cmd/protoc-gen-go
-          go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
-          go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+          go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc@master
       - name: Run go generate
         run: go generate ./...
       - name: Check generated files
