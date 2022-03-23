@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"math"
 
@@ -339,15 +338,17 @@ func (bpq *BlogPostQuery) WithCategories(opts ...func(*CategoryQuery)) *BlogPost
 //		Scan(ctx, &v)
 //
 func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroupBy {
-	group := &BlogPostGroupBy{config: bpq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &BlogPostGroupBy{config: bpq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := bpq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return bpq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = blogpost.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -365,7 +366,10 @@ func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroup
 //
 func (bpq *BlogPostQuery) Select(fields ...string) *BlogPostSelect {
 	bpq.fields = append(bpq.fields, fields...)
-	return &BlogPostSelect{BlogPostQuery: bpq}
+	selbuild := &BlogPostSelect{BlogPostQuery: bpq}
+	selbuild.label = blogpost.Label
+	selbuild.flds, selbuild.scan = &bpq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (bpq *BlogPostQuery) prepareQuery(ctx context.Context) error {
@@ -384,7 +388,7 @@ func (bpq *BlogPostQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
+func (bpq *BlogPostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*BlogPost, error) {
 	var (
 		nodes       = []*BlogPost{}
 		withFKs     = bpq.withFKs
@@ -401,17 +405,16 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
 		_spec.Node.Columns = append(_spec.Node.Columns, blogpost.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &BlogPost{config: bpq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*BlogPost).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &BlogPost{config: bpq.config}
+		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, bpq.driver, _spec); err != nil {
 		return nil, err
@@ -450,66 +453,54 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context) ([]*BlogPost, error) {
 	}
 
 	if query := bpq.withCategories; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*BlogPost, len(nodes))
-		for _, node := range nodes {
-			ids[node.ID] = node
-			fks = append(fks, node.ID)
+		edgeids := make([]driver.Value, len(nodes))
+		byid := make(map[int]*BlogPost)
+		nids := make(map[int]map[*BlogPost]struct{})
+		for i, node := range nodes {
+			edgeids[i] = node.ID
+			byid[node.ID] = node
 			node.Edges.Categories = []*Category{}
 		}
-		var (
-			edgeids []int
-			edges   = make(map[int][]*BlogPost)
-		)
-		_spec := &sqlgraph.EdgeQuerySpec{
-			Edge: &sqlgraph.EdgeSpec{
-				Inverse: true,
-				Table:   blogpost.CategoriesTable,
-				Columns: blogpost.CategoriesPrimaryKey,
-			},
-			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(blogpost.CategoriesPrimaryKey[1], fks...))
-			},
-			ScanValues: func() [2]interface{} {
-				return [2]interface{}{new(sql.NullInt64), new(sql.NullInt64)}
-			},
-			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*sql.NullInt64)
-				if !ok || eout == nil {
-					return fmt.Errorf("unexpected id value for edge-out")
+		query.Where(func(s *sql.Selector) {
+			joinT := sql.Table(blogpost.CategoriesTable)
+			s.Join(joinT).On(s.C(category.FieldID), joinT.C(blogpost.CategoriesPrimaryKey[0]))
+			s.Where(sql.InValues(joinT.C(blogpost.CategoriesPrimaryKey[1]), edgeids...))
+			columns := s.SelectedColumns()
+			s.Select(joinT.C(blogpost.CategoriesPrimaryKey[1]))
+			s.AppendSelect(columns...)
+			s.SetDistinct(false)
+		})
+		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]interface{}, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
 				}
-				ein, ok := in.(*sql.NullInt64)
-				if !ok || ein == nil {
-					return fmt.Errorf("unexpected id value for edge-in")
+				return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []interface{}) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*BlogPost]struct{}{byid[outValue]: struct{}{}}
+					return assign(columns[1:], values[1:])
 				}
-				outValue := int(eout.Int64)
-				inValue := int(ein.Int64)
-				node, ok := ids[outValue]
-				if !ok {
-					return fmt.Errorf("unexpected node id in edges: %v", outValue)
-				}
-				if _, ok := edges[inValue]; !ok {
-					edgeids = append(edgeids, inValue)
-				}
-				edges[inValue] = append(edges[inValue], node)
+				nids[inValue][byid[outValue]] = struct{}{}
 				return nil
-			},
-		}
-		if err := sqlgraph.QueryEdges(ctx, bpq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "categories": %w`, err)
-		}
-		query.Where(category.IDIn(edgeids...))
-		neighbors, err := query.All(ctx)
+			}
+		})
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := edges[n.ID]
+			nodes, ok := nids[n.ID]
 			if !ok {
 				return nil, fmt.Errorf(`unexpected "categories" node returned %v`, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Categories = append(nodes[i].Edges.Categories, n)
+			for kn := range nodes {
+				kn.Edges.Categories = append(kn.Edges.Categories, n)
 			}
 		}
 	}
@@ -617,6 +608,7 @@ func (bpq *BlogPostQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // BlogPostGroupBy is the group-by builder for BlogPost entities.
 type BlogPostGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -638,209 +630,6 @@ func (bpgb *BlogPostGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	bpgb.sql = query
 	return bpgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := bpgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(bpgb.fields) > 1 {
-		return nil, errors.New("ent: BlogPostGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := bpgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) StringsX(ctx context.Context) []string {
-	v, err := bpgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = bpgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) StringX(ctx context.Context) string {
-	v, err := bpgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(bpgb.fields) > 1 {
-		return nil, errors.New("ent: BlogPostGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := bpgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) IntsX(ctx context.Context) []int {
-	v, err := bpgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = bpgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) IntX(ctx context.Context) int {
-	v, err := bpgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(bpgb.fields) > 1 {
-		return nil, errors.New("ent: BlogPostGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := bpgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := bpgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = bpgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := bpgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(bpgb.fields) > 1 {
-		return nil, errors.New("ent: BlogPostGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := bpgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := bpgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (bpgb *BlogPostGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = bpgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (bpgb *BlogPostGroupBy) BoolX(ctx context.Context) bool {
-	v, err := bpgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (bpgb *BlogPostGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -884,6 +673,7 @@ func (bpgb *BlogPostGroupBy) sqlQuery() *sql.Selector {
 // BlogPostSelect is the builder for selecting fields of BlogPost entities.
 type BlogPostSelect struct {
 	*BlogPostQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -895,201 +685,6 @@ func (bps *BlogPostSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	bps.sql = bps.BlogPostQuery.sqlQuery(ctx)
 	return bps.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (bps *BlogPostSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := bps.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(bps.fields) > 1 {
-		return nil, errors.New("ent: BlogPostSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := bps.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (bps *BlogPostSelect) StringsX(ctx context.Context) []string {
-	v, err := bps.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = bps.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (bps *BlogPostSelect) StringX(ctx context.Context) string {
-	v, err := bps.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(bps.fields) > 1 {
-		return nil, errors.New("ent: BlogPostSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := bps.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (bps *BlogPostSelect) IntsX(ctx context.Context) []int {
-	v, err := bps.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = bps.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (bps *BlogPostSelect) IntX(ctx context.Context) int {
-	v, err := bps.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(bps.fields) > 1 {
-		return nil, errors.New("ent: BlogPostSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := bps.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (bps *BlogPostSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := bps.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = bps.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (bps *BlogPostSelect) Float64X(ctx context.Context) float64 {
-	v, err := bps.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(bps.fields) > 1 {
-		return nil, errors.New("ent: BlogPostSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := bps.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (bps *BlogPostSelect) BoolsX(ctx context.Context) []bool {
-	v, err := bps.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (bps *BlogPostSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = bps.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{blogpost.Label}
-	default:
-		err = fmt.Errorf("ent: BlogPostSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (bps *BlogPostSelect) BoolX(ctx context.Context) bool {
-	v, err := bps.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (bps *BlogPostSelect) sqlScan(ctx context.Context, v interface{}) error {

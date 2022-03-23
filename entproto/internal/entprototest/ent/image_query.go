@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"math"
 
@@ -303,15 +302,17 @@ func (iq *ImageQuery) WithUserProfilePic(opts ...func(*UserQuery)) *ImageQuery {
 //		Scan(ctx, &v)
 //
 func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
-	group := &ImageGroupBy{config: iq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &ImageGroupBy{config: iq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := iq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return iq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = image.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -329,7 +330,10 @@ func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
 //
 func (iq *ImageQuery) Select(fields ...string) *ImageSelect {
 	iq.fields = append(iq.fields, fields...)
-	return &ImageSelect{ImageQuery: iq}
+	selbuild := &ImageSelect{ImageQuery: iq}
+	selbuild.label = image.Label
+	selbuild.flds, selbuild.scan = &iq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (iq *ImageQuery) prepareQuery(ctx context.Context) error {
@@ -348,7 +352,7 @@ func (iq *ImageQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (iq *ImageQuery) sqlAll(ctx context.Context) ([]*Image, error) {
+func (iq *ImageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Image, error) {
 	var (
 		nodes       = []*Image{}
 		_spec       = iq.querySpec()
@@ -357,17 +361,16 @@ func (iq *ImageQuery) sqlAll(ctx context.Context) ([]*Image, error) {
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &Image{config: iq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*Image).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &Image{config: iq.config}
+		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, iq.driver, _spec); err != nil {
 		return nil, err
@@ -508,6 +511,7 @@ func (iq *ImageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // ImageGroupBy is the group-by builder for Image entities.
 type ImageGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -529,209 +533,6 @@ func (igb *ImageGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	igb.sql = query
 	return igb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (igb *ImageGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := igb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(igb.fields) > 1 {
-		return nil, errors.New("ent: ImageGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := igb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (igb *ImageGroupBy) StringsX(ctx context.Context) []string {
-	v, err := igb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = igb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (igb *ImageGroupBy) StringX(ctx context.Context) string {
-	v, err := igb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(igb.fields) > 1 {
-		return nil, errors.New("ent: ImageGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := igb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (igb *ImageGroupBy) IntsX(ctx context.Context) []int {
-	v, err := igb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = igb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (igb *ImageGroupBy) IntX(ctx context.Context) int {
-	v, err := igb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(igb.fields) > 1 {
-		return nil, errors.New("ent: ImageGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := igb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (igb *ImageGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := igb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = igb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (igb *ImageGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := igb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(igb.fields) > 1 {
-		return nil, errors.New("ent: ImageGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := igb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (igb *ImageGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := igb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (igb *ImageGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = igb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (igb *ImageGroupBy) BoolX(ctx context.Context) bool {
-	v, err := igb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (igb *ImageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -775,6 +576,7 @@ func (igb *ImageGroupBy) sqlQuery() *sql.Selector {
 // ImageSelect is the builder for selecting fields of Image entities.
 type ImageSelect struct {
 	*ImageQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -786,201 +588,6 @@ func (is *ImageSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	is.sql = is.ImageQuery.sqlQuery(ctx)
 	return is.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (is *ImageSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := is.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(is.fields) > 1 {
-		return nil, errors.New("ent: ImageSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := is.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (is *ImageSelect) StringsX(ctx context.Context) []string {
-	v, err := is.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = is.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (is *ImageSelect) StringX(ctx context.Context) string {
-	v, err := is.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(is.fields) > 1 {
-		return nil, errors.New("ent: ImageSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := is.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (is *ImageSelect) IntsX(ctx context.Context) []int {
-	v, err := is.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = is.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (is *ImageSelect) IntX(ctx context.Context) int {
-	v, err := is.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(is.fields) > 1 {
-		return nil, errors.New("ent: ImageSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := is.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (is *ImageSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := is.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = is.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (is *ImageSelect) Float64X(ctx context.Context) float64 {
-	v, err := is.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(is.fields) > 1 {
-		return nil, errors.New("ent: ImageSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := is.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (is *ImageSelect) BoolsX(ctx context.Context) []bool {
-	v, err := is.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (is *ImageSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = is.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{image.Label}
-	default:
-		err = fmt.Errorf("ent: ImageSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (is *ImageSelect) BoolX(ctx context.Context) bool {
-	v, err := is.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (is *ImageSelect) sqlScan(ctx context.Context, v interface{}) error {

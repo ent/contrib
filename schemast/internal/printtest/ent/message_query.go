@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -251,22 +250,27 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (mq *MessageQuery) GroupBy(field string, fields ...string) *MessageGroupBy {
-	group := &MessageGroupBy{config: mq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &MessageGroupBy{config: mq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := mq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return mq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = message.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (mq *MessageQuery) Select(fields ...string) *MessageSelect {
 	mq.fields = append(mq.fields, fields...)
-	return &MessageSelect{MessageQuery: mq}
+	selbuild := &MessageSelect{MessageQuery: mq}
+	selbuild.label = message.Label
+	selbuild.flds, selbuild.scan = &mq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (mq *MessageQuery) prepareQuery(ctx context.Context) error {
@@ -285,22 +289,21 @@ func (mq *MessageQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (mq *MessageQuery) sqlAll(ctx context.Context) ([]*Message, error) {
+func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Message, error) {
 	var (
 		nodes = []*Message{}
 		_spec = mq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &Message{config: mq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*Message).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &Message{config: mq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, mq.driver, _spec); err != nil {
 		return nil, err
@@ -411,6 +414,7 @@ func (mq *MessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // MessageGroupBy is the group-by builder for Message entities.
 type MessageGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -432,209 +436,6 @@ func (mgb *MessageGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	mgb.sql = query
 	return mgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mgb *MessageGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := mgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(mgb.fields) > 1 {
-		return nil, errors.New("ent: MessageGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := mgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mgb *MessageGroupBy) StringsX(ctx context.Context) []string {
-	v, err := mgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mgb *MessageGroupBy) StringX(ctx context.Context) string {
-	v, err := mgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(mgb.fields) > 1 {
-		return nil, errors.New("ent: MessageGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := mgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mgb *MessageGroupBy) IntsX(ctx context.Context) []int {
-	v, err := mgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mgb *MessageGroupBy) IntX(ctx context.Context) int {
-	v, err := mgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mgb.fields) > 1 {
-		return nil, errors.New("ent: MessageGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := mgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mgb *MessageGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := mgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mgb *MessageGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := mgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(mgb.fields) > 1 {
-		return nil, errors.New("ent: MessageGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := mgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mgb *MessageGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := mgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mgb *MessageGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mgb *MessageGroupBy) BoolX(ctx context.Context) bool {
-	v, err := mgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mgb *MessageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -678,6 +479,7 @@ func (mgb *MessageGroupBy) sqlQuery() *sql.Selector {
 // MessageSelect is the builder for selecting fields of Message entities.
 type MessageSelect struct {
 	*MessageQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -689,201 +491,6 @@ func (ms *MessageSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	ms.sql = ms.MessageQuery.sqlQuery(ctx)
 	return ms.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (ms *MessageSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := ms.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(ms.fields) > 1 {
-		return nil, errors.New("ent: MessageSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := ms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (ms *MessageSelect) StringsX(ctx context.Context) []string {
-	v, err := ms.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = ms.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (ms *MessageSelect) StringX(ctx context.Context) string {
-	v, err := ms.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(ms.fields) > 1 {
-		return nil, errors.New("ent: MessageSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := ms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (ms *MessageSelect) IntsX(ctx context.Context) []int {
-	v, err := ms.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = ms.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (ms *MessageSelect) IntX(ctx context.Context) int {
-	v, err := ms.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(ms.fields) > 1 {
-		return nil, errors.New("ent: MessageSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := ms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (ms *MessageSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := ms.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = ms.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (ms *MessageSelect) Float64X(ctx context.Context) float64 {
-	v, err := ms.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(ms.fields) > 1 {
-		return nil, errors.New("ent: MessageSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := ms.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (ms *MessageSelect) BoolsX(ctx context.Context) []bool {
-	v, err := ms.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (ms *MessageSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = ms.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{message.Label}
-	default:
-		err = fmt.Errorf("ent: MessageSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (ms *MessageSelect) BoolX(ctx context.Context) bool {
-	v, err := ms.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (ms *MessageSelect) sqlScan(ctx context.Context, v interface{}) error {

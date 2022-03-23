@@ -19,6 +19,6 @@ package runtime
 // The schema-stitching logic is generated in entgo.io/contrib/entgql/internal/todo/ent/runtime.go
 
 const (
-	Version = "v0.10.1"                                         // Version of ent codegen.
-	Sum     = "h1:dM5h4Zk6yHGIgw4dCqVzGw3nWgpGYJiV4/kyHEF6PFo=" // Sum of ent codegen.
+	Version = "v0.10.2-0.20220321093754-edd968490ea2"           // Version of ent codegen.
+	Sum     = "h1:7Q6cHQaXfWU2EC7efffZJ6wd8s1GNLZ8Vi2eg/wXkgs=" // Sum of ent codegen.
 )

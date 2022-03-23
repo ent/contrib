@@ -4,7 +4,6 @@ package oastypes
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (otq *OASTypesQuery) Clone() *OASTypesQuery {
 //		Scan(ctx, &v)
 //
 func (otq *OASTypesQuery) GroupBy(field string, fields ...string) *OASTypesGroupBy {
-	group := &OASTypesGroupBy{config: otq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &OASTypesGroupBy{config: otq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := otq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return otq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = oastypes.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (otq *OASTypesQuery) GroupBy(field string, fields ...string) *OASTypesGroup
 //
 func (otq *OASTypesQuery) Select(fields ...string) *OASTypesSelect {
 	otq.fields = append(otq.fields, fields...)
-	return &OASTypesSelect{OASTypesQuery: otq}
+	selbuild := &OASTypesSelect{OASTypesQuery: otq}
+	selbuild.label = oastypes.Label
+	selbuild.flds, selbuild.scan = &otq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (otq *OASTypesQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (otq *OASTypesQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (otq *OASTypesQuery) sqlAll(ctx context.Context) ([]*OASTypes, error) {
+func (otq *OASTypesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OASTypes, error) {
 	var (
 		nodes = []*OASTypes{}
 		_spec = otq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &OASTypes{config: otq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*OASTypes).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("oastypes: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &OASTypes{config: otq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, otq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (otq *OASTypesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 // OASTypesGroupBy is the group-by builder for OASTypes entities.
 type OASTypesGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (otgb *OASTypesGroupBy) Scan(ctx context.Context, v interface{}) error {
 	}
 	otgb.sql = query
 	return otgb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := otgb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(otgb.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := otgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) StringsX(ctx context.Context) []string {
-	v, err := otgb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = otgb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) StringX(ctx context.Context) string {
-	v, err := otgb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(otgb.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := otgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) IntsX(ctx context.Context) []int {
-	v, err := otgb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = otgb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) IntX(ctx context.Context) int {
-	v, err := otgb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(otgb.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := otgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := otgb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = otgb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := otgb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(otgb.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := otgb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := otgb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (otgb *OASTypesGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = otgb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (otgb *OASTypesGroupBy) BoolX(ctx context.Context) bool {
-	v, err := otgb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (otgb *OASTypesGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (otgb *OASTypesGroupBy) sqlQuery() *sql.Selector {
 // OASTypesSelect is the builder for selecting fields of OASTypes entities.
 type OASTypesSelect struct {
 	*OASTypesQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (ots *OASTypesSelect) Scan(ctx context.Context, v interface{}) error {
 	}
 	ots.sql = ots.OASTypesQuery.sqlQuery(ctx)
 	return ots.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (ots *OASTypesSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := ots.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(ots.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := ots.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (ots *OASTypesSelect) StringsX(ctx context.Context) []string {
-	v, err := ots.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = ots.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (ots *OASTypesSelect) StringX(ctx context.Context) string {
-	v, err := ots.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(ots.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := ots.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (ots *OASTypesSelect) IntsX(ctx context.Context) []int {
-	v, err := ots.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = ots.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (ots *OASTypesSelect) IntX(ctx context.Context) int {
-	v, err := ots.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(ots.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := ots.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (ots *OASTypesSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := ots.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = ots.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (ots *OASTypesSelect) Float64X(ctx context.Context) float64 {
-	v, err := ots.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(ots.fields) > 1 {
-		return nil, errors.New("oastypes: OASTypesSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := ots.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (ots *OASTypesSelect) BoolsX(ctx context.Context) []bool {
-	v, err := ots.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (ots *OASTypesSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = ots.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{oastypes.Label}
-	default:
-		err = fmt.Errorf("oastypes: OASTypesSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (ots *OASTypesSelect) BoolX(ctx context.Context) bool {
-	v, err := ots.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (ots *OASTypesSelect) sqlScan(ctx context.Context, v interface{}) error {

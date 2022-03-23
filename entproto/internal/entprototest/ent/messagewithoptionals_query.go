@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 
@@ -264,15 +263,17 @@ func (mwoq *MessageWithOptionalsQuery) Clone() *MessageWithOptionalsQuery {
 //		Scan(ctx, &v)
 //
 func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *MessageWithOptionalsGroupBy {
-	group := &MessageWithOptionalsGroupBy{config: mwoq.config}
-	group.fields = append([]string{field}, fields...)
-	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+	grbuild := &MessageWithOptionalsGroupBy{config: mwoq.config}
+	grbuild.fields = append([]string{field}, fields...)
+	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := mwoq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		return mwoq.sqlQuery(ctx), nil
 	}
-	return group
+	grbuild.label = messagewithoptionals.Label
+	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
@@ -290,7 +291,10 @@ func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *
 //
 func (mwoq *MessageWithOptionalsQuery) Select(fields ...string) *MessageWithOptionalsSelect {
 	mwoq.fields = append(mwoq.fields, fields...)
-	return &MessageWithOptionalsSelect{MessageWithOptionalsQuery: mwoq}
+	selbuild := &MessageWithOptionalsSelect{MessageWithOptionalsQuery: mwoq}
+	selbuild.label = messagewithoptionals.Label
+	selbuild.flds, selbuild.scan = &mwoq.fields, selbuild.Scan
+	return selbuild
 }
 
 func (mwoq *MessageWithOptionalsQuery) prepareQuery(ctx context.Context) error {
@@ -309,22 +313,21 @@ func (mwoq *MessageWithOptionalsQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (mwoq *MessageWithOptionalsQuery) sqlAll(ctx context.Context) ([]*MessageWithOptionals, error) {
+func (mwoq *MessageWithOptionalsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MessageWithOptionals, error) {
 	var (
 		nodes = []*MessageWithOptionals{}
 		_spec = mwoq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &MessageWithOptionals{config: mwoq.config}
-		nodes = append(nodes, node)
-		return node.scanValues(columns)
+		return (*MessageWithOptionals).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
-		if len(nodes) == 0 {
-			return fmt.Errorf("ent: Assign called without calling ScanValues")
-		}
-		node := nodes[len(nodes)-1]
+		node := &MessageWithOptionals{config: mwoq.config}
+		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
+	}
+	for i := range hooks {
+		hooks[i](ctx, _spec)
 	}
 	if err := sqlgraph.QueryNodes(ctx, mwoq.driver, _spec); err != nil {
 		return nil, err
@@ -435,6 +438,7 @@ func (mwoq *MessageWithOptionalsQuery) sqlQuery(ctx context.Context) *sql.Select
 // MessageWithOptionalsGroupBy is the group-by builder for MessageWithOptionals entities.
 type MessageWithOptionalsGroupBy struct {
 	config
+	selector
 	fields []string
 	fns    []AggregateFunc
 	// intermediate query (i.e. traversal path).
@@ -456,209 +460,6 @@ func (mwogb *MessageWithOptionalsGroupBy) Scan(ctx context.Context, v interface{
 	}
 	mwogb.sql = query
 	return mwogb.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := mwogb.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(mwogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsGroupBy.Strings is not achievable when grouping more than 1 field")
-	}
-	var v []string
-	if err := mwogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) StringsX(ctx context.Context) []string {
-	v, err := mwogb.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwogb.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsGroupBy.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) StringX(ctx context.Context) string {
-	v, err := mwogb.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(mwogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsGroupBy.Ints is not achievable when grouping more than 1 field")
-	}
-	var v []int
-	if err := mwogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) IntsX(ctx context.Context) []int {
-	v, err := mwogb.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwogb.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsGroupBy.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) IntX(ctx context.Context) int {
-	v, err := mwogb.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsGroupBy.Float64s is not achievable when grouping more than 1 field")
-	}
-	var v []float64
-	if err := mwogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := mwogb.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwogb.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsGroupBy.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) Float64X(ctx context.Context) float64 {
-	v, err := mwogb.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from group-by.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwogb.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsGroupBy.Bools is not achievable when grouping more than 1 field")
-	}
-	var v []bool
-	if err := mwogb.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := mwogb.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a group-by query.
-// It is only allowed when executing a group-by query with one field.
-func (mwogb *MessageWithOptionalsGroupBy) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwogb.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsGroupBy.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwogb *MessageWithOptionalsGroupBy) BoolX(ctx context.Context) bool {
-	v, err := mwogb.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwogb *MessageWithOptionalsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
@@ -702,6 +503,7 @@ func (mwogb *MessageWithOptionalsGroupBy) sqlQuery() *sql.Selector {
 // MessageWithOptionalsSelect is the builder for selecting fields of MessageWithOptionals entities.
 type MessageWithOptionalsSelect struct {
 	*MessageWithOptionalsQuery
+	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
@@ -713,201 +515,6 @@ func (mwos *MessageWithOptionalsSelect) Scan(ctx context.Context, v interface{})
 	}
 	mwos.sql = mwos.MessageWithOptionalsQuery.sqlQuery(ctx)
 	return mwos.sqlScan(ctx, v)
-}
-
-// ScanX is like Scan, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := mwos.Scan(ctx, v); err != nil {
-		panic(err)
-	}
-}
-
-// Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(mwos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsSelect.Strings is not achievable when selecting more than 1 field")
-	}
-	var v []string
-	if err := mwos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// StringsX is like Strings, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) StringsX(ctx context.Context) []string {
-	v, err := mwos.Strings(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// String returns a single string from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) String(ctx context.Context) (_ string, err error) {
-	var v []string
-	if v, err = mwos.Strings(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsSelect.Strings returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// StringX is like String, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) StringX(ctx context.Context) string {
-	v, err := mwos.String(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(mwos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsSelect.Ints is not achievable when selecting more than 1 field")
-	}
-	var v []int
-	if err := mwos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// IntsX is like Ints, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) IntsX(ctx context.Context) []int {
-	v, err := mwos.Ints(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Int returns a single int from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Int(ctx context.Context) (_ int, err error) {
-	var v []int
-	if v, err = mwos.Ints(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsSelect.Ints returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// IntX is like Int, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) IntX(ctx context.Context) int {
-	v, err := mwos.Int(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(mwos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsSelect.Float64s is not achievable when selecting more than 1 field")
-	}
-	var v []float64
-	if err := mwos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// Float64sX is like Float64s, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := mwos.Float64s(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Float64(ctx context.Context) (_ float64, err error) {
-	var v []float64
-	if v, err = mwos.Float64s(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsSelect.Float64s returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// Float64X is like Float64, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) Float64X(ctx context.Context) float64 {
-	v, err := mwos.Float64(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(mwos.fields) > 1 {
-		return nil, errors.New("ent: MessageWithOptionalsSelect.Bools is not achievable when selecting more than 1 field")
-	}
-	var v []bool
-	if err := mwos.Scan(ctx, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
-// BoolsX is like Bools, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) BoolsX(ctx context.Context) []bool {
-	v, err := mwos.Bools(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-// Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (mwos *MessageWithOptionalsSelect) Bool(ctx context.Context) (_ bool, err error) {
-	var v []bool
-	if v, err = mwos.Bools(ctx); err != nil {
-		return
-	}
-	switch len(v) {
-	case 1:
-		return v[0], nil
-	case 0:
-		err = &NotFoundError{messagewithoptionals.Label}
-	default:
-		err = fmt.Errorf("ent: MessageWithOptionalsSelect.Bools returned %d results when one was expected", len(v))
-	}
-	return
-}
-
-// BoolX is like Bool, but panics if an error occurs.
-func (mwos *MessageWithOptionalsSelect) BoolX(ctx context.Context) bool {
-	v, err := mwos.Bool(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func (mwos *MessageWithOptionalsSelect) sqlScan(ctx context.Context, v interface{}) error {
