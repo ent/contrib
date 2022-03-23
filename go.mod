@@ -9,7 +9,6 @@ require (
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
 	github.com/google/uuid v1.3.0
-	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jhump/protoreflect v1.10.1
 	github.com/mattn/go-sqlite3 v1.14.10
@@ -30,7 +29,6 @@ require (
 
 require (
 	ariga.io/atlas v0.3.8-0.20220314111236-b2171e04c5b2 // indirect
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -38,7 +36,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-faster/errors v0.5.0 // indirect
 	github.com/go-faster/jx v0.25.0 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
