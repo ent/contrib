@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -57,6 +58,13 @@ func (Todo) Fields() []ent.Field {
 			),
 		field.Bytes("blob").
 			Optional(),
+		field.Int("big_int").
+			Optional().
+			GoType(schematype.BigInt{}).
+			Annotations(
+				entgql.Type("BigInt"),
+				entgql.OrderField("BIG_INT"),
+			),
 	}
 }
 

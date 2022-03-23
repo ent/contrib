@@ -18,6 +18,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -170,6 +171,11 @@ func (c Cursor) MarshalGQL(w io.Writer) {
 	defer w.Write(quote)
 	wc := base64.NewEncoder(base64.RawStdEncoding, w)
 	defer wc.Close()
+
+	if m, ok := c.Value.(driver.Valuer); ok {
+		c.Value, _ = m.Value()
+	}
+
 	_ = msgpack.NewEncoder(wc).Encode(c)
 }
 
@@ -765,6 +771,16 @@ var (
 			}
 		},
 	}
+	// TodoOrderFieldBigInt orders Todo by big_int.
+	TodoOrderFieldBigInt = &TodoOrderField{
+		field: todo.FieldBigInt,
+		toCursor: func(t *Todo) Cursor {
+			return Cursor{
+				ID:    t.ID,
+				Value: t.BigInt,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -779,6 +795,8 @@ func (f TodoOrderField) String() string {
 		str = "PRIORITY"
 	case todo.FieldText:
 		str = "TEXT"
+	case todo.FieldBigInt:
+		str = "BIG_INT"
 	}
 	return str
 }
@@ -803,6 +821,8 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *TodoOrderFieldPriority
 	case "TEXT":
 		*f = *TodoOrderFieldText
+	case "BIG_INT":
+		*f = *TodoOrderFieldBigInt
 	default:
 		return fmt.Errorf("%s is not a valid TodoOrderField", str)
 	}

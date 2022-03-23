@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
@@ -85,6 +86,26 @@ func (tu *TodoUpdate) SetBlob(b []byte) *TodoUpdate {
 // ClearBlob clears the value of the "blob" field.
 func (tu *TodoUpdate) ClearBlob() *TodoUpdate {
 	tu.mutation.ClearBlob()
+	return tu
+}
+
+// SetBigInt sets the "big_int" field.
+func (tu *TodoUpdate) SetBigInt(si schematype.BigInt) *TodoUpdate {
+	tu.mutation.SetBigInt(si)
+	return tu
+}
+
+// SetNillableBigInt sets the "big_int" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableBigInt(si *schematype.BigInt) *TodoUpdate {
+	if si != nil {
+		tu.SetBigInt(*si)
+	}
+	return tu
+}
+
+// ClearBigInt clears the value of the "big_int" field.
+func (tu *TodoUpdate) ClearBigInt() *TodoUpdate {
+	tu.mutation.ClearBigInt()
 	return tu
 }
 
@@ -338,6 +359,19 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: todo.FieldBlob,
 		})
 	}
+	if value, ok := tu.mutation.BigInt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: todo.FieldBigInt,
+		})
+	}
+	if tu.mutation.BigIntCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: todo.FieldBigInt,
+		})
+	}
 	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -558,6 +592,26 @@ func (tuo *TodoUpdateOne) SetBlob(b []byte) *TodoUpdateOne {
 // ClearBlob clears the value of the "blob" field.
 func (tuo *TodoUpdateOne) ClearBlob() *TodoUpdateOne {
 	tuo.mutation.ClearBlob()
+	return tuo
+}
+
+// SetBigInt sets the "big_int" field.
+func (tuo *TodoUpdateOne) SetBigInt(si schematype.BigInt) *TodoUpdateOne {
+	tuo.mutation.SetBigInt(si)
+	return tuo
+}
+
+// SetNillableBigInt sets the "big_int" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableBigInt(si *schematype.BigInt) *TodoUpdateOne {
+	if si != nil {
+		tuo.SetBigInt(*si)
+	}
+	return tuo
+}
+
+// ClearBigInt clears the value of the "big_int" field.
+func (tuo *TodoUpdateOne) ClearBigInt() *TodoUpdateOne {
+	tuo.mutation.ClearBigInt()
 	return tuo
 }
 
@@ -833,6 +887,19 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBytes,
 			Column: todo.FieldBlob,
+		})
+	}
+	if value, ok := tuo.mutation.BigInt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: todo.FieldBigInt,
+		})
+	}
+	if tuo.mutation.BigIntCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: todo.FieldBigInt,
 		})
 	}
 	if tuo.mutation.ParentCleared() {

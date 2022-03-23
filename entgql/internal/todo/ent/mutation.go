@@ -882,6 +882,7 @@ type TodoMutation struct {
 	addpriority     *int
 	text            *string
 	blob            *[]byte
+	big_int         *schematype.BigInt
 	clearedFields   map[string]struct{}
 	parent          *int
 	clearedparent   bool
@@ -1208,6 +1209,55 @@ func (m *TodoMutation) ResetBlob() {
 	delete(m.clearedFields, todo.FieldBlob)
 }
 
+// SetBigInt sets the "big_int" field.
+func (m *TodoMutation) SetBigInt(si schematype.BigInt) {
+	m.big_int = &si
+}
+
+// BigInt returns the value of the "big_int" field in the mutation.
+func (m *TodoMutation) BigInt() (r schematype.BigInt, exists bool) {
+	v := m.big_int
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBigInt returns the old "big_int" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldBigInt(ctx context.Context) (v schematype.BigInt, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBigInt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBigInt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBigInt: %w", err)
+	}
+	return oldValue.BigInt, nil
+}
+
+// ClearBigInt clears the value of the "big_int" field.
+func (m *TodoMutation) ClearBigInt() {
+	m.big_int = nil
+	m.clearedFields[todo.FieldBigInt] = struct{}{}
+}
+
+// BigIntCleared returns if the "big_int" field was cleared in this mutation.
+func (m *TodoMutation) BigIntCleared() bool {
+	_, ok := m.clearedFields[todo.FieldBigInt]
+	return ok
+}
+
+// ResetBigInt resets all changes to the "big_int" field.
+func (m *TodoMutation) ResetBigInt() {
+	m.big_int = nil
+	delete(m.clearedFields, todo.FieldBigInt)
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by id.
 func (m *TodoMutation) SetParentID(id int) {
 	m.parent = &id
@@ -1398,7 +1448,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -1413,6 +1463,9 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.blob != nil {
 		fields = append(fields, todo.FieldBlob)
+	}
+	if m.big_int != nil {
+		fields = append(fields, todo.FieldBigInt)
 	}
 	return fields
 }
@@ -1432,6 +1485,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	case todo.FieldBlob:
 		return m.Blob()
+	case todo.FieldBigInt:
+		return m.BigInt()
 	}
 	return nil, false
 }
@@ -1451,6 +1506,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldText(ctx)
 	case todo.FieldBlob:
 		return m.OldBlob(ctx)
+	case todo.FieldBigInt:
+		return m.OldBigInt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -1494,6 +1551,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBlob(v)
+		return nil
+	case todo.FieldBigInt:
+		v, ok := value.(schematype.BigInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBigInt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
@@ -1543,6 +1607,9 @@ func (m *TodoMutation) ClearedFields() []string {
 	if m.FieldCleared(todo.FieldBlob) {
 		fields = append(fields, todo.FieldBlob)
 	}
+	if m.FieldCleared(todo.FieldBigInt) {
+		fields = append(fields, todo.FieldBigInt)
+	}
 	return fields
 }
 
@@ -1559,6 +1626,9 @@ func (m *TodoMutation) ClearField(name string) error {
 	switch name {
 	case todo.FieldBlob:
 		m.ClearBlob()
+		return nil
+	case todo.FieldBigInt:
+		m.ClearBigInt()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo nullable field %s", name)
@@ -1582,6 +1652,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldBlob:
 		m.ResetBlob()
+		return nil
+	case todo.FieldBigInt:
+		m.ResetBigInt()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)

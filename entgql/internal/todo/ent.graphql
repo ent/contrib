@@ -129,6 +129,18 @@ input TodoWhereInput {
   textEqualFold: String
   textContainsFold: String
   
+  """big_int field predicates"""
+  bigInt: BigInt
+  bigIntNEQ: BigInt
+  bigIntIn: [BigInt!]
+  bigIntNotIn: [BigInt!]
+  bigIntGT: BigInt
+  bigIntGTE: BigInt
+  bigIntLT: BigInt
+  bigIntLTE: BigInt
+  bigIntIsNil: Boolean
+  bigIntNotNil: Boolean
+  
   """id field predicates"""
   id: ID
   idNEQ: ID

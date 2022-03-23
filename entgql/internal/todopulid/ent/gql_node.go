@@ -129,7 +129,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Todo",
-		Fields: make([]*Field, 5),
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -171,6 +171,14 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[4] = &Field{
 		Type:  "[]byte",
 		Name:  "blob",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.BigInt); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "schematype.BigInt",
+		Name:  "big_int",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
