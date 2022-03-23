@@ -91,10 +91,6 @@ func WithSchemaPath(path string) ExtensionOption {
 	}
 }
 
-// GQLConfigAnnotation is the annotation key/name that holds gqlgen
-// configuration if it was provided by the `WithConfigPath` option.
-const GQLConfigAnnotation = "GQLConfig"
-
 // WithConfigPath sets the filepath to gqlgen.yml configuration file
 // and injects its parsed version to the global annotations.
 //
@@ -155,15 +151,6 @@ func WithConfigPath(path string, gqlgenOptions ...api.Option) ExtensionOption {
 			}
 		}
 		ex.cfg = cfg
-		ex.hooks = append(ex.hooks, func(next gen.Generator) gen.Generator {
-			return gen.GenerateFunc(func(g *gen.Graph) error {
-				if g.Annotations == nil {
-					g.Annotations = gen.Annotations{}
-				}
-				g.Annotations[GQLConfigAnnotation] = cfg
-				return next.Generate(g)
-			})
-		})
 		return nil
 	}
 }
