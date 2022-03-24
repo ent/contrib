@@ -363,8 +363,7 @@ func (c *CategoryQuery) Paginate(
 
 	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
-		if hasCollectedField(ctx, totalCountField) ||
-			hasCollectedField(ctx, pageInfoField) {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 			count, err := c.Count(ctx)
 			if err != nil {
 				return nil, err
@@ -647,8 +646,7 @@ func (t *TodoQuery) Paginate(
 
 	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
-		if hasCollectedField(ctx, totalCountField) ||
-			hasCollectedField(ctx, pageInfoField) {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 			count, err := t.Count(ctx)
 			if err != nil {
 				return nil, err
@@ -976,8 +974,7 @@ func (u *UserQuery) Paginate(
 
 	conn := &MasterUserConnection{Edges: []*MasterUserEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
-		if hasCollectedField(ctx, totalCountField) ||
-			hasCollectedField(ctx, pageInfoField) {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 			count, err := u.Count(ctx)
 			if err != nil {
 				return nil, err
