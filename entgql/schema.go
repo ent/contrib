@@ -175,7 +175,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 				})
 			}
 
-			if f.IsEnum() {
+			if f.IsEnum() && !ant.Skip.Has(SkipFlagFieldEnum) {
 				enum, err := e.buildEnum(f, ant)
 				if err != nil {
 					return nil, err
