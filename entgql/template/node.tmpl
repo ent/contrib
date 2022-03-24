@@ -66,15 +66,17 @@ type Edge struct {
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
+		{{- $fields := filterFields $n.Fields (skipFlag "type") }}
+		{{- $edges := filterEdges $n.Edges (skipFlag "type") }}
 		node = &Node{
 			ID: {{ $receiver }}.ID,
 			Type: "{{ $n.Name }}",
-			Fields: make([]*Field, {{ len $n.Fields }}),
-			Edges: make([]*Edge, {{ len (filterEdges $n.Edges (skipFlag "type")) }}),
+			Fields: make([]*Field, {{ len $fields }}),
+			Edges: make([]*Edge, {{ len $edges }}),
 		}
-		{{- with filterFields $n.Fields (skipFlag "type") }}
+		{{- with $fields }}
 			var buf []byte
-			{{- range $i, $f := filterFields $n.Fields (skipFlag "type") }}
+			{{- range $i, $f := $fields }}
 				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
 					return nil, err
 				}
@@ -85,8 +87,8 @@ type Edge struct {
 				}
 			{{- end }}
 		{{- end }}
-		{{- with filterEdges $n.Edges (skipFlag "type") }}
-			{{- range $i, $e := filterEdges $n.Edges (skipFlag "type") }}
+		{{- with $edges }}
+			{{- range $i, $e := $edges }}
 				node.Edges[{{ $i }}] = &Edge{
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
