@@ -506,7 +506,7 @@ func createGraph(relayConnection bool) *gen.Graph {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"Skip": true,
+						"Skip": SkipFlagAll,
 					},
 				},
 			},

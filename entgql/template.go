@@ -72,6 +72,7 @@ var (
 		"filterNodes":         filterNodes,
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
+		"skipFlag":            skipFlagFromString,
 	}
 
 	//go:embed template/*
@@ -132,14 +133,14 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 }
 
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
-func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
+func filterNodes(nodes []*gen.Type, skip SkipFlag) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
 	for _, n := range nodes {
 		ant, err := annotation(n.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if !ant.Skip {
+		if !ant.Skip.Has(skip) {
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
@@ -147,7 +148,7 @@ func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 }
 
 // filterEdges filters out edges that should not be included in the GraphQL schema.
-func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
+func filterEdges(edges []*gen.Edge, skip SkipFlag) ([]*gen.Edge, error) {
 	filteredEdges := make([]*gen.Edge, 0, len(edges))
 	for _, e := range edges {
 		antE, err := annotation(e.Annotations)
@@ -158,7 +159,7 @@ func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !antE.Skip && !antT.Skip {
+		if !antE.Skip.Has(skip) && !antT.Skip.Has(skip) {
 			filteredEdges = append(filteredEdges, e)
 		}
 	}
@@ -166,14 +167,14 @@ func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 }
 
 // filterFields filters out fields that should not be included in the GraphQL schema.
-func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
+func filterFields(fields []*gen.Field, skip SkipFlag) ([]*gen.Field, error) {
 	filteredFields := make([]*gen.Field, 0, len(fields))
 	for _, f := range fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if !ant.Skip {
+		if !ant.Skip.Has(skip) {
 			filteredFields = append(filteredFields, f)
 		}
 	}
@@ -193,6 +194,9 @@ func orderFields(n *gen.Type) ([]*gen.Field, error) {
 		}
 		if !f.Type.Comparable() {
 			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
+		}
+		if ant.Skip.Has(SkipFlagOrder) {
+			return nil, fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", n.Name, f.Name)
 		}
 		ordered = append(ordered, f)
 	}

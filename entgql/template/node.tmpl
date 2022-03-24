@@ -14,7 +14,7 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "node requires SQL storage" }}
 {{ end }}
 
-{{ $gqlNodes := filterNodes $.Nodes }}
+{{ $gqlNodes := filterNodes $.Nodes (skipFlag "type") }}
 {{ $idType := findIDType $gqlNodes $.IDType }}
 
 import (
@@ -70,11 +70,11 @@ type Edge struct {
 			ID: {{ $receiver }}.ID,
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $n.Fields }}),
-			Edges: make([]*Edge, {{ len (filterEdges $n.Edges) }}),
+			Edges: make([]*Edge, {{ len (filterEdges $n.Edges (skipFlag "type")) }}),
 		}
-		{{- with filterFields $n.Fields }}
+		{{- with filterFields $n.Fields (skipFlag "type") }}
 			var buf []byte
-			{{- range $i, $f := filterFields $n.Fields }}
+			{{- range $i, $f := filterFields $n.Fields (skipFlag "type") }}
 				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
 					return nil, err
 				}
@@ -85,8 +85,8 @@ type Edge struct {
 				}
 			{{- end }}
 		{{- end }}
-		{{- with filterEdges $n.Edges }}
-			{{- range $i, $e := filterEdges $n.Edges }}
+		{{- with filterEdges $n.Edges (skipFlag "type") }}
+			{{- range $i, $e := filterEdges $n.Edges (skipFlag "type") }}
 				node.Edges[{{ $i }}] = &Edge{
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
@@ -340,7 +340,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- $idType := findIDType (filterNodes $.Nodes) $.IDType }}
+	{{- $idType := findIDType (filterNodes $.Nodes (skipFlag "type")) $.IDType }}
 	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables

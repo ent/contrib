@@ -94,7 +94,7 @@ type schemaGenerator struct {
 }
 
 func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
-	nodes, err := filterNodes(g.Nodes)
+	nodes, err := filterNodes(g.Nodes, SkipFlagType)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip {
+		if ant.Skip.Has(SkipFlagType) {
 			continue
 		}
 
@@ -164,7 +164,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			if err != nil {
 				return nil, err
 			}
-			if ant.Skip {
+			if ant.Skip.Has(SkipFlagType) {
 				continue
 			}
 
@@ -311,7 +311,7 @@ func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefini
 	if err != nil {
 		return nil, err
 	}
-	if ant.Skip {
+	if ant.Skip.Has(SkipFlagType) {
 		return nil, nil
 	}
 
@@ -391,7 +391,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip {
+		if ant.Skip.Has(SkipFlagType) {
 			continue
 		}
 
@@ -407,7 +407,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 			if err != nil {
 				return nil, err
 			}
-			if ant.Skip {
+			if ant.Skip.Has(SkipFlagType) {
 				continue
 			}
 			// Check if this node has an OrderBy object

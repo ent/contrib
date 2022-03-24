@@ -16,6 +16,7 @@ package entgql
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
@@ -37,7 +38,7 @@ type (
 		// Type is the underlying GraphQL type name (e.g. Boolean).
 		Type string `json:"Type,omitempty"`
 		// Skip exclude the type
-		Skip bool `json:"Skip,omitempty"`
+		Skip SkipFlag `json:"Skip,omitempty"`
 		// RelayConnection enables the Relay Connection specification for the entity.
 		// It's also can apply on an edge to create the Relay-style filter.
 		RelayConnection bool `json:"RelayConnection,omitempty"`
@@ -59,6 +60,29 @@ type (
 		Value string        `json:"value,omitempty"`
 		Kind  ast.ValueKind `json:"kind,omitempty"`
 	}
+
+	// SkipFlag is a bit flag for the skip annotation .
+	SkipFlag int
+)
+
+const (
+	// SkipFlagType will skip generate the entity/field in the query
+	SkipFlagType SkipFlag = 1 << iota
+	// SkipFlagFieldEnum will skip generate Enum from the enum field
+	SkipFlagFieldEnum
+	// SkipFlagInput will skip mutation input for the entity/field
+	SkipFlagInput
+	// SkipFlagWhere will skip input filter for the entity/field
+	SkipFlagWhere
+	// SkipFlagOrder will skip generate sort order for the entity
+	SkipFlagOrder
+
+	// SkipFlagAll is a bit flag for all skip flags
+	SkipFlagAll = SkipFlagType |
+		SkipFlagFieldEnum |
+		SkipFlagOrder |
+		SkipFlagInput |
+		SkipFlagWhere
 )
 
 // Name implements ent.Annotation interface.
@@ -105,8 +129,16 @@ func Type(name string) Annotation {
 }
 
 // Skip returns a skip annotation.
-func Skip() Annotation {
-	return Annotation{Skip: true}
+func Skip(flags ...SkipFlag) Annotation {
+	if len(flags) == 0 {
+		return Annotation{Skip: SkipFlagAll}
+	}
+
+	skip := SkipFlag(0)
+	for _, f := range flags {
+		skip |= f
+	}
+	return Annotation{Skip: skip}
 }
 
 // RelayConnection returns a relay connection annotation.
@@ -149,8 +181,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.Type != "" {
 		a.Type = ant.Type
 	}
-	if ant.Skip {
-		a.Skip = true
+	if ant.Skip.Any() {
+		a.Skip |= ant.Skip
 	}
 	if ant.RelayConnection {
 		a.RelayConnection = true
@@ -171,6 +203,33 @@ func (a *Annotation) Decode(annotation interface{}) error {
 		return err
 	}
 	return json.Unmarshal(buf, a)
+}
+
+// Any returns true if the skip annotation is setted
+func (f SkipFlag) Any() bool {
+	return f != 0
+}
+
+// Has check if the skip annotation has a specific flag
+func (f SkipFlag) Has(check SkipFlag) bool {
+	return f&check == check
+}
+
+// skipFlagFromString returns SkipFlag from a string
+func skipFlagFromString(s string) (SkipFlag, error) {
+	switch s {
+	case "type":
+		return SkipFlagType, nil
+	case "field_enum":
+		return SkipFlagFieldEnum, nil
+	case "order":
+		return SkipFlagOrder, nil
+	case "input":
+		return SkipFlagInput, nil
+	case "where":
+		return SkipFlagWhere, nil
+	}
+	return 0, fmt.Errorf("invalid skip flag: %s", s)
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.

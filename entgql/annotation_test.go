@@ -48,14 +48,14 @@ func TestAnnotationDecode(t *testing.T) {
 		"OrderField": "NAME",
 		"Unbind":     true,
 		"Mapping":    []string{"f1", "f2"},
-		"Skip":       true,
+		"Skip":       entgql.SkipFlagAll,
 	})
 	require.NoError(t, err)
 	require.Equal(t, ann, &entgql.Annotation{
 		OrderField: "NAME",
 		Unbind:     true,
 		Mapping:    []string{"f1", "f2"},
-		Skip:       true,
+		Skip:       entgql.SkipFlagAll,
 	})
 	err = ann.Decode("invalid")
 	require.NotNil(t, err)
