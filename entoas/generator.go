@@ -432,6 +432,16 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 				SetName("itemsPerPage").
 				SetDescription("item count to render per page").
 				SetSchema(ogen.Int()),
+			ogen.NewParameter().
+				InQuery().
+				SetName("orderBy").
+				SetDescription("clause is used to sort the records in the result set for a SELECT statement.").
+				SetSchema(ogen.String()),
+			ogen.NewParameter().
+				InQuery().
+				SetName("filter").
+				SetDescription("text strings that you use to specify a subset of the data items").
+				SetSchema(ogen.String()),
 		).
 		AddResponse(
 			strconv.Itoa(http.StatusOK),
@@ -478,6 +488,16 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 				SetName("itemsPerPage").
 				SetDescription("item count to render per page").
 				SetSchema(ogen.Int()),
+			ogen.NewParameter().
+				InQuery().
+				SetName("orderBy").
+				SetDescription("clause is used to sort the records in the result set for a SELECT statement.").
+				SetSchema(ogen.String()),
+			ogen.NewParameter().
+				InQuery().
+				SetName("filter").
+				SetDescription("text strings that you use to specify a subset of the data items").
+				SetSchema(ogen.String()),
 		).
 		AddResponse(
 			strconv.Itoa(http.StatusOK),
