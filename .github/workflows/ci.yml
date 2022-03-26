@@ -59,12 +59,17 @@ jobs:
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
-          go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc@master
+      - name: Install protoc-gen-entgrpc
+        working-directory: entproto/cmd/protoc-gen-entgrpc
+        run: go install
+      - name: Install protoc-gen-ent
+        working-directory: entproto/cmd/protoc-gen-ent
+        run: go install
       - name: Run go generate
         run: go generate ./...
       - name: Check generated files
         run: |
-          status=$(git status --porcelain | grep -v go.sum | cat)
+          status=$(git status --porcelain | grep -v "go.\(sum\|mod\)" | cat)
           if [ -n "$status" ]; then
             echo "you need to run 'go generate ./...' and commit the changes"
             echo "$status"
