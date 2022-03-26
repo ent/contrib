@@ -65,7 +65,7 @@ type (
 )
 
 const (
-	// SkipType will skip generating the entity or field in the schema
+	// SkipType will skip generating the entity or the field in the schema
 	SkipType SkipMode = 1 << iota
 	// SkipEnumField will skip generating the enum type from the enum field
 	SkipEnumField
