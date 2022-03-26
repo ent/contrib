@@ -16,7 +16,6 @@ package entgql
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
@@ -70,8 +69,6 @@ const (
 	SkipType SkipMode = 1 << iota
 	// SkipEnumField will skip generating the enum type from the enum field
 	SkipEnumField
-	// SkipMutationInput will skip generating the entity or the field in the MutationInput
-	SkipMutationInput
 	// SkipOrderField will skip generating the entity or the field for the enum order
 	SkipOrderField
 	// SkipWhereInput will skip generating the entity or the field in the WhereInput
@@ -80,7 +77,6 @@ const (
 	// SkipAll is default mode to skip all
 	SkipAll = SkipType |
 		SkipEnumField |
-		SkipMutationInput |
 		SkipOrderField |
 		SkipWhereInput
 )
@@ -213,23 +209,6 @@ func (f SkipMode) Any() bool {
 // Has check if the skip annotation has a specific flag
 func (f SkipMode) Has(check SkipMode) bool {
 	return f&check == check
-}
-
-// skipModeFromString returns SkipFlag from a string
-func skipModeFromString(s string) (SkipMode, error) {
-	switch s {
-	case "type":
-		return SkipType, nil
-	case "enum_field":
-		return SkipEnumField, nil
-	case "order_field":
-		return SkipOrderField, nil
-	case "mutation_input":
-		return SkipMutationInput, nil
-	case "where_input":
-		return SkipWhereInput, nil
-	}
-	return 0, fmt.Errorf("invalid skip mode: %s", s)
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.

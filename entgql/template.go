@@ -203,6 +203,21 @@ func orderFields(n *gen.Type) ([]*gen.Field, error) {
 	return ordered, nil
 }
 
+// skipModeFromString returns SkipFlag from a string
+func skipModeFromString(s string) (SkipMode, error) {
+	switch s {
+	case "type":
+		return SkipType, nil
+	case "enum_field":
+		return SkipEnumField, nil
+	case "order_field":
+		return SkipOrderField, nil
+	case "where_input":
+		return SkipWhereInput, nil
+	}
+	return 0, fmt.Errorf("invalid skip mode: %s", s)
+}
+
 // PaginationNames holds the names of the pagination fields.
 type PaginationNames struct {
 	Connection string
