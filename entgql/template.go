@@ -72,7 +72,7 @@ var (
 		"filterNodes":         filterNodes,
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
-		"skipFlag":            skipFlagFromString,
+		"skipMode":            skipModeFromString,
 	}
 
 	//go:embed template/*
@@ -133,7 +133,7 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 }
 
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
-func filterNodes(nodes []*gen.Type, skip SkipFlag) ([]*gen.Type, error) {
+func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
 	for _, n := range nodes {
 		ant, err := annotation(n.Annotations)
@@ -148,7 +148,7 @@ func filterNodes(nodes []*gen.Type, skip SkipFlag) ([]*gen.Type, error) {
 }
 
 // filterEdges filters out edges that should not be included in the GraphQL schema.
-func filterEdges(edges []*gen.Edge, skip SkipFlag) ([]*gen.Edge, error) {
+func filterEdges(edges []*gen.Edge, skip SkipMode) ([]*gen.Edge, error) {
 	filteredEdges := make([]*gen.Edge, 0, len(edges))
 	for _, e := range edges {
 		antE, err := annotation(e.Annotations)
@@ -167,7 +167,7 @@ func filterEdges(edges []*gen.Edge, skip SkipFlag) ([]*gen.Edge, error) {
 }
 
 // filterFields filters out fields that should not be included in the GraphQL schema.
-func filterFields(fields []*gen.Field, skip SkipFlag) ([]*gen.Field, error) {
+func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 	filteredFields := make([]*gen.Field, 0, len(fields))
 	for _, f := range fields {
 		ant, err := annotation(f.Annotations)

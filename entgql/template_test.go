@@ -38,10 +38,10 @@ func TestFilterNodes(t *testing.T) {
 		{
 			Name: "SkippedType",
 			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{"Skip": SkipFlagAll},
+				annotationName: map[string]interface{}{"Skip": SkipAll},
 			},
 		},
-	}, SkipFlagType)
+	}, SkipType)
 	require.NoError(t, err)
 	require.Equal(t, []*gen.Type{
 		{
@@ -74,18 +74,18 @@ func TestFilterEdges(t *testing.T) {
 			Name: "SkippedEdge",
 			Type: &gen.Type{},
 			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{"Skip": SkipFlagAll},
+				annotationName: map[string]interface{}{"Skip": SkipAll},
 			},
 		},
 		{
 			Name: "SkippedEdgeType",
 			Type: &gen.Type{
 				Annotations: map[string]interface{}{
-					annotationName: map[string]interface{}{"Skip": SkipFlagAll},
+					annotationName: map[string]interface{}{"Skip": SkipAll},
 				},
 			},
 		},
-	}, SkipFlagType)
+	}, SkipType)
 	require.NoError(t, err)
 	require.Equal(t, []*gen.Edge{
 		{
@@ -191,10 +191,10 @@ func TestFilterFields(t *testing.T) {
 		{
 			Name: "SkippedField",
 			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{"Skip": SkipFlagAll},
+				annotationName: map[string]interface{}{"Skip": SkipAll},
 			},
 		},
-	}, SkipFlagType)
+	}, SkipType)
 	require.NoError(t, err)
 	require.Equal(t, []*gen.Field{
 		{

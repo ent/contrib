@@ -38,7 +38,7 @@ type (
 		// Type is the underlying GraphQL type name (e.g. Boolean).
 		Type string `json:"Type,omitempty"`
 		// Skip exclude the type
-		Skip SkipFlag `json:"Skip,omitempty"`
+		Skip SkipMode `json:"Skip,omitempty"`
 		// RelayConnection enables the Relay Connection specification for the entity.
 		// It's also can apply on an edge to create the Relay-style filter.
 		RelayConnection bool `json:"RelayConnection,omitempty"`
@@ -61,28 +61,28 @@ type (
 		Kind  ast.ValueKind `json:"kind,omitempty"`
 	}
 
-	// SkipFlag is a bit flag for the skip annotation .
-	SkipFlag int
+	// SkipMode is a bit flag for the skip annotation .
+	SkipMode int
 )
 
 const (
-	// SkipFlagType will skip generate the entity/field in the query
-	SkipFlagType SkipFlag = 1 << iota
-	// SkipFlagFieldEnum will skip generate Enum from the enum field
-	SkipFlagFieldEnum
-	// SkipFlagInput will skip mutation input for the entity/field
-	SkipFlagInput
-	// SkipFlagWhere will skip input filter for the entity/field
-	SkipFlagWhere
-	// SkipFlagOrder will skip generate sort order for the entity
-	SkipFlagOrder
+	// SkipType will skip generating the entity or field in the schema
+	SkipType SkipMode = 1 << iota
+	// SkipEnumField will skip generating the enum type from the enum field
+	SkipEnumField
+	// SkipMutationInput will skip generating the entity or the field in the MutationInput
+	SkipMutationInput
+	// SkipOrderField will skip generating the entity or the field for the enum order
+	SkipOrderField
+	// SkipWhereInput will skip generating the entity or the field in the WhereInput
+	SkipWhereInput
 
-	// SkipFlagAll is a bit flag for all skip flags
-	SkipFlagAll = SkipFlagType |
-		SkipFlagFieldEnum |
-		SkipFlagOrder |
-		SkipFlagInput |
-		SkipFlagWhere
+	// SkipAll is default mode to skip all
+	SkipAll = SkipType |
+		SkipEnumField |
+		SkipMutationInput |
+		SkipOrderField |
+		SkipWhereInput
 )
 
 // Name implements ent.Annotation interface.
@@ -129,12 +129,12 @@ func Type(name string) Annotation {
 }
 
 // Skip returns a skip annotation.
-func Skip(flags ...SkipFlag) Annotation {
+func Skip(flags ...SkipMode) Annotation {
 	if len(flags) == 0 {
-		return Annotation{Skip: SkipFlagAll}
+		return Annotation{Skip: SkipAll}
 	}
 
-	skip := SkipFlag(0)
+	skip := SkipMode(0)
 	for _, f := range flags {
 		skip |= f
 	}
@@ -206,30 +206,30 @@ func (a *Annotation) Decode(annotation interface{}) error {
 }
 
 // Any returns true if the skip annotation is setted
-func (f SkipFlag) Any() bool {
+func (f SkipMode) Any() bool {
 	return f != 0
 }
 
 // Has check if the skip annotation has a specific flag
-func (f SkipFlag) Has(check SkipFlag) bool {
+func (f SkipMode) Has(check SkipMode) bool {
 	return f&check == check
 }
 
-// skipFlagFromString returns SkipFlag from a string
-func skipFlagFromString(s string) (SkipFlag, error) {
+// skipModeFromString returns SkipFlag from a string
+func skipModeFromString(s string) (SkipMode, error) {
 	switch s {
 	case "type":
-		return SkipFlagType, nil
-	case "field_enum":
-		return SkipFlagFieldEnum, nil
-	case "order":
-		return SkipFlagOrder, nil
-	case "input":
-		return SkipFlagInput, nil
-	case "where":
-		return SkipFlagWhere, nil
+		return SkipType, nil
+	case "enum_field":
+		return SkipEnumField, nil
+	case "order_field":
+		return SkipOrderField, nil
+	case "mutation_input":
+		return SkipMutationInput, nil
+	case "where_input":
+		return SkipWhereInput, nil
 	}
-	return 0, fmt.Errorf("invalid skip flag: %s", s)
+	return 0, fmt.Errorf("invalid skip mode: %s", s)
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.
