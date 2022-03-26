@@ -39,6 +39,7 @@ type Category implements Node {
   id: ID!
   text: String!
   strings: [String]
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
 }
 
 input TodoInput {

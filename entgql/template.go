@@ -88,7 +88,6 @@ func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo
 	t := defaultType
 	if len(nodes) > 0 {
 		t = nodes[0].ID.Type
-
 		// Ensure all id types have the same type.
 		for _, n := range nodes[1:] {
 			if n.ID.Type.Type != t.Type {
@@ -96,7 +95,6 @@ func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo
 			}
 		}
 	}
-
 	return t, nil
 }
 
@@ -217,7 +215,6 @@ func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 	if ant.Type != "" {
 		node = ant.Type
 	}
-
 	return &PaginationNames{
 		Connection: fmt.Sprintf("%sConnection", node),
 		Edge:       fmt.Sprintf("%sEdge", node),

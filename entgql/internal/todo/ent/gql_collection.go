@@ -31,6 +31,14 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "todos":
+			c = c.WithTodos(func(query *TodoQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return c
 }
 

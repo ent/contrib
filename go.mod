@@ -1,10 +1,10 @@
 module entgo.io/contrib
 
-go 1.17
+go 1.18
 
 require (
 	entgo.io/ent v0.10.2-0.20220321093754-edd968490ea2
-	github.com/99designs/gqlgen v0.16.1-0.20220209020931-d7da5b0d3b3c
+	github.com/99designs/gqlgen v0.17.3-0.20220323140303-36fb3dc67336
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
@@ -18,18 +18,19 @@ require (
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.7.1-0.20210427113832-6241f9ab9942
-	github.com/vektah/gqlparser/v2 v2.3.1
+	github.com/vektah/gqlparser/v2 v2.4.0
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.17.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/tools v0.1.9-0.20211216111533-8d383106f7e7
+	golang.org/x/tools v0.1.9
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
 )
 
 require (
 	ariga.io/atlas v0.3.8-0.20220314111236-b2171e04c5b2 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -37,9 +38,9 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-faster/errors v0.5.0 // indirect
 	github.com/go-faster/jx v0.25.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
