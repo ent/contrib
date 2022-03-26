@@ -68,6 +68,7 @@ var (
 		"fieldCollections":    fieldCollections,
 		"filterEdges":         filterEdges,
 		"filterFields":        filterFields,
+		"orderFields":         orderFields,
 		"filterNodes":         filterNodes,
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
@@ -110,11 +111,8 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 			Name:    e.Type.Name,
 			Mapping: []string{e.Name},
 		}
-		ant := &Annotation{}
-		if e.Annotations == nil || e.Annotations[ant.Name()] == nil {
-			continue
-		}
-		if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
+		ant, err := annotation(e.Annotations)
+		if err != nil {
 			return nil, err
 		}
 		if ant.Unbind {
@@ -135,65 +133,70 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
 func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
-	var filteredNodes []*gen.Type
+	filteredNodes := make([]*gen.Type, 0, len(nodes))
 	for _, n := range nodes {
-		ant := &Annotation{}
-		if n.Annotations != nil && n.Annotations[ant.Name()] != nil {
-			if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
-				return nil, err
-			}
-			if ant.Skip {
-				continue
-			}
+		ant, err := annotation(n.Annotations)
+		if err != nil {
+			return nil, err
 		}
-		filteredNodes = append(filteredNodes, n)
+		if !ant.Skip {
+			filteredNodes = append(filteredNodes, n)
+		}
 	}
 	return filteredNodes, nil
 }
 
 // filterEdges filters out edges that should not be included in the GraphQL schema.
 func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
-	var filteredEdges []*gen.Edge
+	filteredEdges := make([]*gen.Edge, 0, len(edges))
 	for _, e := range edges {
-		ant := &Annotation{}
-		if e.Annotations != nil && e.Annotations[ant.Name()] != nil {
-			if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
-				return nil, err
-			}
-			if ant.Skip {
-				continue
-			}
+		antE, err := annotation(e.Annotations)
+		if err != nil {
+			return nil, err
 		}
-		// Check if type is skipped
-		if e.Type.Annotations != nil && e.Type.Annotations[ant.Name()] != nil {
-			if err := ant.Decode(e.Type.Annotations[ant.Name()]); err != nil {
-				return nil, err
-			}
-			if ant.Skip {
-				continue
-			}
+		antT, err := annotation(e.Type.Annotations)
+		if err != nil {
+			return nil, err
 		}
-		filteredEdges = append(filteredEdges, e)
+		if !antE.Skip && !antT.Skip {
+			filteredEdges = append(filteredEdges, e)
+		}
 	}
 	return filteredEdges, nil
 }
 
 // filterFields filters out fields that should not be included in the GraphQL schema.
 func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
-	var filteredFields []*gen.Field
+	filteredFields := make([]*gen.Field, 0, len(fields))
 	for _, f := range fields {
-		ant := &Annotation{}
-		if f.Annotations != nil && f.Annotations[ant.Name()] != nil {
-			if err := ant.Decode(f.Annotations[ant.Name()]); err != nil {
-				return nil, err
-			}
-			if ant.Skip {
-				continue
-			}
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
 		}
-		filteredFields = append(filteredFields, f)
+		if !ant.Skip {
+			filteredFields = append(filteredFields, f)
+		}
 	}
 	return filteredFields, nil
+}
+
+// orderFields returns the fields of the given node with the `OrderField` annotation.
+func orderFields(n *gen.Type) ([]*gen.Field, error) {
+	var ordered []*gen.Field
+	for _, f := range n.Fields {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if ant.OrderField == "" {
+			continue
+		}
+		if !f.Type.Comparable() {
+			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
+		}
+		ordered = append(ordered, f)
+	}
+	return ordered, nil
 }
 
 // PaginationNames holds the names of the pagination fields.
@@ -208,7 +211,7 @@ type PaginationNames struct {
 // nodePaginationNames returns the names of the pagination types for the node.
 func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 	node := t.Name
-	ant, err := decodeAnnotation(t.Annotations)
+	ant, err := annotation(t.Annotations)
 	if err != nil {
 		return nil, err
 	}
