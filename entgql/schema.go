@@ -169,7 +169,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			}
 
 			// Check if this node has an OrderBy object
-			if ant.OrderField != "" {
+			if ant.OrderField != "" && !ant.Skip.Has(SkipOrderField) {
 				enumOrderByValues = append(enumOrderByValues, &ast.EnumValueDefinition{
 					Name: ant.OrderField,
 				})
@@ -195,7 +195,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			}
 
 			insertDefinitions(types, defs...)
-			if enumOrderByValues != nil {
+			if enumOrderByValues != nil && !ant.Skip.Has(SkipOrderField) {
 				pagination, err := nodePaginationNames(node)
 				if err != nil {
 					return nil, err
