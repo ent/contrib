@@ -603,7 +603,7 @@ func listNamedType(name string, nullable bool) *ast.Type {
 func printSchema(schema *ast.Schema) string {
 	sb := &strings.Builder{}
 	formatter.
-		NewFormatter(sb).
+		NewFormatter(sb, formatter.WithIndent("  ")).
 		FormatSchema(schema)
 	return sb.String()
 }
