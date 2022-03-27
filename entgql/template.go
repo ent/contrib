@@ -72,6 +72,8 @@ var (
 		"filterNodes":         filterNodes,
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
+		"skipMode":            skipModeFromString,
+		"isSkipMode":          isSkipMode,
 	}
 
 	//go:embed template/*
@@ -132,14 +134,14 @@ func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
 }
 
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
-func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
+func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
 	for _, n := range nodes {
 		ant, err := annotation(n.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if !ant.Skip {
+		if !ant.Skip.Is(skip) {
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
@@ -147,7 +149,7 @@ func filterNodes(nodes []*gen.Type) ([]*gen.Type, error) {
 }
 
 // filterEdges filters out edges that should not be included in the GraphQL schema.
-func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
+func filterEdges(edges []*gen.Edge, skip SkipMode) ([]*gen.Edge, error) {
 	filteredEdges := make([]*gen.Edge, 0, len(edges))
 	for _, e := range edges {
 		antE, err := annotation(e.Annotations)
@@ -158,7 +160,7 @@ func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !antE.Skip && !antT.Skip {
+		if !antE.Skip.Is(skip) && !antT.Skip.Is(skip) {
 			filteredEdges = append(filteredEdges, e)
 		}
 	}
@@ -166,14 +168,14 @@ func filterEdges(edges []*gen.Edge) ([]*gen.Edge, error) {
 }
 
 // filterFields filters out fields that should not be included in the GraphQL schema.
-func filterFields(fields []*gen.Field) ([]*gen.Field, error) {
+func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 	filteredFields := make([]*gen.Field, 0, len(fields))
 	for _, f := range fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if !ant.Skip {
+		if !ant.Skip.Is(skip) {
 			filteredFields = append(filteredFields, f)
 		}
 	}
@@ -194,9 +196,38 @@ func orderFields(n *gen.Type) ([]*gen.Field, error) {
 		if !f.Type.Comparable() {
 			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
 		}
+		if ant.Skip.Is(SkipOrderField) {
+			return nil, fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", n.Name, f.Name)
+		}
 		ordered = append(ordered, f)
 	}
 	return ordered, nil
+}
+
+// skipModeFromString returns SkipFlag from a string
+func skipModeFromString(s string) (SkipMode, error) {
+	switch s {
+	case "type":
+		return SkipType, nil
+	case "enum_field":
+		return SkipEnumField, nil
+	case "order_field":
+		return SkipOrderField, nil
+	case "where_input":
+		return SkipWhereInput, nil
+	}
+	return 0, fmt.Errorf("invalid skip mode: %s", s)
+}
+
+func isSkipMode(antSkip interface{}, m string) (bool, error) {
+	skip, err := skipModeFromString(m)
+	if err != nil || antSkip == nil {
+		return false, err
+	}
+	if raw, ok := antSkip.(float64); ok {
+		return SkipMode(raw).Is(skip), nil
+	}
+	return false, fmt.Errorf("invalid annotation skip: %v", antSkip)
 }
 
 // PaginationNames holds the names of the pagination fields.

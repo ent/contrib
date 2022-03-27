@@ -15,14 +15,14 @@ in the LICENSE file in the root directory of this source tree.
 
 {{ template "import" $ }}
 
-{{ range $n := filterNodes $.Nodes }}
+{{ range $n := filterNodes $.Nodes (skipMode "where_input") }}
     {{ $comparableFields := list $n.ID }}
     {{ with $annotation := $n.ID.Annotations.EntGQL }}
-        {{ if $annotation.Skip }}
+        {{ if isSkipMode $annotation.Skip "where_input" }}
             {{ $comparableFields = list }}
         {{ end }}
     {{ end }}
-    {{ range $f := filterFields $n.Fields }}
+    {{ range $f := filterFields $n.Fields (skipMode "where_input") }}
         {{ if $f.Type.Comparable }}
             {{ $comparableFields = append $comparableFields $f }}
         {{ end }}
@@ -56,7 +56,7 @@ in the LICENSE file in the root directory of this source tree.
             {{- end }}
         {{- end }}
 
-        {{ range $e := filterEdges $n.Edges }}
+        {{ range $e := filterEdges $n.Edges (skipMode "where_input") }}
 
             // "{{ $e.Name }}" edge predicates.
             {{- $field := print "Has" $e.StructField }}
@@ -152,7 +152,7 @@ in the LICENSE file in the root directory of this source tree.
                 {{- end }}
             {{- end }}
         {{- end }}
-        {{ range $e := filterEdges $n.Edges }}
+        {{ range $e := filterEdges $n.Edges (skipMode "where_input") }}
             {{- $func := print "Has" $e.StructField }}
             if i.{{ $func }} != nil {
                 p := {{ $n.Package }}.{{ $func }}()

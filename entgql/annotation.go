@@ -37,7 +37,7 @@ type (
 		// Type is the underlying GraphQL type name (e.g. Boolean).
 		Type string `json:"Type,omitempty"`
 		// Skip exclude the type
-		Skip bool `json:"Skip,omitempty"`
+		Skip SkipMode `json:"Skip,omitempty"`
 		// RelayConnection enables the Relay Connection specification for the entity.
 		// It's also can apply on an edge to create the Relay-style filter.
 		RelayConnection bool `json:"RelayConnection,omitempty"`
@@ -59,6 +59,27 @@ type (
 		Value string        `json:"value,omitempty"`
 		Kind  ast.ValueKind `json:"kind,omitempty"`
 	}
+
+	// SkipMode is a bit flag for the Skip annotation.
+	SkipMode int
+)
+
+const (
+	// SkipType skips generating GraphQL types or fields in the schema.
+	SkipType SkipMode = 1 << iota
+	// SkipEnumField skips generating GraphQL enums for enum fields in the schema.
+	SkipEnumField
+	// SkipOrderField skips generating GraphQL order inputs and enums for ordered-fields in the schema.
+	SkipOrderField
+	// SkipWhereInput skips generating GraphQL WhereInput types.
+	// If defined on a field, the type will be generated without the field.
+	SkipWhereInput
+
+	// SkipAll is default mode to skip all.
+	SkipAll = SkipType |
+		SkipEnumField |
+		SkipOrderField |
+		SkipWhereInput
 )
 
 // Name implements ent.Annotation interface.
@@ -105,8 +126,16 @@ func Type(name string) Annotation {
 }
 
 // Skip returns a skip annotation.
-func Skip() Annotation {
-	return Annotation{Skip: true}
+func Skip(flags ...SkipMode) Annotation {
+	if len(flags) == 0 {
+		return Annotation{Skip: SkipAll}
+	}
+
+	skip := SkipMode(0)
+	for _, f := range flags {
+		skip |= f
+	}
+	return Annotation{Skip: skip}
 }
 
 // RelayConnection returns a relay connection annotation.
@@ -149,8 +178,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.Type != "" {
 		a.Type = ant.Type
 	}
-	if ant.Skip {
-		a.Skip = true
+	if ant.Skip.Any() {
+		a.Skip |= ant.Skip
 	}
 	if ant.RelayConnection {
 		a.RelayConnection = true
@@ -171,6 +200,16 @@ func (a *Annotation) Decode(annotation interface{}) error {
 		return err
 	}
 	return json.Unmarshal(buf, a)
+}
+
+// Any returns true if the skip annotation was set.
+func (f SkipMode) Any() bool {
+	return f != 0
+}
+
+// Is checks if the skip annotation has a specific flag.
+func (f SkipMode) Is(mode SkipMode) bool {
+	return f&mode != 0
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.
