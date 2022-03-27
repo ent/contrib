@@ -45,8 +45,7 @@ import "context"
 
 	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
 		ctx context.Context, after *Cursor, first *int,
-		before *Cursor, last *int, orderBy *{{ $order }},
-		opts ...{{ $opt }},
+		before *Cursor, last *int, {{ if orderFields $e.Type }}orderBy *{{ $order }},{{ end }} opts ...{{ $opt }},
 	) (*{{ $conn }}, error) {
 		query := {{ $r }}.Query{{ $e.StructField }}()
 		{{ with extend $n "Node" $e.Type "Query" "query" -}}

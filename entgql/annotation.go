@@ -164,7 +164,7 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	return a
 }
 
-// Decode unmarshal annotation
+// Decode unmarshalls the annotation.
 func (a *Annotation) Decode(annotation interface{}) error {
 	buf, err := json.Marshal(annotation)
 	if err != nil {
@@ -173,15 +173,13 @@ func (a *Annotation) Decode(annotation interface{}) error {
 	return json.Unmarshal(buf, a)
 }
 
-// decodeAnnotation decodes the annotation from the schema.
-func decodeAnnotation(annotations gen.Annotations) (*Annotation, error) {
+// annotation extracts the entgql.Annotation or returns its empty value.
+func annotation(ants gen.Annotations) (*Annotation, error) {
 	ant := &Annotation{}
-	if annotations == nil || annotations[ant.Name()] == nil {
-		return ant, nil
-	}
-
-	if err := ant.Decode(annotations[ant.Name()]); err != nil {
-		return nil, err
+	if ants != nil && ants[ant.Name()] != nil {
+		if err := ant.Decode(ants[ant.Name()]); err != nil {
+			return nil, err
+		}
 	}
 	return ant, nil
 }

@@ -217,17 +217,7 @@ const (
 )
 
 {{ range $node := $gqlNodes -}}
-{{ $orderFields := list -}}
-{{- range $f := append (filterFields $node.Fields) $node.ID }}
-	{{- if $annotation := $f.Annotations.EntGQL }}
-		{{- if $annotation.OrderField }}
-			{{- if not $f.Type.Comparable }}
-				{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
-			{{- end }}
-			{{ $orderFields = append $orderFields $f }}
-		{{- end }}
-	{{- end }}
-{{- end }}
+{{ $orderFields := orderFields $node }}
 
 {{ $names := nodePaginationNames $node -}}
 {{ $name := $names.Node -}}

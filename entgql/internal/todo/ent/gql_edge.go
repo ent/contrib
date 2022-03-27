@@ -24,8 +24,7 @@ import (
 
 func (c *Category) Todos(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, orderBy *TodoOrder,
-	opts ...TodoPaginateOption,
+	before *Cursor, last *int, orderBy *TodoOrder, opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
 	query := c.QueryTodos()
 	if err := validateFirstLast(first, last); err != nil {

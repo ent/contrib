@@ -130,7 +130,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		defaultInterfaces = append(defaultInterfaces, "Node")
 	}
 	for _, node := range e.nodes {
-		ant, err := decodeAnnotation(node.Annotations)
+		ant, err := annotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +160,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 
 		var enumOrderByValues ast.EnumValueList
 		for _, f := range node.Fields {
-			ant, err := decodeAnnotation(f.Annotations)
+			ant, err := annotation(f.Annotations)
 			if err != nil {
 				return nil, err
 			}
@@ -307,7 +307,7 @@ func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 }
 
 func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
-	ant, err := decodeAnnotation(f.Annotations)
+	ant, err := annotation(f.Annotations)
 	if err != nil {
 		return nil, err
 	}
@@ -387,7 +387,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		models[RelayCursor] = e.entGoType(RelayCursor)
 	}
 	for _, node := range e.nodes {
-		ant, err := decodeAnnotation(node.Annotations)
+		ant, err := annotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
@@ -403,7 +403,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 
 		var hasOrderBy bool
 		for _, field := range node.Fields {
-			ant, err := decodeAnnotation(field.Annotations)
+			ant, err := annotation(field.Annotations)
 			if err != nil {
 				return nil, err
 			}
