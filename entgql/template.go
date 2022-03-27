@@ -73,6 +73,7 @@ var (
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
 		"skipMode":            skipModeFromString,
+		"hasSkipMode":         hasSkipMode,
 	}
 
 	//go:embed template/*
@@ -216,6 +217,17 @@ func skipModeFromString(s string) (SkipMode, error) {
 		return SkipWhereInput, nil
 	}
 	return 0, fmt.Errorf("invalid skip mode: %s", s)
+}
+
+func hasSkipMode(antSkip interface{}, m string) (bool, error) {
+	skip, err := skipModeFromString(m)
+	if err != nil || antSkip == nil {
+		return false, err
+	}
+	if raw, ok := antSkip.(float64); ok {
+		return SkipMode(raw).Has(skip), nil
+	}
+	return false, fmt.Errorf("invalid annotation skip: %v", antSkip)
 }
 
 // PaginationNames holds the names of the pagination fields.
