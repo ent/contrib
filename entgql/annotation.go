@@ -209,7 +209,7 @@ func (f SkipMode) Any() bool {
 
 // Is checks if the skip annotation has a specific flag.
 func (f SkipMode) Is(mode SkipMode) bool {
-	return f&mode != 0 
+	return f&mode != 0
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.
