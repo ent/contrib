@@ -65,16 +65,17 @@ type (
 )
 
 const (
-	// SkipType will skip generating the entity or the field in the schema
+	// SkipType skips generating GraphQL types or fields in the schema.
 	SkipType SkipMode = 1 << iota
-	// SkipEnumField will skip generating the enum type from the enum field
+	// SkipEnumField skips generating GraphQL enums for enum fields in the schema.
 	SkipEnumField
-	// SkipOrderField will skip generating the entity or the field for the enum order
+	// SkipOrderField skips generating GraphQL order inputs and enums for ordered-fields in the schema.
 	SkipOrderField
-	// SkipWhereInput will skip generating the entity or the field in the WhereInput
+	// SkipWhereInput skips generating GraphQL WhereInput types.
+	// If defined on a field, the type will be generated without the field.
 	SkipWhereInput
 
-	// SkipAll is default mode to skip all
+	// SkipAll is default mode to skip all.
 	SkipAll = SkipType |
 		SkipEnumField |
 		SkipOrderField |
