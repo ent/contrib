@@ -73,7 +73,7 @@ var (
 		"findIDType":          findIDType,
 		"nodePaginationNames": nodePaginationNames,
 		"skipMode":            skipModeFromString,
-		"hasSkipMode":         hasSkipMode,
+		"isSkipMode":          isSkipMode,
 	}
 
 	//go:embed template/*
@@ -219,7 +219,7 @@ func skipModeFromString(s string) (SkipMode, error) {
 	return 0, fmt.Errorf("invalid skip mode: %s", s)
 }
 
-func hasSkipMode(antSkip interface{}, m string) (bool, error) {
+func isSkipMode(antSkip interface{}, m string) (bool, error) {
 	skip, err := skipModeFromString(m)
 	if err != nil || antSkip == nil {
 		return false, err
