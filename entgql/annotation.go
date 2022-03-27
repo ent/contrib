@@ -60,7 +60,7 @@ type (
 		Kind  ast.ValueKind `json:"kind,omitempty"`
 	}
 
-	// SkipMode is a bit flag for the skip annotation .
+	// SkipMode is a bit flag for the Skip annotation.
 	SkipMode int
 )
 
@@ -202,14 +202,14 @@ func (a *Annotation) Decode(annotation interface{}) error {
 	return json.Unmarshal(buf, a)
 }
 
-// Any returns true if the skip annotation is setted
+// Any returns true if the skip annotation was set.
 func (f SkipMode) Any() bool {
 	return f != 0
 }
 
-// Has check if the skip annotation has a specific flag
-func (f SkipMode) Has(check SkipMode) bool {
-	return f&check == check
+// Is checks if the skip annotation has a specific flag.
+func (f SkipMode) Is(mode SkipMode) bool {
+	return f&mode != 0 
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.

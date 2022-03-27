@@ -134,7 +134,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Has(SkipType) {
+		if ant.Skip.Is(SkipType) {
 			continue
 		}
 
@@ -164,18 +164,18 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			if err != nil {
 				return nil, err
 			}
-			if ant.Skip.Has(SkipType) {
+			if ant.Skip.Is(SkipType) {
 				continue
 			}
 
 			// Check if this node has an OrderBy object
-			if ant.OrderField != "" && !ant.Skip.Has(SkipOrderField) {
+			if ant.OrderField != "" && !ant.Skip.Is(SkipOrderField) {
 				enumOrderByValues = append(enumOrderByValues, &ast.EnumValueDefinition{
 					Name: ant.OrderField,
 				})
 			}
 
-			if f.IsEnum() && !ant.Skip.Has(SkipEnumField) {
+			if f.IsEnum() && !ant.Skip.Is(SkipEnumField) {
 				enum, err := e.buildEnum(f, ant)
 				if err != nil {
 					return nil, err
@@ -195,7 +195,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			}
 
 			insertDefinitions(types, defs...)
-			if enumOrderByValues != nil && !ant.Skip.Has(SkipOrderField) {
+			if enumOrderByValues != nil && !ant.Skip.Is(SkipOrderField) {
 				pagination, err := nodePaginationNames(node)
 				if err != nil {
 					return nil, err
@@ -311,7 +311,7 @@ func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefini
 	if err != nil {
 		return nil, err
 	}
-	if ant.Skip.Has(SkipType) {
+	if ant.Skip.Is(SkipType) {
 		return nil, nil
 	}
 
@@ -391,7 +391,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Has(SkipType) {
+		if ant.Skip.Is(SkipType) {
 			continue
 		}
 
@@ -407,7 +407,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 			if err != nil {
 				return nil, err
 			}
-			if ant.Skip.Has(SkipType) {
+			if ant.Skip.Is(SkipType) {
 				continue
 			}
 			// Check if this node has an OrderBy object

@@ -141,7 +141,7 @@ func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !ant.Skip.Has(skip) {
+		if !ant.Skip.Is(skip) {
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
@@ -160,7 +160,7 @@ func filterEdges(edges []*gen.Edge, skip SkipMode) ([]*gen.Edge, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !antE.Skip.Has(skip) && !antT.Skip.Has(skip) {
+		if !antE.Skip.Is(skip) && !antT.Skip.Is(skip) {
 			filteredEdges = append(filteredEdges, e)
 		}
 	}
@@ -175,7 +175,7 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !ant.Skip.Has(skip) {
+		if !ant.Skip.Is(skip) {
 			filteredFields = append(filteredFields, f)
 		}
 	}
@@ -196,7 +196,7 @@ func orderFields(n *gen.Type) ([]*gen.Field, error) {
 		if !f.Type.Comparable() {
 			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
 		}
-		if ant.Skip.Has(SkipOrderField) {
+		if ant.Skip.Is(SkipOrderField) {
 			return nil, fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", n.Name, f.Name)
 		}
 		ordered = append(ordered, f)
@@ -225,7 +225,7 @@ func hasSkipMode(antSkip interface{}, m string) (bool, error) {
 		return false, err
 	}
 	if raw, ok := antSkip.(float64); ok {
-		return SkipMode(raw).Has(skip), nil
+		return SkipMode(raw).Is(skip), nil
 	}
 	return false, fmt.Errorf("invalid annotation skip: %v", antSkip)
 }
