@@ -176,7 +176,7 @@ func (a *Annotation) Decode(annotation interface{}) error {
 // annotation extracts the entgql.Annotation or returns its empty value.
 func annotation(ants gen.Annotations) (*Annotation, error) {
 	ant := &Annotation{}
-	if ants != nil || ants[ant.Name()] != nil {
+	if ants != nil && ants[ant.Name()] != nil {
 		if err := ant.Decode(ants[ant.Name()]); err != nil {
 			return nil, err
 		}
