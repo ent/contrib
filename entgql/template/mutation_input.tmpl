@@ -11,20 +11,20 @@
 
 {{- range $n := $.Nodes }}
     {{- $annotation := $n.Annotations.EntGQL }}
-    {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+    {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_create_input")) }}
 
         {{ $input := print "Create" $n.Name "Input" }}
         // {{ $input }} represents a mutation input for creating {{ plural $n.Name | lower }}.
         type {{ $input }} struct {
             {{- range $f := $n.Fields }}
                 {{- $annotation := $f.Annotations.EntGQL }}
-                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_create_input"))) }}
                     {{ $f.StructField }} {{ if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
                 {{- end }}
             {{- end }}
             {{- range $e := $n.Edges }}
                 {{- $annotation := $e.Annotations.EntGQL }}
-                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_create_input")) }}
                     {{- if $e.Unique }}
                         {{- $structField := print (pascal $e.Name) "ID" }}
                         {{ $structField }} {{ if $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
@@ -40,7 +40,7 @@
         func (i *{{ $input }}) Mutate(m *{{ $n.CreateName }}) {
             {{- range $f := $n.Fields }}
                 {{- $annotation := $f.Annotations.EntGQL }}
-                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_create_input"))) }}
                     {{- if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}
                         if v := i.{{ $f.StructField }}; v != nil {
                             m.{{ $f.MutationSet }}(*v)
@@ -52,7 +52,7 @@
             {{- end }}
             {{- range $e := $n.Edges }}
                 {{- $annotation := $e.Annotations.EntGQL }}
-                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_create_input")) }}
                     {{- if $e.Unique }}
                         {{- $structField := print (pascal $e.Name) "ID" }}
                         {{- if $e.Optional }}
@@ -77,13 +77,14 @@
             i.Mutate(c)
             return c
         }
-
-        {{ $input = print "Update" $n.Name "Input" }}
+    {{- end }}
+    {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_update_input")) }}
+        {{ $input := print "Update" $n.Name "Input" }}
         // {{ $input }} represents a mutation input for updating {{ plural $n.Name | lower }}.
         type {{ $input }} struct {
             {{- range $f := $n.MutableFields }}
                 {{- $annotation := $f.Annotations.EntGQL }}
-                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_update_input"))) }}
                     {{ $f.StructField }} {{ if not $f.Type.RType.IsPtr }}*{{ end }}{{ $f.Type }}
                     {{- if $f.Optional }}
                         {{ print "Clear" $f.StructField }} bool
@@ -92,7 +93,7 @@
             {{- end }}
             {{- range $e := $n.Edges }}
                 {{- $annotation := $e.Annotations.EntGQL }}
-                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_update_input")) }}
                     {{- if $e.Unique }}
                         {{- $structField := print (pascal $e.Name) "ID" }}
                         {{ $structField }} *{{ $e.Type.ID.Type }}
@@ -109,7 +110,7 @@
         func (i *{{ $input }}) Mutate(m *{{ $n.MutationName }}) {
             {{- range $f := $n.MutableFields }}
                 {{- $annotation := $f.Annotations.EntGQL }}
-                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input"))) }}
+                {{- if and (not $f.IsEdgeField) (or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_update_input"))) }}
                     {{- if $f.Optional }}
                         if i.{{ print "Clear" $f.StructField }} {
                             m.{{ print "Clear" $f.StructField }}()
@@ -122,7 +123,7 @@
             {{- end }}
             {{- range $e := $n.Edges }}
                 {{- $annotation := $e.Annotations.EntGQL }}
-                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_input")) }}
+                {{- if or (not $annotation) (not (isSkipMode $annotation.Skip "mutation_update_input")) }}
                     {{- if $e.Unique }}
                         if i.{{ $e.MutationClear }} {
                             m.{{ $e.MutationClear }}()

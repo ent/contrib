@@ -280,8 +280,10 @@ func skipModeFromString(s string) (SkipMode, error) {
 		return SkipOrderField, nil
 	case "where_input":
 		return SkipWhereInput, nil
-	case "mutation_input":
-		return SkipMutationInput, nil
+	case "mutation_create_input":
+		return SkipMutationCreateInput, nil
+	case "mutation_update_input":
+		return SkipMutationUpdateInput, nil
 	}
 	return 0, fmt.Errorf("invalid skip mode: %s", s)
 }
