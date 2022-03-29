@@ -64,6 +64,8 @@ type TodoEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
+	// totalCount holds the count of the edges above.
+	totalCount [3]*int
 }
 
 // ParentOrErr returns the Parent value or an error if the edge

@@ -20,9 +20,11 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
 )
 
@@ -45,6 +47,21 @@ func init() {
 	categoryDescID := categoryMixinFields0[0].Descriptor()
 	// category.DefaultID holds the default value on creation for the id field.
 	category.DefaultID = categoryDescID.Default.(func() pulid.ID)
+	groupMixin := schema.Group{}.Mixin()
+	groupMixinFields0 := groupMixin[0].Fields()
+	_ = groupMixinFields0
+	groupMixinFields1 := groupMixin[1].Fields()
+	_ = groupMixinFields1
+	groupFields := schema.Group{}.Fields()
+	_ = groupFields
+	// groupDescName is the schema descriptor for name field.
+	groupDescName := groupMixinFields1[0].Descriptor()
+	// group.DefaultName holds the default value on creation for the name field.
+	group.DefaultName = groupDescName.Default.(string)
+	// groupDescID is the schema descriptor for id field.
+	groupDescID := groupMixinFields0[0].Descriptor()
+	// group.DefaultID holds the default value on creation for the id field.
+	group.DefaultID = groupDescID.Default.(func() pulid.ID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0
@@ -68,6 +85,21 @@ func init() {
 	todoDescID := todoMixinFields0[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
 	todo.DefaultID = todoDescID.Default.(func() pulid.ID)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
+	userMixinFields1 := userMixin[1].Fields()
+	_ = userMixinFields1
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescName is the schema descriptor for name field.
+	userDescName := userMixinFields1[0].Descriptor()
+	// user.DefaultName holds the default value on creation for the name field.
+	user.DefaultName = userDescName.Default.(string)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userMixinFields0[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() pulid.ID)
 	verysecretMixin := schema.VerySecret{}.Mixin()
 	verysecretMixinFields0 := verysecretMixin[0].Fields()
 	_ = verysecretMixinFields0

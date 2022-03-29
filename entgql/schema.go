@@ -187,6 +187,16 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 			}
 		}
 
+		for _, e := range node.Edges {
+			ant, err := annotation(e.Annotations)
+			if err != nil {
+				return err
+			}
+			if ant.RelayConnection && e.Unique {
+				return fmt.Errorf("RelayConnection cannot be defined on Unique edge: %s.%s", node.Name, e.Name)
+			}
+		}
+
 		if ant.RelayConnection {
 			if !e.relaySpec {
 				return ErrRelaySpecDisabled
