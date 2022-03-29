@@ -37,59 +37,51 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Entity {
-	id: ID!
-	text: String!
-	uuidA: UUID
-	status: CategoryStatus!
-	config: CategoryConfig!
-	duration: Duration!
-	count: Uint64! @deprecated(reason: "We don't use this field anymore")
-	strings: [String!]
+  id: ID!
+  text: String!
+  uuidA: UUID
+  status: CategoryStatus!
+  config: CategoryConfig!
+  duration: Duration!
+  count: Uint64! @deprecated(reason: "We don't use this field anymore")
+  strings: [String!]
 }
-"""
-CategoryStatus is enum for the field status
-"""
+"""CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
-	ENABLED
-	DISABLED
+  ENABLED
+  DISABLED
 }
 type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
-	id: ID
-	username: String!
-	age: Float!
-	amount: Float!
-	role: Role!
-	nullableString: String
+  id: ID
+  username: String!
+  age: Float!
+  amount: Float!
+  role: Role!
+  nullableString: String
 }
-"""
-Role is enum for the field role
-"""
+"""Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
-	ADMIN
-	USER
-	UNKNOWN
+  ADMIN
+  USER
+  UNKNOWN
 }
-"""
-Status is enum for the field status
-"""
+"""Status is enum for the field status"""
 enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status") {
-	IN_PROGRESS
-	COMPLETED
+  IN_PROGRESS
+  COMPLETED
 }
 type Todo {
-	id: ID!
-	createdAt: Time!
-	visibilityStatus: VisibilityStatus!
-	status: Status!
-	priority: Int!
-	text: String!
+  id: ID!
+  createdAt: Time!
+  visibilityStatus: VisibilityStatus!
+  status: Status!
+  priority: Int!
+  text: String!
 }
-"""
-VisibilityStatus is enum for the field visibility_status
-"""
+"""VisibilityStatus is enum for the field visibility_status"""
 enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
-	LISTING
-	HIDDEN
+  LISTING
+  HIDDEN
 }
 `, printSchema(&ast.Schema{
 		Types: types,
@@ -106,159 +98,115 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Node & Entity {
-	id: ID!
-	text: String!
-	uuidA: UUID
-	status: CategoryStatus!
-	config: CategoryConfig!
-	duration: Duration!
-	count: Uint64! @deprecated(reason: "We don't use this field anymore")
-	strings: [String!]
+  id: ID!
+  text: String!
+  uuidA: UUID
+  status: CategoryStatus!
+  config: CategoryConfig!
+  duration: Duration!
+  count: Uint64! @deprecated(reason: "We don't use this field anymore")
+  strings: [String!]
 }
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type CategoryConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [CategoryEdge]
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	totalCount: Int!
+  """A list of edges."""
+  edges: [CategoryEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
-"""
-An edge in a connection.
-"""
+"""An edge in a connection."""
 type CategoryEdge {
-	"""
-	The item at the end of the edge.
-	"""
-	node: Category
-	"""
-	A cursor for use in pagination.
-	"""
-	cursor: Cursor!
+  """The item at the end of the edge."""
+  node: Category
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 input CategoryOrder {
-	direction: OrderDirection! = ASC
-	field: CategoryOrderField!
+  direction: OrderDirection! = ASC
+  field: CategoryOrderField!
 }
 enum CategoryOrderField {
-	TEXT
-	DURATION
+  TEXT
+  DURATION
 }
-"""
-CategoryStatus is enum for the field status
-"""
+"""CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
-	ENABLED
-	DISABLED
+  ENABLED
+  DISABLED
 }
 type MasterUser implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
-	id: ID!
-	username: String!
-	age: Float!
-	amount: Float!
-	role: Role!
-	nullableString: String
+  id: ID!
+  username: String!
+  age: Float!
+  amount: Float!
+  role: Role!
+  nullableString: String
 }
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type MasterUserConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [MasterUserEdge]
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	totalCount: Int!
+  """A list of edges."""
+  edges: [MasterUserEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
-"""
-An edge in a connection.
-"""
+"""An edge in a connection."""
 type MasterUserEdge {
-	"""
-	The item at the end of the edge.
-	"""
-	node: MasterUser
-	"""
-	A cursor for use in pagination.
-	"""
-	cursor: Cursor!
+  """The item at the end of the edge."""
+  node: MasterUser
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
-"""
-Role is enum for the field role
-"""
+"""Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
-	ADMIN
-	USER
-	UNKNOWN
+  ADMIN
+  USER
+  UNKNOWN
 }
-"""
-Status is enum for the field status
-"""
+"""Status is enum for the field status"""
 enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status") {
-	IN_PROGRESS
-	COMPLETED
+  IN_PROGRESS
+  COMPLETED
 }
 type Todo implements Node {
-	id: ID!
-	createdAt: Time!
-	visibilityStatus: VisibilityStatus!
-	status: Status!
-	priority: Int!
-	text: String!
+  id: ID!
+  createdAt: Time!
+  visibilityStatus: VisibilityStatus!
+  status: Status!
+  priority: Int!
+  text: String!
 }
-"""
-A connection to a list of items.
-"""
+"""A connection to a list of items."""
 type TodoConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [TodoEdge]
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	totalCount: Int!
+  """A list of edges."""
+  edges: [TodoEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
-"""
-An edge in a connection.
-"""
+"""An edge in a connection."""
 type TodoEdge {
-	"""
-	The item at the end of the edge.
-	"""
-	node: Todo
-	"""
-	A cursor for use in pagination.
-	"""
-	cursor: Cursor!
+  """The item at the end of the edge."""
+  node: Todo
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 input TodoOrder {
-	direction: OrderDirection! = ASC
-	field: TodoOrderField!
+  direction: OrderDirection! = ASC
+  field: TodoOrderField!
 }
 enum TodoOrderField {
-	CREATED_AT
-	VISIBILITY_STATUS
-	STATUS
-	PRIORITY
-	TEXT
+  CREATED_AT
+  VISIBILITY_STATUS
+  STATUS
+  PRIORITY
+  TEXT
 }
-"""
-VisibilityStatus is enum for the field visibility_status
-"""
+"""VisibilityStatus is enum for the field visibility_status"""
 enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
-	LISTING
-	HIDDEN
+  LISTING
+  HIDDEN
 }
 `, printSchema(&ast.Schema{
 		Types: types,
@@ -282,32 +230,20 @@ func TestSchema_relayConnectionTypes(t *testing.T) {
 					Name: "Todo",
 				},
 			},
-			want: `"""
-A connection to a list of items.
-"""
+			want: `"""A connection to a list of items."""
 type TodoConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [TodoEdge]
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	totalCount: Int!
+  """A list of edges."""
+  edges: [TodoEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
-"""
-An edge in a connection.
-"""
+"""An edge in a connection."""
 type TodoEdge {
-	"""
-	The item at the end of the edge.
-	"""
-	node: Todo
-	"""
-	A cursor for use in pagination.
-	"""
-	cursor: Cursor!
+  """The item at the end of the edge."""
+  node: Todo
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 `,
 		},
@@ -323,32 +259,20 @@ type TodoEdge {
 					},
 				},
 			},
-			want: `"""
-A connection to a list of items.
-"""
+			want: `"""A connection to a list of items."""
 type SuperTodoConnection {
-	"""
-	A list of edges.
-	"""
-	edges: [SuperTodoEdge]
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	totalCount: Int!
+  """A list of edges."""
+  edges: [SuperTodoEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
-"""
-An edge in a connection.
-"""
+"""An edge in a connection."""
 type SuperTodoEdge {
-	"""
-	The item at the end of the edge.
-	"""
-	node: SuperTodo
-	"""
-	A cursor for use in pagination.
-	"""
-	cursor: Cursor!
+  """The item at the end of the edge."""
+  node: SuperTodo
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 `,
 		},
@@ -391,32 +315,22 @@ An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
 interface Node {
-	"""
-	The id of the object.
-	"""
-	id: ID!
+  """The id of the object."""
+  id: ID!
 }
 """
 Information about pagination in a connection.
 https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
 """
 type PageInfo {
-	"""
-	When paginating forwards, are there more items?
-	"""
-	hasNextPage: Boolean!
-	"""
-	When paginating backwards, are there more items?
-	"""
-	hasPreviousPage: Boolean!
-	"""
-	When paginating backwards, the cursor to continue.
-	"""
-	startCursor: Cursor
-	"""
-	When paginating forwards, the cursor to continue.
-	"""
-	endCursor: Cursor
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
 }
 `,
 		},
@@ -592,7 +506,7 @@ func createGraph(relayConnection bool) *gen.Graph {
 				}},
 				Annotations: map[string]interface{}{
 					annotationName: map[string]interface{}{
-						"Skip": true,
+						"Skip": SkipAll,
 					},
 				},
 			},

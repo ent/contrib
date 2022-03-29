@@ -16,14 +16,106 @@
 
 package ent
 
-import "context"
+import (
+	"context"
 
-func (c *Category) Todos(ctx context.Context) ([]*Todo, error) {
-	result, err := c.Edges.TodosOrErr()
-	if IsNotLoaded(err) {
-		result, err = c.QueryTodos().All(ctx)
+	"github.com/99designs/gqlgen/graphql"
+)
+
+func (c *Category) Todos(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, orderBy *TodoOrder, opts ...TodoPaginateOption,
+) (*TodoConnection, error) {
+	query := c.QueryTodos()
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
 	}
-	return result, err
+	pager, err := newTodoPager(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if query, err = pager.applyFilter(query); err != nil {
+		return nil, err
+	}
+
+	conn := &TodoConnection{Edges: []*TodoEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			count, err := query.Count(ctx)
+			if err != nil {
+				return nil, err
+			}
+			conn.TotalCount = count
+			conn.PageInfo.HasNextPage = first != nil && count > 0
+			conn.PageInfo.HasPreviousPage = last != nil && count > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := query.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	query = pager.applyCursors(query, after, before)
+	query = pager.applyOrder(query, last != nil)
+	var limit int
+	if first != nil {
+		limit = *first + 1
+	} else if last != nil {
+		limit = *last + 1
+	}
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
+		query = query.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+
+	nodes, err := query.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+
+	if len(nodes) == limit {
+		conn.PageInfo.HasNextPage = first != nil
+		conn.PageInfo.HasPreviousPage = last != nil
+		nodes = nodes[:len(nodes)-1]
+	}
+
+	var nodeAt func(int) *Todo
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Todo {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Todo {
+			return nodes[i]
+		}
+	}
+
+	conn.Edges = make([]*TodoEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		conn.Edges[i] = &TodoEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+	if conn.TotalCount == 0 {
+		conn.TotalCount = len(nodes)
+	}
+
+	return conn, nil
 }
 
 func (t *Todo) Parent(ctx context.Context) (*Todo, error) {

@@ -17,7 +17,7 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "pagination requires field collection" }}
 {{- end }}
 
-{{ $gqlNodes := filterNodes $.Nodes }}
+{{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 {{ $idType := findIDType $gqlNodes $.IDType }}
 
 import (
@@ -217,17 +217,7 @@ const (
 )
 
 {{ range $node := $gqlNodes -}}
-{{ $orderFields := list -}}
-{{- range $f := append (filterFields $node.Fields) $node.ID }}
-	{{- if $annotation := $f.Annotations.EntGQL }}
-		{{- if $annotation.OrderField }}
-			{{- if not $f.Type.Comparable }}
-				{{ fail (printf "annotated field %s.%s must be comparable" $node.Name $f.Name) }}
-			{{- end }}
-			{{ $orderFields = append $orderFields $f }}
-		{{- end }}
-	{{- end }}
-{{- end }}
+{{ $orderFields := orderFields $node }}
 
 {{ $names := nodePaginationNames $node -}}
 {{ $name := $names.Node -}}
@@ -244,7 +234,7 @@ type {{ $edge }} struct {
 	Cursor Cursor     `json:"cursor"`
 }
 
-{{ $conn := $names.Connection -}}
+{{ $conn := $names.Connection }}
 // {{ $conn }} is the connection containing edges to {{ $name }}.
 type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
@@ -252,8 +242,8 @@ type {{ $conn }} struct {
 	TotalCount int       `json:"totalCount"`
 }
 
-{{ $pager := print (slice $name 0 1 | lower) (slice $name 1) "Pager" -}}
-{{ $opt := print $name "PaginateOption" -}}
+{{ $pager := print (slice $name 0 1 | lower) (slice $name 1) "Pager" }}
+{{ $opt := print $name "PaginateOption" }}
 // {{ $opt }} enables pagination customization.
 type {{ $opt }} func(*{{ $pager }}) error
 
@@ -317,7 +307,7 @@ func (p *{{ $pager }}) applyFilter(query *{{ $query }}) (*{{ $query }}, error) {
 	return query, nil
 }
 
-{{ $r := $node.Receiver -}}
+{{ $r := $node.Receiver }}
 func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
 	return p.order.Field.toCursor({{ $r }})
 }
@@ -349,96 +339,9 @@ func ({{ $r }} *{{ $query }}) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...{{ $opt }},
 ) (*{{ $conn }}, error) {
-	if err := validateFirstLast(first, last); err != nil {
-		return nil, err
-	}
-	pager, err := {{ $newPager }}(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	if {{ $r }}, err = pager.applyFilter({{ $r }}); err != nil {
-		return nil, err
-	}
-
-	conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
-	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
-		if hasCollectedField(ctx, totalCountField) ||
-			hasCollectedField(ctx, pageInfoField) {
-			count, err := {{ $r }}.Count(ctx)
-			if err != nil {
-				return nil, err
-			}
-			conn.TotalCount = count
-			conn.PageInfo.HasNextPage = first != nil && count > 0
-			conn.PageInfo.HasPreviousPage = last != nil && count > 0
-		}
-		return conn, nil
-	}
-
-	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := {{ $r }}.Clone().Count(ctx)
-		if err != nil {
-			return nil, err
-		}
-		conn.TotalCount = count
-	}
-
-	{{ $r }} = pager.applyCursors({{ $r }}, after, before)
-	{{ $r }} = pager.applyOrder({{ $r }}, last != nil)
-	var limit int
-	if first != nil {
-		limit = *first+1
-	} else if last != nil {
-		limit = *last+1
-	}
-	if limit > 0 {
-		{{ $r }} = {{ $r }}.Limit(limit)
-	}
-
-	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
-		{{ $r }} = {{ $r }}.collectField(graphql.GetOperationContext(ctx), *field)
-	}
-
-	nodes, err := {{ $r }}.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
-	}
-
-	if len(nodes) == limit {
-		conn.PageInfo.HasNextPage = first != nil
-		conn.PageInfo.HasPreviousPage = last != nil
-		nodes = nodes[:len(nodes)-1]
-	}
-
-	var nodeAt func(int) *{{ $name }}
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *{{ $name }} {
-			return nodes[n-i]
-		}
-	} else {
-		nodeAt = func(i int) *{{ $name }} {
-			return nodes[i]
-		}
-	}
-
-	conn.Edges = make([]*{{ $edge }}, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		conn.Edges[i] = &{{ $edge }}{
-			Node: node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-
-	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
-	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
-	if conn.TotalCount == 0 {
-		conn.TotalCount = len(nodes)
-	}
-
-	return conn, nil
+	{{- with extend $ "Node" $node "Query" $r -}}
+		{{ template "gql_pagination/helper/paginate" . }}
+	{{- end -}}
 }
 
 {{ $orderField := $names.OrderField -}}
@@ -529,4 +432,106 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 }
 
 {{- end }}
+{{ end }}
+
+{{ define "gql_pagination/helper/paginate" }}
+	{{- $node := $.Scope.Node }}
+	{{- $r := $.Scope.Query }}
+	{{- $names := nodePaginationNames $node }}
+	{{- $name := $names.Node }}
+	{{- $order := $names.Order }}
+	{{- $edge := $names.Edge }}
+	{{- $conn := $names.Connection }}
+	{{- $opt := print $name "PaginateOption" }}
+	{{- $newPager := print "new" $name "Pager" -}}
+
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := {{ $newPager }}(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if {{ $r }}, err = pager.applyFilter({{ $r }}); err != nil {
+		return nil, err
+	}
+
+	conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			count, err := {{ $r }}.Count(ctx)
+			if err != nil {
+				return nil, err
+			}
+			conn.TotalCount = count
+			conn.PageInfo.HasNextPage = first != nil && count > 0
+			conn.PageInfo.HasPreviousPage = last != nil && count > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := {{ $r }}.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	{{ $r }} = pager.applyCursors({{ $r }}, after, before)
+	{{ $r }} = pager.applyOrder({{ $r }}, last != nil)
+	var limit int
+	if first != nil {
+		limit = *first+1
+	} else if last != nil {
+		limit = *last+1
+	}
+	if limit > 0 {
+		{{ $r }} = {{ $r }}.Limit(limit)
+	}
+
+	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
+		{{ $r }} = {{ $r }}.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+
+	nodes, err := {{ $r }}.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+
+	if len(nodes) == limit {
+		conn.PageInfo.HasNextPage = first != nil
+		conn.PageInfo.HasPreviousPage = last != nil
+		nodes = nodes[:len(nodes)-1]
+	}
+
+	var nodeAt func(int) *{{ $name }}
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *{{ $name }} {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *{{ $name }} {
+			return nodes[i]
+		}
+	}
+
+	conn.Edges = make([]*{{ $edge }}, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		conn.Edges[i] = &{{ $edge }}{
+			Node: node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+	if conn.TotalCount == 0 {
+		conn.TotalCount = len(nodes)
+	}
+
+	return conn, nil
 {{ end }}

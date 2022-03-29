@@ -94,7 +94,7 @@ type schemaGenerator struct {
 }
 
 func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
-	nodes, err := filterNodes(g.Nodes)
+	nodes, err := filterNodes(g.Nodes, SkipType)
 	if err != nil {
 		return nil, err
 	}
@@ -130,11 +130,11 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		defaultInterfaces = append(defaultInterfaces, "Node")
 	}
 	for _, node := range e.nodes {
-		ant, err := decodeAnnotation(node.Annotations)
+		ant, err := annotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip {
+		if ant.Skip.Is(SkipType) {
 			continue
 		}
 
@@ -160,22 +160,22 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 
 		var enumOrderByValues ast.EnumValueList
 		for _, f := range node.Fields {
-			ant, err := decodeAnnotation(f.Annotations)
+			ant, err := annotation(f.Annotations)
 			if err != nil {
 				return nil, err
 			}
-			if ant.Skip {
+			if ant.Skip.Is(SkipType) {
 				continue
 			}
 
 			// Check if this node has an OrderBy object
-			if ant.OrderField != "" {
+			if ant.OrderField != "" && !ant.Skip.Is(SkipOrderField) {
 				enumOrderByValues = append(enumOrderByValues, &ast.EnumValueDefinition{
 					Name: ant.OrderField,
 				})
 			}
 
-			if f.IsEnum() {
+			if f.IsEnum() && !ant.Skip.Is(SkipEnumField) {
 				enum, err := e.buildEnum(f, ant)
 				if err != nil {
 					return nil, err
@@ -195,7 +195,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			}
 
 			insertDefinitions(types, defs...)
-			if enumOrderByValues != nil {
+			if enumOrderByValues != nil && !ant.Skip.Is(SkipOrderField) {
 				pagination, err := nodePaginationNames(node)
 				if err != nil {
 					return nil, err
@@ -307,11 +307,11 @@ func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 }
 
 func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
-	ant, err := decodeAnnotation(f.Annotations)
+	ant, err := annotation(f.Annotations)
 	if err != nil {
 		return nil, err
 	}
-	if ant.Skip {
+	if ant.Skip.Is(SkipType) {
 		return nil, nil
 	}
 
@@ -387,11 +387,11 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		models[RelayCursor] = e.entGoType(RelayCursor)
 	}
 	for _, node := range e.nodes {
-		ant, err := decodeAnnotation(node.Annotations)
+		ant, err := annotation(node.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip {
+		if ant.Skip.Is(SkipType) {
 			continue
 		}
 
@@ -403,11 +403,11 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 
 		var hasOrderBy bool
 		for _, field := range node.Fields {
-			ant, err := decodeAnnotation(field.Annotations)
+			ant, err := annotation(field.Annotations)
 			if err != nil {
 				return nil, err
 			}
-			if ant.Skip {
+			if ant.Skip.Is(SkipType) {
 				continue
 			}
 			// Check if this node has an OrderBy object
@@ -603,7 +603,7 @@ func listNamedType(name string, nullable bool) *ast.Type {
 func printSchema(schema *ast.Schema) string {
 	sb := &strings.Builder{}
 	formatter.
-		NewFormatter(sb).
+		NewFormatter(sb, formatter.WithIndent("  ")).
 		FormatSchema(schema)
 	return sb.String()
 }

@@ -14,7 +14,7 @@ in the LICENSE file in the root directory of this source tree.
 	{{ fail "node requires SQL storage" }}
 {{ end }}
 
-{{ $gqlNodes := filterNodes $.Nodes }}
+{{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 {{ $idType := findIDType $gqlNodes $.IDType }}
 
 import (
@@ -66,15 +66,17 @@ type Edge struct {
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
+		{{- $fields := filterFields $n.Fields (skipMode "type") }}
+		{{- $edges := filterEdges $n.Edges (skipMode "type") }}
 		node = &Node{
 			ID: {{ $receiver }}.ID,
 			Type: "{{ $n.Name }}",
-			Fields: make([]*Field, {{ len $n.Fields }}),
-			Edges: make([]*Edge, {{ len (filterEdges $n.Edges) }}),
+			Fields: make([]*Field, {{ len $fields }}),
+			Edges: make([]*Edge, {{ len $edges }}),
 		}
-		{{- with filterFields $n.Fields }}
+		{{- with $fields }}
 			var buf []byte
-			{{- range $i, $f := filterFields $n.Fields }}
+			{{- range $i, $f := $fields }}
 				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
 					return nil, err
 				}
@@ -85,8 +87,8 @@ type Edge struct {
 				}
 			{{- end }}
 		{{- end }}
-		{{- with filterEdges $n.Edges }}
-			{{- range $i, $e := filterEdges $n.Edges }}
+		{{- with $edges }}
+			{{- range $i, $e := $edges }}
 				node.Edges[{{ $i }}] = &Edge{
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
@@ -340,7 +342,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- $idType := findIDType (filterNodes $.Nodes) $.IDType }}
+	{{- $idType := findIDType (filterNodes $.Nodes (skipMode "type")) $.IDType }}
 	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables

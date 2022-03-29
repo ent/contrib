@@ -15,7 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-{{ range $node := filterNodes $.Nodes }}
+{{ range $node := filterNodes $.Nodes (skipMode "type") }}
 
 {{ $receiver := $node.Receiver }}
 {{ $query := $node.QueryName }}
@@ -28,7 +28,7 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 }
 
 func ({{ $receiver }} *{{ $query }}) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
-	{{- if $edges := fieldCollections (filterEdges $node.Edges) }}
+	{{- if $edges := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
 		for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
 			switch field.Name {
 				{{- range $name, $values := $edges }}
