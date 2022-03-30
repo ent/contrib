@@ -491,7 +491,7 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 			ogen.NewParameter().
 				InQuery().
 				SetName("orderBy").
-				SetDescription("clause is used to sort the records in the result set for a SELECT statement.").
+				SetDescription("clause is used to sort the records in the result set for a SELECT statement").
 				SetSchema(ogen.String()),
 			ogen.NewParameter().
 				InQuery().
