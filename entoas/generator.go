@@ -435,7 +435,7 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			ogen.NewParameter().
 				InQuery().
 				SetName("orderBy").
-				SetDescription("clause is used to sort the records in the result set for a SELECT statement.").
+				SetDescription("clause is used to sort the records in the result set for a SELECT statement").
 				SetSchema(ogen.String()),
 			ogen.NewParameter().
 				InQuery().
