@@ -264,19 +264,27 @@ type CategoryConnection struct {
 type CategoryPaginateOption func(*categoryPager) error
 
 // WithCategoryOrder configures pagination ordering.
-func WithCategoryOrder(order *CategoryOrder) CategoryPaginateOption {
-	if order == nil {
-		order = DefaultCategoryOrder
+func WithCategoryOrder(orders ...*CategoryOrder) CategoryPaginateOption {
+	var compactedOrder []CategoryOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultCategoryOrder)
+	}
 	return func(pager *categoryPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultCategoryOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultCategoryOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -293,7 +301,7 @@ func WithCategoryFilter(filter func(*CategoryQuery) (*CategoryQuery, error)) Cat
 }
 
 type categoryPager struct {
-	order  *CategoryOrder
+	orders []CategoryOrder
 	filter func(*CategoryQuery) (*CategoryQuery, error)
 }
 
@@ -304,8 +312,8 @@ func newCategoryPager(opts []CategoryPaginateOption) (*categoryPager, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultCategoryOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultCategoryOrder)
 	}
 	return pager, nil
 }
@@ -318,28 +326,37 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 }
 
 func (p *categoryPager) toCursor(c *Category) Cursor {
-	return p.order.Field.toCursor(c)
+	return p.orders[0].Field.toCursor(c)
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultCategoryOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	for _, order := range p.orders {
+		for _, predicate := range cursorsToPredicates(
+			order.Direction, after, before,
+			order.Field.field, DefaultCategoryOrder.Field.field,
+		) {
+			query = query.Where(predicate)
+		}
 	}
 	return query
 }
 
 func (p *categoryPager) applyOrder(query *CategoryQuery, reverse bool) *CategoryQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var columns []string
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		if direction == OrderDirectionAsc {
+			columns = append(columns, sql.Asc(order.Field.field))
+		} else {
+			columns = append(columns, sql.Desc(order.Field.field))
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultCategoryOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultCategoryOrder.Field.field))
-	}
+	query.Order(func(selector *sql.Selector) {
+		selector.OrderBy(columns...)
+	})
 	return query
 }
 
@@ -547,19 +564,27 @@ type TodoConnection struct {
 type TodoPaginateOption func(*todoPager) error
 
 // WithTodoOrder configures pagination ordering.
-func WithTodoOrder(order *TodoOrder) TodoPaginateOption {
-	if order == nil {
-		order = DefaultTodoOrder
+func WithTodoOrder(orders ...*TodoOrder) TodoPaginateOption {
+	var compactedOrder []TodoOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultTodoOrder)
+	}
 	return func(pager *todoPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultTodoOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultTodoOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -576,7 +601,7 @@ func WithTodoFilter(filter func(*TodoQuery) (*TodoQuery, error)) TodoPaginateOpt
 }
 
 type todoPager struct {
-	order  *TodoOrder
+	orders []TodoOrder
 	filter func(*TodoQuery) (*TodoQuery, error)
 }
 
@@ -587,8 +612,8 @@ func newTodoPager(opts []TodoPaginateOption) (*todoPager, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultTodoOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultTodoOrder)
 	}
 	return pager, nil
 }
@@ -601,28 +626,37 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 }
 
 func (p *todoPager) toCursor(t *Todo) Cursor {
-	return p.order.Field.toCursor(t)
+	return p.orders[0].Field.toCursor(t)
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) *TodoQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultTodoOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	for _, order := range p.orders {
+		for _, predicate := range cursorsToPredicates(
+			order.Direction, after, before,
+			order.Field.field, DefaultTodoOrder.Field.field,
+		) {
+			query = query.Where(predicate)
+		}
 	}
 	return query
 }
 
 func (p *todoPager) applyOrder(query *TodoQuery, reverse bool) *TodoQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var columns []string
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		if direction == OrderDirectionAsc {
+			columns = append(columns, sql.Asc(order.Field.field))
+		} else {
+			columns = append(columns, sql.Desc(order.Field.field))
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultTodoOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultTodoOrder.Field.field))
-	}
+	query.Order(func(selector *sql.Selector) {
+		selector.OrderBy(columns...)
+	})
 	return query
 }
 

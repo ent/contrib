@@ -75,7 +75,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Node  func(childComplexity int, id int) int
 		Nodes func(childComplexity int, ids []int) int
-		Todos func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
+		Todos func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
 	}
 
 	Todo struct {
@@ -108,7 +108,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []int) ([]ent.Noder, error)
-	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
+	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
 }
 
 type executableSchema struct {
@@ -247,7 +247,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Todos(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.TodoOrder), args["where"].(*ent.TodoWhereInput)), true
+		return e.complexity.Query.Todos(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].([]*ent.TodoOrder), args["where"].(*ent.TodoWhereInput)), true
 
 	case "Todo.category":
 		if e.complexity.Todo.Category == nil {
@@ -496,7 +496,7 @@ input TodoOrder {
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: [TodoOrder], where: TodoWhereInput): TodoConnection
 }
 
 type Mutation {
@@ -799,10 +799,10 @@ func (ec *executionContext) field_Query_todos_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["last"] = arg3
-	var arg4 *ent.TodoOrder
+	var arg4 []*ent.TodoOrder
 	if tmp, ok := rawArgs["orderBy"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-		arg4, err = ec.unmarshalOTodoOrder2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoOrder(ctx, tmp)
+		arg4, err = ec.unmarshalOTodoOrder2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1348,7 +1348,7 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Todos(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.TodoOrder), args["where"].(*ent.TodoWhereInput))
+		return ec.resolvers.Query().Todos(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].([]*ent.TodoOrder), args["where"].(*ent.TodoWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6262,6 +6262,30 @@ func (ec *executionContext) marshalOTodoEdge2ᚖentgoᚗioᚋcontribᚋentgqlᚋ
 		return graphql.Null
 	}
 	return ec._TodoEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTodoOrder2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoOrder(ctx context.Context, v interface{}) ([]*ent.TodoOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*ent.TodoOrder, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOTodoOrder2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoOrder(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOTodoOrder2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoOrder(ctx context.Context, v interface{}) (*ent.TodoOrder, error) {
