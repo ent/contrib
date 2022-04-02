@@ -342,7 +342,7 @@ func (e *schemaGenerator) typeFromField(f *gen.Field, idField bool, userDefinedT
 	case userDefinedType != "":
 		return namedType(userDefinedType, nillable), nil
 	case idField:
-		return namedType("ID", !e.relaySpec && nillable), nil
+		return namedType("ID", false), nil
 	case typ.Float():
 		return namedType("Float", nillable), nil
 	case typ.Integer():
