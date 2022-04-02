@@ -55,7 +55,7 @@ enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin
   DISABLED
 }
 type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
-  id: ID
+  id: ID!
   username: String!
   age: Float!
   amount: Float!
