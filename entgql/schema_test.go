@@ -33,7 +33,10 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	require.NoError(t, err)
 	plugin.relaySpec = false
 
-	types, err := plugin.buildTypes()
+	schema := &ast.Schema{
+		Types: make(map[string]*ast.Definition),
+	}
+	err = plugin.buildTypes(schema.Types)
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Entity {
@@ -83,9 +86,7 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
   LISTING
   HIDDEN
 }
-`, printSchema(&ast.Schema{
-		Types: types,
-	}))
+`, printSchema(schema))
 }
 
 func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
@@ -94,7 +95,10 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	plugin, err := newSchemaGenerator(graph)
 
 	require.NoError(t, err)
-	types, err := plugin.buildTypes()
+	schema := &ast.Schema{
+		Types: make(map[string]*ast.Definition),
+	}
+	err = plugin.buildTypes(schema.Types)
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Node & Entity {
@@ -208,9 +212,7 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
   LISTING
   HIDDEN
 }
-`, printSchema(&ast.Schema{
-		Types: types,
-	}))
+`, printSchema(schema))
 }
 
 func TestSchema_relayConnectionTypes(t *testing.T) {

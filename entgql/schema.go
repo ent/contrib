@@ -108,23 +108,23 @@ func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
 	}, nil
 }
 
-func (e *schemaGenerator) prepareSchema() (*ast.Schema, error) {
-	types, err := e.buildTypes()
+func (e *schemaGenerator) buildSchema(schema *ast.Schema) error {
+	err := e.buildTypes(schema.Types)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	insertDefinitions(types, builtinTypes()...)
+	insertDefinitions(schema.Types, builtinTypes()...)
 	if e.relaySpec {
-		insertDefinitions(types, relayBuiltinTypes()...)
+		insertDefinitions(schema.Types, relayBuiltinTypes()...)
 	}
-	return &ast.Schema{
-		Types:      types,
-		Directives: directives,
-	}, nil
+
+	for name, d := range directives {
+		schema.Directives[name] = d
+	}
+	return nil
 }
 
-func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
-	types := make(map[string]*ast.Definition)
+func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 	var defaultInterfaces []string
 	if e.relaySpec {
 		defaultInterfaces = append(defaultInterfaces, "Node")
@@ -132,7 +132,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 	for _, node := range e.nodes {
 		ant, err := annotation(node.Annotations)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if ant.Skip.Is(SkipType) {
 			continue
@@ -140,7 +140,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 
 		fields, err := e.buildTypeFields(node)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		typ := &ast.Definition{
 			Name:       node.Name,
@@ -162,7 +162,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		for _, f := range node.Fields {
 			ant, err := annotation(f.Annotations)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			if ant.Skip.Is(SkipType) {
 				continue
@@ -178,7 +178,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 			if f.IsEnum() && !ant.Skip.Is(SkipEnumField) {
 				enum, err := e.buildEnum(f, ant)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				insertDefinitions(types, enum)
 			}
@@ -186,19 +186,19 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 
 		if ant.RelayConnection {
 			if !e.relaySpec {
-				return nil, ErrRelaySpecDisabled
+				return ErrRelaySpecDisabled
 			}
 
 			defs, err := relayConnectionTypes(node)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			insertDefinitions(types, defs...)
 			if enumOrderByValues != nil && !ant.Skip.Is(SkipOrderField) {
 				pagination, err := nodePaginationNames(node)
 				if err != nil {
-					return nil, err
+					return err
 				}
 
 				insertDefinitions(types,
@@ -230,7 +230,7 @@ func (e *schemaGenerator) buildTypes() (map[string]*ast.Definition, error) {
 		}
 	}
 
-	return types, nil
+	return nil
 }
 
 func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveList {

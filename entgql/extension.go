@@ -43,8 +43,10 @@ type (
 		templates  []*gen.Template
 		scalarFunc func(*gen.Field, gen.Op) string
 
-		schema *ast.Schema
-		models map[string]string
+		schema        *ast.Schema
+		models        map[string]string
+		genSchema     bool
+		genWhereInput bool
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -64,7 +66,6 @@ type (
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.path = path
-		ex.hooks = append(ex.hooks, ex.genWhereInputs())
 		return nil
 	}
 }
@@ -148,6 +149,7 @@ func WithTemplates(templates ...*gen.Template) ExtensionOption {
 // The WhereTemplate generates GraphQL filters to all types in the ent/schema.
 func WithWhereFilters(b bool) ExtensionOption {
 	return func(ex *Extension) error {
+		ex.genWhereInput = b
 		i, exists := ex.whereExists()
 		if b && !exists {
 			ex.templates = append(ex.templates, WhereTemplate)
@@ -161,7 +163,7 @@ func WithWhereFilters(b bool) ExtensionOption {
 // WithSchemaGenerator add a hook for generate GQL schema
 func WithSchemaGenerator() ExtensionOption {
 	return func(e *Extension) error {
-		e.hooks = append(e.hooks, e.genSchema())
+		e.genSchema = true
 		return nil
 	}
 }
@@ -196,12 +198,19 @@ func WithMapScalarFunc(scalarFunc func(*gen.Field, gen.Op) string) ExtensionOpti
 //	)
 //
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
-	ex := &Extension{templates: AllTemplates}
+	ex := &Extension{
+		templates: AllTemplates,
+		schema: &ast.Schema{
+			Directives: map[string]*ast.DirectiveDefinition{},
+			Types:      map[string]*ast.Definition{},
+		},
+	}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
 			return nil, err
 		}
 	}
+	ex.hooks = append(ex.hooks, ex.genSchemaHook())
 	ex.hooks = append(ex.hooks, removeOldAssets)
 	return ex, nil
 }
@@ -293,7 +302,7 @@ func (e *Extension) isInput(name string) bool {
 
 // genSchema returns a new hook for generating
 // the GraphQL schema from the graph.
-func (e *Extension) genSchema() gen.Hook {
+func (e *Extension) genSchemaHook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
 		return gen.GenerateFunc(func(g *gen.Graph) error {
 			if err := next.Generate(g); err != nil {
@@ -304,42 +313,34 @@ func (e *Extension) genSchema() gen.Hook {
 			if err != nil {
 				return err
 			}
-			if e.schema, err = genSchema.prepareSchema(); err != nil {
-				return err
-			}
-			if e.models, err = genSchema.genModels(); err != nil {
-				return err
+
+			if e.genSchema {
+				if err = genSchema.buildSchema(e.schema); err != nil {
+					return err
+				}
+				if e.models, err = genSchema.genModels(); err != nil {
+					return err
+				}
 			}
 
-			return nil
-		})
-	}
-}
-
-// genWhereInputs returns a new hook for generating
-// <T>WhereInputs in the GraphQL schema.
-func (e *Extension) genWhereInputs() gen.Hook {
-	return func(next gen.Generator) gen.Generator {
-		if _, exists := e.whereExists(); !exists {
-			return next
-		}
-		inputs := make(map[string]*ast.Definition)
-		return gen.GenerateFunc(func(g *gen.Graph) error {
-			nodes, err := filterNodes(g.Nodes, SkipWhereInput)
-			if err != nil {
-				return err
-			}
-			if err := next.Generate(g); err != nil {
-				return err
-			}
-			for _, node := range nodes {
-				input, err := e.whereType(node)
+			if e.genWhereInput {
+				nodes, err := filterNodes(g.Nodes, SkipWhereInput)
 				if err != nil {
 					return err
 				}
-				inputs[input.Name] = input
+				for _, node := range nodes {
+					input, err := e.whereType(node)
+					if err != nil {
+						return err
+					}
+					insertDefinitions(e.schema.Types, input)
+				}
 			}
-			return e.updateSchema(inputs)
+
+			if e.path == "" {
+				return nil
+			}
+			return ioutil.WriteFile(e.path, []byte(printSchema(e.schema)), 0644)
 		})
 	}
 }
@@ -353,14 +354,6 @@ func (e *Extension) whereExists() (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-// updateSchema commits the changes to the GraphQL schema file.
-func (e *Extension) updateSchema(inputs map[string]*ast.Definition) error {
-	schema := &ast.Schema{
-		Types: inputs,
-	}
-	return ioutil.WriteFile(e.path, []byte(printSchema(schema)), 0644)
 }
 
 // addWhereType returns the a <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).

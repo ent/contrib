@@ -36,6 +36,7 @@ func main() {
 
 	exEntGQL, err := entgql.NewExtension(
 		entgql.WithSchemaGenerator(),
+		entgql.WithWhereFilters(true),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)
