@@ -26,10 +26,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
-	"github.com/99designs/gqlgen/plugin"
-	"github.com/99designs/gqlgen/plugin/federation"
-	"github.com/99designs/gqlgen/plugin/modelgen"
-	"github.com/99designs/gqlgen/plugin/resolvergen"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -44,6 +40,7 @@ type (
 		scalarFunc func(*gen.Field, gen.Op) string
 
 		schema        *ast.Schema
+		schemaHooks   []SchemaHook
 		models        map[string]string
 		genSchema     bool
 		genWhereInput bool
@@ -52,6 +49,8 @@ type (
 	// ExtensionOption allows for managing the Extension configuration
 	// using functional options.
 	ExtensionOption func(*Extension) error
+	// SchemaHook is the hook that run after the GQL schema generation.
+	SchemaHook func(*gen.Graph, *ast.Schema) error
 )
 
 // WithSchemaPath sets the filepath to the GraphQL schema to write the
@@ -66,6 +65,15 @@ type (
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.path = path
+		return nil
+	}
+}
+
+// WithSchemaHook allows users to provide a list of hooks
+// to run after the GQL schema generation.
+func WithSchemaHook(hooks ...SchemaHook) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.schemaHooks = append(ex.schemaHooks, hooks...)
 		return nil
 	}
 }
@@ -92,42 +100,6 @@ func WithConfigPath(path string, gqlgenOptions ...api.Option) ExtensionOption {
 		cfg, err := config.LoadConfig(filepath.Base(path))
 		if err != nil {
 			return err
-		}
-		if cfg.Schema == nil {
-			// Copied from api/generate.go
-			// https://github.com/99designs/gqlgen/blob/47015f12e3aa26af251fec67eab50d3388c17efe/api/generate.go#L21-L57
-			var plugins []plugin.Plugin
-			if cfg.Model.IsDefined() {
-				plugins = append(plugins, modelgen.New())
-			}
-			plugins = append(plugins, resolvergen.New())
-			if cfg.Federation.IsDefined() {
-				plugins = append([]plugin.Plugin{federation.New()}, plugins...)
-			}
-			for _, opt := range gqlgenOptions {
-				opt(cfg, &plugins)
-			}
-			for _, p := range plugins {
-				if inj, ok := p.(plugin.EarlySourceInjector); ok {
-					if s := inj.InjectSourceEarly(); s != nil {
-						cfg.Sources = append(cfg.Sources, s)
-					}
-				}
-			}
-			if err := cfg.LoadSchema(); err != nil {
-				return fmt.Errorf("failed to load schema: %w", err)
-			}
-			for _, p := range plugins {
-				if inj, ok := p.(plugin.LateSourceInjector); ok {
-					if s := inj.InjectSourceLate(cfg.Schema); s != nil {
-						cfg.Sources = append(cfg.Sources, s)
-					}
-				}
-			}
-			// LoadSchema again now we have everything.
-			if err := cfg.LoadSchema(); err != nil {
-				return fmt.Errorf("failed to load schema: %w", err)
-			}
 		}
 		ex.cfg = cfg
 		return nil
@@ -266,6 +238,8 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 	if e.cfg == nil {
 		return "", false
 	}
+
+	var gqlNames []string
 	for t, v := range e.cfg.Models {
 		// The string representation uses shortened package
 		// names, and we override it for custom Go types.
@@ -275,7 +249,18 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 		}
 		for _, m := range v.Model {
 			// A mapping was found from GraphQL name to field type.
-			if strings.HasSuffix(m, ident) && e.isInput(t) {
+			if strings.HasSuffix(m, ident) {
+				gqlNames = append(gqlNames, t)
+			}
+		}
+	}
+	if count := len(gqlNames); count == 1 {
+		return gqlNames[0], true
+	} else if count > 1 {
+		// NOTE(giautm): If there is more than 1 mapping,
+		// we will accept the one with the "Input" suffix by default.
+		for _, t := range gqlNames {
+			if strings.HasSuffix(t, "Input") {
 				return t, true
 			}
 		}
@@ -292,14 +277,6 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 	}
 }
 
-// isInput reports if the given type is an input object.
-func (e *Extension) isInput(name string) bool {
-	if t, ok := e.cfg.Schema.Types[name]; ok && t != nil {
-		return t.IsInputType()
-	}
-	return false
-}
-
 // genSchema returns a new hook for generating
 // the GraphQL schema from the graph.
 func (e *Extension) genSchemaHook() gen.Hook {
@@ -309,6 +286,9 @@ func (e *Extension) genSchemaHook() gen.Hook {
 				return err
 			}
 
+			if !(e.genSchema || e.genWhereInput) {
+				return nil
+			}
 			genSchema, err := newSchemaGenerator(g)
 			if err != nil {
 				return err
@@ -337,6 +317,11 @@ func (e *Extension) genSchemaHook() gen.Hook {
 				}
 			}
 
+			for _, h := range e.schemaHooks {
+				if err = h(g, e.schema); err != nil {
+					return err
+				}
+			}
 			if e.path == "" {
 				return nil
 			}

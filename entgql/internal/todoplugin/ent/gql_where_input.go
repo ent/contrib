@@ -20,13 +20,14 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/role"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema"
-	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/user"
+	"github.com/google/uuid"
 )
 
 // CategoryWhereInput represents a where input for filtering Category queries.
@@ -59,6 +60,18 @@ type CategoryWhereInput struct {
 	TextHasSuffix    *string  `json:"textHasSuffix,omitempty"`
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
+
+	// "uuid_a" field predicates.
+	UUIDA       *uuid.UUID  `json:"uuidA,omitempty"`
+	UUIDANEQ    *uuid.UUID  `json:"uuidANEQ,omitempty"`
+	UUIDAIn     []uuid.UUID `json:"uuidAIn,omitempty"`
+	UUIDANotIn  []uuid.UUID `json:"uuidANotIn,omitempty"`
+	UUIDAGT     *uuid.UUID  `json:"uuidAGT,omitempty"`
+	UUIDAGTE    *uuid.UUID  `json:"uuidAGTE,omitempty"`
+	UUIDALT     *uuid.UUID  `json:"uuidALT,omitempty"`
+	UUIDALTE    *uuid.UUID  `json:"uuidALTE,omitempty"`
+	UUIDAIsNil  bool        `json:"uuidAIsNil,omitempty"`
+	UUIDANotNil bool        `json:"uuidANotNil,omitempty"`
 
 	// "status" field predicates.
 	Status      *category.Status  `json:"status,omitempty"`
@@ -228,6 +241,36 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, category.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.UUIDA != nil {
+		predicates = append(predicates, category.UUIDAEQ(*i.UUIDA))
+	}
+	if i.UUIDANEQ != nil {
+		predicates = append(predicates, category.UUIDANEQ(*i.UUIDANEQ))
+	}
+	if len(i.UUIDAIn) > 0 {
+		predicates = append(predicates, category.UUIDAIn(i.UUIDAIn...))
+	}
+	if len(i.UUIDANotIn) > 0 {
+		predicates = append(predicates, category.UUIDANotIn(i.UUIDANotIn...))
+	}
+	if i.UUIDAGT != nil {
+		predicates = append(predicates, category.UUIDAGT(*i.UUIDAGT))
+	}
+	if i.UUIDAGTE != nil {
+		predicates = append(predicates, category.UUIDAGTE(*i.UUIDAGTE))
+	}
+	if i.UUIDALT != nil {
+		predicates = append(predicates, category.UUIDALT(*i.UUIDALT))
+	}
+	if i.UUIDALTE != nil {
+		predicates = append(predicates, category.UUIDALTE(*i.UUIDALTE))
+	}
+	if i.UUIDAIsNil {
+		predicates = append(predicates, category.UUIDAIsNil())
+	}
+	if i.UUIDANotNil {
+		predicates = append(predicates, category.UUIDANotNil())
 	}
 	if i.Status != nil {
 		predicates = append(predicates, category.StatusEQ(*i.Status))
@@ -729,6 +772,23 @@ type UserWhereInput struct {
 	RoleNEQ   *role.Role  `json:"roleNEQ,omitempty"`
 	RoleIn    []role.Role `json:"roleIn,omitempty"`
 	RoleNotIn []role.Role `json:"roleNotIn,omitempty"`
+
+	// "nullable_string" field predicates.
+	NullableString             *string  `json:"nullableString,omitempty"`
+	NullableStringNEQ          *string  `json:"nullableStringNEQ,omitempty"`
+	NullableStringIn           []string `json:"nullableStringIn,omitempty"`
+	NullableStringNotIn        []string `json:"nullableStringNotIn,omitempty"`
+	NullableStringGT           *string  `json:"nullableStringGT,omitempty"`
+	NullableStringGTE          *string  `json:"nullableStringGTE,omitempty"`
+	NullableStringLT           *string  `json:"nullableStringLT,omitempty"`
+	NullableStringLTE          *string  `json:"nullableStringLTE,omitempty"`
+	NullableStringContains     *string  `json:"nullableStringContains,omitempty"`
+	NullableStringHasPrefix    *string  `json:"nullableStringHasPrefix,omitempty"`
+	NullableStringHasSuffix    *string  `json:"nullableStringHasSuffix,omitempty"`
+	NullableStringIsNil        bool     `json:"nullableStringIsNil,omitempty"`
+	NullableStringNotNil       bool     `json:"nullableStringNotNil,omitempty"`
+	NullableStringEqualFold    *string  `json:"nullableStringEqualFold,omitempty"`
+	NullableStringContainsFold *string  `json:"nullableStringContainsFold,omitempty"`
 }
 
 // Filter applies the UserWhereInput filter on the UserQuery builder.
@@ -912,6 +972,51 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if len(i.RoleNotIn) > 0 {
 		predicates = append(predicates, user.RoleNotIn(i.RoleNotIn...))
+	}
+	if i.NullableString != nil {
+		predicates = append(predicates, user.NullableStringEQ(*i.NullableString))
+	}
+	if i.NullableStringNEQ != nil {
+		predicates = append(predicates, user.NullableStringNEQ(*i.NullableStringNEQ))
+	}
+	if len(i.NullableStringIn) > 0 {
+		predicates = append(predicates, user.NullableStringIn(i.NullableStringIn...))
+	}
+	if len(i.NullableStringNotIn) > 0 {
+		predicates = append(predicates, user.NullableStringNotIn(i.NullableStringNotIn...))
+	}
+	if i.NullableStringGT != nil {
+		predicates = append(predicates, user.NullableStringGT(*i.NullableStringGT))
+	}
+	if i.NullableStringGTE != nil {
+		predicates = append(predicates, user.NullableStringGTE(*i.NullableStringGTE))
+	}
+	if i.NullableStringLT != nil {
+		predicates = append(predicates, user.NullableStringLT(*i.NullableStringLT))
+	}
+	if i.NullableStringLTE != nil {
+		predicates = append(predicates, user.NullableStringLTE(*i.NullableStringLTE))
+	}
+	if i.NullableStringContains != nil {
+		predicates = append(predicates, user.NullableStringContains(*i.NullableStringContains))
+	}
+	if i.NullableStringHasPrefix != nil {
+		predicates = append(predicates, user.NullableStringHasPrefix(*i.NullableStringHasPrefix))
+	}
+	if i.NullableStringHasSuffix != nil {
+		predicates = append(predicates, user.NullableStringHasSuffix(*i.NullableStringHasSuffix))
+	}
+	if i.NullableStringIsNil {
+		predicates = append(predicates, user.NullableStringIsNil())
+	}
+	if i.NullableStringNotNil {
+		predicates = append(predicates, user.NullableStringNotNil())
+	}
+	if i.NullableStringEqualFold != nil {
+		predicates = append(predicates, user.NullableStringEqualFold(*i.NullableStringEqualFold))
+	}
+	if i.NullableStringContainsFold != nil {
+		predicates = append(predicates, user.NullableStringContainsFold(*i.NullableStringContainsFold))
 	}
 
 	switch len(predicates) {

@@ -33,8 +33,6 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("id").
-			Nillable().
-			Optional().
 			Unique(),
 		field.String("username"),
 		field.Int("age").

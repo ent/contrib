@@ -25,6 +25,12 @@ import (
 
 // CreatePlugin create the plugin for GQLGen
 func (e *Extension) CreatePlugin() plugin.Plugin {
+	if e.path != "" {
+		return &gqlgenPlugin{
+			models: e.models,
+		}
+	}
+
 	return &gqlgenPlugin{
 		schema: e.schema,
 		models: e.models,
