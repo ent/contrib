@@ -169,7 +169,10 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 			}
 
 			// Check if this node has an OrderBy object
-			if ant.OrderField != "" && !ant.Skip.Is(SkipOrderField) {
+			if ant.OrderField != "" {
+				if ant.Skip.Is(SkipOrderField) {
+					return fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", node.Name, f.Name)
+				}
 				enumOrderByValues = append(enumOrderByValues, &ast.EnumValueDefinition{
 					Name: ant.OrderField,
 				})
@@ -195,7 +198,7 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 			}
 
 			insertDefinitions(types, defs...)
-			if enumOrderByValues != nil && !ant.Skip.Is(SkipOrderField) {
+			if len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField) {
 				pagination, err := nodePaginationNames(node)
 				if err != nil {
 					return err
