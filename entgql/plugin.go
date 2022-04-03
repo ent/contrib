@@ -15,12 +15,9 @@
 package entgql
 
 import (
-	"strings"
-
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/99designs/gqlgen/plugin"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/vektah/gqlparser/v2/formatter"
 )
 
 // CreatePlugin create the plugin for GQLGen
@@ -57,11 +54,9 @@ func (e *gqlgenPlugin) InjectSourceEarly() *ast.Source {
 		return nil
 	}
 
-	sb := &strings.Builder{}
-	formatter.NewFormatter(sb).FormatSchema(e.schema)
 	return &ast.Source{
 		Name:    "entgql.graphql",
-		Input:   sb.String(),
+		Input:   printSchema(e.schema),
 		BuiltIn: false,
 	}
 }
