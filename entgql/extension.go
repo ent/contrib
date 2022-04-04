@@ -182,8 +182,7 @@ func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 			return nil, err
 		}
 	}
-	ex.hooks = append(ex.hooks, ex.genSchemaHook())
-	ex.hooks = append(ex.hooks, removeOldAssets)
+	ex.hooks = append(ex.hooks, ex.genSchemaHook(), removeOldAssets)
 	return ex, nil
 }
 
@@ -257,8 +256,7 @@ func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
 	if count := len(gqlNames); count == 1 {
 		return gqlNames[0], true
 	} else if count > 1 {
-		// NOTE(giautm): If there is more than 1 mapping,
-		// we will accept the one with the "Input" suffix by default.
+		// If there is more than 1 mapping, we accept the one with the "Input" suffix.
 		for _, t := range gqlNames {
 			if strings.HasSuffix(t, "Input") {
 				return t, true
@@ -286,7 +284,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 				return err
 			}
 
-			if !(e.genSchema || e.genWhereInput) {
+			if !e.genSchema && !e.genWhereInput {
 				return nil
 			}
 			genSchema, err := newSchemaGenerator(g)
