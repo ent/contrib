@@ -45,3 +45,6 @@ linters:
     - unused
     - varcheck
     - whitespace
+
+run:
+  go: '1.18'
