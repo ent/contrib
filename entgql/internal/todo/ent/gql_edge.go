@@ -26,6 +26,20 @@ func (c *Category) Todos(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, orderBy *TodoOrder, opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
+	totalCount := c.Edges.totalCount[0]
+	if nodes, err := c.Edges.TodosOrErr(); err == nil {
+		conn := &TodoConnection{Edges: []*TodoEdge{}}
+		if totalCount != nil {
+			conn.TotalCount = *totalCount
+		}
+		opts = append(opts, WithTodoOrder(orderBy))
+		pager, err := newTodoPager(opts)
+		if err != nil {
+			return nil, err
+		}
+		conn.build(nodes, pager, first, last)
+		return conn, nil
+	}
 	query := c.QueryTodos()
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
@@ -34,21 +48,19 @@ func (c *Category) Todos(
 	if err != nil {
 		return nil, err
 	}
-
 	if query, err = pager.applyFilter(query); err != nil {
 		return nil, err
 	}
-
 	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			count, err := query.Count(ctx)
-			if err != nil {
+			if totalCount != nil {
+				conn.TotalCount = *totalCount
+			} else if conn.TotalCount, err = query.Count(ctx); err != nil {
 				return nil, err
 			}
-			conn.TotalCount = count
-			conn.PageInfo.HasNextPage = first != nil && count > 0
-			conn.PageInfo.HasPreviousPage = last != nil && count > 0
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
 		return conn, nil
 	}
@@ -63,58 +75,89 @@ func (c *Category) Todos(
 
 	query = pager.applyCursors(query, after, before)
 	query = pager.applyOrder(query, last != nil)
-	var limit int
-	if first != nil {
-		limit = *first + 1
-	} else if last != nil {
-		limit = *last + 1
+	if limit := paginateLimit(first, last); limit != 0 {
+		query.Limit(limit)
 	}
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-
-	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
-		query = query.collectField(graphql.GetOperationContext(ctx), *field)
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := query.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
 	}
 
 	nodes, err := query.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
+	conn.build(nodes, pager, first, last)
+	return conn, nil
+}
 
-	if len(nodes) == limit {
-		conn.PageInfo.HasNextPage = first != nil
-		conn.PageInfo.HasPreviousPage = last != nil
-		nodes = nodes[:len(nodes)-1]
-	}
-
-	var nodeAt func(int) *Todo
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *Todo {
-			return nodes[n-i]
+func (gr *Group) Users(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...UserPaginateOption,
+) (*UserConnection, error) {
+	totalCount := gr.Edges.totalCount[0]
+	if nodes, err := gr.Edges.UsersOrErr(); err == nil {
+		conn := &UserConnection{Edges: []*UserEdge{}}
+		if totalCount != nil {
+			conn.TotalCount = *totalCount
 		}
-	} else {
-		nodeAt = func(i int) *Todo {
-			return nodes[i]
+		pager, err := newUserPager(opts)
+		if err != nil {
+			return nil, err
+		}
+		conn.build(nodes, pager, first, last)
+		return conn, nil
+	}
+	query := gr.QueryUsers()
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newUserPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if query, err = pager.applyFilter(query); err != nil {
+		return nil, err
+	}
+	conn := &UserConnection{Edges: []*UserEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if totalCount != nil {
+				conn.TotalCount = *totalCount
+			} else if conn.TotalCount, err = query.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := query.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	query = pager.applyCursors(query, after, before)
+	query = pager.applyOrder(query, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		query.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := query.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
 		}
 	}
 
-	conn.Edges = make([]*TodoEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		conn.Edges[i] = &TodoEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
+	nodes, err := query.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
 	}
-
-	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
-	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
-	if conn.TotalCount == 0 {
-		conn.TotalCount = len(nodes)
-	}
-
+	conn.build(nodes, pager, first, last)
 	return conn, nil
 }
 
@@ -140,4 +183,73 @@ func (t *Todo) Category(ctx context.Context) (*Category, error) {
 		result, err = t.QueryCategory().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (u *User) Groups(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...GroupPaginateOption,
+) (*GroupConnection, error) {
+	totalCount := u.Edges.totalCount[0]
+	if nodes, err := u.Edges.GroupsOrErr(); err == nil {
+		conn := &GroupConnection{Edges: []*GroupEdge{}}
+		if totalCount != nil {
+			conn.TotalCount = *totalCount
+		}
+		pager, err := newGroupPager(opts)
+		if err != nil {
+			return nil, err
+		}
+		conn.build(nodes, pager, first, last)
+		return conn, nil
+	}
+	query := u.QueryGroups()
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newGroupPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if query, err = pager.applyFilter(query); err != nil {
+		return nil, err
+	}
+	conn := &GroupConnection{Edges: []*GroupEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if totalCount != nil {
+				conn.TotalCount = *totalCount
+			} else if conn.TotalCount, err = query.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := query.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	query = pager.applyCursors(query, after, before)
+	query = pager.applyOrder(query, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		query.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := query.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := query.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, first, last)
+	return conn, nil
 }

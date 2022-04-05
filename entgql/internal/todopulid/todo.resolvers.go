@@ -58,6 +58,20 @@ func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int
 		)
 }
 
+func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+	return r.client.User.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithUserFilter(where.Filter),
+		)
+}
+
+func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
+	return r.client.Group.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithGroupFilter(where.Filter),
+		)
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 

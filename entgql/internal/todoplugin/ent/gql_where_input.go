@@ -716,11 +716,11 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 }
 
-// UserWhereInput represents a where input for filtering User queries.
-type UserWhereInput struct {
-	Not *UserWhereInput   `json:"not,omitempty"`
-	Or  []*UserWhereInput `json:"or,omitempty"`
-	And []*UserWhereInput `json:"and,omitempty"`
+// MasterUserWhereInput represents a where input for filtering User queries.
+type MasterUserWhereInput struct {
+	Not *MasterUserWhereInput   `json:"not,omitempty"`
+	Or  []*MasterUserWhereInput `json:"or,omitempty"`
+	And []*MasterUserWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -791,8 +791,8 @@ type UserWhereInput struct {
 	NullableStringContainsFold *string  `json:"nullableStringContainsFold,omitempty"`
 }
 
-// Filter applies the UserWhereInput filter on the UserQuery builder.
-func (i *UserWhereInput) Filter(q *UserQuery) (*UserQuery, error) {
+// Filter applies the MasterUserWhereInput filter on the UserQuery builder.
+func (i *MasterUserWhereInput) Filter(q *UserQuery) (*UserQuery, error) {
 	if i == nil {
 		return q, nil
 	}
@@ -805,7 +805,7 @@ func (i *UserWhereInput) Filter(q *UserQuery) (*UserQuery, error) {
 
 // P returns a predicate for filtering users.
 // An error is returned if the input is empty or invalid.
-func (i *UserWhereInput) P() (predicate.User, error) {
+func (i *MasterUserWhereInput) P() (predicate.User, error) {
 	var predicates []predicate.User
 	if i.Not != nil {
 		p, err := i.Not.P()
@@ -1021,7 +1021,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate UserWhereInput")
+		return nil, fmt.Errorf("empty predicate MasterUserWhereInput")
 	case 1:
 		return predicates[0], nil
 	default:

@@ -179,12 +179,15 @@ func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Nod
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
-			n, err := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.ID(id)).
-				{{- if hasTemplate "gql_collection" }}
-					CollectFields(ctx, "{{ $n.Name }}").
-				{{- end }}
-				Only(ctx)
+			query := c.{{ $n.Name }}.Query().
+				Where({{ $n.Package }}.ID(id))
+			{{- if hasTemplate "gql_collection" }}
+				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
+				if err != nil {
+					return nil, err
+				}
+			{{- end }}
+			n, err := query.Only(ctx)
 			if err != nil {
 				return nil, err
 			}
@@ -265,12 +268,15 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
-			nodes, err := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.IDIn(ids...)).
-				{{- if hasTemplate "gql_collection" }}
-					CollectFields(ctx, "{{ $n.Name }}").
-				{{- end }}
-				All(ctx)
+			query := c.{{ $n.Name }}.Query().
+				Where({{ $n.Package }}.IDIn(ids...))
+			{{- if hasTemplate "gql_collection" }}
+				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
+				if err != nil {
+					return nil, err
+				}
+			{{- end }}
+			nodes, err := query.All(ctx)
 			if err != nil {
 				return nil, err
 			}

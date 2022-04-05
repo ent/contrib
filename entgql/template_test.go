@@ -103,7 +103,7 @@ func TestFilterEdges(t *testing.T) {
 }
 
 func TestFieldCollections(t *testing.T) {
-	edges, err := fieldCollections([]*gen.Edge{
+	edges := []*gen.Edge{
 		{
 			Name: "Edge1",
 			Type: &gen.Type{
@@ -142,23 +142,23 @@ func TestFieldCollections(t *testing.T) {
 				},
 			},
 		},
-	})
+	}
+	collect, err := fieldCollections(edges)
 	require.NoError(t, err)
-
-	require.Equal(t, map[string]fieldCollection{
-		"Edge1": {
-			Name:    "Todo",
+	require.Equal(t, []*fieldCollection{
+		{
+			Edge:    edges[0],
 			Mapping: []string{"Edge1"},
 		},
-		"Edge2": {
-			Name:    "Todo",
+		{
+			Edge:    edges[1],
 			Mapping: []string{"Edge2"},
 		},
-		"EdgeMapping": {
-			Name:    "Todo",
+		{
+			Edge:    edges[3],
 			Mapping: []string{"field1", "field2"},
 		},
-	}, edges)
+	}, collect)
 
 	_, err = fieldCollections([]*gen.Edge{
 		{

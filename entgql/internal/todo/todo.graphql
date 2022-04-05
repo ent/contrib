@@ -42,6 +42,18 @@ type Category implements Node {
   todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
 }
 
+type User implements Node {
+  id: ID!
+  name: String!
+  groups(after: Cursor, first: Int, before: Cursor, last: Int): GroupConnection
+}
+
+type Group implements Node {
+  id: ID!
+  name: String!
+  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+}
+
 input TodoInput {
   status: Status! = IN_PROGRESS
   priority: Int
@@ -70,6 +82,28 @@ type TodoEdge {
   cursor: Cursor!
 }
 
+type UserConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [UserEdge]
+}
+
+type UserEdge {
+  node: User
+  cursor: Cursor!
+}
+
+type GroupConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [GroupEdge]
+}
+
+type GroupEdge {
+  node: Group
+  cursor: Cursor!
+}
+
 enum OrderDirection {
   ASC
   DESC
@@ -91,6 +125,8 @@ type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
   todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
+  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
+  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
 }
 
 type Mutation {
