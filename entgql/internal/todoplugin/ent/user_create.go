@@ -79,14 +79,6 @@ func (uc *UserCreate) SetID(i int) *UserCreate {
 	return uc
 }
 
-// SetNillableID sets the "id" field if the given value is not nil.
-func (uc *UserCreate) SetNillableID(i *int) *UserCreate {
-	if i != nil {
-		uc.SetID(*i)
-	}
-	return uc
-}
-
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
