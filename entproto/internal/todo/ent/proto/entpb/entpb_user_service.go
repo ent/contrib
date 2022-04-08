@@ -98,6 +98,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Points = points
 	status := toProtoUser_Status(e.Status)
 	v.Status = status
+	_type := wrapperspb.String(e.Type)
+	v.Type = _type
 	username := e.UserName
 	v.UserName = username
 	if edg := e.Edges.Attachment; edg != nil {
@@ -183,6 +185,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetPoints(userPoints)
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
+	if user.GetType() != nil {
+		userType := user.GetType().GetValue()
+		m.SetType(userType)
+	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
 	if user.GetAttachment() != nil {
@@ -315,6 +321,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetPoints(userPoints)
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
+	if user.GetType() != nil {
+		userType := user.GetType().GetValue()
+		m.SetType(userType)
+	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
 	if user.GetAttachment() != nil {

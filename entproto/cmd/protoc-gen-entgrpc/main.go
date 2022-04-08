@@ -18,6 +18,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"go/token"
 	"path"
 	"strconv"
 	"strings"
@@ -130,6 +131,13 @@ func (g *serviceGenerator) generate() error {
 					G:      g,
 					Method: m,
 				}
+			},
+			// sanitize_keywords prepends "_" if the string is a Go keyword.
+			"sanitize_keywords": func(s string) string {
+				if token.Lookup(s).IsKeyword() {
+					s = "_" + s
+				}
+				return s
 			},
 		}).
 		ParseFS(templates, "template/*.tmpl")

@@ -4,7 +4,7 @@
     func toProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
         v := &{{ .EntType.Name }}{}
         {{- range .FieldMap.Fields }}
-            {{- $varName := camel .EntField.StructField -}}
+            {{- $varName := camel .EntField.StructField | sanitize_keywords -}}
             {{- $f := print "e." .EntField.StructField -}}
             {{- if .EntField.Nillable }}
                 if {{ $f }} != nil {
