@@ -701,9 +701,17 @@ func (s *todoTestSuite) TestNodeCollection() {
 						}
 					}
 					children {
-						text
-						children {
-							text
+						edges {
+							node {
+								text
+								children {
+									edges {
+										node {
+											text
+										}
+									}
+								}
+							}
 						}
 					}
 				}
@@ -718,10 +726,18 @@ func (s *todoTestSuite) TestNodeCollection() {
 					Text string
 				}
 			}
-			Children []struct {
-				Text     string
-				Children []struct {
-					Text string
+			Children struct {
+				Edges []struct {
+					Node struct {
+						Text     string
+						Children struct {
+							Edges []struct {
+								Node struct {
+									Text string
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -729,12 +745,12 @@ func (s *todoTestSuite) TestNodeCollection() {
 	err := s.Post(query, &rsp, client.Var("id", idOffset+1))
 	s.Require().NoError(err)
 	s.Require().Nil(rsp.Todo.Parent)
-	s.Require().Len(rsp.Todo.Children, maxTodos/2+1)
+	s.Require().Len(rsp.Todo.Children.Edges, maxTodos/2+1)
 	s.Require().Condition(func() bool {
-		for _, child := range rsp.Todo.Children {
-			if child.Text == strconv.Itoa(idOffset+3) {
-				s.Require().Len(child.Children, 1)
-				s.Require().Equal(strconv.Itoa(idOffset+5), child.Children[0].Text)
+		for _, child := range rsp.Todo.Children.Edges {
+			if child.Node.Text == strconv.Itoa(idOffset+3) {
+				s.Require().Len(child.Node.Children.Edges, 1)
+				s.Require().Equal(strconv.Itoa(idOffset+5), child.Node.Children.Edges[0].Node.Text)
 				return true
 			}
 		}
@@ -745,7 +761,7 @@ func (s *todoTestSuite) TestNodeCollection() {
 	s.Require().NoError(err)
 	s.Require().NotNil(rsp.Todo.Parent)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.Todo.Parent.Text)
-	s.Require().Empty(rsp.Todo.Children)
+	s.Require().Empty(rsp.Todo.Children.Edges)
 
 	err = s.Post(query, &rsp, client.Var("id", strconv.Itoa(idOffset+5)))
 	s.Require().NoError(err)
@@ -753,8 +769,8 @@ func (s *todoTestSuite) TestNodeCollection() {
 	s.Require().Equal(strconv.Itoa(idOffset+3), rsp.Todo.Parent.Text)
 	s.Require().NotNil(rsp.Todo.Parent.Parent)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.Todo.Parent.Parent.Text)
-	s.Require().Len(rsp.Todo.Children, 1)
-	s.Require().Equal(strconv.Itoa(idOffset+7), rsp.Todo.Children[0].Text)
+	s.Require().Len(rsp.Todo.Children.Edges, 1)
+	s.Require().Equal(strconv.Itoa(idOffset+7), rsp.Todo.Children.Edges[0].Node.Text)
 }
 
 func (s *todoTestSuite) TestConnCollection() {
@@ -768,7 +784,11 @@ func (s *todoTestSuite) TestConnCollection() {
 							id
 						}
 						children {
-							id
+							edges {
+								node {
+									id
+								}
+							}
 						}
 					}
 				}
@@ -783,8 +803,12 @@ func (s *todoTestSuite) TestConnCollection() {
 					Parent *struct {
 						ID string
 					}
-					Children []struct {
-						ID string
+					Children struct {
+						Edges []struct {
+							Node struct {
+								ID string
+							}
+						}
 					}
 				}
 			}
@@ -799,21 +823,21 @@ func (s *todoTestSuite) TestConnCollection() {
 		switch {
 		case i == 0:
 			s.Require().Nil(edge.Node.Parent)
-			s.Require().Len(edge.Node.Children, maxTodos/2+1)
+			s.Require().Len(edge.Node.Children.Edges, maxTodos/2+1)
 		case i%2 == 0:
 			s.Require().NotNil(edge.Node.Parent)
 			id, err := strconv.Atoi(edge.Node.Parent.ID)
 			s.Require().NoError(err)
 			s.Require().Equal(idOffset+i-1, id)
 			if i < len(rsp.Todos.Edges)-2 {
-				s.Require().Len(edge.Node.Children, 1)
+				s.Require().Len(edge.Node.Children.Edges, 1)
 			} else {
-				s.Require().Empty(edge.Node.Children)
+				s.Require().Empty(edge.Node.Children.Edges)
 			}
 		case i%2 != 0:
 			s.Require().NotNil(edge.Node.Parent)
 			s.Require().Equal(strconv.Itoa(idOffset+1), edge.Node.Parent.ID)
-			s.Require().Empty(edge.Node.Children)
+			s.Require().Empty(edge.Node.Children.Edges)
 		}
 	}
 }
