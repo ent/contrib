@@ -119,7 +119,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			t.withParent = query
-		case "childrenConnection":
+		case "childrenConnection", "children":
 			var (
 				path  = append(path, field.Name)
 				query = &TodoQuery{config: t.config}

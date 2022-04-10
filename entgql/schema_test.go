@@ -82,6 +82,7 @@ type Todo {
   priority: Int!
   text: String!
   parent: Todo
+  childrenConnection: [Todo!] @goField(name: "children", forceResolver: false)
   children: [Todo!]
 }
 """VisibilityStatus is enum for the field visibility_status"""
@@ -185,6 +186,7 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
+  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection! @goField(name: "children", forceResolver: false)
   children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
 }
 """A connection to a list of items."""
