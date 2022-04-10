@@ -197,12 +197,12 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 			if ant.RelayConnection && edge.Unique {
 				return fmt.Errorf("RelayConnection cannot be defined on Unique edge: %s.%s", node.Name, edge.Name)
 			}
-			field, err := e.buildEdge(edge, ant)
+			fields, err := e.buildEdge(edge, ant)
 			if err != nil {
 				return err
 			}
-			if field != nil {
-				typ.Fields = append(typ.Fields, field)
+			if len(fields) > 0 {
+				typ.Fields = append(typ.Fields, fields...)
 			}
 		}
 
@@ -328,44 +328,57 @@ func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 	return fields, nil
 }
 
-func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) (*ast.FieldDefinition, error) {
+func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
 	gqlType, ant, err := gqlTypeFromNode(edge.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	fieldDef := &ast.FieldDefinition{
-		Name:       camel(edge.Name),
-		Directives: e.buildDirectives(edgeAnt.Directives),
+	edgeField := camel(edge.Name)
+	var mappings []string
+	if len(edgeAnt.Mapping) > 0 {
+		mappings = edgeAnt.Mapping
+	} else {
+		mappings = []string{edgeField}
 	}
 
-	if edge.Unique {
-		fieldDef.Type = namedType(gqlType, edge.Optional)
-		return fieldDef, nil
+	var fields []*ast.FieldDefinition
+	for _, name := range mappings {
+		fieldDef := &ast.FieldDefinition{
+			Name:       name,
+			Directives: e.buildDirectives(edgeAnt.Directives),
+		}
+		if name != edgeField {
+			fieldDef.Directives = append(fieldDef.Directives, goField(edgeField))
+		}
+		switch {
+		case edge.Unique:
+			fieldDef.Type = namedType(gqlType, edge.Optional)
+		case edgeAnt.RelayConnection:
+			if !e.relaySpec {
+				return nil, ErrRelaySpecDisabled
+			}
+			if !ant.RelayConnection {
+				return nil, fmt.Errorf("entgql: must enable Relay Connection via the entgql.RelayConnection annotation on the %s entity", edge.Type.Name)
+			}
+
+			pagination := paginationNames(gqlType)
+			fieldDef.Type = ast.NonNullNamedType(pagination.Connection, nil)
+			fieldDef.Arguments = ast.ArgumentDefinitionList{
+				{Name: "after", Type: ast.NamedType(RelayCursor, nil)},
+				{Name: "first", Type: ast.NamedType("Int", nil)},
+				{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
+				{Name: "last", Type: ast.NamedType("Int", nil)},
+				{Name: "orderBy", Type: ast.NamedType(pagination.Order, nil)},
+			}
+		default:
+			fieldDef.Type = listNamedType(gqlType, edge.Optional)
+		}
+
+		fields = append(fields, fieldDef)
 	}
 
-	if edgeAnt.RelayConnection {
-		if !e.relaySpec {
-			return nil, ErrRelaySpecDisabled
-		}
-		if !ant.RelayConnection {
-			return nil, fmt.Errorf("entgql: must enable Relay Connection via the entgql.RelayConnection annotation on the %s entity", edge.Type.Name)
-		}
-
-		pagination := paginationNames(gqlType)
-		fieldDef.Type = ast.NonNullNamedType(pagination.Connection, nil)
-		fieldDef.Arguments = ast.ArgumentDefinitionList{
-			{Name: "after", Type: ast.NamedType(RelayCursor, nil)},
-			{Name: "first", Type: ast.NamedType("Int", nil)},
-			{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
-			{Name: "last", Type: ast.NamedType("Int", nil)},
-			{Name: "orderBy", Type: ast.NamedType(pagination.Order, nil)},
-		}
-		return fieldDef, nil
-	}
-
-	fieldDef.Type = listNamedType(gqlType, edge.Optional)
-	return fieldDef, nil
+	return fields, nil
 }
 
 func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
@@ -664,6 +677,29 @@ func printSchema(schema *ast.Schema) string {
 		NewFormatter(sb, formatter.WithIndent("  ")).
 		FormatSchema(schema)
 	return sb.String()
+}
+
+func goField(name string) *ast.Directive {
+	return &ast.Directive{
+		Name:     "goField",
+		Location: ast.LocationFieldDefinition,
+		Arguments: ast.ArgumentList{
+			{
+				Name: "name",
+				Value: &ast.Value{
+					Kind: ast.StringValue,
+					Raw:  name,
+				},
+			},
+			{
+				Name: "forceResolver",
+				Value: &ast.Value{
+					Kind: ast.BooleanValue,
+					Raw:  "false",
+				},
+			},
+		},
+	}
 }
 
 func goModel(ident string) *ast.Directive {

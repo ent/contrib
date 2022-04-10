@@ -447,12 +447,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Category(childComplexity), true
 
-	case "Todo.children":
+	case "Todo.childrenConnection":
 		if e.complexity.Todo.Children == nil {
 			break
 		}
 
-		args, err := ec.field_Todo_children_args(context.TODO(), rawArgs)
+		args, err := ec.field_Todo_childrenConnection_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -851,7 +851,7 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
+  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection! @goField(name: "children", forceResolver: false)
 }
 """A connection to a list of items."""
 type TodoConnection {
@@ -1140,7 +1140,7 @@ func (ec *executionContext) field_Query_todos_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
-func (ec *executionContext) field_Todo_children_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Todo_childrenConnection_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *ent.Cursor
@@ -1629,8 +1629,8 @@ func (ec *executionContext) fieldContext_Category_todos(ctx context.Context, fie
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Todo_children(ctx, field)
+			case "childrenConnection":
+				return ec.fieldContext_Todo_childrenConnection(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
 			}
@@ -2489,8 +2489,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Todo_children(ctx, field)
+			case "childrenConnection":
+				return ec.fieldContext_Todo_childrenConnection(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
 			}
@@ -3335,8 +3335,8 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Todo_children(ctx, field)
+			case "childrenConnection":
+				return ec.fieldContext_Todo_childrenConnection(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
 			}
@@ -3346,8 +3346,8 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Todo_children(ctx, field)
+func (ec *executionContext) _Todo_childrenConnection(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_childrenConnection(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3377,7 +3377,7 @@ func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.Co
 	return ec.marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Todo_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Todo_childrenConnection(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Todo",
 		Field:      field,
@@ -3402,7 +3402,7 @@ func (ec *executionContext) fieldContext_Todo_children(ctx context.Context, fiel
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Todo_children_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Todo_childrenConnection_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3665,8 +3665,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Todo_children(ctx, field)
+			case "childrenConnection":
+				return ec.fieldContext_Todo_childrenConnection(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
 			}
@@ -7895,7 +7895,7 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "children":
+		case "childrenConnection":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -7904,7 +7904,7 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Todo_children(ctx, field, obj)
+				res = ec._Todo_childrenConnection(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
