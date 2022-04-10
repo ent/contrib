@@ -334,12 +334,12 @@ func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast
 		return nil, err
 	}
 
-	edgeField := camel(edge.Name)
-	var mappings []string
+	var (
+		edgeField = camel(edge.Name)
+		mappings  = []string{edgeField}
+	)
 	if len(edgeAnt.Mapping) > 0 {
 		mappings = edgeAnt.Mapping
-	} else {
-		mappings = []string{edgeField}
 	}
 
 	var fields []*ast.FieldDefinition
