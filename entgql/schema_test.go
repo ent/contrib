@@ -434,7 +434,6 @@ func TestModifyConfig_todoplugin(t *testing.T) {
 	expected := map[string]string{
 		"Category":         "entgo.io/contrib/entgql/internal/todoplugin/ent.Category",
 		"CategoryStatus":   "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status",
-		"CategoryConfig":   "entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig",
 		"MasterUser":       "entgo.io/contrib/entgql/internal/todoplugin/ent.User",
 		"Role":             "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role",
 		"Status":           "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status",
@@ -454,7 +453,6 @@ func TestModifyConfig_todoplugin_relay(t *testing.T) {
 	require.NoError(t, err)
 	expected := map[string]string{
 		"Category":             "entgo.io/contrib/entgql/internal/todoplugin/ent.Category",
-		"CategoryConfig":       "entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig",
 		"CategoryConnection":   "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryConnection",
 		"CategoryEdge":         "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryEdge",
 		"CategoryOrder":        "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryOrder",
