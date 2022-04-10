@@ -108,23 +108,23 @@ func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
 	}, nil
 }
 
-func (e *schemaGenerator) buildSchema(schema *ast.Schema) error {
-	err := e.buildTypes(schema.Types)
+func (e *schemaGenerator) buildSchema(s *ast.Schema) error {
+	err := e.buildTypes(s)
 	if err != nil {
 		return err
 	}
-	insertDefinitions(schema.Types, builtinTypes()...)
+	s.AddTypes(builtinTypes()...)
 	if e.relaySpec {
-		insertDefinitions(schema.Types, relayBuiltinTypes()...)
+		s.AddTypes(relayBuiltinTypes()...)
 	}
 
 	for name, d := range directives {
-		schema.Directives[name] = d
+		s.Directives[name] = d
 	}
 	return nil
 }
 
-func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
+func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 	var defaultInterfaces []string
 	if e.relaySpec {
 		defaultInterfaces = append(defaultInterfaces, "Node")
@@ -155,7 +155,7 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 		if len(ant.Implements) > 0 {
 			typ.Interfaces = append(typ.Interfaces, ant.Implements...)
 		}
-		insertDefinitions(types, typ)
+		s.AddTypes(typ)
 
 		var enumOrderByValues ast.EnumValueList
 		for _, f := range node.Fields {
@@ -182,7 +182,7 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 				if err != nil {
 					return err
 				}
-				insertDefinitions(types, enum)
+				s.AddTypes(enum)
 			}
 		}
 
@@ -216,14 +216,14 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 				return err
 			}
 
-			insertDefinitions(types, defs...)
+			s.AddTypes(defs...)
 			if len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField) {
 				pagination, err := nodePaginationNames(node)
 				if err != nil {
 					return err
 				}
 
-				insertDefinitions(types,
+				s.AddTypes(
 					&ast.Definition{
 						Name:       pagination.OrderField,
 						Kind:       ast.Enum,
@@ -648,12 +648,6 @@ func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
 			},
 		},
 	}, nil
-}
-
-func insertDefinitions(types map[string]*ast.Definition, defs ...*ast.Definition) {
-	for _, d := range defs {
-		types[d.Name] = d
-	}
 }
 
 func namedType(name string, nullable bool) *ast.Type {
