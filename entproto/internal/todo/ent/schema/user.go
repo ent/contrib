@@ -108,6 +108,11 @@ func (User) Fields() []ent.Field {
 		field.String("unnecessary").
 			Optional().
 			Annotations(entproto.Skip()),
+		field.String("type").
+			Optional().
+			Annotations(
+				entproto.Field(23),
+			),
 	}
 }
 

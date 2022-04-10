@@ -55,51 +55,53 @@ func toEntUser_Status(e User_Status) user.Status {
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
-	accountbalance := e.AccountBalance
-	v.AccountBalance = accountbalance
-	buser1 := wrapperspb.Int64(int64(e.BUser1))
-	v.BUser_1 = buser1
+	account_balance := e.AccountBalance
+	v.AccountBalance = account_balance
+	b_user_1 := wrapperspb.Int64(int64(e.BUser1))
+	v.BUser_1 = b_user_1
 	banned := e.Banned
 	v.Banned = banned
-	bigintValue, err := e.BigInt.Value()
+	big_intValue, err := e.BigInt.Value()
 	if err != nil {
 		return nil, err
 	}
-	bigintTyped, ok := bigintValue.(string)
+	big_intTyped, ok := big_intValue.(string)
 	if !ok {
 		return nil, errors.New("casting value to string")
 	}
-	bigint := wrapperspb.String(bigintTyped)
-	v.BigInt = bigint
-	crmid, err := e.CrmID.MarshalBinary()
+	big_int := wrapperspb.String(big_intTyped)
+	v.BigInt = big_int
+	crm_id, err := e.CrmID.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
-	v.CrmId = crmid
-	custompb := uint64(e.CustomPb)
-	v.CustomPb = custompb
+	v.CrmId = crm_id
+	custom_pb := uint64(e.CustomPb)
+	v.CustomPb = custom_pb
 	exp := e.Exp
 	v.Exp = exp
-	externalid := int64(e.ExternalID)
-	v.ExternalId = externalid
-	heightincm := e.HeightInCm
-	v.HeightInCm = heightincm
+	external_id := int64(e.ExternalID)
+	v.ExternalId = external_id
+	height_in_cm := e.HeightInCm
+	v.HeightInCm = height_in_cm
 	id := int64(e.ID)
 	v.Id = id
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
-	optbool := wrapperspb.Bool(e.OptBool)
-	v.OptBool = optbool
-	optnum := wrapperspb.Int64(int64(e.OptNum))
-	v.OptNum = optnum
-	optstr := wrapperspb.String(e.OptStr)
-	v.OptStr = optstr
+	opt_bool := wrapperspb.Bool(e.OptBool)
+	v.OptBool = opt_bool
+	opt_num := wrapperspb.Int64(int64(e.OptNum))
+	v.OptNum = opt_num
+	opt_str := wrapperspb.String(e.OptStr)
+	v.OptStr = opt_str
 	points := uint32(e.Points)
 	v.Points = points
 	status := toProtoUser_Status(e.Status)
 	v.Status = status
-	username := e.UserName
-	v.UserName = username
+	_type := wrapperspb.String(e.Type)
+	v.Type = _type
+	user_name := e.UserName
+	v.UserName = user_name
 	if edg := e.Edges.Attachment; edg != nil {
 		id, err := edg.ID.MarshalBinary()
 		if err != nil {
@@ -183,6 +185,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetPoints(userPoints)
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
+	if user.GetType() != nil {
+		userType := user.GetType().GetValue()
+		m.SetType(userType)
+	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
 	if user.GetAttachment() != nil {
@@ -315,6 +321,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetPoints(userPoints)
 	userStatus := toEntUser_Status(user.GetStatus())
 	m.SetStatus(userStatus)
+	if user.GetType() != nil {
+		userType := user.GetType().GetValue()
+		m.SetType(userType)
+	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
 	if user.GetAttachment() != nil {

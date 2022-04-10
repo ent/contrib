@@ -298,6 +298,8 @@ message User {
 
   double account_balance = 20;
 
+  google.protobuf.StringValue type = 23;
+
   Group group = 7;
 
   Attachment attachment = 11;

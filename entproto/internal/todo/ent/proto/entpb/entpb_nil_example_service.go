@@ -37,12 +37,12 @@ func toProtoNilExample(e *ent.NilExample) (*NilExample, error) {
 	id := int64(e.ID)
 	v.Id = id
 	if e.StrNil != nil {
-		strnil := wrapperspb.String(*e.StrNil)
-		v.StrNil = strnil
+		str_nil := wrapperspb.String(*e.StrNil)
+		v.StrNil = str_nil
 	}
 	if e.TimeNil != nil {
-		timenil := timestamppb.New(*e.TimeNil)
-		v.TimeNil = timenil
+		time_nil := timestamppb.New(*e.TimeNil)
+		v.TimeNil = time_nil
 	}
 	return v, nil
 }
