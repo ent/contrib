@@ -31,7 +31,7 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  children: [Todo!]
+  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
   category: Category
 }
 

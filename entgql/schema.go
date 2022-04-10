@@ -130,7 +130,7 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 		defaultInterfaces = append(defaultInterfaces, "Node")
 	}
 	for _, node := range e.nodes {
-		ant, err := annotation(node.Annotations)
+		gqlType, ant, err := gqlTypeFromNode(node)
 		if err != nil {
 			return err
 		}
@@ -143,14 +143,13 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 			return err
 		}
 		typ := &ast.Definition{
-			Name:       node.Name,
+			Name:       gqlType,
 			Kind:       ast.Object,
 			Fields:     fields,
 			Directives: e.buildDirectives(ant.Directives),
 			Interfaces: defaultInterfaces,
 		}
-		if ant.Type != "" {
-			typ.Name = ant.Type
+		if node.Name != gqlType {
 			typ.Directives = append(typ.Directives, goModel(e.entGoType(node.Name)))
 		}
 		if len(ant.Implements) > 0 {
@@ -187,13 +186,23 @@ func (e *schemaGenerator) buildTypes(types map[string]*ast.Definition) error {
 			}
 		}
 
-		for _, e := range node.Edges {
-			ant, err := annotation(e.Annotations)
+		for _, edge := range node.Edges {
+			ant, err := annotation(edge.Annotations)
 			if err != nil {
 				return err
 			}
-			if ant.RelayConnection && e.Unique {
-				return fmt.Errorf("RelayConnection cannot be defined on Unique edge: %s.%s", node.Name, e.Name)
+			if ant.Skip.Is(SkipType) {
+				continue
+			}
+			if ant.RelayConnection && edge.Unique {
+				return fmt.Errorf("RelayConnection cannot be defined on Unique edge: %s.%s", node.Name, edge.Name)
+			}
+			fields, err := e.buildEdge(edge, ant)
+			if err != nil {
+				return err
+			}
+			if len(fields) > 0 {
+				typ.Fields = append(typ.Fields, fields...)
 			}
 		}
 
@@ -319,6 +328,59 @@ func (e *schemaGenerator) buildTypeFields(t *gen.Type) (ast.FieldList, error) {
 	return fields, nil
 }
 
+func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
+	gqlType, ant, err := gqlTypeFromNode(edge.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		edgeField = camel(edge.Name)
+		mappings  = []string{edgeField}
+	)
+	if len(edgeAnt.Mapping) > 0 {
+		mappings = edgeAnt.Mapping
+	}
+
+	var fields []*ast.FieldDefinition
+	for _, name := range mappings {
+		fieldDef := &ast.FieldDefinition{
+			Name:       name,
+			Directives: e.buildDirectives(edgeAnt.Directives),
+		}
+		if name != edgeField {
+			fieldDef.Directives = append(fieldDef.Directives, goField(edgeField))
+		}
+		switch {
+		case edge.Unique:
+			fieldDef.Type = namedType(gqlType, edge.Optional)
+		case edgeAnt.RelayConnection:
+			if !e.relaySpec {
+				return nil, ErrRelaySpecDisabled
+			}
+			if !ant.RelayConnection {
+				return nil, fmt.Errorf("entgql: must enable Relay Connection via the entgql.RelayConnection annotation on the %s entity", edge.Type.Name)
+			}
+
+			pagination := paginationNames(gqlType)
+			fieldDef.Type = ast.NonNullNamedType(pagination.Connection, nil)
+			fieldDef.Arguments = ast.ArgumentDefinitionList{
+				{Name: "after", Type: ast.NamedType(RelayCursor, nil)},
+				{Name: "first", Type: ast.NamedType("Int", nil)},
+				{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
+				{Name: "last", Type: ast.NamedType("Int", nil)},
+				{Name: "orderBy", Type: ast.NamedType(pagination.Order, nil)},
+			}
+		default:
+			fieldDef.Type = listNamedType(gqlType, edge.Optional)
+		}
+
+		fields = append(fields, fieldDef)
+	}
+
+	return fields, nil
+}
+
 func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
 	ant, err := annotation(f.Annotations)
 	if err != nil {
@@ -400,7 +462,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 		models[RelayCursor] = e.entGoType(RelayCursor)
 	}
 	for _, node := range e.nodes {
-		ant, err := annotation(node.Annotations)
+		gqlType, ant, err := gqlTypeFromNode(node)
 		if err != nil {
 			return nil, err
 		}
@@ -408,11 +470,7 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 			continue
 		}
 
-		name := node.Name
-		if ant.Type != "" {
-			name = ant.Type
-		}
-		models[name] = e.entGoType(node.Name)
+		models[gqlType] = e.entGoType(node.Name)
 
 		var hasOrderBy bool
 		for _, field := range node.Fields {
@@ -619,6 +677,29 @@ func printSchema(schema *ast.Schema) string {
 		NewFormatter(sb, formatter.WithIndent("  ")).
 		FormatSchema(schema)
 	return sb.String()
+}
+
+func goField(name string) *ast.Directive {
+	return &ast.Directive{
+		Name:     "goField",
+		Location: ast.LocationFieldDefinition,
+		Arguments: ast.ArgumentList{
+			{
+				Name: "name",
+				Value: &ast.Value{
+					Kind: ast.StringValue,
+					Raw:  name,
+				},
+			},
+			{
+				Name: "forceResolver",
+				Value: &ast.Value{
+					Kind: ast.BooleanValue,
+					Raw:  "false",
+				},
+			},
+		},
+	}
 }
 
 func goModel(ident string) *ast.Directive {

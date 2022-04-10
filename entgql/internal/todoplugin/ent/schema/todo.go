@@ -73,6 +73,10 @@ func (Todo) Fields() []ent.Field {
 func (Todo) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("children", Todo.Type).
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.MapsTo("childrenConnection", "children"),
+			).
 			From("parent").
 			Unique(),
 	}

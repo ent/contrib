@@ -280,8 +280,10 @@ func (c *{{ $conn }}) build(nodes []*{{ $name }}, pager *{{ $pager }}, first, la
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}

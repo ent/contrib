@@ -297,8 +297,10 @@ func (c *CategoryConnection) build(nodes []*Category, pager *categoryPager, firs
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -585,8 +587,10 @@ func (c *TodoConnection) build(nodes []*Todo, pager *todoPager, first, last *int
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -918,8 +922,10 @@ func (c *MasterUserConnection) build(nodes []*MasterUser, pager *masteruserPager
 			Cursor: pager.toCursor(node),
 		}
 	}
-	c.PageInfo.StartCursor = &c.Edges[0].Cursor
-	c.PageInfo.EndCursor = &c.Edges[len(c.Edges)-1].Cursor
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}

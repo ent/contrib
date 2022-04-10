@@ -64,7 +64,7 @@ func (e *gqlgenPlugin) InjectSourceEarly() *ast.Source {
 func (e *gqlgenPlugin) MutateConfig(cfg *config.Config) error {
 	if e.models != nil {
 		for name, goType := range e.models {
-			if !cfg.Models.Exists(name) {
+			if !cfg.Models.UserDefined(name) {
 				cfg.Models.Add(name, goType)
 			}
 		}
