@@ -36,7 +36,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
-	err = plugin.buildTypes(schema.Types)
+	err = plugin.buildTypes(schema)
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Entity {
@@ -102,7 +102,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
-	err = plugin.buildTypes(schema.Types)
+	err = plugin.buildTypes(schema)
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Node & Entity {
@@ -296,10 +296,8 @@ type SuperTodoEdge {
 				return
 			}
 
-			s := &ast.Schema{
-				Types: map[string]*ast.Definition{},
-			}
-			insertDefinitions(s.Types, got...)
+			s := &ast.Schema{}
+			s.AddTypes(got...)
 			gots := printSchema(s)
 			if !reflect.DeepEqual(gots, tt.want) {
 				t.Errorf("relayConnection() = %v, want %v", gots, tt.want)
@@ -349,10 +347,8 @@ type PageInfo {
 		t.Run(tt.name, func(t *testing.T) {
 			got := relayBuiltinTypes()
 
-			s := &ast.Schema{
-				Types: map[string]*ast.Definition{},
-			}
-			insertDefinitions(s.Types, got...)
+			s := &ast.Schema{}
+			s.AddTypes(got...)
 			gots := printSchema(s)
 			if !reflect.DeepEqual(gots, tt.want) {
 				t.Errorf("relayBuiltinTypes() = %v, want %v", gots, tt.want)
@@ -438,7 +434,6 @@ func TestModifyConfig_todoplugin(t *testing.T) {
 	expected := map[string]string{
 		"Category":         "entgo.io/contrib/entgql/internal/todoplugin/ent.Category",
 		"CategoryStatus":   "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status",
-		"CategoryConfig":   "entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig",
 		"MasterUser":       "entgo.io/contrib/entgql/internal/todoplugin/ent.User",
 		"Role":             "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role",
 		"Status":           "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status",
@@ -458,7 +453,6 @@ func TestModifyConfig_todoplugin_relay(t *testing.T) {
 	require.NoError(t, err)
 	expected := map[string]string{
 		"Category":             "entgo.io/contrib/entgql/internal/todoplugin/ent.Category",
-		"CategoryConfig":       "entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig",
 		"CategoryConnection":   "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryConnection",
 		"CategoryEdge":         "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryEdge",
 		"CategoryOrder":        "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryOrder",
