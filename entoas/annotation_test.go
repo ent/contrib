@@ -17,10 +17,11 @@ package entoas
 import (
 	"testing"
 
-	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 	"github.com/ogen-go/ogen"
 	"github.com/stretchr/testify/require"
+
+	"entgo.io/contrib/entoas/serialization"
 )
 
 func TestAnnotation(t *testing.T) {
@@ -67,6 +68,19 @@ func TestAnnotation(t *testing.T) {
 	a = a.Merge(ReadOnly(true)).(Annotation)
 	ex.ReadOnly = true
 	require.Equal(t, ex, a)
+
+	crOp := CreateOperation(OperationPolicy(PolicyExpose))
+	dlOp := DeleteOperation(OperationPolicy(PolicyExclude))
+	crdlEx := Annotation{
+		Create: OperationConfig{
+			Policy: PolicyExpose,
+		},
+		Delete: OperationConfig{
+			Policy: PolicyExclude,
+		},
+	}
+	crOp = crOp.Merge(dlOp).(Annotation)
+	require.Equal(t, crdlEx, crOp)
 
 	ac, err := SchemaAnnotation(new(gen.Type))
 	require.NoError(t, err)

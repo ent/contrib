@@ -17,10 +17,11 @@ package entoas
 import (
 	"encoding/json"
 
-	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 	"github.com/ogen-go/ogen"
+
+	"entgo.io/contrib/entoas/serialization"
 )
 
 type (
@@ -146,14 +147,14 @@ func (a Annotation) Merge(o schema.Annotation) schema.Annotation {
 	return a
 }
 
-func (op OperationConfig) merge(other OperationConfig) OperationConfig {
+func (op *OperationConfig) merge(other OperationConfig) OperationConfig {
 	if other.Policy != PolicyNone {
 		op.Policy = other.Policy
 	}
 	if other.Groups != nil {
 		op.Groups = other.Groups
 	}
-	return op
+	return *op
 }
 
 // Decode from ent.
