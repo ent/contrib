@@ -688,6 +688,14 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		}
 	}
 	for _, e := range n.Edges {
+		// Check if the edge should be included in the request body.
+		ok, err := serializeEdge(e, gs)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			continue
+		}
 		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err
