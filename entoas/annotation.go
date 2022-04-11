@@ -17,10 +17,11 @@ package entoas
 import (
 	"encoding/json"
 
-	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 	"github.com/ogen-go/ogen"
+
+	"entgo.io/contrib/entoas/serialization"
 )
 
 type (
@@ -47,8 +48,9 @@ type (
 	}
 	// OperationConfig holds meta information about a REST operation.
 	OperationConfig struct {
-		Policy Policy
-		Groups serialization.Groups
+		Policy        Policy
+		Groups        serialization.Groups
+		RequestGroups serialization.Groups
 	}
 	// OperationConfigOption allows managing OperationConfig using functional arguments.
 	OperationConfigOption func(*OperationConfig)
@@ -62,6 +64,11 @@ func Groups(gs ...string) Annotation {
 // OperationGroups returns a OperationConfigOption that adds the given serialization groups to a OperationConfig.
 func OperationGroups(gs ...string) OperationConfigOption {
 	return func(c *OperationConfig) { c.Groups = gs }
+}
+
+// RequestGroups returns a OperationConfigOption that adds the given request serialization groups to a OperationConfig.
+func RequestGroups(gs ...string) OperationConfigOption {
+	return func(c *OperationConfig) { c.RequestGroups = gs }
 }
 
 // OperationPolicy returns a OperationConfigOption that sets the Policy of a OperationConfig to the given one.
