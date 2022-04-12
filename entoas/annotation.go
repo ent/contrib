@@ -17,11 +17,10 @@ package entoas
 import (
 	"encoding/json"
 
+	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 	"github.com/ogen-go/ogen"
-
-	"entgo.io/contrib/entoas/serialization"
 )
 
 type (
@@ -66,8 +65,8 @@ func OperationGroups(gs ...string) OperationConfigOption {
 	return func(c *OperationConfig) { c.Groups = gs }
 }
 
-// RequestGroups returns a OperationConfigOption that adds the given request serialization groups to a OperationConfig.
-func RequestGroups(gs ...string) OperationConfigOption {
+// OperationRequestGroups returns a OperationConfigOption that adds the given request serialization groups to a OperationConfig.
+func OperationRequestGroups(gs ...string) OperationConfigOption {
 	return func(c *OperationConfig) { c.RequestGroups = gs }
 }
 

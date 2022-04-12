@@ -17,11 +17,10 @@ package entoas
 import (
 	"testing"
 
+	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 	"github.com/ogen-go/ogen"
 	"github.com/stretchr/testify/require"
-
-	"entgo.io/contrib/entoas/serialization"
 )
 
 func TestAnnotation(t *testing.T) {
@@ -33,19 +32,19 @@ func TestAnnotation(t *testing.T) {
 	a = Groups("create", "groups")
 	require.Equal(t, serialization.Groups{"create", "groups"}, a.Groups)
 
-	a = CreateOperation(OperationGroups("create", "groups"), OperationPolicy(PolicyExpose), RequestGroups("reqCreate", "groups"))
+	a = CreateOperation(OperationGroups("create", "groups"), OperationPolicy(PolicyExpose), OperationRequestGroups("reqCreate", "groups"))
 	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"create", "groups"}, serialization.Groups{"reqCreate", "groups"}}, a.Create)
 
-	a = ReadOperation(OperationGroups("read", "groups"), OperationPolicy(PolicyExpose), RequestGroups("reqRead", "groups"))
+	a = ReadOperation(OperationGroups("read", "groups"), OperationPolicy(PolicyExpose), OperationRequestGroups("reqRead", "groups"))
 	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"read", "groups"}, serialization.Groups{"reqRead", "groups"}}, a.Read)
 
-	a = UpdateOperation(OperationGroups("update", "groups"), OperationPolicy(PolicyExpose), RequestGroups("reqUpdate", "groups"))
+	a = UpdateOperation(OperationGroups("update", "groups"), OperationPolicy(PolicyExpose), OperationRequestGroups("reqUpdate", "groups"))
 	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"update", "groups"}, serialization.Groups{"reqUpdate", "groups"}}, a.Update)
 
-	a = DeleteOperation(OperationGroups("delete", "groups"), OperationPolicy(PolicyExpose), RequestGroups("reqDelete", "groups"))
+	a = DeleteOperation(OperationGroups("delete", "groups"), OperationPolicy(PolicyExpose), OperationRequestGroups("reqDelete", "groups"))
 	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"delete", "groups"}, serialization.Groups{"reqDelete", "groups"}}, a.Delete)
 
-	a = ListOperation(OperationGroups("list", "groups"), OperationPolicy(PolicyExpose), RequestGroups("reqList", "groups"))
+	a = ListOperation(OperationGroups("list", "groups"), OperationPolicy(PolicyExpose), OperationRequestGroups("reqList", "groups"))
 	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"list", "groups"}, serialization.Groups{"reqList", "groups"}}, a.List)
 
 	b := Example("example")
