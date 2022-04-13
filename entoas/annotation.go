@@ -159,6 +159,9 @@ func (op *OperationConfig) merge(other OperationConfig) {
 	if other.Groups != nil {
 		op.Groups = other.Groups
 	}
+	if other.RequestGroups != nil {
+		op.RequestGroups = other.RequestGroups
+	}
 }
 
 // Decode from ent.

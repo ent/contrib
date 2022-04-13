@@ -135,7 +135,8 @@ func view(n *gen.Type, gs serialization.Groups) (*View, error) {
 		}
 	}
 	for _, e := range n.Edges {
-		ok, err := serializeEdge(e, gs)
+		// Don't include edges without groups in the view.
+		ok, err := serializeEdge(e, gs, false)
 		if err != nil {
 			return nil, err
 		}
@@ -170,10 +171,10 @@ func serializeField(f *gen.Field, g serialization.Groups, sensitiveExcluded bool
 }
 
 // serializeEdge checks if an edge is to be serialized according to its annotations and the requested groups.
-func serializeEdge(e *gen.Edge, g serialization.Groups) (bool, error) {
+func serializeEdge(e *gen.Edge, g serialization.Groups, includeNoGroup bool) (bool, error) {
 	// If no groups are requested or the edge has no groups defined do not render the edge.
 	if e.Annotations == nil || len(g) == 0 {
-		return false, nil
+		return includeNoGroup, nil
 	}
 	// Extract the Groups defined on the edge.
 	ant, err := EdgeAnnotation(e)
