@@ -352,6 +352,13 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 			continue
 		}
 
+		if v, ok := e.Annotations["ProtoMessage"]; ok {
+			protoMessage := v.(map[string]interface{})
+			if sf, ok := protoMessage["Generate"]; ok && !sf.(bool) {
+				continue
+			}
+		}
+
 		descriptor, err := a.extractEdgeFieldDescriptor(genType, e)
 		if err != nil {
 			return nil, err
