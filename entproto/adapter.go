@@ -325,6 +325,13 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 			continue
 		}
 
+		if v, ok := f.Annotations["ProtoMessage"]; ok {
+			protoMessage := v.(map[string]interface{})
+			if sf, ok := protoMessage["Generate"]; ok && !sf.(bool) {
+				continue
+			}
+		}
+
 		protoField, err := toProtoFieldDescriptor(f)
 		if err != nil {
 			return nil, err
