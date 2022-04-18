@@ -268,7 +268,6 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-	return nil, nil
 
 }
 

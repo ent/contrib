@@ -102,7 +102,6 @@ func (svc *NilExampleService) Get(ctx context.Context, req *GetNilExampleRequest
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-	return nil, nil
 
 }
 

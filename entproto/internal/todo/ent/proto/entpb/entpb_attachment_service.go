@@ -116,7 +116,6 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-	return nil, nil
 
 }
 
