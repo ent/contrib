@@ -69,6 +69,7 @@ func TestAttachmentService_MultiEdge(t *testing.T) {
 			SetExternalID(i+1).
 			SetCrmID(uuid.New()).
 			SetCustomPb(1).
+			SetLabels(nil).
 			SaveX(ctx))
 	}
 	att, err := svc.Create(ctx, &CreateAttachmentRequest{Attachment: &Attachment{

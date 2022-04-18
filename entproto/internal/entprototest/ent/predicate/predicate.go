@@ -48,6 +48,9 @@ type MessageWithOptionals func(*sql.Selector)
 // MessageWithPackageName is the predicate function for messagewithpackagename builders.
 type MessageWithPackageName func(*sql.Selector)
 
+// MessageWithStrings is the predicate function for messagewithstrings builders.
+type MessageWithStrings func(*sql.Selector)
+
 // OneMethodService is the predicate function for onemethodservice builders.
 type OneMethodService func(*sql.Selector)
 

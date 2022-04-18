@@ -23,7 +23,6 @@ import (
 var typeMap = map[field.Type]typeConfig{
 	field.TypeBool:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_BOOL, optionalType: "google.protobuf.BoolValue"},
 	field.TypeTime:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, msgTypeName: "google.protobuf.Timestamp", optionalType: "google.protobuf.Timestamp"},
-	field.TypeJSON:  {unsupported: true},
 	field.TypeOther: {unsupported: true},
 	field.TypeUUID:  {pbType: descriptorpb.FieldDescriptorProto_TYPE_BYTES, optionalType: "google.protobuf.BytesValue"},
 	field.TypeBytes: {pbType: descriptorpb.FieldDescriptorProto_TYPE_BYTES, optionalType: "google.protobuf.BytesValue"},

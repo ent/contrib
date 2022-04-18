@@ -111,6 +111,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
 		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
+	case efld.IsJSON() && efld.Type.Ident == "[]string":
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}
