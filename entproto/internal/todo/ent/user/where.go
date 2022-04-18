@@ -1668,6 +1668,20 @@ func TypeContainsFold(v string) predicate.User {
 	})
 }
 
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldLabels)))
+	})
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldLabels)))
+	})
+}
+
 // HasGroup applies the HasEdge predicate on the "group" edge.
 func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

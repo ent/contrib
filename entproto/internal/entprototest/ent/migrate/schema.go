@@ -188,6 +188,17 @@ var (
 		Columns:    MessageWithPackageNamesColumns,
 		PrimaryKey: []*schema.Column{MessageWithPackageNamesColumns[0]},
 	}
+	// MessageWithStringsColumns holds the columns for the "message_with_strings" table.
+	MessageWithStringsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "strings", Type: field.TypeJSON},
+	}
+	// MessageWithStringsTable holds the schema information for the "message_with_strings" table.
+	MessageWithStringsTable = &schema.Table{
+		Name:       "message_with_strings",
+		Columns:    MessageWithStringsColumns,
+		PrimaryKey: []*schema.Column{MessageWithStringsColumns[0]},
+	}
 	// OneMethodServicesColumns holds the columns for the "one_method_services" table.
 	OneMethodServicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -326,6 +337,7 @@ var (
 		MessageWithIdsTable,
 		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
+		MessageWithStringsTable,
 		OneMethodServicesTable,
 		PortalsTable,
 		SkipEdgeExamplesTable,

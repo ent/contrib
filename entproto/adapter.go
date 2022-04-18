@@ -482,11 +482,16 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	if typeDetails.messageName != "" {
 		fieldDesc.TypeName = &typeDetails.messageName
 	}
-
+	if typeDetails.repeated {
+		fieldDesc.Label = &repeatedFieldLabel
+	}
 	return fieldDesc, nil
 }
 
 func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
+	if f.Type.Type == field.TypeJSON {
+		return extractJSONDetails(f)
+	}
 	cfg, ok := typeMap[f.Type.Type]
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
@@ -510,9 +515,20 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	}, nil
 }
 
+func extractJSONDetails(f *gen.Field) (fieldType, error) {
+	if f.Type.Ident == "[]string" {
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_STRING,
+			repeated:  true,
+		}, nil
+	}
+	return fieldType{}, unsupportedTypeError{Type: f.Type}
+}
+
 type fieldType struct {
 	messageName string
 	protoType   descriptorpb.FieldDescriptorProto_Type
+	repeated    bool
 }
 
 func strptr(s string) *string {

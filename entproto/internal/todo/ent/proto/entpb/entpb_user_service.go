@@ -88,6 +88,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Id = id
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
+	labels := e.Labels
+	v.Labels = labels
 	opt_bool := wrapperspb.Bool(e.OptBool)
 	v.OptBool = opt_bool
 	opt_num := wrapperspb.Int64(int64(e.OptNum))
@@ -169,6 +171,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetHeightInCm(userHeightInCm)
 	userJoined := runtime.ExtractTime(user.GetJoined())
 	m.SetJoined(userJoined)
+	if user.GetLabels() != nil {
+		userLabels := user.GetLabels()
+		m.SetLabels(userLabels)
+	}
 	if user.GetOptBool() != nil {
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)
@@ -305,6 +311,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetExternalID(userExternalID)
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
+	if user.GetLabels() != nil {
+		userLabels := user.GetLabels()
+		m.SetLabels(userLabels)
+	}
 	if user.GetOptBool() != nil {
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)

@@ -40,6 +40,8 @@ type Tx struct {
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
+	// MessageWithStrings is the client for interacting with the MessageWithStrings builders.
+	MessageWithStrings *MessageWithStringsClient
 	// OneMethodService is the client for interacting with the OneMethodService builders.
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
@@ -201,6 +203,7 @@ func (tx *Tx) init() {
 	tx.MessageWithID = NewMessageWithIDClient(tx.config)
 	tx.MessageWithOptionals = NewMessageWithOptionalsClient(tx.config)
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
+	tx.MessageWithStrings = NewMessageWithStringsClient(tx.config)
 	tx.OneMethodService = NewOneMethodServiceClient(tx.config)
 	tx.Portal = NewPortalClient(tx.config)
 	tx.SkipEdgeExample = NewSkipEdgeExampleClient(tx.config)

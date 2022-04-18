@@ -113,6 +113,11 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(23),
 			),
+		field.Strings("labels").
+			Optional().
+			Annotations(
+				entproto.Field(24),
+			),
 	}
 }
 

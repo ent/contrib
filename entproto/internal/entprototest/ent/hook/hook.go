@@ -191,6 +191,19 @@ func (f MessageWithPackageNameFunc) Mutate(ctx context.Context, m ent.Mutation) 
 	return f(ctx, mv)
 }
 
+// The MessageWithStringsFunc type is an adapter to allow the use of ordinary
+// function as MessageWithStrings mutator.
+type MessageWithStringsFunc func(context.Context, *ent.MessageWithStringsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageWithStringsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.MessageWithStringsMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithStringsMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The OneMethodServiceFunc type is an adapter to allow the use of ordinary
 // function as OneMethodService mutator.
 type OneMethodServiceFunc func(context.Context, *ent.OneMethodServiceMutation) (ent.Value, error)

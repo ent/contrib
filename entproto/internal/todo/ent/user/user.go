@@ -47,6 +47,8 @@ const (
 	FieldUnnecessary = "unnecessary"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -115,6 +117,7 @@ var Columns = []string{
 	FieldAccountBalance,
 	FieldUnnecessary,
 	FieldType,
+	FieldLabels,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
