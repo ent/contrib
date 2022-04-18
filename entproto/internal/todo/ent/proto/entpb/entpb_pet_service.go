@@ -97,7 +97,6 @@ func (svc *PetService) Get(ctx context.Context, req *GetPetRequest) (*Pet, error
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-	return nil, nil
 
 }
 
