@@ -95,23 +95,28 @@
                   },
                   "uint": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint8": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint16": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint32": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint64": {
                     "type": "integer",
-                    "format": "int64"
+                    "format": "int64",
+                    "minimum": 0
                   },
                   "float32": {
                     "type": "number",
@@ -369,23 +374,28 @@
                   },
                   "uint": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint8": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint16": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint32": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "minimum": 0
                   },
                   "uint64": {
                     "type": "integer",
-                    "format": "int64"
+                    "format": "int64",
+                    "minimum": 0
                   },
                   "float32": {
                     "type": "number",
@@ -522,23 +532,28 @@
           },
           "uint": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": 0
           },
           "uint8": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": 0
           },
           "uint16": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": 0
           },
           "uint32": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": 0
           },
           "uint64": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "minimum": 0
           },
           "float32": {
             "type": "number",
