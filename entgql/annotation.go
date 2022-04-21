@@ -45,6 +45,8 @@ type (
 		Implements []string `json:"Implements,omitempty"`
 		// Directives to add on the field/type.
 		Directives []Directive `json:"Directives,omitempty"`
+		// QueryField allow you expose the Entity on the query as a field.
+		QueryField string `json:"QueryField,omitempty"`
 	}
 
 	// Directive to apply on the field/type
@@ -153,6 +155,11 @@ func Directives(directives ...Directive) Annotation {
 	return Annotation{Directives: directives}
 }
 
+// QueryField returns an annotation for expose the field on the Query type.
+func QueryField(name string) Annotation {
+	return Annotation{QueryField: name}
+}
+
 // Merge implements the schema.Merger interface.
 func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	var ant Annotation
@@ -189,6 +196,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if len(ant.Directives) > 0 {
 		a.Directives = append(a.Directives, ant.Directives...)
+	}
+	if ant.QueryField != "" {
+		a.QueryField = ant.QueryField
 	}
 	return a
 }
