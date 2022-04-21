@@ -38,6 +38,7 @@ type hooks struct {
 	MessageWithID          []ent.Hook
 	MessageWithOptionals   []ent.Hook
 	MessageWithPackageName []ent.Hook
+	MessageWithStrings     []ent.Hook
 	OneMethodService       []ent.Hook
 	Portal                 []ent.Hook
 	SkipEdgeExample        []ent.Hook

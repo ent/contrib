@@ -102,7 +102,6 @@ func (svc *MultiWordSchemaService) Get(ctx context.Context, req *GetMultiWordSch
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
-	return nil, nil
 
 }
 

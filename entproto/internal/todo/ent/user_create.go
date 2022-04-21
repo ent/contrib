@@ -200,6 +200,26 @@ func (uc *UserCreate) SetNillableUnnecessary(s *string) *UserCreate {
 	return uc
 }
 
+// SetType sets the "type" field.
+func (uc *UserCreate) SetType(s string) *UserCreate {
+	uc.mutation.SetType(s)
+	return uc
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (uc *UserCreate) SetNillableType(s *string) *UserCreate {
+	if s != nil {
+		uc.SetType(*s)
+	}
+	return uc
+}
+
+// SetLabels sets the "labels" field.
+func (uc *UserCreate) SetLabels(s []string) *UserCreate {
+	uc.mutation.SetLabels(s)
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -578,6 +598,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldUnnecessary,
 		})
 		_node.Unnecessary = value
+	}
+	if value, ok := uc.mutation.GetType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldType,
+		})
+		_node.Type = value
+	}
+	if value, ok := uc.mutation.Labels(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldLabels,
+		})
+		_node.Labels = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

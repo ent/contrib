@@ -23,6 +23,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 func main() {
@@ -35,7 +36,14 @@ func main() {
 	}
 
 	exEntGQL, err := entgql.NewExtension(
+		entgql.WithConfigPath("./gqlgen.yml"),
+		entgql.WithWhereFilters(true),
 		entgql.WithSchemaGenerator(),
+		entgql.WithSchemaHook(func(g *gen.Graph, s *ast.Schema) error {
+			return nil
+		}),
+		// Enable this option to write the output to a file
+		// entgql.WithSchemaPath("./entgql.graphql"),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)

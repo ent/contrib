@@ -13,8 +13,6 @@ scalar UUID
 
 extend type Todo {
   category: Category
-  children: [Todo!]
-  parent: Todo
 }
 
 interface Entity {

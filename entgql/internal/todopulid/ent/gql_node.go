@@ -23,8 +23,10 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
 )
@@ -125,6 +127,35 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     gr.ID,
+		Type:   "Group",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(gr.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "users",
+	}
+	err = gr.QueryUsers().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
@@ -206,6 +237,35 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (u *User) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     u.ID,
+		Type:   "User",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(u.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Group",
+		Name: "groups",
+	}
+	err = u.QueryGroups().
+		Select(group.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (c *Client) Node(ctx context.Context, id pulid.ID) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
@@ -274,19 +334,49 @@ func (c *Client) Noder(ctx context.Context, id pulid.ID, opts ...NodeOption) (_ 
 func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, error) {
 	switch table {
 	case category.Table:
-		n, err := c.Category.Query().
-			Where(category.ID(id)).
-			CollectFields(ctx, "Category").
-			Only(ctx)
+		query := c.Category.Query().
+			Where(category.ID(id))
+		query, err := query.CollectFields(ctx, "Category")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case group.Table:
+		query := c.Group.Query().
+			Where(group.ID(id))
+		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case todo.Table:
-		n, err := c.Todo.Query().
-			Where(todo.ID(id)).
-			CollectFields(ctx, "Todo").
-			Only(ctx)
+		query := c.Todo.Query().
+			Where(todo.ID(id))
+		query, err := query.CollectFields(ctx, "Todo")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case user.Table:
+		query := c.User.Query().
+			Where(user.ID(id))
+		query, err := query.CollectFields(ctx, "User")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -365,10 +455,29 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	}
 	switch table {
 	case category.Table:
-		nodes, err := c.Category.Query().
-			Where(category.IDIn(ids...)).
-			CollectFields(ctx, "Category").
-			All(ctx)
+		query := c.Category.Query().
+			Where(category.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Category")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case group.Table:
+		query := c.Group.Query().
+			Where(group.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -378,10 +487,29 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 			}
 		}
 	case todo.Table:
-		nodes, err := c.Todo.Query().
-			Where(todo.IDIn(ids...)).
-			CollectFields(ctx, "Todo").
-			All(ctx)
+		query := c.Todo.Query().
+			Where(todo.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Todo")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case user.Table:
+		query := c.User.Query().
+			Where(user.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "User")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}

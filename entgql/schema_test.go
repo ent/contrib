@@ -33,7 +33,10 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	require.NoError(t, err)
 	plugin.relaySpec = false
 
-	types, err := plugin.buildTypes()
+	schema := &ast.Schema{
+		Types: make(map[string]*ast.Definition),
+	}
+	err = plugin.buildTypes(schema)
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Entity {
@@ -45,6 +48,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
   duration: Duration!
   count: Uint64! @deprecated(reason: "We don't use this field anymore")
   strings: [String!]
+  todos: [Todo!]
 }
 """CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
@@ -52,7 +56,7 @@ enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin
   DISABLED
 }
 type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
-  id: ID
+  id: ID!
   username: String!
   age: Float!
   amount: Float!
@@ -77,15 +81,16 @@ type Todo {
   status: Status!
   priority: Int!
   text: String!
+  parent: Todo
+  childrenConnection: [Todo!] @goField(name: "children", forceResolver: false)
+  children: [Todo!]
 }
 """VisibilityStatus is enum for the field visibility_status"""
 enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
   LISTING
   HIDDEN
 }
-`, printSchema(&ast.Schema{
-		Types: types,
-	}))
+`, printSchema(schema))
 }
 
 func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
@@ -94,7 +99,10 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	plugin, err := newSchemaGenerator(graph)
 
 	require.NoError(t, err)
-	types, err := plugin.buildTypes()
+	schema := &ast.Schema{
+		Types: make(map[string]*ast.Definition),
+	}
+	err = plugin.buildTypes(schema)
 	require.NoError(t, err)
 
 	require.Equal(t, `type Category implements Node & Entity {
@@ -106,6 +114,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
   duration: Duration!
   count: Uint64! @deprecated(reason: "We don't use this field anymore")
   strings: [String!]
+  todos: [Todo!]
 }
 """A connection to a list of items."""
 type CategoryConnection {
@@ -176,6 +185,9 @@ type Todo implements Node {
   status: Status!
   priority: Int!
   text: String!
+  parent: Todo
+  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection! @goField(name: "children", forceResolver: false)
+  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
 }
 """A connection to a list of items."""
 type TodoConnection {
@@ -208,9 +220,7 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
   LISTING
   HIDDEN
 }
-`, printSchema(&ast.Schema{
-		Types: types,
-	}))
+`, printSchema(schema))
 }
 
 func TestSchema_relayConnectionTypes(t *testing.T) {
@@ -286,10 +296,8 @@ type SuperTodoEdge {
 				return
 			}
 
-			s := &ast.Schema{
-				Types: map[string]*ast.Definition{},
-			}
-			insertDefinitions(s.Types, got...)
+			s := &ast.Schema{}
+			s.AddTypes(got...)
 			gots := printSchema(s)
 			if !reflect.DeepEqual(gots, tt.want) {
 				t.Errorf("relayConnection() = %v, want %v", gots, tt.want)
@@ -339,10 +347,8 @@ type PageInfo {
 		t.Run(tt.name, func(t *testing.T) {
 			got := relayBuiltinTypes()
 
-			s := &ast.Schema{
-				Types: map[string]*ast.Definition{},
-			}
-			insertDefinitions(s.Types, got...)
+			s := &ast.Schema{}
+			s.AddTypes(got...)
 			gots := printSchema(s)
 			if !reflect.DeepEqual(gots, tt.want) {
 				t.Errorf("relayBuiltinTypes() = %v, want %v", gots, tt.want)
@@ -428,7 +434,6 @@ func TestModifyConfig_todoplugin(t *testing.T) {
 	expected := map[string]string{
 		"Category":         "entgo.io/contrib/entgql/internal/todoplugin/ent.Category",
 		"CategoryStatus":   "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status",
-		"CategoryConfig":   "entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig",
 		"MasterUser":       "entgo.io/contrib/entgql/internal/todoplugin/ent.User",
 		"Role":             "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role",
 		"Status":           "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status",
@@ -448,7 +453,6 @@ func TestModifyConfig_todoplugin_relay(t *testing.T) {
 	require.NoError(t, err)
 	expected := map[string]string{
 		"Category":             "entgo.io/contrib/entgql/internal/todoplugin/ent.Category",
-		"CategoryConfig":       "entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig",
 		"CategoryConnection":   "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryConnection",
 		"CategoryEdge":         "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryEdge",
 		"CategoryOrder":        "entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryOrder",
@@ -548,11 +552,21 @@ func createGraph(relayConnection bool) *gen.Graph {
 }
 
 func disableRelayConnection(g *gen.Graph) {
-	for _, n := range g.Nodes {
-		if ant, ok := n.Annotations[annotationName]; ok {
+	disable := func(a gen.Annotations) {
+		if ant, ok := a[annotationName]; ok {
 			if m, ok := ant.(map[string]interface{}); ok {
 				m["RelayConnection"] = false
 			}
+		}
+	}
+
+	for _, n := range g.Nodes {
+		disable(n.Annotations)
+		for _, f := range n.Fields {
+			disable(f.Annotations)
+		}
+		for _, e := range n.Edges {
+			disable(e.Annotations)
 		}
 	}
 }

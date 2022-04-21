@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
@@ -69,6 +70,8 @@ type Client struct {
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
+	// MessageWithStrings is the client for interacting with the MessageWithStrings builders.
+	MessageWithStrings *MessageWithStringsClient
 	// OneMethodService is the client for interacting with the OneMethodService builders.
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
@@ -108,6 +111,7 @@ func (c *Client) init() {
 	c.MessageWithID = NewMessageWithIDClient(c.config)
 	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
+	c.MessageWithStrings = NewMessageWithStringsClient(c.config)
 	c.OneMethodService = NewOneMethodServiceClient(c.config)
 	c.Portal = NewPortalClient(c.config)
 	c.SkipEdgeExample = NewSkipEdgeExampleClient(c.config)
@@ -161,6 +165,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithID:          NewMessageWithIDClient(cfg),
 		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
+		MessageWithStrings:     NewMessageWithStringsClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
 		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
@@ -200,6 +205,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithID:          NewMessageWithIDClient(cfg),
 		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
+		MessageWithStrings:     NewMessageWithStringsClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
 		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
@@ -249,6 +255,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.MessageWithID.Use(hooks...)
 	c.MessageWithOptionals.Use(hooks...)
 	c.MessageWithPackageName.Use(hooks...)
+	c.MessageWithStrings.Use(hooks...)
 	c.OneMethodService.Use(hooks...)
 	c.Portal.Use(hooks...)
 	c.SkipEdgeExample.Use(hooks...)
@@ -1595,6 +1602,96 @@ func (c *MessageWithPackageNameClient) GetX(ctx context.Context, id int) *Messag
 // Hooks returns the client hooks.
 func (c *MessageWithPackageNameClient) Hooks() []Hook {
 	return c.hooks.MessageWithPackageName
+}
+
+// MessageWithStringsClient is a client for the MessageWithStrings schema.
+type MessageWithStringsClient struct {
+	config
+}
+
+// NewMessageWithStringsClient returns a client for the MessageWithStrings from the given config.
+func NewMessageWithStringsClient(c config) *MessageWithStringsClient {
+	return &MessageWithStringsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagewithstrings.Hooks(f(g(h())))`.
+func (c *MessageWithStringsClient) Use(hooks ...Hook) {
+	c.hooks.MessageWithStrings = append(c.hooks.MessageWithStrings, hooks...)
+}
+
+// Create returns a create builder for MessageWithStrings.
+func (c *MessageWithStringsClient) Create() *MessageWithStringsCreate {
+	mutation := newMessageWithStringsMutation(c.config, OpCreate)
+	return &MessageWithStringsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageWithStrings entities.
+func (c *MessageWithStringsClient) CreateBulk(builders ...*MessageWithStringsCreate) *MessageWithStringsCreateBulk {
+	return &MessageWithStringsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageWithStrings.
+func (c *MessageWithStringsClient) Update() *MessageWithStringsUpdate {
+	mutation := newMessageWithStringsMutation(c.config, OpUpdate)
+	return &MessageWithStringsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageWithStringsClient) UpdateOne(mws *MessageWithStrings) *MessageWithStringsUpdateOne {
+	mutation := newMessageWithStringsMutation(c.config, OpUpdateOne, withMessageWithStrings(mws))
+	return &MessageWithStringsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageWithStringsClient) UpdateOneID(id int) *MessageWithStringsUpdateOne {
+	mutation := newMessageWithStringsMutation(c.config, OpUpdateOne, withMessageWithStringsID(id))
+	return &MessageWithStringsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageWithStrings.
+func (c *MessageWithStringsClient) Delete() *MessageWithStringsDelete {
+	mutation := newMessageWithStringsMutation(c.config, OpDelete)
+	return &MessageWithStringsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *MessageWithStringsClient) DeleteOne(mws *MessageWithStrings) *MessageWithStringsDeleteOne {
+	return c.DeleteOneID(mws.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *MessageWithStringsClient) DeleteOneID(id int) *MessageWithStringsDeleteOne {
+	builder := c.Delete().Where(messagewithstrings.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageWithStringsDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageWithStrings.
+func (c *MessageWithStringsClient) Query() *MessageWithStringsQuery {
+	return &MessageWithStringsQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a MessageWithStrings entity by its id.
+func (c *MessageWithStringsClient) Get(ctx context.Context, id int) (*MessageWithStrings, error) {
+	return c.Query().Where(messagewithstrings.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageWithStringsClient) GetX(ctx context.Context, id int) *MessageWithStrings {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MessageWithStringsClient) Hooks() []Hook {
+	return c.hooks.MessageWithStrings
 }
 
 // OneMethodServiceClient is a client for the OneMethodService schema.

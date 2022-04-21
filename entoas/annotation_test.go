@@ -68,6 +68,19 @@ func TestAnnotation(t *testing.T) {
 	ex.ReadOnly = true
 	require.Equal(t, ex, a)
 
+	crOp := CreateOperation(OperationPolicy(PolicyExpose))
+	dlOp := DeleteOperation(OperationPolicy(PolicyExclude))
+	crdlEx := Annotation{
+		Create: OperationConfig{
+			Policy: PolicyExpose,
+		},
+		Delete: OperationConfig{
+			Policy: PolicyExclude,
+		},
+	}
+	crOp = crOp.Merge(dlOp).(Annotation)
+	require.Equal(t, crdlEx, crOp)
+
 	ac, err := SchemaAnnotation(new(gen.Type))
 	require.NoError(t, err)
 	require.NotNil(t, ac)

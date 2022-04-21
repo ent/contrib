@@ -20,8 +20,10 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
 	"github.com/google/uuid"
 )
@@ -43,6 +45,19 @@ func init() {
 	categoryDescID := categoryFields[0].Descriptor()
 	// category.DefaultID holds the default value on creation for the id field.
 	category.DefaultID = categoryDescID.Default.(func() uuid.UUID)
+	groupMixin := schema.Group{}.Mixin()
+	groupMixinFields0 := groupMixin[0].Fields()
+	_ = groupMixinFields0
+	groupFields := schema.Group{}.Fields()
+	_ = groupFields
+	// groupDescName is the schema descriptor for name field.
+	groupDescName := groupMixinFields0[0].Descriptor()
+	// group.DefaultName holds the default value on creation for the name field.
+	group.DefaultName = groupDescName.Default.(string)
+	// groupDescID is the schema descriptor for id field.
+	groupDescID := groupFields[0].Descriptor()
+	// group.DefaultID holds the default value on creation for the id field.
+	group.DefaultID = groupDescID.Default.(func() uuid.UUID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0
@@ -64,6 +79,19 @@ func init() {
 	todoDescID := todoFields[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
 	todo.DefaultID = todoDescID.Default.(func() uuid.UUID)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescName is the schema descriptor for name field.
+	userDescName := userMixinFields0[0].Descriptor()
+	// user.DefaultName holds the default value on creation for the name field.
+	user.DefaultName = userDescName.Default.(string)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 	verysecretFields := schema.VerySecret{}.Fields()
 	_ = verysecretFields
 	// verysecretDescID is the schema descriptor for id field.

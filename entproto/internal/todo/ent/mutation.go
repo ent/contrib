@@ -2672,6 +2672,8 @@ type UserMutation struct {
 	account_balance    *float64
 	addaccount_balance *float64
 	unnecessary        *string
+	_type              *string
+	labels             *[]string
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -3639,6 +3641,104 @@ func (m *UserMutation) ResetUnnecessary() {
 	delete(m.clearedFields, user.FieldUnnecessary)
 }
 
+// SetType sets the "type" field.
+func (m *UserMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *UserMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ClearType clears the value of the "type" field.
+func (m *UserMutation) ClearType() {
+	m._type = nil
+	m.clearedFields[user.FieldType] = struct{}{}
+}
+
+// TypeCleared returns if the "type" field was cleared in this mutation.
+func (m *UserMutation) TypeCleared() bool {
+	_, ok := m.clearedFields[user.FieldType]
+	return ok
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *UserMutation) ResetType() {
+	m._type = nil
+	delete(m.clearedFields, user.FieldType)
+}
+
+// SetLabels sets the "labels" field.
+func (m *UserMutation) SetLabels(s []string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *UserMutation) Labels() (r []string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLabels(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *UserMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[user.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *UserMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[user.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *UserMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, user.FieldLabels)
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -3868,7 +3968,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 19)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -3920,6 +4020,12 @@ func (m *UserMutation) Fields() []string {
 	if m.unnecessary != nil {
 		fields = append(fields, user.FieldUnnecessary)
 	}
+	if m._type != nil {
+		fields = append(fields, user.FieldType)
+	}
+	if m.labels != nil {
+		fields = append(fields, user.FieldLabels)
+	}
 	return fields
 }
 
@@ -3962,6 +4068,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.AccountBalance()
 	case user.FieldUnnecessary:
 		return m.Unnecessary()
+	case user.FieldType:
+		return m.GetType()
+	case user.FieldLabels:
+		return m.Labels()
 	}
 	return nil, false
 }
@@ -4005,6 +4115,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldAccountBalance(ctx)
 	case user.FieldUnnecessary:
 		return m.OldUnnecessary(ctx)
+	case user.FieldType:
+		return m.OldType(ctx)
+	case user.FieldLabels:
+		return m.OldLabels(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4132,6 +4246,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUnnecessary(v)
+		return nil
+	case user.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case user.FieldLabels:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -4280,6 +4408,12 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldUnnecessary) {
 		fields = append(fields, user.FieldUnnecessary)
 	}
+	if m.FieldCleared(user.FieldType) {
+		fields = append(fields, user.FieldType)
+	}
+	if m.FieldCleared(user.FieldLabels) {
+		fields = append(fields, user.FieldLabels)
+	}
 	return fields
 }
 
@@ -4311,6 +4445,12 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldUnnecessary:
 		m.ClearUnnecessary()
+		return nil
+	case user.FieldType:
+		m.ClearType()
+		return nil
+	case user.FieldLabels:
+		m.ClearLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -4370,6 +4510,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUnnecessary:
 		m.ResetUnnecessary()
+		return nil
+	case user.FieldType:
+		m.ResetType()
+		return nil
+	case user.FieldLabels:
+		m.ResetLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

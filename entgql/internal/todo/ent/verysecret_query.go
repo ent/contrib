@@ -37,6 +37,8 @@ type VerySecretQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.VerySecret
+	modifiers  []func(*sql.Selector)
+	loadTotal  []func(context.Context, []*VerySecret) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -340,6 +342,9 @@ func (vsq *VerySecretQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
+	if len(vsq.modifiers) > 0 {
+		_spec.Modifiers = vsq.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -349,11 +354,19 @@ func (vsq *VerySecretQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	for i := range vsq.loadTotal {
+		if err := vsq.loadTotal[i](ctx, nodes); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := vsq.querySpec()
+	if len(vsq.modifiers) > 0 {
+		_spec.Modifiers = vsq.modifiers
+	}
 	_spec.Node.Columns = vsq.fields
 	if len(vsq.fields) > 0 {
 		_spec.Unique = vsq.unique != nil && *vsq.unique

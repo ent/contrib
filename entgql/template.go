@@ -74,6 +74,7 @@ var (
 		"nodePaginationNames": nodePaginationNames,
 		"skipMode":            skipModeFromString,
 		"isSkipMode":          isSkipMode,
+		"isRelayConn":         isRelayConn,
 	}
 
 	//go:embed template/*
@@ -102,35 +103,28 @@ func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo
 }
 
 type fieldCollection struct {
-	Name    string
+	Edge    *gen.Edge
 	Mapping []string
 }
 
-func fieldCollections(edges []*gen.Edge) (map[string]fieldCollection, error) {
-	result := make(map[string]fieldCollection)
+func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
+	collect := make([]*fieldCollection, 0, len(edges))
 	for _, e := range edges {
-		result[e.Name] = fieldCollection{
-			Name:    e.Type.Name,
-			Mapping: []string{e.Name},
-		}
 		ant, err := annotation(e.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if ant.Unbind {
-			delete(result, e.Name)
-		}
-		if len(ant.Mapping) > 0 {
-			if _, bind := result[e.Name]; bind {
+		switch {
+		case len(ant.Mapping) > 0:
+			if !ant.Unbind {
 				return nil, errors.New("bind and mapping annotations are mutually exclusive")
 			}
-			result[e.Name] = fieldCollection{
-				Name:    e.Type.Name,
-				Mapping: ant.Mapping,
-			}
+			collect = append(collect, &fieldCollection{Edge: e, Mapping: ant.Mapping})
+		case !ant.Unbind:
+			collect = append(collect, &fieldCollection{Edge: e, Mapping: []string{e.Name}})
 		}
 	}
-	return result, nil
+	return collect, nil
 }
 
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
@@ -230,6 +224,14 @@ func isSkipMode(antSkip interface{}, m string) (bool, error) {
 	return false, fmt.Errorf("invalid annotation skip: %v", antSkip)
 }
 
+func isRelayConn(e *gen.Edge) (bool, error) {
+	ant, err := annotation(e.Annotations)
+	if err != nil {
+		return false, err
+	}
+	return ant.RelayConnection, nil
+}
+
 // PaginationNames holds the names of the pagination fields.
 type PaginationNames struct {
 	Connection string
@@ -237,25 +239,39 @@ type PaginationNames struct {
 	Node       string
 	Order      string
 	OrderField string
+	WhereInput string
+}
+
+func gqlTypeFromNode(t *gen.Type) (gqlType string, ant *Annotation, err error) {
+	if ant, err = annotation(t.Annotations); err != nil {
+		return
+	}
+	gqlType = t.Name
+	if ant.Type != "" {
+		gqlType = ant.Type
+	}
+	return
 }
 
 // nodePaginationNames returns the names of the pagination types for the node.
 func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
-	node := t.Name
-	ant, err := annotation(t.Annotations)
+	node, _, err := gqlTypeFromNode(t)
 	if err != nil {
 		return nil, err
 	}
-	if ant.Type != "" {
-		node = ant.Type
-	}
+
+	return paginationNames(node), nil
+}
+
+func paginationNames(node string) *PaginationNames {
 	return &PaginationNames{
 		Connection: fmt.Sprintf("%sConnection", node),
 		Edge:       fmt.Sprintf("%sEdge", node),
 		Node:       node,
 		Order:      fmt.Sprintf("%sOrder", node),
 		OrderField: fmt.Sprintf("%sOrderField", node),
-	}, nil
+		WhereInput: fmt.Sprintf("%sWhereInput", node),
+	}
 }
 
 // removeOldAssets removes files that were generated before v0.1.0.

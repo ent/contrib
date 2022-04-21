@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -56,6 +57,10 @@ type User struct {
 	AccountBalance float64 `json:"account_balance,omitempty"`
 	// Unnecessary holds the value of the "unnecessary" field.
 	Unnecessary string `json:"unnecessary,omitempty"`
+	// Type holds the value of the "type" field.
+	Type string `json:"type,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels []string `json:"labels,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -149,6 +154,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldLabels:
+			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
 		case user.FieldBanned, user.FieldOptBool:
@@ -157,7 +164,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -288,6 +295,20 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Unnecessary = value.String
 			}
+		case user.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				u.Type = value.String
+			}
+		case user.FieldLabels:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Labels); err != nil {
+					return fmt.Errorf("unmarshal field labels: %w", err)
+				}
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -382,6 +403,10 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.AccountBalance))
 	builder.WriteString(", unnecessary=")
 	builder.WriteString(u.Unnecessary)
+	builder.WriteString(", type=")
+	builder.WriteString(u.Type)
+	builder.WriteString(", labels=")
+	builder.WriteString(fmt.Sprintf("%v", u.Labels))
 	builder.WriteByte(')')
 	return builder.String()
 }

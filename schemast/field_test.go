@@ -122,6 +122,16 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.Float32("x").Default(3.14)`,
 		},
 		{
+			name:     "float64",
+			field:    field.Float("x"),
+			expected: `field.Float("x")`,
+		},
+		{
+			name:     "default:float64",
+			field:    field.Float("x").Default(2.718),
+			expected: `field.Float("x").Default(2.718)`,
+		},
+		{
 			name:     "default:bool",
 			field:    field.Bool("x").Default(true),
 			expected: `field.Bool("x").Default(true)`,

@@ -293,6 +293,38 @@ func (uu *UserUpdate) ClearUnnecessary() *UserUpdate {
 	return uu
 }
 
+// SetType sets the "type" field.
+func (uu *UserUpdate) SetType(s string) *UserUpdate {
+	uu.mutation.SetType(s)
+	return uu
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableType(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetType(*s)
+	}
+	return uu
+}
+
+// ClearType clears the value of the "type" field.
+func (uu *UserUpdate) ClearType() *UserUpdate {
+	uu.mutation.ClearType()
+	return uu
+}
+
+// SetLabels sets the "labels" field.
+func (uu *UserUpdate) SetLabels(s []string) *UserUpdate {
+	uu.mutation.SetLabels(s)
+	return uu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (uu *UserUpdate) ClearLabels() *UserUpdate {
+	uu.mutation.ClearLabels()
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -724,6 +756,32 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldUnnecessary,
+		})
+	}
+	if value, ok := uu.mutation.GetType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldType,
+		})
+	}
+	if uu.mutation.TypeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldType,
+		})
+	}
+	if value, ok := uu.mutation.Labels(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldLabels,
+		})
+	}
+	if uu.mutation.LabelsCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: user.FieldLabels,
 		})
 	}
 	if uu.mutation.GroupCleared() {
@@ -1199,6 +1257,38 @@ func (uuo *UserUpdateOne) ClearUnnecessary() *UserUpdateOne {
 	return uuo
 }
 
+// SetType sets the "type" field.
+func (uuo *UserUpdateOne) SetType(s string) *UserUpdateOne {
+	uuo.mutation.SetType(s)
+	return uuo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableType(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetType(*s)
+	}
+	return uuo
+}
+
+// ClearType clears the value of the "type" field.
+func (uuo *UserUpdateOne) ClearType() *UserUpdateOne {
+	uuo.mutation.ClearType()
+	return uuo
+}
+
+// SetLabels sets the "labels" field.
+func (uuo *UserUpdateOne) SetLabels(s []string) *UserUpdateOne {
+	uuo.mutation.SetLabels(s)
+	return uuo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (uuo *UserUpdateOne) ClearLabels() *UserUpdateOne {
+	uuo.mutation.ClearLabels()
+	return uuo
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uuo *UserUpdateOne) SetGroupID(id int) *UserUpdateOne {
 	uuo.mutation.SetGroupID(id)
@@ -1654,6 +1744,32 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldUnnecessary,
+		})
+	}
+	if value, ok := uuo.mutation.GetType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldType,
+		})
+	}
+	if uuo.mutation.TypeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldType,
+		})
+	}
+	if value, ok := uuo.mutation.Labels(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: user.FieldLabels,
+		})
+	}
+	if uuo.mutation.LabelsCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: user.FieldLabels,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

@@ -209,7 +209,11 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 }
 
 func fieldConstructor(dsc *field.Descriptor) string {
-	return strings.TrimPrefix(dsc.Info.ConstName(), "Type")
+	cn := dsc.Info.ConstName()
+	if dsc.Info.Type == field.TypeFloat64 {
+		cn = strings.TrimSuffix(cn, "64")
+	}
+	return strings.TrimPrefix(cn, "Type")
 }
 
 func defaultExpr(d interface{}) (ast.Expr, error) {

@@ -329,28 +329,37 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
 	case category.Table:
-		n, err := c.Category.Query().
-			Where(category.ID(id)).
-			CollectFields(ctx, "Category").
-			Only(ctx)
+		query := c.Category.Query().
+			Where(category.ID(id))
+		query, err := query.CollectFields(ctx, "Category")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case todo.Table:
-		n, err := c.Todo.Query().
-			Where(todo.ID(id)).
-			CollectFields(ctx, "Todo").
-			Only(ctx)
+		query := c.Todo.Query().
+			Where(todo.ID(id))
+		query, err := query.CollectFields(ctx, "Todo")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
 		if err != nil {
 			return nil, err
 		}
 		return n, nil
 	case user.Table:
-		n, err := c.User.Query().
-			Where(user.ID(id)).
-			CollectFields(ctx, "User").
-			Only(ctx)
+		query := c.User.Query().
+			Where(user.ID(id))
+		query, err := query.CollectFields(ctx, "User")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -429,10 +438,13 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	}
 	switch table {
 	case category.Table:
-		nodes, err := c.Category.Query().
-			Where(category.IDIn(ids...)).
-			CollectFields(ctx, "Category").
-			All(ctx)
+		query := c.Category.Query().
+			Where(category.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Category")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -442,10 +454,13 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 			}
 		}
 	case todo.Table:
-		nodes, err := c.Todo.Query().
-			Where(todo.IDIn(ids...)).
-			CollectFields(ctx, "Todo").
-			All(ctx)
+		query := c.Todo.Query().
+			Where(todo.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Todo")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -455,10 +470,13 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 			}
 		}
 	case user.Table:
-		nodes, err := c.User.Query().
-			Where(user.IDIn(ids...)).
-			CollectFields(ctx, "User").
-			All(ctx)
+		query := c.User.Query().
+			Where(user.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "User")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}

@@ -16,32 +16,329 @@ import (
 )
 
 {{ range $node := filterNodes $.Nodes (skipMode "type") }}
+{{ $names := nodePaginationNames $node }}
+{{ $name := $names.Node }}
 
 {{ $receiver := $node.Receiver }}
 {{ $query := $node.QueryName }}
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfies ...string) *{{ $query }} {
-	if fc := graphql.GetFieldContext(ctx); fc != nil {
-		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)
+func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfies ...string) (*{{ $query }}, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return {{ $receiver }}, nil
 	}
-	return {{ $receiver }}
+	if err := {{ $receiver }}.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return {{ $receiver }}, nil
 }
 
-func ({{ $receiver }} *{{ $query }}) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
-	{{- if $edges := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
-		for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
+		for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 			switch field.Name {
-				{{- range $name, $values := $edges }}
-					case {{ range $i, $value := $values.Mapping }}{{ if gt $i 0 }}, {{ end }}"{{ $value }}"{{ end }}:
-						{{ $receiver }} = {{ $receiver }}.With{{ pascal $name }}(func(query *{{ pascal $values.Name }}Query) {
-							query.collectField(ctx, field)
-						})
+				{{- range $i, $fc := $collects }}
+					{{- $e := $fc.Edge }}
+					case {{ range $i, $value := $fc.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
+						{{- $ebuilder := $e.Type.QueryName }}
+						var (
+							path = append(path, field.Name)
+							query = &{{ $ebuilder }}{config: {{ $receiver }}.config}
+						)
+						{{- if isRelayConn $e }}
+							{{- $tnames := nodePaginationNames $e.Type }}
+							{{- $tname := $tnames.Node }}
+							{{- $edgeArgsFunc := print "new" $tname "PaginateArgs" }}
+							args := {{ $edgeArgsFunc }}(fieldArgs(ctx, path...))
+							if err := validateFirstLast(args.first, args.last); err != nil {
+								return fmt.Errorf("validate first and last in path %q: %w", path, err)
+							}
+							{{- $newPager := print "new" $tname "Pager" }}
+							pager, err := {{ $newPager }}(args.opts)
+							if err != nil {
+								return fmt.Errorf("create new pager in path %q: %w", path, err)
+							}
+							if query, err = pager.applyFilter(query); err != nil {
+								return err
+							}
+							if f, l := args.first, args.last; !hasCollectedField(ctx, append(path, edgesField)...) || f != nil && *f == 0 || l != nil && *l == 0 {
+								if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+									{{- with extend $node "Edge" $e "Index" $i "Receiver" $receiver }}
+										{{- template "gql_pagination/helper/load_total" . }}
+									{{- end -}}
+								}
+								{{- /* Skip querying edges if "edges" "node" was not required. */}}
+								continue
+							}
+							if (args.after != nil || args.first != nil || args.before != nil || args.last != nil) && hasCollectedField(ctx, append(path, totalCountField)...) {
+								{{- with extend $node "Edge" $e "Index" $i "Receiver" $receiver }}
+									{{- template "gql_pagination/helper/load_total" . }}
+								{{- end -}}
+							} else {
+								{{ $receiver }}.loadTotal = append({{ $receiver }}.loadTotal, func(_ context.Context, nodes []*{{ $node.Name }}) error {
+									for i := range nodes {
+										n := len(nodes[i].Edges.{{ $e.StructField }})
+										nodes[i].Edges.totalCount[{{ $i }}] = &n
+									}
+									return nil
+								})
+							}
+							query = pager.applyCursors(query, args.after, args.before)
+							if limit := paginateLimit(args.first, args.last); limit > 0 {
+								{{- $fk := print $node.Package "." $fc.Edge.ColumnConstant }}
+								{{- if $e.M2M }}
+									{{- $i := 0 }}{{ if $e.IsInverse }}{{ $i = 1 }}{{ end }}
+									{{- $fk = print $node.Package "." $e.PKConstant "[" $i "]" }}
+								{{- end }}
+								modify := limitRows({{ $fk }}, limit, pager.orderExpr(args.last != nil))
+								query.modifiers = append(query.modifiers, modify)
+							} else {
+								query = pager.applyOrder(query, args.last != nil)
+							}
+							path = append(path, edgesField, nodeField)
+						{{- end }}
+						if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+							return err
+						}
+						{{ $receiver }}.{{ $e.EagerLoadField }} = query
 				{{- end }}
 			}
 		}
 	{{- end }}
-	return {{ $receiver }}
+	return nil
 }
 
+{{ $order := $names.Order }}
+{{ $orderField := $names.OrderField }}
+{{ $filter := print "With" $name "Filter" }}
+{{ $paginateArg := print (camel $name) "PaginateArgs" }}
+{{ $newPaginateArg := print "new" $name "PaginateArgs" }}
+
+type {{ $paginateArg }} struct {
+	first, last *int
+	after, before *Cursor
+	opts []{{ print $name "PaginateOption" }}
+}
+
+func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
+	args := &{{ $paginateArg }}{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	{{- with orderFields $node }}
+		if v, ok := rv[orderByField]; ok {
+			switch v := v.(type) {
+			case map[string]interface{}:
+				var (
+					err1, err2 error
+					order = &{{ $order }}{Field: &{{ $orderField }}{}}
+				)
+				if d, ok := v[directionField]; ok {
+					err1 = order.Direction.UnmarshalGQL(d)
+				}
+				if f, ok := v[fieldField]; ok {
+					err2 = order.Field.UnmarshalGQL(f)
+				}
+				if err1 == nil && err2 == nil {
+					args.opts = append(args.opts, {{ print "With" $order }}(order))
+				}
+			case *{{ $order }}:
+				if v != nil {
+					args.opts = append(args.opts, {{ print "With" $order }}(v))
+				}
+			}
+		}
+	{{- end }}
+	{{- if hasTemplate "gql_where_input" }}
+		{{- $withWhere := true }}{{ with $node.Annotations.EntGQL }}{{ if isSkipMode .Skip "where_input" }}{{ $withWhere = false }}{{ end }}{{ end }}
+        {{- if $withWhere }}
+			{{- $where := print $name "WhereInput" }}
+			if v := rv[whereField]; v != nil && v != (*{{ $where }})(nil) {
+				args.opts = append(args.opts, {{ $filter }}(v.(*{{ $where }}).Filter))
+			}
+        {{- end }}
+    {{- end }}
+	return args
+}
 {{ end }}
+
+const (
+	{{- range $field := list "after" "first" "before" "last" "orderBy" "direction" "field" "where" }}
+		{{ $field }}Field = "{{ $field }}"
+	{{- end }}
+)
+
+func fieldArgs(ctx context.Context, path ...string) map[string]interface{} {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return nil
+	}
+	oc := graphql.GetOperationContext(ctx)
+	for _, name := range path {
+		var field *graphql.CollectedField
+		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
+			if f.Name == name {
+				field = &f
+				break
+			}
+		}
+		if field == nil {
+			return nil
+		}
+		cf, err := fc.Child(ctx, *field)
+		if err != nil {
+			args := field.ArgumentMap(oc.Variables)
+			return unmarshalArgs(args)
+		}
+		fc = cf
+	}
+	return fc.Args
+}
+
+// unmarshalArgs allows extracting the field arguments from their raw representation.
+// Note that "where" (WhereInput) is not supported.
+func unmarshalArgs(args map[string]interface{}) map[string]interface{} {
+	for _, k := range []string{firstField, lastField} {
+		v, ok := args[k]
+		if !ok {
+			continue
+		}
+		i, err := graphql.UnmarshalInt(v)
+		if err == nil {
+			args[k] = &i
+		}
+	}
+	for _, k := range []string{beforeField, afterField} {
+		v, ok := args[k]
+		if !ok {
+			continue
+		}
+		c := &Cursor{}
+		if c.UnmarshalGQL(v) == nil {
+			args[k] = &c
+		}
+	}
+	return args
+}
+
+func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sql.Selector) {
+	return func(s *sql.Selector) {
+		d := sql.Dialect(s.Dialect())
+		s.SetDistinct(false)
+		with := d.With("src_query").
+			As(s.Clone()).
+			With("limited_query").
+			As(
+				d.Select("*").
+					AppendSelectExprAs(
+						sql.RowNumber().PartitionBy(partitionBy).OrderExpr(orderBy...),
+						"row_number",
+					).
+					From(d.Table("src_query")),
+			)
+		t := d.Table("limited_query").As(s.TableName())
+		*s = *d.Select(s.UnqualifiedColumns()...).
+			From(t).
+			Where(sql.LTE(t.C("row_number"), limit)).
+			Prefix(with)
+	}
+}
 {{ end }}
+
+{{ define "gql_pagination/helper/load_total" }}
+	{{- $node := $ }}
+	{{- $i := $.Scope.Index }}
+	{{- $e := $.Scope.Edge }}
+	{{- $receiver := $.Scope.Receiver }}
+	query := query.Clone()
+	{{- /* totalCount may be greater than len(nodes). */}}
+	{{ $receiver }}.loadTotal = append({{ $receiver }}.loadTotal, func(ctx context.Context, nodes []*{{ $node.Name }}) error {
+		ids := make([]driver.Value, len(nodes))
+		for i := range nodes {
+			ids[i] = nodes[i].{{ $node.ID.StructField }}
+		}
+		{{- if $e.M2M }}
+			{{- $fk1idx := 1 }}{{- $fk2idx := 0 }}{{ if $e.IsInverse }}{{ $fk1idx = 0 }}{{ $fk2idx = 1 }}{{ end }}
+			{{- $edgeid := print $e.Type.Package "." $e.Type.ID.Constant }}
+			{{- $nodeid := print $node.Package "." $e.PKConstant "[" $fk2idx "]" }}
+			var v []struct{
+				NodeID {{ $node.ID.Type }} `sql:"{{ index $e.Rel.Columns $fk2idx }}"`
+				Count int `sql:"count"`
+			}
+			query.Where(func(s *sql.Selector) {
+				joinT := sql.Table({{ $.Package }}.{{ $e.TableConstant }})
+				s.Join(joinT).On(s.C({{ $edgeid }}), joinT.C({{ $.Package }}.{{ $e.PKConstant }}[{{ $fk1idx }}]))
+				s.Where(sql.InValues(joinT.C({{ $.Package }}.{{ $e.PKConstant }}[{{ $fk2idx }}]), ids...))
+				s.Select(joinT.C({{ $nodeid }}), sql.Count("*"))
+				s.GroupBy(joinT.C({{ $nodeid }}))
+			})
+			if err := query.Select().Scan(ctx, &v); err != nil {
+				return err
+			}
+		{{- else }}
+			var v []struct{
+				NodeID {{ $node.ID.Type }} `sql:"{{ $e.Rel.Column }}"`
+				Count int `sql:"count"`
+			}
+			{{- $fk := print $node.Package "." $e.ColumnConstant }}
+			query.Where(func(s *sql.Selector) {
+				s.Where(sql.InValues({{ $fk }}, ids...))
+			})
+			if err := query.GroupBy({{ $fk }}).Aggregate(Count()).Scan(ctx, &v); err != nil {
+				return err
+			}
+		{{- end }}
+			{{- /* Add support for scanning into maps in dialect/sqlscan. */}}
+			m := make(map[{{ $node.ID.Type }}]int, len(v))
+			for i := range v {
+				m[v[i].NodeID] = v[i].Count
+			}
+			for i := range nodes {
+				 n := m[nodes[i].{{ $node.ID.StructField }}]
+				nodes[i].Edges.totalCount[{{ $i }}] = &n
+			}
+		return nil
+	})
+{{ end }}
+
+{{/* The two templates add the internal API of the sql/modifier features, in case it is not enabled. */}}
+{{- define "dialect/sql/query/fields/additional/internal_modify" }}
+    {{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
+        modifiers []func(*sql.Selector)
+    {{- end }}
+{{- end }}
+{{- define "dialect/sql/query/spec/internal_modify" }}
+    {{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
+        {{- $receiver := pascal $.Scope.Builder | receiver }}
+        if len({{ $receiver }}.modifiers) > 0 {
+            _spec.Modifiers = {{ $receiver }}.modifiers
+        }
+    {{- end }}
+{{- end }}
+
+{{/* The two templates add done-like API for loading the totalCount and inject it to the nodes before they are returned. */}}
+{{- define "dialect/sql/query/fields/additional/load_total" }}
+	loadTotal []func(context.Context, []*{{ $.Name }}) error
+{{- end }}
+{{ define "dialect/sql/query/all/nodes/load_total" }}
+	{{- $builder := pascal $.Scope.Builder }}
+	{{- $receiver := receiver $builder }}
+	for i := range {{ $receiver }}.loadTotal {
+		if err := {{ $receiver }}.loadTotal[i](ctx, nodes); err != nil {
+			return nil, err
+		}
+	}
+{{- end }}

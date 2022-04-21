@@ -15,16 +15,19 @@
 package entgql
 
 import (
-	"strings"
-
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/99designs/gqlgen/plugin"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/vektah/gqlparser/v2/formatter"
 )
 
 // CreatePlugin create the plugin for GQLGen
 func (e *Extension) CreatePlugin() plugin.Plugin {
+	if e.path != "" {
+		return &gqlgenPlugin{
+			models: e.models,
+		}
+	}
+
 	return &gqlgenPlugin{
 		schema: e.schema,
 		models: e.models,
@@ -51,11 +54,9 @@ func (e *gqlgenPlugin) InjectSourceEarly() *ast.Source {
 		return nil
 	}
 
-	sb := &strings.Builder{}
-	formatter.NewFormatter(sb).FormatSchema(e.schema)
 	return &ast.Source{
 		Name:    "entgql.graphql",
-		Input:   sb.String(),
+		Input:   printSchema(e.schema),
 		BuiltIn: false,
 	}
 }
@@ -63,7 +64,7 @@ func (e *gqlgenPlugin) InjectSourceEarly() *ast.Source {
 func (e *gqlgenPlugin) MutateConfig(cfg *config.Config) error {
 	if e.models != nil {
 		for name, goType := range e.models {
-			if !cfg.Models.Exists(name) {
+			if !cfg.Models.UserDefined(name) {
 				cfg.Models.Add(name, goType)
 			}
 		}

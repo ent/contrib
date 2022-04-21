@@ -19,11 +19,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
+
+	"entgo.io/ent/dialect/sql"
+
+	"github.com/stretchr/testify/require"
 
 	"entgo.io/contrib/entgql"
 	gen "entgo.io/contrib/entgql/internal/todo"
@@ -69,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 1 << 32
+	idOffset = 2 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -695,9 +701,17 @@ func (s *todoTestSuite) TestNodeCollection() {
 						}
 					}
 					children {
-						text
-						children {
-							text
+						edges {
+							node {
+								text
+								children {
+									edges {
+										node {
+											text
+										}
+									}
+								}
+							}
 						}
 					}
 				}
@@ -712,10 +726,18 @@ func (s *todoTestSuite) TestNodeCollection() {
 					Text string
 				}
 			}
-			Children []struct {
-				Text     string
-				Children []struct {
-					Text string
+			Children struct {
+				Edges []struct {
+					Node struct {
+						Text     string
+						Children struct {
+							Edges []struct {
+								Node struct {
+									Text string
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -723,12 +745,12 @@ func (s *todoTestSuite) TestNodeCollection() {
 	err := s.Post(query, &rsp, client.Var("id", idOffset+1))
 	s.Require().NoError(err)
 	s.Require().Nil(rsp.Todo.Parent)
-	s.Require().Len(rsp.Todo.Children, maxTodos/2+1)
+	s.Require().Len(rsp.Todo.Children.Edges, maxTodos/2+1)
 	s.Require().Condition(func() bool {
-		for _, child := range rsp.Todo.Children {
-			if child.Text == strconv.Itoa(idOffset+3) {
-				s.Require().Len(child.Children, 1)
-				s.Require().Equal(strconv.Itoa(idOffset+5), child.Children[0].Text)
+		for _, child := range rsp.Todo.Children.Edges {
+			if child.Node.Text == strconv.Itoa(idOffset+3) {
+				s.Require().Len(child.Node.Children.Edges, 1)
+				s.Require().Equal(strconv.Itoa(idOffset+5), child.Node.Children.Edges[0].Node.Text)
 				return true
 			}
 		}
@@ -739,7 +761,7 @@ func (s *todoTestSuite) TestNodeCollection() {
 	s.Require().NoError(err)
 	s.Require().NotNil(rsp.Todo.Parent)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.Todo.Parent.Text)
-	s.Require().Empty(rsp.Todo.Children)
+	s.Require().Empty(rsp.Todo.Children.Edges)
 
 	err = s.Post(query, &rsp, client.Var("id", strconv.Itoa(idOffset+5)))
 	s.Require().NoError(err)
@@ -747,8 +769,8 @@ func (s *todoTestSuite) TestNodeCollection() {
 	s.Require().Equal(strconv.Itoa(idOffset+3), rsp.Todo.Parent.Text)
 	s.Require().NotNil(rsp.Todo.Parent.Parent)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.Todo.Parent.Parent.Text)
-	s.Require().Len(rsp.Todo.Children, 1)
-	s.Require().Equal(strconv.Itoa(idOffset+7), rsp.Todo.Children[0].Text)
+	s.Require().Len(rsp.Todo.Children.Edges, 1)
+	s.Require().Equal(strconv.Itoa(idOffset+7), rsp.Todo.Children.Edges[0].Node.Text)
 }
 
 func (s *todoTestSuite) TestConnCollection() {
@@ -762,7 +784,11 @@ func (s *todoTestSuite) TestConnCollection() {
 							id
 						}
 						children {
-							id
+							edges {
+								node {
+									id
+								}
+							}
 						}
 					}
 				}
@@ -777,8 +803,12 @@ func (s *todoTestSuite) TestConnCollection() {
 					Parent *struct {
 						ID string
 					}
-					Children []struct {
-						ID string
+					Children struct {
+						Edges []struct {
+							Node struct {
+								ID string
+							}
+						}
 					}
 				}
 			}
@@ -793,21 +823,21 @@ func (s *todoTestSuite) TestConnCollection() {
 		switch {
 		case i == 0:
 			s.Require().Nil(edge.Node.Parent)
-			s.Require().Len(edge.Node.Children, maxTodos/2+1)
+			s.Require().Len(edge.Node.Children.Edges, maxTodos/2+1)
 		case i%2 == 0:
 			s.Require().NotNil(edge.Node.Parent)
 			id, err := strconv.Atoi(edge.Node.Parent.ID)
 			s.Require().NoError(err)
 			s.Require().Equal(idOffset+i-1, id)
 			if i < len(rsp.Todos.Edges)-2 {
-				s.Require().Len(edge.Node.Children, 1)
+				s.Require().Len(edge.Node.Children.Edges, 1)
 			} else {
-				s.Require().Empty(edge.Node.Children)
+				s.Require().Empty(edge.Node.Children.Edges)
 			}
 		case i%2 != 0:
 			s.Require().NotNil(edge.Node.Parent)
 			s.Require().Equal(strconv.Itoa(idOffset+1), edge.Node.Parent.ID)
-			s.Require().Empty(edge.Node.Children)
+			s.Require().Empty(edge.Node.Children.Edges)
 		}
 	}
 }
@@ -866,7 +896,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 		}
 	}
 	err := s.Post(`mutation {
-		createTodo(todo: { text: "OKE", parent: 4294967297 }) {
+		createTodo(todo: { text: "OKE", parent: 8589934593 }) {
 			parent {
 				id
 				text
@@ -902,4 +932,280 @@ func (s *todoTestSuite) TestQueryJSONFields() {
 	s.Require().NoError(err)
 	s.Require().Equal(cat.Text, rsp.Node.Text)
 	s.Require().Equal(cat.Strings, rsp.Node.Strings)
+}
+
+type queryCount struct {
+	n uint64
+	dialect.Driver
+}
+
+func (q *queryCount) reset()        { atomic.StoreUint64(&q.n, 0) }
+func (q *queryCount) value() uint64 { return atomic.LoadUint64(&q.n) }
+
+func (q *queryCount) Query(ctx context.Context, query string, args, v interface{}) error {
+	atomic.AddUint64(&q.n, 1)
+	return q.Driver.Query(ctx, query, args, v)
+}
+
+func TestNestedConnection(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	count := &queryCount{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(count)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	gqlc := client.New(srv)
+
+	bulkG := make([]*ent.GroupCreate, 10)
+	for i := range bulkG {
+		bulkG[i] = ec.Group.Create().SetName(fmt.Sprintf("group-%d", i))
+	}
+	groups := ec.Group.CreateBulk(bulkG...).SaveX(ctx)
+	bulkU := make([]*ent.UserCreate, 10)
+	for i := range bulkU {
+		bulkU[i] = ec.User.Create().SetName(fmt.Sprintf("user-%d", i)).AddGroups(groups[:len(groups)-i]...)
+	}
+	users := ec.User.CreateBulk(bulkU...).SaveX(ctx)
+
+	t.Run("TotalCount", func(t *testing.T) {
+		var (
+			query = `query ($first: Int) {
+				users (first: $first) {
+					totalCount
+					edges {
+						node {
+							name
+							groups {
+								totalCount
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Users struct {
+					TotalCount int
+					Edges      []struct {
+						Node struct {
+							Name   string
+							Groups struct {
+								TotalCount int
+							}
+						}
+					}
+				}
+			}
+		)
+		count.reset()
+		err = gqlc.Post(query, &rsp, client.Var("first", nil))
+		require.NoError(t, err)
+		// One query for loading all users, and one for getting the groups of each user.
+		// The totalCount of the root query can be inferred from the length of the user edges.
+		require.EqualValues(t, 2, count.value())
+		require.Equal(t, 10, rsp.Users.TotalCount)
+
+		for n := 1; n <= 10; n++ {
+			count.reset()
+			err = gqlc.Post(query, &rsp, client.Var("first", n))
+			require.NoError(t, err)
+			// Two queries for getting the users and their totalCount.
+			// And another one for getting the totalCount of each user.
+			require.EqualValues(t, 3, count.value())
+			require.Equal(t, 10, rsp.Users.TotalCount)
+			for i, e := range rsp.Users.Edges {
+				require.Equal(t, users[i].Name, e.Node.Name)
+				// Each user i, is connected to 10-i groups.
+				require.Equal(t, 10-i, e.Node.Groups.TotalCount)
+			}
+		}
+	})
+
+	t.Run("FirstN", func(t *testing.T) {
+		var (
+			query = `query ($first: Int) {
+				users {
+					totalCount
+					edges {
+						node {
+							name
+							groups (first: $first) {
+								totalCount
+								edges {
+									node {
+										name
+									}
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Users struct {
+					TotalCount int
+					Edges      []struct {
+						Node struct {
+							Name   string
+							Groups struct {
+								TotalCount int
+								Edges      []struct {
+									Node struct {
+										Name string
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		)
+		count.reset()
+		err = gqlc.Post(query, &rsp, client.Var("first", nil))
+		require.NoError(t, err)
+		// One for getting all users, and one for getting all groups.
+		// The totalCount is derived from len(User.Edges.Groups).
+		require.EqualValues(t, 2, count.value())
+		require.Equal(t, 10, rsp.Users.TotalCount)
+
+		for n := 1; n <= 10; n++ {
+			count.reset()
+			err = gqlc.Post(query, &rsp, client.Var("first", n))
+			require.NoError(t, err)
+			// One query for getting the users (totalCount is derived), and another
+			// two queries for getting the groups and the totalCount of each user.
+			require.EqualValues(t, 3, count.value())
+			require.Equal(t, 10, rsp.Users.TotalCount)
+			for i, e := range rsp.Users.Edges {
+				require.Equal(t, users[i].Name, e.Node.Name)
+				require.Equal(t, 10-i, e.Node.Groups.TotalCount)
+				require.Len(t, e.Node.Groups.Edges, int(math.Min(float64(n), float64(10-i))))
+				for j, g := range e.Node.Groups.Edges {
+					require.Equal(t, groups[j].Name, g.Node.Name)
+				}
+			}
+		}
+	})
+
+	t.Run("Paginate", func(t *testing.T) {
+		var (
+			query = `query ($first: Int, $after: Cursor) {
+				users (first: 1) {
+					totalCount
+					edges {
+						node {
+							name
+							groups (first: $first, after: $after) {
+								totalCount
+								edges {
+									node {
+										name
+										users (first: 1) {
+											edges {
+												node {
+													name
+												}
+											}
+										}
+									}
+									cursor
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Users struct {
+					TotalCount int
+					Edges      []struct {
+						Node struct {
+							Name   string
+							Groups struct {
+								TotalCount int
+								Edges      []struct {
+									Node struct {
+										Name  string
+										Users struct {
+											Edges []struct {
+												Node struct {
+													Name string
+												}
+											}
+										}
+									}
+									Cursor string
+								}
+							}
+						}
+					}
+				}
+			}
+			after interface{}
+		)
+		for i := 0; i < 10; i++ {
+			count.reset()
+			err = gqlc.Post(query, &rsp, client.Var("first", 1), client.Var("after", after))
+			require.NoError(t, err)
+			require.EqualValues(t, 5, count.value())
+			require.Len(t, rsp.Users.Edges, 1)
+			require.Len(t, rsp.Users.Edges[0].Node.Groups.Edges, 1)
+			require.Equal(t, groups[i].Name, rsp.Users.Edges[0].Node.Groups.Edges[0].Node.Name)
+			require.Len(t, rsp.Users.Edges[0].Node.Groups.Edges[0].Node.Users.Edges, 1)
+			require.Equal(t, users[0].Name, rsp.Users.Edges[0].Node.Groups.Edges[0].Node.Users.Edges[0].Node.Name)
+			after = rsp.Users.Edges[0].Node.Groups.Edges[0].Cursor
+		}
+	})
+
+	t.Run("Nodes", func(t *testing.T) {
+		var (
+			query = `query ($ids: [ID!]!) {
+				groups: nodes(ids: $ids) {
+					... on Group {
+						name
+						users(last: 1) {
+							totalCount
+							edges {
+								node {
+									name
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Groups []struct {
+					Name  string
+					Users struct {
+						TotalCount int
+						Edges      []struct {
+							Node struct {
+								Name string
+							}
+						}
+					}
+				}
+			}
+		)
+		// One query to trigger the loading of the ent_types content.
+		err = gqlc.Post(query, &rsp, client.Var("ids", []int{groups[0].ID}))
+		require.NoError(t, err)
+		for i := 1; i <= 10; i++ {
+			ids := make([]int, 0, i)
+			for _, g := range groups {
+				ids = append(ids, g.ID)
+			}
+			count.reset()
+			err = gqlc.Post(query, &rsp, client.Var("ids", ids))
+			require.NoError(t, err)
+			require.Len(t, rsp.Groups, 10)
+			for _, g := range rsp.Groups {
+				require.Len(t, g.Users.Edges, 1)
+			}
+			require.EqualValues(t, 3, count.value())
+		}
+	})
 }

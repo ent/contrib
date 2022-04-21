@@ -23,8 +23,14 @@ import (
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 
+// Group is the predicate function for group builders.
+type Group func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
+
+// User is the predicate function for user builders.
+type User func(*sql.Selector)
 
 // VerySecret is the predicate function for verysecret builders.
 type VerySecret func(*sql.Selector)
