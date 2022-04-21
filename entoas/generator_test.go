@@ -40,7 +40,7 @@ func TestOgenSchema(t *testing.T) {
 		entfield.Int16("int16").Descriptor():     ogen.Int32(),
 		entfield.Int32("int32").Descriptor():     ogen.Int32(),
 		entfield.Int64("int64").Descriptor():     ogen.Int64(),
-		entfield.Uint("uint").Descriptor():       ogen.Int32().SetMinimum(&min),
+		entfield.Uint("uint").Descriptor():       ogen.Int().SetMinimum(&min),
 		entfield.Uint8("uint8").Descriptor():     ogen.Int32().SetMinimum(&min),
 		entfield.Uint16("uint16").Descriptor():   ogen.Int32().SetMinimum(&min),
 		entfield.Uint32("uint32").Descriptor():   ogen.Int32().SetMinimum(&min),

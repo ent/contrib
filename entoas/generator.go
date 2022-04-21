@@ -515,7 +515,7 @@ var (
 		"int8":      ogen.Int32(),
 		"int16":     ogen.Int32(),
 		"int32":     ogen.Int32(),
-		"uint":      ogen.Int32().SetMinimum(&min),
+		"uint":      ogen.Int().SetMinimum(&min),
 		"uint8":     ogen.Int32().SetMinimum(&min),
 		"uint16":    ogen.Int32().SetMinimum(&min),
 		"uint32":    ogen.Int32().SetMinimum(&min),
