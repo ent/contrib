@@ -207,6 +207,8 @@ func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
 	switch t := f.Type.Type; {
 	case op.Niladic():
 		return "Boolean"
+	case f.Name == "id":
+		return "ID"
 	case t == field.TypeBool:
 		scalar = "Boolean"
 	case f.IsEdgeField():
@@ -224,8 +226,8 @@ func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
 		}
 	}
-	if t, ok := typeAnnotation(f); ok {
-		return t
+	if ant, err := annotation(f.Annotations); err == nil && ant.Type != "" {
+		return ant.Type
 	}
 	return scalar
 }
@@ -291,6 +293,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 				return err
 			}
 
+			genSchema.genWhereInput = e.genWhereInput
 			if e.genSchema {
 				if err = genSchema.buildSchema(e.schema); err != nil {
 					return err
@@ -340,8 +343,12 @@ func (e *Extension) whereExists() (int, bool) {
 
 // addWhereType returns the a <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
 func (e *Extension) whereType(t *gen.Type) (*ast.Definition, error) {
+	names, err := nodePaginationNames(t)
+	if err != nil {
+		return nil, err
+	}
 	var (
-		name    = t.Name + "WhereInput"
+		name    = names.WhereInput
 		typeDef = &ast.Definition{
 			Name:        name,
 			Kind:        ast.InputObject,
@@ -383,16 +390,20 @@ func (e *Extension) whereType(t *gen.Type) (*ast.Definition, error) {
 		return nil, err
 	}
 	for _, e := range edges {
+		names, err := nodePaginationNames(e.Type)
+		if err != nil {
+			return nil, err
+		}
+
 		typeDef.Fields = append(typeDef.Fields,
 			&ast.FieldDefinition{
 				Name:        camel("has_" + e.Name),
-				Type:        ast.NamedType("Boolean", nil),
+				Type:        namedType("Boolean", true),
 				Description: e.Name + " edge predicates",
 			},
 			&ast.FieldDefinition{
 				Name: camel("has_" + e.Name + "_with"),
-				Type: ast.ListType(ast.NonNullNamedType(
-					e.Type.Name+"WhereInput", nil), nil),
+				Type: listNamedType(names.WhereInput, true),
 			},
 		)
 	}
@@ -400,22 +411,18 @@ func (e *Extension) whereType(t *gen.Type) (*ast.Definition, error) {
 }
 
 func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.FieldDefinition {
-	name := camel(f.Name + "_" + op.Name())
+	def := &ast.FieldDefinition{
+		Name: camel(f.Name + "_" + op.Name()),
+	}
 	if op == gen.EQ {
-		name = camel(f.Name)
+		def.Name = camel(f.Name)
 	}
 
 	typeName := e.mapScalar(f, op)
-	if f.Name == "id" {
-		typeName = "ID"
-	}
-	def := &ast.FieldDefinition{
-		Name: name,
-	}
 	if op.Variadic() {
-		def.Type = ast.ListType(ast.NonNullNamedType(typeName, nil), nil)
+		def.Type = listNamedType(typeName, true)
 	} else {
-		def.Type = ast.NamedType(typeName, nil)
+		def.Type = namedType(typeName, true)
 	}
 	return def
 }
@@ -426,12 +433,3 @@ var (
 	camel  = gen.Funcs["camel"].(func(string) string)
 	plural = gen.Funcs["plural"].(func(string) string)
 )
-
-// typeAnnotation returns the scalar type mapping if exists (i.e. entgql.Type).
-func typeAnnotation(f *gen.Field) (string, bool) {
-	var ant Annotation
-	if i, ok := f.Annotations[ant.Name()]; ok && ant.Decode(i) == nil && ant.Type != "" {
-		return ant.Type, true
-	}
-	return "", false
-}

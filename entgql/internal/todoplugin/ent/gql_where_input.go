@@ -24,7 +24,6 @@ import (
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/category"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/role"
-	"entgo.io/contrib/entgql/internal/todoplugin/ent/schema"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/todo"
 	"entgo.io/contrib/entgql/internal/todoplugin/ent/user"
 	"github.com/google/uuid"
@@ -747,26 +746,6 @@ type MasterUserWhereInput struct {
 	UsernameEqualFold    *string  `json:"usernameEqualFold,omitempty"`
 	UsernameContainsFold *string  `json:"usernameContainsFold,omitempty"`
 
-	// "age" field predicates.
-	Age      *int  `json:"age,omitempty"`
-	AgeNEQ   *int  `json:"ageNEQ,omitempty"`
-	AgeIn    []int `json:"ageIn,omitempty"`
-	AgeNotIn []int `json:"ageNotIn,omitempty"`
-	AgeGT    *int  `json:"ageGT,omitempty"`
-	AgeGTE   *int  `json:"ageGTE,omitempty"`
-	AgeLT    *int  `json:"ageLT,omitempty"`
-	AgeLTE   *int  `json:"ageLTE,omitempty"`
-
-	// "amount" field predicates.
-	Amount      *schema.Amount  `json:"amount,omitempty"`
-	AmountNEQ   *schema.Amount  `json:"amountNEQ,omitempty"`
-	AmountIn    []schema.Amount `json:"amountIn,omitempty"`
-	AmountNotIn []schema.Amount `json:"amountNotIn,omitempty"`
-	AmountGT    *schema.Amount  `json:"amountGT,omitempty"`
-	AmountGTE   *schema.Amount  `json:"amountGTE,omitempty"`
-	AmountLT    *schema.Amount  `json:"amountLT,omitempty"`
-	AmountLTE   *schema.Amount  `json:"amountLTE,omitempty"`
-
 	// "role" field predicates.
 	Role      *role.Role  `json:"role,omitempty"`
 	RoleNEQ   *role.Role  `json:"roleNEQ,omitempty"`
@@ -912,54 +891,6 @@ func (i *MasterUserWhereInput) P() (predicate.User, error) {
 	}
 	if i.UsernameContainsFold != nil {
 		predicates = append(predicates, user.UsernameContainsFold(*i.UsernameContainsFold))
-	}
-	if i.Age != nil {
-		predicates = append(predicates, user.AgeEQ(*i.Age))
-	}
-	if i.AgeNEQ != nil {
-		predicates = append(predicates, user.AgeNEQ(*i.AgeNEQ))
-	}
-	if len(i.AgeIn) > 0 {
-		predicates = append(predicates, user.AgeIn(i.AgeIn...))
-	}
-	if len(i.AgeNotIn) > 0 {
-		predicates = append(predicates, user.AgeNotIn(i.AgeNotIn...))
-	}
-	if i.AgeGT != nil {
-		predicates = append(predicates, user.AgeGT(*i.AgeGT))
-	}
-	if i.AgeGTE != nil {
-		predicates = append(predicates, user.AgeGTE(*i.AgeGTE))
-	}
-	if i.AgeLT != nil {
-		predicates = append(predicates, user.AgeLT(*i.AgeLT))
-	}
-	if i.AgeLTE != nil {
-		predicates = append(predicates, user.AgeLTE(*i.AgeLTE))
-	}
-	if i.Amount != nil {
-		predicates = append(predicates, user.AmountEQ(*i.Amount))
-	}
-	if i.AmountNEQ != nil {
-		predicates = append(predicates, user.AmountNEQ(*i.AmountNEQ))
-	}
-	if len(i.AmountIn) > 0 {
-		predicates = append(predicates, user.AmountIn(i.AmountIn...))
-	}
-	if len(i.AmountNotIn) > 0 {
-		predicates = append(predicates, user.AmountNotIn(i.AmountNotIn...))
-	}
-	if i.AmountGT != nil {
-		predicates = append(predicates, user.AmountGT(*i.AmountGT))
-	}
-	if i.AmountGTE != nil {
-		predicates = append(predicates, user.AmountGTE(*i.AmountGTE))
-	}
-	if i.AmountLT != nil {
-		predicates = append(predicates, user.AmountLT(*i.AmountLT))
-	}
-	if i.AmountLTE != nil {
-		predicates = append(predicates, user.AmountLTE(*i.AmountLTE))
 	}
 	if i.Role != nil {
 		predicates = append(predicates, user.RoleEQ(*i.Role))

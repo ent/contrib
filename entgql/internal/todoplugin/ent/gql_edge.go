@@ -39,8 +39,8 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 }
 
 func (t *Todo) Children(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, orderBy *TodoOrder, opts ...TodoPaginateOption,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
 	totalCount := t.Edges.totalCount[1]
 	if nodes, err := t.Edges.ChildrenOrErr(); err == nil {

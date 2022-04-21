@@ -90,9 +90,10 @@ var (
 
 // TODO(giautm): refactor internal APIs
 type schemaGenerator struct {
-	graph     *gen.Graph
-	nodes     []*gen.Type
-	relaySpec bool
+	graph         *gen.Graph
+	nodes         []*gen.Type
+	relaySpec     bool
+	genWhereInput bool
 }
 
 func newSchemaGenerator(g *gen.Graph) (*schemaGenerator, error) {
@@ -236,16 +237,18 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 				return ErrRelaySpecDisabled
 			}
 
-			pagination := paginationNames(gqlType)
+			names := paginationNames(gqlType)
 
-			s.AddTypes(pagination.TypeDefs()...)
+			s.AddTypes(names.TypeDefs()...)
 			if len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField) {
-				s.AddTypes(pagination.OrderByTypeDefs(enumOrderByValues)...)
+				s.AddTypes(names.OrderByTypeDefs(enumOrderByValues)...)
 			}
 
 			if ant.QueryField != nil {
 				name := ant.QueryField.fieldName(gqlType)
-				def := pagination.ConnectionField(name)
+				def := names.ConnectionField(name, true,
+					e.genWhereInput && !ant.Skip.Is(SkipWhereInput),
+				)
 				def.Directives = e.buildDirectives(ant.QueryField.Directives)
 				queryFields = append(queryFields, def)
 			}
@@ -373,7 +376,9 @@ func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast
 			}
 
 			fieldDef = paginationNames(gqlType).
-				ConnectionField(name)
+				ConnectionField(name, true,
+					e.genWhereInput && !edgeAnt.Skip.Is(SkipWhereInput) && !ant.Skip.Is(SkipWhereInput),
+				)
 		default:
 			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		}
@@ -512,18 +517,18 @@ func (e *schemaGenerator) genModels() (map[string]string, error) {
 			if !e.relaySpec {
 				return nil, ErrRelaySpecDisabled
 			}
-			pagination, err := nodePaginationNames(node)
+			names, err := nodePaginationNames(node)
 			if err != nil {
 				return nil, err
 			}
 
-			models[pagination.Connection] = e.entGoType(pagination.Connection)
-			models[pagination.Edge] = e.entGoType(pagination.Edge)
+			models[names.Connection] = e.entGoType(names.Connection)
+			models[names.Edge] = e.entGoType(names.Edge)
 
 			if hasOrderBy {
 				models["OrderDirection"] = e.entGoType("OrderDirection")
-				models[pagination.Order] = e.entGoType(pagination.Order)
-				models[pagination.OrderField] = e.entGoType(pagination.OrderField)
+				models[names.Order] = e.entGoType(names.Order)
+				models[names.OrderField] = e.entGoType(names.OrderField)
 			}
 		}
 	}

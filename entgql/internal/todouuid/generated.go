@@ -55,7 +55,7 @@ type ComplexityRoot struct {
 		ID      func(childComplexity int) int
 		Strings func(childComplexity int) int
 		Text    func(childComplexity int) int
-		Todos   func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) int
+		Todos   func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
 	}
 
 	CategoryConfig struct {
@@ -65,7 +65,7 @@ type ComplexityRoot struct {
 	Group struct {
 		ID    func(childComplexity int) int
 		Name  func(childComplexity int) int
-		Users func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Users func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) int
 	}
 
 	GroupConnection struct {
@@ -101,7 +101,7 @@ type ComplexityRoot struct {
 
 	Todo struct {
 		Category  func(childComplexity int) int
-		Children  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) int
+		Children  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Parent    func(childComplexity int) int
@@ -122,7 +122,7 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Groups func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Groups func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) int
 		ID     func(childComplexity int) int
 		Name   func(childComplexity int) int
 	}
@@ -197,7 +197,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Category.Todos(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.TodoOrder)), true
+		return e.complexity.Category.Todos(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.TodoOrder), args["where"].(*ent.TodoWhereInput)), true
 
 	case "CategoryConfig.maxMembers":
 		if e.complexity.CategoryConfig.MaxMembers == nil {
@@ -230,7 +230,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Group.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Group.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["where"].(*ent.UserWhereInput)), true
 
 	case "GroupConnection.edges":
 		if e.complexity.GroupConnection.Edges == nil {
@@ -391,7 +391,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Todo.Children(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.TodoOrder)), true
+		return e.complexity.Todo.Children(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*ent.TodoOrder), args["where"].(*ent.TodoWhereInput)), true
 
 	case "Todo.createdAt":
 		if e.complexity.Todo.CreatedAt == nil {
@@ -480,7 +480,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.Groups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.User.Groups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["where"].(*ent.GroupWhereInput)), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -628,7 +628,7 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
   category: Category
 }
 
@@ -636,19 +636,19 @@ type Category implements Node {
   id: ID!
   text: String!
   strings: [String]
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
 }
 
 type User implements Node {
   id: ID!
   name: String!
-  groups(after: Cursor, first: Int, before: Cursor, last: Int): GroupConnection
+  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
 }
 
 type Group implements Node {
   id: ID!
   name: String!
-  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
 }
 
 input TodoInput {
@@ -994,6 +994,15 @@ func (ec *executionContext) field_Category_todos_args(ctx context.Context, rawAr
 		}
 	}
 	args["orderBy"] = arg4
+	var arg5 *ent.TodoWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOTodoWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -1036,6 +1045,15 @@ func (ec *executionContext) field_Group_users_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["last"] = arg3
+	var arg4 *ent.UserWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalOUserWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
 	return args, nil
 }
 
@@ -1309,6 +1327,15 @@ func (ec *executionContext) field_Todo_children_args(ctx context.Context, rawArg
 		}
 	}
 	args["orderBy"] = arg4
+	var arg5 *ent.TodoWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOTodoWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -1351,6 +1378,15 @@ func (ec *executionContext) field_User_groups_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["last"] = arg3
+	var arg4 *ent.GroupWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg4, err = ec.unmarshalOGroupWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐGroupWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg4
 	return args, nil
 }
 
@@ -1535,7 +1571,7 @@ func (ec *executionContext) _Category_todos(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Todos(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.TodoOrder))
+		return obj.Todos(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1724,7 +1760,7 @@ func (ec *executionContext) _Group_users(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Users(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int))
+		return obj.Users(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*ent.UserWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3001,7 +3037,7 @@ func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Children(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.TodoOrder))
+		return obj.Children(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3448,7 +3484,7 @@ func (ec *executionContext) _User_groups(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Groups(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int))
+		return obj.Groups(ctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*ent.GroupWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

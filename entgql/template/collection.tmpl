@@ -164,13 +164,13 @@ func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
 	{{- end }}
 	{{- if hasTemplate "gql_where_input" }}
 		{{- $withWhere := true }}{{ with $node.Annotations.EntGQL }}{{ if isSkipMode .Skip "where_input" }}{{ $withWhere = false }}{{ end }}{{ end }}
-        {{- if $withWhere }}
-			{{- $where := print $name "WhereInput" }}
+		{{- if $withWhere }}
+			{{- $where := $names.WhereInput }}
 			if v := rv[whereField]; v != nil && v != (*{{ $where }})(nil) {
 				args.opts = append(args.opts, {{ $filter }}(v.(*{{ $where }}).Filter))
 			}
-        {{- end }}
-    {{- end }}
+		{{- end }}
+	{{- end }}
 	return args
 }
 {{ end }}
@@ -316,17 +316,17 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 
 {{/* The two templates add the internal API of the sql/modifier features, in case it is not enabled. */}}
 {{- define "dialect/sql/query/fields/additional/internal_modify" }}
-    {{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
-        modifiers []func(*sql.Selector)
-    {{- end }}
+	{{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
+		modifiers []func(*sql.Selector)
+	{{- end }}
 {{- end }}
 {{- define "dialect/sql/query/spec/internal_modify" }}
-    {{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
-        {{- $receiver := pascal $.Scope.Builder | receiver }}
-        if len({{ $receiver }}.modifiers) > 0 {
-            _spec.Modifiers = {{ $receiver }}.modifiers
-        }
-    {{- end }}
+	{{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
+		{{- $receiver := pascal $.Scope.Builder | receiver }}
+		if len({{ $receiver }}.modifiers) > 0 {
+			_spec.Modifiers = {{ $receiver }}.modifiers
+		}
+	{{- end }}
 {{- end }}
 
 {{/* The two templates add done-like API for loading the totalCount and inject it to the nodes before they are returned. */}}

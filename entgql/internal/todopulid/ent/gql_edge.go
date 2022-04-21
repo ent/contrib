@@ -23,8 +23,8 @@ import (
 )
 
 func (c *Category) Todos(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, orderBy *TodoOrder, opts ...TodoPaginateOption,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
 	totalCount := c.Edges.totalCount[0]
 	if nodes, err := c.Edges.TodosOrErr(); err == nil {
@@ -93,8 +93,8 @@ func (c *Category) Todos(
 }
 
 func (gr *Group) Users(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...UserPaginateOption,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
+	opts ...UserPaginateOption,
 ) (*UserConnection, error) {
 	totalCount := gr.Edges.totalCount[0]
 	if nodes, err := gr.Edges.UsersOrErr(); err == nil {
@@ -170,8 +170,8 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 }
 
 func (t *Todo) Children(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, orderBy *TodoOrder, opts ...TodoPaginateOption,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
 	totalCount := t.Edges.totalCount[1]
 	if nodes, err := t.Edges.ChildrenOrErr(); err == nil {
@@ -248,8 +248,8 @@ func (t *Todo) Category(ctx context.Context) (*Category, error) {
 }
 
 func (u *User) Groups(
-	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...GroupPaginateOption,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *GroupWhereInput,
+	opts ...GroupPaginateOption,
 ) (*GroupConnection, error) {
 	totalCount := u.Edges.totalCount[0]
 	if nodes, err := u.Edges.GroupsOrErr(); err == nil {
