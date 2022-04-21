@@ -357,13 +357,7 @@ func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast
 
 	var fields []*ast.FieldDefinition
 	for _, name := range mappings {
-		fieldDef := &ast.FieldDefinition{
-			Name:       name,
-			Directives: e.buildDirectives(edgeAnt.Directives),
-		}
-		if name != edgeField {
-			fieldDef.Directives = append(fieldDef.Directives, goField(edgeField))
-		}
+		fieldDef := &ast.FieldDefinition{Name: name}
 		switch {
 		case edge.Unique:
 			fieldDef.Type = namedType(gqlType, edge.Optional)
@@ -375,19 +369,16 @@ func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast
 				return nil, fmt.Errorf("entgql: must enable Relay Connection via the entgql.RelayConnection annotation on the %s entity", edge.Type.Name)
 			}
 
-			pagination := paginationNames(gqlType)
-			fieldDef.Type = ast.NonNullNamedType(pagination.Connection, nil)
-			fieldDef.Arguments = ast.ArgumentDefinitionList{
-				{Name: "after", Type: ast.NamedType(RelayCursor, nil)},
-				{Name: "first", Type: ast.NamedType("Int", nil)},
-				{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
-				{Name: "last", Type: ast.NamedType("Int", nil)},
-				{Name: "orderBy", Type: ast.NamedType(pagination.Order, nil)},
-			}
+			fieldDef = paginationNames(gqlType).
+				ConnectionField(name)
 		default:
 			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		}
 
+		fieldDef.Directives = e.buildDirectives(edgeAnt.Directives)
+		if name != edgeField {
+			fieldDef.Directives = append(fieldDef.Directives, goField(edgeField))
+		}
 		fields = append(fields, fieldDef)
 	}
 
