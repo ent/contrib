@@ -63,6 +63,9 @@ type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent
   role: Role!
   nullableString: String
 }
+type Query {
+  todos: [Todo!]!
+}
 """Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
   ADMIN
@@ -166,6 +169,11 @@ type MasterUserEdge {
   node: MasterUser
   """A cursor for use in pagination."""
   cursor: Cursor!
+}
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
 }
 """Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {

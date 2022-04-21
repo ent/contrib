@@ -242,18 +242,15 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 			if len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField) {
 				s.AddTypes(pagination.OrderByTypeDefs(enumOrderByValues)...)
 			}
-		}
 
-		if ant.QueryField != "" {
-			if ant.RelayConnection {
-				pagination := paginationNames(gqlType)
+			if ant.QueryField != "" {
 				queryFields = append(queryFields, pagination.ConnectionField(ant.QueryField))
-			} else {
-				queryFields = append(queryFields, &ast.FieldDefinition{
-					Name: ant.QueryField,
-					Type: listNamedType(gqlType, false),
-				})
 			}
+		} else if ant.QueryField != "" {
+			queryFields = append(queryFields, &ast.FieldDefinition{
+				Name: ant.QueryField,
+				Type: listNamedType(gqlType, false),
+			})
 		}
 	}
 
