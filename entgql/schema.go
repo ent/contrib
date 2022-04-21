@@ -127,12 +127,35 @@ func (e *schemaGenerator) buildSchema(s *ast.Schema) error {
 }
 
 func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
-	var defaultInterfaces []string
+	var (
+		defaultInterfaces []string
+		queryFields       ast.FieldList
+	)
 	if e.relaySpec {
 		defaultInterfaces = append(defaultInterfaces, "Node")
+
+		var (
+			idType  = ast.NonNullNamedType("ID", nil)
+			nodeDef = ast.NamedType(RelayNode, nil)
+		)
+		queryFields = append(queryFields,
+			&ast.FieldDefinition{
+				Name: "node",
+				Type: nodeDef,
+				Arguments: ast.ArgumentDefinitionList{
+					{Name: "id", Type: idType},
+				},
+			},
+			&ast.FieldDefinition{
+				Name: "nodes",
+				Arguments: ast.ArgumentDefinitionList{
+					{Name: "ids", Type: ast.NonNullListType(idType, nil)},
+				},
+				Type: ast.NonNullListType(nodeDef, nil),
+			},
+		)
 	}
 
-	var queryFields ast.FieldList
 	for _, node := range e.nodes {
 		gqlType, ant, err := gqlTypeFromNode(node)
 		if err != nil {

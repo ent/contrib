@@ -28,8 +28,10 @@ input TodoInput {
 }
 
 extend type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
 }
 
 type Mutation {

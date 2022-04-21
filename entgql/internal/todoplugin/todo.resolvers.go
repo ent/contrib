@@ -43,12 +43,8 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
-func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
-	return r.client.Noder(ctx, id)
-}
-
-func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids)
+func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	return "pong", nil
 }
 
 func (r *todoResolver) Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error) {
