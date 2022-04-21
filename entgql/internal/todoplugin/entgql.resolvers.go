@@ -31,11 +31,22 @@ func (r *masterUserResolver) Amount(ctx context.Context, obj *ent.User) (float64
 	return float64(obj.Amount), nil
 }
 
+func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error) {
+	return r.client.Todo.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithTodoOrder(orderBy),
+		)
+}
+
 // MasterUser returns MasterUserResolver implementation.
 func (r *Resolver) MasterUser() MasterUserResolver { return &masterUserResolver{r} }
+
+// Query returns QueryResolver implementation.
+func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 // Todo returns TodoResolver implementation.
 func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
 
 type masterUserResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }

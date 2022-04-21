@@ -152,9 +152,9 @@ type MutationResolver interface {
 	ClearTodos(ctx context.Context) (int, error)
 }
 type QueryResolver interface {
+	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error)
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []int) ([]ent.Noder, error)
-	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error)
 }
 type TodoResolver interface {
 	Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error)
@@ -636,16 +636,9 @@ input TodoInput {
   category_id: ID
 }
 
-type Query {
+extend type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-    orderBy: TodoOrder
-  ): TodoConnection
 }
 
 type Mutation {
@@ -831,6 +824,9 @@ type PageInfo {
   startCursor: Cursor
   """When paginating forwards, the cursor to continue."""
   endCursor: Cursor
+}
+type Query {
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
 }
 """Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
@@ -2781,6 +2777,69 @@ func (ec *executionContext) fieldContext_PageInfo_endCursor(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_todos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Todos(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.TodoOrder))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.TodoConnection)
+	fc.Result = res
+	return ec.marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_todos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TodoConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_todos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_node(ctx, field)
 	if err != nil {
@@ -2882,66 +2941,6 @@ func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_nodes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_todos(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Todos(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.TodoOrder))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.TodoConnection)
-	fc.Result = res
-	return ec.marshalOTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_todos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "edges":
-				return ec.fieldContext_TodoConnection_edges(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
-			case "totalCount":
-				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TodoConnection", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_todos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -7843,6 +7842,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "todos":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_todos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "node":
 			field := field
 
@@ -7876,26 +7898,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "todos":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_todos(ctx, field)
 				return res
 			}
 
@@ -8893,6 +8895,10 @@ func (ec *executionContext) marshalNTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 		return graphql.Null
 	}
 	return ec._Todo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTodoConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v ent.TodoConnection) graphql.Marshaler {
+	return ec._TodoConnection(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *ent.TodoConnection) graphql.Marshaler {
@@ -10079,13 +10085,6 @@ func (ec *executionContext) marshalOTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 		return graphql.Null
 	}
 	return ec._Todo(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *ent.TodoConnection) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._TodoConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOTodoEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.TodoEdge) graphql.Marshaler {

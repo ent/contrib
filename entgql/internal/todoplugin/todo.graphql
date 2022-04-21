@@ -27,16 +27,9 @@ input TodoInput {
   category_id: ID
 }
 
-type Query {
+extend type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-    orderBy: TodoOrder
-  ): TodoConnection
 }
 
 type Mutation {

@@ -26,6 +26,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 var (
@@ -240,6 +241,98 @@ type PaginationNames struct {
 	Order      string
 	OrderField string
 	WhereInput string
+}
+
+func (p *PaginationNames) TypeDefs() []*ast.Definition {
+	return []*ast.Definition{
+		{
+			Name:        p.Edge,
+			Kind:        ast.Object,
+			Description: "An edge in a connection.",
+			Fields: []*ast.FieldDefinition{
+				{
+					Name:        "node",
+					Type:        ast.NamedType(p.Node, nil),
+					Description: "The item at the end of the edge.",
+				},
+				{
+					Name:        "cursor",
+					Type:        ast.NonNullNamedType("Cursor", nil),
+					Description: "A cursor for use in pagination.",
+				},
+			},
+		},
+		{
+			Name:        p.Connection,
+			Kind:        ast.Object,
+			Description: "A connection to a list of items.",
+			Fields: []*ast.FieldDefinition{
+				{
+					Name:        "edges",
+					Type:        ast.ListType(ast.NamedType(p.Edge, nil), nil),
+					Description: "A list of edges.",
+				},
+				{
+					Name:        "pageInfo",
+					Type:        ast.NonNullNamedType("PageInfo", nil),
+					Description: "Information to aid in pagination.",
+				},
+				{
+					Name: "totalCount",
+					Type: ast.NonNullNamedType("Int", nil),
+				},
+			},
+		},
+	}
+}
+
+func (p *PaginationNames) OrderByTypeDefs(enumOrderByValues []string) []*ast.Definition {
+	enumValues := make(ast.EnumValueList, 0, len(enumOrderByValues))
+	for _, v := range enumOrderByValues {
+		enumValues = append(enumValues, &ast.EnumValueDefinition{
+			Name: v,
+		})
+	}
+
+	return []*ast.Definition{
+		{
+			Name:       p.OrderField,
+			Kind:       ast.Enum,
+			EnumValues: enumValues,
+		},
+		{
+			Name: p.Order,
+			Kind: ast.InputObject,
+			Fields: ast.FieldList{
+				{
+					Name: "direction",
+					Type: ast.NonNullNamedType("OrderDirection", nil),
+					DefaultValue: &ast.Value{
+						Raw:  "ASC",
+						Kind: ast.EnumValue,
+					},
+				},
+				{
+					Name: "field",
+					Type: ast.NonNullNamedType(p.OrderField, nil),
+				},
+			},
+		},
+	}
+}
+
+func (p *PaginationNames) ConnectionField(name string) *ast.FieldDefinition {
+	return &ast.FieldDefinition{
+		Name: name,
+		Type: ast.NonNullNamedType(p.Connection, nil),
+		Arguments: ast.ArgumentDefinitionList{
+			{Name: "after", Type: ast.NamedType(RelayCursor, nil)},
+			{Name: "first", Type: ast.NamedType("Int", nil)},
+			{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
+			{Name: "last", Type: ast.NamedType("Int", nil)},
+			{Name: "orderBy", Type: ast.NamedType(p.Order, nil)},
+		},
+	}
 }
 
 func gqlTypeFromNode(t *gen.Type) (gqlType string, ant *Annotation, err error) {

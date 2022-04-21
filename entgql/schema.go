@@ -27,6 +27,8 @@ import (
 )
 
 const (
+	// QueryType is the name of the root Query object.
+	QueryType = "Query"
 	// OrderDirection is the name of enum OrderDirection
 	OrderDirection = "OrderDirection"
 	// RelayCursor is the name of the cursor type
@@ -129,6 +131,8 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 	if e.relaySpec {
 		defaultInterfaces = append(defaultInterfaces, "Node")
 	}
+
+	var queryFields ast.FieldList
 	for _, node := range e.nodes {
 		gqlType, ant, err := gqlTypeFromNode(node)
 		if err != nil {
@@ -157,7 +161,7 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 		}
 		s.AddTypes(typ)
 
-		var enumOrderByValues ast.EnumValueList
+		var enumOrderByValues []string
 		for _, f := range node.Fields {
 			ant, err := annotation(f.Annotations)
 			if err != nil {
@@ -172,9 +176,7 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 				if ant.Skip.Is(SkipOrderField) {
 					return fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", node.Name, f.Name)
 				}
-				enumOrderByValues = append(enumOrderByValues, &ast.EnumValueDefinition{
-					Name: ant.OrderField,
-				})
+				enumOrderByValues = append(enumOrderByValues, ant.OrderField)
 			}
 
 			if f.IsEnum() && !ant.Skip.Is(SkipEnumField) {
@@ -211,45 +213,33 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 				return ErrRelaySpecDisabled
 			}
 
-			defs, err := relayConnectionTypes(node)
-			if err != nil {
-				return err
-			}
+			pagination := paginationNames(gqlType)
 
-			s.AddTypes(defs...)
+			s.AddTypes(pagination.TypeDefs()...)
 			if len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField) {
-				pagination, err := nodePaginationNames(node)
-				if err != nil {
-					return err
-				}
-
-				s.AddTypes(
-					&ast.Definition{
-						Name:       pagination.OrderField,
-						Kind:       ast.Enum,
-						EnumValues: enumOrderByValues,
-					},
-					&ast.Definition{
-						Name: pagination.Order,
-						Kind: ast.InputObject,
-						Fields: ast.FieldList{
-							{
-								Name: "direction",
-								Type: ast.NonNullNamedType("OrderDirection", nil),
-								DefaultValue: &ast.Value{
-									Raw:  "ASC",
-									Kind: ast.EnumValue,
-								},
-							},
-							{
-								Name: "field",
-								Type: ast.NonNullNamedType(pagination.OrderField, nil),
-							},
-						},
-					},
-				)
+				s.AddTypes(pagination.OrderByTypeDefs(enumOrderByValues)...)
 			}
 		}
+
+		if ant.QueryField != "" {
+			if ant.RelayConnection {
+				pagination := paginationNames(gqlType)
+				queryFields = append(queryFields, pagination.ConnectionField(ant.QueryField))
+			} else {
+				queryFields = append(queryFields, &ast.FieldDefinition{
+					Name: ant.QueryField,
+					Type: listNamedType(gqlType, false),
+				})
+			}
+		}
+	}
+
+	if len(queryFields) > 0 {
+		s.AddTypes(&ast.Definition{
+			Name:   QueryType,
+			Kind:   ast.Object,
+			Fields: queryFields,
+		})
 	}
 
 	return nil
@@ -609,46 +599,7 @@ func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []*ast.Definition{
-		{
-			Name:        pagination.Edge,
-			Kind:        ast.Object,
-			Description: "An edge in a connection.",
-			Fields: []*ast.FieldDefinition{
-				{
-					Name:        "node",
-					Type:        ast.NamedType(pagination.Node, nil),
-					Description: "The item at the end of the edge.",
-				},
-				{
-					Name:        "cursor",
-					Type:        ast.NonNullNamedType("Cursor", nil),
-					Description: "A cursor for use in pagination.",
-				},
-			},
-		},
-		{
-			Name:        pagination.Connection,
-			Kind:        ast.Object,
-			Description: "A connection to a list of items.",
-			Fields: []*ast.FieldDefinition{
-				{
-					Name:        "edges",
-					Type:        ast.ListType(ast.NamedType(pagination.Edge, nil), nil),
-					Description: "A list of edges.",
-				},
-				{
-					Name:        "pageInfo",
-					Type:        ast.NonNullNamedType("PageInfo", nil),
-					Description: "Information to aid in pagination.",
-				},
-				{
-					Name: "totalCount",
-					Type: ast.NonNullNamedType("Int", nil),
-				},
-			},
-		},
-	}, nil
+	return pagination.TypeDefs(), nil
 }
 
 func namedType(name string, nullable bool) *ast.Type {
