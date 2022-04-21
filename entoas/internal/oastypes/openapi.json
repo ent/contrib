@@ -95,7 +95,6 @@
                   },
                   "uint": {
                     "type": "integer",
-                    "format": "int32",
                     "minimum": 0
                   },
                   "uint8": {
@@ -374,7 +373,6 @@
                   },
                   "uint": {
                     "type": "integer",
-                    "format": "int32",
                     "minimum": 0
                   },
                   "uint8": {
@@ -532,7 +530,6 @@
           },
           "uint": {
             "type": "integer",
-            "format": "int32",
             "minimum": 0
           },
           "uint8": {
