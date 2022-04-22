@@ -45,7 +45,7 @@ type (
 		Implements []string `json:"Implements,omitempty"`
 		// Directives to add on the field/type.
 		Directives []Directive `json:"Directives,omitempty"`
-		// QueryField allow you expose the Entity on the query as a field.
+		// QueryField exposes the generated type with the given string under the Query object.
 		QueryField string `json:"QueryField,omitempty"`
 	}
 
