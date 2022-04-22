@@ -322,7 +322,7 @@ func (p *PaginationNames) OrderByTypeDefs(enumOrderByValues []string) []*ast.Def
 }
 
 func (p *PaginationNames) ConnectionField(name string) *ast.FieldDefinition {
-	return &ast.FieldDefinition{
+	def := &ast.FieldDefinition{
 		Name: name,
 		Type: ast.NonNullNamedType(p.Connection, nil),
 		Arguments: ast.ArgumentDefinitionList{
@@ -333,6 +333,8 @@ func (p *PaginationNames) ConnectionField(name string) *ast.FieldDefinition {
 			{Name: "orderBy", Type: ast.NamedType(p.Order, nil)},
 		},
 	}
+
+	return def
 }
 
 func gqlTypeFromNode(t *gen.Type) (gqlType string, ant *Annotation, err error) {

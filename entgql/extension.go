@@ -421,8 +421,10 @@ func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.FieldDefinitio
 }
 
 var (
-	_     entc.Extension = (*Extension)(nil)
-	camel                = gen.Funcs["camel"].(func(string) string)
+	_ entc.Extension = (*Extension)(nil)
+
+	camel  = gen.Funcs["camel"].(func(string) string)
+	plural = gen.Funcs["plural"].(func(string) string)
 )
 
 // typeAnnotation returns the scalar type mapping if exists (i.e. entgql.Type).

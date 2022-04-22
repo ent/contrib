@@ -243,14 +243,20 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 				s.AddTypes(pagination.OrderByTypeDefs(enumOrderByValues)...)
 			}
 
-			if ant.QueryField != "" {
-				queryFields = append(queryFields, pagination.ConnectionField(ant.QueryField))
+			if ant.QueryField != nil {
+				name := ant.QueryField.fieldName(gqlType)
+				def := pagination.ConnectionField(name)
+				def.Directives = e.buildDirectives(ant.QueryField.Directives)
+				queryFields = append(queryFields, def)
 			}
-		} else if ant.QueryField != "" {
-			queryFields = append(queryFields, &ast.FieldDefinition{
-				Name: ant.QueryField,
+		} else if ant.QueryField != nil {
+			name := ant.QueryField.fieldName(gqlType)
+			def := &ast.FieldDefinition{
+				Name: name,
 				Type: listNamedType(gqlType, false),
-			})
+			}
+			def.Directives = e.buildDirectives(ant.QueryField.Directives)
+			queryFields = append(queryFields, def)
 		}
 	}
 

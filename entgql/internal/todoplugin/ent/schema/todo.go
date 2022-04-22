@@ -86,6 +86,6 @@ func (Todo) Edges() []ent.Edge {
 func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
-		entgql.QueryField("todos"),
+		entgql.QueryField(),
 	}
 }
