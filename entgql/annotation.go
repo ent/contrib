@@ -45,6 +45,8 @@ type (
 		Implements []string `json:"Implements,omitempty"`
 		// Directives to add on the field/type.
 		Directives []Directive `json:"Directives,omitempty"`
+		// QueryField exposes the generated type with the given string under the Query object.
+		QueryField *FieldConfig `json:"QueryField,omitempty"`
 	}
 
 	// Directive to apply on the field/type
@@ -62,6 +64,13 @@ type (
 
 	// SkipMode is a bit flag for the Skip annotation.
 	SkipMode int
+
+	FieldConfig struct {
+		// Name is the name of the field in the Query object.
+		Name string `json:"Name,omitempty"`
+		// Directives to add on the field
+		Directives []Directive `json:"Directives,omitempty"`
+	}
 )
 
 const (
@@ -153,6 +162,19 @@ func Directives(directives ...Directive) Annotation {
 	return Annotation{Directives: directives}
 }
 
+// QueryFieldDirectives returns a Directives annotation.
+func QueryFieldDirectives(directives ...Directive) Annotation {
+	return Annotation{QueryField: &FieldConfig{Directives: directives}}
+}
+
+// QueryField returns an annotation for expose the field on the Query type.
+func QueryField(name ...string) Annotation {
+	if len(name) > 0 {
+		return Annotation{QueryField: &FieldConfig{Name: name[0]}}
+	}
+	return Annotation{QueryField: &FieldConfig{}}
+}
+
 // Merge implements the schema.Merger interface.
 func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	var ant Annotation
@@ -190,6 +212,12 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if len(ant.Directives) > 0 {
 		a.Directives = append(a.Directives, ant.Directives...)
 	}
+	if ant.QueryField != nil {
+		if a.QueryField == nil {
+			a.QueryField = &FieldConfig{}
+		}
+		a.QueryField.merge(ant.QueryField)
+	}
 	return a
 }
 
@@ -210,6 +238,23 @@ func (f SkipMode) Any() bool {
 // Is checks if the skip annotation has a specific flag.
 func (f SkipMode) Is(mode SkipMode) bool {
 	return f&mode != 0
+}
+
+func (c FieldConfig) fieldName(gqlType string) string {
+	if c.Name != "" {
+		return c.Name
+	}
+	return camel(plural(gqlType))
+}
+
+func (c *FieldConfig) merge(ant *FieldConfig) {
+	if ant == nil {
+		return
+	}
+	if ant.Name != "" {
+		c.Name = ant.Name
+	}
+	c.Directives = append(c.Directives, ant.Directives...)
 }
 
 // annotation extracts the entgql.Annotation or returns its empty value.
