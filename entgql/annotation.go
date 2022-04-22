@@ -46,7 +46,7 @@ type (
 		// Directives to add on the field/type.
 		Directives []Directive `json:"Directives,omitempty"`
 		// QueryField exposes the generated type with the given string under the Query object.
-		QueryField *QueryFieldConfig `json:"QueryField,omitempty"`
+		QueryField *FieldConfig `json:"QueryField,omitempty"`
 	}
 
 	// Directive to apply on the field/type
@@ -65,7 +65,7 @@ type (
 	// SkipMode is a bit flag for the Skip annotation.
 	SkipMode int
 
-	QueryFieldConfig struct {
+	FieldConfig struct {
 		// Name is the name of the field in the Query object.
 		Name string `json:"Name,omitempty"`
 		// Directives to add on the field
@@ -164,15 +164,15 @@ func Directives(directives ...Directive) Annotation {
 
 // QueryFieldDirectives returns a Directives annotation.
 func QueryFieldDirectives(directives ...Directive) Annotation {
-	return Annotation{QueryField: &QueryFieldConfig{Directives: directives}}
+	return Annotation{QueryField: &FieldConfig{Directives: directives}}
 }
 
 // QueryField returns an annotation for expose the field on the Query type.
 func QueryField(name ...string) Annotation {
 	if len(name) > 0 {
-		return Annotation{QueryField: &QueryFieldConfig{Name: name[0]}}
+		return Annotation{QueryField: &FieldConfig{Name: name[0]}}
 	}
-	return Annotation{QueryField: &QueryFieldConfig{}}
+	return Annotation{QueryField: &FieldConfig{}}
 }
 
 // Merge implements the schema.Merger interface.
@@ -214,7 +214,7 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.QueryField != nil {
 		if a.QueryField == nil {
-			a.QueryField = &QueryFieldConfig{}
+			a.QueryField = &FieldConfig{}
 		}
 		a.QueryField.merge(ant.QueryField)
 	}
@@ -240,15 +240,14 @@ func (f SkipMode) Is(mode SkipMode) bool {
 	return f&mode != 0
 }
 
-func (c QueryFieldConfig) fieldName(gqlType string) string {
+func (c FieldConfig) fieldName(gqlType string) string {
 	if c.Name != "" {
 		return c.Name
 	}
-
 	return camel(plural(gqlType))
 }
 
-func (c *QueryFieldConfig) merge(ant *QueryFieldConfig) {
+func (c *FieldConfig) merge(ant *FieldConfig) {
 	if ant == nil {
 		return
 	}
