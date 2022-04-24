@@ -162,20 +162,21 @@ func Directives(directives ...Directive) Annotation {
 	return Annotation{Directives: directives}
 }
 
-type QueryFieldAnnotation struct {
+type queryFieldAnnotation struct {
 	Annotation
 }
 
 // QueryField returns an annotation for expose the field on the Query type.
-func QueryField(name ...string) QueryFieldAnnotation {
+func QueryField(name ...string) queryFieldAnnotation {
 	a := Annotation{QueryField: &FieldConfig{}}
 	if len(name) > 0 {
 		a.QueryField.Name = name[0]
 	}
-	return QueryFieldAnnotation{Annotation: a}
+	return queryFieldAnnotation{Annotation: a}
 }
 
-func (a QueryFieldAnnotation) Directives(directives ...Directive) QueryFieldAnnotation {
+// Directives allow you apply directives to the field.
+func (a queryFieldAnnotation) Directives(directives ...Directive) queryFieldAnnotation {
 	a.QueryField.Directives = directives
 	return a
 }
@@ -190,9 +191,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 		if other != nil {
 			ant = *other
 		}
-	case QueryFieldAnnotation:
+	case queryFieldAnnotation:
 		ant = other.Annotation
-	case *QueryFieldAnnotation:
+	case *queryFieldAnnotation:
 		if other != nil {
 			ant = other.Annotation
 		}
