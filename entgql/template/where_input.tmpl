@@ -71,6 +71,11 @@ in the LICENSE file in the root directory of this source tree.
         {{- end }}
     }
 
+    // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+    func (i *{{ $input }}) AddPredicates(predicates ...predicate.{{ $n.Name }}) {
+        i.Predicates = append(i.Predicates, predicates...)
+    }
+
     // Filter applies the {{ $input }} filter on the {{ $n.QueryName }} builder.
     func (i *{{ $input }}) Filter(q *{{ $n.QueryName }}) (*{{ $n.QueryName }}, error) {
         if i == nil {

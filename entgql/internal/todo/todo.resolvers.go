@@ -81,9 +81,9 @@ func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.Todo
 	startOfDay := time.Now().Truncate(24 * time.Hour)
 	endOfDay := startOfDay.Add(24*time.Hour - 1)
 	if *data {
-		obj.Predicates = append(obj.Predicates, todo.And(todo.CreatedAtGTE(startOfDay), todo.CreatedAtLTE(endOfDay)))
+		obj.AddPredicates(todo.And(todo.CreatedAtGTE(startOfDay), todo.CreatedAtLTE(endOfDay)))
 	} else {
-		obj.Predicates = append(obj.Predicates, todo.Or(todo.CreatedAtLT(startOfDay), todo.CreatedAtGT(endOfDay)))
+		obj.AddPredicates(todo.Or(todo.CreatedAtLT(startOfDay), todo.CreatedAtGT(endOfDay)))
 	}
 
 	return nil

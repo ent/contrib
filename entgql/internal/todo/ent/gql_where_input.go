@@ -107,6 +107,11 @@ type CategoryWhereInput struct {
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *CategoryWhereInput) AddPredicates(predicates ...predicate.Category) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
 func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	if i == nil {
@@ -398,6 +403,11 @@ type GroupWhereInput struct {
 	HasUsersWith []*UserWhereInput `json:"hasUsersWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *GroupWhereInput) AddPredicates(predicates ...predicate.Group) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the GroupWhereInput filter on the GroupQuery builder.
 func (i *GroupWhereInput) Filter(q *GroupQuery) (*GroupQuery, error) {
 	if i == nil {
@@ -619,6 +629,11 @@ type TodoWhereInput struct {
 	// "category" edge predicates.
 	HasCategory     *bool                 `json:"hasCategory,omitempty"`
 	HasCategoryWith []*CategoryWhereInput `json:"hasCategoryWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *TodoWhereInput) AddPredicates(predicates ...predicate.Todo) {
+	i.Predicates = append(i.Predicates, predicates...)
 }
 
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
@@ -904,6 +919,11 @@ type UserWhereInput struct {
 	// "groups" edge predicates.
 	HasGroups     *bool              `json:"hasGroups,omitempty"`
 	HasGroupsWith []*GroupWhereInput `json:"hasGroupsWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *UserWhereInput) AddPredicates(predicates ...predicate.User) {
+	i.Predicates = append(i.Predicates, predicates...)
 }
 
 // Filter applies the UserWhereInput filter on the UserQuery builder.

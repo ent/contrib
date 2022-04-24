@@ -121,6 +121,11 @@ type CategoryWhereInput struct {
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *CategoryWhereInput) AddPredicates(predicates ...predicate.Category) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
 func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	if i == nil {
@@ -478,6 +483,11 @@ type TodoWhereInput struct {
 	HasChildrenWith []*TodoWhereInput `json:"hasChildrenWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *TodoWhereInput) AddPredicates(predicates ...predicate.Todo) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
 func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 	if i == nil {
@@ -794,6 +804,11 @@ type MasterUserWhereInput struct {
 	NullableStringNotNil       bool     `json:"nullableStringNotNil,omitempty"`
 	NullableStringEqualFold    *string  `json:"nullableStringEqualFold,omitempty"`
 	NullableStringContainsFold *string  `json:"nullableStringContainsFold,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *MasterUserWhereInput) AddPredicates(predicates ...predicate.User) {
+	i.Predicates = append(i.Predicates, predicates...)
 }
 
 // Filter applies the MasterUserWhereInput filter on the UserQuery builder.
