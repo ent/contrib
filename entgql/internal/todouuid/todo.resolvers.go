@@ -19,7 +19,7 @@ package todo
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
@@ -75,7 +75,19 @@ func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *in
 }
 
 func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error {
-	panic(fmt.Errorf("not implemented"))
+	if data == nil {
+		return nil
+	}
+
+	startOfDay := time.Now().Truncate(24 * time.Hour)
+	endOfDay := startOfDay.Add(24*time.Hour - 1)
+	if *data {
+		obj.Predicates = append(obj.Predicates, todo.And(todo.CreatedAtGTE(startOfDay), todo.CreatedAtLTE(endOfDay)))
+	} else {
+		obj.Predicates = append(obj.Predicates, todo.Or(todo.CreatedAtLT(startOfDay), todo.CreatedAtGT(endOfDay)))
+	}
+
+	return nil
 }
 
 // Mutation returns MutationResolver implementation.
