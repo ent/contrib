@@ -32,6 +32,7 @@ in the LICENSE file in the root directory of this source tree.
     {{ $input := print $name "WhereInput" }}
     // {{ $input }} represents a where input for filtering {{ $n.Name }} queries.
     type {{ $input }} struct {
+        Predicates []predicate.{{ $n.Name }} `json:"-"`
         Not *{{ $input }} `json:"not,omitempty"`
         Or  []*{{ $input }} `json:"or,omitempty"`
         And []*{{ $input }} `json:"and,omitempty"`
@@ -129,6 +130,7 @@ in the LICENSE file in the root directory of this source tree.
             }
             predicates = append(predicates, {{ $n.Package }}.And(and...))
         }
+        predicates = append(predicates, i.Predicates...)
         {{- range $f := $comparableFields }}
             {{- range $op := $f.Ops }}
                 {{- $func := print $f.StructField $op.Name }}

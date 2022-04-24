@@ -121,6 +121,10 @@ input TodoOrder {
   field: TodoOrderField
 }
 
+extend input TodoWhereInput {
+  createdToday: Boolean
+}
+
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
