@@ -32,9 +32,10 @@ import (
 
 // CategoryWhereInput represents a where input for filtering Category queries.
 type CategoryWhereInput struct {
-	Not *CategoryWhereInput   `json:"not,omitempty"`
-	Or  []*CategoryWhereInput `json:"or,omitempty"`
-	And []*CategoryWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Category  `json:"-"`
+	Not        *CategoryWhereInput   `json:"not,omitempty"`
+	Or         []*CategoryWhereInput `json:"or,omitempty"`
+	And        []*CategoryWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -179,6 +180,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		}
 		predicates = append(predicates, category.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, category.IDEQ(*i.ID))
 	}
@@ -405,9 +407,10 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 
 // TodoWhereInput represents a where input for filtering Todo queries.
 type TodoWhereInput struct {
-	Not *TodoWhereInput   `json:"not,omitempty"`
-	Or  []*TodoWhereInput `json:"or,omitempty"`
-	And []*TodoWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Todo  `json:"-"`
+	Not        *TodoWhereInput   `json:"not,omitempty"`
+	Or         []*TodoWhereInput `json:"or,omitempty"`
+	And        []*TodoWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -534,6 +537,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		}
 		predicates = append(predicates, todo.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, todo.IDEQ(*i.ID))
 	}
@@ -718,9 +722,10 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 
 // MasterUserWhereInput represents a where input for filtering User queries.
 type MasterUserWhereInput struct {
-	Not *MasterUserWhereInput   `json:"not,omitempty"`
-	Or  []*MasterUserWhereInput `json:"or,omitempty"`
-	And []*MasterUserWhereInput `json:"and,omitempty"`
+	Predicates []predicate.User        `json:"-"`
+	Not        *MasterUserWhereInput   `json:"not,omitempty"`
+	Or         []*MasterUserWhereInput `json:"or,omitempty"`
+	And        []*MasterUserWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -850,6 +855,7 @@ func (i *MasterUserWhereInput) P() (predicate.User, error) {
 		}
 		predicates = append(predicates, user.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, user.IDEQ(*i.ID))
 	}

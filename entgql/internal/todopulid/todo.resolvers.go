@@ -19,6 +19,7 @@ package todopulid
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent"
 	pulid1 "entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
@@ -70,6 +71,10 @@ func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *in
 		Paginate(ctx, after, first, before, last,
 			ent.WithGroupFilter(where.Filter),
 		)
+}
+
+func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns MutationResolver implementation.
