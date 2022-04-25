@@ -27,16 +27,11 @@ input TodoInput {
   category_id: ID
 }
 
-type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
-  todos(
-    after: Cursor
-    first: Int
-    before: Cursor
-    last: Int
-    orderBy: TodoOrder
-  ): TodoConnection
+extend type Query {
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
 }
 
 type Mutation {

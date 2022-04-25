@@ -503,25 +503,28 @@ func property(f *gen.Field) (*ogen.Property, error) {
 	return ogen.NewProperty().SetName(f.Name).SetSchema(s), nil
 }
 
-var _types = map[string]*ogen.Schema{
-	"bool":      ogen.Bool(),
-	"time.Time": ogen.DateTime(),
-	"string":    ogen.String(),
-	"[]byte":    ogen.Bytes(),
-	"uuid.UUID": ogen.UUID(),
-	"int":       ogen.Int(),
-	"int8":      ogen.Int32(),
-	"int16":     ogen.Int32(),
-	"int32":     ogen.Int32(),
-	"uint":      ogen.Int32(),
-	"uint8":     ogen.Int32(),
-	"uint16":    ogen.Int32(),
-	"uint32":    ogen.Int32(),
-	"int64":     ogen.Int64(),
-	"uint64":    ogen.Int64(),
-	"float32":   ogen.Float(),
-	"float64":   ogen.Double(),
-}
+var (
+	min   int64
+	types = map[string]*ogen.Schema{
+		"bool":      ogen.Bool(),
+		"time.Time": ogen.DateTime(),
+		"string":    ogen.String(),
+		"[]byte":    ogen.Bytes(),
+		"uuid.UUID": ogen.UUID(),
+		"int":       ogen.Int(),
+		"int8":      ogen.Int32(),
+		"int16":     ogen.Int32(),
+		"int32":     ogen.Int32(),
+		"uint":      ogen.Int().SetMinimum(&min),
+		"uint8":     ogen.Int32().SetMinimum(&min),
+		"uint16":    ogen.Int32().SetMinimum(&min),
+		"uint32":    ogen.Int32().SetMinimum(&min),
+		"int64":     ogen.Int64(),
+		"uint64":    ogen.Int64().SetMinimum(&min),
+		"float32":   ogen.Float(),
+		"float64":   ogen.Double(),
+	}
+)
 
 // OgenSchema returns the ogen.Schema to use for the given gen.Field.
 func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
@@ -554,11 +557,11 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	s := f.Type.String()
 	// Handle slice types.
 	if strings.HasPrefix(s, "[]") {
-		if t, ok := _types[s[2:]]; ok {
+		if t, ok := types[s[2:]]; ok {
 			return t.AsArray(), nil
 		}
 	}
-	t, ok := _types[s]
+	t, ok := types[s]
 	if !ok {
 		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
 	}

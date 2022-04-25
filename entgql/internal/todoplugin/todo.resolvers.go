@@ -43,19 +43,8 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
-func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
-	return r.client.Noder(ctx, id)
-}
-
-func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids)
-}
-
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error) {
-	return r.client.Todo.Query().
-		Paginate(ctx, after, first, before, last,
-			ent.WithTodoOrder(orderBy),
-		)
+func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	return "pong", nil
 }
 
 func (r *todoResolver) Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error) {
@@ -69,8 +58,4 @@ func (r *todoResolver) Category(ctx context.Context, obj *ent.Todo) (*ent.Catego
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
 type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
