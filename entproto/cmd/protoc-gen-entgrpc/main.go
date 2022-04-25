@@ -18,6 +18,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"github.com/go-openapi/inflect"
 	"path"
 	"strconv"
 	"strings"
@@ -107,6 +108,9 @@ func (g *serviceGenerator) generate() error {
 			"entIdent":     g.entIdent,
 			"newConverter": g.newConverter,
 			"unquote":      strconv.Unquote,
+			"pluralize": func(in string) string {
+				return inflect.Pluralize(in)
+			},
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
 			},

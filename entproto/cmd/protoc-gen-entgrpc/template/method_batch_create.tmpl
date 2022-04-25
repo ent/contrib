@@ -1,0 +1,73 @@
+{{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
+{{ define "method_batch_create" }}
+
+    {{- $idField := .G.FieldMap.ID -}}
+    {{- $varName := $idField.EntField.Name -}}
+    {{- $inputName := .Method.Input.GoIdent.GoName -}}
+    {{- $methodName := .Method.GoName -}}
+    {{- $reqVar := camel .G.EntType.Name -}}
+    requests := req.GetRequests()
+    if len(requests) > entproto.MaxBatchCreateSize {
+        return nil, {{ statusErrf "InvalidArgument" "batch size cannot be greater than %d" "entproto.MaxBatchCreateSize" }}
+    }
+    bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
+    for i, req := range requests {
+        m := bulk[i]
+        {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
+        {{- range .G.FieldMap.Fields }}
+            {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
+            {{- $skip := or .IsIDField $skipImmutable -}}
+            {{- if not $skip }}
+                {{- $varName := camel (print $reqVar  "_"  .EntField.Name) -}}
+                {{- $id := print $reqVar ".Get" .PbStructField "() " -}}
+                {{- if .EntField.Optional }}
+                    if {{ $id }} != nil {
+                {{- end }}
+                {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                m.Set{{ .EntField.StructField }}({{ $varName }})
+                {{- if .EntField.Optional }}
+                    }
+                {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- range .G.FieldMap.Edges }}
+            {{- if .EntEdge.Unique }}
+                {{- $varName := camel (printf "%s_%s" $reqVar .EntEdge.Name) -}}
+                {{- $id := printf "%s.Get%s().Get%s()" $reqVar .PbStructField .EdgeIDPbStructField  }}
+                {{- $other := printf "%s.Get%s()" $reqVar .PbStructField }}
+                if {{ $other }} != nil {
+                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                    m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
+                }
+            {{- else }}
+                for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
+                    {{- $varName  := camel .EntEdge.StructField }}
+                    {{- $id := printf "item.Get%s()" .EdgeIDPbStructField }}
+                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                    m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
+                }
+            {{- end }}
+        {{- end }}
+    }
+    res, err := svc.client.{{ .G.EntType.Name }}.CreateBulk(bulk...).Save(ctx)
+    switch {
+        case err == nil:
+        var pbList []*{{ .G.EntType.Name }}
+            for _, entEntity := range res {
+                pbEntity, err := toProto{{ .G.EntType.Name }}(entEntity)
+                if err != nil {
+                    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+                }
+                pbList = append(pbList, pbEntity)
+            }
+            return &BatchCreate{{ pluralize .G.EntType.Name }}Response{
+                {{ pluralize .G.EntType.Name }}: pbList,
+            }, nil
+        case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
+            return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}
+        case {{ .G.EntPackage.Ident "IsConstraintError" | ident }}(err):
+            return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err"}}
+        default:
+            return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
+    }
+{{ end }}
