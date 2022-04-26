@@ -25,6 +25,7 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
     {{- $methodName := .GoName -}}
     {{- if or (eq $methodName "List") (eq $methodName "BatchCreate") }}
         {{ $needToProtos = true }}
+        {{break}}
     {{- end }}
 {{ end }}
 
