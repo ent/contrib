@@ -337,5 +337,4 @@ func TestUserService_BatchCreate(t *testing.T) {
 	respStatus, ok := status.FromError(err)
 	require.True(t, ok, "expected a gRPC status error")
 	require.EqualValues(t, respStatus.Code(), codes.InvalidArgument)
-
 }
