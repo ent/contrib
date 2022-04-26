@@ -40,6 +40,21 @@
     }
 {{ end }}
 
+{{ define "to_protos_func" }}
+    // toProtos{{ .EntType.Name }} transforms a list of ent type to a list of pb type
+    func toProtos{{ .EntType.Name }}(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ .EntType.Name }}, error) {
+        var pbList []*{{ .EntType.Name }}
+        for _, entEntity := range e {
+            pbEntity, err := toProto{{ .EntType.Name }}(entEntity)
+            if err != nil {
+                return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+            }
+            pbList = append(pbList, pbEntity)
+        }
+        return pbList, nil
+    }
+{{ end }}
+
 {{ define "field_to_proto" }}
     {{- $id := .Ident -}}
     {{- $conv := newConverter .Field -}}

@@ -53,16 +53,12 @@
     res, err := svc.client.{{ .G.EntType.Name }}.CreateBulk(bulk...).Save(ctx)
     switch {
         case err == nil:
-        var pbList []*{{ .G.EntType.Name }}
-            for _, entEntity := range res {
-                pbEntity, err := toProto{{ .G.EntType.Name }}(entEntity)
-                if err != nil {
-                    return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
-                }
-                pbList = append(pbList, pbEntity)
+            protoList, err := toProtos{{ .G.EntType.Name }}(res)
+            if err != nil {
+                return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
             }
             return &BatchCreate{{ pluralize .G.EntType.Name }}Response{
-                {{ pluralize .G.EntType.Name }}: pbList,
+                {{ pluralize .G.EntType.Name }}: protoList,
             }, nil
         case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
             return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}

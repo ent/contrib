@@ -20,6 +20,18 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
 
 {{ template "to_proto_func" . }}
 
+{{ $needToProtos := false }}
+{{ range .Service.Methods }}
+    {{- $methodName := .GoName -}}
+    {{- if or (eq $methodName "List") (eq $methodName "BatchCreate") }}
+        {{ $needToProtos = true }}
+    {{- end }}
+{{ end }}
+
+{{- if $needToProtos }}
+    {{ template "to_protos_func" . }}
+{{- end }}
+
 {{ range .Service.Methods }}
     {{- $idField := $.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
