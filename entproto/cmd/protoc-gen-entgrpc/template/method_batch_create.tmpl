@@ -5,7 +5,7 @@
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
     {{- $reqVar := camel .G.EntType.Name -}}
     requests := req.GetRequests()
-    if len(requests) > entproto.MaxBatchCreateSize {
+    if len(requests) > {{ qualify "entgo.io/contrib/entproto" "MaxBatchCreateSize" }}{
         return nil, {{ statusErrf "InvalidArgument" "batch size cannot be greater than %d" "entproto.MaxBatchCreateSize" }}
     }
     bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
