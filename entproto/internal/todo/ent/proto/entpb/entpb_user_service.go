@@ -137,6 +137,19 @@ func toProtoUser(e *ent.User) (*User, error) {
 	return v, nil
 }
 
+// toProtosUser transforms a list of ent type to a list of pb type
+func toProtosUser(e []*ent.User) ([]*User, error) {
+	var pbList []*User
+	for _, entEntity := range e {
+		pbEntity, err := toProtoUser(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
@@ -449,16 +462,12 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*User
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoUser(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosUser(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListUserResponse{
-			UserList:      pbList,
+			UserList:      protoList,
 			NextPageToken: nextPageToken,
 		}, nil
 	default:
@@ -560,16 +569,12 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 	res, err := svc.client.User.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		var pbList []*User
-		for _, entEntity := range res {
-			pbEntity, err := toProtoUser(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosUser(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &BatchCreateUsersResponse{
-			Users: pbList,
+			Users: protoList,
 		}, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)

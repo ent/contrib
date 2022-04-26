@@ -43,6 +43,19 @@ func toProtoPet(e *ent.Pet) (*Pet, error) {
 	return v, nil
 }
 
+// toProtosPet transforms a list of ent type to a list of pb type
+func toProtosPet(e []*ent.Pet) ([]*Pet, error) {
+	var pbList []*Pet
+	for _, entEntity := range e {
+		pbEntity, err := toProtoPet(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements PetServiceServer.Create
 func (svc *PetService) Create(ctx context.Context, req *CreatePetRequest) (*Pet, error) {
 	pet := req.GetPet()
@@ -191,16 +204,12 @@ func (svc *PetService) List(ctx context.Context, req *ListPetRequest) (*ListPetR
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*Pet
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoPet(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosPet(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListPetResponse{
-			PetList:       pbList,
+			PetList:       protoList,
 			NextPageToken: nextPageToken,
 		}, nil
 	default:
@@ -228,16 +237,12 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 	res, err := svc.client.Pet.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		var pbList []*Pet
-		for _, entEntity := range res {
-			pbEntity, err := toProtoPet(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosPet(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &BatchCreatePetsResponse{
-			Pets: pbList,
+			Pets: protoList,
 		}, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)

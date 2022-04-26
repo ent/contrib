@@ -52,6 +52,19 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	return v, nil
 }
 
+// toProtosAttachment transforms a list of ent type to a list of pb type
+func toProtosAttachment(e []*ent.Attachment) ([]*Attachment, error) {
+	var pbList []*Attachment
+	for _, entEntity := range e {
+		pbEntity, err := toProtoAttachment(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
@@ -222,16 +235,12 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*Attachment
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoAttachment(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosAttachment(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListAttachmentResponse{
-			AttachmentList: pbList,
+			AttachmentList: protoList,
 			NextPageToken:  nextPageToken,
 		}, nil
 	default:
@@ -263,16 +272,12 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 	res, err := svc.client.Attachment.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		var pbList []*Attachment
-		for _, entEntity := range res {
-			pbEntity, err := toProtoAttachment(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosAttachment(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &BatchCreateAttachmentsResponse{
-			Attachments: pbList,
+			Attachments: protoList,
 		}, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)

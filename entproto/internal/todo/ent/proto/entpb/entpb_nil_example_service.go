@@ -47,6 +47,19 @@ func toProtoNilExample(e *ent.NilExample) (*NilExample, error) {
 	return v, nil
 }
 
+// toProtosNilExample transforms a list of ent type to a list of pb type
+func toProtosNilExample(e []*ent.NilExample) ([]*NilExample, error) {
+	var pbList []*NilExample
+	for _, entEntity := range e {
+		pbEntity, err := toProtoNilExample(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements NilExampleServiceServer.Create
 func (svc *NilExampleService) Create(ctx context.Context, req *CreateNilExampleRequest) (*NilExample, error) {
 	nilexample := req.GetNilExample()
@@ -197,16 +210,12 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*NilExample
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoNilExample(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosNilExample(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListNilExampleResponse{
-			NilExampleList: pbList,
+			NilExampleList: protoList,
 			NextPageToken:  nextPageToken,
 		}, nil
 	default:
@@ -238,16 +247,12 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 	res, err := svc.client.NilExample.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		var pbList []*NilExample
-		for _, entEntity := range res {
-			pbEntity, err := toProtoNilExample(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtosNilExample(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &BatchCreateNilExamplesResponse{
-			NilExamples: pbList,
+			NilExamples: protoList,
 		}, nil
 	case sqlgraph.IsUniqueConstraintError(err):
 		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
