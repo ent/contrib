@@ -80,6 +80,17 @@ var (
 			},
 		},
 	}
+	// PoniesColumns holds the columns for the "ponies" table.
+	PoniesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// PoniesTable holds the schema information for the "ponies" table.
+	PoniesTable = &schema.Table{
+		Name:       "ponies",
+		Columns:    PoniesColumns,
+		PrimaryKey: []*schema.Column{PoniesColumns[0]},
+	}
 	// SkipEdgeExamplesColumns holds the columns for the "skip_edge_examples" table.
 	SkipEdgeExamplesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -190,6 +201,7 @@ var (
 		MultiWordSchemasTable,
 		NilExamplesTable,
 		PetsTable,
+		PoniesTable,
 		SkipEdgeExamplesTable,
 		TodosTable,
 		UsersTable,

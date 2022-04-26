@@ -21,6 +21,9 @@ type NilExample func(*sql.Selector)
 // Pet is the predicate function for pet builders.
 type Pet func(*sql.Selector)
 
+// Pony is the predicate function for pony builders.
+type Pony func(*sql.Selector)
+
 // SkipEdgeExample is the predicate function for skipedgeexample builders.
 type SkipEdgeExample func(*sql.Selector)
 

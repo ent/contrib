@@ -74,6 +74,19 @@ func (f PetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) 
 	return f(ctx, mv)
 }
 
+// The PonyFunc type is an adapter to allow the use of ordinary
+// function as Pony mutator.
+type PonyFunc func(context.Context, *ent.PonyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PonyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PonyMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PonyMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The SkipEdgeExampleFunc type is an adapter to allow the use of ordinary
 // function as SkipEdgeExample mutator.
 type SkipEdgeExampleFunc func(context.Context, *ent.SkipEdgeExampleMutation) (ent.Value, error)

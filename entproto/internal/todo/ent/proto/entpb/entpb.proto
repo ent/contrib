@@ -277,6 +277,24 @@ message BatchCreatePetsResponse {
   repeated Pet pets = 1;
 }
 
+message Pony {
+  int64 id = 1;
+
+  string name = 2;
+}
+
+message CreatePonyRequest {
+  Pony pony = 1;
+}
+
+message BatchCreatePoniesRequest {
+  repeated CreatePonyRequest requests = 1;
+}
+
+message BatchCreatePoniesResponse {
+  repeated Pony ponies = 1;
+}
+
 message Todo {
   int64 id = 1;
 
@@ -461,6 +479,10 @@ service PetService {
   rpc List ( ListPetRequest ) returns ( ListPetResponse );
 
   rpc BatchCreate ( BatchCreatePetsRequest ) returns ( BatchCreatePetsResponse );
+}
+
+service PonyService {
+  rpc BatchCreate ( BatchCreatePoniesRequest ) returns ( BatchCreatePoniesResponse );
 }
 
 service UserService {
