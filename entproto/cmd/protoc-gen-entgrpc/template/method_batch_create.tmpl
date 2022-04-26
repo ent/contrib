@@ -12,6 +12,7 @@
     }
     bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
     for i, req := range requests {
+        bulk[i] = svc.client.{{ .G.EntType.Name }}.Create()
         m := bulk[i]
         {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
         {{- range .G.FieldMap.Fields }}
