@@ -289,3 +289,53 @@ func TestUserService_List(t *testing.T) {
 	require.True(t, ok, "expected a gRPC status error")
 	require.EqualValues(t, respStatus.Code(), codes.InvalidArgument)
 }
+
+func TestUserService_BatchCreate(t *testing.T) {
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	defer client.Close()
+	svc := NewUserService(client)
+	ctx := context.Background()
+
+	// Create requests
+	var requests []*CreateUserRequest
+	for i := 0; i < (entproto.MaxBatchCreateSize*2)+5; i++ {
+		crmid, _ := uuid.New().MarshalBinary()
+		request := &CreateUserRequest{
+			User: &User{
+				UserName:   fmt.Sprintf("User%d", i),
+				ExternalId: int64(i),
+				Joined:     timestamppb.Now(),
+				Exp:        1000,
+				Points:     10,
+				CrmId:      crmid,
+				CustomPb:   1,
+				Labels:     nil,
+				Status:     User_ACTIVE,
+			},
+		}
+		requests = append(requests, request)
+	}
+
+	// Valid request
+	resp, err := svc.BatchCreate(ctx, &BatchCreateUsersRequest{
+		Requests: requests[:entproto.MaxBatchCreateSize],
+	})
+	require.NoError(t, err)
+	// Check number of entities returned. Should be max batch create size
+	require.EqualValues(t, entproto.MaxBatchCreateSize, len(resp.Users))
+	// Check unique values of returned entities
+	for i, entry := range resp.Users {
+		require.EqualValues(t, fmt.Sprintf("User%d", i), entry.UserName)
+		require.EqualValues(t, i, entry.ExternalId)
+	}
+
+	// Invalid batch size
+	resp, err = svc.BatchCreate(ctx, &BatchCreateUsersRequest{
+		Requests: requests,
+	})
+	require.Nil(t, resp)
+	respStatus, ok := status.FromError(err)
+	require.True(t, ok, "expected a gRPC status error")
+	require.EqualValues(t, respStatus.Code(), codes.InvalidArgument)
+
+}

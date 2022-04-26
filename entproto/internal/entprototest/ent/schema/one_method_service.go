@@ -29,7 +29,7 @@ func (OneMethodService) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
 		entproto.Service(
-			entproto.Methods(entproto.MethodGet),
+			entproto.Methods(entproto.MethodBatchCreate),
 		),
 	}
 }
