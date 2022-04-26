@@ -208,3 +208,43 @@ func (svc *PetService) List(ctx context.Context, req *ListPetRequest) (*ListPetR
 	}
 
 }
+
+// BatchCreate implements PetServiceServer.BatchCreate
+func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequest) (*BatchCreatePetsResponse, error) {
+	requests := req.GetRequests()
+	if len(requests) > entproto.MaxBatchCreateSize {
+		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
+	}
+	bulk := make([]*ent.PetCreate, len(requests))
+	for i, req := range requests {
+		bulk[i] = svc.client.Pet.Create()
+		m := bulk[i]
+		pet := req.GetPet()
+		if pet.GetOwner() != nil {
+			petOwner := int(pet.GetOwner().GetId())
+			m.SetOwnerID(petOwner)
+		}
+	}
+	res, err := svc.client.Pet.CreateBulk(bulk...).Save(ctx)
+	switch {
+	case err == nil:
+		var pbList []*Pet
+		for _, entEntity := range res {
+			pbEntity, err := toProtoPet(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &BatchCreatePetsResponse{
+			Pets: pbList,
+		}, nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}

@@ -466,3 +466,117 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 	}
 
 }
+
+// BatchCreate implements UserServiceServer.BatchCreate
+func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRequest) (*BatchCreateUsersResponse, error) {
+	requests := req.GetRequests()
+	if len(requests) > entproto.MaxBatchCreateSize {
+		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
+	}
+	bulk := make([]*ent.UserCreate, len(requests))
+	for i, req := range requests {
+		bulk[i] = svc.client.User.Create()
+		m := bulk[i]
+		user := req.GetUser()
+		userAccountBalance := float64(user.GetAccountBalance())
+		m.SetAccountBalance(userAccountBalance)
+		if user.GetBUser_1() != nil {
+			userBUser1 := int(user.GetBUser_1().GetValue())
+			m.SetBUser1(userBUser1)
+		}
+		userBanned := user.GetBanned()
+		m.SetBanned(userBanned)
+		if user.GetBigInt() != nil {
+			userBigInt := schema.BigInt{}
+			if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+			}
+			m.SetBigInt(userBigInt)
+		}
+		var userCrmID uuid.UUID
+		if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.SetCrmID(userCrmID)
+		userCustomPb := uint8(user.GetCustomPb())
+		m.SetCustomPb(userCustomPb)
+		userExp := uint64(user.GetExp())
+		m.SetExp(userExp)
+		userExternalID := int(user.GetExternalId())
+		m.SetExternalID(userExternalID)
+		userHeightInCm := float32(user.GetHeightInCm())
+		m.SetHeightInCm(userHeightInCm)
+		userJoined := runtime.ExtractTime(user.GetJoined())
+		m.SetJoined(userJoined)
+		if user.GetLabels() != nil {
+			userLabels := user.GetLabels()
+			m.SetLabels(userLabels)
+		}
+		if user.GetOptBool() != nil {
+			userOptBool := user.GetOptBool().GetValue()
+			m.SetOptBool(userOptBool)
+		}
+		if user.GetOptNum() != nil {
+			userOptNum := int(user.GetOptNum().GetValue())
+			m.SetOptNum(userOptNum)
+		}
+		if user.GetOptStr() != nil {
+			userOptStr := user.GetOptStr().GetValue()
+			m.SetOptStr(userOptStr)
+		}
+		userPoints := uint(user.GetPoints())
+		m.SetPoints(userPoints)
+		userStatus := toEntUser_Status(user.GetStatus())
+		m.SetStatus(userStatus)
+		if user.GetType() != nil {
+			userType := user.GetType().GetValue()
+			m.SetType(userType)
+		}
+		userUserName := user.GetUserName()
+		m.SetUserName(userUserName)
+		if user.GetAttachment() != nil {
+			var userAttachment uuid.UUID
+			if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+			}
+			m.SetAttachmentID(userAttachment)
+		}
+		if user.GetGroup() != nil {
+			userGroup := int(user.GetGroup().GetId())
+			m.SetGroupID(userGroup)
+		}
+		if user.GetPet() != nil {
+			userPet := int(user.GetPet().GetId())
+			m.SetPetID(userPet)
+		}
+		for _, item := range user.GetReceived_1() {
+			var received1 uuid.UUID
+			if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+			}
+			m.AddReceived1IDs(received1)
+		}
+	}
+	res, err := svc.client.User.CreateBulk(bulk...).Save(ctx)
+	switch {
+	case err == nil:
+		var pbList []*User
+		for _, entEntity := range res {
+			pbEntity, err := toProtoUser(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &BatchCreateUsersResponse{
+			Users: pbList,
+		}, nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}

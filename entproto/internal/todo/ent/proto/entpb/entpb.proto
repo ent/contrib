@@ -67,6 +67,14 @@ message ListAttachmentResponse {
   string next_page_token = 2;
 }
 
+message BatchCreateAttachmentsRequest {
+  repeated CreateAttachmentRequest requests = 1;
+}
+
+message BatchCreateAttachmentsResponse {
+  repeated Attachment attachments = 1;
+}
+
 message Group {
   int64 id = 1;
 
@@ -135,6 +143,14 @@ message ListMultiWordSchemaResponse {
   string next_page_token = 2;
 }
 
+message BatchCreateMultiWordSchemasRequest {
+  repeated CreateMultiWordSchemaRequest requests = 1;
+}
+
+message BatchCreateMultiWordSchemasResponse {
+  repeated MultiWordSchema multi_word_schemas = 1;
+}
+
 message NilExample {
   int64 id = 1;
 
@@ -191,6 +207,14 @@ message ListNilExampleResponse {
   string next_page_token = 2;
 }
 
+message BatchCreateNilExamplesRequest {
+  repeated CreateNilExampleRequest requests = 1;
+}
+
+message BatchCreateNilExamplesResponse {
+  repeated NilExample nil_examples = 1;
+}
+
 message Pet {
   int64 id = 1;
 
@@ -243,6 +267,14 @@ message ListPetResponse {
   repeated Pet pet_list = 1;
 
   string next_page_token = 2;
+}
+
+message BatchCreatePetsRequest {
+  repeated CreatePetRequest requests = 1;
+}
+
+message BatchCreatePetsResponse {
+  repeated Pet pets = 1;
 }
 
 message Todo {
@@ -367,6 +399,14 @@ message ListUserResponse {
   string next_page_token = 2;
 }
 
+message BatchCreateUsersRequest {
+  repeated CreateUserRequest requests = 1;
+}
+
+message BatchCreateUsersResponse {
+  repeated User users = 1;
+}
+
 service AttachmentService {
   rpc Create ( CreateAttachmentRequest ) returns ( Attachment );
 
@@ -377,6 +417,8 @@ service AttachmentService {
   rpc Delete ( DeleteAttachmentRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListAttachmentRequest ) returns ( ListAttachmentResponse );
+
+  rpc BatchCreate ( BatchCreateAttachmentsRequest ) returns ( BatchCreateAttachmentsResponse );
 }
 
 service MultiWordSchemaService {
@@ -389,6 +431,8 @@ service MultiWordSchemaService {
   rpc Delete ( DeleteMultiWordSchemaRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListMultiWordSchemaRequest ) returns ( ListMultiWordSchemaResponse );
+
+  rpc BatchCreate ( BatchCreateMultiWordSchemasRequest ) returns ( BatchCreateMultiWordSchemasResponse );
 }
 
 service NilExampleService {
@@ -401,6 +445,8 @@ service NilExampleService {
   rpc Delete ( DeleteNilExampleRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListNilExampleRequest ) returns ( ListNilExampleResponse );
+
+  rpc BatchCreate ( BatchCreateNilExamplesRequest ) returns ( BatchCreateNilExamplesResponse );
 }
 
 service PetService {
@@ -413,6 +459,8 @@ service PetService {
   rpc Delete ( DeletePetRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListPetRequest ) returns ( ListPetResponse );
+
+  rpc BatchCreate ( BatchCreatePetsRequest ) returns ( BatchCreatePetsResponse );
 }
 
 service UserService {
@@ -425,4 +473,6 @@ service UserService {
   rpc Delete ( DeleteUserRequest ) returns ( google.protobuf.Empty );
 
   rpc List ( ListUserRequest ) returns ( ListUserResponse );
+
+  rpc BatchCreate ( BatchCreateUsersRequest ) returns ( BatchCreateUsersResponse );
 }

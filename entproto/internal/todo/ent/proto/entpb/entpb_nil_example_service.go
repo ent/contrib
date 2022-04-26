@@ -214,3 +214,47 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 	}
 
 }
+
+// BatchCreate implements NilExampleServiceServer.BatchCreate
+func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateNilExamplesRequest) (*BatchCreateNilExamplesResponse, error) {
+	requests := req.GetRequests()
+	if len(requests) > entproto.MaxBatchCreateSize {
+		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
+	}
+	bulk := make([]*ent.NilExampleCreate, len(requests))
+	for i, req := range requests {
+		bulk[i] = svc.client.NilExample.Create()
+		m := bulk[i]
+		nilexample := req.GetNilExample()
+		if nilexample.GetStrNil() != nil {
+			nilexampleStrNil := nilexample.GetStrNil().GetValue()
+			m.SetStrNil(nilexampleStrNil)
+		}
+		if nilexample.GetTimeNil() != nil {
+			nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
+			m.SetTimeNil(nilexampleTimeNil)
+		}
+	}
+	res, err := svc.client.NilExample.CreateBulk(bulk...).Save(ctx)
+	switch {
+	case err == nil:
+		var pbList []*NilExample
+		for _, entEntity := range res {
+			pbEntity, err := toProtoNilExample(entEntity)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+			}
+			pbList = append(pbList, pbEntity)
+		}
+		return &BatchCreateNilExamplesResponse{
+			NilExamples: pbList,
+		}, nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
