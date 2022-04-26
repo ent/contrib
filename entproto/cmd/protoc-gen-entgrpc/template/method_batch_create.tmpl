@@ -1,10 +1,8 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_batch_create" }}
-
     {{- $idField := .G.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
-    {{- $methodName := .Method.GoName -}}
     {{- $reqVar := camel .G.EntType.Name -}}
     requests := req.GetRequests()
     if len(requests) > entproto.MaxBatchCreateSize {
@@ -12,43 +10,10 @@
     }
     bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
     for i, req := range requests {
+        {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
         bulk[i] = svc.client.{{ .G.EntType.Name }}.Create()
         m := bulk[i]
-        {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
-        {{- range .G.FieldMap.Fields }}
-            {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
-            {{- $skip := or .IsIDField $skipImmutable -}}
-            {{- if not $skip }}
-                {{- $varName := camel (print $reqVar  "_"  .EntField.Name) -}}
-                {{- $id := print $reqVar ".Get" .PbStructField "() " -}}
-                {{- if .EntField.Optional }}
-                    if {{ $id }} != nil {
-                {{- end }}
-                {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                m.Set{{ .EntField.StructField }}({{ $varName }})
-                {{- if .EntField.Optional }}
-                    }
-                {{- end }}
-            {{- end }}
-        {{- end }}
-        {{- range .G.FieldMap.Edges }}
-            {{- if .EntEdge.Unique }}
-                {{- $varName := camel (printf "%s_%s" $reqVar .EntEdge.Name) -}}
-                {{- $id := printf "%s.Get%s().Get%s()" $reqVar .PbStructField .EdgeIDPbStructField  }}
-                {{- $other := printf "%s.Get%s()" $reqVar .PbStructField }}
-                if {{ $other }} != nil {
-                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                    m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
-                }
-            {{- else }}
-                for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
-                    {{- $varName  := camel .EntEdge.StructField }}
-                    {{- $id := printf "item.Get%s()" .EdgeIDPbStructField }}
-                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                    m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
-                }
-            {{- end }}
-        {{- end }}
+        {{- template "mutate_helper" . -}}
     }
     res, err := svc.client.{{ .G.EntType.Name }}.CreateBulk(bulk...).Save(ctx)
     switch {
