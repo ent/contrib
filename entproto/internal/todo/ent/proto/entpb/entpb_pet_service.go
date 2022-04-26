@@ -226,9 +226,9 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 	}
 	bulk := make([]*ent.PetCreate, len(requests))
 	for i, req := range requests {
+		pet := req.GetPet()
 		bulk[i] = svc.client.Pet.Create()
 		m := bulk[i]
-		pet := req.GetPet()
 		if pet.GetOwner() != nil {
 			petOwner := int(pet.GetOwner().GetId())
 			m.SetOwnerID(petOwner)

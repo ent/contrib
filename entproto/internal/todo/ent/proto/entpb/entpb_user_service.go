@@ -484,9 +484,9 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 	}
 	bulk := make([]*ent.UserCreate, len(requests))
 	for i, req := range requests {
+		user := req.GetUser()
 		bulk[i] = svc.client.User.Create()
 		m := bulk[i]
-		user := req.GetUser()
 		userAccountBalance := float64(user.GetAccountBalance())
 		m.SetAccountBalance(userAccountBalance)
 		if user.GetBUser_1() != nil {

@@ -232,9 +232,9 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 	}
 	bulk := make([]*ent.NilExampleCreate, len(requests))
 	for i, req := range requests {
+		nilexample := req.GetNilExample()
 		bulk[i] = svc.client.NilExample.Create()
 		m := bulk[i]
-		nilexample := req.GetNilExample()
 		if nilexample.GetStrNil() != nil {
 			nilexampleStrNil := nilexample.GetStrNil().GetValue()
 			m.SetStrNil(nilexampleStrNil)

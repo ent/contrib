@@ -226,9 +226,9 @@ func (svc *MultiWordSchemaService) BatchCreate(ctx context.Context, req *BatchCr
 	}
 	bulk := make([]*ent.MultiWordSchemaCreate, len(requests))
 	for i, req := range requests {
+		multiwordschema := req.GetMultiWordSchema()
 		bulk[i] = svc.client.MultiWordSchema.Create()
 		m := bulk[i]
-		multiwordschema := req.GetMultiWordSchema()
 		multiwordschemaUnit := toEntMultiWordSchema_Unit(multiwordschema.GetUnit())
 		m.SetUnit(multiwordschemaUnit)
 	}

@@ -257,9 +257,9 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 	}
 	bulk := make([]*ent.AttachmentCreate, len(requests))
 	for i, req := range requests {
+		attachment := req.GetAttachment()
 		bulk[i] = svc.client.Attachment.Create()
 		m := bulk[i]
-		attachment := req.GetAttachment()
 		for _, item := range attachment.GetRecipients() {
 			recipients := int(item.GetId())
 			m.AddRecipientIDs(recipients)
