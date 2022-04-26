@@ -108,9 +108,7 @@ func (g *serviceGenerator) generate() error {
 			"entIdent":     g.entIdent,
 			"newConverter": g.newConverter,
 			"unquote":      strconv.Unquote,
-			"pluralize": func(in string) string {
-				return inflect.Pluralize(in)
-			},
+			"pluralize":    inflect.Pluralize,
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
 			},
