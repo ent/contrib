@@ -135,7 +135,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		TypeName: &genType.Name,
 	}
 	repeatedMessageField := &descriptorpb.FieldDescriptorProto{
-		Name:     strptr(snake(genType.Name) + "s"),
+		Name:     strptr(snake(inflect.Pluralize(genType.Name))),
 		Number:   int32ptr(1),
 		Label:    &repeatedFieldLabel,
 		Type:     &protoMessageFieldType,
