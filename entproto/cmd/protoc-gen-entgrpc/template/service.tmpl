@@ -54,4 +54,13 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
         {{- end }}
     }
 {{ end }}
+
+{{ range .Service.Methods }}
+    {{ $methodName := .GoName }}
+
+    {{- if or (eq $methodName "Create") (eq $methodName "BatchCreate") }}
+        {{- template "create_builder_func" dict "ServiceName" ($.Service.GoName) "Method" (method .) }}
+        {{break}}
+    {{- end }}
+{{ end }}
 {{ end }}

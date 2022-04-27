@@ -11,9 +11,11 @@
     bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
     for i, req := range requests {
         {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
-        bulk[i] = svc.client.{{ .G.EntType.Name }}.Create()
-        m := bulk[i]
-        {{- template "mutate_helper" . -}}
+        var err error
+        bulk[i], err = svc.configureCreateBuilder({{ $reqVar }})
+        if err != nil {
+            return nil, err
+        }
     }
     res, err := svc.client.{{ .G.EntType.Name }}.CreateBulk(bulk...).Save(ctx)
     switch {

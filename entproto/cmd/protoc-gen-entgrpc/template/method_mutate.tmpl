@@ -8,14 +8,17 @@
     {{- $reqVar := camel .G.EntType.Name -}}
     {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
     {{- if eq .Method.GoName "Create" }}
-        m := svc.client.{{ .G.EntType.Name }}.Create()
+        m, err := svc.configureCreateBuilder({{ $reqVar }})
+        if err != nil {
+            return nil, err
+        }
     {{- else }}
         {{- $varName := camel (print $reqVar "_" $idField.EntField.Name) -}}
         {{- $id := print $reqVar ".Get" $idField.PbStructField "() " -}}
         {{- template "field_to_ent" dict "Field" $idField "VarName" $varName "Ident" $id }}
         m := svc.client.{{ .G.EntType.Name }}.UpdateOneID({{ $varName }})
+        {{- template "mutate_helper" . -}}
     {{- end }}
-    {{- template "mutate_helper" . -}}
     res, err := m.Save(ctx)
     switch {
         case err == nil:
@@ -30,6 +33,18 @@
             return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err"}}
         default:
             return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
+    }
+{{ end }}
+
+{{ define "create_builder_func" }}
+    {{- $entType  := .Method.G.EntType.Name -}}
+    {{- $inputVar := camel $entType -}}
+    {{- $outputType := printf "%s%s" $entType "Create" -}}
+
+    func (svc *{{ .ServiceName }}) configureCreateBuilder({{ $inputVar }} *{{ $entType }}) (*ent.{{ $outputType }}, error) {
+        m := svc.client.{{ $entType }}.Create()
+        {{- template "mutate_helper" .Method -}}
+        return m, nil
     }
 {{ end }}
 
