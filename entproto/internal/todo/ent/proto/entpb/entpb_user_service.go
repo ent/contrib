@@ -153,84 +153,9 @@ func toProtoUserList(e []*ent.User) ([]*User, error) {
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	m := svc.client.User.Create()
-	userAccountBalance := float64(user.GetAccountBalance())
-	m.SetAccountBalance(userAccountBalance)
-	if user.GetBUser_1() != nil {
-		userBUser1 := int(user.GetBUser_1().GetValue())
-		m.SetBUser1(userBUser1)
-	}
-	userBanned := user.GetBanned()
-	m.SetBanned(userBanned)
-	if user.GetBigInt() != nil {
-		userBigInt := schema.BigInt{}
-		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-		}
-		m.SetBigInt(userBigInt)
-	}
-	var userCrmID uuid.UUID
-	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-	}
-	m.SetCrmID(userCrmID)
-	userCustomPb := uint8(user.GetCustomPb())
-	m.SetCustomPb(userCustomPb)
-	userExp := uint64(user.GetExp())
-	m.SetExp(userExp)
-	userExternalID := int(user.GetExternalId())
-	m.SetExternalID(userExternalID)
-	userHeightInCm := float32(user.GetHeightInCm())
-	m.SetHeightInCm(userHeightInCm)
-	userJoined := runtime.ExtractTime(user.GetJoined())
-	m.SetJoined(userJoined)
-	if user.GetLabels() != nil {
-		userLabels := user.GetLabels()
-		m.SetLabels(userLabels)
-	}
-	if user.GetOptBool() != nil {
-		userOptBool := user.GetOptBool().GetValue()
-		m.SetOptBool(userOptBool)
-	}
-	if user.GetOptNum() != nil {
-		userOptNum := int(user.GetOptNum().GetValue())
-		m.SetOptNum(userOptNum)
-	}
-	if user.GetOptStr() != nil {
-		userOptStr := user.GetOptStr().GetValue()
-		m.SetOptStr(userOptStr)
-	}
-	userPoints := uint(user.GetPoints())
-	m.SetPoints(userPoints)
-	userStatus := toEntUser_Status(user.GetStatus())
-	m.SetStatus(userStatus)
-	if user.GetType() != nil {
-		userType := user.GetType().GetValue()
-		m.SetType(userType)
-	}
-	userUserName := user.GetUserName()
-	m.SetUserName(userUserName)
-	if user.GetAttachment() != nil {
-		var userAttachment uuid.UUID
-		if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-		}
-		m.SetAttachmentID(userAttachment)
-	}
-	if user.GetGroup() != nil {
-		userGroup := int(user.GetGroup().GetId())
-		m.SetGroupID(userGroup)
-	}
-	if user.GetPet() != nil {
-		userPet := int(user.GetPet().GetId())
-		m.SetPetID(userPet)
-	}
-	for _, item := range user.GetReceived_1() {
-		var received1 uuid.UUID
-		if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-		}
-		m.AddReceived1IDs(received1)
+	m, err := svc.configureCreateBuilder(user)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -371,6 +296,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		}
 		m.AddReceived1IDs(received1)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -485,85 +411,10 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 	bulk := make([]*ent.UserCreate, len(requests))
 	for i, req := range requests {
 		user := req.GetUser()
-		bulk[i] = svc.client.User.Create()
-		m := bulk[i]
-		userAccountBalance := float64(user.GetAccountBalance())
-		m.SetAccountBalance(userAccountBalance)
-		if user.GetBUser_1() != nil {
-			userBUser1 := int(user.GetBUser_1().GetValue())
-			m.SetBUser1(userBUser1)
-		}
-		userBanned := user.GetBanned()
-		m.SetBanned(userBanned)
-		if user.GetBigInt() != nil {
-			userBigInt := schema.BigInt{}
-			if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
-				return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-			}
-			m.SetBigInt(userBigInt)
-		}
-		var userCrmID uuid.UUID
-		if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-		}
-		m.SetCrmID(userCrmID)
-		userCustomPb := uint8(user.GetCustomPb())
-		m.SetCustomPb(userCustomPb)
-		userExp := uint64(user.GetExp())
-		m.SetExp(userExp)
-		userExternalID := int(user.GetExternalId())
-		m.SetExternalID(userExternalID)
-		userHeightInCm := float32(user.GetHeightInCm())
-		m.SetHeightInCm(userHeightInCm)
-		userJoined := runtime.ExtractTime(user.GetJoined())
-		m.SetJoined(userJoined)
-		if user.GetLabels() != nil {
-			userLabels := user.GetLabels()
-			m.SetLabels(userLabels)
-		}
-		if user.GetOptBool() != nil {
-			userOptBool := user.GetOptBool().GetValue()
-			m.SetOptBool(userOptBool)
-		}
-		if user.GetOptNum() != nil {
-			userOptNum := int(user.GetOptNum().GetValue())
-			m.SetOptNum(userOptNum)
-		}
-		if user.GetOptStr() != nil {
-			userOptStr := user.GetOptStr().GetValue()
-			m.SetOptStr(userOptStr)
-		}
-		userPoints := uint(user.GetPoints())
-		m.SetPoints(userPoints)
-		userStatus := toEntUser_Status(user.GetStatus())
-		m.SetStatus(userStatus)
-		if user.GetType() != nil {
-			userType := user.GetType().GetValue()
-			m.SetType(userType)
-		}
-		userUserName := user.GetUserName()
-		m.SetUserName(userUserName)
-		if user.GetAttachment() != nil {
-			var userAttachment uuid.UUID
-			if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
-				return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-			}
-			m.SetAttachmentID(userAttachment)
-		}
-		if user.GetGroup() != nil {
-			userGroup := int(user.GetGroup().GetId())
-			m.SetGroupID(userGroup)
-		}
-		if user.GetPet() != nil {
-			userPet := int(user.GetPet().GetId())
-			m.SetPetID(userPet)
-		}
-		for _, item := range user.GetReceived_1() {
-			var received1 uuid.UUID
-			if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
-				return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
-			}
-			m.AddReceived1IDs(received1)
+		var err error
+		bulk[i], err = svc.configureCreateBuilder(user)
+		if err != nil {
+			return nil, err
 		}
 	}
 	res, err := svc.client.User.CreateBulk(bulk...).Save(ctx)
@@ -584,4 +435,87 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+func (svc *UserService) configureCreateBuilder(user *User) (*ent.UserCreate, error) {
+	m := svc.client.User.Create()
+	userAccountBalance := float64(user.GetAccountBalance())
+	m.SetAccountBalance(userAccountBalance)
+	if user.GetBUser_1() != nil {
+		userBUser1 := int(user.GetBUser_1().GetValue())
+		m.SetBUser1(userBUser1)
+	}
+	userBanned := user.GetBanned()
+	m.SetBanned(userBanned)
+	if user.GetBigInt() != nil {
+		userBigInt := schema.BigInt{}
+		if err := (&userBigInt).Scan(user.GetBigInt().GetValue()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.SetBigInt(userBigInt)
+	}
+	var userCrmID uuid.UUID
+	if err := (&userCrmID).UnmarshalBinary(user.GetCrmId()); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	}
+	m.SetCrmID(userCrmID)
+	userCustomPb := uint8(user.GetCustomPb())
+	m.SetCustomPb(userCustomPb)
+	userExp := uint64(user.GetExp())
+	m.SetExp(userExp)
+	userExternalID := int(user.GetExternalId())
+	m.SetExternalID(userExternalID)
+	userHeightInCm := float32(user.GetHeightInCm())
+	m.SetHeightInCm(userHeightInCm)
+	userJoined := runtime.ExtractTime(user.GetJoined())
+	m.SetJoined(userJoined)
+	if user.GetLabels() != nil {
+		userLabels := user.GetLabels()
+		m.SetLabels(userLabels)
+	}
+	if user.GetOptBool() != nil {
+		userOptBool := user.GetOptBool().GetValue()
+		m.SetOptBool(userOptBool)
+	}
+	if user.GetOptNum() != nil {
+		userOptNum := int(user.GetOptNum().GetValue())
+		m.SetOptNum(userOptNum)
+	}
+	if user.GetOptStr() != nil {
+		userOptStr := user.GetOptStr().GetValue()
+		m.SetOptStr(userOptStr)
+	}
+	userPoints := uint(user.GetPoints())
+	m.SetPoints(userPoints)
+	userStatus := toEntUser_Status(user.GetStatus())
+	m.SetStatus(userStatus)
+	if user.GetType() != nil {
+		userType := user.GetType().GetValue()
+		m.SetType(userType)
+	}
+	userUserName := user.GetUserName()
+	m.SetUserName(userUserName)
+	if user.GetAttachment() != nil {
+		var userAttachment uuid.UUID
+		if err := (&userAttachment).UnmarshalBinary(user.GetAttachment().GetId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.SetAttachmentID(userAttachment)
+	}
+	if user.GetGroup() != nil {
+		userGroup := int(user.GetGroup().GetId())
+		m.SetGroupID(userGroup)
+	}
+	if user.GetPet() != nil {
+		userPet := int(user.GetPet().GetId())
+		m.SetPetID(userPet)
+	}
+	for _, item := range user.GetReceived_1() {
+		var received1 uuid.UUID
+		if err := (&received1).UnmarshalBinary(item.GetId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.AddReceived1IDs(received1)
+	}
+	return m, nil
 }

@@ -55,10 +55,11 @@ func (svc *PonyService) BatchCreate(ctx context.Context, req *BatchCreatePoniesR
 	bulk := make([]*ent.PonyCreate, len(requests))
 	for i, req := range requests {
 		pony := req.GetPony()
-		bulk[i] = svc.client.Pony.Create()
-		m := bulk[i]
-		ponyName := pony.GetName()
-		m.SetName(ponyName)
+		var err error
+		bulk[i], err = svc.configureCreateBuilder(pony)
+		if err != nil {
+			return nil, err
+		}
 	}
 	res, err := svc.client.Pony.CreateBulk(bulk...).Save(ctx)
 	switch {
@@ -78,4 +79,11 @@ func (svc *PonyService) BatchCreate(ctx context.Context, req *BatchCreatePoniesR
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+func (svc *PonyService) configureCreateBuilder(pony *Pony) (*ent.PonyCreate, error) {
+	m := svc.client.Pony.Create()
+	ponyName := pony.GetName()
+	m.SetName(ponyName)
+	return m, nil
 }

@@ -63,14 +63,9 @@ func toProtoNilExampleList(e []*ent.NilExample) ([]*NilExample, error) {
 // Create implements NilExampleServiceServer.Create
 func (svc *NilExampleService) Create(ctx context.Context, req *CreateNilExampleRequest) (*NilExample, error) {
 	nilexample := req.GetNilExample()
-	m := svc.client.NilExample.Create()
-	if nilexample.GetStrNil() != nil {
-		nilexampleStrNil := nilexample.GetStrNil().GetValue()
-		m.SetStrNil(nilexampleStrNil)
-	}
-	if nilexample.GetTimeNil() != nil {
-		nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
-		m.SetTimeNil(nilexampleTimeNil)
+	m, err := svc.configureCreateBuilder(nilexample)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -131,6 +126,7 @@ func (svc *NilExampleService) Update(ctx context.Context, req *UpdateNilExampleR
 		nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
 		m.SetTimeNil(nilexampleTimeNil)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -233,15 +229,10 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 	bulk := make([]*ent.NilExampleCreate, len(requests))
 	for i, req := range requests {
 		nilexample := req.GetNilExample()
-		bulk[i] = svc.client.NilExample.Create()
-		m := bulk[i]
-		if nilexample.GetStrNil() != nil {
-			nilexampleStrNil := nilexample.GetStrNil().GetValue()
-			m.SetStrNil(nilexampleStrNil)
-		}
-		if nilexample.GetTimeNil() != nil {
-			nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
-			m.SetTimeNil(nilexampleTimeNil)
+		var err error
+		bulk[i], err = svc.configureCreateBuilder(nilexample)
+		if err != nil {
+			return nil, err
 		}
 	}
 	res, err := svc.client.NilExample.CreateBulk(bulk...).Save(ctx)
@@ -262,4 +253,17 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+func (svc *NilExampleService) configureCreateBuilder(nilexample *NilExample) (*ent.NilExampleCreate, error) {
+	m := svc.client.NilExample.Create()
+	if nilexample.GetStrNil() != nil {
+		nilexampleStrNil := nilexample.GetStrNil().GetValue()
+		m.SetStrNil(nilexampleStrNil)
+	}
+	if nilexample.GetTimeNil() != nil {
+		nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
+		m.SetTimeNil(nilexampleTimeNil)
+	}
+	return m, nil
 }

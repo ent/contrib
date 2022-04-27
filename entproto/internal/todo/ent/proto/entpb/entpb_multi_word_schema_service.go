@@ -69,9 +69,10 @@ func toProtoMultiWordSchemaList(e []*ent.MultiWordSchema) ([]*MultiWordSchema, e
 // Create implements MultiWordSchemaServiceServer.Create
 func (svc *MultiWordSchemaService) Create(ctx context.Context, req *CreateMultiWordSchemaRequest) (*MultiWordSchema, error) {
 	multiwordschema := req.GetMultiWordSchema()
-	m := svc.client.MultiWordSchema.Create()
-	multiwordschemaUnit := toEntMultiWordSchema_Unit(multiwordschema.GetUnit())
-	m.SetUnit(multiwordschemaUnit)
+	m, err := svc.configureCreateBuilder(multiwordschema)
+	if err != nil {
+		return nil, err
+	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -125,6 +126,7 @@ func (svc *MultiWordSchemaService) Update(ctx context.Context, req *UpdateMultiW
 	m := svc.client.MultiWordSchema.UpdateOneID(multiwordschemaID)
 	multiwordschemaUnit := toEntMultiWordSchema_Unit(multiwordschema.GetUnit())
 	m.SetUnit(multiwordschemaUnit)
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -227,10 +229,11 @@ func (svc *MultiWordSchemaService) BatchCreate(ctx context.Context, req *BatchCr
 	bulk := make([]*ent.MultiWordSchemaCreate, len(requests))
 	for i, req := range requests {
 		multiwordschema := req.GetMultiWordSchema()
-		bulk[i] = svc.client.MultiWordSchema.Create()
-		m := bulk[i]
-		multiwordschemaUnit := toEntMultiWordSchema_Unit(multiwordschema.GetUnit())
-		m.SetUnit(multiwordschemaUnit)
+		var err error
+		bulk[i], err = svc.configureCreateBuilder(multiwordschema)
+		if err != nil {
+			return nil, err
+		}
 	}
 	res, err := svc.client.MultiWordSchema.CreateBulk(bulk...).Save(ctx)
 	switch {
@@ -250,4 +253,11 @@ func (svc *MultiWordSchemaService) BatchCreate(ctx context.Context, req *BatchCr
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+func (svc *MultiWordSchemaService) configureCreateBuilder(multiwordschema *MultiWordSchema) (*ent.MultiWordSchemaCreate, error) {
+	m := svc.client.MultiWordSchema.Create()
+	multiwordschemaUnit := toEntMultiWordSchema_Unit(multiwordschema.GetUnit())
+	m.SetUnit(multiwordschemaUnit)
+	return m, nil
 }

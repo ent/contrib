@@ -68,14 +68,9 @@ func toProtoAttachmentList(e []*ent.Attachment) ([]*Attachment, error) {
 // Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	m := svc.client.Attachment.Create()
-	for _, item := range attachment.GetRecipients() {
-		recipients := int(item.GetId())
-		m.AddRecipientIDs(recipients)
-	}
-	if attachment.GetUser() != nil {
-		attachmentUser := int(attachment.GetUser().GetId())
-		m.SetUserID(attachmentUser)
+	m, err := svc.configureCreateBuilder(attachment)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -148,6 +143,7 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 		attachmentUser := int(attachment.GetUser().GetId())
 		m.SetUserID(attachmentUser)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -258,15 +254,10 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 	bulk := make([]*ent.AttachmentCreate, len(requests))
 	for i, req := range requests {
 		attachment := req.GetAttachment()
-		bulk[i] = svc.client.Attachment.Create()
-		m := bulk[i]
-		for _, item := range attachment.GetRecipients() {
-			recipients := int(item.GetId())
-			m.AddRecipientIDs(recipients)
-		}
-		if attachment.GetUser() != nil {
-			attachmentUser := int(attachment.GetUser().GetId())
-			m.SetUserID(attachmentUser)
+		var err error
+		bulk[i], err = svc.configureCreateBuilder(attachment)
+		if err != nil {
+			return nil, err
 		}
 	}
 	res, err := svc.client.Attachment.CreateBulk(bulk...).Save(ctx)
@@ -287,4 +278,17 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+func (svc *AttachmentService) configureCreateBuilder(attachment *Attachment) (*ent.AttachmentCreate, error) {
+	m := svc.client.Attachment.Create()
+	for _, item := range attachment.GetRecipients() {
+		recipients := int(item.GetId())
+		m.AddRecipientIDs(recipients)
+	}
+	if attachment.GetUser() != nil {
+		attachmentUser := int(attachment.GetUser().GetId())
+		m.SetUserID(attachmentUser)
+	}
+	return m, nil
 }

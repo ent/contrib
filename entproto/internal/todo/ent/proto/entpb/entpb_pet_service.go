@@ -59,10 +59,9 @@ func toProtoPetList(e []*ent.Pet) ([]*Pet, error) {
 // Create implements PetServiceServer.Create
 func (svc *PetService) Create(ctx context.Context, req *CreatePetRequest) (*Pet, error) {
 	pet := req.GetPet()
-	m := svc.client.Pet.Create()
-	if pet.GetOwner() != nil {
-		petOwner := int(pet.GetOwner().GetId())
-		m.SetOwnerID(petOwner)
+	m, err := svc.configureCreateBuilder(pet)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -122,6 +121,7 @@ func (svc *PetService) Update(ctx context.Context, req *UpdatePetRequest) (*Pet,
 		petOwner := int(pet.GetOwner().GetId())
 		m.SetOwnerID(petOwner)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -227,11 +227,10 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 	bulk := make([]*ent.PetCreate, len(requests))
 	for i, req := range requests {
 		pet := req.GetPet()
-		bulk[i] = svc.client.Pet.Create()
-		m := bulk[i]
-		if pet.GetOwner() != nil {
-			petOwner := int(pet.GetOwner().GetId())
-			m.SetOwnerID(petOwner)
+		var err error
+		bulk[i], err = svc.configureCreateBuilder(pet)
+		if err != nil {
+			return nil, err
 		}
 	}
 	res, err := svc.client.Pet.CreateBulk(bulk...).Save(ctx)
@@ -252,4 +251,13 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+func (svc *PetService) configureCreateBuilder(pet *Pet) (*ent.PetCreate, error) {
+	m := svc.client.Pet.Create()
+	if pet.GetOwner() != nil {
+		petOwner := int(pet.GetOwner().GetId())
+		m.SetOwnerID(petOwner)
+	}
+	return m, nil
 }
