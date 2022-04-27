@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd
-	github.com/99designs/gqlgen v0.17.3-0.20220329113751-1324c3ffb9ff
+	github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.2.11
 	github.com/go-openapi/inflect v0.19.0
@@ -63,5 +63,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-replace github.com/99designs/gqlgen => github.com/giautm/gqlgen v0.17.5-0.20220427142801-3e3fd98cf384

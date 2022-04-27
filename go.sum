@@ -4,6 +4,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd h1:6fkRQkKUpvWfeFkz81YUBL5L3/vTP3UT3Ir5Cvi2YIg=
 entgo.io/ent v0.10.2-0.20220402190128-05246cbd26dd/go.mod h1:N5rSx938yoabKH4MHfkLQ7HQIqUJnqJaUUFXERXWE70=
+github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90 h1:nGGP+sUJ6D3guzjVBgoH1PrZxoU4lUdfR/Q8THYrAJI=
+github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90/go.mod h1:SNpLVzaF37rRLSAXtu8FKVp5I4zycneMmFX6NT4XGSU=
 github.com/AlekSi/pointer v1.1.0 h1:SSDMPcXD9jSl8FPy9cRzoRaMJtm9g9ggGTxecRUbQoI=
 github.com/AlekSi/pointer v1.1.0/go.mod h1:y7BvfRI3wXPWKXEBhU71nbnIEEZX0QTSB2Bj48UJIZE=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
@@ -56,8 +58,6 @@ github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGE
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
-github.com/giautm/gqlgen v0.17.5-0.20220427142801-3e3fd98cf384 h1:MiFlH/aUUYaJ/wf6JmemAag+77Uh2ZJ07A3FSl3PMZ0=
-github.com/giautm/gqlgen v0.17.5-0.20220427142801-3e3fd98cf384/go.mod h1:P5HEsN+ohM/WsfR4EdAtPtNZC1nnORU+fYDi/46SPT8=
 github.com/go-faster/errors v0.5.0 h1:hS/zHFJ2Vb14jcupq5J9tk05XW+PFTmySOkDRByHBo4=
 github.com/go-faster/errors v0.5.0/go.mod h1:/9SNBcg2ESJTYztBFEiM5Np6ns85BtPNMJd8lFTiFwk=
 github.com/go-faster/jx v0.25.0 h1:aesx/Znt74CiG1Dp2fHPKM1BuSi9ok+aDKfOoY18els=
