@@ -43,6 +43,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	TodoWhereInput() TodoWhereInputResolver
 }
 
 type DirectiveRoot struct {
@@ -147,6 +148,10 @@ type QueryResolver interface {
 	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
 	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error)
 	Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error)
+}
+
+type TodoWhereInputResolver interface {
+	CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error
 }
 
 type executableSchema struct {
@@ -714,6 +719,10 @@ enum TodoOrderField {
 input TodoOrder {
   direction: OrderDirection!
   field: TodoOrderField
+}
+
+extend input TodoWhereInput {
+  createdToday: Boolean
 }
 
 type Query {
@@ -6777,6 +6786,17 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCategoryWith"))
 			it.HasCategoryWith, err = ec.unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryWhereInputᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+		case "createdToday":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdToday"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.TodoWhereInput().CreatedToday(ctx, &it, data); err != nil {
 				return it, err
 			}
 		}

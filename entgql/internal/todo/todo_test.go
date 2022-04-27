@@ -79,6 +79,7 @@ const (
 )
 
 func (s *todoTestSuite) SetupTest() {
+	time.Local = time.UTC
 	s.ent = enttest.Open(s.T(), dialect.SQLite,
 		fmt.Sprintf("file:%s-%d?mode=memory&cache=shared&_fk=1",
 			s.T().Name(), time.Now().UnixNano(),
@@ -620,6 +621,93 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		err = s.Post(query, &rsp, client.Var("duration", time.Second*2))
 		s.NoError(err)
 		s.Zero(rsp.Todos.TotalCount)
+	})
+}
+
+func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
+	ctx := context.Background()
+	s.ent.Todo.Create().SetStatus(todo.StatusCompleted).SetText("test1").SetCreatedAt(time.Now().Add(48 * time.Hour)).ExecX(ctx)
+	s.ent.Todo.Create().SetStatus(todo.StatusCompleted).SetText("test2").SetCreatedAt(time.Now().Add(-48 * time.Hour)).ExecX(ctx)
+	s.ent.Todo.Create().SetStatus(todo.StatusCompleted).SetText("test3").SetCreatedAt(time.Now().Add(-48 * time.Hour)).ExecX(ctx)
+
+	s.Run("createdToday true", func() {
+		var rsp response
+		err := s.Post(`query($createdToday: Boolean) {
+			todos(where: {createdToday: $createdToday}) {
+				totalCount
+			}
+		}`, &rsp,
+			client.Var("createdToday", true),
+		)
+		s.NoError(err)
+		s.Equal(maxTodos, rsp.Todos.TotalCount)
+	})
+
+	s.Run("createdToday false", func() {
+		var rsp response
+		err := s.Post(`query($createdToday: Boolean) {
+			todos(where: {createdToday: $createdToday}) {
+				totalCount
+			}
+		}`, &rsp,
+			client.Var("createdToday", false),
+		)
+		s.NoError(err)
+		s.Equal(3, rsp.Todos.TotalCount)
+	})
+
+	s.Run("not createdToday true", func() {
+		var rsp response
+		err := s.Post(`query($createdToday: Boolean) {
+			todos(where: {not:{createdToday: $createdToday}}) {
+				totalCount
+			}
+		}`, &rsp,
+			client.Var("createdToday", true),
+		)
+		s.NoError(err)
+		s.Equal(3, rsp.Todos.TotalCount)
+	})
+
+	s.Run("not createdToday false", func() {
+		var rsp response
+		err := s.Post(`query($createdToday: Boolean) {
+			todos(where: {not:{createdToday: $createdToday}}) {
+				totalCount
+			}
+		}`, &rsp,
+			client.Var("createdToday", false),
+		)
+		s.NoError(err)
+		s.Equal(maxTodos, rsp.Todos.TotalCount)
+	})
+
+	s.Run("or createdToday", func() {
+		var rsp response
+		err := s.Post(`query($createdToday1: Boolean, $createdToday2: Boolean) {
+			todos(where: {or:[{createdToday: $createdToday1}, {createdToday: $createdToday2}]}) {
+				totalCount
+			}
+		}`, &rsp,
+			client.Var("createdToday1", true),
+			client.Var("createdToday2", false),
+		)
+		s.NoError(err)
+		s.Equal(maxTodos+3, rsp.Todos.TotalCount)
+	})
+
+	s.Run("and createdToday", func() {
+		var rsp response
+		err := s.Post(`query($createdToday1: Boolean, $createdToday2: Boolean) {
+			todos(where: {and:[{createdToday: $createdToday1}, {createdToday: $createdToday2}]}) {
+				totalCount
+			}
+		}`, &rsp,
+			client.Var("createdToday1", true),
+			client.Var("createdToday2", false),
+		)
+		s.NoError(err)
+		s.Equal(0, rsp.Todos.TotalCount)
 	})
 }
 

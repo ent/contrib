@@ -19,8 +19,10 @@ package todo
 
 import (
 	"context"
+	"time"
 
 	"entgo.io/contrib/entgql/internal/todo/ent"
+	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
@@ -69,6 +71,22 @@ func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *in
 		Paginate(ctx, after, first, before, last,
 			ent.WithGroupFilter(where.Filter),
 		)
+}
+
+func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error {
+	if data == nil {
+		return nil
+	}
+
+	startOfDay := time.Now().Truncate(24 * time.Hour)
+	endOfDay := startOfDay.Add(24*time.Hour - 1)
+	if *data {
+		obj.AddPredicates(todo.And(todo.CreatedAtGTE(startOfDay), todo.CreatedAtLTE(endOfDay)))
+	} else {
+		obj.AddPredicates(todo.Or(todo.CreatedAtLT(startOfDay), todo.CreatedAtGT(endOfDay)))
+	}
+
+	return nil
 }
 
 // Mutation returns MutationResolver implementation.

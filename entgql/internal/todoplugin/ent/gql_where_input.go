@@ -31,9 +31,10 @@ import (
 
 // CategoryWhereInput represents a where input for filtering Category queries.
 type CategoryWhereInput struct {
-	Not *CategoryWhereInput   `json:"not,omitempty"`
-	Or  []*CategoryWhereInput `json:"or,omitempty"`
-	And []*CategoryWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Category  `json:"-"`
+	Not        *CategoryWhereInput   `json:"not,omitempty"`
+	Or         []*CategoryWhereInput `json:"or,omitempty"`
+	And        []*CategoryWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -119,6 +120,11 @@ type CategoryWhereInput struct {
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *CategoryWhereInput) AddPredicates(predicates ...predicate.Category) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
 func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	if i == nil {
@@ -178,6 +184,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		}
 		predicates = append(predicates, category.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, category.IDEQ(*i.ID))
 	}
@@ -404,9 +411,10 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 
 // TodoWhereInput represents a where input for filtering Todo queries.
 type TodoWhereInput struct {
-	Not *TodoWhereInput   `json:"not,omitempty"`
-	Or  []*TodoWhereInput `json:"or,omitempty"`
-	And []*TodoWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Todo  `json:"-"`
+	Not        *TodoWhereInput   `json:"not,omitempty"`
+	Or         []*TodoWhereInput `json:"or,omitempty"`
+	And        []*TodoWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -474,6 +482,11 @@ type TodoWhereInput struct {
 	HasChildrenWith []*TodoWhereInput `json:"hasChildrenWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *TodoWhereInput) AddPredicates(predicates ...predicate.Todo) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
 func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 	if i == nil {
@@ -533,6 +546,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		}
 		predicates = append(predicates, todo.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, todo.IDEQ(*i.ID))
 	}
@@ -717,9 +731,10 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 
 // MasterUserWhereInput represents a where input for filtering User queries.
 type MasterUserWhereInput struct {
-	Not *MasterUserWhereInput   `json:"not,omitempty"`
-	Or  []*MasterUserWhereInput `json:"or,omitempty"`
-	And []*MasterUserWhereInput `json:"and,omitempty"`
+	Predicates []predicate.User        `json:"-"`
+	Not        *MasterUserWhereInput   `json:"not,omitempty"`
+	Or         []*MasterUserWhereInput `json:"or,omitempty"`
+	And        []*MasterUserWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -768,6 +783,11 @@ type MasterUserWhereInput struct {
 	NullableStringNotNil       bool     `json:"nullableStringNotNil,omitempty"`
 	NullableStringEqualFold    *string  `json:"nullableStringEqualFold,omitempty"`
 	NullableStringContainsFold *string  `json:"nullableStringContainsFold,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *MasterUserWhereInput) AddPredicates(predicates ...predicate.User) {
+	i.Predicates = append(i.Predicates, predicates...)
 }
 
 // Filter applies the MasterUserWhereInput filter on the UserQuery builder.
@@ -829,6 +849,7 @@ func (i *MasterUserWhereInput) P() (predicate.User, error) {
 		}
 		predicates = append(predicates, user.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, user.IDEQ(*i.ID))
 	}
