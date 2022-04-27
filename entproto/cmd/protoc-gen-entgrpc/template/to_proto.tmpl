@@ -40,9 +40,9 @@
     }
 {{ end }}
 
-{{ define "to_protos_func" }}
-    // toProtos{{ .EntType.Name }} transforms a list of ent type to a list of pb type
-    func toProtos{{ .EntType.Name }}(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ .EntType.Name }}, error) {
+{{ define "to_proto_list_func" }}
+    // toProto{{ .EntType.Name }}List transforms a list of ent type to a list of pb type
+    func toProto{{ .EntType.Name }}List(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ .EntType.Name }}, error) {
         var pbList []*{{ .EntType.Name }}
         for _, entEntity := range e {
             pbEntity, err := toProto{{ .EntType.Name }}(entEntity)
