@@ -76,6 +76,7 @@ var (
 		"skipMode":            skipModeFromString,
 		"isSkipMode":          isSkipMode,
 		"isRelayConn":         isRelayConn,
+		"hasWhereInput":       hasWhereInput,
 	}
 
 	//go:embed template/*
@@ -197,6 +198,20 @@ func orderFields(n *gen.Type) ([]*gen.Field, error) {
 		ordered = append(ordered, f)
 	}
 	return ordered, nil
+}
+
+// hasWhereInput returns true if neither the edge nor its
+// node type has the SkipWhereInput annotation
+func hasWhereInput(n *gen.Edge) (v bool, err error) {
+	antEdge, err := annotation(n.Annotations)
+	if err != nil || antEdge.Skip.Is(SkipWhereInput) {
+		return false, err
+	}
+	ant, err := annotation(n.Type.Annotations)
+	if err != nil || ant.Skip.Is(SkipWhereInput) {
+		return false, err
+	}
+	return true, nil
 }
 
 // skipModeFromString returns SkipFlag from a string
@@ -321,7 +336,7 @@ func (p *PaginationNames) OrderByTypeDefs(enumOrderByValues []string) []*ast.Def
 	}
 }
 
-func (p *PaginationNames) ConnectionField(name string) *ast.FieldDefinition {
+func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput bool) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: name,
 		Type: ast.NonNullNamedType(p.Connection, nil),
@@ -330,8 +345,17 @@ func (p *PaginationNames) ConnectionField(name string) *ast.FieldDefinition {
 			{Name: "first", Type: ast.NamedType("Int", nil)},
 			{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
 			{Name: "last", Type: ast.NamedType("Int", nil)},
-			{Name: "orderBy", Type: ast.NamedType(p.Order, nil)},
 		},
+	}
+	if hasOrderBy {
+		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
+			Name: "orderBy", Type: ast.NamedType(p.Order, nil),
+		})
+	}
+	if hasWhereInput {
+		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
+			Name: "where", Type: ast.NamedType(p.WhereInput, nil),
+		})
 	}
 
 	return def

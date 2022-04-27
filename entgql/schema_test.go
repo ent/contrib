@@ -102,6 +102,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	plugin, err := newSchemaGenerator(graph)
 
 	require.NoError(t, err)
+	plugin.genWhereInput = true
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
@@ -173,7 +174,7 @@ type MasterUserEdge {
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection!
 }
 """Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
@@ -194,8 +195,8 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection! @goField(name: "children", forceResolver: false)
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection!
+  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection! @goField(name: "children", forceResolver: false)
+  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection!
 }
 """A connection to a list of items."""
 type TodoConnection {

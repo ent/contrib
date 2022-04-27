@@ -31,7 +31,7 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
   category: Category
 }
 
@@ -39,19 +39,19 @@ type Category implements Node {
   id: ID!
   text: String!
   strings: [String]
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
 }
 
 type User implements Node {
   id: ID!
   name: String!
-  groups(after: Cursor, first: Int, before: Cursor, last: Int): GroupConnection
+  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
 }
 
 type Group implements Node {
   id: ID!
   name: String!
-  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
 }
 
 input TodoInput {

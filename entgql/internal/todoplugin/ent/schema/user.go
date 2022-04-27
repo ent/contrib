@@ -35,14 +35,16 @@ func (User) Fields() []ent.Field {
 		field.Int("id"),
 		field.String("username"),
 		field.Int("age").
-			Annotations(entgql.Annotation{
-				Type: "Float",
-			}),
+			Annotations(
+				entgql.Type("Float"),
+				entgql.Skip(entgql.SkipWhereInput),
+			),
 		field.Float("amount").
 			GoType(Amount(0)).
-			Annotations(entgql.Annotation{
-				Type: "Float",
-			}),
+			Annotations(
+				entgql.Type("Float"),
+				entgql.Skip(entgql.SkipWhereInput),
+			),
 		field.Enum("role").
 			GoType(role.Unknown),
 		field.String("nullable_string").

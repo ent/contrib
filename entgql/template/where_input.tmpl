@@ -29,7 +29,7 @@ in the LICENSE file in the root directory of this source tree.
         {{ end }}
     {{ end }}
     {{ $name := $names.Node }}
-    {{ $input := print $name "WhereInput" }}
+    {{ $input := $names.WhereInput }}
     // {{ $input }} represents a where input for filtering {{ $n.Name }} queries.
     type {{ $input }} struct {
         Not *{{ $input }} `json:"not,omitempty"`
@@ -66,7 +66,8 @@ in the LICENSE file in the root directory of this source tree.
             {{ $field }} *bool `json:"{{ camel $jsonTag }},omitempty"`
             {{- $field = print $field "With" }}
             {{- $jsonTag = print $jsonTag "_with" }}
-            {{ $field }} []*{{ print $e.Type.Name "WhereInput" }} `json:"{{ camel $jsonTag }},omitempty"`
+            {{- $names := nodePaginationNames $e.Type }}
+            {{ $field }} []*{{ $names.WhereInput }} `json:"{{ camel $jsonTag }},omitempty"`
         {{- end }}
     }
 

@@ -38,6 +38,7 @@ import "context"
 	{{ $i := $.Scope.Index }}
 	{{ $names := nodePaginationNames $e.Type }}
 	{{ $order := $names.Order }}
+	{{ $whereInput := $names.WhereInput }}
 	{{- $edge := $names.Edge }}
 	{{ $conn := $names.Connection }}
 	{{ $opt := print $names.Node "PaginateOption" }}
@@ -45,8 +46,10 @@ import "context"
 	{{ $newPager := print "new" $names.Node "Pager" }}
 
 	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
-		ctx context.Context, after *Cursor, first *int,
-		before *Cursor, last *int, {{ if orderFields $e.Type }}orderBy *{{ $order }},{{ end }} opts ...{{ $opt }},
+		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+		{{- if orderFields $e.Type }}orderBy *{{ $order }},{{ end }}
+		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
+		opts ...{{ $opt }},
 	) (*{{ $conn }}, error) {
 		{{- /* May be nil if the totalCount was not loaded. */}}
 		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
