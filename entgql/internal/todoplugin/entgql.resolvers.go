@@ -43,6 +43,7 @@ func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithTodoOrder(orderBy),
+			ent.WithTodoFilter(where.Filter),
 		)
 }
 
