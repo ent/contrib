@@ -21,6 +21,8 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
+// Pony is the schema of the Pony entity. It is used to verify the pluralization of the entity name
+// in the generated protos and service code, expecting Ponies and not Ponys.
 type Pony struct {
 	ent.Schema
 }
