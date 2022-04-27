@@ -88,8 +88,13 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 			}
 		}
 	}
-	if v := rv[whereField]; v != nil && v != (*CategoryWhereInput)(nil) {
-		args.opts = append(args.opts, WithCategoryFilter(v.(*CategoryWhereInput).Filter))
+	if v, ok := rv[whereField]; ok {
+		switch v := v.(type) {
+		case *CategoryWhereInput:
+			if v != nil {
+				args.opts = append(args.opts, WithCategoryFilter(v.Filter))
+			}
+		}
 	}
 	return args
 }
@@ -264,8 +269,13 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 			}
 		}
 	}
-	if v := rv[whereField]; v != nil && v != (*TodoWhereInput)(nil) {
-		args.opts = append(args.opts, WithTodoFilter(v.(*TodoWhereInput).Filter))
+	if v, ok := rv[whereField]; ok {
+		switch v := v.(type) {
+		case *TodoWhereInput:
+			if v != nil {
+				args.opts = append(args.opts, WithTodoFilter(v.Filter))
+			}
+		}
 	}
 	return args
 }
@@ -310,8 +320,13 @@ func newMasterUserPaginateArgs(rv map[string]interface{}) *masteruserPaginateArg
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
 	}
-	if v := rv[whereField]; v != nil && v != (*MasterUserWhereInput)(nil) {
-		args.opts = append(args.opts, WithMasterUserFilter(v.(*MasterUserWhereInput).Filter))
+	if v, ok := rv[whereField]; ok {
+		switch v := v.(type) {
+		case *MasterUserWhereInput:
+			if v != nil {
+				args.opts = append(args.opts, WithMasterUserFilter(v.Filter))
+			}
+		}
 	}
 	return args
 }
@@ -379,8 +394,6 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 	if v, ok := args[whereField]; ok {
 		if err := graphql.UnmarshalInputFromContext(ctx, v, whereInput); err == nil {
 			args[whereField] = whereInput
-		} else {
-			delete(args, whereField)
 		}
 	}
 

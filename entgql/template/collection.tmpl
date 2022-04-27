@@ -166,8 +166,13 @@ func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
 		{{- $withWhere := true }}{{ with $node.Annotations.EntGQL }}{{ if isSkipMode .Skip "where_input" }}{{ $withWhere = false }}{{ end }}{{ end }}
 		{{- if $withWhere }}
 			{{- $where := $names.WhereInput }}
-			if v := rv[whereField]; v != nil && v != (*{{ $where }})(nil) {
-				args.opts = append(args.opts, {{ $filter }}(v.(*{{ $where }}).Filter))
+			if v, ok := rv[whereField]; ok {
+				switch v := v.(type) {
+				case *{{ $where }}:
+					if v != nil {
+						args.opts = append(args.opts, {{ $filter }}(v.Filter))
+					}
+				}
 			}
 		{{- end }}
 	{{- end }}
@@ -233,8 +238,6 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 	if v, ok := args[whereField]; ok {
 		if err := graphql.UnmarshalInputFromContext(ctx, v, whereInput); err == nil {
 			args[whereField] = whereInput
-		} else {
-			delete(args, whereField)
 		}
 	}
 
