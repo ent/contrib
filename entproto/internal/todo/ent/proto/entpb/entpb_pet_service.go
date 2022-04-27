@@ -43,8 +43,8 @@ func toProtoPet(e *ent.Pet) (*Pet, error) {
 	return v, nil
 }
 
-// toProtosPet transforms a list of ent type to a list of pb type
-func toProtosPet(e []*ent.Pet) ([]*Pet, error) {
+// toProtoPetList transforms a list of ent type to a list of pb type
+func toProtoPetList(e []*ent.Pet) ([]*Pet, error) {
 	var pbList []*Pet
 	for _, entEntity := range e {
 		pbEntity, err := toProtoPet(entEntity)
@@ -204,7 +204,7 @@ func (svc *PetService) List(ctx context.Context, req *ListPetRequest) (*ListPetR
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtosPet(entList)
+		protoList, err := toProtoPetList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -237,7 +237,7 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 	res, err := svc.client.Pet.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtosPet(res)
+		protoList, err := toProtoPetList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

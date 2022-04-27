@@ -137,8 +137,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	return v, nil
 }
 
-// toProtosUser transforms a list of ent type to a list of pb type
-func toProtosUser(e []*ent.User) ([]*User, error) {
+// toProtoUserList transforms a list of ent type to a list of pb type
+func toProtoUserList(e []*ent.User) ([]*User, error) {
 	var pbList []*User
 	for _, entEntity := range e {
 		pbEntity, err := toProtoUser(entEntity)
@@ -462,7 +462,7 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtosUser(entList)
+		protoList, err := toProtoUserList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -569,7 +569,7 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 	res, err := svc.client.User.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtosUser(res)
+		protoList, err := toProtoUserList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

@@ -47,8 +47,8 @@ func toProtoNilExample(e *ent.NilExample) (*NilExample, error) {
 	return v, nil
 }
 
-// toProtosNilExample transforms a list of ent type to a list of pb type
-func toProtosNilExample(e []*ent.NilExample) ([]*NilExample, error) {
+// toProtoNilExampleList transforms a list of ent type to a list of pb type
+func toProtoNilExampleList(e []*ent.NilExample) ([]*NilExample, error) {
 	var pbList []*NilExample
 	for _, entEntity := range e {
 		pbEntity, err := toProtoNilExample(entEntity)
@@ -210,7 +210,7 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtosNilExample(entList)
+		protoList, err := toProtoNilExampleList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -247,7 +247,7 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 	res, err := svc.client.NilExample.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtosNilExample(res)
+		protoList, err := toProtoNilExampleList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

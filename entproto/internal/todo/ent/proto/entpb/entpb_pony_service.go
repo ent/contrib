@@ -33,8 +33,8 @@ func toProtoPony(e *ent.Pony) (*Pony, error) {
 	return v, nil
 }
 
-// toProtosPony transforms a list of ent type to a list of pb type
-func toProtosPony(e []*ent.Pony) ([]*Pony, error) {
+// toProtoPonyList transforms a list of ent type to a list of pb type
+func toProtoPonyList(e []*ent.Pony) ([]*Pony, error) {
 	var pbList []*Pony
 	for _, entEntity := range e {
 		pbEntity, err := toProtoPony(entEntity)
@@ -63,7 +63,7 @@ func (svc *PonyService) BatchCreate(ctx context.Context, req *BatchCreatePoniesR
 	res, err := svc.client.Pony.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtosPony(res)
+		protoList, err := toProtoPonyList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

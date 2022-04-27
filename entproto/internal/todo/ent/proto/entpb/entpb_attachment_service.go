@@ -52,8 +52,8 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	return v, nil
 }
 
-// toProtosAttachment transforms a list of ent type to a list of pb type
-func toProtosAttachment(e []*ent.Attachment) ([]*Attachment, error) {
+// toProtoAttachmentList transforms a list of ent type to a list of pb type
+func toProtoAttachmentList(e []*ent.Attachment) ([]*Attachment, error) {
 	var pbList []*Attachment
 	for _, entEntity := range e {
 		pbEntity, err := toProtoAttachment(entEntity)
@@ -235,7 +235,7 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtosAttachment(entList)
+		protoList, err := toProtoAttachmentList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -272,7 +272,7 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 	res, err := svc.client.Attachment.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtosAttachment(res)
+		protoList, err := toProtoAttachmentList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

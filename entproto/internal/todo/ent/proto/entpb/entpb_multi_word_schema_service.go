@@ -53,8 +53,8 @@ func toProtoMultiWordSchema(e *ent.MultiWordSchema) (*MultiWordSchema, error) {
 	return v, nil
 }
 
-// toProtosMultiWordSchema transforms a list of ent type to a list of pb type
-func toProtosMultiWordSchema(e []*ent.MultiWordSchema) ([]*MultiWordSchema, error) {
+// toProtoMultiWordSchemaList transforms a list of ent type to a list of pb type
+func toProtoMultiWordSchemaList(e []*ent.MultiWordSchema) ([]*MultiWordSchema, error) {
 	var pbList []*MultiWordSchema
 	for _, entEntity := range e {
 		pbEntity, err := toProtoMultiWordSchema(entEntity)
@@ -204,7 +204,7 @@ func (svc *MultiWordSchemaService) List(ctx context.Context, req *ListMultiWordS
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtosMultiWordSchema(entList)
+		protoList, err := toProtoMultiWordSchemaList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -235,7 +235,7 @@ func (svc *MultiWordSchemaService) BatchCreate(ctx context.Context, req *BatchCr
 	res, err := svc.client.MultiWordSchema.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtosMultiWordSchema(res)
+		protoList, err := toProtoMultiWordSchemaList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
