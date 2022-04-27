@@ -626,9 +626,76 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 
 func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 	ctx := context.Background()
-	s.ent.Todo.Create().SetStatus(todo.StatusCompleted).SetText("test1").SetCreatedAt(time.Now().Add(48 * time.Hour)).ExecX(ctx)
-	s.ent.Todo.Create().SetStatus(todo.StatusCompleted).SetText("test2").SetCreatedAt(time.Now().Add(-48 * time.Hour)).ExecX(ctx)
-	s.ent.Todo.Create().SetStatus(todo.StatusCompleted).SetText("test3").SetCreatedAt(time.Now().Add(-48 * time.Hour)).ExecX(ctx)
+	td1 := s.ent.Todo.Create().
+		SetStatus(todo.StatusCompleted).
+		SetText("test1").
+		SetCreatedAt(time.Now().
+			Add(48 * time.Hour)).
+		SaveX(ctx)
+	td2 := s.ent.Todo.Create().
+		SetStatus(todo.StatusCompleted).
+		SetText("test2").
+		SetCreatedAt(time.Now().Add(-48 * time.Hour)).
+		SaveX(ctx)
+	td3 := s.ent.Todo.Create().
+		SetStatus(todo.StatusCompleted).
+		SetText("test2").
+		SetCreatedAt(time.Now()).
+		SaveX(ctx)
+	td4 := s.ent.Todo.Create().
+		SetStatus(todo.StatusCompleted).
+		SetText("test3").
+		SetCreatedAt(time.Now().Add(-48*time.Hour)).
+		AddChildren(td1, td2, td3).
+		SaveX(ctx)
+
+	s.Run("createdToday true using interface", func() {
+		var rsp struct {
+			Todo struct {
+				Children struct {
+					TotalCount int
+				}
+			}
+		}
+		err := s.Post(`query($id: ID!, $createdToday: Boolean) {
+			todo: node(id: $id) {
+				... on Todo {
+					children (where: {createdToday: $createdToday}) {
+						totalCount
+					}
+				}
+			}
+		}`, &rsp,
+			client.Var("id", td4.ID),
+			client.Var("createdToday", true),
+		)
+		s.NoError(err)
+		s.Equal(1, rsp.Todo.Children.TotalCount)
+	})
+
+	s.Run("createdToday false using interface", func() {
+		var rsp struct {
+			Todo struct {
+				Children struct {
+					TotalCount int
+				}
+			}
+		}
+		err := s.Post(`query($id: ID!, $createdToday: Boolean) {
+			todo: node(id: $id) {
+				... on Todo {
+					children (where: {createdToday: $createdToday}) {
+						totalCount
+					}
+				}
+			}
+		}`, &rsp,
+			client.Var("id", td4.ID),
+			client.Var("createdToday", false),
+		)
+		s.NoError(err)
+		s.Equal(2, rsp.Todo.Children.TotalCount)
+	})
 
 	s.Run("createdToday true", func() {
 		var rsp response
@@ -640,7 +707,7 @@ func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 			client.Var("createdToday", true),
 		)
 		s.NoError(err)
-		s.Equal(maxTodos, rsp.Todos.TotalCount)
+		s.Equal(maxTodos+1, rsp.Todos.TotalCount)
 	})
 
 	s.Run("createdToday false", func() {
@@ -679,7 +746,7 @@ func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 			client.Var("createdToday", false),
 		)
 		s.NoError(err)
-		s.Equal(maxTodos, rsp.Todos.TotalCount)
+		s.Equal(maxTodos+1, rsp.Todos.TotalCount)
 	})
 
 	s.Run("or createdToday", func() {
@@ -693,7 +760,7 @@ func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 			client.Var("createdToday2", false),
 		)
 		s.NoError(err)
-		s.Equal(maxTodos+3, rsp.Todos.TotalCount)
+		s.Equal(maxTodos+4, rsp.Todos.TotalCount)
 	})
 
 	s.Run("and createdToday", func() {
