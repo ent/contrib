@@ -11,6 +11,9 @@ resolver:
   layout: follow-schema
   dir: .
 
+autobind:
+  - entgo.io/contrib/entgql/internal/todoplugin/ent
+
 models:
   ID:
     model:
@@ -32,12 +35,6 @@ models:
   UUID:
     model:
       - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID
-  CategoryWhereInput:
+  Node:
     model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent.CategoryWhereInput
-  TodoWhereInput:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent.TodoWhereInput
-  MasterUserWhereInput:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent.MasterUserWhereInput
+      - entgo.io/contrib/entgql/internal/todoplugin/ent.Noder
