@@ -135,7 +135,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			if f, l := args.first, args.last; !hasCollectedField(ctx, append(path, edgesField)...) || f != nil && *f == 0 || l != nil && *l == 0 {
+			if !hasCollectedField(ctx, append(path, edgesField)...) || args.first != nil && *args.first == 0 || args.last != nil && *args.last == 0 {
 				if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
 					query := query.Clone()
 					t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
