@@ -50,7 +50,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 				path  = append(path, field.Name)
 				query = &TodoQuery{config: c.config}
 			)
-			args := newTodoPaginateArgs(fieldArgs(ctx, path...))
+			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
 				return fmt.Errorf("validate first and last in path %q: %w", path, err)
 			}
@@ -190,8 +190,8 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 			}
 		}
 	}
-	if v := rv[whereField]; v != nil && v != (*CategoryWhereInput)(nil) {
-		args.opts = append(args.opts, WithCategoryFilter(v.(*CategoryWhereInput).Filter))
+	if v, ok := rv[whereField].(*CategoryWhereInput); ok {
+		args.opts = append(args.opts, WithCategoryFilter(v.Filter))
 	}
 	return args
 }
@@ -217,7 +217,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 				path  = append(path, field.Name)
 				query = &UserQuery{config: gr.config}
 			)
-			args := newUserPaginateArgs(fieldArgs(ctx, path...))
+			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
 				return fmt.Errorf("validate first and last in path %q: %w", path, err)
 			}
@@ -343,8 +343,8 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
 	}
-	if v := rv[whereField]; v != nil && v != (*GroupWhereInput)(nil) {
-		args.opts = append(args.opts, WithGroupFilter(v.(*GroupWhereInput).Filter))
+	if v, ok := rv[whereField].(*GroupWhereInput); ok {
+		args.opts = append(args.opts, WithGroupFilter(v.Filter))
 	}
 	return args
 }
@@ -379,7 +379,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, field.Name)
 				query = &TodoQuery{config: t.config}
 			)
-			args := newTodoPaginateArgs(fieldArgs(ctx, path...))
+			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
 				return fmt.Errorf("validate first and last in path %q: %w", path, err)
 			}
@@ -528,8 +528,8 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 			}
 		}
 	}
-	if v := rv[whereField]; v != nil && v != (*TodoWhereInput)(nil) {
-		args.opts = append(args.opts, WithTodoFilter(v.(*TodoWhereInput).Filter))
+	if v, ok := rv[whereField].(*TodoWhereInput); ok {
+		args.opts = append(args.opts, WithTodoFilter(v.Filter))
 	}
 	return args
 }
@@ -555,7 +555,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, field.Name)
 				query = &GroupQuery{config: u.config}
 			)
-			args := newGroupPaginateArgs(fieldArgs(ctx, path...))
+			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
 				return fmt.Errorf("validate first and last in path %q: %w", path, err)
 			}
@@ -681,8 +681,8 @@ func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
 	}
-	if v := rv[whereField]; v != nil && v != (*UserWhereInput)(nil) {
-		args.opts = append(args.opts, WithUserFilter(v.(*UserWhereInput).Filter))
+	if v, ok := rv[whereField].(*UserWhereInput); ok {
+		args.opts = append(args.opts, WithUserFilter(v.Filter))
 	}
 	return args
 }
@@ -698,7 +698,7 @@ const (
 	whereField     = "where"
 )
 
-func fieldArgs(ctx context.Context, path ...string) map[string]interface{} {
+func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[string]interface{} {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
 		return nil
@@ -718,7 +718,7 @@ func fieldArgs(ctx context.Context, path ...string) map[string]interface{} {
 		cf, err := fc.Child(ctx, *field)
 		if err != nil {
 			args := field.ArgumentMap(oc.Variables)
-			return unmarshalArgs(args)
+			return unmarshalArgs(ctx, whereInput, args)
 		}
 		fc = cf
 	}
@@ -726,8 +726,7 @@ func fieldArgs(ctx context.Context, path ...string) map[string]interface{} {
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
-// Note that "where" (WhereInput) is not supported.
-func unmarshalArgs(args map[string]interface{}) map[string]interface{} {
+func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
 		if !ok {
@@ -748,6 +747,12 @@ func unmarshalArgs(args map[string]interface{}) map[string]interface{} {
 			args[k] = &c
 		}
 	}
+	if v, ok := args[whereField]; ok {
+		if err := graphql.UnmarshalInputFromContext(ctx, v, whereInput); err == nil {
+			args[whereField] = whereInput
+		}
+	}
+
 	return args
 }
 
