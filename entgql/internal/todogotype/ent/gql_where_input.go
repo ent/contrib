@@ -31,9 +31,10 @@ import (
 
 // CategoryWhereInput represents a where input for filtering Category queries.
 type CategoryWhereInput struct {
-	Not *CategoryWhereInput   `json:"not,omitempty"`
-	Or  []*CategoryWhereInput `json:"or,omitempty"`
-	And []*CategoryWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Category  `json:"-"`
+	Not        *CategoryWhereInput   `json:"not,omitempty"`
+	Or         []*CategoryWhereInput `json:"or,omitempty"`
+	And        []*CategoryWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *bigintgql.BigInt  `json:"id,omitempty"`
@@ -107,6 +108,11 @@ type CategoryWhereInput struct {
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *CategoryWhereInput) AddPredicates(predicates ...predicate.Category) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
 func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	if i == nil {
@@ -166,6 +172,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		}
 		predicates = append(predicates, category.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, category.IDEQ(*i.ID))
 	}
@@ -362,9 +369,10 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 
 // GroupWhereInput represents a where input for filtering Group queries.
 type GroupWhereInput struct {
-	Not *GroupWhereInput   `json:"not,omitempty"`
-	Or  []*GroupWhereInput `json:"or,omitempty"`
-	And []*GroupWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Group  `json:"-"`
+	Not        *GroupWhereInput   `json:"not,omitempty"`
+	Or         []*GroupWhereInput `json:"or,omitempty"`
+	And        []*GroupWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *string  `json:"id,omitempty"`
@@ -394,6 +402,11 @@ type GroupWhereInput struct {
 	// "users" edge predicates.
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
 	HasUsersWith []*UserWhereInput `json:"hasUsersWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *GroupWhereInput) AddPredicates(predicates ...predicate.Group) {
+	i.Predicates = append(i.Predicates, predicates...)
 }
 
 // Filter applies the GroupWhereInput filter on the GroupQuery builder.
@@ -455,6 +468,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		}
 		predicates = append(predicates, group.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, group.IDEQ(*i.ID))
 	}
@@ -549,9 +563,10 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 
 // TodoWhereInput represents a where input for filtering Todo queries.
 type TodoWhereInput struct {
-	Not *TodoWhereInput   `json:"not,omitempty"`
-	Or  []*TodoWhereInput `json:"or,omitempty"`
-	And []*TodoWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Todo  `json:"-"`
+	Not        *TodoWhereInput   `json:"not,omitempty"`
+	Or         []*TodoWhereInput `json:"or,omitempty"`
+	And        []*TodoWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *string  `json:"id,omitempty"`
@@ -617,6 +632,11 @@ type TodoWhereInput struct {
 	HasCategoryWith []*CategoryWhereInput `json:"hasCategoryWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *TodoWhereInput) AddPredicates(predicates ...predicate.Todo) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
 func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 	if i == nil {
@@ -676,6 +696,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		}
 		predicates = append(predicates, todo.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, todo.IDEQ(*i.ID))
 	}
@@ -866,9 +887,10 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 
 // UserWhereInput represents a where input for filtering User queries.
 type UserWhereInput struct {
-	Not *UserWhereInput   `json:"not,omitempty"`
-	Or  []*UserWhereInput `json:"or,omitempty"`
-	And []*UserWhereInput `json:"and,omitempty"`
+	Predicates []predicate.User  `json:"-"`
+	Not        *UserWhereInput   `json:"not,omitempty"`
+	Or         []*UserWhereInput `json:"or,omitempty"`
+	And        []*UserWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *string  `json:"id,omitempty"`
@@ -898,6 +920,11 @@ type UserWhereInput struct {
 	// "groups" edge predicates.
 	HasGroups     *bool              `json:"hasGroups,omitempty"`
 	HasGroupsWith []*GroupWhereInput `json:"hasGroupsWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *UserWhereInput) AddPredicates(predicates ...predicate.User) {
+	i.Predicates = append(i.Predicates, predicates...)
 }
 
 // Filter applies the UserWhereInput filter on the UserQuery builder.
@@ -959,6 +986,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		}
 		predicates = append(predicates, user.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, user.IDEQ(*i.ID))
 	}
