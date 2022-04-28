@@ -190,13 +190,8 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 			}
 		}
 	}
-	if v, ok := rv[whereField]; ok {
-		switch v := v.(type) {
-		case *CategoryWhereInput:
-			if v != nil {
-				args.opts = append(args.opts, WithCategoryFilter(v.Filter))
-			}
-		}
+	if v, ok := rv[whereField].(*CategoryWhereInput); ok {
+		args.opts = append(args.opts, WithCategoryFilter(v.Filter))
 	}
 	return args
 }
@@ -348,13 +343,8 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
 	}
-	if v, ok := rv[whereField]; ok {
-		switch v := v.(type) {
-		case *GroupWhereInput:
-			if v != nil {
-				args.opts = append(args.opts, WithGroupFilter(v.Filter))
-			}
-		}
+	if v, ok := rv[whereField].(*GroupWhereInput); ok {
+		args.opts = append(args.opts, WithGroupFilter(v.Filter))
 	}
 	return args
 }
@@ -538,13 +528,8 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 			}
 		}
 	}
-	if v, ok := rv[whereField]; ok {
-		switch v := v.(type) {
-		case *TodoWhereInput:
-			if v != nil {
-				args.opts = append(args.opts, WithTodoFilter(v.Filter))
-			}
-		}
+	if v, ok := rv[whereField].(*TodoWhereInput); ok {
+		args.opts = append(args.opts, WithTodoFilter(v.Filter))
 	}
 	return args
 }
@@ -696,13 +681,8 @@ func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
 	}
-	if v, ok := rv[whereField]; ok {
-		switch v := v.(type) {
-		case *UserWhereInput:
-			if v != nil {
-				args.opts = append(args.opts, WithUserFilter(v.Filter))
-			}
-		}
+	if v, ok := rv[whereField].(*UserWhereInput); ok {
+		args.opts = append(args.opts, WithUserFilter(v.Filter))
 	}
 	return args
 }
