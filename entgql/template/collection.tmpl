@@ -50,7 +50,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 							{{- $tnames := nodePaginationNames $e.Type }}
 							{{- $tname := $tnames.Node }}
 							{{- $edgeArgsFunc := print "new" $tname "PaginateArgs" }}
-							args := {{ $edgeArgsFunc }}(fieldArgs(ctx, new({{ $tnames.WhereInput }}), path...))
+							args := {{ $edgeArgsFunc }}(fieldArgs(ctx, {{ if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}new({{ $tnames.WhereInput }}){{ else }}nil{{ end }}, path...))
 							if err := validateFirstLast(args.first, args.last); err != nil {
 								return fmt.Errorf("validate first and last in path %q: %w", path, err)
 							}
@@ -230,7 +230,7 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 			args[k] = &c
 		}
 	}
-	if v, ok := args[whereField]; ok {
+	if v, ok := args[whereField]; ok && whereInput != nil {
 		if err := graphql.UnmarshalInputFromContext(ctx, v, whereInput); err == nil {
 			args[whereField] = whereInput
 		}
