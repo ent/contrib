@@ -257,7 +257,7 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 			args[k] = &c
 		}
 	}
-	if v, ok := args[whereField]; ok {
+	if v, ok := args[whereField]; ok && whereInput != nil {
 		if err := graphql.UnmarshalInputFromContext(ctx, v, whereInput); err == nil {
 			args[whereField] = whereInput
 		}
