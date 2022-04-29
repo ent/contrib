@@ -79,11 +79,15 @@
                   },
                   "int8": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "maximum": 127,
+                    "minimum": -128
                   },
                   "int16": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "maximum": 32767,
+                    "minimum": -32768
                   },
                   "int32": {
                     "type": "integer",
@@ -95,21 +99,26 @@
                   },
                   "uint": {
                     "type": "integer",
+                    "format": "int64",
+                    "maximum": 4294967295,
                     "minimum": 0
                   },
                   "uint8": {
                     "type": "integer",
                     "format": "int32",
+                    "maximum": 255,
                     "minimum": 0
                   },
                   "uint16": {
                     "type": "integer",
                     "format": "int32",
+                    "maximum": 65535,
                     "minimum": 0
                   },
                   "uint32": {
                     "type": "integer",
-                    "format": "int32",
+                    "format": "int64",
+                    "maximum": 4294967295,
                     "minimum": 0
                   },
                   "uint64": {
@@ -357,11 +366,15 @@
                   },
                   "int8": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "maximum": 127,
+                    "minimum": -128
                   },
                   "int16": {
                     "type": "integer",
-                    "format": "int32"
+                    "format": "int32",
+                    "maximum": 32767,
+                    "minimum": -32768
                   },
                   "int32": {
                     "type": "integer",
@@ -373,21 +386,26 @@
                   },
                   "uint": {
                     "type": "integer",
+                    "format": "int64",
+                    "maximum": 4294967295,
                     "minimum": 0
                   },
                   "uint8": {
                     "type": "integer",
                     "format": "int32",
+                    "maximum": 255,
                     "minimum": 0
                   },
                   "uint16": {
                     "type": "integer",
                     "format": "int32",
+                    "maximum": 65535,
                     "minimum": 0
                   },
                   "uint32": {
                     "type": "integer",
-                    "format": "int32",
+                    "format": "int64",
+                    "maximum": 4294967295,
                     "minimum": 0
                   },
                   "uint64": {
@@ -514,11 +532,15 @@
           },
           "int8": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "maximum": 127,
+            "minimum": -128
           },
           "int16": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "maximum": 32767,
+            "minimum": -32768
           },
           "int32": {
             "type": "integer",
@@ -530,21 +552,26 @@
           },
           "uint": {
             "type": "integer",
+            "format": "int64",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "uint8": {
             "type": "integer",
             "format": "int32",
+            "maximum": 255,
             "minimum": 0
           },
           "uint16": {
             "type": "integer",
             "format": "int32",
+            "maximum": 65535,
             "minimum": 0
           },
           "uint32": {
             "type": "integer",
-            "format": "int32",
+            "format": "int64",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "uint64": {
