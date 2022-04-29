@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"sort"
 	"strconv"
@@ -504,23 +505,30 @@ func property(f *gen.Field) (*ogen.Property, error) {
 }
 
 var (
-	min   int64
-	types = map[string]*ogen.Schema{
+	zero   int64
+	min8   int64 = math.MinInt8
+	max8   int64 = math.MaxInt8
+	maxu8  int64 = math.MaxUint8
+	min16  int64 = math.MinInt16
+	max16  int64 = math.MaxInt16
+	maxu16 int64 = math.MaxUint16
+	maxu32 int64 = math.MaxUint32
+	types        = map[string]*ogen.Schema{
 		"bool":      ogen.Bool(),
 		"time.Time": ogen.DateTime(),
 		"string":    ogen.String(),
 		"[]byte":    ogen.Bytes(),
 		"uuid.UUID": ogen.UUID(),
 		"int":       ogen.Int(),
-		"int8":      ogen.Int32(),
-		"int16":     ogen.Int32(),
+		"int8":      ogen.Int32().SetMinimum(&min8).SetMaximum(&max8),
+		"int16":     ogen.Int32().SetMinimum(&min16).SetMaximum(&max16),
 		"int32":     ogen.Int32(),
-		"uint":      ogen.Int().SetMinimum(&min),
-		"uint8":     ogen.Int32().SetMinimum(&min),
-		"uint16":    ogen.Int32().SetMinimum(&min),
-		"uint32":    ogen.Int32().SetMinimum(&min),
+		"uint":      ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
+		"uint8":     ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu8),
+		"uint16":    ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu16),
+		"uint32":    ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
 		"int64":     ogen.Int64(),
-		"uint64":    ogen.Int64().SetMinimum(&min),
+		"uint64":    ogen.Int64().SetMinimum(&zero),
 		"float32":   ogen.Float(),
 		"float64":   ogen.Double(),
 	}
