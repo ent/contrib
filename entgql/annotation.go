@@ -96,7 +96,29 @@ func (Annotation) Name() string {
 	return "EntGQL"
 }
 
-// OrderField returns an order field annotation.
+// OrderField enables ordering in GraphQL for the annotated Ent field
+// with the given name. Note that, the field type must be comparable.
+//
+//	field.Time("created_at").
+//  	Default(time.Now).
+//		Immutable().
+//		Annotations(
+//			entgql.OrderField("CREATED_AT"),
+//		)
+//
+// For enum fields, values must be uppercase or mapped using the NamedValues
+// option:
+//
+//	field.Enum("status").
+//		NamedValues(
+//		    "InProgress", "IN_PROGRESS",
+//		    "Completed", "COMPLETED",
+//		).
+//		Default("IN_PROGRESS").
+//		Annotations(
+//		    entgql.OrderField("STATUS"),
+//		)
+//
 func OrderField(name string) Annotation {
 	return Annotation{OrderField: name}
 }
