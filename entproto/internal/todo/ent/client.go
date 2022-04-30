@@ -15,6 +15,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
+	"entgo.io/contrib/entproto/internal/todo/ent/pony"
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
@@ -39,6 +40,8 @@ type Client struct {
 	NilExample *NilExampleClient
 	// Pet is the client for interacting with the Pet builders.
 	Pet *PetClient
+	// Pony is the client for interacting with the Pony builders.
+	Pony *PonyClient
 	// SkipEdgeExample is the client for interacting with the SkipEdgeExample builders.
 	SkipEdgeExample *SkipEdgeExampleClient
 	// Todo is the client for interacting with the Todo builders.
@@ -63,6 +66,7 @@ func (c *Client) init() {
 	c.MultiWordSchema = NewMultiWordSchemaClient(c.config)
 	c.NilExample = NewNilExampleClient(c.config)
 	c.Pet = NewPetClient(c.config)
+	c.Pony = NewPonyClient(c.config)
 	c.SkipEdgeExample = NewSkipEdgeExampleClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -104,6 +108,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MultiWordSchema: NewMultiWordSchemaClient(cfg),
 		NilExample:      NewNilExampleClient(cfg),
 		Pet:             NewPetClient(cfg),
+		Pony:            NewPonyClient(cfg),
 		SkipEdgeExample: NewSkipEdgeExampleClient(cfg),
 		Todo:            NewTodoClient(cfg),
 		User:            NewUserClient(cfg),
@@ -131,6 +136,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MultiWordSchema: NewMultiWordSchemaClient(cfg),
 		NilExample:      NewNilExampleClient(cfg),
 		Pet:             NewPetClient(cfg),
+		Pony:            NewPonyClient(cfg),
 		SkipEdgeExample: NewSkipEdgeExampleClient(cfg),
 		Todo:            NewTodoClient(cfg),
 		User:            NewUserClient(cfg),
@@ -168,6 +174,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.MultiWordSchema.Use(hooks...)
 	c.NilExample.Use(hooks...)
 	c.Pet.Use(hooks...)
+	c.Pony.Use(hooks...)
 	c.SkipEdgeExample.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
@@ -685,6 +692,96 @@ func (c *PetClient) QueryOwner(pe *Pet) *UserQuery {
 // Hooks returns the client hooks.
 func (c *PetClient) Hooks() []Hook {
 	return c.hooks.Pet
+}
+
+// PonyClient is a client for the Pony schema.
+type PonyClient struct {
+	config
+}
+
+// NewPonyClient returns a client for the Pony from the given config.
+func NewPonyClient(c config) *PonyClient {
+	return &PonyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pony.Hooks(f(g(h())))`.
+func (c *PonyClient) Use(hooks ...Hook) {
+	c.hooks.Pony = append(c.hooks.Pony, hooks...)
+}
+
+// Create returns a create builder for Pony.
+func (c *PonyClient) Create() *PonyCreate {
+	mutation := newPonyMutation(c.config, OpCreate)
+	return &PonyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Pony entities.
+func (c *PonyClient) CreateBulk(builders ...*PonyCreate) *PonyCreateBulk {
+	return &PonyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Pony.
+func (c *PonyClient) Update() *PonyUpdate {
+	mutation := newPonyMutation(c.config, OpUpdate)
+	return &PonyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PonyClient) UpdateOne(po *Pony) *PonyUpdateOne {
+	mutation := newPonyMutation(c.config, OpUpdateOne, withPony(po))
+	return &PonyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PonyClient) UpdateOneID(id int) *PonyUpdateOne {
+	mutation := newPonyMutation(c.config, OpUpdateOne, withPonyID(id))
+	return &PonyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Pony.
+func (c *PonyClient) Delete() *PonyDelete {
+	mutation := newPonyMutation(c.config, OpDelete)
+	return &PonyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PonyClient) DeleteOne(po *Pony) *PonyDeleteOne {
+	return c.DeleteOneID(po.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PonyClient) DeleteOneID(id int) *PonyDeleteOne {
+	builder := c.Delete().Where(pony.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PonyDeleteOne{builder}
+}
+
+// Query returns a query builder for Pony.
+func (c *PonyClient) Query() *PonyQuery {
+	return &PonyQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Pony entity by its id.
+func (c *PonyClient) Get(ctx context.Context, id int) (*Pony, error) {
+	return c.Query().Where(pony.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PonyClient) GetX(ctx context.Context, id int) *Pony {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PonyClient) Hooks() []Hook {
+	return c.hooks.Pony
 }
 
 // SkipEdgeExampleClient is a client for the SkipEdgeExample schema.

@@ -42,6 +42,16 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 	suite.EqualValues("UpdateBlogPostRequest", updateMeth.GetInputType().GetName())
 	suite.EqualValues("BlogPost", updateMeth.GetOutputType().GetName())
 
+	listMeth := svc.FindMethodByName("List")
+	suite.Require().NotNil(listMeth)
+	suite.EqualValues("ListBlogPostRequest", listMeth.GetInputType().GetName())
+	suite.EqualValues("ListBlogPostResponse", listMeth.GetOutputType().GetName())
+
+	batchCreateMeth := svc.FindMethodByName("BatchCreate")
+	suite.Require().NotNil(batchCreateMeth)
+	suite.EqualValues("BatchCreateBlogPostsRequest", batchCreateMeth.GetInputType().GetName())
+	suite.EqualValues("BatchCreateBlogPostsResponse", batchCreateMeth.GetOutputType().GetName())
+
 	// Test all method generation
 	fd, err = suite.adapter.GetFileDescriptor("AllMethodsService")
 	suite.Require().NoError(err)
@@ -69,6 +79,16 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 	suite.EqualValues("UpdateAllMethodsServiceRequest", updateMeth.GetInputType().GetName())
 	suite.EqualValues("AllMethodsService", updateMeth.GetOutputType().GetName())
 
+	listMeth = svc.FindMethodByName("List")
+	suite.Require().NotNil(listMeth)
+	suite.EqualValues("ListAllMethodsServiceRequest", listMeth.GetInputType().GetName())
+	suite.EqualValues("ListAllMethodsServiceResponse", listMeth.GetOutputType().GetName())
+
+	batchCreateMeth = svc.FindMethodByName("BatchCreate")
+	suite.Require().NotNil(batchCreateMeth)
+	suite.EqualValues("BatchCreateAllMethodsServicesRequest", batchCreateMeth.GetInputType().GetName())
+	suite.EqualValues("BatchCreateAllMethodsServicesResponse", batchCreateMeth.GetOutputType().GetName())
+
 	// Test single method generation
 	fd, err = suite.adapter.GetFileDescriptor("OneMethodService")
 	suite.Require().NoError(err)
@@ -76,10 +96,13 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 	svc = fd.FindService("entpb.OneMethodServiceService")
 	suite.NotNil(svc)
 
+	batchCreateMeth = svc.FindMethodByName("BatchCreate")
+	suite.Require().NotNil(batchCreateMeth)
+	suite.EqualValues("BatchCreateOneMethodServicesRequest", batchCreateMeth.GetInputType().GetName())
+	suite.EqualValues("BatchCreateOneMethodServicesResponse", batchCreateMeth.GetOutputType().GetName())
+
 	getMeth = svc.FindMethodByName("Get")
-	suite.Require().NotNil(getMeth)
-	suite.EqualValues("GetOneMethodServiceRequest", getMeth.GetInputType().GetName())
-	suite.EqualValues("OneMethodService", getMeth.GetOutputType().GetName())
+	suite.Require().Nil(getMeth)
 
 	createMeth = svc.FindMethodByName("Create")
 	suite.Require().Nil(createMeth)
@@ -89,6 +112,9 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 
 	updateMeth = svc.FindMethodByName("Update")
 	suite.Require().Nil(updateMeth)
+
+	listMeth = svc.FindMethodByName("List")
+	suite.Require().Nil(listMeth)
 
 	// Test two method generation
 	fd, err = suite.adapter.GetFileDescriptor("TwoMethodService")
@@ -112,4 +138,10 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 
 	updateMeth = svc.FindMethodByName("Update")
 	suite.Require().Nil(updateMeth)
+
+	listMeth = svc.FindMethodByName("List")
+	suite.Require().Nil(listMeth)
+
+	batchCreateMeth = svc.FindMethodByName("BatchCreate")
+	suite.Require().Nil(batchCreateMeth)
 }

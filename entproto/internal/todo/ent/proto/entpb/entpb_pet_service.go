@@ -43,13 +43,25 @@ func toProtoPet(e *ent.Pet) (*Pet, error) {
 	return v, nil
 }
 
+// toProtoPetList transforms a list of ent type to a list of pb type
+func toProtoPetList(e []*ent.Pet) ([]*Pet, error) {
+	var pbList []*Pet
+	for _, entEntity := range e {
+		pbEntity, err := toProtoPet(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements PetServiceServer.Create
 func (svc *PetService) Create(ctx context.Context, req *CreatePetRequest) (*Pet, error) {
 	pet := req.GetPet()
-	m := svc.client.Pet.Create()
-	if pet.GetOwner() != nil {
-		petOwner := int(pet.GetOwner().GetId())
-		m.SetOwnerID(petOwner)
+	m, err := svc.createBuilder(pet)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -109,6 +121,7 @@ func (svc *PetService) Update(ctx context.Context, req *UpdatePetRequest) (*Pet,
 		petOwner := int(pet.GetOwner().GetId())
 		m.SetOwnerID(petOwner)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -191,20 +204,60 @@ func (svc *PetService) List(ctx context.Context, req *ListPetRequest) (*ListPetR
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*Pet
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoPet(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtoPetList(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListPetResponse{
-			PetList:       pbList,
+			PetList:       protoList,
 			NextPageToken: nextPageToken,
 		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+// BatchCreate implements PetServiceServer.BatchCreate
+func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequest) (*BatchCreatePetsResponse, error) {
+	requests := req.GetRequests()
+	if len(requests) > entproto.MaxBatchCreateSize {
+		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
+	}
+	bulk := make([]*ent.PetCreate, len(requests))
+	for i, req := range requests {
+		pet := req.GetPet()
+		var err error
+		bulk[i], err = svc.createBuilder(pet)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res, err := svc.client.Pet.CreateBulk(bulk...).Save(ctx)
+	switch {
+	case err == nil:
+		protoList, err := toProtoPetList(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		return &BatchCreatePetsResponse{
+			Pets: protoList,
+		}, nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+func (svc *PetService) createBuilder(pet *Pet) (*ent.PetCreate, error) {
+	m := svc.client.Pet.Create()
+	if pet.GetOwner() != nil {
+		petOwner := int(pet.GetOwner().GetId())
+		m.SetOwnerID(petOwner)
+	}
+	return m, nil
 }

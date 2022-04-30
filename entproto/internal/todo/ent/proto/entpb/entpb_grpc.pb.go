@@ -28,6 +28,7 @@ type AttachmentServiceClient interface {
 	Update(ctx context.Context, in *UpdateAttachmentRequest, opts ...grpc.CallOption) (*Attachment, error)
 	Delete(ctx context.Context, in *DeleteAttachmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	List(ctx context.Context, in *ListAttachmentRequest, opts ...grpc.CallOption) (*ListAttachmentResponse, error)
+	BatchCreate(ctx context.Context, in *BatchCreateAttachmentsRequest, opts ...grpc.CallOption) (*BatchCreateAttachmentsResponse, error)
 }
 
 type attachmentServiceClient struct {
@@ -83,6 +84,15 @@ func (c *attachmentServiceClient) List(ctx context.Context, in *ListAttachmentRe
 	return out, nil
 }
 
+func (c *attachmentServiceClient) BatchCreate(ctx context.Context, in *BatchCreateAttachmentsRequest, opts ...grpc.CallOption) (*BatchCreateAttachmentsResponse, error) {
+	out := new(BatchCreateAttachmentsResponse)
+	err := c.cc.Invoke(ctx, "/entpb.AttachmentService/BatchCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AttachmentServiceServer is the server API for AttachmentService service.
 // All implementations must embed UnimplementedAttachmentServiceServer
 // for forward compatibility
@@ -92,6 +102,7 @@ type AttachmentServiceServer interface {
 	Update(context.Context, *UpdateAttachmentRequest) (*Attachment, error)
 	Delete(context.Context, *DeleteAttachmentRequest) (*emptypb.Empty, error)
 	List(context.Context, *ListAttachmentRequest) (*ListAttachmentResponse, error)
+	BatchCreate(context.Context, *BatchCreateAttachmentsRequest) (*BatchCreateAttachmentsResponse, error)
 	mustEmbedUnimplementedAttachmentServiceServer()
 }
 
@@ -113,6 +124,9 @@ func (UnimplementedAttachmentServiceServer) Delete(context.Context, *DeleteAttac
 }
 func (UnimplementedAttachmentServiceServer) List(context.Context, *ListAttachmentRequest) (*ListAttachmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedAttachmentServiceServer) BatchCreate(context.Context, *BatchCreateAttachmentsRequest) (*BatchCreateAttachmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
 }
 func (UnimplementedAttachmentServiceServer) mustEmbedUnimplementedAttachmentServiceServer() {}
 
@@ -217,6 +231,24 @@ func _AttachmentService_List_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AttachmentService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateAttachmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttachmentServiceServer).BatchCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.AttachmentService/BatchCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttachmentServiceServer).BatchCreate(ctx, req.(*BatchCreateAttachmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AttachmentService_ServiceDesc is the grpc.ServiceDesc for AttachmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -244,6 +276,10 @@ var AttachmentService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "List",
 			Handler:    _AttachmentService_List_Handler,
 		},
+		{
+			MethodName: "BatchCreate",
+			Handler:    _AttachmentService_BatchCreate_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -258,6 +294,7 @@ type MultiWordSchemaServiceClient interface {
 	Update(ctx context.Context, in *UpdateMultiWordSchemaRequest, opts ...grpc.CallOption) (*MultiWordSchema, error)
 	Delete(ctx context.Context, in *DeleteMultiWordSchemaRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	List(ctx context.Context, in *ListMultiWordSchemaRequest, opts ...grpc.CallOption) (*ListMultiWordSchemaResponse, error)
+	BatchCreate(ctx context.Context, in *BatchCreateMultiWordSchemasRequest, opts ...grpc.CallOption) (*BatchCreateMultiWordSchemasResponse, error)
 }
 
 type multiWordSchemaServiceClient struct {
@@ -313,6 +350,15 @@ func (c *multiWordSchemaServiceClient) List(ctx context.Context, in *ListMultiWo
 	return out, nil
 }
 
+func (c *multiWordSchemaServiceClient) BatchCreate(ctx context.Context, in *BatchCreateMultiWordSchemasRequest, opts ...grpc.CallOption) (*BatchCreateMultiWordSchemasResponse, error) {
+	out := new(BatchCreateMultiWordSchemasResponse)
+	err := c.cc.Invoke(ctx, "/entpb.MultiWordSchemaService/BatchCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MultiWordSchemaServiceServer is the server API for MultiWordSchemaService service.
 // All implementations must embed UnimplementedMultiWordSchemaServiceServer
 // for forward compatibility
@@ -322,6 +368,7 @@ type MultiWordSchemaServiceServer interface {
 	Update(context.Context, *UpdateMultiWordSchemaRequest) (*MultiWordSchema, error)
 	Delete(context.Context, *DeleteMultiWordSchemaRequest) (*emptypb.Empty, error)
 	List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error)
+	BatchCreate(context.Context, *BatchCreateMultiWordSchemasRequest) (*BatchCreateMultiWordSchemasResponse, error)
 	mustEmbedUnimplementedMultiWordSchemaServiceServer()
 }
 
@@ -343,6 +390,9 @@ func (UnimplementedMultiWordSchemaServiceServer) Delete(context.Context, *Delete
 }
 func (UnimplementedMultiWordSchemaServiceServer) List(context.Context, *ListMultiWordSchemaRequest) (*ListMultiWordSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedMultiWordSchemaServiceServer) BatchCreate(context.Context, *BatchCreateMultiWordSchemasRequest) (*BatchCreateMultiWordSchemasResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
 }
 func (UnimplementedMultiWordSchemaServiceServer) mustEmbedUnimplementedMultiWordSchemaServiceServer() {
 }
@@ -448,6 +498,24 @@ func _MultiWordSchemaService_List_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MultiWordSchemaService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateMultiWordSchemasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiWordSchemaServiceServer).BatchCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.MultiWordSchemaService/BatchCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiWordSchemaServiceServer).BatchCreate(ctx, req.(*BatchCreateMultiWordSchemasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MultiWordSchemaService_ServiceDesc is the grpc.ServiceDesc for MultiWordSchemaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -475,6 +543,10 @@ var MultiWordSchemaService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "List",
 			Handler:    _MultiWordSchemaService_List_Handler,
 		},
+		{
+			MethodName: "BatchCreate",
+			Handler:    _MultiWordSchemaService_BatchCreate_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -489,6 +561,7 @@ type NilExampleServiceClient interface {
 	Update(ctx context.Context, in *UpdateNilExampleRequest, opts ...grpc.CallOption) (*NilExample, error)
 	Delete(ctx context.Context, in *DeleteNilExampleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	List(ctx context.Context, in *ListNilExampleRequest, opts ...grpc.CallOption) (*ListNilExampleResponse, error)
+	BatchCreate(ctx context.Context, in *BatchCreateNilExamplesRequest, opts ...grpc.CallOption) (*BatchCreateNilExamplesResponse, error)
 }
 
 type nilExampleServiceClient struct {
@@ -544,6 +617,15 @@ func (c *nilExampleServiceClient) List(ctx context.Context, in *ListNilExampleRe
 	return out, nil
 }
 
+func (c *nilExampleServiceClient) BatchCreate(ctx context.Context, in *BatchCreateNilExamplesRequest, opts ...grpc.CallOption) (*BatchCreateNilExamplesResponse, error) {
+	out := new(BatchCreateNilExamplesResponse)
+	err := c.cc.Invoke(ctx, "/entpb.NilExampleService/BatchCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NilExampleServiceServer is the server API for NilExampleService service.
 // All implementations must embed UnimplementedNilExampleServiceServer
 // for forward compatibility
@@ -553,6 +635,7 @@ type NilExampleServiceServer interface {
 	Update(context.Context, *UpdateNilExampleRequest) (*NilExample, error)
 	Delete(context.Context, *DeleteNilExampleRequest) (*emptypb.Empty, error)
 	List(context.Context, *ListNilExampleRequest) (*ListNilExampleResponse, error)
+	BatchCreate(context.Context, *BatchCreateNilExamplesRequest) (*BatchCreateNilExamplesResponse, error)
 	mustEmbedUnimplementedNilExampleServiceServer()
 }
 
@@ -574,6 +657,9 @@ func (UnimplementedNilExampleServiceServer) Delete(context.Context, *DeleteNilEx
 }
 func (UnimplementedNilExampleServiceServer) List(context.Context, *ListNilExampleRequest) (*ListNilExampleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedNilExampleServiceServer) BatchCreate(context.Context, *BatchCreateNilExamplesRequest) (*BatchCreateNilExamplesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
 }
 func (UnimplementedNilExampleServiceServer) mustEmbedUnimplementedNilExampleServiceServer() {}
 
@@ -678,6 +764,24 @@ func _NilExampleService_List_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NilExampleService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateNilExamplesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NilExampleServiceServer).BatchCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.NilExampleService/BatchCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NilExampleServiceServer).BatchCreate(ctx, req.(*BatchCreateNilExamplesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NilExampleService_ServiceDesc is the grpc.ServiceDesc for NilExampleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -705,6 +809,10 @@ var NilExampleService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "List",
 			Handler:    _NilExampleService_List_Handler,
 		},
+		{
+			MethodName: "BatchCreate",
+			Handler:    _NilExampleService_BatchCreate_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -719,6 +827,7 @@ type PetServiceClient interface {
 	Update(ctx context.Context, in *UpdatePetRequest, opts ...grpc.CallOption) (*Pet, error)
 	Delete(ctx context.Context, in *DeletePetRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	List(ctx context.Context, in *ListPetRequest, opts ...grpc.CallOption) (*ListPetResponse, error)
+	BatchCreate(ctx context.Context, in *BatchCreatePetsRequest, opts ...grpc.CallOption) (*BatchCreatePetsResponse, error)
 }
 
 type petServiceClient struct {
@@ -774,6 +883,15 @@ func (c *petServiceClient) List(ctx context.Context, in *ListPetRequest, opts ..
 	return out, nil
 }
 
+func (c *petServiceClient) BatchCreate(ctx context.Context, in *BatchCreatePetsRequest, opts ...grpc.CallOption) (*BatchCreatePetsResponse, error) {
+	out := new(BatchCreatePetsResponse)
+	err := c.cc.Invoke(ctx, "/entpb.PetService/BatchCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PetServiceServer is the server API for PetService service.
 // All implementations must embed UnimplementedPetServiceServer
 // for forward compatibility
@@ -783,6 +901,7 @@ type PetServiceServer interface {
 	Update(context.Context, *UpdatePetRequest) (*Pet, error)
 	Delete(context.Context, *DeletePetRequest) (*emptypb.Empty, error)
 	List(context.Context, *ListPetRequest) (*ListPetResponse, error)
+	BatchCreate(context.Context, *BatchCreatePetsRequest) (*BatchCreatePetsResponse, error)
 	mustEmbedUnimplementedPetServiceServer()
 }
 
@@ -804,6 +923,9 @@ func (UnimplementedPetServiceServer) Delete(context.Context, *DeletePetRequest) 
 }
 func (UnimplementedPetServiceServer) List(context.Context, *ListPetRequest) (*ListPetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedPetServiceServer) BatchCreate(context.Context, *BatchCreatePetsRequest) (*BatchCreatePetsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
 }
 func (UnimplementedPetServiceServer) mustEmbedUnimplementedPetServiceServer() {}
 
@@ -908,6 +1030,24 @@ func _PetService_List_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PetService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreatePetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PetServiceServer).BatchCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PetService/BatchCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PetServiceServer).BatchCreate(ctx, req.(*BatchCreatePetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PetService_ServiceDesc is the grpc.ServiceDesc for PetService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -935,6 +1075,96 @@ var PetService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "List",
 			Handler:    _PetService_List_Handler,
 		},
+		{
+			MethodName: "BatchCreate",
+			Handler:    _PetService_BatchCreate_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "entpb/entpb.proto",
+}
+
+// PonyServiceClient is the client API for PonyService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PonyServiceClient interface {
+	BatchCreate(ctx context.Context, in *BatchCreatePoniesRequest, opts ...grpc.CallOption) (*BatchCreatePoniesResponse, error)
+}
+
+type ponyServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPonyServiceClient(cc grpc.ClientConnInterface) PonyServiceClient {
+	return &ponyServiceClient{cc}
+}
+
+func (c *ponyServiceClient) BatchCreate(ctx context.Context, in *BatchCreatePoniesRequest, opts ...grpc.CallOption) (*BatchCreatePoniesResponse, error) {
+	out := new(BatchCreatePoniesResponse)
+	err := c.cc.Invoke(ctx, "/entpb.PonyService/BatchCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PonyServiceServer is the server API for PonyService service.
+// All implementations must embed UnimplementedPonyServiceServer
+// for forward compatibility
+type PonyServiceServer interface {
+	BatchCreate(context.Context, *BatchCreatePoniesRequest) (*BatchCreatePoniesResponse, error)
+	mustEmbedUnimplementedPonyServiceServer()
+}
+
+// UnimplementedPonyServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPonyServiceServer struct {
+}
+
+func (UnimplementedPonyServiceServer) BatchCreate(context.Context, *BatchCreatePoniesRequest) (*BatchCreatePoniesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
+}
+func (UnimplementedPonyServiceServer) mustEmbedUnimplementedPonyServiceServer() {}
+
+// UnsafePonyServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PonyServiceServer will
+// result in compilation errors.
+type UnsafePonyServiceServer interface {
+	mustEmbedUnimplementedPonyServiceServer()
+}
+
+func RegisterPonyServiceServer(s grpc.ServiceRegistrar, srv PonyServiceServer) {
+	s.RegisterService(&PonyService_ServiceDesc, srv)
+}
+
+func _PonyService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreatePoniesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PonyServiceServer).BatchCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.PonyService/BatchCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PonyServiceServer).BatchCreate(ctx, req.(*BatchCreatePoniesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PonyService_ServiceDesc is the grpc.ServiceDesc for PonyService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PonyService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "entpb.PonyService",
+	HandlerType: (*PonyServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "BatchCreate",
+			Handler:    _PonyService_BatchCreate_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "entpb/entpb.proto",
@@ -949,6 +1179,7 @@ type UserServiceClient interface {
 	Update(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	Delete(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	List(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
+	BatchCreate(ctx context.Context, in *BatchCreateUsersRequest, opts ...grpc.CallOption) (*BatchCreateUsersResponse, error)
 }
 
 type userServiceClient struct {
@@ -1004,6 +1235,15 @@ func (c *userServiceClient) List(ctx context.Context, in *ListUserRequest, opts 
 	return out, nil
 }
 
+func (c *userServiceClient) BatchCreate(ctx context.Context, in *BatchCreateUsersRequest, opts ...grpc.CallOption) (*BatchCreateUsersResponse, error) {
+	out := new(BatchCreateUsersResponse)
+	err := c.cc.Invoke(ctx, "/entpb.UserService/BatchCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -1013,6 +1253,7 @@ type UserServiceServer interface {
 	Update(context.Context, *UpdateUserRequest) (*User, error)
 	Delete(context.Context, *DeleteUserRequest) (*emptypb.Empty, error)
 	List(context.Context, *ListUserRequest) (*ListUserResponse, error)
+	BatchCreate(context.Context, *BatchCreateUsersRequest) (*BatchCreateUsersResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -1034,6 +1275,9 @@ func (UnimplementedUserServiceServer) Delete(context.Context, *DeleteUserRequest
 }
 func (UnimplementedUserServiceServer) List(context.Context, *ListUserRequest) (*ListUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedUserServiceServer) BatchCreate(context.Context, *BatchCreateUsersRequest) (*BatchCreateUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCreate not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -1138,6 +1382,24 @@ func _UserService_List_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCreateUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).BatchCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/entpb.UserService/BatchCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).BatchCreate(ctx, req.(*BatchCreateUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1164,6 +1426,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _UserService_List_Handler,
+		},
+		{
+			MethodName: "BatchCreate",
+			Handler:    _UserService_BatchCreate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -22,6 +22,8 @@ type Tx struct {
 	NilExample *NilExampleClient
 	// Pet is the client for interacting with the Pet builders.
 	Pet *PetClient
+	// Pony is the client for interacting with the Pony builders.
+	Pony *PonyClient
 	// SkipEdgeExample is the client for interacting with the SkipEdgeExample builders.
 	SkipEdgeExample *SkipEdgeExampleClient
 	// Todo is the client for interacting with the Todo builders.
@@ -168,6 +170,7 @@ func (tx *Tx) init() {
 	tx.MultiWordSchema = NewMultiWordSchemaClient(tx.config)
 	tx.NilExample = NewNilExampleClient(tx.config)
 	tx.Pet = NewPetClient(tx.config)
+	tx.Pony = NewPonyClient(tx.config)
 	tx.SkipEdgeExample = NewSkipEdgeExampleClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)

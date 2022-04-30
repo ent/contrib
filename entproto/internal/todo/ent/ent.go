@@ -12,6 +12,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
+	"entgo.io/contrib/entproto/internal/todo/ent/pony"
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
@@ -43,6 +44,7 @@ func columnChecker(table string) func(string) error {
 		multiwordschema.Table: multiwordschema.ValidColumn,
 		nilexample.Table:      nilexample.ValidColumn,
 		pet.Table:             pet.ValidColumn,
+		pony.Table:            pony.ValidColumn,
 		skipedgeexample.Table: skipedgeexample.ValidColumn,
 		todo.Table:            todo.ValidColumn,
 		user.Table:            user.ValidColumn,

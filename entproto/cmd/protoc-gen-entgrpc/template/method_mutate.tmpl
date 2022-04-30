@@ -8,13 +8,49 @@
     {{- $reqVar := camel .G.EntType.Name -}}
     {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
     {{- if eq .Method.GoName "Create" }}
-        m := svc.client.{{ .G.EntType.Name }}.Create()
+        m, err := svc.createBuilder({{ $reqVar }})
+        if err != nil {
+            return nil, err
+        }
     {{- else }}
         {{- $varName := camel (print $reqVar "_" $idField.EntField.Name) -}}
         {{- $id := print $reqVar ".Get" $idField.PbStructField "() " -}}
         {{- template "field_to_ent" dict "Field" $idField "VarName" $varName "Ident" $id }}
         m := svc.client.{{ .G.EntType.Name }}.UpdateOneID({{ $varName }})
+        {{- template "mutate_helper" . -}}
     {{- end }}
+    res, err := m.Save(ctx)
+    switch {
+        case err == nil:
+            proto, err := toProto{{ .G.EntType.Name }}(res)
+            if err != nil {
+                return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
+            }
+            return proto, nil
+        case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
+            return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}
+        case {{ .G.EntPackage.Ident "IsConstraintError" | ident }}(err):
+            return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err"}}
+        default:
+            return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
+    }
+{{ end }}
+
+{{ define "create_builder_func" }}
+    {{- $entType  := .Method.G.EntType.Name -}}
+    {{- $inputVar := camel $entType -}}
+    {{- $outputType := printf "%s%s" $entType "Create" -}}
+
+    func (svc *{{ .ServiceName }}) createBuilder({{ $inputVar }} *{{ $entType }}) (*ent.{{ $outputType }}, error) {
+        m := svc.client.{{ $entType }}.Create()
+        {{- template "mutate_helper" .Method -}}
+        return m, nil
+    }
+{{ end }}
+
+{{ define "mutate_helper" }}
+    {{- $methodName := .Method.GoName -}}
+    {{- $reqVar := camel .G.EntType.Name -}}
     {{- range .G.FieldMap.Fields }}
         {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
         {{- $skip := or .IsIDField $skipImmutable -}}
@@ -49,19 +85,4 @@
             }
         {{- end }}
     {{- end }}
-    res, err := m.Save(ctx)
-    switch {
-        case err == nil:
-            proto, err := toProto{{ .G.EntType.Name }}(res)
-            if err != nil {
-                return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
-            }
-            return proto, nil
-        case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
-            return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}
-        case {{ .G.EntPackage.Ident "IsConstraintError" | ident }}(err):
-            return nil, {{ statusErrf "InvalidArgument" "invalid argument: %s" "err"}}
-        default:
-            return nil, {{ statusErrf "Internal" "internal error: %s" "err"}}
-    }
 {{ end }}

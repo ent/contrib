@@ -47,17 +47,25 @@ func toProtoNilExample(e *ent.NilExample) (*NilExample, error) {
 	return v, nil
 }
 
+// toProtoNilExampleList transforms a list of ent type to a list of pb type
+func toProtoNilExampleList(e []*ent.NilExample) ([]*NilExample, error) {
+	var pbList []*NilExample
+	for _, entEntity := range e {
+		pbEntity, err := toProtoNilExample(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements NilExampleServiceServer.Create
 func (svc *NilExampleService) Create(ctx context.Context, req *CreateNilExampleRequest) (*NilExample, error) {
 	nilexample := req.GetNilExample()
-	m := svc.client.NilExample.Create()
-	if nilexample.GetStrNil() != nil {
-		nilexampleStrNil := nilexample.GetStrNil().GetValue()
-		m.SetStrNil(nilexampleStrNil)
-	}
-	if nilexample.GetTimeNil() != nil {
-		nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
-		m.SetTimeNil(nilexampleTimeNil)
+	m, err := svc.createBuilder(nilexample)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -118,6 +126,7 @@ func (svc *NilExampleService) Update(ctx context.Context, req *UpdateNilExampleR
 		nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
 		m.SetTimeNil(nilexampleTimeNil)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -197,20 +206,64 @@ func (svc *NilExampleService) List(ctx context.Context, req *ListNilExampleReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*NilExample
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoNilExample(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtoNilExampleList(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListNilExampleResponse{
-			NilExampleList: pbList,
+			NilExampleList: protoList,
 			NextPageToken:  nextPageToken,
 		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+// BatchCreate implements NilExampleServiceServer.BatchCreate
+func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateNilExamplesRequest) (*BatchCreateNilExamplesResponse, error) {
+	requests := req.GetRequests()
+	if len(requests) > entproto.MaxBatchCreateSize {
+		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
+	}
+	bulk := make([]*ent.NilExampleCreate, len(requests))
+	for i, req := range requests {
+		nilexample := req.GetNilExample()
+		var err error
+		bulk[i], err = svc.createBuilder(nilexample)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res, err := svc.client.NilExample.CreateBulk(bulk...).Save(ctx)
+	switch {
+	case err == nil:
+		protoList, err := toProtoNilExampleList(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		return &BatchCreateNilExamplesResponse{
+			NilExamples: protoList,
+		}, nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+func (svc *NilExampleService) createBuilder(nilexample *NilExample) (*ent.NilExampleCreate, error) {
+	m := svc.client.NilExample.Create()
+	if nilexample.GetStrNil() != nil {
+		nilexampleStrNil := nilexample.GetStrNil().GetValue()
+		m.SetStrNil(nilexampleStrNil)
+	}
+	if nilexample.GetTimeNil() != nil {
+		nilexampleTimeNil := runtime.ExtractTime(nilexample.GetTimeNil())
+		m.SetTimeNil(nilexampleTimeNil)
+	}
+	return m, nil
 }

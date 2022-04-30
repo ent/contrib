@@ -52,17 +52,25 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	return v, nil
 }
 
+// toProtoAttachmentList transforms a list of ent type to a list of pb type
+func toProtoAttachmentList(e []*ent.Attachment) ([]*Attachment, error) {
+	var pbList []*Attachment
+	for _, entEntity := range e {
+		pbEntity, err := toProtoAttachment(entEntity)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		pbList = append(pbList, pbEntity)
+	}
+	return pbList, nil
+}
+
 // Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	m := svc.client.Attachment.Create()
-	for _, item := range attachment.GetRecipients() {
-		recipients := int(item.GetId())
-		m.AddRecipientIDs(recipients)
-	}
-	if attachment.GetUser() != nil {
-		attachmentUser := int(attachment.GetUser().GetId())
-		m.SetUserID(attachmentUser)
+	m, err := svc.createBuilder(attachment)
+	if err != nil {
+		return nil, err
 	}
 	res, err := m.Save(ctx)
 	switch {
@@ -135,6 +143,7 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 		attachmentUser := int(attachment.GetUser().GetId())
 		m.SetUserID(attachmentUser)
 	}
+
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -222,20 +231,64 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		var pbList []*Attachment
-		for _, entEntity := range entList {
-			pbEntity, err := toProtoAttachment(entEntity)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "internal error: %s", err)
-			}
-			pbList = append(pbList, pbEntity)
+		protoList, err := toProtoAttachmentList(entList)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
 		return &ListAttachmentResponse{
-			AttachmentList: pbList,
+			AttachmentList: protoList,
 			NextPageToken:  nextPageToken,
 		}, nil
 	default:
 		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 	}
 
+}
+
+// BatchCreate implements AttachmentServiceServer.BatchCreate
+func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateAttachmentsRequest) (*BatchCreateAttachmentsResponse, error) {
+	requests := req.GetRequests()
+	if len(requests) > entproto.MaxBatchCreateSize {
+		return nil, status.Errorf(codes.InvalidArgument, "batch size cannot be greater than %d", entproto.MaxBatchCreateSize)
+	}
+	bulk := make([]*ent.AttachmentCreate, len(requests))
+	for i, req := range requests {
+		attachment := req.GetAttachment()
+		var err error
+		bulk[i], err = svc.createBuilder(attachment)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res, err := svc.client.Attachment.CreateBulk(bulk...).Save(ctx)
+	switch {
+	case err == nil:
+		protoList, err := toProtoAttachmentList(res)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+		}
+		return &BatchCreateAttachmentsResponse{
+			Attachments: protoList,
+		}, nil
+	case sqlgraph.IsUniqueConstraintError(err):
+		return nil, status.Errorf(codes.AlreadyExists, "already exists: %s", err)
+	case ent.IsConstraintError(err):
+		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+	default:
+		return nil, status.Errorf(codes.Internal, "internal error: %s", err)
+	}
+
+}
+
+func (svc *AttachmentService) createBuilder(attachment *Attachment) (*ent.AttachmentCreate, error) {
+	m := svc.client.Attachment.Create()
+	for _, item := range attachment.GetRecipients() {
+		recipients := int(item.GetId())
+		m.AddRecipientIDs(recipients)
+	}
+	if attachment.GetUser() != nil {
+		attachmentUser := int(attachment.GetUser().GetId())
+		m.SetUserID(attachmentUser)
+	}
+	return m, nil
 }

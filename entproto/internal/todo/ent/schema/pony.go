@@ -18,18 +18,26 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/field"
 )
 
-// OneMethodService holds the schema definition for the OneMethodService entity.
-type OneMethodService struct {
+// Pony is the schema of the Pony entity. It is used to verify the pluralization of the entity name
+// in the generated protos and service code, expecting Ponies and not Ponys.
+type Pony struct {
 	ent.Schema
 }
 
-func (OneMethodService) Annotations() []schema.Annotation {
+// Fields of the Pet.
+func (Pony) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name").
+			Annotations(entproto.Field(2)),
+	}
+}
+
+func (Pony) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
-		entproto.Service(
-			entproto.Methods(entproto.MethodBatchCreate),
-		),
+		entproto.Service(entproto.Methods(entproto.MethodBatchCreate)),
 	}
 }
