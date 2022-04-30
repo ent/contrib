@@ -59,7 +59,7 @@ func toProtoPetList(e []*ent.Pet) ([]*Pet, error) {
 // Create implements PetServiceServer.Create
 func (svc *PetService) Create(ctx context.Context, req *CreatePetRequest) (*Pet, error) {
 	pet := req.GetPet()
-	m, err := svc.configureCreateBuilder(pet)
+	m, err := svc.createBuilder(pet)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 	for i, req := range requests {
 		pet := req.GetPet()
 		var err error
-		bulk[i], err = svc.configureCreateBuilder(pet)
+		bulk[i], err = svc.createBuilder(pet)
 		if err != nil {
 			return nil, err
 		}
@@ -253,7 +253,7 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 
 }
 
-func (svc *PetService) configureCreateBuilder(pet *Pet) (*ent.PetCreate, error) {
+func (svc *PetService) createBuilder(pet *Pet) (*ent.PetCreate, error) {
 	m := svc.client.Pet.Create()
 	if pet.GetOwner() != nil {
 		petOwner := int(pet.GetOwner().GetId())

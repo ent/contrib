@@ -69,7 +69,7 @@ func toProtoMultiWordSchemaList(e []*ent.MultiWordSchema) ([]*MultiWordSchema, e
 // Create implements MultiWordSchemaServiceServer.Create
 func (svc *MultiWordSchemaService) Create(ctx context.Context, req *CreateMultiWordSchemaRequest) (*MultiWordSchema, error) {
 	multiwordschema := req.GetMultiWordSchema()
-	m, err := svc.configureCreateBuilder(multiwordschema)
+	m, err := svc.createBuilder(multiwordschema)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (svc *MultiWordSchemaService) BatchCreate(ctx context.Context, req *BatchCr
 	for i, req := range requests {
 		multiwordschema := req.GetMultiWordSchema()
 		var err error
-		bulk[i], err = svc.configureCreateBuilder(multiwordschema)
+		bulk[i], err = svc.createBuilder(multiwordschema)
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ func (svc *MultiWordSchemaService) BatchCreate(ctx context.Context, req *BatchCr
 
 }
 
-func (svc *MultiWordSchemaService) configureCreateBuilder(multiwordschema *MultiWordSchema) (*ent.MultiWordSchemaCreate, error) {
+func (svc *MultiWordSchemaService) createBuilder(multiwordschema *MultiWordSchema) (*ent.MultiWordSchemaCreate, error) {
 	m := svc.client.MultiWordSchema.Create()
 	multiwordschemaUnit := toEntMultiWordSchema_Unit(multiwordschema.GetUnit())
 	m.SetUnit(multiwordschemaUnit)

@@ -56,7 +56,7 @@ func (svc *PonyService) BatchCreate(ctx context.Context, req *BatchCreatePoniesR
 	for i, req := range requests {
 		pony := req.GetPony()
 		var err error
-		bulk[i], err = svc.configureCreateBuilder(pony)
+		bulk[i], err = svc.createBuilder(pony)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (svc *PonyService) BatchCreate(ctx context.Context, req *BatchCreatePoniesR
 
 }
 
-func (svc *PonyService) configureCreateBuilder(pony *Pony) (*ent.PonyCreate, error) {
+func (svc *PonyService) createBuilder(pony *Pony) (*ent.PonyCreate, error) {
 	m := svc.client.Pony.Create()
 	ponyName := pony.GetName()
 	m.SetName(ponyName)

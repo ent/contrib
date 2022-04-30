@@ -153,7 +153,7 @@ func toProtoUserList(e []*ent.User) ([]*User, error) {
 // Create implements UserServiceServer.Create
 func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
 	user := req.GetUser()
-	m, err := svc.configureCreateBuilder(user)
+	m, err := svc.createBuilder(user)
 	if err != nil {
 		return nil, err
 	}
@@ -412,7 +412,7 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 	for i, req := range requests {
 		user := req.GetUser()
 		var err error
-		bulk[i], err = svc.configureCreateBuilder(user)
+		bulk[i], err = svc.createBuilder(user)
 		if err != nil {
 			return nil, err
 		}
@@ -437,7 +437,7 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 
 }
 
-func (svc *UserService) configureCreateBuilder(user *User) (*ent.UserCreate, error) {
+func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m := svc.client.User.Create()
 	userAccountBalance := float64(user.GetAccountBalance())
 	m.SetAccountBalance(userAccountBalance)

@@ -68,7 +68,7 @@ func toProtoAttachmentList(e []*ent.Attachment) ([]*Attachment, error) {
 // Create implements AttachmentServiceServer.Create
 func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentRequest) (*Attachment, error) {
 	attachment := req.GetAttachment()
-	m, err := svc.configureCreateBuilder(attachment)
+	m, err := svc.createBuilder(attachment)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,7 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 	for i, req := range requests {
 		attachment := req.GetAttachment()
 		var err error
-		bulk[i], err = svc.configureCreateBuilder(attachment)
+		bulk[i], err = svc.createBuilder(attachment)
 		if err != nil {
 			return nil, err
 		}
@@ -280,7 +280,7 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 
 }
 
-func (svc *AttachmentService) configureCreateBuilder(attachment *Attachment) (*ent.AttachmentCreate, error) {
+func (svc *AttachmentService) createBuilder(attachment *Attachment) (*ent.AttachmentCreate, error) {
 	m := svc.client.Attachment.Create()
 	for _, item := range attachment.GetRecipients() {
 		recipients := int(item.GetId())

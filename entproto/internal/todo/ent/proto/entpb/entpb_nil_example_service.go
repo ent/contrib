@@ -63,7 +63,7 @@ func toProtoNilExampleList(e []*ent.NilExample) ([]*NilExample, error) {
 // Create implements NilExampleServiceServer.Create
 func (svc *NilExampleService) Create(ctx context.Context, req *CreateNilExampleRequest) (*NilExample, error) {
 	nilexample := req.GetNilExample()
-	m, err := svc.configureCreateBuilder(nilexample)
+	m, err := svc.createBuilder(nilexample)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 	for i, req := range requests {
 		nilexample := req.GetNilExample()
 		var err error
-		bulk[i], err = svc.configureCreateBuilder(nilexample)
+		bulk[i], err = svc.createBuilder(nilexample)
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ func (svc *NilExampleService) BatchCreate(ctx context.Context, req *BatchCreateN
 
 }
 
-func (svc *NilExampleService) configureCreateBuilder(nilexample *NilExample) (*ent.NilExampleCreate, error) {
+func (svc *NilExampleService) createBuilder(nilexample *NilExample) (*ent.NilExampleCreate, error) {
 	m := svc.client.NilExample.Create()
 	if nilexample.GetStrNil() != nil {
 		nilexampleStrNil := nilexample.GetStrNil().GetValue()
