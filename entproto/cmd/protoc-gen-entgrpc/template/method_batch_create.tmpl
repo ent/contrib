@@ -12,7 +12,7 @@
     for i, req := range requests {
         {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
         var err error
-        bulk[i], err = svc.configureCreateBuilder({{ $reqVar }})
+        bulk[i], err = svc.createBuilder({{ $reqVar }})
         if err != nil {
             return nil, err
         }

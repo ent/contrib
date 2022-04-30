@@ -8,7 +8,7 @@
     {{- $reqVar := camel .G.EntType.Name -}}
     {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
     {{- if eq .Method.GoName "Create" }}
-        m, err := svc.configureCreateBuilder({{ $reqVar }})
+        m, err := svc.createBuilder({{ $reqVar }})
         if err != nil {
             return nil, err
         }
@@ -41,7 +41,7 @@
     {{- $inputVar := camel $entType -}}
     {{- $outputType := printf "%s%s" $entType "Create" -}}
 
-    func (svc *{{ .ServiceName }}) configureCreateBuilder({{ $inputVar }} *{{ $entType }}) (*ent.{{ $outputType }}, error) {
+    func (svc *{{ .ServiceName }}) createBuilder({{ $inputVar }} *{{ $entType }}) (*ent.{{ $outputType }}, error) {
         m := svc.client.{{ $entType }}.Create()
         {{- template "mutate_helper" .Method -}}
         return m, nil
