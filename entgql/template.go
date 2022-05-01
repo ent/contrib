@@ -18,7 +18,6 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -26,18 +25,11 @@ import (
 	"text/template"
 	"text/template/parse"
 
+	"github.com/99designs/gqlgen/graphql"
+
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/vektah/gqlparser/v2/ast"
-)
-
-type (
-	_Marshaler interface {
-		MarshalGQL(w io.Writer)
-	}
-	_Unmarshaler interface {
-		UnmarshalGQL(v interface{}) error
-	}
 )
 
 var (
@@ -81,22 +73,22 @@ var (
 		"filterEdges":         filterEdges,
 		"filterFields":        filterFields,
 		"filterNodes":         filterNodes,
-		"findIDType":          findIDType,
 		"hasWhereInput":       hasWhereInput,
 		"isRelayConn":         isRelayConn,
 		"isSkipMode":          isSkipMode,
-		"marshalerID":         marshalerID,
 		"nodePaginationNames": nodePaginationNames,
 		"orderFields":         orderFields,
 		"skipMode":            skipModeFromString,
-		"unmarshalerID":       unmarshalerID,
+		"gqlIDType":           gqlIDType,
+		"gqlMarshaler":        gqlMarshaler,
+		"gqlUnmarshaler":      gqlUnmarshaler,
 	}
 
 	//go:embed template/*
 	templates embed.FS
 
-	marshalerType   = reflect.TypeOf((*_Marshaler)(nil)).Elem()
-	unmarshalerType = reflect.TypeOf((*_Unmarshaler)(nil)).Elem()
+	marshalerType   = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
+	unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
 )
 
 func parseT(path string) *gen.Template {
@@ -105,49 +97,44 @@ func parseT(path string) *gen.Template {
 		ParseFS(templates, path))
 }
 
-func (c *Config) enabledStringID() bool {
-	if c == nil {
-		return false
+// idType returns the scalar (Go) type of the GraphQL ID.
+func gqlIDType(nodes []*gen.Type, defaultType *field.TypeInfo) (*field.TypeInfo, error) {
+	if len(nodes) == 0 {
+		return defaultType, nil
 	}
-	return c.StringID
-}
-
-func marshalerID(t *field.TypeInfo, cfg *Config) bool {
-	return cfg.enabledStringID() && t.RType.Implements(marshalerType)
-}
-
-func unmarshalerID(t *field.TypeInfo, cfg *Config) bool {
-	return cfg.enabledStringID() && t.RType.Implements(unmarshalerType)
-}
-
-// findIDType returns the type of the ID field of the given type.
-func findIDType(nodes []*gen.Type, defaultType *field.TypeInfo, cfg *Config) (*field.TypeInfo, error) {
-	t := defaultType
-	if len(nodes) > 0 {
-		t = nodes[0].ID.Type
-		// Ensure all id types have the same type.
-		for _, n := range nodes[1:] {
-			if n.ID.Type.Type != t.Type {
-				return nil, errors.New("node does not support multiple id types")
-			}
+	var mixed bool
+	for i := 1; i < len(nodes); i++ {
+		id1, id2 := nodes[i-1].ID, nodes[i].ID
+		// Field type does not match.
+		if mixed = id1.Type != id2.Type; mixed {
+			break
+		}
+		// Underlying Go type does not match.
+		if mixed = id1.HasGoType() != id2.HasGoType() || (id1.HasGoType() && id1.Type.RType.Ident != id2.Type.RType.Ident); mixed {
+			break
 		}
 	}
-	if !cfg.enabledStringID() {
-		return t, nil
+	if !mixed {
+		return nodes[0].ID.Type, nil
 	}
-	if t.Type != field.TypeString {
-		return nil, errors.New("entgql/string-id: id field must be a string")
-	}
-
+	// If there are mixed types, expect all of them
+	// to be either string or graphql.Marshaler.
 	for _, n := range nodes {
-		f := n.ID
-		if f.HasGoType() && !(marshalerID(f.Type, cfg) || unmarshalerID(f.Type, cfg)) {
-			return nil, errors.New("entgql/string-id: GoType must implement graphql.Marshaler and graphql.Unmarshaler")
+		if !n.ID.HasGoType() || !n.ID.Type.RType.Implements(marshalerType) || !n.ID.Type.RType.Implements(unmarshalerType) {
+			return nil, errors.New("entgql: mixed id types must be type string or implement the graphql.Marshaller/graphql.Unmarshaller interfaces")
 		}
 	}
 	return &field.TypeInfo{
 		Type: field.TypeString,
 	}, nil
+}
+
+func gqlMarshaler(f *gen.Field) bool {
+	return f.HasGoType() && f.Type.RType.Implements(marshalerType)
+}
+
+func gqlUnmarshaler(f *gen.Field) bool {
+	return f.HasGoType() && f.Type.RType.Implements(unmarshalerType)
 }
 
 type fieldCollection struct {

@@ -30,10 +30,6 @@ import (
 )
 
 type (
-	// Config is holds EntGQL extension configs
-	Config struct {
-		StringID bool
-	}
 	// Extension implements the entc.Extension for providing GraphQL integration.
 	Extension struct {
 		entc.DefaultExtension
@@ -53,6 +49,7 @@ type (
 	// ExtensionOption allows for managing the Extension configuration
 	// using functional options.
 	ExtensionOption func(*Extension) error
+
 	// SchemaHook is the hook that run after the GQL schema generation.
 	SchemaHook func(*gen.Graph, *ast.Schema) error
 )
@@ -81,12 +78,6 @@ func WithSchemaHook(hooks ...SchemaHook) ExtensionOption {
 		return nil
 	}
 }
-
-const (
-	// EntGQLConfigAnnotation is the annotation key/name that holds EntGQL
-	// configuration if it was provided by the `WithStringID` option.
-	EntGQLConfigAnnotation = "EntGQLConfig"
-)
 
 // WithConfigPath sets the filepath to gqlgen.yml configuration file
 // and injects its parsed version to the global annotations.
@@ -150,28 +141,9 @@ func WithSchemaGenerator() ExtensionOption {
 	}
 }
 
-// WithStringID enable GQL ID as string
-func WithStringID() ExtensionOption {
-	return func(e *Extension) error {
-		e.hooks = append(e.hooks, func(next gen.Generator) gen.Generator {
-			return gen.GenerateFunc(func(g *gen.Graph) error {
-				err := mutateConfig(g, func(a *Config) error {
-					a.StringID = true
-					return nil
-				})
-				if err != nil {
-					return err
-				}
-				return next.Generate(g)
-			})
-		})
-		return nil
-	}
-}
-
-// WithMapScalarFunc allows users to provides a custom function that
+// WithMapScalarFunc allows users to provide a custom function that
 // maps an ent.Field (*gen.Field) into its GraphQL scalar type. If the
-// function returns an empty string, the extension fallbacks to the its
+// function returns an empty string, the extension fallbacks to its
 // default mapping.
 //
 //	ex, err := entgql.NewExtension(
@@ -462,22 +434,3 @@ var (
 	camel  = gen.Funcs["camel"].(func(string) string)
 	plural = gen.Funcs["plural"].(func(string) string)
 )
-
-func mutateConfig(g *gen.Graph, mutator func(*Config) error) error {
-	if g.Annotations == nil {
-		g.Annotations = gen.Annotations{}
-	}
-	if _, exist := g.Annotations[EntGQLConfigAnnotation]; !exist {
-		g.Annotations[EntGQLConfigAnnotation] = &Config{}
-	}
-	if mutator != nil {
-		if cfg, ok := g.Annotations[EntGQLConfigAnnotation].(*Config); ok {
-			if err := mutator(cfg); err != nil {
-				return err
-			}
-		} else {
-			return fmt.Errorf("entgql: expect *entgql.Config, found %v", cfg)
-		}
-	}
-	return nil
-}

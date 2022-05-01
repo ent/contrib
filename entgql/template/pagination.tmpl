@@ -18,7 +18,7 @@ in the LICENSE file in the root directory of this source tree.
 {{- end }}
 
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
-{{ $idType := findIDType $gqlNodes $.IDType $.Annotations.EntGQLConfig }}
+{{ $idType := gqlIDType $gqlNodes $.IDType }}
 
 import (
 	{{- range $n := $gqlNodes }}
@@ -412,7 +412,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 			{{ $var }} = &{{ $orderField }}{
 				field: {{ $node.Package }}.{{ $f.Constant }},
 				toCursor: func({{ $r }} *{{ $name }}) Cursor {
-					{{- $marshalID := marshalerID $node.ID.Type $.Annotations.EntGQLConfig }}
+					{{- $marshalID := gqlMarshaler $node.ID.Type }}
 					return Cursor{
 						ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 						Value: {{ $r }}.{{ $f.StructField }},
@@ -475,7 +475,7 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	Field: &{{ $orderField }}{
 		field: {{ $node.Package }}.{{ $node.ID.Constant }},
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
-			{{- $marshalID := marshalerID $node.ID.Type $.Annotations.EntGQLConfig }}
+			{{- $marshalID := gqlMarshaler $node.ID.Type }}
 			return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
 		},
 	},

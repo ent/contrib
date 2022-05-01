@@ -15,7 +15,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ end }}
 
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
-{{ $idType := findIDType $gqlNodes $.IDType $.Annotations.EntGQLConfig }}
+{{ $idType := gqlIDType $gqlNodes $.IDType }}
 
 import (
 	{{- range $n := $.Nodes }}
@@ -65,14 +65,14 @@ type Edge struct {
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
-		{{- $marshalID := marshalerID $n.ID.Type $.Annotations.EntGQLConfig }}
-		{{- if $marshalID }}
+	{{ $marshalID := gqlMarshaler $n.ID }}
+	{{- if gqlMarshaler $n.ID }}
 		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
-			var buf bytes.Buffer
-			{{ $receiver }}.ID.MarshalGQL(&buf)
-			return buf.String()
+			var b bytes.Buffer
+			{{ $receiver }}.ID.MarshalGQL(&b)
+			return b.String()
 		}
-		{{- end }}
+	{{- end }}
 
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		{{- $fields := filterFields $n.Fields (skipMode "type") }}
@@ -187,8 +187,8 @@ func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption
 func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
 	{{- range $n := $gqlNodes }}
+		{{ $unmarshalID := gqlUnmarshaler $n.ID }}
 		case {{ $n.Package }}.Table:
-			{{- $unmarshalID := unmarshalerID $n.ID.Type $.Annotations.EntGQLConfig }}
 			{{- if $unmarshalID }}
 				var uid {{ $n.ID.Type }}
 				if err := uid.UnmarshalGQL(id); err != nil {
@@ -284,7 +284,8 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
-			{{- $unmarshalID := unmarshalerID $n.ID.Type $.Annotations.EntGQLConfig }}
+			{{- $marshalID := gqlMarshaler $n.ID }}
+			{{- $unmarshalID := gqlUnmarshaler $n.ID }}
 			{{- if $unmarshalID }}
 				uids := make([]{{ $n.ID.Type }}, len(ids))
 				for i, id := range ids {
@@ -305,7 +306,6 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 			if err != nil {
 				return nil, err
 			}
-			{{- $marshalID := marshalerID $n.ID.Type $.Annotations.EntGQLConfig }}
 			for _, node := range nodes {
 				for _, noder := range idmap[node.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}] {
 					*noder = node
@@ -374,7 +374,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- $idType := findIDType (filterNodes $.Nodes (skipMode "type")) $.IDType $.Annotations.EntGQLConfig }}
+	{{- $idType := gqlIDType (filterNodes $.Nodes (skipMode "type")) $.IDType }}
 	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables
