@@ -14,8 +14,34 @@
 
 package todo
 
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"entgo.io/contrib/entgql/internal/todogotype/ent"
+
+	"github.com/99designs/gqlgen/graphql"
+)
+
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-type Resolver struct{}
+// Resolver is the resolver root.
+type Resolver struct{ client *ent.Client }
+
+// NewSchema creates a graphql executable schema.
+func NewSchema(client *ent.Client) graphql.ExecutableSchema {
+	return NewExecutableSchema(Config{
+		Resolvers: &Resolver{client},
+	})
+}
+
+func nodeType(_ context.Context, id string) (string, error) {
+	parts := strings.Split(id, "/")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("unexpected id format. expect Type/ID, but got: %s", id)
+	}
+	return parts[0], nil
+}

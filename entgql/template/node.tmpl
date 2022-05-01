@@ -65,12 +65,12 @@ type Edge struct {
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
-	{{ $marshalID := gqlMarshaler $n.ID }}
-	{{- if gqlMarshaler $n.ID }}
+	{{ $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
+	{{- if $marshalID }}
 		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
-			var b bytes.Buffer
-			{{ $receiver }}.ID.MarshalGQL(&b)
-			return b.String()
+			var buf bytes.Buffer
+			{{ $receiver }}.ID.MarshalGQL(&buf)
+			return buf.String()
 		}
 	{{- end }}
 
@@ -187,7 +187,7 @@ func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption
 func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
 	{{- range $n := $gqlNodes }}
-		{{ $unmarshalID := gqlUnmarshaler $n.ID }}
+		{{- $unmarshalID := gqlUnmarshaler $n.ID }}
 		case {{ $n.Package }}.Table:
 			{{- if $unmarshalID }}
 				var uid {{ $n.ID.Type }}
@@ -284,8 +284,8 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
-			{{- $marshalID := gqlMarshaler $n.ID }}
-			{{- $unmarshalID := gqlUnmarshaler $n.ID }}
+			{{- $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
+			{{- $unmarshalID := and $idType.Mixed (gqlUnmarshaler $n.ID) }}
 			{{- if $unmarshalID }}
 				uids := make([]{{ $n.ID.Type }}, len(ids))
 				for i, id := range ids {

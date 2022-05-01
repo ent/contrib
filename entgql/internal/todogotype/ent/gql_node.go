@@ -323,7 +323,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 // be derived from the id value according to the universal-id configuration.
 //
 //		c.Noder(ctx, id)
-//		c.Noder(ctx, id, ent.WithNodeType(pet.Table))
+//		c.Noder(ctx, id, ent.WithNodeType(typeResolver))
 //
 func (c *Client) Noder(ctx context.Context, id string, opts ...NodeOption) (_ Noder, err error) {
 	defer func() {

@@ -19,13 +19,12 @@ import (
 func main() {
 	ex, err := entgql.NewExtension(
 		entgql.WithWhereFilters(true),
-		entgql.WithStringID(),
-	// This option is disabled in this example,
-	// because the schema file is edited by the
-	// internal/todo/ent example.
-	//
-	// entgql.WithSchemaPath("../todo.graphql"),
-	//
+		// This option is disabled in this example,
+		// because the schema file is edited by the
+		// internal/todo/ent example.
+		//
+		// entgql.WithSchemaPath("../todo.graphql"),
+		//
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)

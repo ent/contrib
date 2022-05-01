@@ -334,8 +334,12 @@ func (c *Client) Noder(ctx context.Context, id pulid.ID, opts ...NodeOption) (_ 
 func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, error) {
 	switch table {
 	case category.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
 		query := c.Category.Query().
-			Where(category.ID(id))
+			Where(category.ID(uid))
 		query, err := query.CollectFields(ctx, "Category")
 		if err != nil {
 			return nil, err
@@ -346,8 +350,12 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case group.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
 		query := c.Group.Query().
-			Where(group.ID(id))
+			Where(group.ID(uid))
 		query, err := query.CollectFields(ctx, "Group")
 		if err != nil {
 			return nil, err
@@ -358,8 +366,12 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case todo.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
 		query := c.Todo.Query().
-			Where(todo.ID(id))
+			Where(todo.ID(uid))
 		query, err := query.CollectFields(ctx, "Todo")
 		if err != nil {
 			return nil, err
@@ -370,8 +382,12 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case user.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
 		query := c.User.Query().
-			Where(user.ID(id))
+			Where(user.ID(uid))
 		query, err := query.CollectFields(ctx, "User")
 		if err != nil {
 			return nil, err

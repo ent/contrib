@@ -412,7 +412,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 			{{ $var }} = &{{ $orderField }}{
 				field: {{ $node.Package }}.{{ $f.Constant }},
 				toCursor: func({{ $r }} *{{ $name }}) Cursor {
-					{{- $marshalID := gqlMarshaler $node.ID.Type }}
+					{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
 					return Cursor{
 						ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 						Value: {{ $r }}.{{ $f.StructField }},
@@ -475,7 +475,7 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	Field: &{{ $orderField }}{
 		field: {{ $node.Package }}.{{ $node.ID.Constant }},
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
-			{{- $marshalID := gqlMarshaler $node.ID.Type }}
+			{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
 			return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
 		},
 	},

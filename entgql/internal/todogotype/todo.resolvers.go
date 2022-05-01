@@ -33,11 +33,11 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 }
 
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.Noder(ctx, id, ent.WithNodeType(nodeType))
 }
 
 func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.Noders(ctx, ids, ent.WithNodeType(nodeType))
 }
 
 func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
