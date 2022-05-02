@@ -15,7 +15,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ end }}
 
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
-{{ $idType := findIDType $gqlNodes $.IDType }}
+{{ $idType := gqlIDType $gqlNodes $.IDType }}
 
 import (
 	{{- range $n := $.Nodes }}
@@ -65,11 +65,20 @@ type Edge struct {
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
 	{{ $receiver := $n.Receiver }}
+	{{ $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
+	{{- if $marshalID }}
+		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
+			var buf bytes.Buffer
+			{{ $receiver }}.ID.MarshalGQL(&buf)
+			return buf.String()
+		}
+	{{- end }}
+
 	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		{{- $fields := filterFields $n.Fields (skipMode "type") }}
 		{{- $edges := filterEdges $n.Edges (skipMode "type") }}
 		node = &Node{
-			ID: {{ $receiver }}.ID,
+			ID: {{ $receiver }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $fields }}),
 			Edges: make([]*Edge, {{ len $edges }}),
@@ -178,9 +187,16 @@ func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption
 func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
 	{{- range $n := $gqlNodes }}
+		{{- $unmarshalID := gqlUnmarshaler $n.ID }}
 		case {{ $n.Package }}.Table:
+			{{- if $unmarshalID }}
+				var uid {{ $n.ID.Type }}
+				if err := uid.UnmarshalGQL(id); err != nil {
+					return nil, err
+				}
+			{{- end }}
 			query := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.ID(id))
+				Where({{ $n.Package }}.ID({{ if $unmarshalID }}u{{ end }}id))
 			{{- if hasTemplate "gql_collection" }}
 				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
 				if err != nil {
@@ -268,8 +284,18 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	switch table {
 	{{- range $n := $gqlNodes }}
 		case {{ $n.Package }}.Table:
+			{{- $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
+			{{- $unmarshalID := and $idType.Mixed (gqlUnmarshaler $n.ID) }}
+			{{- if $unmarshalID }}
+				uids := make([]{{ $n.ID.Type }}, len(ids))
+				for i, id := range ids {
+					if err := uids[i].UnmarshalGQL(id); err != nil {
+						return nil, err
+					}
+				}
+			{{- end }}
 			query := c.{{ $n.Name }}.Query().
-				Where({{ $n.Package }}.IDIn(ids...))
+				Where({{ $n.Package }}.IDIn({{ if $unmarshalID }}u{{ end }}ids...))
 			{{- if hasTemplate "gql_collection" }}
 				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
 				if err != nil {
@@ -281,7 +307,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 				return nil, err
 			}
 			for _, node := range nodes {
-				for _, noder := range idmap[node.ID] {
+				for _, noder := range idmap[node.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}] {
 					*noder = node
 				}
 			}
@@ -348,7 +374,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 {{ end }}
 
 {{ define "client/fields/additional" }}
-	{{- $idType := findIDType (filterNodes $.Nodes (skipMode "type")) $.IDType }}
+	{{- $idType := gqlIDType (filterNodes $.Nodes (skipMode "type")) $.IDType }}
 	{{- if $idType.Numeric }}
 		// additional fields for node api
 		tables tables

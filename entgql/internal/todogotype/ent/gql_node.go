@@ -17,16 +17,17 @@
 package ent
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 
 	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/hashicorp/go-multierror"
 )
@@ -38,7 +39,7 @@ type Noder interface {
 
 // Node in the graph.
 type Node struct {
-	ID     pulid.ID `json:"id,omitempty"`     // node id.
+	ID     string   `json:"id,omitempty"`     // node id.
 	Type   string   `json:"type,omitempty"`   // node type.
 	Fields []*Field `json:"fields,omitempty"` // node fields.
 	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
@@ -53,14 +54,20 @@ type Field struct {
 
 // Edges between two nodes.
 type Edge struct {
-	Type string     `json:"type,omitempty"` // edge type.
-	Name string     `json:"name,omitempty"` // edge name.
-	IDs  []pulid.ID `json:"ids,omitempty"`  // node ids (where this edge point to).
+	Type string   `json:"type,omitempty"` // edge type.
+	Name string   `json:"name,omitempty"` // edge name.
+	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (c Category) marshalID() string {
+	var buf bytes.Buffer
+	c.ID.MarshalGQL(&buf)
+	return buf.String()
 }
 
 func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     c.ID,
+		ID:     c.marshalID(),
 		Type:   "Category",
 		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 1),
@@ -266,7 +273,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-func (c *Client) Node(ctx context.Context, id pulid.ID) (*Node, error) {
+func (c *Client) Node(ctx context.Context, id string) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -282,7 +289,7 @@ type NodeOption func(*nodeOptions)
 // WithNodeType sets the node Type resolver function (i.e. the table to query).
 // If was not provided, the table will be derived from the universal-id
 // configuration as described in: https://entgo.io/docs/migrate/#universal-ids.
-func WithNodeType(f func(context.Context, pulid.ID) (string, error)) NodeOption {
+func WithNodeType(f func(context.Context, string) (string, error)) NodeOption {
 	return func(o *nodeOptions) {
 		o.nodeType = f
 	}
@@ -290,13 +297,13 @@ func WithNodeType(f func(context.Context, pulid.ID) (string, error)) NodeOption 
 
 // WithFixedNodeType sets the Type of the node to a fixed value.
 func WithFixedNodeType(t string) NodeOption {
-	return WithNodeType(func(context.Context, pulid.ID) (string, error) {
+	return WithNodeType(func(context.Context, string) (string, error) {
 		return t, nil
 	})
 }
 
 type nodeOptions struct {
-	nodeType func(context.Context, pulid.ID) (string, error)
+	nodeType func(context.Context, string) (string, error)
 }
 
 func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
@@ -305,7 +312,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 		opt(nopts)
 	}
 	if nopts.nodeType == nil {
-		nopts.nodeType = func(ctx context.Context, id pulid.ID) (string, error) {
+		nopts.nodeType = func(ctx context.Context, id string) (string, error) {
 			return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
 		}
 	}
@@ -318,7 +325,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 //		c.Noder(ctx, id)
 //		c.Noder(ctx, id, ent.WithNodeType(typeResolver))
 //
-func (c *Client) Noder(ctx context.Context, id pulid.ID, opts ...NodeOption) (_ Noder, err error) {
+func (c *Client) Noder(ctx context.Context, id string, opts ...NodeOption) (_ Noder, err error) {
 	defer func() {
 		if IsNotFound(err) {
 			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
@@ -331,10 +338,10 @@ func (c *Client) Noder(ctx context.Context, id pulid.ID, opts ...NodeOption) (_ 
 	return c.noder(ctx, table, id)
 }
 
-func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, error) {
+func (c *Client) noder(ctx context.Context, table string, id string) (Noder, error) {
 	switch table {
 	case category.Table:
-		var uid pulid.ID
+		var uid bigintgql.BigInt
 		if err := uid.UnmarshalGQL(id); err != nil {
 			return nil, err
 		}
@@ -350,12 +357,8 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case group.Table:
-		var uid pulid.ID
-		if err := uid.UnmarshalGQL(id); err != nil {
-			return nil, err
-		}
 		query := c.Group.Query().
-			Where(group.ID(uid))
+			Where(group.ID(id))
 		query, err := query.CollectFields(ctx, "Group")
 		if err != nil {
 			return nil, err
@@ -366,12 +369,8 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case todo.Table:
-		var uid pulid.ID
-		if err := uid.UnmarshalGQL(id); err != nil {
-			return nil, err
-		}
 		query := c.Todo.Query().
-			Where(todo.ID(uid))
+			Where(todo.ID(id))
 		query, err := query.CollectFields(ctx, "Todo")
 		if err != nil {
 			return nil, err
@@ -382,12 +381,8 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		return n, nil
 	case user.Table:
-		var uid pulid.ID
-		if err := uid.UnmarshalGQL(id); err != nil {
-			return nil, err
-		}
 		query := c.User.Query().
-			Where(user.ID(uid))
+			Where(user.ID(id))
 		query, err := query.CollectFields(ctx, "User")
 		if err != nil {
 			return nil, err
@@ -402,7 +397,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 	}
 }
 
-func (c *Client) Noders(ctx context.Context, ids []pulid.ID, opts ...NodeOption) ([]Noder, error) {
+func (c *Client) Noders(ctx context.Context, ids []string, opts ...NodeOption) ([]Noder, error) {
 	switch len(ids) {
 	case 1:
 		noder, err := c.Noder(ctx, ids[0], opts...)
@@ -416,8 +411,8 @@ func (c *Client) Noders(ctx context.Context, ids []pulid.ID, opts ...NodeOption)
 
 	noders := make([]Noder, len(ids))
 	errors := make([]error, len(ids))
-	tables := make(map[string][]pulid.ID)
-	id2idx := make(map[pulid.ID][]int, len(ids))
+	tables := make(map[string][]string)
+	id2idx := make(map[string][]int, len(ids))
 	nopts := c.newNodeOpts(opts)
 	for i, id := range ids {
 		table, err := nopts.nodeType(ctx, id)
@@ -463,16 +458,22 @@ func (c *Client) Noders(ctx context.Context, ids []pulid.ID, opts ...NodeOption)
 	return noders, nil
 }
 
-func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]Noder, error) {
+func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Noder, error) {
 	noders := make([]Noder, len(ids))
-	idmap := make(map[pulid.ID][]*Noder, len(ids))
+	idmap := make(map[string][]*Noder, len(ids))
 	for i, id := range ids {
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
 	case category.Table:
+		uids := make([]bigintgql.BigInt, len(ids))
+		for i, id := range ids {
+			if err := uids[i].UnmarshalGQL(id); err != nil {
+				return nil, err
+			}
+		}
 		query := c.Category.Query().
-			Where(category.IDIn(ids...))
+			Where(category.IDIn(uids...))
 		query, err := query.CollectFields(ctx, "Category")
 		if err != nil {
 			return nil, err
@@ -482,7 +483,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 			return nil, err
 		}
 		for _, node := range nodes {
-			for _, noder := range idmap[node.ID] {
+			for _, noder := range idmap[node.marshalID()] {
 				*noder = node
 			}
 		}

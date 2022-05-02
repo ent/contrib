@@ -49,7 +49,7 @@ type (
 		QueryField *FieldConfig `json:"QueryField,omitempty"`
 	}
 
-	// Directive to apply on the field/type
+	// Directive to apply on the field/type.
 	Directive struct {
 		Name      string              `json:"name,omitempty"`
 		Arguments []DirectiveArgument `json:"arguments,omitempty"`

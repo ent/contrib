@@ -49,6 +49,7 @@ type (
 	// ExtensionOption allows for managing the Extension configuration
 	// using functional options.
 	ExtensionOption func(*Extension) error
+
 	// SchemaHook is the hook that run after the GQL schema generation.
 	SchemaHook func(*gen.Graph, *ast.Schema) error
 )
@@ -140,9 +141,9 @@ func WithSchemaGenerator() ExtensionOption {
 	}
 }
 
-// WithMapScalarFunc allows users to provides a custom function that
+// WithMapScalarFunc allows users to provide a custom function that
 // maps an ent.Field (*gen.Field) into its GraphQL scalar type. If the
-// function returns an empty string, the extension fallbacks to the its
+// function returns an empty string, the extension fallbacks to its
 // default mapping.
 //
 //	ex, err := entgql.NewExtension(
