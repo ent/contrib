@@ -240,13 +240,16 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 			names := paginationNames(gqlType)
 
 			s.AddTypes(names.TypeDefs()...)
+
+			var hasOrderBy bool
 			if len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField) {
+				hasOrderBy = true
 				s.AddTypes(names.OrderByTypeDefs(enumOrderByValues)...)
 			}
 
 			if ant.QueryField != nil {
 				name := ant.QueryField.fieldName(gqlType)
-				def := names.ConnectionField(name, true,
+				def := names.ConnectionField(name, hasOrderBy,
 					e.genWhereInput && !ant.Skip.Is(SkipWhereInput),
 				)
 				def.Directives = e.buildDirectives(ant.QueryField.Directives)
@@ -374,9 +377,24 @@ func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast
 			if !ant.RelayConnection {
 				return nil, fmt.Errorf("entgql: must enable Relay Connection via the entgql.RelayConnection annotation on the %s entity", edge.Type.Name)
 			}
+			var enumOrderByValues []string
+			for _, f := range edge.Type.Fields {
+				if ant.Skip.Is(SkipType) {
+					continue
+				}
+
+				// Check if this node has an OrderBy object
+				if ant.OrderField != "" {
+					if ant.Skip.Is(SkipOrderField) {
+						return nil, fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", edge.Type.Name, f.Name)
+					}
+					enumOrderByValues = append(enumOrderByValues, ant.OrderField)
+				}
+			}
 
 			fieldDef = paginationNames(gqlType).
-				ConnectionField(name, true,
+				ConnectionField(name,
+					len(enumOrderByValues) > 0 && !ant.Skip.Is(SkipOrderField),
 					e.genWhereInput && !edgeAnt.Skip.Is(SkipWhereInput) && !ant.Skip.Is(SkipWhereInput),
 				)
 		default:
