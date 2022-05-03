@@ -627,47 +627,6 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "todo.graphql", Input: `type CategoryConfig {
-  maxMembers: Int
-}
-
-input CategoryConfigInput {
-  maxMembers: Int
-}
-
-scalar Time
-scalar Duration
-scalar Uint64
-scalar UUID
-
-extend type Todo {
-  category: Category
-}
-
-interface Entity {
-  id: ID!
-}
-
-input TodoInput {
-  status: Status! = IN_PROGRESS
-  priority: Int
-  text: String!
-  parent: ID
-  category_id: ID
-}
-
-extend type Query {
-  """
-  This field is an example of extending the built-in Query type from Ent.
-  """
-  ping: String!
-}
-
-type Mutation {
-  createTodo(todo: TodoInput!): Todo!
-  clearTodos: Int!
-}
-`, BuiltIn: false},
 	{Name: "entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type Category implements Node & Entity {
@@ -884,7 +843,7 @@ input MasterUserWhereInput {
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
-interface Node {
+interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.Noder") {
   """The id of the object."""
   id: ID!
 }
@@ -1099,6 +1058,47 @@ input TodoWhereInput {
 enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
   LISTING
   HIDDEN
+}
+`, BuiltIn: false},
+	{Name: "todo.graphql", Input: `type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
+scalar Time
+scalar Duration
+scalar Uint64
+scalar UUID
+
+extend type Todo {
+  category: Category
+}
+
+interface Entity {
+  id: ID!
+}
+
+input TodoInput {
+  status: Status! = IN_PROGRESS
+  priority: Int
+  text: String!
+  parent: ID
+  category_id: ID
+}
+
+extend type Query {
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
+}
+
+type Mutation {
+  createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
 }
 `, BuiltIn: false},
 }

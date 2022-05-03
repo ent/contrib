@@ -327,7 +327,7 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 				},
 				{
 					Name:        "cursor",
-					Type:        ast.NonNullNamedType("Cursor", nil),
+					Type:        ast.NonNullNamedType(RelayCursor, nil),
 					Description: "A cursor for use in pagination.",
 				},
 			},
@@ -344,7 +344,7 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 				},
 				{
 					Name:        "pageInfo",
-					Type:        ast.NonNullNamedType("PageInfo", nil),
+					Type:        ast.NonNullNamedType(RelayPageInfo, nil),
 					Description: "Information to aid in pagination.",
 				},
 				{
@@ -357,40 +357,25 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 	}
 }
 
-func (p *PaginationNames) OrderByTypeDefs(enumOrderByValues []string) []*ast.Definition {
-	enumValues := make(ast.EnumValueList, 0, len(enumOrderByValues))
-	for _, v := range enumOrderByValues {
-		enumValues = append(enumValues, &ast.EnumValueDefinition{
-			Name: v,
-		})
-	}
-
-	return []*ast.Definition{
-		{
-			Name:        p.OrderField,
-			Kind:        ast.Enum,
-			Description: fmt.Sprintf("Properties by which %s connections can be ordered.", p.Node),
-			EnumValues:  enumValues,
-		},
-		{
-			Name:        p.Order,
-			Kind:        ast.InputObject,
-			Description: fmt.Sprintf("Ordering options for %s connections", p.Node),
-			Fields: ast.FieldList{
-				{
-					Name: "direction",
-					Type: ast.NonNullNamedType("OrderDirection", nil),
-					DefaultValue: &ast.Value{
-						Raw:  "ASC",
-						Kind: ast.EnumValue,
-					},
-					Description: "The ordering direction.",
+func (p *PaginationNames) OrderInputDef() *ast.Definition {
+	return &ast.Definition{
+		Name:        p.Order,
+		Kind:        ast.InputObject,
+		Description: fmt.Sprintf("Ordering options for %s connections", p.Node),
+		Fields: ast.FieldList{
+			{
+				Name: "direction",
+				Type: ast.NonNullNamedType(OrderDirection, nil),
+				DefaultValue: &ast.Value{
+					Raw:  "ASC",
+					Kind: ast.EnumValue,
 				},
-				{
-					Name:        "field",
-					Type:        ast.NonNullNamedType(p.OrderField, nil),
-					Description: fmt.Sprintf("The field by which to order %s.", plural(p.Node)),
-				},
+				Description: "The ordering direction.",
+			},
+			{
+				Name:        "field",
+				Type:        ast.NonNullNamedType(p.OrderField, nil),
+				Description: fmt.Sprintf("The field by which to order %s.", plural(p.Node)),
 			},
 		},
 	}

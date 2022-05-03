@@ -19,11 +19,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -32,18 +30,12 @@ import (
 type (
 	// Extension implements the entc.Extension for providing GraphQL integration.
 	Extension struct {
-		entc.DefaultExtension
-		path       string
-		cfg        *config.Config
-		hooks      []gen.Hook
-		templates  []*gen.Template
-		scalarFunc func(*gen.Field, gen.Op) string
+		*schemaGenerator
 
-		schema        *ast.Schema
-		schemaHooks   []SchemaHook
-		models        map[string]string
-		genSchema     bool
-		genWhereInput bool
+		entc.DefaultExtension
+		path      string
+		hooks     []gen.Hook
+		templates []*gen.Template
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -172,10 +164,8 @@ func WithMapScalarFunc(scalarFunc func(*gen.Field, gen.Op) string) ExtensionOpti
 //
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 	ex := &Extension{
-		templates: AllTemplates,
-		schema: &ast.Schema{
-			Directives: map[string]*ast.DirectiveDefinition{},
-		},
+		templates:       AllTemplates,
+		schemaGenerator: newSchemaGenerator(),
 	}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
@@ -196,137 +186,27 @@ func (e *Extension) Hooks() []gen.Hook {
 	return e.hooks
 }
 
-// mapScalar provides maps an ent.Schema type into GraphQL scalar type.
-// In order to override this function, use the WithMapScalarFunc option.
-func (e *Extension) mapScalar(f *gen.Field, op gen.Op) string {
-	if e.scalarFunc != nil {
-		if t := e.scalarFunc(f, op); t != "" {
-			return t
-		}
-	}
-	scalar := f.Type.String()
-	switch t := f.Type.Type; {
-	case op.Niladic():
-		return "Boolean"
-	case f.Name == "id":
-		return "ID"
-	case t == field.TypeBool:
-		scalar = "Boolean"
-	case f.IsEdgeField():
-		scalar = "ID"
-	case t.Float():
-		scalar = "Float"
-	case t.Numeric():
-		scalar = "Int"
-	case t == field.TypeString:
-		scalar = "String"
-	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		if typ, ok := e.hasMapping(f); ok {
-			scalar = typ
-		} else {
-			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
-		}
-	}
-	if ant, err := annotation(f.Annotations); err == nil && ant.Type != "" {
-		return ant.Type
-	}
-	return scalar
-}
-
-// hasMapping reports if the gqlgen.yml has custom mapping for
-// the given field type and returns its GraphQL name if exists.
-func (e *Extension) hasMapping(f *gen.Field) (string, bool) {
-	if e.cfg == nil {
-		return "", false
-	}
-
-	var gqlNames []string
-	for t, v := range e.cfg.Models {
-		// The string representation uses shortened package
-		// names, and we override it for custom Go types.
-		ident := f.Type.String()
-		if idx := strings.IndexByte(ident, '.'); idx != -1 && f.HasGoType() && f.Type.PkgPath != "" {
-			ident = f.Type.PkgPath + ident[idx:]
-		}
-		for _, m := range v.Model {
-			// A mapping was found from GraphQL name to field type.
-			if strings.HasSuffix(m, ident) {
-				gqlNames = append(gqlNames, t)
-			}
-		}
-	}
-	if count := len(gqlNames); count == 1 {
-		return gqlNames[0], true
-	} else if count > 1 {
-		// If there is more than 1 mapping, we accept the one with the "Input" suffix.
-		for _, t := range gqlNames {
-			if strings.HasSuffix(t, "Input") {
-				return t, true
-			}
-		}
-	}
-	// If no custom mapping was found, fallback to the builtin scalar
-	// types as mentioned in https://gqlgen.com/reference/scalars
-	switch f.Type.String() {
-	case "time.Time":
-		return "Time", true
-	case "map[string]interface{}":
-		return "Map", true
-	default:
-		return "", false
-	}
-}
-
 // genSchema returns a new hook for generating
 // the GraphQL schema from the graph.
 func (e *Extension) genSchemaHook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
-		return gen.GenerateFunc(func(g *gen.Graph) error {
-			if err := next.Generate(g); err != nil {
+		return gen.GenerateFunc(func(g *gen.Graph) (err error) {
+			if err = next.Generate(g); err != nil {
 				return err
 			}
 
 			if !e.genSchema && !e.genWhereInput {
 				return nil
 			}
-			genSchema, err := newSchemaGenerator(g)
+
+			schema, err := e.BuildSchema(g)
 			if err != nil {
 				return err
-			}
-
-			genSchema.genWhereInput = e.genWhereInput
-			if e.genSchema {
-				if err = genSchema.buildSchema(e.schema); err != nil {
-					return err
-				}
-				if e.models, err = genSchema.genModels(); err != nil {
-					return err
-				}
-			}
-
-			if e.genWhereInput {
-				nodes, err := filterNodes(g.Nodes, SkipWhereInput)
-				if err != nil {
-					return err
-				}
-				for _, node := range nodes {
-					input, err := e.whereType(node)
-					if err != nil {
-						return err
-					}
-					e.schema.AddTypes(input)
-				}
-			}
-
-			for _, h := range e.schemaHooks {
-				if err = h(g, e.schema); err != nil {
-					return err
-				}
 			}
 			if e.path == "" {
 				return nil
 			}
-			return ioutil.WriteFile(e.path, []byte(printSchema(e.schema)), 0644)
+			return ioutil.WriteFile(e.path, []byte(printSchema(schema)), 0644)
 		})
 	}
 }
@@ -340,92 +220,6 @@ func (e *Extension) whereExists() (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-// addWhereType returns the a <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
-func (e *Extension) whereType(t *gen.Type) (*ast.Definition, error) {
-	names, err := nodePaginationNames(t)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		name    = names.WhereInput
-		typeDef = &ast.Definition{
-			Name:        name,
-			Kind:        ast.InputObject,
-			Description: fmt.Sprintf("%s is used for filtering %s objects.\nInput was generated by ent.", name, t.Name),
-			Fields: ast.FieldList{
-				&ast.FieldDefinition{
-					Name: "not",
-					Type: ast.NamedType(name, nil),
-				},
-			},
-		}
-	)
-	for _, op := range []string{"and", "or"} {
-		typeDef.Fields = append(typeDef.Fields, &ast.FieldDefinition{
-			Name: op,
-			Type: ast.ListType(ast.NonNullNamedType(name, nil), nil),
-		})
-	}
-
-	fields, err := filterFields(append(t.Fields, t.ID), SkipWhereInput)
-	if err != nil {
-		return nil, err
-	}
-	for _, f := range fields {
-		if !f.Type.Comparable() {
-			continue
-		}
-		for i, op := range f.Ops() {
-			fd := e.fieldDefinition(f, op)
-			if i == 0 {
-				fd.Description = f.Name + " field predicates"
-			}
-			typeDef.Fields = append(typeDef.Fields, fd)
-		}
-	}
-
-	edges, err := filterEdges(t.Edges, SkipWhereInput)
-	if err != nil {
-		return nil, err
-	}
-	for _, e := range edges {
-		names, err := nodePaginationNames(e.Type)
-		if err != nil {
-			return nil, err
-		}
-
-		typeDef.Fields = append(typeDef.Fields,
-			&ast.FieldDefinition{
-				Name:        camel("has_" + e.Name),
-				Type:        namedType("Boolean", true),
-				Description: e.Name + " edge predicates",
-			},
-			&ast.FieldDefinition{
-				Name: camel("has_" + e.Name + "_with"),
-				Type: listNamedType(names.WhereInput, true),
-			},
-		)
-	}
-	return typeDef, nil
-}
-
-func (e *Extension) fieldDefinition(f *gen.Field, op gen.Op) *ast.FieldDefinition {
-	def := &ast.FieldDefinition{
-		Name: camel(f.Name + "_" + op.Name()),
-	}
-	if op == gen.EQ {
-		def.Name = camel(f.Name)
-	}
-
-	typeName := e.mapScalar(f, op)
-	if op.Variadic() {
-		def.Type = listNamedType(typeName, true)
-	} else {
-		def.Type = namedType(typeName, true)
-	}
-	return def
 }
 
 var (

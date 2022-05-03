@@ -42,8 +42,7 @@ func main() {
 		entgql.WithSchemaHook(func(g *gen.Graph, s *ast.Schema) error {
 			return nil
 		}),
-		// Enable this option to write the output to a file
-		// entgql.WithSchemaPath("./entgql.graphql"),
+		entgql.WithSchemaPath("./entgql.graphql"),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)
@@ -78,7 +77,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config %v", err)
 	}
-	err = api.Generate(cfg, api.PrependPlugin(exEntGQL.CreatePlugin()))
+	err = api.Generate(cfg)
 	if err != nil {
 		log.Fatalf("running gqlgen: %v", err)
 	}
