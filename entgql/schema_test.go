@@ -25,7 +25,12 @@ import (
 )
 
 func TestEntGQL_buildTypes(t *testing.T) {
-	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{
+		Storage: s,
+	})
 	require.NoError(t, err)
 	disableRelayConnection(graph)
 	plugin := newSchemaGenerator()
@@ -123,7 +128,12 @@ enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplug
 }
 
 func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
-	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{})
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{
+		Storage: s,
+	})
 	require.NoError(t, err)
 	plugin := newSchemaGenerator()
 	plugin.genSchema = true
