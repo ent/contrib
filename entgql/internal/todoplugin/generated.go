@@ -687,6 +687,7 @@ type CategoryConnection {
   edges: [CategoryEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
@@ -696,10 +697,14 @@ type CategoryEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
+"""Ordering options for Category connections"""
 input CategoryOrder {
+  """The ordering direction."""
   direction: OrderDirection! = ASC
+  """The field by which to order Categories."""
   field: CategoryOrderField!
 }
+"""Properties by which Category connections can be ordered."""
 enum CategoryOrderField {
   TEXT
   DURATION
@@ -812,6 +817,7 @@ type MasterUserConnection {
   edges: [MasterUserEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
@@ -882,8 +888,11 @@ interface Node {
   """The id of the object."""
   id: ID!
 }
+"""Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument."""
 enum OrderDirection {
+  """Specifies an ascending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
   ASC
+  """Specifies a descending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
   DESC
 }
 """
@@ -901,9 +910,35 @@ type PageInfo {
   endCursor: Cursor
 }
 type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection!
+  """Fetches an object given its ID."""
+  node(
+    """ID of the object."""
+    id: ID!
+  ): Node
+  """Lookup nodes by a list of IDs."""
+  nodes(
+    """The list of node IDs."""
+    ids: [ID!]!
+  ): [Node]!
+  todos(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
 }
 """Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
@@ -924,8 +959,44 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection! @goField(name: "children", forceResolver: false)
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection!
+  childrenConnection(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection! @goField(name: "children", forceResolver: false)
+  children(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
 }
 """A connection to a list of items."""
 type TodoConnection {
@@ -933,6 +1004,7 @@ type TodoConnection {
   edges: [TodoEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
@@ -942,10 +1014,14 @@ type TodoEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
+"""Ordering options for Todo connections"""
 input TodoOrder {
+  """The ordering direction."""
   direction: OrderDirection! = ASC
+  """The field by which to order Todos."""
   field: TodoOrderField!
 }
+"""Properties by which Todo connections can be ordered."""
 enum TodoOrderField {
   CREATED_AT
   VISIBILITY_STATUS

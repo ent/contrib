@@ -343,8 +343,9 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 					Description: "Information to aid in pagination.",
 				},
 				{
-					Name: "totalCount",
-					Type: ast.NonNullNamedType("Int", nil),
+					Name:        "totalCount",
+					Type:        ast.NonNullNamedType("Int", nil),
+					Description: "Identifies the total count of items in the connection.",
 				},
 			},
 		},
@@ -361,13 +362,15 @@ func (p *PaginationNames) OrderByTypeDefs(enumOrderByValues []string) []*ast.Def
 
 	return []*ast.Definition{
 		{
-			Name:       p.OrderField,
-			Kind:       ast.Enum,
-			EnumValues: enumValues,
+			Name:        p.OrderField,
+			Kind:        ast.Enum,
+			Description: fmt.Sprintf("Properties by which %s connections can be ordered.", p.Node),
+			EnumValues:  enumValues,
 		},
 		{
-			Name: p.Order,
-			Kind: ast.InputObject,
+			Name:        p.Order,
+			Kind:        ast.InputObject,
+			Description: fmt.Sprintf("Ordering options for %s connections", p.Node),
 			Fields: ast.FieldList{
 				{
 					Name: "direction",
@@ -376,10 +379,12 @@ func (p *PaginationNames) OrderByTypeDefs(enumOrderByValues []string) []*ast.Def
 						Raw:  "ASC",
 						Kind: ast.EnumValue,
 					},
+					Description: "The ordering direction.",
 				},
 				{
-					Name: "field",
-					Type: ast.NonNullNamedType(p.OrderField, nil),
+					Name:        "field",
+					Type:        ast.NonNullNamedType(p.OrderField, nil),
+					Description: fmt.Sprintf("The field by which to order %s.", plural(p.Node)),
 				},
 			},
 		},
@@ -391,20 +396,40 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput
 		Name: name,
 		Type: ast.NonNullNamedType(p.Connection, nil),
 		Arguments: ast.ArgumentDefinitionList{
-			{Name: "after", Type: ast.NamedType(RelayCursor, nil)},
-			{Name: "first", Type: ast.NamedType("Int", nil)},
-			{Name: "before", Type: ast.NamedType(RelayCursor, nil)},
-			{Name: "last", Type: ast.NamedType("Int", nil)},
+			{
+				Name:        "after",
+				Type:        ast.NamedType(RelayCursor, nil),
+				Description: "Returns the elements in the list that come after the specified cursor.",
+			},
+			{
+				Name:        "first",
+				Type:        ast.NamedType("Int", nil),
+				Description: "Returns the first _n_ elements from the list.",
+			},
+			{
+				Name:        "before",
+				Type:        ast.NamedType(RelayCursor, nil),
+				Description: "Returns the elements in the list that come before the specified cursor.",
+			},
+			{
+				Name:        "last",
+				Type:        ast.NamedType("Int", nil),
+				Description: "Returns the last _n_ elements from the list.",
+			},
 		},
 	}
 	if hasOrderBy {
 		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
-			Name: "orderBy", Type: ast.NamedType(p.Order, nil),
+			Name:        "orderBy",
+			Type:        ast.NamedType(p.Order, nil),
+			Description: fmt.Sprintf("Ordering options for %s returned from the connection.", plural(p.Node)),
 		})
 	}
 	if hasWhereInput {
 		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
-			Name: "where", Type: ast.NamedType(p.WhereInput, nil),
+			Name:        "where",
+			Type:        ast.NamedType(p.WhereInput, nil),
+			Description: fmt.Sprintf("Filtering options for %s returned from the connection.", plural(p.Node)),
 		})
 	}
 

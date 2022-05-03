@@ -141,18 +141,28 @@ func (e *schemaGenerator) buildTypes(s *ast.Schema) error {
 		)
 		queryFields = append(queryFields,
 			&ast.FieldDefinition{
-				Name: "node",
-				Type: nodeDef,
+				Name:        "node",
+				Type:        nodeDef,
+				Description: "Fetches an object given its ID.",
 				Arguments: ast.ArgumentDefinitionList{
-					{Name: "id", Type: idType},
+					{
+						Name:        "id",
+						Type:        idType,
+						Description: "ID of the object.",
+					},
 				},
 			},
 			&ast.FieldDefinition{
-				Name: "nodes",
+				Name:        "nodes",
+				Type:        ast.NonNullListType(nodeDef, nil),
+				Description: "Lookup nodes by a list of IDs.",
 				Arguments: ast.ArgumentDefinitionList{
-					{Name: "ids", Type: ast.NonNullListType(idType, nil)},
+					{
+						Name:        "ids",
+						Type:        ast.NonNullListType(idType, nil),
+						Description: "The list of node IDs.",
+					},
 				},
-				Type: ast.NonNullListType(nodeDef, nil),
 			},
 		)
 	}
@@ -411,9 +421,10 @@ func (e *schemaGenerator) typeField(f *gen.Field, isID bool) ([]*ast.FieldDefini
 	// TODO(giautm): support mapping single field to multiple GQL fields
 	return []*ast.FieldDefinition{
 		{
-			Name:       camel(f.Name),
-			Type:       ft,
-			Directives: e.buildDirectives(ant.Directives),
+			Name:        camel(f.Name),
+			Type:        ft,
+			Description: f.Comment(),
+			Directives:  e.buildDirectives(ant.Directives),
 		},
 	}, nil
 }
@@ -554,11 +565,18 @@ func (e *schemaGenerator) enumGoType(f *gen.Field) (string, bool) {
 func builtinTypes() []*ast.Definition {
 	return []*ast.Definition{
 		{
-			Name: OrderDirection,
-			Kind: ast.Enum,
+			Name:        OrderDirection,
+			Kind:        ast.Enum,
+			Description: "Possible directions in which to order a list of items when provided an `orderBy` argument.",
 			EnumValues: []*ast.EnumValueDefinition{
-				{Name: "ASC"},
-				{Name: "DESC"},
+				{
+					Name:        "ASC",
+					Description: "Specifies an ascending order for a given `orderBy` argument.",
+				},
+				{
+					Name:        "DESC",
+					Description: "Specifies a descending order for a given `orderBy` argument.",
+				},
 			},
 		},
 	}
