@@ -15,11 +15,11 @@
 package entproto
 
 import (
-	"entgo.io/ent/entc/gen"
-	"entgo.io/ent/schema"
 	"errors"
 	"fmt"
-	"github.com/go-openapi/inflect"
+
+	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema"
 	"github.com/mitchellh/mapstructure"
 	"google.golang.org/protobuf/types/descriptorpb"
 	_ "google.golang.org/protobuf/types/known/emptypb"
@@ -119,6 +119,8 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 	return out, nil
 }
 
+var plural = gen.Funcs["plural"].(func(string) string)
+
 func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources, error) {
 	input := &descriptorpb.DescriptorProto{}
 	idField, err := toProtoFieldDescriptor(genType.ID)
@@ -135,7 +137,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		TypeName: &genType.Name,
 	}
 	repeatedMessageField := &descriptorpb.FieldDescriptorProto{
-		Name:     strptr(snake(inflect.Pluralize(genType.Name))),
+		Name:     strptr(snake(plural(genType.Name))),
 		Number:   int32ptr(1),
 		Label:    &repeatedFieldLabel,
 		Type:     &protoMessageFieldType,
@@ -248,7 +250,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		createRequest.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		messages = append(messages, createRequest)
 
-		pluralEntityName := inflect.Pluralize(genType.Name)
+		pluralEntityName := plural(genType.Name)
 		input.Name = strptr(fmt.Sprintf("BatchCreate%sRequest", pluralEntityName))
 		input.Field = []*descriptorpb.FieldDescriptorProto{
 			{

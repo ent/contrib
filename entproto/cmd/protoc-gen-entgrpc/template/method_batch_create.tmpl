@@ -24,8 +24,8 @@
             if err != nil {
                 return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
             }
-            return &BatchCreate{{ pluralize .G.EntType.Name }}Response{
-                {{ pluralize .G.EntType.Name }}: protoList,
+            return &BatchCreate{{ plural .G.EntType.Name }}Response{
+                {{ plural .G.EntType.Name }}: protoList,
             }, nil
         case {{ qualify "entgo.io/ent/dialect/sql/sqlgraph" "IsUniqueConstraintError" }}(err):
             return nil, {{ statusErrf "AlreadyExists" "already exists: %s" "err"}}
