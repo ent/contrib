@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("creating entgql extension: %v", err)
 	}
 
-	err = entc.Generate("./schema", &gen.Config{
+	err = entc.Generate("./ent/schema", &gen.Config{
 		IDType: &field.TypeInfo{Type: field.TypeString},
 		Header: `
 			// Copyright 2019-present Facebook

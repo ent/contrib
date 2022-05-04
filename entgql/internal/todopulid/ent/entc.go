@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)
 	}
-	err = entc.Generate("./schema", &gen.Config{
+	err = entc.Generate("./ent/schema", &gen.Config{
 		Header: `
 			// Copyright 2019-present Facebook
 			//
