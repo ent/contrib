@@ -87,7 +87,7 @@ func (s *todoTestSuite) SetupTest() {
 	s.Client = client.New(srv)
 
 	const mutation = `mutation($priority: Int, $text: String!, $parent: ID) {
-		createTodo(todo: {status: COMPLETED, priority: $priority, text: $text, parent: $parent}) {
+		createTodo(input: {status: COMPLETED, priority: $priority, text: $text, parent: $parent}) {
 			id
 		}
 	}`
@@ -788,7 +788,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 		}
 	}
 	err := s.Post(`mutation {
-		createTodo(todo: { text: "OKE", parent: 4294967297 }) {
+		createTodo(input: { text: "OKE", parent: 4294967297 }) {
 			parent {
 				id
 				text

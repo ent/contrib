@@ -65,7 +65,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		ClearTodos func(childComplexity int) int
-		CreateTodo func(childComplexity int, todo TodoInput) int
+		CreateTodo func(childComplexity int, input TodoInput) int
 	}
 
 	PageInfo struct {
@@ -114,7 +114,7 @@ type EntityResolver interface {
 	FindTodoByID(ctx context.Context, id int) (*ent.Todo, error)
 }
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error)
+	CreateTodo(ctx context.Context, input TodoInput) (*ent.Todo, error)
 	ClearTodos(ctx context.Context) (int, error)
 }
 type QueryResolver interface {
@@ -195,7 +195,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["todo"].(TodoInput)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(TodoInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -544,7 +544,7 @@ type Query {
 }
 
 type Mutation {
-  createTodo(todo: TodoInput!): Todo!
+  createTodo(input: TodoInput!): Todo!
   clearTodos: Int!
 }
 `, BuiltIn: false},
@@ -604,14 +604,14 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 TodoInput
-	if tmp, ok := rawArgs["todo"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todo"))
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodofedᚐTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["todo"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1021,7 +1021,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["todo"].(TodoInput))
+		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["input"].(TodoInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

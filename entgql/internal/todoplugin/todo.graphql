@@ -35,6 +35,6 @@ extend type Query {
 }
 
 type Mutation {
-  createTodo(todo: TodoInput!): Todo!
+  createTodo(input: TodoInput!): Todo!
   clearTodos: Int!
 }

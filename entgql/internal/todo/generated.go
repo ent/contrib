@@ -651,6 +651,42 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "todo.graphql", Input: `type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
+scalar Time
+scalar Duration
+scalar Uint64
+
+input TodoInput {
+  status: Status! = IN_PROGRESS
+  priority: Int
+  text: String!
+  parent: ID
+  category_id: ID
+}
+
+extend input TodoWhereInput {
+  createdToday: Boolean
+}
+
+extend type Query {
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
+}
+
+type Mutation {
+  createTodo(input: TodoInput!): Todo!
+  clearTodos: Int!
+}
+`, BuiltIn: false},
 	{Name: "ent.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type Category implements Node {
@@ -1136,42 +1172,6 @@ input UserWhereInput {
   """groups edge predicates"""
   hasGroups: Boolean
   hasGroupsWith: [GroupWhereInput!]
-}
-`, BuiltIn: false},
-	{Name: "todo.graphql", Input: `type CategoryConfig {
-  maxMembers: Int
-}
-
-input CategoryConfigInput {
-  maxMembers: Int
-}
-
-scalar Time
-scalar Duration
-scalar Uint64
-
-input TodoInput {
-  status: Status! = IN_PROGRESS
-  priority: Int
-  text: String!
-  parent: ID
-  category_id: ID
-}
-
-extend input TodoWhereInput {
-  createdToday: Boolean
-}
-
-extend type Query {
-  """
-  This field is an example of extending the built-in Query type from Ent.
-  """
-  ping: String!
-}
-
-type Mutation {
-  createTodo(input: TodoInput!): Todo!
-  clearTodos: Int!
 }
 `, BuiltIn: false},
 }
