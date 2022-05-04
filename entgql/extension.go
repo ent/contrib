@@ -225,7 +225,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 // in the template list and returns its index.
 func (e *Extension) whereExists() (int, bool) {
 	for i := range e.templates {
-		if e.templates[i] == WhereTemplate {
+		if e.templates[i].Name() == "gql_where_input" {
 			return i, true
 		}
 	}
