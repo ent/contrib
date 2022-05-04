@@ -265,7 +265,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 			return nil, err
 		}
 		if ant.Skip.Is(SkipType) {
-			return nil, nil
+			continue
 		}
 
 		f, err := e.fieldDefinition(f, ant)
@@ -372,7 +372,7 @@ func (e *schemaGenerator) buildFieldEnum(f *gen.Field, gqlType, goType string) (
 
 func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
 	gqlType, ant, err := gqlTypeFromNode(edge.Type)
-	if err != nil {
+	if err != nil || ant.Skip.Is(SkipType) {
 		return nil, err
 	}
 	orderFields, err := orderFields(edge.Type)
