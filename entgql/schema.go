@@ -87,6 +87,9 @@ var (
 			},
 		},
 	}
+
+	inputObjectFilter    = func(t string) bool { return strings.HasSuffix(t, "Input") }
+	nonInputObjectFilter = func(t string) bool { return !inputObjectFilter(t) }
 )
 
 type schemaGenerator struct {
@@ -164,17 +167,11 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					continue
 				}
 				if f.IsEnum() {
-					fieldType, err := e.typeFromField(f, false, ant.Type)
+					fieldType, err := e.typeFromField(f, ant.Type)
 					if err != nil {
 						return err
 					}
-
-					goType, ok := e.enumGoType(f, g.Package)
-					if !ok {
-						return fmt.Errorf("unexpected missing GoType info for enum %q", f.Name)
-					}
-
-					def, err := e.buildFieldEnum(f, fieldType.Name(), goType)
+					def, err := e.buildFieldEnum(f, fieldType.Name(), fieldGoType(f, g.Package))
 					if err != nil {
 						return err
 					}
@@ -263,23 +260,22 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 		def.Interfaces = append(def.Interfaces, ant.Implements...)
 	}
 
-	if t.ID != nil {
-		f, err := e.fieldDefinition(t.ID, true)
+	fields := allFields(t)
+	for _, f := range fields {
+		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if f != nil {
-			def.Fields = append(def.Fields, f...)
+		if ant.Skip.Is(SkipType) {
+			return nil, nil
 		}
-	}
 
-	for _, f := range t.Fields {
-		f, err := e.fieldDefinition(f, false)
+		f, err := e.fieldDefinition(f, ant)
 		if err != nil {
 			return nil, err
 		}
 		if f != nil {
-			def.Fields = append(def.Fields, f...)
+			def.Fields = append(def.Fields, f)
 		}
 	}
 
@@ -292,7 +288,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 			continue
 		}
 		if ant.RelayConnection && edge.Unique {
-			return nil, fmt.Errorf("RelayConnection cannot be defined on Unique edge: %s.%s", t.Name, edge.Name)
+			return nil, fmt.Errorf("entgql: RelayConnection cannot be defined on Unique edge: %s.%s", t.Name, edge.Name)
 		}
 
 		fields, err := e.buildEdge(edge, ant)
@@ -447,12 +443,13 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, gqlType string) (*ast.Def
 		})
 	}
 
-	fields, err := filterFields(append(t.Fields, t.ID), SkipWhereInput)
-	if err != nil {
-		return nil, err
-	}
+	fields := allFields(t)
 	for _, f := range fields {
-		if !f.Type.Comparable() {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if ant.Skip.Is(SkipWhereInput) || !f.Type.Comparable() {
 			continue
 		}
 		for i, op := range f.Ops() {
@@ -489,29 +486,17 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, gqlType string) (*ast.Def
 	return def, nil
 }
 
-func (e *schemaGenerator) fieldDefinition(f *gen.Field, isID bool) ([]*ast.FieldDefinition, error) {
-	ant, err := annotation(f.Annotations)
-	if err != nil {
-		return nil, err
-	}
-	if ant.Skip.Is(SkipType) {
-		return nil, nil
-	}
-
-	ft, err := e.typeFromField(f, isID, ant.Type)
+func (e *schemaGenerator) fieldDefinition(f *gen.Field, ant *Annotation) (*ast.FieldDefinition, error) {
+	ft, err := e.typeFromField(f, ant.Type)
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}
 
-	// TODO(giautm): support rename field
-	// TODO(giautm): support mapping single field to multiple GQL fields
-	return []*ast.FieldDefinition{
-		{
-			Name:        camel(f.Name),
-			Type:        ft,
-			Description: f.Comment(),
-			Directives:  e.buildDirectives(ant.Directives),
-		},
+	return &ast.FieldDefinition{
+		Name:        camel(f.Name),
+		Type:        ft,
+		Description: f.Comment(),
+		Directives:  e.buildDirectives(ant.Directives),
 	}, nil
 }
 
@@ -523,41 +508,51 @@ func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, op gen.Op) *ast.FieldD
 		def.Name = camel(f.Name)
 	}
 
-	typeName := e.mapScalar(f, op)
-	if op.Variadic() {
-		def.Type = listNamedType(typeName, true)
-	} else {
-		def.Type = namedType(typeName, true)
+	if e.scalarFunc != nil {
+		if t := e.scalarFunc(f, op); t != "" {
+			def.Type = namedType(t, true)
+			return def
+		}
+	}
+
+	switch {
+	case op.Niladic():
+		def.Type = namedType("Boolean", true)
+	case op.Variadic():
+		def.Type = listNamedType(e.mapScalar(f), true)
+	default:
+		def.Type = namedType(e.mapScalar(f), true)
 	}
 	return def
 }
 
-func (e *schemaGenerator) typeFromField(f *gen.Field, idField bool, userDefinedType string) (*ast.Type, error) {
+func (e *schemaGenerator) typeFromField(f *gen.Field, userDefinedType string) (*ast.Type, error) {
 	nillable := f.Nillable
-	typ := f.Type.Type
 
-	// TODO(giautm): Support custom scalar types
-	// TODO(giautm): Support Edge Field
 	scalar := f.Type.String()
-	switch {
+	switch t := f.Type.Type; {
 	case userDefinedType != "":
 		return namedType(userDefinedType, nillable), nil
-	case idField:
+	case f.Name == "id":
 		return namedType("ID", false), nil
-	case typ.Float():
+	case t.Float():
 		return namedType("Float", nillable), nil
-	case typ.Integer():
+	case t.Integer():
 		return namedType("Int", nillable), nil
-	case typ == field.TypeString:
+	case t == field.TypeString:
 		return namedType("String", nillable), nil
-	case typ == field.TypeBool:
+	case t == field.TypeBool:
 		return namedType("Boolean", nillable), nil
-	case typ == field.TypeBytes:
-		return nil, fmt.Errorf("bytes type not implemented")
+	case t == field.TypeBytes:
+		return nil, fmt.Errorf("entgql: bytes type not implemented")
 	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		if typ, ok := e.hasMapping(f, nonInputObjectFilter); ok {
+			scalar = typ
+		} else {
+			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		}
 		return namedType(scalar, nillable), nil
-	case typ == field.TypeJSON:
+	case t == field.TypeJSON:
 		if f.Type.RType != nil {
 			switch f.Type.RType.Kind {
 			case reflect.Slice, reflect.Array:
@@ -571,54 +566,46 @@ func (e *schemaGenerator) typeFromField(f *gen.Field, idField bool, userDefinedT
 				}
 			}
 		}
-		return nil, fmt.Errorf("json type not implemented")
-	case typ == field.TypeOther:
-		return nil, fmt.Errorf("other type must have typed defined")
+		return nil, fmt.Errorf("entgql: json type not implemented")
+	case t == field.TypeOther:
+		return nil, fmt.Errorf("entgql: other type must have typed defined")
 	default:
-		return nil, fmt.Errorf("unexpected type: %s", typ.String())
+		return nil, fmt.Errorf("entgql: unexpected type: %s", t.String())
 	}
 }
 
 // mapScalar provides maps an ent.Schema type into GraphQL scalar type.
-// In order to override this function, use the WithMapScalarFunc option.
-func (e *schemaGenerator) mapScalar(f *gen.Field, op gen.Op) string {
-	if e.scalarFunc != nil {
-		if t := e.scalarFunc(f, op); t != "" {
-			return t
-		}
+func (e *schemaGenerator) mapScalar(f *gen.Field) string {
+	if ant, err := annotation(f.Annotations); err == nil && ant.Type != "" {
+		return ant.Type
 	}
 	scalar := f.Type.String()
 	switch t := f.Type.Type; {
-	case op.Niladic():
-		return "Boolean"
 	case f.Name == "id":
 		return "ID"
-	case t == field.TypeBool:
-		scalar = "Boolean"
 	case f.IsEdgeField():
 		scalar = "ID"
 	case t.Float():
 		scalar = "Float"
-	case t.Numeric():
+	case t.Integer():
 		scalar = "Int"
 	case t == field.TypeString:
 		scalar = "String"
+	case t == field.TypeBool:
+		scalar = "Boolean"
 	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		if typ, ok := e.hasMapping(f); ok {
+		if typ, ok := e.hasMapping(f, inputObjectFilter); ok {
 			scalar = typ
 		} else {
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
 		}
-	}
-	if ant, err := annotation(f.Annotations); err == nil && ant.Type != "" {
-		return ant.Type
 	}
 	return scalar
 }
 
 // hasMapping reports if the gqlgen.yml has custom mapping for
 // the given field type and returns its GraphQL name if exists.
-func (e *schemaGenerator) hasMapping(f *gen.Field) (string, bool) {
+func (e *schemaGenerator) hasMapping(f *gen.Field, typeFilter func(string) bool) (string, bool) {
 	if e.cfg == nil {
 		return "", false
 	}
@@ -640,14 +627,14 @@ func (e *schemaGenerator) hasMapping(f *gen.Field) (string, bool) {
 	}
 	if count := len(gqlNames); count == 1 {
 		return gqlNames[0], true
-	} else if count > 1 {
-		// If there is more than 1 mapping, we accept the one with the "Input" suffix.
+	} else if count > 1 && typeFilter != nil {
 		for _, t := range gqlNames {
-			if strings.HasSuffix(t, "Input") {
+			if typeFilter(t) {
 				return t, true
 			}
 		}
 	}
+
 	// If no custom mapping was found, fallback to the builtin scalar
 	// types as mentioned in https://gqlgen.com/reference/scalars
 	switch f.Type.String() {
@@ -660,15 +647,20 @@ func (e *schemaGenerator) hasMapping(f *gen.Field) (string, bool) {
 	}
 }
 
-func (e *schemaGenerator) enumGoType(f *gen.Field, pkg string) (string, bool) {
-	if f.IsEnum() {
-		if f.HasGoType() {
-			return entGoType(f.Type.RType.Name, f.Type.RType.PkgPath), true
-		}
-		return fmt.Sprintf("%s/%s", pkg, f.Type.Ident), true
+func allFields(t *gen.Type) []*gen.Field {
+	if t.ID == nil {
+		return t.Fields
 	}
 
-	return "", false
+	// NOTE: always keep the ID field at the beginning of the list
+	return append([]*gen.Field{t.ID}, t.Fields...)
+}
+
+func fieldGoType(f *gen.Field, pkg string) string {
+	if f.HasGoType() {
+		return entGoType(f.Type.RType.Name, f.Type.RType.PkgPath)
+	}
+	return fmt.Sprintf("%s/%s", pkg, f.Type.Ident)
 }
 
 func entGoType(name, pkg string) string {

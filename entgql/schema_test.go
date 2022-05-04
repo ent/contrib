@@ -196,6 +196,15 @@ input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
   or: [CategoryWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   """text field predicates"""
   text: String
   textNEQ: String
@@ -259,15 +268,6 @@ input CategoryWhereInput {
   countLTE: Uint64
   countIsNil: Boolean
   countNotNil: Boolean
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
   """todos edge predicates"""
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
@@ -304,6 +304,15 @@ input MasterUserWhereInput {
   not: MasterUserWhereInput
   and: [MasterUserWhereInput!]
   or: [MasterUserWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   """username field predicates"""
   username: String
   usernameNEQ: String
@@ -339,15 +348,6 @@ input MasterUserWhereInput {
   nullableStringNotNil: Boolean
   nullableStringEqualFold: String
   nullableStringContainsFold: String
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
 }
 type Query {
   """Fetches an object given its ID."""
@@ -477,6 +477,15 @@ input TodoWhereInput {
   not: TodoWhereInput
   and: [TodoWhereInput!]
   or: [TodoWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   """created_at field predicates"""
   createdAt: Time
   createdAtNEQ: Time
@@ -519,15 +528,6 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
   """parent edge predicates"""
   hasParent: Boolean
   hasParentWith: [TodoWhereInput!]
