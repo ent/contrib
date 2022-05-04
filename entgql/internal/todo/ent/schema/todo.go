@@ -19,6 +19,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -56,6 +57,9 @@ func (Todo) Fields() []ent.Field {
 				entgql.OrderField("TEXT"),
 			),
 		field.Bytes("blob").
+			Annotations(
+				entgql.Skip(),
+			).
 			Optional(),
 	}
 }
@@ -75,5 +79,13 @@ func (Todo) Edges() []ent.Edge {
 			Unique(),
 		edge.To("secret", VerySecret.Type).
 			Unique(),
+	}
+}
+
+// Annotations returns Todo annotations.
+func (Todo) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
+		entgql.QueryField(),
 	}
 }

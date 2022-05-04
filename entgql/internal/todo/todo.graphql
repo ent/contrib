@@ -1,7 +1,3 @@
-interface Node {
-  id: ID!
-}
-
 type CategoryConfig {
   maxMembers: Int
 }
@@ -10,49 +6,9 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-enum CategoryStatus {
-  ENABLED
-  DISABLED
-}
-
-enum Status {
-  IN_PROGRESS
-  COMPLETED
-}
-
 scalar Time
 scalar Duration
 scalar Uint64
-
-type Todo implements Node {
-  id: ID!
-  createdAt: Time
-  status: Status!
-  priority: Int!
-  text: String!
-  parent: Todo
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
-  category: Category
-}
-
-type Category implements Node {
-  id: ID!
-  text: String!
-  strings: [String]
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
-}
-
-type User implements Node {
-  id: ID!
-  name: String!
-  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
-}
-
-type Group implements Node {
-  id: ID!
-  name: String!
-  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
-}
 
 input TodoInput {
   status: Status! = IN_PROGRESS
@@ -62,78 +18,18 @@ input TodoInput {
   category_id: ID
 }
 
-scalar Cursor
-
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: Cursor
-  endCursor: Cursor
-}
-
-type TodoConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TodoEdge]
-}
-
-type TodoEdge {
-  node: Todo
-  cursor: Cursor!
-}
-
-type UserConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [UserEdge]
-}
-
-type UserEdge {
-  node: User
-  cursor: Cursor!
-}
-
-type GroupConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [GroupEdge]
-}
-
-type GroupEdge {
-  node: Group
-  cursor: Cursor!
-}
-
-enum OrderDirection {
-  ASC
-  DESC
-}
-
-enum TodoOrderField {
-  CREATED_AT
-  PRIORITY
-  STATUS
-  TEXT
-}
-
-input TodoOrder {
-  direction: OrderDirection!
-  field: TodoOrderField
-}
-
 extend input TodoWhereInput {
   createdToday: Boolean
 }
 
-type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
-  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
-  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
+extend type Query {
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
 }
 
 type Mutation {
-  createTodo(todo: TodoInput!): Todo!
+  createTodo(input: TodoInput!): Todo!
   clearTodos: Int!
 }

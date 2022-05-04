@@ -19,21 +19,21 @@ package todo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
-	"github.com/google/uuid"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
+func (r *mutationResolver) CreateTodo(ctx context.Context, input TodoInput) (*ent.Todo, error) {
 	client := ent.FromContext(ctx)
 	return client.Todo.
 		Create().
-		SetStatus(todo.Status).
-		SetNillablePriority(todo.Priority).
-		SetText(todo.Text).
-		SetNillableParentID(todo.Parent).
+		SetStatus(todo.Status(input.Status)).
+		SetNillablePriority(input.Priority).
+		SetText(input.Text).
+		SetNillableParentID(input.Parent).
 		Save(ctx)
 }
 
@@ -44,34 +44,8 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
-func (r *queryResolver) Node(ctx context.Context, id uuid.UUID) (ent.Noder, error) {
-	return r.client.Noder(ctx, id, ent.WithFixedNodeType(todo.Table))
-}
-
-func (r *queryResolver) Nodes(ctx context.Context, ids []uuid.UUID) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids, ent.WithFixedNodeType(todo.Table))
-}
-
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
-	return r.client.Todo.Query().
-		Paginate(ctx, after, first, before, last,
-			ent.WithTodoOrder(orderBy),
-			ent.WithTodoFilter(where.Filter),
-		)
-}
-
-func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	return r.client.User.Query().
-		Paginate(ctx, after, first, before, last,
-			ent.WithUserFilter(where.Filter),
-		)
-}
-
-func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
-	return r.client.Group.Query().
-		Paginate(ctx, after, first, before, last,
-			ent.WithGroupFilter(where.Filter),
-		)
+func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error {
@@ -93,8 +67,4 @@ func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.Todo
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
 type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

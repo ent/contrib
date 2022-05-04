@@ -14,10 +14,10 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
+	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
@@ -44,6 +44,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Todo() TodoResolver
 	TodoWhereInput() TodoWhereInputResolver
 }
 
@@ -52,10 +53,14 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Category struct {
-		ID      func(childComplexity int) int
-		Strings func(childComplexity int) int
-		Text    func(childComplexity int) int
-		Todos   func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
+		Config   func(childComplexity int) int
+		Count    func(childComplexity int) int
+		Duration func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Status   func(childComplexity int) int
+		Strings  func(childComplexity int) int
+		Text     func(childComplexity int) int
+		Todos    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
 	}
 
 	CategoryConfig struct {
@@ -81,7 +86,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		ClearTodos func(childComplexity int) int
-		CreateTodo func(childComplexity int, todo TodoInput) int
+		CreateTodo func(childComplexity int, input TodoInput) int
 	}
 
 	PageInfo struct {
@@ -95,6 +100,7 @@ type ComplexityRoot struct {
 		Groups func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) int
 		Node   func(childComplexity int, id pulid.ID) int
 		Nodes  func(childComplexity int, ids []pulid.ID) int
+		Ping   func(childComplexity int) int
 		Todos  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
 		Users  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) int
 	}
@@ -140,18 +146,27 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error)
+	CreateTodo(ctx context.Context, input TodoInput) (*ent.Todo, error)
 	ClearTodos(ctx context.Context) (int, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id pulid.ID) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder, error)
+	Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error)
 	Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
 	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error)
-	Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error)
+	Ping(ctx context.Context) (string, error)
+}
+type TodoResolver interface {
+	Status(ctx context.Context, obj *ent.Todo) (todo.Status, error)
 }
 
 type TodoWhereInputResolver interface {
+	Status(ctx context.Context, obj *ent.TodoWhereInput, data *todo.Status) error
+	StatusNeq(ctx context.Context, obj *ent.TodoWhereInput, data *todo.Status) error
+	StatusIn(ctx context.Context, obj *ent.TodoWhereInput, data []todo.Status) error
+	StatusNotIn(ctx context.Context, obj *ent.TodoWhereInput, data []todo.Status) error
+
 	CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error
 }
 
@@ -170,12 +185,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Category.config":
+		if e.complexity.Category.Config == nil {
+			break
+		}
+
+		return e.complexity.Category.Config(childComplexity), true
+
+	case "Category.count":
+		if e.complexity.Category.Count == nil {
+			break
+		}
+
+		return e.complexity.Category.Count(childComplexity), true
+
+	case "Category.duration":
+		if e.complexity.Category.Duration == nil {
+			break
+		}
+
+		return e.complexity.Category.Duration(childComplexity), true
+
 	case "Category.id":
 		if e.complexity.Category.ID == nil {
 			break
 		}
 
 		return e.complexity.Category.ID(childComplexity), true
+
+	case "Category.status":
+		if e.complexity.Category.Status == nil {
+			break
+		}
+
+		return e.complexity.Category.Status(childComplexity), true
 
 	case "Category.strings":
 		if e.complexity.Category.Strings == nil {
@@ -288,7 +331,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["todo"].(TodoInput)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(TodoInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -353,6 +396,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]pulid.ID)), true
+
+	case "Query.ping":
+		if e.complexity.Query.Ping == nil {
+			break
+		}
+
+		return e.complexity.Query.Ping(childComplexity), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -544,6 +594,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCategoryConfigInput,
+		ec.unmarshalInputCategoryOrder,
 		ec.unmarshalInputCategoryWhereInput,
 		ec.unmarshalInputGroupWhereInput,
 		ec.unmarshalInputTodoInput,
@@ -610,11 +661,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../todo/todo.graphql", Input: `interface Node {
-  id: ID!
-}
-
-type CategoryConfig {
+	{Name: "../todo/todo.graphql", Input: `type CategoryConfig {
   maxMembers: Int
 }
 
@@ -622,49 +669,9 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-enum CategoryStatus {
-  ENABLED
-  DISABLED
-}
-
-enum Status {
-  IN_PROGRESS
-  COMPLETED
-}
-
 scalar Time
 scalar Duration
 scalar Uint64
-
-type Todo implements Node {
-  id: ID!
-  createdAt: Time
-  status: Status!
-  priority: Int!
-  text: String!
-  parent: Todo
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
-  category: Category
-}
-
-type Category implements Node {
-  id: ID!
-  text: String!
-  strings: [String]
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
-}
-
-type User implements Node {
-  id: ID!
-  name: String!
-  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
-}
-
-type Group implements Node {
-  id: ID!
-  name: String!
-  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
-}
 
 input TodoInput {
   status: Status! = IN_PROGRESS
@@ -674,83 +681,70 @@ input TodoInput {
   category_id: ID
 }
 
-scalar Cursor
-
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: Cursor
-  endCursor: Cursor
-}
-
-type TodoConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TodoEdge]
-}
-
-type TodoEdge {
-  node: Todo
-  cursor: Cursor!
-}
-
-type UserConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [UserEdge]
-}
-
-type UserEdge {
-  node: User
-  cursor: Cursor!
-}
-
-type GroupConnection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [GroupEdge]
-}
-
-type GroupEdge {
-  node: Group
-  cursor: Cursor!
-}
-
-enum OrderDirection {
-  ASC
-  DESC
-}
-
-enum TodoOrderField {
-  CREATED_AT
-  PRIORITY
-  STATUS
-  TEXT
-}
-
-input TodoOrder {
-  direction: OrderDirection!
-  field: TodoOrderField
-}
-
 extend input TodoWhereInput {
   createdToday: Boolean
 }
 
-type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection
-  users(after: Cursor, first: Int, before: Cursor, last: Int, where: UserWhereInput): UserConnection
-  groups(after: Cursor, first: Int, before: Cursor, last: Int, where: GroupWhereInput): GroupConnection
+extend type Query {
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
 }
 
 type Mutation {
-  createTodo(todo: TodoInput!): Todo!
+  createTodo(input: TodoInput!): Todo!
   clearTodos: Int!
 }
 `, BuiltIn: false},
-	{Name: "../todo/ent.graphql", Input: `"""
+	{Name: "../todo/ent.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+type Category implements Node {
+  id: ID!
+  text: String!
+  status: CategoryStatus!
+  config: CategoryConfig!
+  duration: Duration!
+  count: Uint64!
+  strings: [String!]
+  todos(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
+}
+"""Ordering options for Category connections"""
+input CategoryOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Categories."""
+  field: CategoryOrderField!
+}
+"""Properties by which Category connections can be ordered."""
+enum CategoryOrderField {
+  TEXT
+  DURATION
+}
+"""CategoryStatus is enum for the field status"""
+enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
+  ENABLED
+  DISABLED
+}
+"""
 CategoryWhereInput is used for filtering Category objects.
 Input was generated by ent.
 """
@@ -824,6 +818,47 @@ input CategoryWhereInput {
   hasTodosWith: [TodoWhereInput!]
 }
 """
+Define a Relay Cursor type:
+https://relay.dev/graphql/connections.htm#sec-Cursor
+"""
+scalar Cursor
+type Group implements Node {
+  id: ID!
+  name: String!
+  users(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
+}
+"""A connection to a list of items."""
+type GroupConnection {
+  """A list of edges."""
+  edges: [GroupEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type GroupEdge {
+  """The item at the end of the edge."""
+  node: Group
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""
 GroupWhereInput is used for filtering Group objects.
 Input was generated by ent.
 """
@@ -857,6 +892,161 @@ input GroupWhereInput {
   """users edge predicates"""
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
+}
+"""
+An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
+"""
+interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Noder") {
+  """The id of the object."""
+  id: ID!
+}
+"""Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument."""
+enum OrderDirection {
+  """Specifies an ascending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
+  ASC
+  """Specifies a descending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
+  DESC
+}
+"""
+Information about pagination in a connection.
+https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
+"""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+}
+type Query {
+  """Fetches an object given its ID."""
+  node(
+    """ID of the object."""
+    id: ID!
+  ): Node
+  """Lookup nodes by a list of IDs."""
+  nodes(
+    """The list of node IDs."""
+    ids: [ID!]!
+  ): [Node]!
+  groups(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Groups returned from the connection."""
+    where: GroupWhereInput
+  ): GroupConnection!
+  todos(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
+  users(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
+}
+"""Status is enum for the field status"""
+enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
+  IN_PROGRESS
+  COMPLETED
+}
+type Todo implements Node {
+  id: ID!
+  createdAt: Time!
+  status: Status!
+  priority: Int!
+  text: String!
+  parent: Todo
+  children(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
+  category: Category
+}
+"""A connection to a list of items."""
+type TodoConnection {
+  """A list of edges."""
+  edges: [TodoEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type TodoEdge {
+  """The item at the end of the edge."""
+  node: Todo
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""Ordering options for Todo connections"""
+input TodoOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Todos."""
+  field: TodoOrderField!
+}
+"""Properties by which Todo connections can be ordered."""
+enum TodoOrderField {
+  CREATED_AT
+  STATUS
+  PRIORITY
+  TEXT
 }
 """
 TodoWhereInput is used for filtering Todo objects.
@@ -921,6 +1111,42 @@ input TodoWhereInput {
   """category edge predicates"""
   hasCategory: Boolean
   hasCategoryWith: [CategoryWhereInput!]
+}
+type User implements Node {
+  id: ID!
+  name: String!
+  groups(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Groups returned from the connection."""
+    where: GroupWhereInput
+  ): GroupConnection!
+}
+"""A connection to a list of items."""
+type UserConnection {
+  """A list of edges."""
+  edges: [UserEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type UserEdge {
+  """The item at the end of the edge."""
+  node: User
+  """A cursor for use in pagination."""
+  cursor: Cursor!
 }
 """
 UserWhereInput is used for filtering User objects.
@@ -1080,14 +1306,14 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 TodoInput
-	if tmp, ok := rawArgs["todo"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todo"))
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚐTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["todo"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1535,6 +1761,186 @@ func (ec *executionContext) fieldContext_Category_text(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Category_status(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Category_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(category.Status)
+	fc.Result = res
+	return ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Category_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CategoryStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Category_config(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Category_config(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Config, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*schematype.CategoryConfig)
+	fc.Result = res
+	return ec.marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Category_config(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "maxMembers":
+				return ec.fieldContext_CategoryConfig_maxMembers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CategoryConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Category_duration(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Category_duration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Duration)
+	fc.Result = res
+	return ec.marshalNDuration2timeᚐDuration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Category_duration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Duration does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Category_count(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Category_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint64)
+	fc.Result = res
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Category_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Uint64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Category_strings(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Category_strings(ctx, field)
 	if err != nil {
@@ -1560,7 +1966,7 @@ func (ec *executionContext) _Category_strings(ctx context.Context, field graphql
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_strings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1597,11 +2003,14 @@ func (ec *executionContext) _Category_todos(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.TodoConnection)
 	fc.Result = res
-	return ec.marshalOTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx, field.Selections, res)
+	return ec.marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_todos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1612,12 +2021,12 @@ func (ec *executionContext) fieldContext_Category_todos(ctx context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TodoConnection", field.Name)
 		},
@@ -1786,11 +2195,14 @@ func (ec *executionContext) _Group_users(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.UserConnection)
 	fc.Result = res
-	return ec.marshalOUserConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx, field.Selections, res)
+	return ec.marshalNUserConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1801,12 +2213,12 @@ func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_UserConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
 			case "edges":
 				return ec.fieldContext_UserConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UserConnection_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserConnection", field.Name)
 		},
@@ -1825,8 +2237,8 @@ func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _GroupConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.GroupConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GroupConnection_totalCount(ctx, field)
+func (ec *executionContext) _GroupConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.GroupConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GroupConnection_edges(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1839,31 +2251,34 @@ func (ec *executionContext) _GroupConnection_totalCount(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return obj.Edges, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.([]*ent.GroupEdge)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOGroupEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GroupConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_GroupConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GroupConnection",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_GroupEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_GroupEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GroupEdge", field.Name)
 		},
 	}
 	return fc, nil
@@ -1923,8 +2338,8 @@ func (ec *executionContext) fieldContext_GroupConnection_pageInfo(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _GroupConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.GroupConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_GroupConnection_edges(ctx, field)
+func (ec *executionContext) _GroupConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.GroupConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GroupConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1937,34 +2352,31 @@ func (ec *executionContext) _GroupConnection_edges(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
+		return obj.TotalCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.GroupEdge)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOGroupEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupEdge(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_GroupConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_GroupConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GroupConnection",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "node":
-				return ec.fieldContext_GroupEdge_node(ctx, field)
-			case "cursor":
-				return ec.fieldContext_GroupEdge_cursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GroupEdge", field.Name)
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2077,7 +2489,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["todo"].(TodoInput))
+		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["input"].(TodoInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2457,6 +2869,69 @@ func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_groups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_groups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Groups(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*ent.GroupWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.GroupConnection)
+	fc.Result = res
+	return ec.marshalNGroupConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_GroupConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_GroupConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_GroupConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GroupConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_groups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_todos(ctx, field)
 	if err != nil {
@@ -2478,11 +2953,14 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.TodoConnection)
 	fc.Result = res
-	return ec.marshalOTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx, field.Selections, res)
+	return ec.marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_todos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2493,12 +2971,12 @@ func (ec *executionContext) fieldContext_Query_todos(ctx context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TodoConnection", field.Name)
 		},
@@ -2538,11 +3016,14 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.UserConnection)
 	fc.Result = res
-	return ec.marshalOUserConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx, field.Selections, res)
+	return ec.marshalNUserConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2553,12 +3034,12 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_UserConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
 			case "edges":
 				return ec.fieldContext_UserConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UserConnection_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserConnection", field.Name)
 		},
@@ -2577,8 +3058,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_groups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_groups(ctx, field)
+func (ec *executionContext) _Query_ping(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ping(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2591,48 +3072,32 @@ func (ec *executionContext) _Query_groups(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Groups(rctx, fc.Args["after"].(*ent.Cursor), fc.Args["first"].(*int), fc.Args["before"].(*ent.Cursor), fc.Args["last"].(*int), fc.Args["where"].(*ent.GroupWhereInput))
+		return ec.resolvers.Query().Ping(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.GroupConnection)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOGroupConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_ping(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_GroupConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_GroupConnection_pageInfo(ctx, field)
-			case "edges":
-				return ec.fieldContext_GroupConnection_edges(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type GroupConnection", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_groups_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -2831,11 +3296,14 @@ func (ec *executionContext) _Todo_createdAt(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2865,7 +3333,7 @@ func (ec *executionContext) _Todo_status(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
+		return ec.resolvers.Todo().Status(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2879,15 +3347,15 @@ func (ec *executionContext) _Todo_status(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(todo.Status)
 	fc.Result = res
-	return ec.marshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx, field.Selections, res)
+	return ec.marshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Todo",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Status does not have child fields")
 		},
@@ -3063,11 +3531,14 @@ func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.TodoConnection)
 	fc.Result = res
-	return ec.marshalOTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx, field.Selections, res)
+	return ec.marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3078,12 +3549,12 @@ func (ec *executionContext) fieldContext_Todo_children(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoConnection_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TodoConnection", field.Name)
 		},
@@ -3142,6 +3613,14 @@ func (ec *executionContext) fieldContext_Todo_category(ctx context.Context, fiel
 				return ec.fieldContext_Category_id(ctx, field)
 			case "text":
 				return ec.fieldContext_Category_text(ctx, field)
+			case "status":
+				return ec.fieldContext_Category_status(ctx, field)
+			case "config":
+				return ec.fieldContext_Category_config(ctx, field)
+			case "duration":
+				return ec.fieldContext_Category_duration(ctx, field)
+			case "count":
+				return ec.fieldContext_Category_count(ctx, field)
 			case "strings":
 				return ec.fieldContext_Category_strings(ctx, field)
 			case "todos":
@@ -3153,8 +3632,8 @@ func (ec *executionContext) fieldContext_Todo_category(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _TodoConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TodoConnection_totalCount(ctx, field)
+func (ec *executionContext) _TodoConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TodoConnection_edges(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3167,31 +3646,34 @@ func (ec *executionContext) _TodoConnection_totalCount(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return obj.Edges, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.([]*ent.TodoEdge)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOTodoEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_TodoConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_TodoConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TodoConnection",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_TodoEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_TodoEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TodoEdge", field.Name)
 		},
 	}
 	return fc, nil
@@ -3251,8 +3733,8 @@ func (ec *executionContext) fieldContext_TodoConnection_pageInfo(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _TodoConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TodoConnection_edges(ctx, field)
+func (ec *executionContext) _TodoConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TodoConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3265,34 +3747,31 @@ func (ec *executionContext) _TodoConnection_edges(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
+		return obj.TotalCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.TodoEdge)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOTodoEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoEdge(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_TodoConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_TodoConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TodoConnection",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "node":
-				return ec.fieldContext_TodoEdge_node(ctx, field)
-			case "cursor":
-				return ec.fieldContext_TodoEdge_cursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type TodoEdge", field.Name)
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3510,11 +3989,14 @@ func (ec *executionContext) _User_groups(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.GroupConnection)
 	fc.Result = res
-	return ec.marshalOGroupConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx, field.Selections, res)
+	return ec.marshalNGroupConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3525,12 +4007,12 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "totalCount":
-				return ec.fieldContext_GroupConnection_totalCount(ctx, field)
-			case "pageInfo":
-				return ec.fieldContext_GroupConnection_pageInfo(ctx, field)
 			case "edges":
 				return ec.fieldContext_GroupConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_GroupConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_GroupConnection_totalCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GroupConnection", field.Name)
 		},
@@ -3549,8 +4031,8 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _UserConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserConnection_totalCount(ctx, field)
+func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserConnection_edges(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3563,31 +4045,34 @@ func (ec *executionContext) _UserConnection_totalCount(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return obj.Edges, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.([]*ent.UserEdge)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOUserEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_UserConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_UserConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserConnection",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_UserEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_UserEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserEdge", field.Name)
 		},
 	}
 	return fc, nil
@@ -3647,8 +4132,8 @@ func (ec *executionContext) fieldContext_UserConnection_pageInfo(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserConnection_edges(ctx, field)
+func (ec *executionContext) _UserConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3661,34 +4146,31 @@ func (ec *executionContext) _UserConnection_edges(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
+		return obj.TotalCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.UserEdge)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOUserEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserEdge(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_UserConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_UserConnection_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserConnection",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "node":
-				return ec.fieldContext_UserEdge_node(ctx, field)
-			case "cursor":
-				return ec.fieldContext_UserEdge_cursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type UserEdge", field.Name)
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5583,6 +6065,41 @@ func (ec *executionContext) unmarshalInputCategoryConfigInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj interface{}) (ent.CategoryOrder, error) {
+	var it ent.CategoryOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "direction":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			it.Field, err = ec.unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategoryOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context, obj interface{}) (ent.CategoryWhereInput, error) {
 	var it ent.CategoryWhereInput
 	asMap := map[string]interface{}{}
@@ -6318,7 +6835,7 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			it.Status, err = ec.unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx, v)
+			it.Status, err = ec.unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6367,6 +6884,10 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
 	for k, v := range asMap {
 		switch k {
 		case "direction":
@@ -6381,7 +6902,7 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoOrderField(ctx, v)
+			it.Field, err = ec.unmarshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6556,32 +7077,44 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			it.Status, err = ec.unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx, v)
+			data, err := ec.unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.TodoWhereInput().Status(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "statusNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
-			it.StatusNEQ, err = ec.unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx, v)
+			data, err := ec.unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.TodoWhereInput().StatusNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "statusIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
-			it.StatusIn, err = ec.unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.TodoWhereInput().StatusIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "statusNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
-			it.StatusNotIn, err = ec.unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.TodoWhereInput().StatusNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "priority":
@@ -7048,26 +7581,26 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case *ent.Todo:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Todo(ctx, sel, obj)
 	case *ent.Category:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._Category(ctx, sel, obj)
-	case *ent.User:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._User(ctx, sel, obj)
 	case *ent.Group:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._Group(ctx, sel, obj)
+	case *ent.Todo:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Todo(ctx, sel, obj)
+	case *ent.User:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._User(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -7101,6 +7634,34 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "status":
+
+			out.Values[i] = ec._Category_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "config":
+
+			out.Values[i] = ec._Category_config(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "duration":
+
+			out.Values[i] = ec._Category_duration(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "count":
+
+			out.Values[i] = ec._Category_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "strings":
 
 			out.Values[i] = ec._Category_strings(ctx, field, obj)
@@ -7115,6 +7676,9 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Category_todos(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7192,6 +7756,9 @@ func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Group_users(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7220,13 +7787,10 @@ func (ec *executionContext) _GroupConnection(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GroupConnection")
-		case "totalCount":
+		case "edges":
 
-			out.Values[i] = ec._GroupConnection_totalCount(ctx, field, obj)
+			out.Values[i] = ec._GroupConnection_edges(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "pageInfo":
 
 			out.Values[i] = ec._GroupConnection_pageInfo(ctx, field, obj)
@@ -7234,10 +7798,13 @@ func (ec *executionContext) _GroupConnection(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "edges":
+		case "totalCount":
 
-			out.Values[i] = ec._GroupConnection_edges(ctx, field, obj)
+			out.Values[i] = ec._GroupConnection_totalCount(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7434,6 +8001,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "groups":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_groups(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "todos":
 			field := field
 
@@ -7444,6 +8034,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_todos(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7464,6 +8057,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_users(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7474,7 +8070,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "groups":
+		case "ping":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -7483,7 +8079,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_groups(ctx, field)
+				res = ec._Query_ping(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7538,13 +8137,29 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Todo_createdAt(ctx, field, obj)
 
-		case "status":
-
-			out.Values[i] = ec._Todo_status(ctx, field, obj)
-
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "status":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Todo_status(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "priority":
 
 			out.Values[i] = ec._Todo_priority(ctx, field, obj)
@@ -7586,6 +8201,9 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Todo_children(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7631,13 +8249,10 @@ func (ec *executionContext) _TodoConnection(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TodoConnection")
-		case "totalCount":
+		case "edges":
 
-			out.Values[i] = ec._TodoConnection_totalCount(ctx, field, obj)
+			out.Values[i] = ec._TodoConnection_edges(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "pageInfo":
 
 			out.Values[i] = ec._TodoConnection_pageInfo(ctx, field, obj)
@@ -7645,10 +8260,13 @@ func (ec *executionContext) _TodoConnection(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "edges":
+		case "totalCount":
 
-			out.Values[i] = ec._TodoConnection_edges(ctx, field, obj)
+			out.Values[i] = ec._TodoConnection_totalCount(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7726,6 +8344,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_groups(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -7754,13 +8375,10 @@ func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UserConnection")
-		case "totalCount":
+		case "edges":
 
-			out.Values[i] = ec._UserConnection_totalCount(ctx, field, obj)
+			out.Values[i] = ec._UserConnection_edges(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "pageInfo":
 
 			out.Values[i] = ec._UserConnection_pageInfo(ctx, field, obj)
@@ -7768,10 +8386,13 @@ func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "edges":
+		case "totalCount":
 
-			out.Values[i] = ec._UserConnection_edges(ctx, field, obj)
+			out.Values[i] = ec._UserConnection_totalCount(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8148,9 +8769,35 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CategoryConfig(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, v interface{}) (*schematype.CategoryConfig, error) {
 	res, err := ec.unmarshalInputCategoryConfigInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategoryOrderField(ctx context.Context, v interface{}) (*ent.CategoryOrderField, error) {
+	var res = new(ent.CategoryOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategoryOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.CategoryOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋcategoryᚐStatus(ctx context.Context, v interface{}) (category.Status, error) {
@@ -8191,6 +8838,20 @@ func (ec *executionContext) marshalNDuration2timeᚐDuration(ctx context.Context
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNGroupConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx context.Context, sel ast.SelectionSet, v ent.GroupConnection) graphql.Marshaler {
+	return ec._GroupConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGroupConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx context.Context, sel ast.SelectionSet, v *ent.GroupConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._GroupConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNGroupWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupWhereInput(ctx context.Context, v interface{}) (*ent.GroupWhereInput, error) {
@@ -8307,13 +8968,13 @@ func (ec *executionContext) marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚋint
 	return ec._PageInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx context.Context, v interface{}) (todo.Status, error) {
+func (ec *executionContext) unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, v interface{}) (todo.Status, error) {
 	var res todo.Status
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v todo.Status) graphql.Marshaler {
+func (ec *executionContext) marshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v todo.Status) graphql.Marshaler {
 	return v
 }
 
@@ -8361,9 +9022,39 @@ func (ec *executionContext) marshalNTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 	return ec._Todo(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNTodoConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v ent.TodoConnection) graphql.Marshaler {
+	return ec._TodoConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *ent.TodoConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TodoConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚐTodoInput(ctx context.Context, v interface{}) (TodoInput, error) {
 	res, err := ec.unmarshalInputTodoInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoOrderField(ctx context.Context, v interface{}) (*ent.TodoOrderField, error) {
+	var res = new(ent.TodoOrderField)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.TodoOrderField) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalNTodoWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoWhereInput(ctx context.Context, v interface{}) (*ent.TodoWhereInput, error) {
@@ -8384,6 +9075,20 @@ func (ec *executionContext) marshalNUint642uint64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUserConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v ent.UserConnection) graphql.Marshaler {
+	return ec._UserConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v *ent.UserConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UserConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUserWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserWhereInput(ctx context.Context, v interface{}) (*ent.UserWhereInput, error) {
@@ -8893,13 +9598,6 @@ func (ec *executionContext) marshalOGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋint
 	return ec._Group(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOGroupConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupConnection(ctx context.Context, sel ast.SelectionSet, v *ent.GroupConnection) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._GroupConnection(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOGroupEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroupEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.GroupEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -9101,7 +9799,7 @@ func (ec *executionContext) marshalONode2entgoᚗioᚋcontribᚋentgqlᚋinterna
 	return ec._Node(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatusᚄ(ctx context.Context, v interface{}) ([]todo.Status, error) {
+func (ec *executionContext) unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx context.Context, v interface{}) ([]todo.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9113,7 +9811,7 @@ func (ec *executionContext) unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋ
 	res := make([]todo.Status, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -9121,7 +9819,7 @@ func (ec *executionContext) unmarshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋ
 	return res, nil
 }
 
-func (ec *executionContext) marshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []todo.Status) graphql.Marshaler {
+func (ec *executionContext) marshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []todo.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -9148,7 +9846,7 @@ func (ec *executionContext) marshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋin
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx, sel, v[i])
+			ret[i] = ec.marshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9168,7 +9866,7 @@ func (ec *executionContext) marshalOStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋin
 	return ret
 }
 
-func (ec *executionContext) unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx context.Context, v interface{}) (*todo.Status, error) {
+func (ec *executionContext) unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, v interface{}) (*todo.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9177,53 +9875,11 @@ func (ec *executionContext) unmarshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v *todo.Status) graphql.Marshaler {
+func (ec *executionContext) marshalOStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v *todo.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
@@ -9277,16 +9933,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	res := graphql.MarshalTime(v)
 	return res
 }
 
@@ -9351,13 +9997,6 @@ func (ec *executionContext) marshalOTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOTodoConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoConnection(ctx context.Context, sel ast.SelectionSet, v *ent.TodoConnection) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._TodoConnection(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOTodoEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.TodoEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -9412,22 +10051,6 @@ func (ec *executionContext) unmarshalOTodoOrder2ᚖentgoᚗioᚋcontribᚋentgql
 	}
 	res, err := ec.unmarshalInputTodoOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoOrderField(ctx context.Context, v interface{}) (*ent.TodoOrderField, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(ent.TodoOrderField)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoOrderField(ctx context.Context, sel ast.SelectionSet, v *ent.TodoOrderField) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodoWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.TodoWhereInput, error) {
@@ -9517,13 +10140,6 @@ func (ec *executionContext) marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinte
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOUserConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v *ent.UserConnection) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._UserConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUserEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUserEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.UserEdge) graphql.Marshaler {
