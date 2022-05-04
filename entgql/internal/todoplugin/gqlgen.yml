@@ -35,6 +35,3 @@ models:
   UUID:
     model:
       - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID
-  Node:
-    model:
-      - entgo.io/contrib/entgql/internal/todoplugin/ent.Noder

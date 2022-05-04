@@ -120,6 +120,12 @@ func TestFieldCollections(t *testing.T) {
 			},
 		},
 		{
+			Name: "two_words",
+			Type: &gen.Type{
+				Name: "Todo",
+			},
+		},
+		{
 			Name: "Unbind",
 			Type: &gen.Type{
 				Name: "Todo",
@@ -148,14 +154,18 @@ func TestFieldCollections(t *testing.T) {
 	require.Equal(t, []*fieldCollection{
 		{
 			Edge:    edges[0],
-			Mapping: []string{"Edge1"},
+			Mapping: []string{"edge1", "Edge1"},
 		},
 		{
 			Edge:    edges[1],
-			Mapping: []string{"Edge2"},
+			Mapping: []string{"edge2", "Edge2"},
 		},
 		{
-			Edge:    edges[3],
+			Edge:    edges[2],
+			Mapping: []string{"twoWords", "two_words"},
+		},
+		{
+			Edge:    edges[4],
 			Mapping: []string{"field1", "field2"},
 		},
 	}, collect)

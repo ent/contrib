@@ -627,47 +627,6 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "todo.graphql", Input: `type CategoryConfig {
-  maxMembers: Int
-}
-
-input CategoryConfigInput {
-  maxMembers: Int
-}
-
-scalar Time
-scalar Duration
-scalar Uint64
-scalar UUID
-
-extend type Todo {
-  category: Category
-}
-
-interface Entity {
-  id: ID!
-}
-
-input TodoInput {
-  status: Status! = IN_PROGRESS
-  priority: Int
-  text: String!
-  parent: ID
-  category_id: ID
-}
-
-extend type Query {
-  """
-  This field is an example of extending the built-in Query type from Ent.
-  """
-  ping: String!
-}
-
-type Mutation {
-  createTodo(todo: TodoInput!): Todo!
-  clearTodos: Int!
-}
-`, BuiltIn: false},
 	{Name: "entgql.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type Category implements Node & Entity {
@@ -687,6 +646,7 @@ type CategoryConnection {
   edges: [CategoryEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
@@ -696,10 +656,14 @@ type CategoryEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
+"""Ordering options for Category connections"""
 input CategoryOrder {
+  """The ordering direction."""
   direction: OrderDirection! = ASC
+  """The field by which to order Categories."""
   field: CategoryOrderField!
 }
+"""Properties by which Category connections can be ordered."""
 enum CategoryOrderField {
   TEXT
   DURATION
@@ -717,6 +681,15 @@ input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
   or: [CategoryWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   """text field predicates"""
   text: String
   textNEQ: String
@@ -780,15 +753,6 @@ input CategoryWhereInput {
   countLTE: Uint64
   countIsNil: Boolean
   countNotNil: Boolean
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
   """todos edge predicates"""
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
@@ -812,6 +776,7 @@ type MasterUserConnection {
   edges: [MasterUserEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
@@ -829,6 +794,15 @@ input MasterUserWhereInput {
   not: MasterUserWhereInput
   and: [MasterUserWhereInput!]
   or: [MasterUserWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   """username field predicates"""
   username: String
   usernameNEQ: String
@@ -864,26 +838,20 @@ input MasterUserWhereInput {
   nullableStringNotNil: Boolean
   nullableStringEqualFold: String
   nullableStringContainsFold: String
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
 }
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
-interface Node {
+interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.Noder") {
   """The id of the object."""
   id: ID!
 }
+"""Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument."""
 enum OrderDirection {
+  """Specifies an ascending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
   ASC
+  """Specifies a descending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
   DESC
 }
 """
@@ -901,9 +869,35 @@ type PageInfo {
   endCursor: Cursor
 }
 type Query {
-  node(id: ID!): Node
-  nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection!
+  """Fetches an object given its ID."""
+  node(
+    """ID of the object."""
+    id: ID!
+  ): Node
+  """Lookup nodes by a list of IDs."""
+  nodes(
+    """The list of node IDs."""
+    ids: [ID!]!
+  ): [Node]!
+  todos(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
 }
 """Role is enum for the field role"""
 enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
@@ -924,8 +918,44 @@ type Todo implements Node {
   priority: Int!
   text: String!
   parent: Todo
-  childrenConnection(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection! @goField(name: "children", forceResolver: false)
-  children(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder, where: TodoWhereInput): TodoConnection!
+  childrenConnection(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection! @goField(name: "children", forceResolver: false)
+  children(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
 }
 """A connection to a list of items."""
 type TodoConnection {
@@ -933,6 +963,7 @@ type TodoConnection {
   edges: [TodoEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
@@ -942,10 +973,14 @@ type TodoEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
+"""Ordering options for Todo connections"""
 input TodoOrder {
+  """The ordering direction."""
   direction: OrderDirection! = ASC
+  """The field by which to order Todos."""
   field: TodoOrderField!
 }
+"""Properties by which Todo connections can be ordered."""
 enum TodoOrderField {
   CREATED_AT
   VISIBILITY_STATUS
@@ -961,6 +996,15 @@ input TodoWhereInput {
   not: TodoWhereInput
   and: [TodoWhereInput!]
   or: [TodoWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
   """created_at field predicates"""
   createdAt: Time
   createdAtNEQ: Time
@@ -1003,15 +1047,6 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """id field predicates"""
-  id: ID
-  idNEQ: ID
-  idIn: [ID!]
-  idNotIn: [ID!]
-  idGT: ID
-  idGTE: ID
-  idLT: ID
-  idLTE: ID
   """parent edge predicates"""
   hasParent: Boolean
   hasParentWith: [TodoWhereInput!]
@@ -1023,6 +1058,47 @@ input TodoWhereInput {
 enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
   LISTING
   HIDDEN
+}
+`, BuiltIn: false},
+	{Name: "todo.graphql", Input: `type CategoryConfig {
+  maxMembers: Int
+}
+
+input CategoryConfigInput {
+  maxMembers: Int
+}
+
+scalar Time
+scalar Duration
+scalar Uint64
+scalar UUID
+
+extend type Todo {
+  category: Category
+}
+
+interface Entity {
+  id: ID!
+}
+
+input TodoInput {
+  status: Status! = IN_PROGRESS
+  priority: Int
+  text: String!
+  parent: ID
+  category_id: ID
+}
+
+extend type Query {
+  """
+  This field is an example of extending the built-in Query type from Ent.
+  """
+  ping: String!
+}
+
+type Mutation {
+  createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
 }
 `, BuiltIn: false},
 }
@@ -5783,6 +5859,70 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
+			it.IDNEQ, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
+			it.IDIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
+			it.IDNotIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
+			it.IDGT, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
+			it.IDGTE, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
+			it.IDLT, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
+			it.IDLTE, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "text":
 			var err error
 
@@ -6239,6 +6379,61 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "hasTodos":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodos"))
+			it.HasTodos, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasTodosWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodosWith"))
+			it.HasTodosWith, err = ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMasterUserWhereInput(ctx context.Context, obj interface{}) (ent.MasterUserWhereInput, error) {
+	var it ent.MasterUserWhereInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "not":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			it.Not, err = ec.unmarshalOMasterUserWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserWhereInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "and":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			it.And, err = ec.unmarshalOMasterUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "or":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			it.Or, err = ec.unmarshalOMasterUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "id":
 			var err error
 
@@ -6300,61 +6495,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			it.IDLTE, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "hasTodos":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodos"))
-			it.HasTodos, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "hasTodosWith":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodosWith"))
-			it.HasTodosWith, err = ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoWhereInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputMasterUserWhereInput(ctx context.Context, obj interface{}) (ent.MasterUserWhereInput, error) {
-	var it ent.MasterUserWhereInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "not":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			it.Not, err = ec.unmarshalOMasterUserWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserWhereInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "and":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			it.And, err = ec.unmarshalOMasterUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserWhereInputᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "or":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			it.Or, err = ec.unmarshalOMasterUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐMasterUserWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6614,70 +6754,6 @@ func (ec *executionContext) unmarshalInputMasterUserWhereInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idNEQ":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idNotIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idGT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idGTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idLT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idLTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -6808,6 +6884,70 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			it.Or, err = ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopluginᚋentᚐTodoWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
+			it.IDNEQ, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
+			it.IDIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
+			it.IDNotIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
+			it.IDGT, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idGTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
+			it.IDGTE, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
+			it.IDLT, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idLTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
+			it.IDLTE, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7104,70 +7244,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContainsFold"))
 			it.TextContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idNEQ":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idNotIn":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idGT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idGTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idLT":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idLTE":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
