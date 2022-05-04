@@ -174,7 +174,7 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 			collect = append(collect, &fieldCollection{Edge: e, Mapping: ant.Mapping})
 		case !ant.Unbind:
 			mapping := []string{camel(e.Name)}
-			// FIXME: remove this backwards compatibility when we release v0.12
+			// TODO(@giautm): remove this backwards compatibility when we release v0.12
 			if mapping[0] != e.Name {
 				mapping = append(mapping, e.Name)
 			}

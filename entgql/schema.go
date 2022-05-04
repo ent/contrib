@@ -246,9 +246,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 	def := &ast.Definition{
 		Name:       gqlType,
 		Kind:       ast.Object,
-		Fields:     ast.FieldList{},
 		Directives: e.buildDirectives(ant.Directives),
-		Interfaces: []string{},
 	}
 	if t.Name != gqlType {
 		def.Directives = append(def.Directives, goModel(entGoType(t.Name, pkg)))
@@ -325,7 +323,7 @@ func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveL
 }
 
 func (e *schemaGenerator) enumOrderByValues(t *gen.Type, gqlType string) (*ast.Definition, error) {
-	enumValues := ast.EnumValueList{}
+	var enumValues ast.EnumValueList
 	for _, f := range t.Fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
