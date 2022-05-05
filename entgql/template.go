@@ -241,14 +241,11 @@ func orderFields(n *gen.Type) ([]*gen.Field, error) {
 		if err != nil {
 			return nil, err
 		}
-		if ant.OrderField == "" {
+		if ant.Skip.Is(SkipOrderField) || ant.OrderField == "" {
 			continue
 		}
 		if !f.Type.Comparable() {
 			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
-		}
-		if ant.Skip.Is(SkipOrderField) {
-			return nil, fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", n.Name, f.Name)
 		}
 		ordered = append(ordered, f)
 	}
