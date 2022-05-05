@@ -329,19 +329,13 @@ func (e *schemaGenerator) enumOrderByValues(t *gen.Type, gqlType string) (*ast.D
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Is(SkipOrderField) {
+		if ant.Skip.Is(SkipOrderField) || ant.OrderField == "" {
 			continue
 		}
 
-		// Check if this node has an OrderBy object
-		if ant.OrderField != "" {
-			if ant.Skip.Is(SkipOrderField) {
-				return nil, fmt.Errorf("entgql: ordered field %s.%s cannot be skipped", t.Name, f.Name)
-			}
-			enumValues = append(enumValues, &ast.EnumValueDefinition{
-				Name: ant.OrderField,
-			})
-		}
+		enumValues = append(enumValues, &ast.EnumValueDefinition{
+			Name: ant.OrderField,
+		})
 	}
 	if len(enumValues) == 0 {
 		return nil, nil
