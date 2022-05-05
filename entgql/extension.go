@@ -113,7 +113,7 @@ var (
 	// remove the WhereTemplate from the code generation templates.
 	//
 	// Deprecated: use WithWhereInputs instead. This option is planned
-	// to be removed in future versions
+	// to be removed in future versions.
 	WithWhereFilters = WithWhereInputs
 )
 
@@ -225,7 +225,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 // in the template list and returns its index.
 func (e *Extension) whereExists() (int, bool) {
 	for i := range e.templates {
-		if e.templates[i].Name() == "gql_where_input" {
+		if e.templates[i].Name() == WhereTemplate.Templates()[1].Name() {
 			return i, true
 		}
 	}

@@ -16,6 +16,9 @@ import (
 )
 
 func main() {
+	// The codegen is executed from internal/todo/gen.go.
+	// So the path for the config file, ent schema, and the GQL schema
+	// starts from internal/todo.
 	ex, err := entgql.NewExtension(
 		entgql.WithConfigPath("./gqlgen.yml"),
 		entgql.WithSchemaGenerator(),
