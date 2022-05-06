@@ -124,13 +124,26 @@ func OrderField(name string) Annotation {
 }
 
 // Bind returns a binding annotation.
+// entgql.Bind() main purpose's in the Ent schema definition is to improve the efficiency of queries using GraphQL.
+// The Bind() annotation is enabled by default, use Unbind() to opt-out.
 //
-// No-op function to avoid breaking the existing schema.
-// You can safely remove this function from your scheme.
-//
-// Deprecated: the Bind option predates the Unbind option, and it is planned
+// the Bind option predates the Unbind option, and it is planned
 // to be removed in future versions. Users should not use this annotation as it
 // is a no-op call, or use `Unbind` in order to disable `Bind`.
+// you can safely remove this from your schema.
+//
+// example:
+//	func (Todo) Edges() []ent.Edge {
+//		return []ent.Edge{
+//			edge.To("parent", Todo.Type).
+//			Annotations(entgql.Bind()).
+//			Unique().
+//			From("children").
+//			Annotations(entgql.Bind()),
+//		}
+//	}
+// After adding Bind(), entgql will do the bind the relevent queries.
+// Additionally, it will also generate edge-resolvers for the nodes under the gql_edge.go file
 func Bind() Annotation {
 	return Annotation{}
 }
@@ -138,7 +151,18 @@ func Bind() Annotation {
 // Unbind implies the edge field name in GraphQL schema is not equivalent
 // to the name used in ent schema. That means, by default, edges with this
 // annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
-// option in order to load edges be different name mapping.
+// option in order to load edges different name mapping.
+//
+// example:
+//	func (Todo) Edges() []ent.Edge {
+//		return []ent.Edge{
+//			edge.To("parent", Todo.Type).
+//			Annotations(entgql.Unbind()).
+//			Unique().
+//			From("children").
+//			Annotations(entgql.Unbgitind()),
+//		}
+//	}
 func Unbind() Annotation {
 	return Annotation{Unbind: true}
 }
