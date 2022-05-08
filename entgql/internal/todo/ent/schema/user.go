@@ -17,6 +17,7 @@ package schema
 import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -39,5 +40,13 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("groups", Group.Type).
 			Annotations(entgql.RelayConnection()),
+	}
+}
+
+// Annotations returns User annotations.
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
+		entgql.QueryField(),
 	}
 }

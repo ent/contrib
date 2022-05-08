@@ -85,7 +85,7 @@ func (s *todoTestSuite) SetupTest() {
 	s.Client = client.New(srv)
 
 	const mutation = `mutation($priority: Int, $text: String!, $parent: ID) {
-		createTodo(todo: {status: COMPLETED, priority: $priority, text: $text, parent: $parent}) {
+		createTodo(input: {status: COMPLETED, priority: $priority, text: $text, parent: $parent}) {
 			id
 		}
 	}`
@@ -339,7 +339,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 
 func (s *todoTestSuite) TestPaginationOrder() {
 	const (
-		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $direction: OrderDirection!, $field: TodoOrderField) {
+		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $direction: OrderDirection!, $field: TodoOrderField!) {
 			todos(after: $after, first: $first, before: $before, last: $last, orderBy: { direction: $direction, field: $field }) {
 				totalCount
 				edges {
@@ -408,6 +408,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 				client.Var("after", rsp.Todos.PageInfo.EndCursor),
 				client.Var("first", step),
 				client.Var("direction", "DESC"),
+				client.Var("field", "CREATED_AT"),
 			)
 			s.Require().NoError(err)
 			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
@@ -761,7 +762,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 		}
 	}
 	err := s.Post(`mutation {
-		createTodo(todo: { text: "OKE", parent: 4294967297 }) {
+		createTodo(input: { text: "OKE", parent: 4294967297 }) {
 			parent {
 				id
 				text

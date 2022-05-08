@@ -24,7 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
+func (r *mutationResolver) CreateTodo(ctx context.Context, input TodoInput) (*ent.Todo, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -32,23 +32,7 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
-	return r.client.Noder(ctx, id, ent.WithNodeType(nodeType))
-}
-
-func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, error) {
-	return r.client.Noders(ctx, ids, ent.WithNodeType(nodeType))
-}
-
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
+func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -59,8 +43,4 @@ func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.Todo
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
 type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

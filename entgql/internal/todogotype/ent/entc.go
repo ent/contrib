@@ -18,7 +18,7 @@ import (
 
 func main() {
 	ex, err := entgql.NewExtension(
-		entgql.WithWhereFilters(true),
+		entgql.WithWhereInputs(true),
 		// This option is disabled in this example,
 		// because the schema file is edited by the
 		// internal/todo/ent example.
@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("creating entgql extension: %v", err)
 	}
 
-	err = entc.Generate("./schema", &gen.Config{
+	err = entc.Generate("./ent/schema", &gen.Config{
 		IDType: &field.TypeInfo{Type: field.TypeString},
 		Header: `
 			// Copyright 2019-present Facebook

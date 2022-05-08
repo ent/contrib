@@ -108,11 +108,20 @@ func WithTemplates(templates ...*gen.Template) ExtensionOption {
 	}
 }
 
-// WithWhereFilters configures the extension to either add or
+var (
+	// WithWhereFilters configures the extension to either add or
+	// remove the WhereTemplate from the code generation templates.
+	//
+	// Deprecated: use WithWhereInputs instead. This option is planned
+	// to be removed in future versions.
+	WithWhereFilters = WithWhereInputs
+)
+
+// WithWhereInputs configures the extension to either add or
 // remove the WhereTemplate from the code generation templates.
 //
 // The WhereTemplate generates GraphQL filters to all types in the ent/schema.
-func WithWhereFilters(b bool) ExtensionOption {
+func WithWhereInputs(b bool) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.genWhereInput = b
 		i, exists := ex.whereExists()
@@ -158,8 +167,9 @@ func WithMapScalarFunc(scalarFunc func(*gen.Field, gen.Op) string) ExtensionOpti
 // NewExtension creates a new extension with the given configuration.
 //
 //	ex, err := entgql.NewExtension(
-//		entgql.WithWhereFilters(true),
-//		entgql.WithSchemaPath("../schema.graphql"),
+//		entgql.WithSchemaGenerator(),
+//		entgql.WithSchemaPath("../ent.graphql"),
+//		entgql.WithWhereInputs(true),
 //	)
 //
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
@@ -215,7 +225,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 // in the template list and returns its index.
 func (e *Extension) whereExists() (int, bool) {
 	for i := range e.templates {
-		if e.templates[i] == WhereTemplate {
+		if e.templates[i].Name() == WhereTemplate.Templates()[1].Name() {
 			return i, true
 		}
 	}

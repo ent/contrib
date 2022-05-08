@@ -16,15 +16,19 @@ import (
 )
 
 func main() {
+	// The codegen is executed from internal/todo/gen.go.
+	// So the path for the config file, ent schema, and the GQL schema
+	// starts from internal/todo.
 	ex, err := entgql.NewExtension(
-		entgql.WithWhereFilters(true),
-		entgql.WithSchemaPath("../ent.graphql"),
-		entgql.WithConfigPath("../gqlgen.yml"),
+		entgql.WithConfigPath("./gqlgen.yml"),
+		entgql.WithSchemaGenerator(),
+		entgql.WithSchemaPath("./ent.graphql"),
+		entgql.WithWhereInputs(true),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)
 	}
-	err = entc.Generate("./schema", &gen.Config{
+	err = entc.Generate("./ent/schema", &gen.Config{
 		Header: `
 			// Copyright 2019-present Facebook
 			//

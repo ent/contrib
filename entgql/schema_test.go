@@ -28,7 +28,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	s, err := gen.NewStorage("sql")
 	require.NoError(t, err)
 
-	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
 		Storage: s,
 	})
 	require.NoError(t, err)
@@ -43,14 +43,13 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	err = plugin.buildTypes(graph, schema)
 	require.NoError(t, err)
 
-	require.Equal(t, `type Category implements Entity {
+	require.Equal(t, `type Category {
   id: ID!
   text: String!
-  uuidA: UUID
-  status: CategoryStatus!
+  status: Status!
   config: CategoryConfig!
   duration: Duration!
-  count: Uint64! @deprecated(reason: "We don't use this field anymore")
+  count: Uint64!
   strings: [String!]
   todos: [Todo!]
 }
@@ -66,43 +65,30 @@ enum CategoryOrderField {
   TEXT
   DURATION
 }
-"""CategoryStatus is enum for the field status"""
-enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
-  ENABLED
-  DISABLED
-}
-type MasterUser @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
+type Group {
   id: ID!
-  username: String!
-  age: Float!
-  amount: Float!
-  role: Role!
-  nullableString: String
+  name: String!
+  users: [User!]
 }
 type Query {
+  groups: [Group!]!
   todos: [Todo!]!
-}
-"""Role is enum for the field role"""
-enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
-  ADMIN
-  USER
-  UNKNOWN
+  users: [User!]!
 }
 """Status is enum for the field status"""
-enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status") {
+enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
   IN_PROGRESS
   COMPLETED
 }
 type Todo {
   id: ID!
   createdAt: Time!
-  visibilityStatus: VisibilityStatus!
   status: Status!
   priority: Int!
   text: String!
   parent: Todo
-  childrenConnection: [Todo!] @goField(name: "children", forceResolver: false)
   children: [Todo!]
+  category: Category
 }
 """Ordering options for Todo connections"""
 input TodoOrder {
@@ -114,15 +100,14 @@ input TodoOrder {
 """Properties by which Todo connections can be ordered."""
 enum TodoOrderField {
   CREATED_AT
-  VISIBILITY_STATUS
   STATUS
   PRIORITY
   TEXT
 }
-"""VisibilityStatus is enum for the field visibility_status"""
-enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
-  LISTING
-  HIDDEN
+type User {
+  id: ID!
+  name: String!
+  groups: [Group!]
 }
 `, printSchema(schema))
 }
@@ -131,7 +116,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	s, err := gen.NewStorage("sql")
 	require.NoError(t, err)
 
-	graph, err := entc.LoadGraph("./internal/todoplugin/ent/schema", &gen.Config{
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
 		Storage: s,
 	})
 	require.NoError(t, err)
@@ -144,32 +129,33 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	err = plugin.buildTypes(graph, schema)
 	require.NoError(t, err)
 
-	require.Equal(t, `type Category implements Node & Entity {
+	require.Equal(t, `type Category implements Node {
   id: ID!
   text: String!
-  uuidA: UUID
-  status: CategoryStatus!
+  status: Status!
   config: CategoryConfig!
   duration: Duration!
-  count: Uint64! @deprecated(reason: "We don't use this field anymore")
+  count: Uint64!
   strings: [String!]
-  todos: [Todo!]
-}
-"""A connection to a list of items."""
-type CategoryConnection {
-  """A list of edges."""
-  edges: [CategoryEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
-  totalCount: Int!
-}
-"""An edge in a connection."""
-type CategoryEdge {
-  """The item at the end of the edge."""
-  node: Category
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  todos(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Ordering options for Todos returned from the connection."""
+    orderBy: TodoOrder
+  ,
+    """Filtering options for Todos returned from the connection."""
+    where: TodoWhereInput
+  ): TodoConnection!
 }
 """Ordering options for Category connections"""
 input CategoryOrder {
@@ -182,11 +168,6 @@ input CategoryOrder {
 enum CategoryOrderField {
   TEXT
   DURATION
-}
-"""CategoryStatus is enum for the field status"""
-enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/category.Status") {
-  ENABLED
-  DISABLED
 }
 """
 CategoryWhereInput is used for filtering Category objects.
@@ -219,22 +200,11 @@ input CategoryWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """uuid_a field predicates"""
-  uuidA: UUID
-  uuidANEQ: UUID
-  uuidAIn: [UUID!]
-  uuidANotIn: [UUID!]
-  uuidAGT: UUID
-  uuidAGTE: UUID
-  uuidALT: UUID
-  uuidALTE: UUID
-  uuidAIsNil: Boolean
-  uuidANotNil: Boolean
   """status field predicates"""
-  status: CategoryStatus
-  statusNEQ: CategoryStatus
-  statusIn: [CategoryStatus!]
-  statusNotIn: [CategoryStatus!]
+  status: Status
+  statusNEQ: Status
+  statusIn: [Status!]
+  statusNotIn: [Status!]
   """config field predicates"""
   config: CategoryConfig
   configNEQ: CategoryConfig
@@ -272,38 +242,50 @@ input CategoryWhereInput {
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
 }
-type MasterUser implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent.User") {
+type Group implements Node {
   id: ID!
-  username: String!
-  age: Float!
-  amount: Float!
-  role: Role!
-  nullableString: String
+  name: String!
+  users(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
 }
 """A connection to a list of items."""
-type MasterUserConnection {
+type GroupConnection {
   """A list of edges."""
-  edges: [MasterUserEdge]
+  edges: [GroupEdge]
   """Information to aid in pagination."""
   pageInfo: PageInfo!
   """Identifies the total count of items in the connection."""
   totalCount: Int!
 }
 """An edge in a connection."""
-type MasterUserEdge {
+type GroupEdge {
   """The item at the end of the edge."""
-  node: MasterUser
+  node: Group
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
 """
-MasterUserWhereInput is used for filtering User objects.
+GroupWhereInput is used for filtering Group objects.
 Input was generated by ent.
 """
-input MasterUserWhereInput {
-  not: MasterUserWhereInput
-  and: [MasterUserWhereInput!]
-  or: [MasterUserWhereInput!]
+input GroupWhereInput {
+  not: GroupWhereInput
+  and: [GroupWhereInput!]
+  or: [GroupWhereInput!]
   """id field predicates"""
   id: ID
   idNEQ: ID
@@ -313,41 +295,23 @@ input MasterUserWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """username field predicates"""
-  username: String
-  usernameNEQ: String
-  usernameIn: [String!]
-  usernameNotIn: [String!]
-  usernameGT: String
-  usernameGTE: String
-  usernameLT: String
-  usernameLTE: String
-  usernameContains: String
-  usernameHasPrefix: String
-  usernameHasSuffix: String
-  usernameEqualFold: String
-  usernameContainsFold: String
-  """role field predicates"""
-  role: Role
-  roleNEQ: Role
-  roleIn: [Role!]
-  roleNotIn: [Role!]
-  """nullable_string field predicates"""
-  nullableString: String
-  nullableStringNEQ: String
-  nullableStringIn: [String!]
-  nullableStringNotIn: [String!]
-  nullableStringGT: String
-  nullableStringGTE: String
-  nullableStringLT: String
-  nullableStringLTE: String
-  nullableStringContains: String
-  nullableStringHasPrefix: String
-  nullableStringHasSuffix: String
-  nullableStringIsNil: Boolean
-  nullableStringNotNil: Boolean
-  nullableStringEqualFold: String
-  nullableStringContainsFold: String
+  """name field predicates"""
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameEqualFold: String
+  nameContainsFold: String
+  """users edge predicates"""
+  hasUsers: Boolean
+  hasUsersWith: [UserWhereInput!]
 }
 type Query {
   """Fetches an object given its ID."""
@@ -360,6 +324,22 @@ type Query {
     """The list of node IDs."""
     ids: [ID!]!
   ): [Node]!
+  groups(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Groups returned from the connection."""
+    where: GroupWhereInput
+  ): GroupConnection!
   todos(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -379,27 +359,7 @@ type Query {
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
   ): TodoConnection!
-}
-"""Role is enum for the field role"""
-enum Role @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/role.Role") {
-  ADMIN
-  USER
-  UNKNOWN
-}
-"""Status is enum for the field status"""
-enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.Status") {
-  IN_PROGRESS
-  COMPLETED
-}
-type Todo implements Node {
-  id: ID!
-  createdAt: Time!
-  visibilityStatus: VisibilityStatus!
-  status: Status!
-  priority: Int!
-  text: String!
-  parent: Todo
-  childrenConnection(
+  users(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
   ,
@@ -412,12 +372,22 @@ type Todo implements Node {
     """Returns the last _n_ elements from the list."""
     last: Int
   ,
-    """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
-  ,
-    """Filtering options for Todos returned from the connection."""
-    where: TodoWhereInput
-  ): TodoConnection! @goField(name: "children", forceResolver: false)
+    """Filtering options for Users returned from the connection."""
+    where: UserWhereInput
+  ): UserConnection!
+}
+"""Status is enum for the field status"""
+enum Status @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
+  IN_PROGRESS
+  COMPLETED
+}
+type Todo implements Node {
+  id: ID!
+  createdAt: Time!
+  status: Status!
+  priority: Int!
+  text: String!
+  parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -437,6 +407,7 @@ type Todo implements Node {
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
   ): TodoConnection!
+  category: Category
 }
 """A connection to a list of items."""
 type TodoConnection {
@@ -464,7 +435,6 @@ input TodoOrder {
 """Properties by which Todo connections can be ordered."""
 enum TodoOrderField {
   CREATED_AT
-  VISIBILITY_STATUS
   STATUS
   PRIORITY
   TEXT
@@ -495,11 +465,6 @@ input TodoWhereInput {
   createdAtGTE: Time
   createdAtLT: Time
   createdAtLTE: Time
-  """visibility_status field predicates"""
-  visibilityStatus: VisibilityStatus
-  visibilityStatusNEQ: VisibilityStatus
-  visibilityStatusIn: [VisibilityStatus!]
-  visibilityStatusNotIn: [VisibilityStatus!]
   """status field predicates"""
   status: Status
   statusNEQ: Status
@@ -534,11 +499,80 @@ input TodoWhereInput {
   """children edge predicates"""
   hasChildren: Boolean
   hasChildrenWith: [TodoWhereInput!]
+  """category edge predicates"""
+  hasCategory: Boolean
+  hasCategoryWith: [CategoryWhereInput!]
 }
-"""VisibilityStatus is enum for the field visibility_status"""
-enum VisibilityStatus @goModel(model: "entgo.io/contrib/entgql/internal/todoplugin/ent/todo.VisibilityStatus") {
-  LISTING
-  HIDDEN
+type User implements Node {
+  id: ID!
+  name: String!
+  groups(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+  ,
+    """Returns the first _n_ elements from the list."""
+    first: Int
+  ,
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+  ,
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ,
+    """Filtering options for Groups returned from the connection."""
+    where: GroupWhereInput
+  ): GroupConnection!
+}
+"""A connection to a list of items."""
+type UserConnection {
+  """A list of edges."""
+  edges: [UserEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type UserEdge {
+  """The item at the end of the edge."""
+  node: User
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""
+UserWhereInput is used for filtering User objects.
+Input was generated by ent.
+"""
+input UserWhereInput {
+  not: UserWhereInput
+  and: [UserWhereInput!]
+  or: [UserWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """name field predicates"""
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameEqualFold: String
+  nameContainsFold: String
+  """groups edge predicates"""
+  hasGroups: Boolean
+  hasGroupsWith: [GroupWhereInput!]
 }
 `, printSchema(schema))
 }
