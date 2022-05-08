@@ -138,7 +138,18 @@ func Bind() Annotation {
 // Unbind implies the edge field name in GraphQL schema is not equivalent
 // to the name used in ent schema. That means, by default, edges with this
 // annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
-// option in order to load edges be different name mapping.
+// option in order to load edges with different name mapping.
+//
+//	func (Todo) Edges() []ent.Edge {
+//		return []ent.Edge{
+//			edge.To("parent", Todo.Type).
+//			Annotations(entgql.Unbind()).
+//			Unique().
+//			From("children").
+//			Annotations(entgql.Unbind()),
+//		}
+//	}
+//
 func Unbind() Annotation {
 	return Annotation{Unbind: true}
 }
