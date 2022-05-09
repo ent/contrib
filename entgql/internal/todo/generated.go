@@ -700,19 +700,19 @@ type Category implements Node {
   todos(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
-  ,
+
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
   ): TodoConnection!
@@ -818,16 +818,16 @@ type Group implements Node {
   users(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
   ): UserConnection!
@@ -926,51 +926,51 @@ type Query {
   groups(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
   ): GroupConnection!
   todos(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
-  ,
+
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
   ): TodoConnection!
   users(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
   ): UserConnection!
@@ -990,19 +990,19 @@ type Todo implements Node {
   children(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
-  ,
+
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
   ): TodoConnection!
@@ -1108,16 +1108,16 @@ type User implements Node {
   groups(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
-  ,
+
     """Returns the first _n_ elements from the list."""
     first: Int
-  ,
+
     """Returns the elements in the list that come before the specified cursor."""
     before: Cursor
-  ,
+
     """Returns the last _n_ elements from the list."""
     last: Int
-  ,
+
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
   ): GroupConnection!
