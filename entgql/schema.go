@@ -289,7 +289,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 			return nil, fmt.Errorf("entgql: RelayConnection cannot be defined on Unique edge: %s.%s", t.Name, edge.Name)
 		}
 
-		fields, err := e.buildEdge(edge, ant)
+		fields, err := e.buildEdge(t, edge, ant)
 		if err != nil {
 			return nil, err
 		}
@@ -364,7 +364,7 @@ func (e *schemaGenerator) buildFieldEnum(f *gen.Field, gqlType, goType string) (
 	}, nil
 }
 
-func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
+func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
 	gqlType, ant, err := gqlTypeFromNode(edge.Type)
 	if err != nil || ant.Skip.Is(SkipType) {
 		return nil, err
@@ -393,7 +393,7 @@ func (e *schemaGenerator) buildEdge(edge *gen.Edge, edgeAnt *Annotation) ([]*ast
 				return nil, ErrRelaySpecDisabled
 			}
 			if !ant.RelayConnection {
-				return nil, fmt.Errorf("entgql: must enable Relay Connection via the entgql.RelayConnection annotation on the %s entity", edge.Type.Name)
+				return nil, fmt.Errorf("entgql.RelayConnection() must be set on entity %q in order to define %q.%q as Relay Connection", edge.Type.Name, node.Name, edge.Name)
 			}
 
 			fieldDef = paginationNames(gqlType).
