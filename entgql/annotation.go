@@ -100,7 +100,7 @@ func (Annotation) Name() string {
 // with the given name. Note that, the field type must be comparable.
 //
 //	field.Time("created_at").
-//  	Default(time.Now).
+//		Default(time.Now).
 //		Immutable().
 //		Annotations(
 //			entgql.OrderField("CREATED_AT"),
@@ -111,12 +111,12 @@ func (Annotation) Name() string {
 //
 //	field.Enum("status").
 //		NamedValues(
-//		    "InProgress", "IN_PROGRESS",
-//		    "Completed", "COMPLETED",
+//			"InProgress", "IN_PROGRESS",
+//			"Completed", "COMPLETED",
 //		).
 //		Default("IN_PROGRESS").
 //		Annotations(
-//		    entgql.OrderField("STATUS"),
+//			entgql.OrderField("STATUS"),
 //		)
 //
 func OrderField(name string) Annotation {
@@ -163,6 +163,28 @@ func MapsTo(names ...string) Annotation {
 }
 
 // Type returns a type mapping annotation.
+// The Type() annotation is used to map the underlying
+// GraphQL type to the type.
+//
+// To change the GraphQL type for a type:
+//
+//	func (User) Annotations() []schema.Annotation {
+//		return []schema.Annotation{
+//				entgql.Type("MasterUser"),
+//		}
+//	}
+//
+// To change the GraphQL type for a field (rename enum type):
+//
+//	field.Enum("status").
+//		NamedValues(
+//			"InProgress", "IN_PROGRESS",
+//			"Completed", "COMPLETED",
+//		).
+//		Default("IN_PROGRESS").
+//		Annotations(
+//			entgql.Type("TodoStatus"),
+//		)
 func Type(name string) Annotation {
 	return Annotation{Type: name}
 }
@@ -181,6 +203,30 @@ func Skip(flags ...SkipMode) Annotation {
 }
 
 // RelayConnection returns a relay connection annotation.
+// The RelayConnection() annotation is used to generate
+// the Relay <T>Edge, <T>Connection, and PageInfo types for a type. For example:
+//
+//	func (Todo) Annotations() []schema.Annotation {
+//		return []schema.Annotation{
+//				entgql.RelayConnection(),
+//				entgql.QueryField(),
+//		}
+//	}
+//
+// The RelayConnection() annotation can also be used on
+// the edge fields, to generate first, last, after, before... arguments and
+// change the field type to `<T>Connection!`.
+// For example to change the children field from `children: [Todo!]!` to
+// `children(first: Int, last: Int, after: Cursor, before: Cursor): TodoConnection!`
+//
+//	func (Todo) Edges() []ent.Edge {
+//		return []ent.Edge{
+//				edge.To("parent", Todo.Type).
+//						Unique().
+//						From("children").
+//						Annotation(entgql.RelayConnection()),
+//		}
+//	}
 func RelayConnection() Annotation {
 	return Annotation{RelayConnection: true}
 }
