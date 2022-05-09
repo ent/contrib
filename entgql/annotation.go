@@ -170,7 +170,7 @@ func MapsTo(names ...string) Annotation {
 //
 //	func (User) Annotations() []schema.Annotation {
 //		return []schema.Annotation{
-//				entgql.Type("MasterUser"),
+//			entgql.Type("MasterUser"),
 //		}
 //	}
 //
@@ -204,12 +204,15 @@ func Type(name string) Annotation {
 //			entgql.Skip(entgql.SkipWhereInput),
 //		)
 //
-// The SkipMode flag is a bit flag, so you can
-// skip multiple modes with the bitwise OR operator:
-// `entgql.SkipWhereInput | entgql.SkipEnumField`
+// Since SkipMode is a bit flag, it's possible to skip multiple modes using
+// the bitwise OR operator as follows:
 //
-// To skip everything expect the type, use the bitwise NOT operator:
-// `^entgql.SkipType`
+//	entgql.Skip(entgql.SkipWhereInput | entgql.SkipEnumField)
+//
+//
+// To skip everything except the type, use the bitwise NOT operator:
+//
+//	entgql.Skip(^entgql.SkipType)
 //
 // You can also skip all modes with the `entgql.SkipAll` constant which is the default mode.
 func Skip(flags ...SkipMode) Annotation {
@@ -268,7 +271,7 @@ func RelayConnection() Annotation {
 //
 //	func (Todo) Annotations() []schema.Annotation {
 //		return []schema.Annotation{
-//				entgql.Implements("Entity"),
+//			entgql.Implements("Entity"),
 //		}
 //	}
 //
