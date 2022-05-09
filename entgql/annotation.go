@@ -190,6 +190,28 @@ func Type(name string) Annotation {
 }
 
 // Skip returns a skip annotation.
+// The Skip() annotation is used to skip
+// generating the type or the field from GraphQL schema.
+//
+// It gives you the flexibility to skip generating
+// the type or the field based on the SkipMode flags.
+//
+// For example, if you don't want to expose a field on the <T>WhereInput type
+// you can use the following:
+//
+//	field.String("name").
+//		Annotations(
+//			entgql.Skip(entgql.SkipWhereInput),
+//		)
+//
+// The SkipMode flag is a bit flag, so you can
+// skip multiple modes with the bitwise OR operator:
+// `entgql.SkipWhereInput | entgql.SkipEnumField`
+//
+// To skip everything expect the type, use the bitwise NOT operator:
+// `^entgql.SkipType`
+//
+// You can also skip all modes with the `entgql.SkipAll` constant which is the default mode.
 func Skip(flags ...SkipMode) Annotation {
 	if len(flags) == 0 {
 		return Annotation{Skip: SkipAll}
@@ -208,8 +230,8 @@ func Skip(flags ...SkipMode) Annotation {
 //
 //	func (Todo) Annotations() []schema.Annotation {
 //		return []schema.Annotation{
-//				entgql.RelayConnection(),
-//				entgql.QueryField(),
+//			entgql.RelayConnection(),
+//			entgql.QueryField(),
 //		}
 //	}
 //
@@ -222,9 +244,9 @@ func Skip(flags ...SkipMode) Annotation {
 //	func (Todo) Edges() []ent.Edge {
 //		return []ent.Edge{
 //				edge.To("parent", Todo.Type).
-//						Unique().
-//						From("children").
-//						Annotation(entgql.RelayConnection()),
+//					Unique().
+//					From("children").
+//					Annotation(entgql.RelayConnection()),
 //		}
 //	}
 func RelayConnection() Annotation {
@@ -232,11 +254,61 @@ func RelayConnection() Annotation {
 }
 
 // Implements returns an Implements annotation.
+// The Implements() annotation is used to
+// add implements interfaces to a GraphQL type.
+//
+// For example, to add the `Entity` to the `Todo` type:
+//
+//	type Todo implements Node {
+//		id: ID!
+//		...
+//	}
+//
+// Add the entgql.Implements("Entity") to the Todo's annotations:
+//
+//	func (Todo) Annotations() []schema.Annotation {
+//		return []schema.Annotation{
+//				entgql.Implements("Entity"),
+//		}
+//	}
+//
+// and the GraphQL type will be generated with the implements interface.
+//
+//	type Todo implements Node & Entity {
+//		id: ID!
+//		...
+//	}
 func Implements(interfaces ...string) Annotation {
 	return Annotation{Implements: interfaces}
 }
 
 // Directives returns a Directives annotation.
+// The Directives() annotation is used to
+// add directives to a GraphQL type or on the field.
+//
+// For example, to add the `@deprecated` directive to the `text` field:
+//
+//	type Todo {
+//		id: ID
+//		text: String
+//		...
+//	}
+//
+// Add the entgql.Directives() to the text field's annotations:
+//
+//	field.Text("text").
+//		NotEmpty().
+//		Annotations(
+//			entgql.Directives("Use `description` instead."),
+//		),
+//
+// and the GraphQL type will be generated with the directive.
+//
+//	type Todo @deprecated {
+//		id: ID
+//		text: String @deprecated(reason: "Use `description` instead.")
+//		...
+//	}
 func Directives(directives ...Directive) Annotation {
 	return Annotation{Directives: directives}
 }
@@ -364,7 +436,8 @@ var (
 	_ schema.Merger     = (*Annotation)(nil)
 )
 
-// NewDirective return a GraphQL directive
+// NewDirective returns a GraphQL directive
+// to use with the entgql.Directives annotation.
 func NewDirective(name string, args ...DirectiveArgument) Directive {
 	return Directive{
 		Name:      name,
