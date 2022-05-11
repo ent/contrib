@@ -47,9 +47,9 @@ func TestEntGQL_buildTypes(t *testing.T) {
   id: ID!
   text: String!
   status: Status!
-  config: CategoryConfig!
-  duration: Duration!
-  count: Uint64!
+  config: CategoryConfig
+  duration: Duration
+  count: Uint64
   strings: [String!]
   todos: [Todo!]
 }
@@ -133,9 +133,9 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
   id: ID!
   text: String!
   status: Status!
-  config: CategoryConfig!
-  duration: Duration!
-  count: Uint64!
+  config: CategoryConfig
+  duration: Duration
+  count: Uint64
   strings: [String!]
   todos(
     """Returns the elements in the list that come after the specified cursor."""
