@@ -167,11 +167,11 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					continue
 				}
 				if f.IsEnum() {
-					fieldType, err := e.typeFromField(f, ant.Type)
-					if err != nil {
-						return err
+					gqlType := e.mapScalar(f, ant, nonInputObjectFilter)
+					if gqlType == "" {
+						return errors.New("unable to map enum field " + f.Name)
 					}
-					def, err := e.buildFieldEnum(f, fieldType.Name(), fieldGoType(f, g.Package))
+					def, err := e.buildFieldEnum(f, gqlType, fieldGoType(f, g.Package))
 					if err != nil {
 						return err
 					}
@@ -445,7 +445,7 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, gqlType string) (*ast.Def
 			continue
 		}
 		for i, op := range f.Ops() {
-			fd := e.fieldDefinitionOp(f, op)
+			fd := e.fieldDefinitionOp(f, ant, op)
 			if i == 0 {
 				fd.Description = f.Name + " field predicates"
 			}
@@ -479,7 +479,7 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, gqlType string) (*ast.Def
 }
 
 func (e *schemaGenerator) fieldDefinition(f *gen.Field, ant *Annotation) (*ast.FieldDefinition, error) {
-	ft, err := e.typeFromField(f, ant.Type)
+	ft, err := e.typeFromField(f, ant)
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}
@@ -492,7 +492,7 @@ func (e *schemaGenerator) fieldDefinition(f *gen.Field, ant *Annotation) (*ast.F
 	}, nil
 }
 
-func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, op gen.Op) *ast.FieldDefinition {
+func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, ant *Annotation, op gen.Op) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: camel(f.Name + "_" + op.Name()),
 	}
@@ -511,53 +511,20 @@ func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, op gen.Op) *ast.FieldD
 	case op.Niladic():
 		def.Type = namedType("Boolean", true)
 	case op.Variadic():
-		def.Type = listNamedType(e.mapScalar(f), true)
+		def.Type = listNamedType(e.mapScalar(f, ant, inputObjectFilter), true)
 	default:
-		def.Type = namedType(e.mapScalar(f), true)
+		def.Type = namedType(e.mapScalar(f, ant, inputObjectFilter), true)
 	}
 	return def
 }
 
-func (e *schemaGenerator) typeFromField(f *gen.Field, userDefinedType string) (*ast.Type, error) {
-	nullable := f.Optional
+func (e *schemaGenerator) typeFromField(f *gen.Field, ant *Annotation) (*ast.Type, error) {
+	if scalar := e.mapScalar(f, ant, nonInputObjectFilter); scalar != "" {
+		return namedType(scalar, f.Optional), nil
+	}
 
-	scalar := f.Type.String()
 	switch t := f.Type.Type; {
-	case userDefinedType != "":
-		return namedType(userDefinedType, nullable), nil
-	case f.Name == "id":
-		return namedType("ID", false), nil
-	case t.Float():
-		return namedType("Float", nullable), nil
-	case t.Integer():
-		return namedType("Int", nullable), nil
-	case t == field.TypeString:
-		return namedType("String", nullable), nil
-	case t == field.TypeBool:
-		return namedType("Boolean", nullable), nil
-	case t == field.TypeBytes:
-		return nil, fmt.Errorf("entgql: bytes type not implemented")
-	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		if typ, ok := e.hasMapping(f, nonInputObjectFilter); ok {
-			scalar = typ
-		} else {
-			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
-		}
-		return namedType(scalar, nullable), nil
 	case t == field.TypeJSON:
-		if f.Type.RType != nil {
-			switch f.Type.RType.Kind {
-			case reflect.Slice, reflect.Array:
-				switch f.Type.RType.Ident {
-				case "[]float64":
-					return namedType("[Float!]", nullable), nil
-				case "[]int":
-					return namedType("[Int!]", nullable), nil
-				case "[]string":
-					return namedType("[String!]", nullable), nil
-				}
-			}
-		}
 		return nil, fmt.Errorf("entgql: json type not implemented")
 	case t == field.TypeOther:
 		return nil, fmt.Errorf("entgql: other type must have typed defined")
@@ -567,8 +534,8 @@ func (e *schemaGenerator) typeFromField(f *gen.Field, userDefinedType string) (*
 }
 
 // mapScalar provides maps an ent.Schema type into GraphQL scalar type.
-func (e *schemaGenerator) mapScalar(f *gen.Field) string {
-	if ant, err := annotation(f.Annotations); err == nil && ant.Type != "" {
+func (e *schemaGenerator) mapScalar(f *gen.Field, ant *Annotation, typeFilter func(string) bool) string {
+	if ant != nil && ant.Type != "" {
 		return ant.Type
 	}
 	scalar := f.Type.String()
@@ -586,10 +553,25 @@ func (e *schemaGenerator) mapScalar(f *gen.Field) string {
 	case t == field.TypeBool:
 		scalar = "Boolean"
 	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		if typ, ok := e.hasMapping(f, inputObjectFilter); ok {
+		if typ, ok := e.hasMapping(f, typeFilter); ok {
 			scalar = typ
 		} else {
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		}
+	case t == field.TypeJSON:
+		scalar = ""
+		if f.Type.RType != nil {
+			switch f.Type.RType.Kind {
+			case reflect.Slice, reflect.Array:
+				switch f.Type.RType.Ident {
+				case "[]float64":
+					scalar = "[Float!]"
+				case "[]int":
+					scalar = "[Int!]"
+				case "[]string":
+					scalar = "[String!]"
+				}
+			}
 		}
 	}
 	return scalar
