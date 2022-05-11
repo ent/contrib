@@ -84,7 +84,7 @@ func (s *todoTestSuite) SetupTest() {
 	srv.Use(entgql.Transactioner{TxOpener: s.ent})
 	s.Client = client.New(srv)
 
-	const mutation = `mutation($priority: Int, $text: String!, $parent: ID) {
+	const mutation = `mutation($priority: Int!, $text: String!, $parent: ID) {
 		createTodo(input: {status: COMPLETED, priority: $priority, text: $text, parent: $parent}) {
 			id
 		}

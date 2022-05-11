@@ -37,6 +37,7 @@ func (Todo) Fields() []ent.Field {
 			Immutable().
 			Annotations(
 				entgql.OrderField("CREATED_AT"),
+				entgql.Skip(entgql.SkipMutationCreateInput),
 			),
 		field.Enum("status").
 			NamedValues(
@@ -87,5 +88,6 @@ func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
 		entgql.QueryField(),
+		entgql.MutationInput(entgql.MutationCreate),
 	}
 }

@@ -16,17 +16,20 @@
 
 package ent
 
-import "entgo.io/contrib/entgql/internal/todo/ent/todo"
+import (
+	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
+)
 
 // CreateTodoInput represents a mutation input for creating todos.
 type CreateTodoInput struct {
 	Status     todo.Status
 	Priority   *int
 	Text       string
-	ParentID   *int
-	ChildIDs   []int
-	CategoryID *int
-	SecretID   *int
+	ParentID   *string
+	ChildIDs   []string
+	CategoryID *bigintgql.BigInt
+	SecretID   *string
 }
 
 // Mutate applies the CreateTodoInput on the TodoCreate builder.

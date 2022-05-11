@@ -91,8 +91,8 @@ func (s *todoTestSuite) SetupTest() {
 	srv.Use(entgql.Transactioner{TxOpener: s.ent})
 	s.Client = client.New(srv)
 
-	const mutation = `mutation($priority: Int, $text: String!, $parent: ID) {
-		createTodo(input: {status: COMPLETED, priority: $priority, text: $text, parent: $parent}) {
+	const mutation = `mutation($priority: Int!, $text: String!, $parent: ID) {
+		createTodo(input: {status: COMPLETED, priority: $priority, text: $text, parentID: $parent}) {
 			id
 		}
 	}`
@@ -1052,7 +1052,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 		}
 	}
 	err := s.Post(`mutation {
-		createTodo(input: { text: "OKE", parent: 8589934593 }) {
+		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: 8589934593 }) {
 			parent {
 				id
 				text

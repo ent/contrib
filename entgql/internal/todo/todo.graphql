@@ -10,14 +10,6 @@ scalar Time
 scalar Duration
 scalar Uint64
 
-input TodoInput {
-  status: Status! = IN_PROGRESS
-  priority: Int
-  text: String!
-  parent: ID
-  category_id: ID
-}
-
 extend input TodoWhereInput {
   createdToday: Boolean
 }
@@ -30,6 +22,6 @@ extend type Query {
 }
 
 type Mutation {
-  createTodo(input: TodoInput!): Todo!
+  createTodo(input: CreateTodoInput!): Todo!
   clearTodos: Int!
 }

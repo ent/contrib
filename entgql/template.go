@@ -57,7 +57,7 @@ var (
 	WhereTemplate = parseT("template/where_input.tmpl")
 
 	// MutationInputTemplate adds a template for generating Create<T>Input and Update<T>Input for each schema type.
-	MutationInputTemplate = parseT("template/mutation_input.tmpl")
+	MutationInputTemplate = parseT("template/mutation_input.tmpl").SkipIf(skipMutationTemplate)
 
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
@@ -67,6 +67,7 @@ var (
 		PaginationTemplate,
 		TransactionTemplate,
 		EdgeTemplate,
+		MutationInputTemplate,
 	}
 
 	// TemplateFuncs contains the extra template functions used by entgql.
@@ -75,15 +76,17 @@ var (
 		"filterEdges":         filterEdges,
 		"filterFields":        filterFields,
 		"filterNodes":         filterNodes,
-		"hasWhereInput":       hasWhereInput,
-		"isRelayConn":         isRelayConn,
-		"isSkipMode":          isSkipMode,
-		"nodePaginationNames": nodePaginationNames,
-		"orderFields":         orderFields,
-		"skipMode":            skipModeFromString,
 		"gqlIDType":           gqlIDType,
 		"gqlMarshaler":        gqlMarshaler,
 		"gqlUnmarshaler":      gqlUnmarshaler,
+		"hasWhereInput":       hasWhereInput,
+		"isRelayConn":         isRelayConn,
+		"isSkipMode":          isSkipMode,
+		"mutationInput":       mutationInputFromString,
+		"mutationInputs":      mutationInputs,
+		"nodePaginationNames": nodePaginationNames,
+		"orderFields":         orderFields,
+		"skipMode":            skipModeFromString,
 	}
 
 	//go:embed template/*
@@ -187,6 +190,21 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 	return collect, nil
 }
 
+func mutationInputs(nodes []*gen.Type, input MutationInputType, skip SkipMode) ([]*gen.Type, error) {
+	filteredNodes := make([]*gen.Type, 0, len(nodes))
+	for _, n := range nodes {
+		ant, err := annotation(n.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if !ant.MutationInputs.Has(input) || ant.Skip.Is(skip) {
+			continue
+		}
+		filteredNodes = append(filteredNodes, n)
+	}
+	return filteredNodes, nil
+}
+
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
 func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
@@ -267,6 +285,18 @@ func hasWhereInput(n *gen.Edge) (v bool, err error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// mutationInputFromString returns MutationInputType from a string
+func mutationInputFromString(s string) (MutationInputType, error) {
+	switch s {
+	case "create":
+		return MutationCreate, nil
+	case "update":
+		return MutationUpdate, nil
+	default:
+		return 0, fmt.Errorf("invalid mutation input type: %s", s)
+	}
 }
 
 // skipModeFromString returns SkipFlag from a string
@@ -498,4 +528,19 @@ func removeOldTemplate(g *gen.Graph, name string) error {
 		return err
 	}
 	return nil
+}
+
+func skipMutationTemplate(g *gen.Graph) bool {
+	for _, n := range g.Nodes {
+		ant, err := annotation(n.Annotations)
+		if err != nil {
+			continue
+		}
+		if ant.MutationInputs.Any() &&
+			!ant.Skip.Is(SkipMutationCreateInput) &&
+			!ant.Skip.Is(SkipMutationUpdateInput) {
+			return false
+		}
+	}
+	return true
 }

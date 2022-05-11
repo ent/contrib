@@ -26,14 +26,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input TodoInput) (*ent.Todo, error) {
-	client := ent.FromContext(ctx)
-	return client.Todo.
+func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
+	return ent.FromContext(ctx).Todo.
 		Create().
-		SetStatus(todo.Status(input.Status)).
-		SetNillablePriority(input.Priority).
-		SetText(input.Text).
-		SetNillableParentID(input.Parent).
+		SetInput(input).
 		Save(ctx)
 }
 

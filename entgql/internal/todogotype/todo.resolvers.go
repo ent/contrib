@@ -24,7 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input TodoInput) (*ent.Todo, error) {
+func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

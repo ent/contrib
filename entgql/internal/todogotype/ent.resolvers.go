@@ -49,6 +49,10 @@ func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, 
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *createTodoInputResolver) Status(ctx context.Context, obj *ent.CreateTodoInput, data todo.Status) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *todoWhereInputResolver) Status(ctx context.Context, obj *ent.TodoWhereInput, data *todo.Status) error {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -71,9 +75,13 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // Todo returns TodoResolver implementation.
 func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
 
+// CreateTodoInput returns CreateTodoInputResolver implementation.
+func (r *Resolver) CreateTodoInput() CreateTodoInputResolver { return &createTodoInputResolver{r} }
+
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
+type createTodoInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }

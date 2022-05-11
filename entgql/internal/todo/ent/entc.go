@@ -23,7 +23,6 @@ func main() {
 		entgql.WithConfigPath("./gqlgen.yml"),
 		entgql.WithSchemaGenerator(),
 		entgql.WithSchemaPath("./ent.graphql"),
-		entgql.WithTemplates(append(entgql.AllTemplates, entgql.MutationInputTemplate)...),
 		entgql.WithWhereInputs(true),
 	)
 	if err != nil {
