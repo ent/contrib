@@ -519,22 +519,22 @@ func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, op gen.Op) *ast.FieldD
 }
 
 func (e *schemaGenerator) typeFromField(f *gen.Field, userDefinedType string) (*ast.Type, error) {
-	nillable := f.Nillable
+	nullable := f.Optional
 
 	scalar := f.Type.String()
 	switch t := f.Type.Type; {
 	case userDefinedType != "":
-		return namedType(userDefinedType, nillable), nil
+		return namedType(userDefinedType, nullable), nil
 	case f.Name == "id":
 		return namedType("ID", false), nil
 	case t.Float():
-		return namedType("Float", nillable), nil
+		return namedType("Float", nullable), nil
 	case t.Integer():
-		return namedType("Int", nillable), nil
+		return namedType("Int", nullable), nil
 	case t == field.TypeString:
-		return namedType("String", nillable), nil
+		return namedType("String", nullable), nil
 	case t == field.TypeBool:
-		return namedType("Boolean", nillable), nil
+		return namedType("Boolean", nullable), nil
 	case t == field.TypeBytes:
 		return nil, fmt.Errorf("entgql: bytes type not implemented")
 	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
@@ -543,18 +543,18 @@ func (e *schemaGenerator) typeFromField(f *gen.Field, userDefinedType string) (*
 		} else {
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
 		}
-		return namedType(scalar, nillable), nil
+		return namedType(scalar, nullable), nil
 	case t == field.TypeJSON:
 		if f.Type.RType != nil {
 			switch f.Type.RType.Kind {
 			case reflect.Slice, reflect.Array:
 				switch f.Type.RType.Ident {
 				case "[]float64":
-					return listNamedType("Float", f.Optional), nil
+					return namedType("[Float!]", nullable), nil
 				case "[]int":
-					return listNamedType("Int", f.Optional), nil
+					return namedType("[Int!]", nullable), nil
 				case "[]string":
-					return listNamedType("String", f.Optional), nil
+					return namedType("[String!]", nullable), nil
 				}
 			}
 		}

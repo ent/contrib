@@ -4,9 +4,9 @@ type Category implements Node {
   id: ID!
   text: String!
   status: CategoryStatus!
-  config: CategoryConfig!
-  duration: Duration!
-  count: Uint64!
+  config: CategoryConfig
+  duration: Duration
+  count: Uint64
   strings: [String!]
   todos(
     """Returns the elements in the list that come after the specified cursor."""
