@@ -57,9 +57,15 @@ func (omsc *OneMethodServiceCreate) Save(ctx context.Context) (*OneMethodService
 			}
 			mut = omsc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, omsc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, omsc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*OneMethodService)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from OneMethodServiceMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

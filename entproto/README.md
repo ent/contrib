@@ -490,7 +490,7 @@ To rebuild the `protoc-gen-entgrpc` plugin, regenerate the code and run all test
 
 ```shell
 go generate ./cmd/protoc-gen-entgrpc/... &&
-  go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
+  go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
   go generate ./... &&
   go test ./...
 ```
@@ -504,7 +504,7 @@ Build the image:
 
 ```shell
 cd entproto
-docker build -t entproto-dev .
+docker build --platform=linux/x86_64 -t entproto-dev .
 cd ..
 ```
 
@@ -512,15 +512,15 @@ Run the image (from the root `contrib/` directory), mounting your local source c
 into `/go/src` inside the container:
 
 ```shell
-docker run -it -v $(pwd):/go/src -w /go/src/entproto entproto-dev bash
+docker run --platform=linux/x86_64 -it -v $(pwd):/go/src -w /go/src/entproto entproto-dev bash
 ```
 
 From within the Docker image, compile and install your current `protoc-gen-entgrpc`
 binary, regenerate all code and run the tests.
 
 ```shell
-go generate ./cmd/protoc-gen-entgrpc/... &&
-  go get entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc &&
-  go generate ./... &&
-  go test ./...
+go install ./cmd/protoc-gen-entgrpc &&
+	go install ./cmd/protoc-gen-ent &&
+	go generate ./... &&
+	go test ./...
 ```

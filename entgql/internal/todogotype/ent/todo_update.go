@@ -716,9 +716,15 @@ func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
 			}
 			mut = tuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, tuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Todo)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from TodoMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

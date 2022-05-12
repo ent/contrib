@@ -246,9 +246,15 @@ func (wmfuo *WithModifiedFieldUpdateOne) Save(ctx context.Context) (*WithModifie
 			}
 			mut = wmfuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, wmfuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, wmfuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*WithModifiedField)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from WithModifiedFieldMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

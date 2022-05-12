@@ -633,9 +633,15 @@ func (mwouo *MessageWithOptionalsUpdateOne) Save(ctx context.Context) (*MessageW
 			}
 			mut = mwouo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwouo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwouo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithOptionals)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithOptionalsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

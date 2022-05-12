@@ -98,9 +98,15 @@ func (vmc *ValidMessageCreate) Save(ctx context.Context) (*ValidMessage, error) 
 			}
 			mut = vmc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, vmc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, vmc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*ValidMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ValidMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

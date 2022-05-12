@@ -57,9 +57,15 @@ func (esmc *ExplicitSkippedMessageCreate) Save(ctx context.Context) (*ExplicitSk
 			}
 			mut = esmc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, esmc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, esmc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*ExplicitSkippedMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ExplicitSkippedMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

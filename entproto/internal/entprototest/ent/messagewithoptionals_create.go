@@ -163,9 +163,15 @@ func (mwoc *MessageWithOptionalsCreate) Save(ctx context.Context) (*MessageWithO
 			}
 			mut = mwoc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwoc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwoc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithOptionals)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithOptionalsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

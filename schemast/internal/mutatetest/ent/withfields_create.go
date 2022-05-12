@@ -64,9 +64,15 @@ func (wfc *WithFieldsCreate) Save(ctx context.Context) (*WithFields, error) {
 			}
 			mut = wfc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, wfc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, wfc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*WithFields)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from WithFieldsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

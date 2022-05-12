@@ -57,9 +57,15 @@ func (wnfc *WithNilFieldsCreate) Save(ctx context.Context) (*WithNilFields, erro
 			}
 			mut = wnfc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, wnfc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, wnfc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*WithNilFields)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from WithNilFieldsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

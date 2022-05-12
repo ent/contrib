@@ -64,9 +64,15 @@ func (mwsc *MessageWithStringsCreate) Save(ctx context.Context) (*MessageWithStr
 			}
 			mut = mwsc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwsc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwsc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithStrings)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithStringsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

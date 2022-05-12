@@ -57,9 +57,15 @@ func (mc *MessageCreate) Save(ctx context.Context) (*Message, error) {
 			}
 			mut = mc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Message)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

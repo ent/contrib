@@ -180,9 +180,15 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Save(ctx context.Context) (*InvalidFi
 			}
 			mut = ifmuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, ifmuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, ifmuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*InvalidFieldMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from InvalidFieldMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

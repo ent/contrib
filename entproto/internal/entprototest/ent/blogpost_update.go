@@ -451,9 +451,15 @@ func (bpuo *BlogPostUpdateOne) Save(ctx context.Context) (*BlogPost, error) {
 			}
 			mut = bpuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, bpuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, bpuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*BlogPost)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from BlogPostMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

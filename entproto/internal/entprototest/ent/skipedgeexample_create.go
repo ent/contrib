@@ -77,9 +77,15 @@ func (seec *SkipEdgeExampleCreate) Save(ctx context.Context) (*SkipEdgeExample, 
 			}
 			mut = seec.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, seec.mutation); err != nil {
+		v, err := mut.Mutate(ctx, seec.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*SkipEdgeExample)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from SkipEdgeExampleMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

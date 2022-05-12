@@ -179,9 +179,15 @@ func (auo *AttachmentUpdateOne) Save(ctx context.Context) (*Attachment, error) {
 			}
 			mut = auo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, auo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, auo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Attachment)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from AttachmentMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

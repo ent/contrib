@@ -179,9 +179,15 @@ func (mwsuo *MessageWithStringsUpdateOne) Save(ctx context.Context) (*MessageWit
 			}
 			mut = mwsuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwsuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwsuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithStrings)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithStringsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

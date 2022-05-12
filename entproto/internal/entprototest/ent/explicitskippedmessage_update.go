@@ -160,9 +160,15 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*Explic
 			}
 			mut = esmuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, esmuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, esmuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*ExplicitSkippedMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ExplicitSkippedMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }
