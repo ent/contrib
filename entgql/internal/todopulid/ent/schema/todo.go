@@ -15,7 +15,7 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
+	todoschema "entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/ent"
 )
@@ -31,6 +31,6 @@ func (Todo) Mixin() []ent.Mixin {
 		// "TD" declared once.
 		pulid.MixinWithPrefix("TD"),
 		// Reuse the fields and edges from base example.
-		schema.Todo{},
+		todoschema.Todo{},
 	}
 }

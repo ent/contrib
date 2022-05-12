@@ -15,7 +15,7 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
+	todoschema "entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 
@@ -30,7 +30,7 @@ type Todo struct {
 // Mixin returns todo mixed-in schema.
 func (Todo) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		schema.Todo{},
+		todoschema.Todo{},
 	}
 }
 

@@ -56,6 +56,9 @@ var (
 	// WhereTemplate adds a template for generating <T>WhereInput filters for each schema type.
 	WhereTemplate = parseT("template/where_input.tmpl")
 
+	// MutationInputTemplate adds a template for generating Create<T>Input and Update<T>Input for each schema type.
+	MutationInputTemplate = parseT("template/mutation_input.tmpl").SkipIf(skipMutationTemplate)
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -64,6 +67,7 @@ var (
 		PaginationTemplate,
 		TransactionTemplate,
 		EdgeTemplate,
+		MutationInputTemplate,
 	}
 
 	// TemplateFuncs contains the extra template functions used by entgql.
@@ -72,15 +76,16 @@ var (
 		"filterEdges":         filterEdges,
 		"filterFields":        filterFields,
 		"filterNodes":         filterNodes,
-		"hasWhereInput":       hasWhereInput,
-		"isRelayConn":         isRelayConn,
-		"isSkipMode":          isSkipMode,
-		"nodePaginationNames": nodePaginationNames,
-		"orderFields":         orderFields,
-		"skipMode":            skipModeFromString,
 		"gqlIDType":           gqlIDType,
 		"gqlMarshaler":        gqlMarshaler,
 		"gqlUnmarshaler":      gqlUnmarshaler,
+		"hasWhereInput":       hasWhereInput,
+		"isRelayConn":         isRelayConn,
+		"isSkipMode":          isSkipMode,
+		"mutationInputs":      mutationInputs,
+		"nodePaginationNames": nodePaginationNames,
+		"orderFields":         orderFields,
+		"skipMode":            skipModeFromString,
 	}
 
 	//go:embed template/*
@@ -184,6 +189,86 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 	return collect, nil
 }
 
+type MutationDescriptor struct {
+	*gen.Type
+	IsCreate bool
+}
+
+func (m *MutationDescriptor) Input() (string, error) {
+	gqlType, _, err := gqlTypeFromNode(m.Type)
+	if err != nil {
+		return "", err
+	}
+	if m.IsCreate {
+		return fmt.Sprintf("Create%sInput", gqlType), nil
+	}
+	return fmt.Sprintf("Update%sInput", gqlType), nil
+}
+
+func (m *MutationDescriptor) Builder() string {
+	if m.IsCreate {
+		return m.Type.CreateName()
+	}
+	return m.Type.MutationName()
+}
+
+func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
+	fields := make([]*gen.Field, 0, len(m.Type.Fields))
+	for _, f := range m.Type.Fields {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+			(!m.IsCreate && (f.Immutable || ant.Skip.Is(SkipMutationUpdateInput))) {
+			continue
+		}
+
+		fields = append(fields, f)
+	}
+
+	return fields, nil
+}
+
+func (m *MutationDescriptor) InputEdges() ([]*gen.Edge, error) {
+	edges := make([]*gen.Edge, 0, len(m.Type.Edges))
+	for _, e := range m.Type.Edges {
+		ant, err := annotation(e.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+			(!m.IsCreate && ant.Skip.Is(SkipMutationUpdateInput)) {
+			continue
+		}
+		edges = append(edges, e)
+	}
+	return edges, nil
+}
+
+func mutationInputs(nodes []*gen.Type) ([]*MutationDescriptor, error) {
+	filteredNodes := make([]*MutationDescriptor, 0, len(nodes))
+	for _, n := range nodes {
+		ant, err := annotation(n.Annotations)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, a := range ant.MutationInputs {
+			if (a.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+				(!a.IsCreate && ant.Skip.Is(SkipMutationUpdateInput)) {
+				continue
+			}
+
+			filteredNodes = append(filteredNodes, &MutationDescriptor{
+				Type:     n,
+				IsCreate: a.IsCreate,
+			})
+		}
+	}
+	return filteredNodes, nil
+}
+
 // filterNodes filters out nodes that should not be included in the GraphQL schema.
 func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
@@ -277,6 +362,10 @@ func skipModeFromString(s string) (SkipMode, error) {
 		return SkipOrderField, nil
 	case "where_input":
 		return SkipWhereInput, nil
+	case "mutation_create_input":
+		return SkipMutationCreateInput, nil
+	case "mutation_update_input":
+		return SkipMutationUpdateInput, nil
 	}
 	return 0, fmt.Errorf("invalid skip mode: %s", s)
 }
@@ -491,4 +580,20 @@ func removeOldTemplate(g *gen.Graph, name string) error {
 		return err
 	}
 	return nil
+}
+
+func skipMutationTemplate(g *gen.Graph) bool {
+	for _, n := range g.Nodes {
+		ant, err := annotation(n.Annotations)
+		if err != nil {
+			continue
+		}
+		for _, i := range ant.MutationInputs {
+			if (i.IsCreate && !ant.Skip.Is(SkipMutationCreateInput)) ||
+				(!i.IsCreate && !ant.Skip.Is(SkipMutationUpdateInput)) {
+				return false
+			}
+		}
+	}
+	return true
 }

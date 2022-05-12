@@ -124,7 +124,7 @@ var (
 func WithWhereInputs(b bool) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.genWhereInput = b
-		i, exists := ex.whereExists()
+		i, exists := ex.hasTemplate(WhereTemplate)
 		if b && !exists {
 			ex.templates = append(ex.templates, WhereTemplate)
 		} else if !b && exists && len(ex.templates) > 0 {
@@ -205,7 +205,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 				return err
 			}
 
-			if !e.genSchema && !e.genWhereInput {
+			if e.path == "" || !(e.genSchema || e.genWhereInput || e.genMutations) {
 				return nil
 			}
 
@@ -213,19 +213,16 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			if err != nil {
 				return err
 			}
-			if e.path == "" {
-				return nil
-			}
 			return ioutil.WriteFile(e.path, []byte(printSchema(schema)), 0644)
 		})
 	}
 }
 
-// whereExists reports if the WhereTemplate exists
+// hasTemplate reports if the template exists
 // in the template list and returns its index.
-func (e *Extension) whereExists() (int, bool) {
+func (e *Extension) hasTemplate(tem *gen.Template) (int, bool) {
 	for i := range e.templates {
-		if e.templates[i].Name() == WhereTemplate.Templates()[1].Name() {
+		if e.templates[i].Name() == tem.Templates()[1].Name() {
 			return i, true
 		}
 	}
@@ -235,6 +232,9 @@ func (e *Extension) whereExists() (int, bool) {
 var (
 	_ entc.Extension = (*Extension)(nil)
 
-	camel  = gen.Funcs["camel"].(func(string) string)
-	plural = gen.Funcs["plural"].(func(string) string)
+	camel    = gen.Funcs["camel"].(func(string) string)
+	pascal   = gen.Funcs["pascal"].(func(string) string)
+	plural   = gen.Funcs["plural"].(func(string) string)
+	singular = gen.Funcs["singular"].(func(string) string)
+	snake    = gen.Funcs["snake"].(func(string) string)
 )

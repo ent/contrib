@@ -1,0 +1,135 @@
+{{ define "gql_mutation_input" }}
+
+{{- /*gotype: entgo.io/ent/entc/gen.Graph*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{- with extend $ "Package" $pkg }}
+        {{ template "header" . }}
+{{- end }}
+
+{{ template "import" $ }}
+
+{{- range $n := mutationInputs $.Nodes }}
+    {{- $names := nodePaginationNames $n.Type }}
+    {{- $input := $n.Input }}
+    {{- $fields := $n.InputFields }}
+    {{- $edges := $n.InputEdges }}
+    {{- if $n.IsCreate }}
+    // {{ $input }} represents a mutation input for creating {{ plural $names.Node | lower }}.
+    {{- else }}
+    // {{ $input }} represents a mutation input for updating {{ plural $names.Node | lower }}.
+    {{- end }}
+    type {{ $input }} struct {
+        {{- range $f := $fields }}
+            {{- if $n.IsCreate }}
+                {{ $f.StructField }} {{ if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
+            {{- else if not $f.IsEdgeField }}
+                {{ $f.StructField }} {{ if not $f.Type.RType.IsPtr }}*{{ end }}{{ $f.Type }}
+                {{- if $f.Optional }}
+                    {{ print "Clear" $f.StructField }} bool
+                {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- range $e := $edges }}
+            {{- if $e.Unique }}
+                {{- $structField := print (pascal $e.Name) "ID" }}
+                {{- if $n.IsCreate }}
+                    {{ $structField }} {{ if $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
+                {{- else }}
+                    {{ $structField }} *{{ $e.Type.ID.Type }}
+                    {{ $e.MutationClear }} bool
+                {{- end }}
+            {{- else }}
+                {{- if $n.IsCreate }}
+                    {{- $structField := print (singular $e.Name | pascal) "IDs" }}
+                    {{ $structField }} []{{ $e.Type.ID.Type }}
+                {{- else }}
+                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }}
+                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }}
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    }
+
+    // Mutate applies the {{ $input }} on the {{ $n.Builder }} builder.
+    func (i *{{ $input }}) Mutate(m *{{ $n.Builder }}) {
+        {{- range $f := $fields }}
+            {{- if not $f.IsEdgeField }}
+                {{- if $n.IsCreate }}
+                    {{- if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}
+                        if v := i.{{ $f.StructField }}; v != nil {
+                            m.{{ $f.MutationSet }}(*v)
+                        }
+                    {{- else }}
+                        m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
+                    {{- end }}
+                {{- else }}
+                    {{- if $f.Optional }}
+                        if i.{{ print "Clear" $f.StructField }} {
+                            m.{{ print "Clear" $f.StructField }}()
+                        }
+                    {{- end }}
+                    if v := i.{{ $f.StructField }}; v != nil {
+                        m.{{ $f.MutationSet }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}v)
+                    }
+                {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- range $e := $edges }}
+            {{- if $e.Unique }}
+                {{- $structField := print (pascal $e.Name) "ID" }}
+                {{- if $n.IsCreate }}
+                    {{- if $e.Optional }}
+                        if v := i.{{ $structField }}; v != nil {
+                            m.{{ $e.MutationSet }}(*v)
+                        }
+                    {{- else }}
+                        m.{{ $e.MutationSet }}(i.{{ $structField }})
+                    {{- end }}
+                {{- else }}
+                    if i.{{ $e.MutationClear }} {
+                        m.{{ $e.MutationClear }}()
+                    }
+                    if v := i.{{ $structField }}; v != nil {
+                        m.{{ $e.MutationSet }}(*v)
+                    }
+                {{- end }}
+            {{- else }}
+                {{- if $n.IsCreate }}
+                    {{- $structField := print (singular $e.Name | pascal) "IDs" }}
+                    if ids := i.{{ $structField }}; len(ids) > 0 {
+                        m.{{ $e.MutationAdd }}(ids...)
+                    }
+                {{- else }}
+                    if ids := i.{{ $e.MutationAdd }}; len(ids) > 0 {
+                        m.{{ $e.MutationAdd }}(ids...)
+                    }
+                    if ids := i.{{ $e.MutationRemove }}; len(ids) > 0 {
+                        m.{{ $e.MutationRemove }}(ids...)
+                    }
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    }
+
+    {{- if $n.IsCreate }}
+    // SetInput applies the change-set in the {{ $input }} on the create builder.
+    func(c *{{ $n.CreateName }}) SetInput(i {{ $input }}) *{{ $n.CreateName }} {
+        i.Mutate(c)
+        return c
+    }
+    {{- else }}
+    // SetInput applies the change-set in the {{ $input }} on the update builder.
+    func(u *{{ $n.UpdateName }}) SetInput(i {{ $input }}) *{{ $n.UpdateName }} {
+        i.Mutate(u.Mutation())
+        return u
+    }
+
+    // SetInput applies the change-set in the {{ $input }} on the update-one builder.
+    func(u *{{ $n.UpdateOneName }}) SetInput(i {{ $input }}) *{{ $n.UpdateOneName }} {
+        i.Mutate(u.Mutation())
+        return u
+    }
+    {{- end }}
+{{- end }}
+{{ end }}
