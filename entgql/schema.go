@@ -569,10 +569,10 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 					})
 				} else {
 					def.Fields = append(def.Fields, &ast.FieldDefinition{
-						Name: camel("add_" + singular(e.Name) + "_IDs"),
+						Name: "add" + pascal(singular(e.Name)) + "IDs",
 						Type: namedType("[ID!]", true),
 					}, &ast.FieldDefinition{
-						Name: camel("remove_" + singular(e.Name) + "_IDs"),
+						Name: "remove" + pascal(singular(e.Name)) + "IDs",
 						Type: namedType("[ID!]", true),
 					})
 				}
