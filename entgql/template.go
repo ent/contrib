@@ -537,8 +537,7 @@ func skipMutationTemplate(g *gen.Graph) bool {
 			continue
 		}
 		if ant.MutationInputs.Any() &&
-			!ant.Skip.Is(SkipMutationCreateInput) &&
-			!ant.Skip.Is(SkipMutationUpdateInput) {
+			!ant.Skip.Is(SkipMutationCreateInput|SkipMutationUpdateInput) {
 			return false
 		}
 	}
