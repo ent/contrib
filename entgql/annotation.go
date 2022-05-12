@@ -48,7 +48,7 @@ type (
 		// QueryField exposes the generated type with the given string under the Query object.
 		QueryField *FieldConfig `json:"QueryField,omitempty"`
 		// MutationInputs defines the input types for the mutation.
-		MutationInputs MutationInputType `json:"MutationInputs,omitempty"`
+		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
 	}
 
 	// Directive to apply on the field/type.
@@ -67,14 +67,16 @@ type (
 	// SkipMode is a bit flag for the Skip annotation.
 	SkipMode int
 
-	// MutationInputType is a bit flag for the mutation input type.
-	MutationInputType int
-
 	FieldConfig struct {
 		// Name is the name of the field in the Query object.
 		Name string `json:"Name,omitempty"`
 		// Directives to add on the field
 		Directives []Directive `json:"Directives,omitempty"`
+	}
+
+	// MutationConfig hold config for mutation
+	MutationConfig struct {
+		IsCreate bool `json:"IsCreate,omitempty"`
 	}
 )
 
@@ -102,11 +104,6 @@ const (
 		SkipWhereInput |
 		SkipMutationCreateInput |
 		SkipMutationUpdateInput
-)
-
-const (
-	MutationCreate MutationInputType = 1 << iota
-	MutationUpdate
 )
 
 // Name implements ent.Annotation interface.
@@ -353,17 +350,33 @@ func (a queryFieldAnnotation) Directives(directives ...Directive) queryFieldAnno
 	return a
 }
 
-// MutationInput returns an annotation for generate input types for mutation.
-func MutationInput(inputs ...MutationInputType) Annotation {
+type MutationOption interface {
+	IsCreate() bool
+}
+
+type builtinMutation bool
+
+func (v builtinMutation) IsCreate() bool { return bool(v) }
+
+func MutationCreate() MutationOption {
+	return builtinMutation(true)
+}
+
+func MutationUpdate() MutationOption {
+	return builtinMutation(false)
+}
+
+// Mutations returns an annotation for generate input types for mutation.
+func Mutations(inputs ...MutationOption) Annotation {
 	if len(inputs) == 0 {
-		return Annotation{MutationInputs: MutationCreate | MutationUpdate}
+		inputs = []MutationOption{MutationCreate(), MutationUpdate()}
 	}
 
-	input := MutationInputType(0)
+	a := []MutationConfig{}
 	for _, f := range inputs {
-		input |= f
+		a = append(a, MutationConfig{IsCreate: f.IsCreate()})
 	}
-	return Annotation{MutationInputs: input}
+	return Annotation{MutationInputs: a}
 }
 
 // Merge implements the schema.Merger interface.
@@ -400,8 +413,8 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.Skip.Any() {
 		a.Skip |= ant.Skip
 	}
-	if ant.MutationInputs.Any() {
-		a.MutationInputs |= ant.MutationInputs
+	if len(ant.MutationInputs) > 0 {
+		a.MutationInputs = append(a.MutationInputs, ant.MutationInputs...)
 	}
 	if ant.RelayConnection {
 		a.RelayConnection = true
@@ -428,16 +441,6 @@ func (a *Annotation) Decode(annotation interface{}) error {
 		return err
 	}
 	return json.Unmarshal(buf, a)
-}
-
-// Any returns true if the mutation input annotation was set.
-func (f MutationInputType) Any() bool {
-	return f != 0
-}
-
-// Is checks if the mutation input annotation has a specific type.
-func (f MutationInputType) Has(mode MutationInputType) bool {
-	return f&mode != 0
 }
 
 // Any returns true if the skip annotation was set.

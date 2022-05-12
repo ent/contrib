@@ -82,7 +82,6 @@ var (
 		"hasWhereInput":       hasWhereInput,
 		"isRelayConn":         isRelayConn,
 		"isSkipMode":          isSkipMode,
-		"mutationInput":       mutationInputFromString,
 		"mutationInputs":      mutationInputs,
 		"nodePaginationNames": nodePaginationNames,
 		"orderFields":         orderFields,
@@ -190,17 +189,82 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 	return collect, nil
 }
 
-func mutationInputs(nodes []*gen.Type, input MutationInputType, skip SkipMode) ([]*gen.Type, error) {
-	filteredNodes := make([]*gen.Type, 0, len(nodes))
+type MutationDescriptor struct {
+	*gen.Type
+	IsCreate bool
+}
+
+func (m *MutationDescriptor) Input() (string, error) {
+	gqlType, _, err := gqlTypeFromNode(m.Type)
+	if err != nil {
+		return "", err
+	}
+	if m.IsCreate {
+		return fmt.Sprintf("Create%sInput", gqlType), nil
+	}
+	return fmt.Sprintf("Update%sInput", gqlType), nil
+}
+
+func (m *MutationDescriptor) Builder() string {
+	if m.IsCreate {
+		return m.Type.CreateName()
+	}
+	return m.Type.MutationName()
+}
+
+func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
+	fields := make([]*gen.Field, 0, len(m.Type.Fields))
+	for _, f := range m.Type.Fields {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+			(!m.IsCreate && (f.Immutable || ant.Skip.Is(SkipMutationUpdateInput))) {
+			continue
+		}
+
+		fields = append(fields, f)
+	}
+
+	return fields, nil
+}
+
+func (m *MutationDescriptor) InputEdges() ([]*gen.Edge, error) {
+	edges := make([]*gen.Edge, 0, len(m.Type.Edges))
+	for _, e := range m.Type.Edges {
+		ant, err := annotation(e.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+			(!m.IsCreate && ant.Skip.Is(SkipMutationUpdateInput)) {
+			continue
+		}
+		edges = append(edges, e)
+	}
+	return edges, nil
+}
+
+func mutationInputs(nodes []*gen.Type) ([]*MutationDescriptor, error) {
+	filteredNodes := make([]*MutationDescriptor, 0, len(nodes))
 	for _, n := range nodes {
 		ant, err := annotation(n.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if !ant.MutationInputs.Has(input) || ant.Skip.Is(skip) {
-			continue
+
+		for _, a := range ant.MutationInputs {
+			if (a.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+				(!a.IsCreate && ant.Skip.Is(SkipMutationUpdateInput)) {
+				continue
+			}
+
+			filteredNodes = append(filteredNodes, &MutationDescriptor{
+				Type:     n,
+				IsCreate: a.IsCreate,
+			})
 		}
-		filteredNodes = append(filteredNodes, n)
 	}
 	return filteredNodes, nil
 }
@@ -285,18 +349,6 @@ func hasWhereInput(n *gen.Edge) (v bool, err error) {
 		return false, err
 	}
 	return true, nil
-}
-
-// mutationInputFromString returns MutationInputType from a string
-func mutationInputFromString(s string) (MutationInputType, error) {
-	switch s {
-	case "create":
-		return MutationCreate, nil
-	case "update":
-		return MutationUpdate, nil
-	default:
-		return 0, fmt.Errorf("invalid mutation input type: %s", s)
-	}
 }
 
 // skipModeFromString returns SkipFlag from a string
@@ -536,9 +588,11 @@ func skipMutationTemplate(g *gen.Graph) bool {
 		if err != nil {
 			continue
 		}
-		if ant.MutationInputs.Any() &&
-			!ant.Skip.Is(SkipMutationCreateInput|SkipMutationUpdateInput) {
-			return false
+		for _, i := range ant.MutationInputs {
+			if (i.IsCreate && !ant.Skip.Is(SkipMutationCreateInput)) ||
+				(!i.IsCreate && !ant.Skip.Is(SkipMutationUpdateInput)) {
+				return false
+			}
 		}
 	}
 	return true

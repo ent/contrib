@@ -88,6 +88,6 @@ func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
 		entgql.QueryField(),
-		entgql.MutationInput(entgql.MutationCreate),
+		entgql.Mutations(entgql.MutationCreate()),
 	}
 }
