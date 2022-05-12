@@ -63,9 +63,15 @@ func (mwic *MessageWithIDCreate) Save(ctx context.Context) (*MessageWithID, erro
 			}
 			mut = mwic.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwic.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwic.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithID)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithIDMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

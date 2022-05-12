@@ -179,9 +179,15 @@ func (puo *PonyUpdateOne) Save(ctx context.Context) (*Pony, error) {
 			}
 			mut = puo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, puo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, puo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Pony)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from PonyMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

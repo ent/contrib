@@ -179,9 +179,15 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Save(ctx context.Context) (*Messa
 			}
 			mut = mwpnuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwpnuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwpnuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithPackageName)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithPackageNameMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

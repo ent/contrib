@@ -64,9 +64,15 @@ func (pc *PonyCreate) Save(ctx context.Context) (*Pony, error) {
 			}
 			mut = pc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, pc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, pc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*Pony)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from PonyMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

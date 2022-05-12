@@ -57,9 +57,15 @@ func (ismc *ImplicitSkippedMessageCreate) Save(ctx context.Context) (*ImplicitSk
 			}
 			mut = ismc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, ismc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, ismc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*ImplicitSkippedMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ImplicitSkippedMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

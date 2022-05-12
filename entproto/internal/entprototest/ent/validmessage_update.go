@@ -333,9 +333,15 @@ func (vmuo *ValidMessageUpdateOne) Save(ctx context.Context) (*ValidMessage, err
 			}
 			mut = vmuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, vmuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, vmuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*ValidMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ValidMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

@@ -217,9 +217,15 @@ func (mwsuo *MultiWordSchemaUpdateOne) Save(ctx context.Context) (*MultiWordSche
 			}
 			mut = mwsuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwsuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwsuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MultiWordSchema)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MultiWordSchemaMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

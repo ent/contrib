@@ -160,9 +160,15 @@ func (wnfuo *WithNilFieldsUpdateOne) Save(ctx context.Context) (*WithNilFields, 
 			}
 			mut = wnfuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, wnfuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, wnfuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*WithNilFields)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from WithNilFieldsMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

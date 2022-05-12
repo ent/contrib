@@ -306,9 +306,15 @@ func (dosuo *DependsOnSkippedUpdateOne) Save(ctx context.Context) (*DependsOnSki
 			}
 			mut = dosuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, dosuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, dosuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*DependsOnSkipped)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from DependsOnSkippedMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

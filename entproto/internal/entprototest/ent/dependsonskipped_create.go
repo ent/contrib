@@ -80,9 +80,15 @@ func (dosc *DependsOnSkippedCreate) Save(ctx context.Context) (*DependsOnSkipped
 			}
 			mut = dosc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, dosc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, dosc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*DependsOnSkipped)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from DependsOnSkippedMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

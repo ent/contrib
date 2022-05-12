@@ -160,9 +160,15 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*Implic
 			}
 			mut = ismuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, ismuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, ismuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*ImplicitSkippedMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from ImplicitSkippedMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

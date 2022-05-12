@@ -246,9 +246,15 @@ func (seeuo *SkipEdgeExampleUpdateOne) Save(ctx context.Context) (*SkipEdgeExamp
 			}
 			mut = seeuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, seeuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, seeuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*SkipEdgeExample)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from SkipEdgeExampleMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

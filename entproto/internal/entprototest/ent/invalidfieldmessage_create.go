@@ -65,9 +65,15 @@ func (ifmc *InvalidFieldMessageCreate) Save(ctx context.Context) (*InvalidFieldM
 			}
 			mut = ifmc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, ifmc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, ifmc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*InvalidFieldMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from InvalidFieldMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

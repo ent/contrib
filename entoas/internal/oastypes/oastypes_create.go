@@ -228,9 +228,15 @@ func (otc *OASTypesCreate) Save(ctx context.Context) (*OASTypes, error) {
 			}
 			mut = otc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, otc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, otc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*OASTypes)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from OASTypesMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

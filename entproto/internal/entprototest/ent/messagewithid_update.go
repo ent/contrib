@@ -160,9 +160,15 @@ func (mwiuo *MessageWithIDUpdateOne) Save(ctx context.Context) (*MessageWithID, 
 			}
 			mut = mwiuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwiuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwiuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithID)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithIDMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

@@ -198,9 +198,15 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) Save(ctx context.Context) (*Duplic
 			}
 			mut = dnmuo.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, dnmuo.mutation); err != nil {
+		v, err := mut.Mutate(ctx, dnmuo.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*DuplicateNumberMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from DuplicateNumberMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

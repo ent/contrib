@@ -64,9 +64,15 @@ func (mwpnc *MessageWithPackageNameCreate) Save(ctx context.Context) (*MessageWi
 			}
 			mut = mwpnc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, mwpnc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, mwpnc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*MessageWithPackageName)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithPackageNameMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

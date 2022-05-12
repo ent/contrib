@@ -78,9 +78,15 @@ func (vsc *VerySecretCreate) Save(ctx context.Context) (*VerySecret, error) {
 			}
 			mut = vsc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, vsc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, vsc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*VerySecret)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from VerySecretMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }

@@ -70,9 +70,15 @@ func (dnmc *DuplicateNumberMessageCreate) Save(ctx context.Context) (*DuplicateN
 			}
 			mut = dnmc.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, dnmc.mutation); err != nil {
+		v, err := mut.Mutate(ctx, dnmc.mutation)
+		if err != nil {
 			return nil, err
 		}
+		nv, ok := v.(*DuplicateNumberMessage)
+		if !ok {
+			return nil, fmt.Errorf("unexpected node type %T returned from DuplicateNumberMessageMutation", v)
+		}
+		node = nv
 	}
 	return node, err
 }
