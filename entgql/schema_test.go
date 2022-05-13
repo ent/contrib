@@ -99,6 +99,7 @@ type Todo {
   status: Status!
   priority: Int!
   text: String!
+  categoryID: ID
   parent: Todo
   children: [Todo!]
   category: Category
@@ -413,6 +414,7 @@ type Todo implements Node {
   status: Status!
   priority: Int!
   text: String!
+  categoryID: ID
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -519,6 +521,13 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
+  """category_id field predicates"""
+  categoryID: ID
+  categoryIDNEQ: ID
+  categoryIDIn: [ID!]
+  categoryIDNotIn: [ID!]
+  categoryIDIsNil: Boolean
+  categoryIDNotNil: Boolean
   """parent edge predicates"""
   hasParent: Boolean
   hasParentWith: [TodoWhereInput!]
