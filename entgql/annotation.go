@@ -322,7 +322,7 @@ func Implements(interfaces ...string) Annotation {
 //
 // and the GraphQL type will be generated with the directive.
 //
-//	type Todo @deprecated {
+//	type Todo {
 //		id: ID
 //		text: String @deprecated(reason: "Use `description` instead.")
 //		...
