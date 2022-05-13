@@ -523,31 +523,31 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
-			def.Fields = append(def.Fields, &ast.FieldDefinition{
-				Name:        camel(f.Name),
-				Type:        namedType(scalar, f.Nullable),
-				Description: f.Comment(),
-			})
 			if f.ClearOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
 					Name: "clear" + f.StructField(),
 					Type: namedType("Boolean", true),
 				})
 			}
+			def.Fields = append(def.Fields, &ast.FieldDefinition{
+				Name:        camel(f.Name),
+				Type:        namedType(scalar, f.Nullable),
+				Description: f.Comment(),
+			})
 		}
 
 		for _, e := range edges {
 			if e.Unique {
-				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: camel(e.Name) + "ID",
-					Type: namedType("ID", !i.IsCreate || e.Optional),
-				})
 				if !i.IsCreate {
 					def.Fields = append(def.Fields, &ast.FieldDefinition{
 						Name: camel(snake(e.MutationClear())),
 						Type: namedType("Boolean", true),
 					})
 				}
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: camel(e.Name) + "ID",
+					Type: namedType("ID", !i.IsCreate || e.Optional),
+				})
 			} else {
 				if i.IsCreate {
 					def.Fields = append(def.Fields, &ast.FieldDefinition{

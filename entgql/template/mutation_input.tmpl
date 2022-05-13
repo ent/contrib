@@ -21,18 +21,18 @@
     {{- end }}
     type {{ $input }} struct {
         {{- range $f := $fields }}
-            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
             {{- if $f.ClearOp }}
                 {{ print "Clear" $f.StructField }} bool
             {{- end }}
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
         {{- end }}
         {{- range $e := $edges }}
             {{- if $e.Unique }}
-                {{- $structField := print (pascal $e.Name) "ID" }}
-                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
                 {{- if not $n.IsCreate }}
                     {{ $e.MutationClear }} bool
                 {{- end }}
+                {{- $structField := print (pascal $e.Name) "ID" }}
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
