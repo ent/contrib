@@ -205,15 +205,26 @@ func (m *MutationDescriptor) Input() (string, error) {
 	return fmt.Sprintf("Update%sInput", gqlType), nil
 }
 
-func (m *MutationDescriptor) Builder() string {
+func (m *MutationDescriptor) Builders() []string {
 	if m.IsCreate {
-		return m.Type.CreateName()
+		return []string{m.Type.CreateName()}
 	}
-	return m.Type.MutationName()
+
+	return []string{m.Type.UpdateName(), m.Type.UpdateOneName()}
 }
 
-func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
-	fields := make([]*gen.Field, 0, len(m.Type.Fields))
+type InputFieldDescriptor struct {
+	*gen.Field
+	Nullable bool
+	ClearOp  bool
+}
+
+func (f *InputFieldDescriptor) IsPointer() bool {
+	return f.Nullable && !f.Type.RType.IsPtr()
+}
+
+func (m *MutationDescriptor) InputFields() ([]*InputFieldDescriptor, error) {
+	fields := make([]*InputFieldDescriptor, 0, len(m.Type.Fields))
 	for _, f := range m.Type.Fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
@@ -225,7 +236,11 @@ func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
 			continue
 		}
 
-		fields = append(fields, f)
+		fields = append(fields, &InputFieldDescriptor{
+			Field:    f,
+			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
+			ClearOp:  !m.IsCreate && f.Optional,
+		})
 	}
 
 	return fields, nil
