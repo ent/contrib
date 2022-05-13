@@ -108,14 +108,15 @@ type ComplexityRoot struct {
 	}
 
 	Todo struct {
-		Category  func(childComplexity int) int
-		Children  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Parent    func(childComplexity int) int
-		Priority  func(childComplexity int) int
-		Status    func(childComplexity int) int
-		Text      func(childComplexity int) int
+		Category   func(childComplexity int) int
+		CategoryID func(childComplexity int) int
+		Children   func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
+		CreatedAt  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Parent     func(childComplexity int) int
+		Priority   func(childComplexity int) int
+		Status     func(childComplexity int) int
+		Text       func(childComplexity int) int
 	}
 
 	TodoConnection struct {
@@ -439,6 +440,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.Category(childComplexity), true
+
+	case "Todo.categoryID":
+		if e.complexity.Todo.CategoryID == nil {
+			break
+		}
+
+		return e.complexity.Todo.CategoryID(childComplexity), true
 
 	case "Todo.children":
 		if e.complexity.Todo.Children == nil {
@@ -1006,6 +1014,7 @@ type Todo implements Node {
   status: Status!
   priority: Int!
   text: String!
+  categoryID: ID
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -1112,6 +1121,13 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
+  """category_id field predicates"""
+  categoryID: ID
+  categoryIDNEQ: ID
+  categoryIDIn: [ID!]
+  categoryIDNotIn: [ID!]
+  categoryIDIsNil: Boolean
+  categoryIDNotNil: Boolean
   """parent edge predicates"""
   hasParent: Boolean
   hasParentWith: [TodoWhereInput!]
@@ -2525,6 +2541,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_priority(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "categoryID":
+				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -3452,6 +3470,47 @@ func (ec *executionContext) fieldContext_Todo_text(ctx context.Context, field gr
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_categoryID(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_categoryID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CategoryID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_categoryID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Todo_parent(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_parent(ctx, field)
 	if err != nil {
@@ -3498,6 +3557,8 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 				return ec.fieldContext_Todo_priority(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "categoryID":
+				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -3824,6 +3885,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Todo_priority(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "categoryID":
+				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -7301,6 +7364,54 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
+		case "categoryID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryID"))
+			it.CategoryID, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryIDNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDNEQ"))
+			it.CategoryIDNEQ, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryIDIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDIn"))
+			it.CategoryIDIn, err = ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryIDNotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDNotIn"))
+			it.CategoryIDNotIn, err = ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryIDIsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDIsNil"))
+			it.CategoryIDIsNil, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "categoryIDNotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDNotNil"))
+			it.CategoryIDNotNil, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "hasParent":
 			var err error
 
@@ -8181,6 +8292,10 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "categoryID":
+
+			out.Values[i] = ec._Todo_categoryID(ctx, field, obj)
+
 		case "parent":
 			field := field
 
@@ -9691,6 +9806,16 @@ func (ec *executionContext) unmarshalOGroupWhereInput2ᚖentgoᚗioᚋcontribᚋ
 	}
 	res, err := ec.unmarshalInputGroupWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	res, err := uuidgql.UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	res := uuidgql.MarshalUUID(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {

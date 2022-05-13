@@ -30,7 +30,7 @@ type Todo struct {
 // Mixin returns todo mixed-in schema.
 func (Todo) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		todoschema.Todo{},
+		todoschema.FilterFields(todoschema.Todo{}, "category_id"),
 	}
 }
 
@@ -39,5 +39,7 @@ func (Todo) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
+		field.UUID("category_id", uuid.UUID{}).
+			Optional(),
 	}
 }

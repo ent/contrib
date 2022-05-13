@@ -88,6 +88,26 @@ func (tu *TodoUpdate) ClearBlob() *TodoUpdate {
 	return tu
 }
 
+// SetCategoryID sets the "category_id" field.
+func (tu *TodoUpdate) SetCategoryID(i int) *TodoUpdate {
+	tu.mutation.SetCategoryID(i)
+	return tu
+}
+
+// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableCategoryID(i *int) *TodoUpdate {
+	if i != nil {
+		tu.SetCategoryID(*i)
+	}
+	return tu
+}
+
+// ClearCategoryID clears the value of the "category_id" field.
+func (tu *TodoUpdate) ClearCategoryID() *TodoUpdate {
+	tu.mutation.ClearCategoryID()
+	return tu
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tu *TodoUpdate) SetParentID(id int) *TodoUpdate {
 	tu.mutation.SetParentID(id)
@@ -120,20 +140,6 @@ func (tu *TodoUpdate) AddChildren(t ...*Todo) *TodoUpdate {
 		ids[i] = t[i].ID
 	}
 	return tu.AddChildIDs(ids...)
-}
-
-// SetCategoryID sets the "category" edge to the Category entity by ID.
-func (tu *TodoUpdate) SetCategoryID(id int) *TodoUpdate {
-	tu.mutation.SetCategoryID(id)
-	return tu
-}
-
-// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
-func (tu *TodoUpdate) SetNillableCategoryID(id *int) *TodoUpdate {
-	if id != nil {
-		tu = tu.SetCategoryID(*id)
-	}
-	return tu
 }
 
 // SetCategory sets the "category" edge to the Category entity.
@@ -561,6 +567,26 @@ func (tuo *TodoUpdateOne) ClearBlob() *TodoUpdateOne {
 	return tuo
 }
 
+// SetCategoryID sets the "category_id" field.
+func (tuo *TodoUpdateOne) SetCategoryID(i int) *TodoUpdateOne {
+	tuo.mutation.SetCategoryID(i)
+	return tuo
+}
+
+// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableCategoryID(i *int) *TodoUpdateOne {
+	if i != nil {
+		tuo.SetCategoryID(*i)
+	}
+	return tuo
+}
+
+// ClearCategoryID clears the value of the "category_id" field.
+func (tuo *TodoUpdateOne) ClearCategoryID() *TodoUpdateOne {
+	tuo.mutation.ClearCategoryID()
+	return tuo
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tuo *TodoUpdateOne) SetParentID(id int) *TodoUpdateOne {
 	tuo.mutation.SetParentID(id)
@@ -593,20 +619,6 @@ func (tuo *TodoUpdateOne) AddChildren(t ...*Todo) *TodoUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return tuo.AddChildIDs(ids...)
-}
-
-// SetCategoryID sets the "category" edge to the Category entity by ID.
-func (tuo *TodoUpdateOne) SetCategoryID(id int) *TodoUpdateOne {
-	tuo.mutation.SetCategoryID(id)
-	return tuo
-}
-
-// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
-func (tuo *TodoUpdateOne) SetNillableCategoryID(id *int) *TodoUpdateOne {
-	if id != nil {
-		tuo = tuo.SetCategoryID(*id)
-	}
-	return tuo
 }
 
 // SetCategory sets the "category" edge to the Category entity.

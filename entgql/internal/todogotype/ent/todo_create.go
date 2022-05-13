@@ -83,6 +83,20 @@ func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
 	return tc
 }
 
+// SetCategoryID sets the "category_id" field.
+func (tc *TodoCreate) SetCategoryID(bi bigintgql.BigInt) *TodoCreate {
+	tc.mutation.SetCategoryID(bi)
+	return tc
+}
+
+// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableCategoryID(bi *bigintgql.BigInt) *TodoCreate {
+	if bi != nil {
+		tc.SetCategoryID(*bi)
+	}
+	return tc
+}
+
 // SetID sets the "id" field.
 func (tc *TodoCreate) SetID(s string) *TodoCreate {
 	tc.mutation.SetID(s)
@@ -129,20 +143,6 @@ func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
 		ids[i] = t[i].ID
 	}
 	return tc.AddChildIDs(ids...)
-}
-
-// SetCategoryID sets the "category" edge to the Category entity by ID.
-func (tc *TodoCreate) SetCategoryID(id bigintgql.BigInt) *TodoCreate {
-	tc.mutation.SetCategoryID(id)
-	return tc
-}
-
-// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
-func (tc *TodoCreate) SetNillableCategoryID(id *bigintgql.BigInt) *TodoCreate {
-	if id != nil {
-		tc = tc.SetCategoryID(*id)
-	}
-	return tc
 }
 
 // SetCategory sets the "category" edge to the Category entity.
@@ -416,7 +416,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.category_todos = &nodes[0]
+		_node.CategoryID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := tc.mutation.SecretIDs(); len(nodes) > 0 {

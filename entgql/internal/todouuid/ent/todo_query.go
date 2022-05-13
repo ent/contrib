@@ -577,10 +577,7 @@ func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, e
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Todo)
 		for i := range nodes {
-			if nodes[i].category_todos == nil {
-				continue
-			}
-			fk := *nodes[i].category_todos
+			fk := nodes[i].CategoryID
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -594,7 +591,7 @@ func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, e
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_todos" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Category = n

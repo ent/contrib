@@ -43,12 +43,13 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 	// Blob holds the value of the "blob" field.
 	Blob []byte `json:"blob,omitempty"`
+	// CategoryID holds the value of the "category_id" field.
+	CategoryID pulid.ID `json:"category_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
-	Edges          TodoEdges `json:"edges"`
-	category_todos *pulid.ID
-	todo_children  *pulid.ID
-	todo_secret    *pulid.ID
+	Edges         TodoEdges `json:"edges"`
+	todo_children *pulid.ID
+	todo_secret   *pulid.ID
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -126,7 +127,7 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case todo.FieldBlob:
 			values[i] = new([]byte)
-		case todo.FieldID:
+		case todo.FieldID, todo.FieldCategoryID:
 			values[i] = new(pulid.ID)
 		case todo.FieldPriority:
 			values[i] = new(sql.NullInt64)
@@ -134,11 +135,9 @@ func (*Todo) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case todo.ForeignKeys[0]: // category_todos
+		case todo.ForeignKeys[0]: // todo_children
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
-		case todo.ForeignKeys[1]: // todo_children
-			values[i] = &sql.NullScanner{S: new(pulid.ID)}
-		case todo.ForeignKeys[2]: // todo_secret
+		case todo.ForeignKeys[1]: // todo_secret
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
@@ -191,21 +190,20 @@ func (t *Todo) assignValues(columns []string, values []interface{}) error {
 			} else if value != nil {
 				t.Blob = *value
 			}
-		case todo.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field category_todos", values[i])
-			} else if value.Valid {
-				t.category_todos = new(pulid.ID)
-				*t.category_todos = *value.S.(*pulid.ID)
+		case todo.FieldCategoryID:
+			if value, ok := values[i].(*pulid.ID); !ok {
+				return fmt.Errorf("unexpected type %T for field category_id", values[i])
+			} else if value != nil {
+				t.CategoryID = *value
 			}
-		case todo.ForeignKeys[1]:
+		case todo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
 			} else if value.Valid {
 				t.todo_children = new(pulid.ID)
 				*t.todo_children = *value.S.(*pulid.ID)
 			}
-		case todo.ForeignKeys[2]:
+		case todo.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_secret", values[i])
 			} else if value.Valid {
@@ -270,6 +268,8 @@ func (t *Todo) String() string {
 	builder.WriteString(t.Text)
 	builder.WriteString(", blob=")
 	builder.WriteString(fmt.Sprintf("%v", t.Blob))
+	builder.WriteString(", category_id=")
+	builder.WriteString(fmt.Sprintf("%v", t.CategoryID))
 	builder.WriteByte(')')
 	return builder.String()
 }

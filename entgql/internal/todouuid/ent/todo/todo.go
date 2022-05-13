@@ -40,6 +40,8 @@ const (
 	FieldText = "text"
 	// FieldBlob holds the string denoting the blob field in the database.
 	FieldBlob = "blob"
+	// FieldCategoryID holds the string denoting the category_id field in the database.
+	FieldCategoryID = "category_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -64,7 +66,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "category" package.
 	CategoryInverseTable = "categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
-	CategoryColumn = "category_todos"
+	CategoryColumn = "category_id"
 	// SecretTable is the table that holds the secret relation/edge.
 	SecretTable = "todos"
 	// SecretInverseTable is the table name for the VerySecret entity.
@@ -82,12 +84,12 @@ var Columns = []string{
 	FieldPriority,
 	FieldText,
 	FieldBlob,
+	FieldCategoryID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"category_todos",
 	"todo_children",
 	"todo_secret",
 }
