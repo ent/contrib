@@ -619,6 +619,14 @@ type TodoWhereInput struct {
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
+	// "category_id" field predicates.
+	CategoryID       *uuid.UUID  `json:"categoryID,omitempty"`
+	CategoryIDNEQ    *uuid.UUID  `json:"categoryIDNEQ,omitempty"`
+	CategoryIDIn     []uuid.UUID `json:"categoryIDIn,omitempty"`
+	CategoryIDNotIn  []uuid.UUID `json:"categoryIDNotIn,omitempty"`
+	CategoryIDIsNil  bool        `json:"categoryIDIsNil,omitempty"`
+	CategoryIDNotNil bool        `json:"categoryIDNotNil,omitempty"`
+
 	// "parent" edge predicates.
 	HasParent     *bool             `json:"hasParent,omitempty"`
 	HasParentWith []*TodoWhereInput `json:"hasParentWith,omitempty"`
@@ -819,6 +827,24 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, todo.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.CategoryID != nil {
+		predicates = append(predicates, todo.CategoryIDEQ(*i.CategoryID))
+	}
+	if i.CategoryIDNEQ != nil {
+		predicates = append(predicates, todo.CategoryIDNEQ(*i.CategoryIDNEQ))
+	}
+	if len(i.CategoryIDIn) > 0 {
+		predicates = append(predicates, todo.CategoryIDIn(i.CategoryIDIn...))
+	}
+	if len(i.CategoryIDNotIn) > 0 {
+		predicates = append(predicates, todo.CategoryIDNotIn(i.CategoryIDNotIn...))
+	}
+	if i.CategoryIDIsNil {
+		predicates = append(predicates, todo.CategoryIDIsNil())
+	}
+	if i.CategoryIDNotNil {
+		predicates = append(predicates, todo.CategoryIDNotNil())
 	}
 
 	if i.HasParent != nil {

@@ -57,7 +57,7 @@ var (
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
-		{Name: "category_todos", Type: field.TypeUUID, Nullable: true},
+		{Name: "category_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "todo_children", Type: field.TypeUUID, Nullable: true},
 		{Name: "todo_secret", Type: field.TypeUUID, Nullable: true},
 	}

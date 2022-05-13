@@ -62,6 +62,8 @@ func (Todo) Fields() []ent.Field {
 				entgql.Skip(),
 			).
 			Optional(),
+		field.Int("category_id").
+			Optional(),
 	}
 }
 
@@ -77,6 +79,7 @@ func (Todo) Edges() []ent.Edge {
 			Unique(),
 		edge.From("category", Category.Type).
 			Ref("todos").
+			Field("category_id").
 			Unique(),
 		edge.To("secret", VerySecret.Type).
 			Unique(),

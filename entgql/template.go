@@ -220,7 +220,8 @@ func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
 			return nil, err
 		}
 		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
-			(!m.IsCreate && (f.Immutable || ant.Skip.Is(SkipMutationUpdateInput))) {
+			(!m.IsCreate && (f.Immutable || ant.Skip.Is(SkipMutationUpdateInput)) ||
+				f.IsEdgeField()) {
 			continue
 		}
 

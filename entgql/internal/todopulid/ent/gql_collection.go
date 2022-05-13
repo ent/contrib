@@ -71,7 +71,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 							ids[i] = nodes[i].ID
 						}
 						var v []struct {
-							NodeID pulid.ID `sql:"category_todos"`
+							NodeID pulid.ID `sql:"category_id"`
 							Count  int      `sql:"count"`
 						}
 						query.Where(func(s *sql.Selector) {
@@ -101,7 +101,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 						ids[i] = nodes[i].ID
 					}
 					var v []struct {
-						NodeID pulid.ID `sql:"category_todos"`
+						NodeID pulid.ID `sql:"category_id"`
 						Count  int      `sql:"count"`
 					}
 					query.Where(func(s *sql.Selector) {

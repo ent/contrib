@@ -18,6 +18,7 @@ import (
 	todoschema "entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/field"
 )
 
 // Todo defines the todo type schema.
@@ -31,6 +32,15 @@ func (Todo) Mixin() []ent.Mixin {
 		// "TD" declared once.
 		pulid.MixinWithPrefix("TD"),
 		// Reuse the fields and edges from base example.
-		todoschema.Todo{},
+		todoschema.FilterFields(todoschema.Todo{}, "category_id"),
+	}
+}
+
+// Fields returns todo fields.
+func (Todo) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("category_id").
+			GoType(pulid.ID("")).
+			Optional(),
 	}
 }

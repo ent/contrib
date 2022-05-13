@@ -14,32 +14,30 @@
 
 package schema
 
-import (
-	todoschema "entgo.io/contrib/entgql/internal/todo/ent/schema"
-	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
-	"entgo.io/ent"
-	"entgo.io/ent/schema/field"
-)
+import "entgo.io/ent"
 
-// Todo defines the todo type schema.
-type Todo struct {
-	ent.Schema
+type filterFields struct {
+	ent.Interface
+	fields map[string]struct{}
 }
 
-// Mixin returns todo mixed-in schema.
-func (Todo) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		todoschema.FilterFields(todoschema.Todo{}, "category_id"),
+func (f *filterFields) Fields() []ent.Field {
+	fields := f.Interface.Fields()
+	result := make([]ent.Field, 0, len(fields))
+	for _, field := range fields {
+		if _, ok := f.fields[field.Descriptor().Name]; !ok {
+			result = append(result, field)
+		}
 	}
+
+	return result
 }
 
-// Fields returns todo fields.
-func (Todo) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("id").
-			Default("plain"),
-		field.String("category_id").
-			GoType(bigintgql.BigInt{}).
-			Optional(),
+func FilterFields(s ent.Interface, filters ...string) ent.Interface {
+	fields := make(map[string]struct{})
+	for _, filter := range filters {
+		fields[filter] = struct{}{}
 	}
+
+	return &filterFields{Interface: s, fields: fields}
 }

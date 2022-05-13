@@ -23,7 +23,7 @@
         {{- range $f := $fields }}
             {{- if $n.IsCreate }}
                 {{ $f.StructField }} {{ if and (or $f.Optional $f.Default $f.DefaultFunc) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
-            {{- else if not $f.IsEdgeField }}
+            {{- else }}
                 {{ $f.StructField }} {{ if not $f.Type.RType.IsPtr }}*{{ end }}{{ $f.Type }}
                 {{- if $f.Optional }}
                     {{ print "Clear" $f.StructField }} bool
@@ -54,25 +54,23 @@
     // Mutate applies the {{ $input }} on the {{ $n.Builder }} builder.
     func (i *{{ $input }}) Mutate(m *{{ $n.Builder }}) {
         {{- range $f := $fields }}
-            {{- if not $f.IsEdgeField }}
-                {{- if $n.IsCreate }}
-                    {{- if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}
-                        if v := i.{{ $f.StructField }}; v != nil {
-                            m.{{ $f.MutationSet }}(*v)
-                        }
-                    {{- else }}
-                        m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
-                    {{- end }}
-                {{- else }}
-                    {{- if $f.Optional }}
-                        if i.{{ print "Clear" $f.StructField }} {
-                            m.{{ print "Clear" $f.StructField }}()
-                        }
-                    {{- end }}
+            {{- if $n.IsCreate }}
+                {{- if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}
                     if v := i.{{ $f.StructField }}; v != nil {
-                        m.{{ $f.MutationSet }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}v)
+                        m.{{ $f.MutationSet }}(*v)
+                    }
+                {{- else }}
+                    m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
+                {{- end }}
+            {{- else }}
+                {{- if $f.Optional }}
+                    if i.{{ print "Clear" $f.StructField }} {
+                        m.{{ print "Clear" $f.StructField }}()
                     }
                 {{- end }}
+                if v := i.{{ $f.StructField }}; v != nil {
+                    m.{{ $f.MutationSet }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}v)
+                }
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
