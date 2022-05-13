@@ -22,7 +22,7 @@
     type {{ $input }} struct {
         {{- range $f := $fields }}
             {{- if $n.IsCreate }}
-                {{ $f.StructField }} {{ if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
+                {{ $f.StructField }} {{ if and (or $f.Optional $f.Default $f.DefaultFunc) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
             {{- else if not $f.IsEdgeField }}
                 {{ $f.StructField }} {{ if not $f.Type.RType.IsPtr }}*{{ end }}{{ $f.Type }}
                 {{- if $f.Optional }}

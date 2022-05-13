@@ -526,7 +526,7 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if i.IsCreate {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
 					Name:        camel(f.Name),
-					Type:        namedType(scalar, f.Optional),
+					Type:        namedType(scalar, f.Optional || f.Default || f.DefaultFunc()),
 					Description: f.Comment(),
 				})
 			} else {
