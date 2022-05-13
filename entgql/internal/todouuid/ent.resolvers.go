@@ -60,7 +60,7 @@ func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, 
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *createTodoInputResolver) Status(ctx context.Context, obj *ent.CreateTodoInput, data todo.Status) error {
+func (r *createTodoInputResolver) Status(ctx context.Context, obj *ent.CreateTodoInput, data *todo.Status) error {
 	panic(fmt.Errorf("not implemented"))
 }
 

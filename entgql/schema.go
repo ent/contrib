@@ -524,10 +524,31 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
 			if i.IsCreate {
+				var defaultValue *ast.Value
+				if f.Default {
+					defaultValue = &ast.Value{
+						Raw: fmt.Sprintf("%v", f.DefaultValue()),
+					}
+					switch t := f.Type.Type; {
+					case f.IsEnum():
+						defaultValue.Kind = ast.EnumValue
+					case f.IsBool():
+						defaultValue.Kind = ast.BooleanValue
+					case f.IsString():
+						defaultValue.Kind = ast.StringValue
+					case t.Integer():
+						defaultValue.Kind = ast.IntValue
+					case t.Float():
+						defaultValue.Kind = ast.FloatValue
+					default:
+						defaultValue = nil
+					}
+				}
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name:        camel(f.Name),
-					Type:        namedType(scalar, f.Optional || f.Default || f.DefaultFunc()),
-					Description: f.Comment(),
+					Name:         camel(f.Name),
+					Type:         namedType(scalar, f.Optional || f.Default || f.DefaultFunc()),
+					DefaultValue: defaultValue,
+					Description:  f.Comment(),
 				})
 			} else {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{

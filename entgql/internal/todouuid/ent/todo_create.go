@@ -57,6 +57,14 @@ func (tc *TodoCreate) SetStatus(t todo.Status) *TodoCreate {
 	return tc
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableStatus(t *todo.Status) *TodoCreate {
+	if t != nil {
+		tc.SetStatus(*t)
+	}
+	return tc
+}
+
 // SetPriority sets the "priority" field.
 func (tc *TodoCreate) SetPriority(i int) *TodoCreate {
 	tc.mutation.SetPriority(i)
@@ -249,6 +257,10 @@ func (tc *TodoCreate) defaults() {
 	if _, ok := tc.mutation.CreatedAt(); !ok {
 		v := todo.DefaultCreatedAt()
 		tc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := tc.mutation.Status(); !ok {
+		v := todo.DefaultStatus
+		tc.mutation.SetStatus(v)
 	}
 	if _, ok := tc.mutation.Priority(); !ok {
 		v := todo.DefaultPriority

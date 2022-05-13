@@ -20,7 +20,7 @@ import "entgo.io/contrib/entgql/internal/todo/ent/todo"
 
 // CreateTodoInput represents a mutation input for creating todos.
 type CreateTodoInput struct {
-	Status     todo.Status
+	Status     *todo.Status
 	Priority   *int
 	Text       string
 	ParentID   *int
@@ -31,7 +31,9 @@ type CreateTodoInput struct {
 
 // Mutate applies the CreateTodoInput on the TodoCreate builder.
 func (i *CreateTodoInput) Mutate(m *TodoCreate) {
-	m.SetStatus(i.Status)
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
 	if v := i.Priority; v != nil {
 		m.SetPriority(*v)
 	}

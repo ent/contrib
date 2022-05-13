@@ -121,6 +121,9 @@ var (
 // Status defines the type for the "status" enum field.
 type Status string
 
+// StatusInProgress is the default value of the Status enum.
+const DefaultStatus = StatusInProgress
+
 // Status values.
 const (
 	StatusInProgress Status = "IN_PROGRESS"

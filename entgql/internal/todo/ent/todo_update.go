@@ -49,6 +49,14 @@ func (tu *TodoUpdate) SetStatus(t todo.Status) *TodoUpdate {
 	return tu
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableStatus(t *todo.Status) *TodoUpdate {
+	if t != nil {
+		tu.SetStatus(*t)
+	}
+	return tu
+}
+
 // SetPriority sets the "priority" field.
 func (tu *TodoUpdate) SetPriority(i int) *TodoUpdate {
 	tu.mutation.ResetPriority()
@@ -519,6 +527,14 @@ type TodoUpdateOne struct {
 // SetStatus sets the "status" field.
 func (tuo *TodoUpdateOne) SetStatus(t todo.Status) *TodoUpdateOne {
 	tuo.mutation.SetStatus(t)
+	return tuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableStatus(t *todo.Status) *TodoUpdateOne {
+	if t != nil {
+		tuo.SetStatus(*t)
+	}
 	return tuo
 }
 
