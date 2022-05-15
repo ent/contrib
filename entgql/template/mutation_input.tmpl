@@ -21,24 +21,18 @@
     {{- end }}
     type {{ $input }} struct {
         {{- range $f := $fields }}
-            {{- if $n.IsCreate }}
-                {{ $f.StructField }} {{ if and (or $f.Optional $f.Default $f.DefaultFunc) (not $f.Type.RType.IsPtr) }}*{{ end }}{{ $f.Type }}
-            {{- else }}
-                {{ $f.StructField }} {{ if not $f.Type.RType.IsPtr }}*{{ end }}{{ $f.Type }}
-                {{- if $f.Optional }}
-                    {{ print "Clear" $f.StructField }} bool
-                {{- end }}
+            {{- if $f.ClearOp }}
+                {{ print "Clear" $f.StructField }} bool
             {{- end }}
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
         {{- end }}
         {{- range $e := $edges }}
             {{- if $e.Unique }}
-                {{- $structField := print (pascal $e.Name) "ID" }}
-                {{- if $n.IsCreate }}
-                    {{ $structField }} {{ if $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
-                {{- else }}
-                    {{ $structField }} *{{ $e.Type.ID.Type }}
+                {{- if not $n.IsCreate }}
                     {{ $e.MutationClear }} bool
                 {{- end }}
+                {{- $structField := print (pascal $e.Name) "ID" }}
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
@@ -51,83 +45,61 @@
         {{- end }}
     }
 
-    // Mutate applies the {{ $input }} on the {{ $n.Builder }} builder.
-    func (i *{{ $input }}) Mutate(m *{{ $n.Builder }}) {
+    // Mutate applies the {{ $input }} on the {{ $n.MutationName }} builder.
+    func (i *{{ $input }}) Mutate(m *{{ $n.MutationName }}) {
         {{- range $f := $fields }}
-            {{- if $n.IsCreate }}
-                {{- if and (or $f.Optional $f.Default) (not $f.Type.RType.IsPtr) }}
-                    if v := i.{{ $f.StructField }}; v != nil {
-                        m.{{ $f.MutationSet }}(*v)
-                    }
-                {{- else }}
-                    m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
-                {{- end }}
-            {{- else }}
-                {{- if $f.Optional }}
-                    if i.{{ print "Clear" $f.StructField }} {
-                        m.{{ print "Clear" $f.StructField }}()
-                    }
-                {{- end }}
-                if v := i.{{ $f.StructField }}; v != nil {
-                    m.{{ $f.MutationSet }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}v)
+            {{- if $f.ClearOp }}
+                if i.{{ print "Clear" $f.StructField }} {
+                    m.{{ print "Clear" $f.StructField }}()
                 }
+            {{- end }}
+            {{- if $f.IsPointer }}
+                if v := i.{{ $f.StructField }}; v != nil {
+                    m.{{ $f.MutationSet }}(*v)
+                }
+            {{- else }}
+                m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
             {{- if $e.Unique }}
-                {{- $structField := print (pascal $e.Name) "ID" }}
-                {{- if $n.IsCreate }}
-                    {{- if $e.Optional }}
-                        if v := i.{{ $structField }}; v != nil {
-                            m.{{ $e.MutationSet }}(*v)
-                        }
-                    {{- else }}
-                        m.{{ $e.MutationSet }}(i.{{ $structField }})
-                    {{- end }}
-                {{- else }}
+                {{- if not $n.IsCreate }}
                     if i.{{ $e.MutationClear }} {
                         m.{{ $e.MutationClear }}()
                     }
+                {{- end }}
+                {{- $structField := print (pascal $e.Name) "ID" }}
+                {{- if or (not $n.IsCreate) $e.Optional }}
                     if v := i.{{ $structField }}; v != nil {
                         m.{{ $e.MutationSet }}(*v)
                     }
+                {{- else }}
+                    m.{{ $e.MutationSet }}(i.{{ $structField }})
                 {{- end }}
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
-                    if ids := i.{{ $structField }}; len(ids) > 0 {
-                        m.{{ $e.MutationAdd }}(ids...)
+                    if v := i.{{ $structField }}; len(v) > 0 {
+                        m.{{ $e.MutationAdd }}(v...)
                     }
                 {{- else }}
-                    if ids := i.{{ $e.MutationAdd }}; len(ids) > 0 {
-                        m.{{ $e.MutationAdd }}(ids...)
+                    if v := i.{{ $e.MutationAdd }}; len(v) > 0 {
+                        m.{{ $e.MutationAdd }}(v...)
                     }
-                    if ids := i.{{ $e.MutationRemove }}; len(ids) > 0 {
-                        m.{{ $e.MutationRemove }}(ids...)
+                    if v := i.{{ $e.MutationRemove }}; len(v) > 0 {
+                        m.{{ $e.MutationRemove }}(v...)
                     }
                 {{- end }}
             {{- end }}
         {{- end }}
     }
 
-    {{- if $n.IsCreate }}
-    // SetInput applies the change-set in the {{ $input }} on the create builder.
-    func(c *{{ $n.CreateName }}) SetInput(i {{ $input }}) *{{ $n.CreateName }} {
-        i.Mutate(c)
+    {{- range $b := $n.Builders }}
+    // SetInput applies the change-set in the {{ $input }} on the {{ $b }} builder.
+    func(c *{{ $b }}) SetInput(i {{ $input }}) *{{ $b }} {
+        i.Mutate(c.Mutation())
         return c
     }
-    {{- else }}
-    // SetInput applies the change-set in the {{ $input }} on the update builder.
-    func(u *{{ $n.UpdateName }}) SetInput(i {{ $input }}) *{{ $n.UpdateName }} {
-        i.Mutate(u.Mutation())
-        return u
-    }
-
-    // SetInput applies the change-set in the {{ $input }} on the update-one builder.
-    func(u *{{ $n.UpdateOneName }}) SetInput(i {{ $input }}) *{{ $n.UpdateOneName }} {
-        i.Mutate(u.Mutation())
-        return u
-    }
-    {{- end }}
+    {{- end}}
 {{- end }}
 {{ end }}

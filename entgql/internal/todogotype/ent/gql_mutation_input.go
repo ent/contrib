@@ -32,8 +32,8 @@ type CreateTodoInput struct {
 	SecretID   *string
 }
 
-// Mutate applies the CreateTodoInput on the TodoCreate builder.
-func (i *CreateTodoInput) Mutate(m *TodoCreate) {
+// Mutate applies the CreateTodoInput on the TodoMutation builder.
+func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 	m.SetStatus(i.Status)
 	if v := i.Priority; v != nil {
 		m.SetPriority(*v)
@@ -42,8 +42,8 @@ func (i *CreateTodoInput) Mutate(m *TodoCreate) {
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
 	}
-	if ids := i.ChildIDs; len(ids) > 0 {
-		m.AddChildIDs(ids...)
+	if v := i.ChildIDs; len(v) > 0 {
+		m.AddChildIDs(v...)
 	}
 	if v := i.CategoryID; v != nil {
 		m.SetCategoryID(*v)
@@ -53,8 +53,8 @@ func (i *CreateTodoInput) Mutate(m *TodoCreate) {
 	}
 }
 
-// SetInput applies the change-set in the CreateTodoInput on the create builder.
+// SetInput applies the change-set in the CreateTodoInput on the TodoCreate builder.
 func (c *TodoCreate) SetInput(i CreateTodoInput) *TodoCreate {
-	i.Mutate(c)
+	i.Mutate(c.Mutation())
 	return c
 }

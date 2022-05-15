@@ -189,11 +189,13 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 	return collect, nil
 }
 
+// MutationDescriptor holds information about a GraphQL mutation input.
 type MutationDescriptor struct {
 	*gen.Type
 	IsCreate bool
 }
 
+// Input returns the input's name.
 func (m *MutationDescriptor) Input() (string, error) {
 	gqlType, _, err := gqlTypeFromNode(m.Type)
 	if err != nil {
@@ -205,15 +207,34 @@ func (m *MutationDescriptor) Input() (string, error) {
 	return fmt.Sprintf("Update%sInput", gqlType), nil
 }
 
-func (m *MutationDescriptor) Builder() string {
+// Builders return the builder's names to apply the input.
+func (m *MutationDescriptor) Builders() []string {
 	if m.IsCreate {
-		return m.Type.CreateName()
+		return []string{m.Type.CreateName()}
 	}
-	return m.Type.MutationName()
+
+	return []string{m.Type.UpdateName(), m.Type.UpdateOneName()}
 }
 
-func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
-	fields := make([]*gen.Field, 0, len(m.Type.Fields))
+// InputFieldDescriptor holds the information
+// about a field in the input type.
+// It's shared between GQL and Go types.
+type InputFieldDescriptor struct {
+	*gen.Field
+	// Nullable indicates if the field is nullable.
+	Nullable bool
+	// ClearOp indicates if the field has the Clear operator
+	ClearOp bool
+}
+
+// IsPointer returns true if the Go type should be a pointer
+func (f *InputFieldDescriptor) IsPointer() bool {
+	return f.Nullable && !f.Type.RType.IsPtr()
+}
+
+// InputFields returns the list of fields in the input type.
+func (m *MutationDescriptor) InputFields() ([]*InputFieldDescriptor, error) {
+	fields := make([]*InputFieldDescriptor, 0, len(m.Type.Fields))
 	for _, f := range m.Type.Fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
@@ -225,12 +246,20 @@ func (m *MutationDescriptor) InputFields() ([]*gen.Field, error) {
 			continue
 		}
 
-		fields = append(fields, f)
+		fields = append(fields, &InputFieldDescriptor{
+			Field:    f,
+			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
+			ClearOp:  !m.IsCreate && f.Optional,
+		})
 	}
 
 	return fields, nil
 }
 
+// InputEdges returns the list of fields in the input type.
+//
+// NOTE(giautm): This method should refactor to
+// return a list of InputFieldDescriptor.
 func (m *MutationDescriptor) InputEdges() ([]*gen.Edge, error) {
 	edges := make([]*gen.Edge, 0, len(m.Type.Edges))
 	for _, e := range m.Type.Edges {
@@ -247,6 +276,7 @@ func (m *MutationDescriptor) InputEdges() ([]*gen.Edge, error) {
 	return edges, nil
 }
 
+// mutationInputs returns the list of input types for the mutation.
 func mutationInputs(nodes []*gen.Type) ([]*MutationDescriptor, error) {
 	filteredNodes := make([]*MutationDescriptor, 0, len(nodes))
 	for _, n := range nodes {
