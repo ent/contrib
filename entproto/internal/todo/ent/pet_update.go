@@ -7,12 +7,14 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // PetUpdate is the builder for updating Pet entities.
@@ -47,6 +49,21 @@ func (pu *PetUpdate) SetOwner(u *User) *PetUpdate {
 	return pu.SetOwnerID(u.ID)
 }
 
+// AddAttachmentIDs adds the "attachment" edge to the Attachment entity by IDs.
+func (pu *PetUpdate) AddAttachmentIDs(ids ...uuid.UUID) *PetUpdate {
+	pu.mutation.AddAttachmentIDs(ids...)
+	return pu
+}
+
+// AddAttachment adds the "attachment" edges to the Attachment entity.
+func (pu *PetUpdate) AddAttachment(a ...*Attachment) *PetUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return pu.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the PetMutation object of the builder.
 func (pu *PetUpdate) Mutation() *PetMutation {
 	return pu.mutation
@@ -56,6 +73,27 @@ func (pu *PetUpdate) Mutation() *PetMutation {
 func (pu *PetUpdate) ClearOwner() *PetUpdate {
 	pu.mutation.ClearOwner()
 	return pu
+}
+
+// ClearAttachment clears all "attachment" edges to the Attachment entity.
+func (pu *PetUpdate) ClearAttachment() *PetUpdate {
+	pu.mutation.ClearAttachment()
+	return pu
+}
+
+// RemoveAttachmentIDs removes the "attachment" edge to Attachment entities by IDs.
+func (pu *PetUpdate) RemoveAttachmentIDs(ids ...uuid.UUID) *PetUpdate {
+	pu.mutation.RemoveAttachmentIDs(ids...)
+	return pu
+}
+
+// RemoveAttachment removes "attachment" edges to Attachment entities.
+func (pu *PetUpdate) RemoveAttachment(a ...*Attachment) *PetUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return pu.RemoveAttachmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -165,6 +203,60 @@ func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.AttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedAttachmentIDs(); len(nodes) > 0 && !pu.mutation.AttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.AttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{pet.Label}
@@ -203,6 +295,21 @@ func (puo *PetUpdateOne) SetOwner(u *User) *PetUpdateOne {
 	return puo.SetOwnerID(u.ID)
 }
 
+// AddAttachmentIDs adds the "attachment" edge to the Attachment entity by IDs.
+func (puo *PetUpdateOne) AddAttachmentIDs(ids ...uuid.UUID) *PetUpdateOne {
+	puo.mutation.AddAttachmentIDs(ids...)
+	return puo
+}
+
+// AddAttachment adds the "attachment" edges to the Attachment entity.
+func (puo *PetUpdateOne) AddAttachment(a ...*Attachment) *PetUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return puo.AddAttachmentIDs(ids...)
+}
+
 // Mutation returns the PetMutation object of the builder.
 func (puo *PetUpdateOne) Mutation() *PetMutation {
 	return puo.mutation
@@ -212,6 +319,27 @@ func (puo *PetUpdateOne) Mutation() *PetMutation {
 func (puo *PetUpdateOne) ClearOwner() *PetUpdateOne {
 	puo.mutation.ClearOwner()
 	return puo
+}
+
+// ClearAttachment clears all "attachment" edges to the Attachment entity.
+func (puo *PetUpdateOne) ClearAttachment() *PetUpdateOne {
+	puo.mutation.ClearAttachment()
+	return puo
+}
+
+// RemoveAttachmentIDs removes the "attachment" edge to Attachment entities by IDs.
+func (puo *PetUpdateOne) RemoveAttachmentIDs(ids ...uuid.UUID) *PetUpdateOne {
+	puo.mutation.RemoveAttachmentIDs(ids...)
+	return puo
+}
+
+// RemoveAttachment removes "attachment" edges to Attachment entities.
+func (puo *PetUpdateOne) RemoveAttachment(a ...*Attachment) *PetUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return puo.RemoveAttachmentIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -343,6 +471,60 @@ func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.AttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedAttachmentIDs(); len(nodes) > 0 && !puo.mutation.AttachmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.AttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
 				},
 			},
 		}

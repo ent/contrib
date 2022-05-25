@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
@@ -72,6 +73,8 @@ type Client struct {
 	MessageWithPackageName *MessageWithPackageNameClient
 	// MessageWithStrings is the client for interacting with the MessageWithStrings builders.
 	MessageWithStrings *MessageWithStringsClient
+	// NoBackref is the client for interacting with the NoBackref builders.
+	NoBackref *NoBackrefClient
 	// OneMethodService is the client for interacting with the OneMethodService builders.
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
@@ -112,6 +115,7 @@ func (c *Client) init() {
 	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
 	c.MessageWithStrings = NewMessageWithStringsClient(c.config)
+	c.NoBackref = NewNoBackrefClient(c.config)
 	c.OneMethodService = NewOneMethodServiceClient(c.config)
 	c.Portal = NewPortalClient(c.config)
 	c.SkipEdgeExample = NewSkipEdgeExampleClient(c.config)
@@ -166,6 +170,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
 		MessageWithStrings:     NewMessageWithStringsClient(cfg),
+		NoBackref:              NewNoBackrefClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
 		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
@@ -206,6 +211,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
 		MessageWithStrings:     NewMessageWithStringsClient(cfg),
+		NoBackref:              NewNoBackrefClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
 		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
@@ -256,6 +262,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.MessageWithOptionals.Use(hooks...)
 	c.MessageWithPackageName.Use(hooks...)
 	c.MessageWithStrings.Use(hooks...)
+	c.NoBackref.Use(hooks...)
 	c.OneMethodService.Use(hooks...)
 	c.Portal.Use(hooks...)
 	c.SkipEdgeExample.Use(hooks...)
@@ -1692,6 +1699,112 @@ func (c *MessageWithStringsClient) GetX(ctx context.Context, id int) *MessageWit
 // Hooks returns the client hooks.
 func (c *MessageWithStringsClient) Hooks() []Hook {
 	return c.hooks.MessageWithStrings
+}
+
+// NoBackrefClient is a client for the NoBackref schema.
+type NoBackrefClient struct {
+	config
+}
+
+// NewNoBackrefClient returns a client for the NoBackref from the given config.
+func NewNoBackrefClient(c config) *NoBackrefClient {
+	return &NoBackrefClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nobackref.Hooks(f(g(h())))`.
+func (c *NoBackrefClient) Use(hooks ...Hook) {
+	c.hooks.NoBackref = append(c.hooks.NoBackref, hooks...)
+}
+
+// Create returns a create builder for NoBackref.
+func (c *NoBackrefClient) Create() *NoBackrefCreate {
+	mutation := newNoBackrefMutation(c.config, OpCreate)
+	return &NoBackrefCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NoBackref entities.
+func (c *NoBackrefClient) CreateBulk(builders ...*NoBackrefCreate) *NoBackrefCreateBulk {
+	return &NoBackrefCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NoBackref.
+func (c *NoBackrefClient) Update() *NoBackrefUpdate {
+	mutation := newNoBackrefMutation(c.config, OpUpdate)
+	return &NoBackrefUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NoBackrefClient) UpdateOne(nb *NoBackref) *NoBackrefUpdateOne {
+	mutation := newNoBackrefMutation(c.config, OpUpdateOne, withNoBackref(nb))
+	return &NoBackrefUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NoBackrefClient) UpdateOneID(id int) *NoBackrefUpdateOne {
+	mutation := newNoBackrefMutation(c.config, OpUpdateOne, withNoBackrefID(id))
+	return &NoBackrefUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NoBackref.
+func (c *NoBackrefClient) Delete() *NoBackrefDelete {
+	mutation := newNoBackrefMutation(c.config, OpDelete)
+	return &NoBackrefDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *NoBackrefClient) DeleteOne(nb *NoBackref) *NoBackrefDeleteOne {
+	return c.DeleteOneID(nb.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *NoBackrefClient) DeleteOneID(id int) *NoBackrefDeleteOne {
+	builder := c.Delete().Where(nobackref.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NoBackrefDeleteOne{builder}
+}
+
+// Query returns a query builder for NoBackref.
+func (c *NoBackrefClient) Query() *NoBackrefQuery {
+	return &NoBackrefQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a NoBackref entity by its id.
+func (c *NoBackrefClient) Get(ctx context.Context, id int) (*NoBackref, error) {
+	return c.Query().Where(nobackref.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NoBackrefClient) GetX(ctx context.Context, id int) *NoBackref {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryImages queries the images edge of a NoBackref.
+func (c *NoBackrefClient) QueryImages(nb *NoBackref) *ImageQuery {
+	query := &ImageQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := nb.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nobackref.Table, nobackref.FieldID, id),
+			sqlgraph.To(image.Table, image.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, nobackref.ImagesTable, nobackref.ImagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(nb.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NoBackrefClient) Hooks() []Hook {
+	return c.hooks.NoBackref
 }
 
 // OneMethodServiceClient is a client for the OneMethodService schema.

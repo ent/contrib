@@ -89,12 +89,21 @@ var (
 	ImagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "url_path", Type: field.TypeString},
+		{Name: "no_backref_images", Type: field.TypeInt, Nullable: true},
 	}
 	// ImagesTable holds the schema information for the "images" table.
 	ImagesTable = &schema.Table{
 		Name:       "images",
 		Columns:    ImagesColumns,
 		PrimaryKey: []*schema.Column{ImagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "images_no_backrefs_images",
+				Columns:    []*schema.Column{ImagesColumns[2]},
+				RefColumns: []*schema.Column{NoBackrefsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// ImplicitSkippedMessagesColumns holds the columns for the "implicit_skipped_messages" table.
 	ImplicitSkippedMessagesColumns = []*schema.Column{
@@ -198,6 +207,16 @@ var (
 		Name:       "message_with_strings",
 		Columns:    MessageWithStringsColumns,
 		PrimaryKey: []*schema.Column{MessageWithStringsColumns[0]},
+	}
+	// NoBackrefsColumns holds the columns for the "no_backrefs" table.
+	NoBackrefsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// NoBackrefsTable holds the schema information for the "no_backrefs" table.
+	NoBackrefsTable = &schema.Table{
+		Name:       "no_backrefs",
+		Columns:    NoBackrefsColumns,
+		PrimaryKey: []*schema.Column{NoBackrefsColumns[0]},
 	}
 	// OneMethodServicesColumns holds the columns for the "one_method_services" table.
 	OneMethodServicesColumns = []*schema.Column{
@@ -338,6 +357,7 @@ var (
 		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
 		MessageWithStringsTable,
+		NoBackrefsTable,
 		OneMethodServicesTable,
 		PortalsTable,
 		SkipEdgeExamplesTable,
@@ -350,6 +370,7 @@ var (
 
 func init() {
 	BlogPostsTable.ForeignKeys[0].RefTable = UsersTable
+	ImagesTable.ForeignKeys[0].RefTable = NoBackrefsTable
 	ImplicitSkippedMessagesTable.ForeignKeys[0].RefTable = DependsOnSkippedsTable
 	PortalsTable.ForeignKeys[0].RefTable = CategoriesTable
 	SkipEdgeExamplesTable.ForeignKeys[0].RefTable = UsersTable

@@ -21,30 +21,21 @@ import (
 	"entgo.io/ent/schema/edge"
 )
 
-type Pet struct {
+// NoBackref is an entity with an edge to an entity that doesn't refer back to it.
+type NoBackref struct {
 	ent.Schema
 }
 
-// Fields of the Pet.
-func (Pet) Fields() []ent.Field {
-	return nil
-}
-
-// Edges of the Pet.
-func (Pet) Edges() []ent.Edge {
+// Edges of NoBackref.
+func (NoBackref) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", User.Type).
-			Ref("pet").
-			Unique().
-			Annotations(entproto.Field(2)),
-		edge.To("attachment", Attachment.Type).
-			Annotations(entproto.Field(3)),
+		edge.To("images", Image.Type).
+			Annotations(
+				entproto.Field(2),
+			),
 	}
 }
 
-func (Pet) Annotations() []schema.Annotation {
-	return []schema.Annotation{
-		entproto.Message(),
-		entproto.Service(),
-	}
+func (NoBackref) Annotations() []schema.Annotation {
+	return []schema.Annotation{entproto.Message()}
 }

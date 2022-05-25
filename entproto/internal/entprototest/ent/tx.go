@@ -42,6 +42,8 @@ type Tx struct {
 	MessageWithPackageName *MessageWithPackageNameClient
 	// MessageWithStrings is the client for interacting with the MessageWithStrings builders.
 	MessageWithStrings *MessageWithStringsClient
+	// NoBackref is the client for interacting with the NoBackref builders.
+	NoBackref *NoBackrefClient
 	// OneMethodService is the client for interacting with the OneMethodService builders.
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
@@ -204,6 +206,7 @@ func (tx *Tx) init() {
 	tx.MessageWithOptionals = NewMessageWithOptionalsClient(tx.config)
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
 	tx.MessageWithStrings = NewMessageWithStringsClient(tx.config)
+	tx.NoBackref = NewNoBackrefClient(tx.config)
 	tx.OneMethodService = NewOneMethodServiceClient(tx.config)
 	tx.Portal = NewPortalClient(tx.config)
 	tx.SkipEdgeExample = NewSkipEdgeExampleClient(tx.config)

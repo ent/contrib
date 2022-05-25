@@ -39,6 +39,7 @@ type hooks struct {
 	MessageWithOptionals   []ent.Hook
 	MessageWithPackageName []ent.Hook
 	MessageWithStrings     []ent.Hook
+	NoBackref              []ent.Hook
 	OneMethodService       []ent.Hook
 	Portal                 []ent.Hook
 	SkipEdgeExample        []ent.Hook

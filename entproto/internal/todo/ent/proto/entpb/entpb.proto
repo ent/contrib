@@ -219,6 +219,8 @@ message Pet {
   int64 id = 1;
 
   User owner = 2;
+
+  repeated Attachment attachment = 3;
 }
 
 message CreatePetRequest {

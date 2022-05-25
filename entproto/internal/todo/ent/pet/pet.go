@@ -9,6 +9,8 @@ const (
 	FieldID = "id"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
+	EdgeAttachment = "attachment"
 	// Table holds the table name of the pet in the database.
 	Table = "pets"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -18,6 +20,13 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "user_pet"
+	// AttachmentTable is the table that holds the attachment relation/edge.
+	AttachmentTable = "attachments"
+	// AttachmentInverseTable is the table name for the Attachment entity.
+	// It exists in this package in order to avoid circular dependency with the "attachment" package.
+	AttachmentInverseTable = "attachments"
+	// AttachmentColumn is the table column denoting the attachment relation/edge.
+	AttachmentColumn = "pet_attachment"
 )
 
 // Columns holds all SQL columns for pet fields.

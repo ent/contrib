@@ -20,7 +20,8 @@ type Image struct {
 	URLPath string `json:"url_path,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ImageQuery when eager-loading is set.
-	Edges ImageEdges `json:"edges"`
+	Edges             ImageEdges `json:"edges"`
+	no_backref_images *int
 }
 
 // ImageEdges holds the relations/edges for other nodes in the graph.
@@ -50,6 +51,8 @@ func (*Image) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case image.FieldID:
 			values[i] = new(uuid.UUID)
+		case image.ForeignKeys[0]: // no_backref_images
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Image", columns[i])
 		}
@@ -76,6 +79,13 @@ func (i *Image) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field url_path", values[j])
 			} else if value.Valid {
 				i.URLPath = value.String
+			}
+		case image.ForeignKeys[0]:
+			if value, ok := values[j].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field no_backref_images", value)
+			} else if value.Valid {
+				i.no_backref_images = new(int)
+				*i.no_backref_images = int(value.Int64)
 			}
 		}
 	}

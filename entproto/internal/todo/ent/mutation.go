@@ -1576,15 +1576,18 @@ func (m *NilExampleMutation) ResetEdge(name string) error {
 // PetMutation represents an operation that mutates the Pet nodes in the graph.
 type PetMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	clearedFields map[string]struct{}
-	owner         *int
-	clearedowner  bool
-	done          bool
-	oldValue      func(context.Context) (*Pet, error)
-	predicates    []predicate.Pet
+	op                Op
+	typ               string
+	id                *int
+	clearedFields     map[string]struct{}
+	owner             *int
+	clearedowner      bool
+	attachment        map[uuid.UUID]struct{}
+	removedattachment map[uuid.UUID]struct{}
+	clearedattachment bool
+	done              bool
+	oldValue          func(context.Context) (*Pet, error)
+	predicates        []predicate.Pet
 }
 
 var _ ent.Mutation = (*PetMutation)(nil)
@@ -1724,6 +1727,60 @@ func (m *PetMutation) ResetOwner() {
 	m.clearedowner = false
 }
 
+// AddAttachmentIDs adds the "attachment" edge to the Attachment entity by ids.
+func (m *PetMutation) AddAttachmentIDs(ids ...uuid.UUID) {
+	if m.attachment == nil {
+		m.attachment = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.attachment[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachment clears the "attachment" edge to the Attachment entity.
+func (m *PetMutation) ClearAttachment() {
+	m.clearedattachment = true
+}
+
+// AttachmentCleared reports if the "attachment" edge to the Attachment entity was cleared.
+func (m *PetMutation) AttachmentCleared() bool {
+	return m.clearedattachment
+}
+
+// RemoveAttachmentIDs removes the "attachment" edge to the Attachment entity by IDs.
+func (m *PetMutation) RemoveAttachmentIDs(ids ...uuid.UUID) {
+	if m.removedattachment == nil {
+		m.removedattachment = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.attachment, ids[i])
+		m.removedattachment[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachment returns the removed IDs of the "attachment" edge to the Attachment entity.
+func (m *PetMutation) RemovedAttachmentIDs() (ids []uuid.UUID) {
+	for id := range m.removedattachment {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentIDs returns the "attachment" edge IDs in the mutation.
+func (m *PetMutation) AttachmentIDs() (ids []uuid.UUID) {
+	for id := range m.attachment {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachment resets all changes to the "attachment" edge.
+func (m *PetMutation) ResetAttachment() {
+	m.attachment = nil
+	m.clearedattachment = false
+	m.removedattachment = nil
+}
+
 // Where appends a list predicates to the PetMutation builder.
 func (m *PetMutation) Where(ps ...predicate.Pet) {
 	m.predicates = append(m.predicates, ps...)
@@ -1817,9 +1874,12 @@ func (m *PetMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PetMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.owner != nil {
 		edges = append(edges, pet.EdgeOwner)
+	}
+	if m.attachment != nil {
+		edges = append(edges, pet.EdgeAttachment)
 	}
 	return edges
 }
@@ -1832,13 +1892,22 @@ func (m *PetMutation) AddedIDs(name string) []ent.Value {
 		if id := m.owner; id != nil {
 			return []ent.Value{*id}
 		}
+	case pet.EdgeAttachment:
+		ids := make([]ent.Value, 0, len(m.attachment))
+		for id := range m.attachment {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PetMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedattachment != nil {
+		edges = append(edges, pet.EdgeAttachment)
+	}
 	return edges
 }
 
@@ -1846,15 +1915,24 @@ func (m *PetMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *PetMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case pet.EdgeAttachment:
+		ids := make([]ent.Value, 0, len(m.removedattachment))
+		for id := range m.removedattachment {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PetMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedowner {
 		edges = append(edges, pet.EdgeOwner)
+	}
+	if m.clearedattachment {
+		edges = append(edges, pet.EdgeAttachment)
 	}
 	return edges
 }
@@ -1865,6 +1943,8 @@ func (m *PetMutation) EdgeCleared(name string) bool {
 	switch name {
 	case pet.EdgeOwner:
 		return m.clearedowner
+	case pet.EdgeAttachment:
+		return m.clearedattachment
 	}
 	return false
 }
@@ -1886,6 +1966,9 @@ func (m *PetMutation) ResetEdge(name string) error {
 	switch name {
 	case pet.EdgeOwner:
 		m.ResetOwner()
+		return nil
+	case pet.EdgeAttachment:
+		m.ResetAttachment()
 		return nil
 	}
 	return fmt.Errorf("unknown Pet edge %s", name)

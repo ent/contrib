@@ -105,16 +105,21 @@ type FieldMappingDescriptor struct {
 	ReferencedPbType  *desc.MessageDescriptor
 }
 
+// PbStructField returns the protobuf field descriptor of this field.
 func (d *FieldMappingDescriptor) PbStructField() string {
 	return camelCase(d.PbFieldDescriptor.GetName())
 }
 
+// EdgeIDPbStructField returns the name for the id field  of the
+// entity this edge refers to.
 func (d *FieldMappingDescriptor) EdgeIDPbStructField() string {
-	return camelCase(d.EntEdge.Ref.Type.ID.Name)
+	return camelCase(d.EntEdge.Type.ID.Name)
 }
 
+// EdgeIDPbStructFieldDesc returns the protobuf field descriptor for the id field
+// of the entity this edge refers to.
 func (d *FieldMappingDescriptor) EdgeIDPbStructFieldDesc() *desc.FieldDescriptor {
-	field := strings.Title(camel(d.EntEdge.Ref.Type.ID.Name))
+	field := strings.Title(camel(d.EntEdge.Type.ID.Name))
 	return d.ReferencedPbType.FindFieldByName(snake(field))
 }
 

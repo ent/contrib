@@ -20,6 +20,7 @@ type Attachment struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AttachmentQuery when eager-loading is set.
 	Edges           AttachmentEdges `json:"edges"`
+	pet_attachment  *int
 	user_attachment *int
 }
 
@@ -64,7 +65,9 @@ func (*Attachment) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case attachment.FieldID:
 			values[i] = new(uuid.UUID)
-		case attachment.ForeignKeys[0]: // user_attachment
+		case attachment.ForeignKeys[0]: // pet_attachment
+			values[i] = new(sql.NullInt64)
+		case attachment.ForeignKeys[1]: // user_attachment
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
@@ -88,6 +91,13 @@ func (a *Attachment) assignValues(columns []string, values []interface{}) error 
 				a.ID = *value
 			}
 		case attachment.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field pet_attachment", value)
+			} else if value.Valid {
+				a.pet_attachment = new(int)
+				*a.pet_attachment = int(value.Int64)
+			}
+		case attachment.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_attachment", value)
 			} else if value.Valid {

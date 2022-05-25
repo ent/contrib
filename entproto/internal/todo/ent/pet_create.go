@@ -6,10 +6,12 @@ import (
 	"context"
 	"fmt"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // PetCreate is the builder for creating a Pet entity.
@@ -36,6 +38,21 @@ func (pc *PetCreate) SetNillableOwnerID(id *int) *PetCreate {
 // SetOwner sets the "owner" edge to the User entity.
 func (pc *PetCreate) SetOwner(u *User) *PetCreate {
 	return pc.SetOwnerID(u.ID)
+}
+
+// AddAttachmentIDs adds the "attachment" edge to the Attachment entity by IDs.
+func (pc *PetCreate) AddAttachmentIDs(ids ...uuid.UUID) *PetCreate {
+	pc.mutation.AddAttachmentIDs(ids...)
+	return pc
+}
+
+// AddAttachment adds the "attachment" edges to the Attachment entity.
+func (pc *PetCreate) AddAttachment(a ...*Attachment) *PetCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return pc.AddAttachmentIDs(ids...)
 }
 
 // Mutation returns the PetMutation object of the builder.
@@ -159,6 +176,25 @@ func (pc *PetCreate) createSpec() (*Pet, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_pet = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.AttachmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   pet.AttachmentTable,
+			Columns: []string{pet.AttachmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: attachment.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
