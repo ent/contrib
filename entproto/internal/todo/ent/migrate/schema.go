@@ -11,6 +11,7 @@ var (
 	// AttachmentsColumns holds the columns for the "attachments" table.
 	AttachmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "pet_attachment", Type: field.TypeInt, Nullable: true},
 		{Name: "user_attachment", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
@@ -20,8 +21,14 @@ var (
 		PrimaryKey: []*schema.Column{AttachmentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "attachments_users_attachment",
+				Symbol:     "attachments_pets_attachment",
 				Columns:    []*schema.Column{AttachmentsColumns[1]},
+				RefColumns: []*schema.Column{PetsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "attachments_users_attachment",
+				Columns:    []*schema.Column{AttachmentsColumns[2]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -210,7 +217,8 @@ var (
 )
 
 func init() {
-	AttachmentsTable.ForeignKeys[0].RefTable = UsersTable
+	AttachmentsTable.ForeignKeys[0].RefTable = PetsTable
+	AttachmentsTable.ForeignKeys[1].RefTable = UsersTable
 	PetsTable.ForeignKeys[0].RefTable = UsersTable
 	SkipEdgeExamplesTable.ForeignKeys[0].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable

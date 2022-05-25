@@ -26,9 +26,11 @@ type Pet struct {
 type PetEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// Attachment holds the value of the attachment edge.
+	Attachment []*Attachment `json:"attachment,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -43,6 +45,15 @@ func (e PetEdges) OwnerOrErr() (*User, error) {
 		return e.Owner, nil
 	}
 	return nil, &NotLoadedError{edge: "owner"}
+}
+
+// AttachmentOrErr returns the Attachment value or an error if the edge
+// was not loaded in eager-loading.
+func (e PetEdges) AttachmentOrErr() ([]*Attachment, error) {
+	if e.loadedTypes[1] {
+		return e.Attachment, nil
+	}
+	return nil, &NotLoadedError{edge: "attachment"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -90,6 +101,11 @@ func (pe *Pet) assignValues(columns []string, values []interface{}) error {
 // QueryOwner queries the "owner" edge of the Pet entity.
 func (pe *Pet) QueryOwner() *UserQuery {
 	return (&PetClient{config: pe.config}).QueryOwner(pe)
+}
+
+// QueryAttachment queries the "attachment" edge of the Pet entity.
+func (pe *Pet) QueryAttachment() *AttachmentQuery {
+	return (&PetClient{config: pe.config}).QueryAttachment(pe)
 }
 
 // Update returns a builder for updating this Pet.

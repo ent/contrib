@@ -89,3 +89,10 @@ func (suite *AdapterTestSuite) TestReferenced() {
 	require.NotNil(auth)
 	require.EqualValues(auth.ReferencedPbType.GetName(), "User")
 }
+
+func (suite *AdapterTestSuite) TestNoBackref() {
+	require := suite.Require()
+	mp, err := suite.adapter.FieldMap("NoBackref")
+	require.NoError(err)
+	require.Equal("Id", mp.Edges()[0].EdgeIDPbStructField())
+}

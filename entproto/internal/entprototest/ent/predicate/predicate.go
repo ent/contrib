@@ -51,6 +51,9 @@ type MessageWithPackageName func(*sql.Selector)
 // MessageWithStrings is the predicate function for messagewithstrings builders.
 type MessageWithStrings func(*sql.Selector)
 
+// NoBackref is the predicate function for nobackref builders.
+type NoBackref func(*sql.Selector)
+
 // OneMethodService is the predicate function for onemethodservice builders.
 type OneMethodService func(*sql.Selector)
 

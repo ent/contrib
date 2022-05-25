@@ -689,6 +689,22 @@ func (c *PetClient) QueryOwner(pe *Pet) *UserQuery {
 	return query
 }
 
+// QueryAttachment queries the attachment edge of a Pet.
+func (c *PetClient) QueryAttachment(pe *Pet) *AttachmentQuery {
+	query := &AttachmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pet.Table, pet.FieldID, id),
+			sqlgraph.To(attachment.Table, attachment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, pet.AttachmentTable, pet.AttachmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PetClient) Hooks() []Hook {
 	return c.hooks.Pet

@@ -28,6 +28,7 @@ type ImageQuery struct {
 	predicates []predicate.Image
 	// eager-loading edges.
 	withUserProfilePic *UserQuery
+	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -355,11 +356,15 @@ func (iq *ImageQuery) prepareQuery(ctx context.Context) error {
 func (iq *ImageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Image, error) {
 	var (
 		nodes       = []*Image{}
+		withFKs     = iq.withFKs
 		_spec       = iq.querySpec()
 		loadedTypes = [1]bool{
 			iq.withUserProfilePic != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, image.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		return (*Image).scanValues(nil, columns)
 	}

@@ -6,10 +6,12 @@ import (
 	base64 "encoding/base64"
 	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
+	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	pet "entgo.io/contrib/entproto/internal/todo/ent/pet"
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
+	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -34,6 +36,15 @@ func toProtoPet(e *ent.Pet) (*Pet, error) {
 	v := &Pet{}
 	id := int64(e.ID)
 	v.Id = id
+	for _, edg := range e.Edges.Attachment {
+		id, err := edg.ID.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		v.Attachment = append(v.Attachment, &Attachment{
+			Id: id,
+		})
+	}
 	if edg := e.Edges.Owner; edg != nil {
 		id := int64(edg.ID)
 		v.Owner = &User{
@@ -94,6 +105,9 @@ func (svc *PetService) Get(ctx context.Context, req *GetPetRequest) (*Pet, error
 	case GetPetRequest_WITH_EDGE_IDS:
 		get, err = svc.client.Pet.Query().
 			Where(pet.ID(id)).
+			WithAttachment(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
 			WithOwner(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
@@ -117,6 +131,13 @@ func (svc *PetService) Update(ctx context.Context, req *UpdatePetRequest) (*Pet,
 	pet := req.GetPet()
 	petID := int(pet.GetId())
 	m := svc.client.Pet.UpdateOneID(petID)
+	for _, item := range pet.GetAttachment() {
+		var attachment uuid.UUID
+		if err := (&attachment).UnmarshalBinary(item.GetId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.AddAttachmentIDs(attachment)
+	}
 	if pet.GetOwner() != nil {
 		petOwner := int(pet.GetOwner().GetId())
 		m.SetOwnerID(petOwner)
@@ -191,6 +212,9 @@ func (svc *PetService) List(ctx context.Context, req *ListPetRequest) (*ListPetR
 		entList, err = listQuery.All(ctx)
 	case ListPetRequest_WITH_EDGE_IDS:
 		entList, err = listQuery.
+			WithAttachment(func(query *ent.AttachmentQuery) {
+				query.Select(attachment.FieldID)
+			}).
 			WithOwner(func(query *ent.UserQuery) {
 				query.Select(user.FieldID)
 			}).
@@ -255,6 +279,13 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 
 func (svc *PetService) createBuilder(pet *Pet) (*ent.PetCreate, error) {
 	m := svc.client.Pet.Create()
+	for _, item := range pet.GetAttachment() {
+		var attachment uuid.UUID
+		if err := (&attachment).UnmarshalBinary(item.GetId()); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
+		}
+		m.AddAttachmentIDs(attachment)
+	}
 	if pet.GetOwner() != nil {
 		petOwner := int(pet.GetOwner().GetId())
 		m.SetOwnerID(petOwner)

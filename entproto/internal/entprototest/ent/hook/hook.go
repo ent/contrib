@@ -204,6 +204,19 @@ func (f MessageWithStringsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return f(ctx, mv)
 }
 
+// The NoBackrefFunc type is an adapter to allow the use of ordinary
+// function as NoBackref mutator.
+type NoBackrefFunc func(context.Context, *ent.NoBackrefMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NoBackrefFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.NoBackrefMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NoBackrefMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The OneMethodServiceFunc type is an adapter to allow the use of ordinary
 // function as OneMethodService mutator.
 type OneMethodServiceFunc func(context.Context, *ent.OneMethodServiceMutation) (ent.Value, error)
