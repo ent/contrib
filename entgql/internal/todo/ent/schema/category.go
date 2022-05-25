@@ -43,6 +43,9 @@ func (Category) Fields() []ent.Field {
 			NamedValues(
 				"Enabled", "ENABLED",
 				"Disabled", "DISABLED",
+			).
+			Annotations(
+				entgql.Type("CategoryStatus"),
 			),
 		field.Other("config", &schematype.CategoryConfig{}).
 			SchemaType(map[string]string{

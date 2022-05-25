@@ -17,6 +17,7 @@ package entgql
 import (
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -155,6 +156,9 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 				return err
 			}
 			if def != nil {
+				if s.Types[def.Name] != nil {
+					return fmt.Errorf("found the GQL type conflict for the node %s, please use the entgql.Type() annotation to rename the GQL type", node.Name)
+				}
 				s.AddTypes(def)
 			}
 		}
@@ -178,6 +182,11 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 						return err
 					}
 					if def != nil {
+						if s.Types[def.Name] != nil {
+							log.Println(fmt.Sprintf("entgql: the %s.%s field uses the previously defined GQL type: %s",
+								node.Name, f.Name, def.Name))
+							continue
+						}
 						s.AddTypes(def)
 					}
 				}
