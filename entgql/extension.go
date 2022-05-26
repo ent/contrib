@@ -134,6 +134,14 @@ func WithWhereInputs(b bool) ExtensionOption {
 	}
 }
 
+// WithRelaySpec enables or disables generating the Relay Node interface.
+func WithRelaySpec(enabled bool) ExtensionOption {
+	return func(e *Extension) error {
+		e.relaySpec = enabled
+		return nil
+	}
+}
+
 // WithSchemaGenerator add a hook for generate GQL schema
 func WithSchemaGenerator() ExtensionOption {
 	return func(e *Extension) error {
