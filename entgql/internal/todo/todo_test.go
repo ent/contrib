@@ -522,7 +522,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 
 func (s *todoTestSuite) TestPaginationFiltering() {
 	const (
-		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $status: Status, $hasParent: Boolean, $hasCategory: Boolean) {
+		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $status: TodoStatus, $hasParent: Boolean, $hasCategory: Boolean) {
 			todos(after: $after, first: $first, before: $before, last: $last, where: {status: $status, hasParent: $hasParent, hasCategory: $hasCategory}) {
 				totalCount
 				edges {
