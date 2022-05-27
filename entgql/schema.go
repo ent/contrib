@@ -155,6 +155,9 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 				return err
 			}
 			if def != nil {
+				if s.Types[def.Name] != nil {
+					return fmt.Errorf("found the GQL type conflict for the node %s, please use the entgql.Type() annotation to rename the GQL type", node.Name)
+				}
 				s.AddTypes(def)
 			}
 		}
@@ -169,7 +172,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					continue
 				}
 				if f.IsEnum() {
-					gqlType := e.mapScalar(f, ant, nonInputObjectFilter)
+					gqlType := e.mapScalar(gqlType, f, ant, nonInputObjectFilter)
 					if gqlType == "" {
 						return errors.New("unable to map enum field " + f.Name)
 					}
@@ -178,6 +181,9 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 						return err
 					}
 					if def != nil {
+						if s.Types[def.Name] != nil {
+							continue
+						}
 						s.AddTypes(def)
 					}
 				}
@@ -223,7 +229,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 		}
 
 		if e.genWhereInput && !ant.Skip.Is(SkipWhereInput) {
-			def, err := e.buildWhereInput(node, names.WhereInput)
+			def, err := e.buildWhereInput(node, gqlType, names.WhereInput)
 			if err != nil {
 				return err
 			}
@@ -280,7 +286,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 			continue
 		}
 
-		f, err := e.fieldDefinition(f, ant)
+		f, err := e.fieldDefinition(gqlType, f, ant)
 		if err != nil {
 			return nil, err
 		}
@@ -427,7 +433,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 }
 
 // buildWhereInput returns the a <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
-func (e *schemaGenerator) buildWhereInput(t *gen.Type, gqlType string) (*ast.Definition, error) {
+func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType string) (*ast.Definition, error) {
 	def := &ast.Definition{
 		Name:        gqlType,
 		Kind:        ast.InputObject,
@@ -457,7 +463,7 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, gqlType string) (*ast.Def
 			continue
 		}
 		for i, op := range f.Ops() {
-			fd := e.fieldDefinitionOp(f, ant, op)
+			fd := e.fieldDefinitionOp(nodeGQLType, f, ant, op)
 			if i == 0 {
 				fd.Description = f.Name + " field predicates"
 			}
@@ -519,7 +525,11 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 		}
 
 		for _, f := range fields {
-			scalar := e.mapScalar(f.Field, ant, inputObjectFilter)
+			ant, err := annotation(f.Annotations)
+			if err != nil {
+				return nil, err
+			}
+			scalar := e.mapScalar(gqlType, f.Field, ant, inputObjectFilter)
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
@@ -571,8 +581,8 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 	return defs, nil
 }
 
-func (e *schemaGenerator) fieldDefinition(f *gen.Field, ant *Annotation) (*ast.FieldDefinition, error) {
-	ft, err := e.typeFromField(f, ant)
+func (e *schemaGenerator) fieldDefinition(gqlType string, f *gen.Field, ant *Annotation) (*ast.FieldDefinition, error) {
+	ft, err := e.typeFromField(gqlType, f, ant)
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}
@@ -585,7 +595,7 @@ func (e *schemaGenerator) fieldDefinition(f *gen.Field, ant *Annotation) (*ast.F
 	}, nil
 }
 
-func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, ant *Annotation, op gen.Op) *ast.FieldDefinition {
+func (e *schemaGenerator) fieldDefinitionOp(gqlType string, f *gen.Field, ant *Annotation, op gen.Op) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: camel(f.Name + "_" + op.Name()),
 	}
@@ -604,15 +614,15 @@ func (e *schemaGenerator) fieldDefinitionOp(f *gen.Field, ant *Annotation, op ge
 	case op.Niladic():
 		def.Type = namedType("Boolean", true)
 	case op.Variadic():
-		def.Type = listNamedType(e.mapScalar(f, ant, inputObjectFilter), true)
+		def.Type = listNamedType(e.mapScalar(gqlType, f, ant, inputObjectFilter), true)
 	default:
-		def.Type = namedType(e.mapScalar(f, ant, inputObjectFilter), true)
+		def.Type = namedType(e.mapScalar(gqlType, f, ant, inputObjectFilter), true)
 	}
 	return def
 }
 
-func (e *schemaGenerator) typeFromField(f *gen.Field, ant *Annotation) (*ast.Type, error) {
-	if scalar := e.mapScalar(f, ant, nonInputObjectFilter); scalar != "" {
+func (e *schemaGenerator) typeFromField(gqlType string, f *gen.Field, ant *Annotation) (*ast.Type, error) {
+	if scalar := e.mapScalar(gqlType, f, ant, nonInputObjectFilter); scalar != "" {
 		return namedType(scalar, f.Optional), nil
 	}
 
@@ -627,7 +637,7 @@ func (e *schemaGenerator) typeFromField(f *gen.Field, ant *Annotation) (*ast.Typ
 }
 
 // mapScalar provides maps an ent.Schema type into GraphQL scalar type.
-func (e *schemaGenerator) mapScalar(f *gen.Field, ant *Annotation, typeFilter func(string) bool) string {
+func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotation, typeFilter func(string) bool) string {
 	if ant != nil && ant.Type != "" {
 		return ant.Type
 	}
@@ -650,6 +660,11 @@ func (e *schemaGenerator) mapScalar(f *gen.Field, ant *Annotation, typeFilter fu
 			scalar = typ
 		} else {
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		}
+		if f.IsEnum() {
+			// Use the GQL type as enum prefix. e.g. Todo.status
+			// will generate an enum named "TodoStatus".
+			scalar = gqlType + scalar
 		}
 	case t == field.TypeJSON:
 		scalar = ""
