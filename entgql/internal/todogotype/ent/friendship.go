@@ -88,9 +88,7 @@ func (*Friendship) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case friendship.FieldID:
-			values[i] = new(sql.NullInt64)
-		case friendship.FieldUserID, friendship.FieldFriendID:
+		case friendship.FieldID, friendship.FieldUserID, friendship.FieldFriendID:
 			values[i] = new(sql.NullString)
 		case friendship.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -110,11 +108,11 @@ func (f *Friendship) assignValues(columns []string, values []interface{}) error 
 	for i := range columns {
 		switch columns[i] {
 		case friendship.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				f.ID = value.String
 			}
-			f.ID = string(value.Int64)
 		case friendship.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])

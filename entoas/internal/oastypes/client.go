@@ -138,7 +138,7 @@ func (c *OASTypesClient) Use(hooks ...Hook) {
 	c.hooks.OASTypes = append(c.hooks.OASTypes, hooks...)
 }
 
-// Create returns a create builder for OASTypes.
+// Create returns a builder for creating a OASTypes entity.
 func (c *OASTypesClient) Create() *OASTypesCreate {
 	mutation := newOASTypesMutation(c.config, OpCreate)
 	return &OASTypesCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -173,12 +173,12 @@ func (c *OASTypesClient) Delete() *OASTypesDelete {
 	return &OASTypesDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *OASTypesClient) DeleteOne(ot *OASTypes) *OASTypesDeleteOne {
 	return c.DeleteOneID(ot.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *OASTypesClient) DeleteOneID(id int) *OASTypesDeleteOne {
 	builder := c.Delete().Where(oastypes.ID(id))
 	builder.mutation.id = &id

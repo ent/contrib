@@ -182,8 +182,13 @@ func (fc *FriendshipCreate) sqlSave(ctx context.Context) (*Friendship, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = string(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Friendship.ID type: %T", _spec.ID.Value)
+		}
+	}
 	return _node, nil
 }
 
@@ -290,10 +295,6 @@ func (fcb *FriendshipCreateBulk) Save(ctx context.Context) ([]*Friendship, error
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = string(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

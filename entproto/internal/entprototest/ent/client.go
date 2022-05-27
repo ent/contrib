@@ -287,7 +287,7 @@ func (c *AllMethodsServiceClient) Use(hooks ...Hook) {
 	c.hooks.AllMethodsService = append(c.hooks.AllMethodsService, hooks...)
 }
 
-// Create returns a create builder for AllMethodsService.
+// Create returns a builder for creating a AllMethodsService entity.
 func (c *AllMethodsServiceClient) Create() *AllMethodsServiceCreate {
 	mutation := newAllMethodsServiceMutation(c.config, OpCreate)
 	return &AllMethodsServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -322,12 +322,12 @@ func (c *AllMethodsServiceClient) Delete() *AllMethodsServiceDelete {
 	return &AllMethodsServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *AllMethodsServiceClient) DeleteOne(ams *AllMethodsService) *AllMethodsServiceDeleteOne {
 	return c.DeleteOneID(ams.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *AllMethodsServiceClient) DeleteOneID(id int) *AllMethodsServiceDeleteOne {
 	builder := c.Delete().Where(allmethodsservice.ID(id))
 	builder.mutation.id = &id
@@ -377,7 +377,7 @@ func (c *BlogPostClient) Use(hooks ...Hook) {
 	c.hooks.BlogPost = append(c.hooks.BlogPost, hooks...)
 }
 
-// Create returns a create builder for BlogPost.
+// Create returns a builder for creating a BlogPost entity.
 func (c *BlogPostClient) Create() *BlogPostCreate {
 	mutation := newBlogPostMutation(c.config, OpCreate)
 	return &BlogPostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -412,12 +412,12 @@ func (c *BlogPostClient) Delete() *BlogPostDelete {
 	return &BlogPostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *BlogPostClient) DeleteOne(bp *BlogPost) *BlogPostDeleteOne {
 	return c.DeleteOneID(bp.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *BlogPostClient) DeleteOneID(id int) *BlogPostDeleteOne {
 	builder := c.Delete().Where(blogpost.ID(id))
 	builder.mutation.id = &id
@@ -499,7 +499,7 @@ func (c *CategoryClient) Use(hooks ...Hook) {
 	c.hooks.Category = append(c.hooks.Category, hooks...)
 }
 
-// Create returns a create builder for Category.
+// Create returns a builder for creating a Category entity.
 func (c *CategoryClient) Create() *CategoryCreate {
 	mutation := newCategoryMutation(c.config, OpCreate)
 	return &CategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -534,12 +534,12 @@ func (c *CategoryClient) Delete() *CategoryDelete {
 	return &CategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -605,7 +605,7 @@ func (c *DependsOnSkippedClient) Use(hooks ...Hook) {
 	c.hooks.DependsOnSkipped = append(c.hooks.DependsOnSkipped, hooks...)
 }
 
-// Create returns a create builder for DependsOnSkipped.
+// Create returns a builder for creating a DependsOnSkipped entity.
 func (c *DependsOnSkippedClient) Create() *DependsOnSkippedCreate {
 	mutation := newDependsOnSkippedMutation(c.config, OpCreate)
 	return &DependsOnSkippedCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -640,12 +640,12 @@ func (c *DependsOnSkippedClient) Delete() *DependsOnSkippedDelete {
 	return &DependsOnSkippedDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *DependsOnSkippedClient) DeleteOne(dos *DependsOnSkipped) *DependsOnSkippedDeleteOne {
 	return c.DeleteOneID(dos.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *DependsOnSkippedClient) DeleteOneID(id int) *DependsOnSkippedDeleteOne {
 	builder := c.Delete().Where(dependsonskipped.ID(id))
 	builder.mutation.id = &id
@@ -711,7 +711,7 @@ func (c *DuplicateNumberMessageClient) Use(hooks ...Hook) {
 	c.hooks.DuplicateNumberMessage = append(c.hooks.DuplicateNumberMessage, hooks...)
 }
 
-// Create returns a create builder for DuplicateNumberMessage.
+// Create returns a builder for creating a DuplicateNumberMessage entity.
 func (c *DuplicateNumberMessageClient) Create() *DuplicateNumberMessageCreate {
 	mutation := newDuplicateNumberMessageMutation(c.config, OpCreate)
 	return &DuplicateNumberMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -746,12 +746,12 @@ func (c *DuplicateNumberMessageClient) Delete() *DuplicateNumberMessageDelete {
 	return &DuplicateNumberMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *DuplicateNumberMessageClient) DeleteOne(dnm *DuplicateNumberMessage) *DuplicateNumberMessageDeleteOne {
 	return c.DeleteOneID(dnm.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *DuplicateNumberMessageClient) DeleteOneID(id int) *DuplicateNumberMessageDeleteOne {
 	builder := c.Delete().Where(duplicatenumbermessage.ID(id))
 	builder.mutation.id = &id
@@ -801,7 +801,7 @@ func (c *ExplicitSkippedMessageClient) Use(hooks ...Hook) {
 	c.hooks.ExplicitSkippedMessage = append(c.hooks.ExplicitSkippedMessage, hooks...)
 }
 
-// Create returns a create builder for ExplicitSkippedMessage.
+// Create returns a builder for creating a ExplicitSkippedMessage entity.
 func (c *ExplicitSkippedMessageClient) Create() *ExplicitSkippedMessageCreate {
 	mutation := newExplicitSkippedMessageMutation(c.config, OpCreate)
 	return &ExplicitSkippedMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -836,12 +836,12 @@ func (c *ExplicitSkippedMessageClient) Delete() *ExplicitSkippedMessageDelete {
 	return &ExplicitSkippedMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *ExplicitSkippedMessageClient) DeleteOne(esm *ExplicitSkippedMessage) *ExplicitSkippedMessageDeleteOne {
 	return c.DeleteOneID(esm.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *ExplicitSkippedMessageClient) DeleteOneID(id int) *ExplicitSkippedMessageDeleteOne {
 	builder := c.Delete().Where(explicitskippedmessage.ID(id))
 	builder.mutation.id = &id
@@ -891,7 +891,7 @@ func (c *ImageClient) Use(hooks ...Hook) {
 	c.hooks.Image = append(c.hooks.Image, hooks...)
 }
 
-// Create returns a create builder for Image.
+// Create returns a builder for creating a Image entity.
 func (c *ImageClient) Create() *ImageCreate {
 	mutation := newImageMutation(c.config, OpCreate)
 	return &ImageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -926,12 +926,12 @@ func (c *ImageClient) Delete() *ImageDelete {
 	return &ImageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *ImageClient) DeleteOne(i *Image) *ImageDeleteOne {
 	return c.DeleteOneID(i.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *ImageClient) DeleteOneID(id uuid.UUID) *ImageDeleteOne {
 	builder := c.Delete().Where(image.ID(id))
 	builder.mutation.id = &id
@@ -997,7 +997,7 @@ func (c *ImplicitSkippedMessageClient) Use(hooks ...Hook) {
 	c.hooks.ImplicitSkippedMessage = append(c.hooks.ImplicitSkippedMessage, hooks...)
 }
 
-// Create returns a create builder for ImplicitSkippedMessage.
+// Create returns a builder for creating a ImplicitSkippedMessage entity.
 func (c *ImplicitSkippedMessageClient) Create() *ImplicitSkippedMessageCreate {
 	mutation := newImplicitSkippedMessageMutation(c.config, OpCreate)
 	return &ImplicitSkippedMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1032,12 +1032,12 @@ func (c *ImplicitSkippedMessageClient) Delete() *ImplicitSkippedMessageDelete {
 	return &ImplicitSkippedMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *ImplicitSkippedMessageClient) DeleteOne(ism *ImplicitSkippedMessage) *ImplicitSkippedMessageDeleteOne {
 	return c.DeleteOneID(ism.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *ImplicitSkippedMessageClient) DeleteOneID(id int) *ImplicitSkippedMessageDeleteOne {
 	builder := c.Delete().Where(implicitskippedmessage.ID(id))
 	builder.mutation.id = &id
@@ -1087,7 +1087,7 @@ func (c *InvalidFieldMessageClient) Use(hooks ...Hook) {
 	c.hooks.InvalidFieldMessage = append(c.hooks.InvalidFieldMessage, hooks...)
 }
 
-// Create returns a create builder for InvalidFieldMessage.
+// Create returns a builder for creating a InvalidFieldMessage entity.
 func (c *InvalidFieldMessageClient) Create() *InvalidFieldMessageCreate {
 	mutation := newInvalidFieldMessageMutation(c.config, OpCreate)
 	return &InvalidFieldMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1122,12 +1122,12 @@ func (c *InvalidFieldMessageClient) Delete() *InvalidFieldMessageDelete {
 	return &InvalidFieldMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *InvalidFieldMessageClient) DeleteOne(ifm *InvalidFieldMessage) *InvalidFieldMessageDeleteOne {
 	return c.DeleteOneID(ifm.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *InvalidFieldMessageClient) DeleteOneID(id int) *InvalidFieldMessageDeleteOne {
 	builder := c.Delete().Where(invalidfieldmessage.ID(id))
 	builder.mutation.id = &id
@@ -1177,7 +1177,7 @@ func (c *MessageWithEnumClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithEnum = append(c.hooks.MessageWithEnum, hooks...)
 }
 
-// Create returns a create builder for MessageWithEnum.
+// Create returns a builder for creating a MessageWithEnum entity.
 func (c *MessageWithEnumClient) Create() *MessageWithEnumCreate {
 	mutation := newMessageWithEnumMutation(c.config, OpCreate)
 	return &MessageWithEnumCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1212,12 +1212,12 @@ func (c *MessageWithEnumClient) Delete() *MessageWithEnumDelete {
 	return &MessageWithEnumDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageWithEnumClient) DeleteOne(mwe *MessageWithEnum) *MessageWithEnumDeleteOne {
 	return c.DeleteOneID(mwe.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageWithEnumClient) DeleteOneID(id int) *MessageWithEnumDeleteOne {
 	builder := c.Delete().Where(messagewithenum.ID(id))
 	builder.mutation.id = &id
@@ -1267,7 +1267,7 @@ func (c *MessageWithFieldOneClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithFieldOne = append(c.hooks.MessageWithFieldOne, hooks...)
 }
 
-// Create returns a create builder for MessageWithFieldOne.
+// Create returns a builder for creating a MessageWithFieldOne entity.
 func (c *MessageWithFieldOneClient) Create() *MessageWithFieldOneCreate {
 	mutation := newMessageWithFieldOneMutation(c.config, OpCreate)
 	return &MessageWithFieldOneCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1302,12 +1302,12 @@ func (c *MessageWithFieldOneClient) Delete() *MessageWithFieldOneDelete {
 	return &MessageWithFieldOneDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageWithFieldOneClient) DeleteOne(mwfo *MessageWithFieldOne) *MessageWithFieldOneDeleteOne {
 	return c.DeleteOneID(mwfo.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageWithFieldOneClient) DeleteOneID(id int) *MessageWithFieldOneDeleteOne {
 	builder := c.Delete().Where(messagewithfieldone.ID(id))
 	builder.mutation.id = &id
@@ -1357,7 +1357,7 @@ func (c *MessageWithIDClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithID = append(c.hooks.MessageWithID, hooks...)
 }
 
-// Create returns a create builder for MessageWithID.
+// Create returns a builder for creating a MessageWithID entity.
 func (c *MessageWithIDClient) Create() *MessageWithIDCreate {
 	mutation := newMessageWithIDMutation(c.config, OpCreate)
 	return &MessageWithIDCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1392,12 +1392,12 @@ func (c *MessageWithIDClient) Delete() *MessageWithIDDelete {
 	return &MessageWithIDDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageWithIDClient) DeleteOne(mwi *MessageWithID) *MessageWithIDDeleteOne {
 	return c.DeleteOneID(mwi.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageWithIDClient) DeleteOneID(id int32) *MessageWithIDDeleteOne {
 	builder := c.Delete().Where(messagewithid.ID(id))
 	builder.mutation.id = &id
@@ -1447,7 +1447,7 @@ func (c *MessageWithOptionalsClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithOptionals = append(c.hooks.MessageWithOptionals, hooks...)
 }
 
-// Create returns a create builder for MessageWithOptionals.
+// Create returns a builder for creating a MessageWithOptionals entity.
 func (c *MessageWithOptionalsClient) Create() *MessageWithOptionalsCreate {
 	mutation := newMessageWithOptionalsMutation(c.config, OpCreate)
 	return &MessageWithOptionalsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1482,12 +1482,12 @@ func (c *MessageWithOptionalsClient) Delete() *MessageWithOptionalsDelete {
 	return &MessageWithOptionalsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageWithOptionalsClient) DeleteOne(mwo *MessageWithOptionals) *MessageWithOptionalsDeleteOne {
 	return c.DeleteOneID(mwo.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageWithOptionalsClient) DeleteOneID(id int) *MessageWithOptionalsDeleteOne {
 	builder := c.Delete().Where(messagewithoptionals.ID(id))
 	builder.mutation.id = &id
@@ -1537,7 +1537,7 @@ func (c *MessageWithPackageNameClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithPackageName = append(c.hooks.MessageWithPackageName, hooks...)
 }
 
-// Create returns a create builder for MessageWithPackageName.
+// Create returns a builder for creating a MessageWithPackageName entity.
 func (c *MessageWithPackageNameClient) Create() *MessageWithPackageNameCreate {
 	mutation := newMessageWithPackageNameMutation(c.config, OpCreate)
 	return &MessageWithPackageNameCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1572,12 +1572,12 @@ func (c *MessageWithPackageNameClient) Delete() *MessageWithPackageNameDelete {
 	return &MessageWithPackageNameDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageWithPackageNameClient) DeleteOne(mwpn *MessageWithPackageName) *MessageWithPackageNameDeleteOne {
 	return c.DeleteOneID(mwpn.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageWithPackageNameClient) DeleteOneID(id int) *MessageWithPackageNameDeleteOne {
 	builder := c.Delete().Where(messagewithpackagename.ID(id))
 	builder.mutation.id = &id
@@ -1627,7 +1627,7 @@ func (c *MessageWithStringsClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithStrings = append(c.hooks.MessageWithStrings, hooks...)
 }
 
-// Create returns a create builder for MessageWithStrings.
+// Create returns a builder for creating a MessageWithStrings entity.
 func (c *MessageWithStringsClient) Create() *MessageWithStringsCreate {
 	mutation := newMessageWithStringsMutation(c.config, OpCreate)
 	return &MessageWithStringsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1662,12 +1662,12 @@ func (c *MessageWithStringsClient) Delete() *MessageWithStringsDelete {
 	return &MessageWithStringsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageWithStringsClient) DeleteOne(mws *MessageWithStrings) *MessageWithStringsDeleteOne {
 	return c.DeleteOneID(mws.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageWithStringsClient) DeleteOneID(id int) *MessageWithStringsDeleteOne {
 	builder := c.Delete().Where(messagewithstrings.ID(id))
 	builder.mutation.id = &id
@@ -1717,7 +1717,7 @@ func (c *NoBackrefClient) Use(hooks ...Hook) {
 	c.hooks.NoBackref = append(c.hooks.NoBackref, hooks...)
 }
 
-// Create returns a create builder for NoBackref.
+// Create returns a builder for creating a NoBackref entity.
 func (c *NoBackrefClient) Create() *NoBackrefCreate {
 	mutation := newNoBackrefMutation(c.config, OpCreate)
 	return &NoBackrefCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1752,12 +1752,12 @@ func (c *NoBackrefClient) Delete() *NoBackrefDelete {
 	return &NoBackrefDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *NoBackrefClient) DeleteOne(nb *NoBackref) *NoBackrefDeleteOne {
 	return c.DeleteOneID(nb.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *NoBackrefClient) DeleteOneID(id int) *NoBackrefDeleteOne {
 	builder := c.Delete().Where(nobackref.ID(id))
 	builder.mutation.id = &id
@@ -1823,7 +1823,7 @@ func (c *OneMethodServiceClient) Use(hooks ...Hook) {
 	c.hooks.OneMethodService = append(c.hooks.OneMethodService, hooks...)
 }
 
-// Create returns a create builder for OneMethodService.
+// Create returns a builder for creating a OneMethodService entity.
 func (c *OneMethodServiceClient) Create() *OneMethodServiceCreate {
 	mutation := newOneMethodServiceMutation(c.config, OpCreate)
 	return &OneMethodServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1858,12 +1858,12 @@ func (c *OneMethodServiceClient) Delete() *OneMethodServiceDelete {
 	return &OneMethodServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *OneMethodServiceClient) DeleteOne(oms *OneMethodService) *OneMethodServiceDeleteOne {
 	return c.DeleteOneID(oms.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *OneMethodServiceClient) DeleteOneID(id int) *OneMethodServiceDeleteOne {
 	builder := c.Delete().Where(onemethodservice.ID(id))
 	builder.mutation.id = &id
@@ -1913,7 +1913,7 @@ func (c *PortalClient) Use(hooks ...Hook) {
 	c.hooks.Portal = append(c.hooks.Portal, hooks...)
 }
 
-// Create returns a create builder for Portal.
+// Create returns a builder for creating a Portal entity.
 func (c *PortalClient) Create() *PortalCreate {
 	mutation := newPortalMutation(c.config, OpCreate)
 	return &PortalCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -1948,12 +1948,12 @@ func (c *PortalClient) Delete() *PortalDelete {
 	return &PortalDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *PortalClient) DeleteOne(po *Portal) *PortalDeleteOne {
 	return c.DeleteOneID(po.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *PortalClient) DeleteOneID(id int) *PortalDeleteOne {
 	builder := c.Delete().Where(portal.ID(id))
 	builder.mutation.id = &id
@@ -2019,7 +2019,7 @@ func (c *SkipEdgeExampleClient) Use(hooks ...Hook) {
 	c.hooks.SkipEdgeExample = append(c.hooks.SkipEdgeExample, hooks...)
 }
 
-// Create returns a create builder for SkipEdgeExample.
+// Create returns a builder for creating a SkipEdgeExample entity.
 func (c *SkipEdgeExampleClient) Create() *SkipEdgeExampleCreate {
 	mutation := newSkipEdgeExampleMutation(c.config, OpCreate)
 	return &SkipEdgeExampleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -2054,12 +2054,12 @@ func (c *SkipEdgeExampleClient) Delete() *SkipEdgeExampleDelete {
 	return &SkipEdgeExampleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *SkipEdgeExampleClient) DeleteOne(see *SkipEdgeExample) *SkipEdgeExampleDeleteOne {
 	return c.DeleteOneID(see.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *SkipEdgeExampleClient) DeleteOneID(id int) *SkipEdgeExampleDeleteOne {
 	builder := c.Delete().Where(skipedgeexample.ID(id))
 	builder.mutation.id = &id
@@ -2125,7 +2125,7 @@ func (c *TwoMethodServiceClient) Use(hooks ...Hook) {
 	c.hooks.TwoMethodService = append(c.hooks.TwoMethodService, hooks...)
 }
 
-// Create returns a create builder for TwoMethodService.
+// Create returns a builder for creating a TwoMethodService entity.
 func (c *TwoMethodServiceClient) Create() *TwoMethodServiceCreate {
 	mutation := newTwoMethodServiceMutation(c.config, OpCreate)
 	return &TwoMethodServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -2160,12 +2160,12 @@ func (c *TwoMethodServiceClient) Delete() *TwoMethodServiceDelete {
 	return &TwoMethodServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TwoMethodServiceClient) DeleteOne(tms *TwoMethodService) *TwoMethodServiceDeleteOne {
 	return c.DeleteOneID(tms.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TwoMethodServiceClient) DeleteOneID(id int) *TwoMethodServiceDeleteOne {
 	builder := c.Delete().Where(twomethodservice.ID(id))
 	builder.mutation.id = &id
@@ -2215,7 +2215,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Create returns a create builder for User.
+// Create returns a builder for creating a User entity.
 func (c *UserClient) Create() *UserCreate {
 	mutation := newUserMutation(c.config, OpCreate)
 	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -2250,12 +2250,12 @@ func (c *UserClient) Delete() *UserDelete {
 	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -2353,7 +2353,7 @@ func (c *ValidMessageClient) Use(hooks ...Hook) {
 	c.hooks.ValidMessage = append(c.hooks.ValidMessage, hooks...)
 }
 
-// Create returns a create builder for ValidMessage.
+// Create returns a builder for creating a ValidMessage entity.
 func (c *ValidMessageClient) Create() *ValidMessageCreate {
 	mutation := newValidMessageMutation(c.config, OpCreate)
 	return &ValidMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -2388,12 +2388,12 @@ func (c *ValidMessageClient) Delete() *ValidMessageDelete {
 	return &ValidMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *ValidMessageClient) DeleteOne(vm *ValidMessage) *ValidMessageDeleteOne {
 	return c.DeleteOneID(vm.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *ValidMessageClient) DeleteOneID(id int) *ValidMessageDeleteOne {
 	builder := c.Delete().Where(validmessage.ID(id))
 	builder.mutation.id = &id

@@ -80,8 +80,8 @@ func (a *Attachment) Unwrap() *Attachment {
 func (a *Attachment) String() string {
 	var builder strings.Builder
 	builder.WriteString("Attachment(")
-	builder.WriteString(fmt.Sprintf("id=%v", a.ID))
-	builder.WriteString(", contents=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
+	builder.WriteString("contents=")
 	builder.WriteString(a.Contents)
 	builder.WriteByte(')')
 	return builder.String()

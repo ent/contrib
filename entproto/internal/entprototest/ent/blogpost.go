@@ -156,12 +156,14 @@ func (bp *BlogPost) Unwrap() *BlogPost {
 func (bp *BlogPost) String() string {
 	var builder strings.Builder
 	builder.WriteString("BlogPost(")
-	builder.WriteString(fmt.Sprintf("id=%v", bp.ID))
-	builder.WriteString(", title=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", bp.ID))
+	builder.WriteString("title=")
 	builder.WriteString(bp.Title)
-	builder.WriteString(", body=")
+	builder.WriteString(", ")
+	builder.WriteString("body=")
 	builder.WriteString(bp.Body)
-	builder.WriteString(", external_id=")
+	builder.WriteString(", ")
+	builder.WriteString("external_id=")
 	builder.WriteString(fmt.Sprintf("%v", bp.ExternalID))
 	builder.WriteByte(')')
 	return builder.String()

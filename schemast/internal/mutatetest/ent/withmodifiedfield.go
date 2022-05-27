@@ -124,8 +124,8 @@ func (wmf *WithModifiedField) Unwrap() *WithModifiedField {
 func (wmf *WithModifiedField) String() string {
 	var builder strings.Builder
 	builder.WriteString("WithModifiedField(")
-	builder.WriteString(fmt.Sprintf("id=%v", wmf.ID))
-	builder.WriteString(", name=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", wmf.ID))
+	builder.WriteString("name=")
 	builder.WriteString(wmf.Name)
 	builder.WriteByte(')')
 	return builder.String()

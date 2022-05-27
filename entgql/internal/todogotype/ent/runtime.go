@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
@@ -45,6 +46,12 @@ func init() {
 	categoryDescID := categoryFields[0].Descriptor()
 	// category.DefaultID holds the default value on creation for the id field.
 	category.DefaultID = categoryDescID.Default.(func() bigintgql.BigInt)
+	friendshipFields := schema.Friendship{}.Fields()
+	_ = friendshipFields
+	// friendshipDescCreatedAt is the schema descriptor for created_at field.
+	friendshipDescCreatedAt := friendshipFields[0].Descriptor()
+	// friendship.DefaultCreatedAt holds the default value on creation for the created_at field.
+	friendship.DefaultCreatedAt = friendshipDescCreatedAt.Default.(func() time.Time)
 	groupFields := schema.Group{}.Fields()
 	_ = groupFields
 	// groupDescName is the schema descriptor for name field.

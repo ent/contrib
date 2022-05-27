@@ -167,7 +167,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Create returns a create builder for User.
+// Create returns a builder for creating a User entity.
 func (c *UserClient) Create() *UserCreate {
 	mutation := newUserMutation(c.config, OpCreate)
 	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -202,12 +202,12 @@ func (c *UserClient) Delete() *UserDelete {
 	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -257,7 +257,7 @@ func (c *WithFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithFields = append(c.hooks.WithFields, hooks...)
 }
 
-// Create returns a create builder for WithFields.
+// Create returns a builder for creating a WithFields entity.
 func (c *WithFieldsClient) Create() *WithFieldsCreate {
 	mutation := newWithFieldsMutation(c.config, OpCreate)
 	return &WithFieldsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -292,12 +292,12 @@ func (c *WithFieldsClient) Delete() *WithFieldsDelete {
 	return &WithFieldsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *WithFieldsClient) DeleteOne(wf *WithFields) *WithFieldsDeleteOne {
 	return c.DeleteOneID(wf.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *WithFieldsClient) DeleteOneID(id int) *WithFieldsDeleteOne {
 	builder := c.Delete().Where(withfields.ID(id))
 	builder.mutation.id = &id
@@ -347,7 +347,7 @@ func (c *WithModifiedFieldClient) Use(hooks ...Hook) {
 	c.hooks.WithModifiedField = append(c.hooks.WithModifiedField, hooks...)
 }
 
-// Create returns a create builder for WithModifiedField.
+// Create returns a builder for creating a WithModifiedField entity.
 func (c *WithModifiedFieldClient) Create() *WithModifiedFieldCreate {
 	mutation := newWithModifiedFieldMutation(c.config, OpCreate)
 	return &WithModifiedFieldCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -382,12 +382,12 @@ func (c *WithModifiedFieldClient) Delete() *WithModifiedFieldDelete {
 	return &WithModifiedFieldDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *WithModifiedFieldClient) DeleteOne(wmf *WithModifiedField) *WithModifiedFieldDeleteOne {
 	return c.DeleteOneID(wmf.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *WithModifiedFieldClient) DeleteOneID(id int) *WithModifiedFieldDeleteOne {
 	builder := c.Delete().Where(withmodifiedfield.ID(id))
 	builder.mutation.id = &id
@@ -453,7 +453,7 @@ func (c *WithNilFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithNilFields = append(c.hooks.WithNilFields, hooks...)
 }
 
-// Create returns a create builder for WithNilFields.
+// Create returns a builder for creating a WithNilFields entity.
 func (c *WithNilFieldsClient) Create() *WithNilFieldsCreate {
 	mutation := newWithNilFieldsMutation(c.config, OpCreate)
 	return &WithNilFieldsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -488,12 +488,12 @@ func (c *WithNilFieldsClient) Delete() *WithNilFieldsDelete {
 	return &WithNilFieldsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *WithNilFieldsClient) DeleteOne(wnf *WithNilFields) *WithNilFieldsDeleteOne {
 	return c.DeleteOneID(wnf.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *WithNilFieldsClient) DeleteOneID(id int) *WithNilFieldsDeleteOne {
 	builder := c.Delete().Where(withnilfields.ID(id))
 	builder.mutation.id = &id
@@ -543,7 +543,7 @@ func (c *WithoutFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithoutFields = append(c.hooks.WithoutFields, hooks...)
 }
 
-// Create returns a create builder for WithoutFields.
+// Create returns a builder for creating a WithoutFields entity.
 func (c *WithoutFieldsClient) Create() *WithoutFieldsCreate {
 	mutation := newWithoutFieldsMutation(c.config, OpCreate)
 	return &WithoutFieldsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -578,12 +578,12 @@ func (c *WithoutFieldsClient) Delete() *WithoutFieldsDelete {
 	return &WithoutFieldsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *WithoutFieldsClient) DeleteOne(wf *WithoutFields) *WithoutFieldsDeleteOne {
 	return c.DeleteOneID(wf.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *WithoutFieldsClient) DeleteOneID(id int) *WithoutFieldsDeleteOne {
 	builder := c.Delete().Where(withoutfields.ID(id))
 	builder.mutation.id = &id

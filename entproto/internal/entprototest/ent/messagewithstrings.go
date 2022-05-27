@@ -85,8 +85,8 @@ func (mws *MessageWithStrings) Unwrap() *MessageWithStrings {
 func (mws *MessageWithStrings) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageWithStrings(")
-	builder.WriteString(fmt.Sprintf("id=%v", mws.ID))
-	builder.WriteString(", strings=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", mws.ID))
+	builder.WriteString("strings=")
 	builder.WriteString(fmt.Sprintf("%v", mws.Strings))
 	builder.WriteByte(')')
 	return builder.String()

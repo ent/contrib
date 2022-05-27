@@ -2,8 +2,8 @@ ariga.io/atlas v0.4.2-0.20220524161107-b5b3f75b1034 h1:cjqJPtwk6LhJdYaFgLHI0OuZy
 ariga.io/atlas v0.4.2-0.20220524161107-b5b3f75b1034/go.mod h1:CKqqlJeTdRfEmnHaCcNPHg8DD6GPx1TxNPZ1NFknKHU=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-entgo.io/ent v0.10.2-0.20220526145500-f1c396a435ce h1:7v9qLiAGpfxoz5N0TEIrmwQcyGjIf/ifFlecAW4N1sA=
-entgo.io/ent v0.10.2-0.20220526145500-f1c396a435ce/go.mod h1:pevBAz5Fo4vFd4Glgi+XcNlviNLesimIjtR9QkZWBJ4=
+entgo.io/ent v0.10.2-0.20220528091257-0917701f9114 h1:BJ3c7WialDUYIM+lzdbON5UO8nWAgcccWde6AaqlK68=
+entgo.io/ent v0.10.2-0.20220528091257-0917701f9114/go.mod h1:pevBAz5Fo4vFd4Glgi+XcNlviNLesimIjtR9QkZWBJ4=
 github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90 h1:nGGP+sUJ6D3guzjVBgoH1PrZxoU4lUdfR/Q8THYrAJI=
 github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90/go.mod h1:SNpLVzaF37rRLSAXtu8FKVp5I4zycneMmFX6NT4XGSU=
 github.com/AlekSi/pointer v1.1.0 h1:SSDMPcXD9jSl8FPy9cRzoRaMJtm9g9ggGTxecRUbQoI=

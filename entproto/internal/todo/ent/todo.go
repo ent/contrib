@@ -132,10 +132,11 @@ func (t *Todo) Unwrap() *Todo {
 func (t *Todo) String() string {
 	var builder strings.Builder
 	builder.WriteString("Todo(")
-	builder.WriteString(fmt.Sprintf("id=%v", t.ID))
-	builder.WriteString(", task=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("task=")
 	builder.WriteString(t.Task)
-	builder.WriteString(", status=")
+	builder.WriteString(", ")
+	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", t.Status))
 	builder.WriteByte(')')
 	return builder.String()

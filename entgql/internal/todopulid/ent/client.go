@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
@@ -42,6 +43,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
+	// Friendship is the client for interacting with the Friendship builders.
+	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
 	// Todo is the client for interacting with the Todo builders.
@@ -64,6 +67,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Category = NewCategoryClient(c.config)
+	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -102,6 +106,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:        ctx,
 		config:     cfg,
 		Category:   NewCategoryClient(cfg),
+		Friendship: NewFriendshipClient(cfg),
 		Group:      NewGroupClient(cfg),
 		Todo:       NewTodoClient(cfg),
 		User:       NewUserClient(cfg),
@@ -126,6 +131,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:        ctx,
 		config:     cfg,
 		Category:   NewCategoryClient(cfg),
+		Friendship: NewFriendshipClient(cfg),
 		Group:      NewGroupClient(cfg),
 		Todo:       NewTodoClient(cfg),
 		User:       NewUserClient(cfg),
@@ -160,6 +166,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Category.Use(hooks...)
+	c.Friendship.Use(hooks...)
 	c.Group.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
@@ -182,7 +189,7 @@ func (c *CategoryClient) Use(hooks ...Hook) {
 	c.hooks.Category = append(c.hooks.Category, hooks...)
 }
 
-// Create returns a create builder for Category.
+// Create returns a builder for creating a Category entity.
 func (c *CategoryClient) Create() *CategoryCreate {
 	mutation := newCategoryMutation(c.config, OpCreate)
 	return &CategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -217,12 +224,12 @@ func (c *CategoryClient) Delete() *CategoryDelete {
 	return &CategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id pulid.ID) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -272,6 +279,128 @@ func (c *CategoryClient) Hooks() []Hook {
 	return c.hooks.Category
 }
 
+// FriendshipClient is a client for the Friendship schema.
+type FriendshipClient struct {
+	config
+}
+
+// NewFriendshipClient returns a client for the Friendship from the given config.
+func NewFriendshipClient(c config) *FriendshipClient {
+	return &FriendshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `friendship.Hooks(f(g(h())))`.
+func (c *FriendshipClient) Use(hooks ...Hook) {
+	c.hooks.Friendship = append(c.hooks.Friendship, hooks...)
+}
+
+// Create returns a builder for creating a Friendship entity.
+func (c *FriendshipClient) Create() *FriendshipCreate {
+	mutation := newFriendshipMutation(c.config, OpCreate)
+	return &FriendshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Friendship entities.
+func (c *FriendshipClient) CreateBulk(builders ...*FriendshipCreate) *FriendshipCreateBulk {
+	return &FriendshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Friendship.
+func (c *FriendshipClient) Update() *FriendshipUpdate {
+	mutation := newFriendshipMutation(c.config, OpUpdate)
+	return &FriendshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FriendshipClient) UpdateOne(f *Friendship) *FriendshipUpdateOne {
+	mutation := newFriendshipMutation(c.config, OpUpdateOne, withFriendship(f))
+	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FriendshipClient) UpdateOneID(id int) *FriendshipUpdateOne {
+	mutation := newFriendshipMutation(c.config, OpUpdateOne, withFriendshipID(id))
+	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Friendship.
+func (c *FriendshipClient) Delete() *FriendshipDelete {
+	mutation := newFriendshipMutation(c.config, OpDelete)
+	return &FriendshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FriendshipClient) DeleteOne(f *Friendship) *FriendshipDeleteOne {
+	return c.DeleteOneID(f.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *FriendshipClient) DeleteOneID(id int) *FriendshipDeleteOne {
+	builder := c.Delete().Where(friendship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FriendshipDeleteOne{builder}
+}
+
+// Query returns a query builder for Friendship.
+func (c *FriendshipClient) Query() *FriendshipQuery {
+	return &FriendshipQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Friendship entity by its id.
+func (c *FriendshipClient) Get(ctx context.Context, id int) (*Friendship, error) {
+	return c.Query().Where(friendship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FriendshipClient) GetX(ctx context.Context, id int) *Friendship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Friendship.
+func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(friendship.Table, friendship.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, friendship.UserTable, friendship.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFriend queries the friend edge of a Friendship.
+func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(friendship.Table, friendship.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, friendship.FriendTable, friendship.FriendColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FriendshipClient) Hooks() []Hook {
+	return c.hooks.Friendship
+}
+
 // GroupClient is a client for the Group schema.
 type GroupClient struct {
 	config
@@ -288,7 +417,7 @@ func (c *GroupClient) Use(hooks ...Hook) {
 	c.hooks.Group = append(c.hooks.Group, hooks...)
 }
 
-// Create returns a create builder for Group.
+// Create returns a builder for creating a Group entity.
 func (c *GroupClient) Create() *GroupCreate {
 	mutation := newGroupMutation(c.config, OpCreate)
 	return &GroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -323,12 +452,12 @@ func (c *GroupClient) Delete() *GroupDelete {
 	return &GroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
 	return c.DeleteOneID(gr.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *GroupClient) DeleteOneID(id pulid.ID) *GroupDeleteOne {
 	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
@@ -394,7 +523,7 @@ func (c *TodoClient) Use(hooks ...Hook) {
 	c.hooks.Todo = append(c.hooks.Todo, hooks...)
 }
 
-// Create returns a create builder for Todo.
+// Create returns a builder for creating a Todo entity.
 func (c *TodoClient) Create() *TodoCreate {
 	mutation := newTodoMutation(c.config, OpCreate)
 	return &TodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -429,12 +558,12 @@ func (c *TodoClient) Delete() *TodoDelete {
 	return &TodoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *TodoClient) DeleteOneID(id pulid.ID) *TodoDeleteOne {
 	builder := c.Delete().Where(todo.ID(id))
 	builder.mutation.id = &id
@@ -548,7 +677,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Create returns a create builder for User.
+// Create returns a builder for creating a User entity.
 func (c *UserClient) Create() *UserCreate {
 	mutation := newUserMutation(c.config, OpCreate)
 	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -583,12 +712,12 @@ func (c *UserClient) Delete() *UserDelete {
 	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id pulid.ID) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -633,6 +762,38 @@ func (c *UserClient) QueryGroups(u *User) *GroupQuery {
 	return query
 }
 
+// QueryFriends queries the friends edge of a User.
+func (c *UserClient) QueryFriends(u *User) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.FriendsTable, user.FriendsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFriendships queries the friendships edge of a User.
+func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
+	query := &FriendshipQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(friendship.Table, friendship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.FriendshipsTable, user.FriendshipsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -654,7 +815,7 @@ func (c *VerySecretClient) Use(hooks ...Hook) {
 	c.hooks.VerySecret = append(c.hooks.VerySecret, hooks...)
 }
 
-// Create returns a create builder for VerySecret.
+// Create returns a builder for creating a VerySecret entity.
 func (c *VerySecretClient) Create() *VerySecretCreate {
 	mutation := newVerySecretMutation(c.config, OpCreate)
 	return &VerySecretCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -689,12 +850,12 @@ func (c *VerySecretClient) Delete() *VerySecretDelete {
 	return &VerySecretDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *VerySecretClient) DeleteOne(vs *VerySecret) *VerySecretDeleteOne {
 	return c.DeleteOneID(vs.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *VerySecretClient) DeleteOneID(id pulid.ID) *VerySecretDeleteOne {
 	builder := c.Delete().Where(verysecret.ID(id))
 	builder.mutation.id = &id

@@ -119,8 +119,8 @@ func (i *Image) Unwrap() *Image {
 func (i *Image) String() string {
 	var builder strings.Builder
 	builder.WriteString("Image(")
-	builder.WriteString(fmt.Sprintf("id=%v", i.ID))
-	builder.WriteString(", url_path=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", i.ID))
+	builder.WriteString("url_path=")
 	builder.WriteString(i.URLPath)
 	builder.WriteByte(')')
 	return builder.String()

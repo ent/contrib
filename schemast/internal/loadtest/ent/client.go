@@ -138,7 +138,7 @@ func (c *MessageClient) Use(hooks ...Hook) {
 	c.hooks.Message = append(c.hooks.Message, hooks...)
 }
 
-// Create returns a create builder for Message.
+// Create returns a builder for creating a Message entity.
 func (c *MessageClient) Create() *MessageCreate {
 	mutation := newMessageMutation(c.config, OpCreate)
 	return &MessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
@@ -173,12 +173,12 @@ func (c *MessageClient) Delete() *MessageDelete {
 	return &MessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// DeleteOne returns a delete builder for the given entity.
+// DeleteOne returns a builder for deleting the given entity.
 func (c *MessageClient) DeleteOne(m *Message) *MessageDeleteOne {
 	return c.DeleteOneID(m.ID)
 }
 
-// DeleteOneID returns a delete builder for the given id.
+// DeleteOne returns a builder for deleting the given entity by its id.
 func (c *MessageClient) DeleteOneID(id int) *MessageDeleteOne {
 	builder := c.Delete().Where(message.ID(id))
 	builder.mutation.id = &id

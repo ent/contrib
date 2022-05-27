@@ -127,9 +127,10 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Groups func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) int
-		ID     func(childComplexity int) int
-		Name   func(childComplexity int) int
+		Friends func(childComplexity int) int
+		Groups  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) int
+		ID      func(childComplexity int) int
+		Name    func(childComplexity int) int
 	}
 
 	UserConnection struct {
@@ -521,6 +522,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TodoEdge.Node(childComplexity), true
+
+	case "User.friends":
+		if e.complexity.User.Friends == nil {
+			break
+		}
+
+		return e.complexity.User.Friends(childComplexity), true
 
 	case "User.groups":
 		if e.complexity.User.Groups == nil {
@@ -1142,6 +1150,7 @@ type User implements Node {
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
   ): GroupConnection!
+  friends: [User!]
 }
 """A connection to a list of items."""
 type UserConnection {
@@ -1193,6 +1202,9 @@ input UserWhereInput {
   """groups edge predicates"""
   hasGroups: Boolean
   hasGroupsWith: [GroupWhereInput!]
+  """friends edge predicates"""
+  hasFriends: Boolean
+  hasFriendsWith: [UserWhereInput!]
 }
 `, BuiltIn: false},
 }
@@ -4080,6 +4092,57 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _User_friends(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_friends(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Friends(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_friends(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "friends":
+				return ec.fieldContext_User_friends(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserConnection_edges(ctx, field)
 	if err != nil {
@@ -4267,6 +4330,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_name(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
+			case "friends":
+				return ec.fieldContext_User_friends(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -7664,6 +7729,22 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
+		case "hasFriends":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasFriends"))
+			it.HasFriends, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hasFriendsWith":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasFriendsWith"))
+			it.HasFriendsWith, err = ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUserWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -8433,6 +8514,23 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "friends":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_friends(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9149,6 +9247,16 @@ func (ec *executionContext) marshalNUint642uint64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v ent.UserConnection) graphql.Marshaler {
@@ -10244,6 +10352,53 @@ func (ec *executionContext) marshalOUint642ᚖuint64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalUint64(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOUser2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {

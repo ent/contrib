@@ -132,10 +132,11 @@ func (po *Portal) Unwrap() *Portal {
 func (po *Portal) String() string {
 	var builder strings.Builder
 	builder.WriteString("Portal(")
-	builder.WriteString(fmt.Sprintf("id=%v", po.ID))
-	builder.WriteString(", name=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", po.ID))
+	builder.WriteString("name=")
 	builder.WriteString(po.Name)
-	builder.WriteString(", description=")
+	builder.WriteString(", ")
+	builder.WriteString("description=")
 	builder.WriteString(po.Description)
 	builder.WriteByte(')')
 	return builder.String()

@@ -82,8 +82,8 @@ func (wf *WithFields) Unwrap() *WithFields {
 func (wf *WithFields) String() string {
 	var builder strings.Builder
 	builder.WriteString("WithFields(")
-	builder.WriteString(fmt.Sprintf("id=%v", wf.ID))
-	builder.WriteString(", existing=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", wf.ID))
+	builder.WriteString("existing=")
 	builder.WriteString(wf.Existing)
 	builder.WriteByte(')')
 	return builder.String()

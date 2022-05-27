@@ -315,3 +315,11 @@ func (u *User) Groups(
 	conn.build(nodes, pager, first, last)
 	return conn, nil
 }
+
+func (u *User) Friends(ctx context.Context) ([]*User, error) {
+	result, err := u.Edges.FriendsOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryFriends().All(ctx)
+	}
+	return result, err
+}

@@ -82,8 +82,8 @@ func (po *Pony) Unwrap() *Pony {
 func (po *Pony) String() string {
 	var builder strings.Builder
 	builder.WriteString("Pony(")
-	builder.WriteString(fmt.Sprintf("id=%v", po.ID))
-	builder.WriteString(", name=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", po.ID))
+	builder.WriteString("name=")
 	builder.WriteString(po.Name)
 	builder.WriteByte(')')
 	return builder.String()
