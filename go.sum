@@ -1,9 +1,9 @@
-ariga.io/atlas v0.3.8-0.20220505085539-5ec35b058386 h1:is98hS6Y0DOC9WEWSOOesrHrzZrt7xNswjQJov7K2EU=
-ariga.io/atlas v0.3.8-0.20220505085539-5ec35b058386/go.mod h1:D/d0a5QyMFU2R5E8ArmpnWbMjFP9LOr0TsQNbKqhT20=
+ariga.io/atlas v0.4.2-0.20220524161107-b5b3f75b1034 h1:cjqJPtwk6LhJdYaFgLHI0OuZyEspkxodoCLKeLdhJPk=
+ariga.io/atlas v0.4.2-0.20220524161107-b5b3f75b1034/go.mod h1:CKqqlJeTdRfEmnHaCcNPHg8DD6GPx1TxNPZ1NFknKHU=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-entgo.io/ent v0.10.2-0.20220512043615-f2e0bef7a803 h1:hlVxT7O3OxI9uLvDIaIdNMCNaQ6aIspzdXzbnuJ1TXs=
-entgo.io/ent v0.10.2-0.20220512043615-f2e0bef7a803/go.mod h1:S/9A3EnTJUVC6I13KFnPdLkabq3KtPDrofAO8ZEW9DI=
+entgo.io/ent v0.10.2-0.20220526145500-f1c396a435ce h1:7v9qLiAGpfxoz5N0TEIrmwQcyGjIf/ifFlecAW4N1sA=
+entgo.io/ent v0.10.2-0.20220526145500-f1c396a435ce/go.mod h1:pevBAz5Fo4vFd4Glgi+XcNlviNLesimIjtR9QkZWBJ4=
 github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90 h1:nGGP+sUJ6D3guzjVBgoH1PrZxoU4lUdfR/Q8THYrAJI=
 github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90/go.mod h1:SNpLVzaF37rRLSAXtu8FKVp5I4zycneMmFX6NT4XGSU=
 github.com/AlekSi/pointer v1.1.0 h1:SSDMPcXD9jSl8FPy9cRzoRaMJtm9g9ggGTxecRUbQoI=
@@ -142,8 +142,8 @@ github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9Y=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
-github.com/mattn/go-sqlite3 v1.14.10 h1:MLn+5bFRlWMGoSRmJour3CL1w/qL96mvipqpwQW/Sfk=
-github.com/mattn/go-sqlite3 v1.14.10/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
+github.com/mattn/go-sqlite3 v1.14.13 h1:1tj15ngiFfcZzii7yd82foL+ks+ouQcj8j/TPq3fk1I=
+github.com/mattn/go-sqlite3 v1.14.13/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 h1:DpOJ2HYzCv8LZP15IdmG+YdwD2luVPHITV96TkirNBM=
 github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/mitchellh/mapstructure v1.3.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=

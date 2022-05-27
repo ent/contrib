@@ -15,29 +15,44 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 )
 
-// User defines the user type schema.
-type User struct {
+// Friendship holds the edge schema definition of the Friendship relationship.
+type Friendship struct {
 	ent.Schema
 }
 
-// Mixin returns user mixed-in schema.
-func (User) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		pulid.MixinWithPrefix("UR"),
-		schema.FilterEdges(schema.User{}, "friends", "friendships"),
+// func (Friendship) Annotations() []schema.Annotation {
+// 	return []schema.Annotation{
+// 		field.ID("user_id", "friend_id"),
+// 	}
+// }
+
+// Fields of the Friendship.
+func (Friendship) Fields() []ent.Field {
+	return []ent.Field{
+		field.Time("created_at").
+			Default(time.Now),
+		field.Int("user_id"),
+		field.Int("friend_id"),
 	}
 }
 
-// Edges of the User.
-func (User) Edges() []ent.Edge {
+// Edges of the Friendship.
+func (Friendship) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("friends", User.Type).
-			Through("friendships", Friendship.Type),
+		edge.To("user", User.Type).
+			Required().
+			Unique().
+			Field("user_id"),
+		edge.To("friend", User.Type).
+			Required().
+			Unique().
+			Field("friend_id"),
 	}
 }

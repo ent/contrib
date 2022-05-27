@@ -17,6 +17,7 @@ package schema
 import (
 	"entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
 	"github.com/google/uuid"
@@ -30,7 +31,7 @@ type User struct {
 // Mixin returns user mixed-in schema.
 func (User) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		schema.User{},
+		schema.FilterEdges(schema.User{}, "friends", "friendships"),
 	}
 }
 
@@ -39,5 +40,13 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
+	}
+}
+
+// Edges of the User.
+func (User) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("friends", User.Type).
+			Through("friendships", Friendship.Type),
 	}
 }

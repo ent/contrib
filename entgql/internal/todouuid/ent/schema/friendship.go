@@ -15,32 +15,45 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql"
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+// Friendship holds the edge schema definition of the Friendship relationship.
+type Friendship struct {
 	ent.Schema
 }
 
-// Fields of the User.
-func (User) Fields() []ent.Field {
+// func (Friendship) Annotations() []schema.Annotation {
+// 	return []schema.Annotation{
+// 		field.ID("user_id", "friend_id"),
+// 	}
+// }
+
+// Fields of the Friendship.
+func (Friendship) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("id"),
-		field.String("name").
-			Default("Anonymous"),
+		field.Time("created_at").
+			Default(time.Now),
+		field.UUID("user_id", uuid.UUID{}),
+		field.UUID("friend_id", uuid.UUID{}),
 	}
 }
 
-// Edges of the User.
-func (User) Edges() []ent.Edge {
+// Edges of the Friendship.
+func (Friendship) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("groups", Group.Type).
-			Annotations(entgql.RelayConnection()),
-		edge.To("friends", User.Type).
-			Through("friendships", Friendship.Type),
+		edge.To("user", User.Type).
+			Required().
+			Unique().
+			Field("user_id"),
+		edge.To("friend", User.Type).
+			Required().
+			Unique().
+			Field("friend_id"),
 	}
 }
