@@ -127,6 +127,7 @@ type User {
   id: ID!
   name: String!
   groups: [Group!]
+  friends: [User!]
 }
 `, printSchema(schema))
 }
@@ -567,6 +568,7 @@ type User implements Node {
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
   ): GroupConnection!
+  friends: [User!]
 }
 """A connection to a list of items."""
 type UserConnection {
@@ -618,6 +620,9 @@ input UserWhereInput {
   """groups edge predicates"""
   hasGroups: Boolean
   hasGroupsWith: [GroupWhereInput!]
+  """friends edge predicates"""
+  hasFriends: Boolean
+  hasFriendsWith: [UserWhereInput!]
 }
 `, printSchema(schema))
 }

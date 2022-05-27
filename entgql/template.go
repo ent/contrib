@@ -304,6 +304,9 @@ func mutationInputs(nodes []*gen.Type) ([]*MutationDescriptor, error) {
 func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
 	for _, n := range nodes {
+		if n.IsEdgeSchema() {
+			continue
+		}
 		ant, err := annotation(n.Annotations)
 		if err != nil {
 			return nil, err
@@ -319,6 +322,9 @@ func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 func filterEdges(edges []*gen.Edge, skip SkipMode) ([]*gen.Edge, error) {
 	filteredEdges := make([]*gen.Edge, 0, len(edges))
 	for _, e := range edges {
+		if e.Type.IsEdgeSchema() {
+			continue
+		}
 		antE, err := annotation(e.Annotations)
 		if err != nil {
 			return nil, err
