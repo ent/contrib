@@ -662,8 +662,8 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
 		}
 		if f.IsEnum() {
-			// Use the GQL type for enum prefix
-			// the Todo.status field will have the enum with name: TodoStatus
+			// Use the GQL type as enum prefix. e.g. Todo.status
+			// will generate an enum named "TodoStatus".
 			scalar = gqlType + scalar
 		}
 	case t == field.TypeJSON:
