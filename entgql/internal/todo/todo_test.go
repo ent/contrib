@@ -1090,6 +1090,151 @@ func (s *todoTestSuite) TestQueryJSONFields() {
 	s.Require().Equal(cat.Strings, rsp.Node.Strings)
 }
 
+func TestPageInfo(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	for i := 1; i <= 5; i++ {
+		ec.Todo.Create().SetText(strconv.Itoa(i)).SetStatus(todo.StatusInProgress).SaveX(ctx)
+	}
+
+	var (
+		srv   = handler.NewDefaultServer(gen.NewSchema(ec))
+		gqlc  = client.New(srv)
+		query = `query ($after: Cursor, $first: Int, $before: Cursor, $last: Int $direction: OrderDirection!, $field: TodoOrderField!) {
+			todos(after: $after, first: $first, before: $before, last: $last, orderBy: { direction: $direction, field: $field }) {
+				edges {
+					cursor
+					node {
+						text
+					}
+				}
+				pageInfo {
+					startCursor
+					endCursor
+					hasNextPage
+					hasPreviousPage
+				}
+				totalCount
+			}
+		}`
+		rsp struct {
+			Todos struct {
+				TotalCount int
+				Edges      []struct {
+					Cursor string
+					Node   struct {
+						Text string
+					}
+				}
+				PageInfo struct {
+					HasNextPage     bool
+					HasPreviousPage bool
+					StartCursor     *string
+					EndCursor       *string
+				}
+			}
+		}
+		ascOrder  = []client.Option{client.Var("direction", "ASC"), client.Var("field", "TEXT")}
+		descOrder = []client.Option{client.Var("direction", "DESC"), client.Var("field", "TEXT")}
+		texts     = func() (s []string) {
+			for _, n := range rsp.Todos.Edges {
+				s = append(s, n.Node.Text)
+			}
+			return
+		}
+	)
+
+	err := gqlc.Post(query, &rsp, ascOrder...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"1", "2", "3", "4", "5"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.False(t, rsp.Todos.PageInfo.HasNextPage)
+	require.False(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(ascOrder, client.Var("first", 2))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"1", "2"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.False(t, rsp.Todos.PageInfo.HasPreviousPage)
+	require.Equal(t, rsp.Todos.Edges[0].Cursor, *rsp.Todos.PageInfo.StartCursor)
+	require.Equal(t, rsp.Todos.Edges[1].Cursor, *rsp.Todos.PageInfo.EndCursor)
+
+	err = gqlc.Post(query, &rsp, append(ascOrder, client.Var("first", 2), client.Var("after", rsp.Todos.PageInfo.EndCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"3", "4"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(ascOrder, client.Var("first", 2), client.Var("after", rsp.Todos.PageInfo.EndCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"5"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.False(t, rsp.Todos.PageInfo.HasNextPage)
+	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(ascOrder, client.Var("last", 2), client.Var("before", rsp.Todos.PageInfo.EndCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"3", "4"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(ascOrder, client.Var("last", 2), client.Var("before", rsp.Todos.PageInfo.StartCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"1", "2"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.False(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, descOrder...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"5", "4", "3", "2", "1"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.False(t, rsp.Todos.PageInfo.HasNextPage)
+	require.False(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("first", 2))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"5", "4"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.False(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("first", 2), client.Var("after", rsp.Todos.PageInfo.EndCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"3", "2"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("first", 2), client.Var("after", rsp.Todos.PageInfo.EndCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"1"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.False(t, rsp.Todos.PageInfo.HasNextPage)
+	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("last", 2), client.Var("before", rsp.Todos.PageInfo.EndCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"3", "2"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
+
+	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("before", rsp.Todos.PageInfo.StartCursor))...)
+	require.NoError(t, err)
+	require.Equal(t, []string{"5", "4"}, texts())
+	require.Equal(t, 5, rsp.Todos.TotalCount)
+	require.True(t, rsp.Todos.PageInfo.HasNextPage)
+	require.False(t, rsp.Todos.PageInfo.HasPreviousPage)
+}
+
 type queryCount struct {
 	n uint64
 	dialect.Driver

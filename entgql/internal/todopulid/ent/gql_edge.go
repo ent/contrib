@@ -37,7 +37,7 @@ func (c *Category) Todos(
 		if err != nil {
 			return nil, err
 		}
-		conn.build(nodes, pager, first, last)
+		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
 	query := c.QueryTodos()
@@ -88,7 +88,7 @@ func (c *Category) Todos(
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
-	conn.build(nodes, pager, first, last)
+	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
 }
 
@@ -106,7 +106,7 @@ func (gr *Group) Users(
 		if err != nil {
 			return nil, err
 		}
-		conn.build(nodes, pager, first, last)
+		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
 	query := gr.QueryUsers()
@@ -157,7 +157,7 @@ func (gr *Group) Users(
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
-	conn.build(nodes, pager, first, last)
+	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
 }
 
@@ -184,7 +184,7 @@ func (t *Todo) Children(
 		if err != nil {
 			return nil, err
 		}
-		conn.build(nodes, pager, first, last)
+		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
 	query := t.QueryChildren()
@@ -235,7 +235,7 @@ func (t *Todo) Children(
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
-	conn.build(nodes, pager, first, last)
+	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
 }
 
@@ -261,7 +261,7 @@ func (u *User) Groups(
 		if err != nil {
 			return nil, err
 		}
-		conn.build(nodes, pager, first, last)
+		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
 	query := u.QueryGroups()
@@ -312,6 +312,6 @@ func (u *User) Groups(
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
-	conn.build(nodes, pager, first, last)
+	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
 }
