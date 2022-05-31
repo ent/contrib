@@ -86,8 +86,8 @@ func (ifm *InvalidFieldMessage) Unwrap() *InvalidFieldMessage {
 func (ifm *InvalidFieldMessage) String() string {
 	var builder strings.Builder
 	builder.WriteString("InvalidFieldMessage(")
-	builder.WriteString(fmt.Sprintf("id=%v", ifm.ID))
-	builder.WriteString(", json=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", ifm.ID))
+	builder.WriteString("json=")
 	builder.WriteString(fmt.Sprintf("%v", ifm.JSON))
 	builder.WriteByte(')')
 	return builder.String()

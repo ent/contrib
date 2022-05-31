@@ -116,10 +116,11 @@ func (c *Category) Unwrap() *Category {
 func (c *Category) String() string {
 	var builder strings.Builder
 	builder.WriteString("Category(")
-	builder.WriteString(fmt.Sprintf("id=%v", c.ID))
-	builder.WriteString(", name=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
+	builder.WriteString("name=")
 	builder.WriteString(c.Name)
-	builder.WriteString(", readonly=")
+	builder.WriteString(", ")
+	builder.WriteString("readonly=")
 	builder.WriteString(c.Readonly)
 	builder.WriteByte(')')
 	return builder.String()

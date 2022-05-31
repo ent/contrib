@@ -97,8 +97,8 @@ func (vs *VerySecret) Unwrap() *VerySecret {
 func (vs *VerySecret) String() string {
 	var builder strings.Builder
 	builder.WriteString("VerySecret(")
-	builder.WriteString(fmt.Sprintf("id=%v", vs.ID))
-	builder.WriteString(", password=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", vs.ID))
+	builder.WriteString("password=")
 	builder.WriteString(vs.Password)
 	builder.WriteByte(')')
 	return builder.String()

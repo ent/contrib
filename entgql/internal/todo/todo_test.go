@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 2 << 32
+	idOffset = 3 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1052,7 +1052,7 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 		}
 	}
 	err := s.Post(`mutation {
-		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: 8589934593 }) {
+		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: 12884901889 }) {
 			parent {
 				id
 				text

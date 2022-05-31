@@ -108,8 +108,8 @@ func (dos *DependsOnSkipped) Unwrap() *DependsOnSkipped {
 func (dos *DependsOnSkipped) String() string {
 	var builder strings.Builder
 	builder.WriteString("DependsOnSkipped(")
-	builder.WriteString(fmt.Sprintf("id=%v", dos.ID))
-	builder.WriteString(", name=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", dos.ID))
+	builder.WriteString("name=")
 	builder.WriteString(dos.Name)
 	builder.WriteByte(')')
 	return builder.String()

@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
@@ -50,6 +51,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		category.Table:   category.ValidColumn,
+		friendship.Table: friendship.ValidColumn,
 		group.Table:      group.ValidColumn,
 		todo.Table:       todo.ValidColumn,
 		user.Table:       user.ValidColumn,

@@ -90,10 +90,11 @@ func (mwe *MessageWithEnum) Unwrap() *MessageWithEnum {
 func (mwe *MessageWithEnum) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageWithEnum(")
-	builder.WriteString(fmt.Sprintf("id=%v", mwe.ID))
-	builder.WriteString(", enum_type=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", mwe.ID))
+	builder.WriteString("enum_type=")
 	builder.WriteString(fmt.Sprintf("%v", mwe.EnumType))
-	builder.WriteString(", enum_without_default=")
+	builder.WriteString(", ")
+	builder.WriteString("enum_without_default=")
 	builder.WriteString(fmt.Sprintf("%v", mwe.EnumWithoutDefault))
 	builder.WriteByte(')')
 	return builder.String()

@@ -82,8 +82,8 @@ func (mws *MultiWordSchema) Unwrap() *MultiWordSchema {
 func (mws *MultiWordSchema) String() string {
 	var builder strings.Builder
 	builder.WriteString("MultiWordSchema(")
-	builder.WriteString(fmt.Sprintf("id=%v", mws.ID))
-	builder.WriteString(", unit=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", mws.ID))
+	builder.WriteString("unit=")
 	builder.WriteString(fmt.Sprintf("%v", mws.Unit))
 	builder.WriteByte(')')
 	return builder.String()

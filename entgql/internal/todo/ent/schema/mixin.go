@@ -41,3 +41,29 @@ func FilterFields(s ent.Interface, filters ...string) ent.Interface {
 
 	return &filterFields{Interface: s, fields: fields}
 }
+
+type filterEdges struct {
+	ent.Interface
+	edges map[string]struct{}
+}
+
+func (f *filterEdges) Edges() []ent.Edge {
+	edges := f.Interface.Edges()
+	result := make([]ent.Edge, 0, len(edges))
+	for _, field := range edges {
+		if _, ok := f.edges[field.Descriptor().Name]; !ok {
+			result = append(result, field)
+		}
+	}
+
+	return result
+}
+
+func FilterEdges(s ent.Interface, filters ...string) ent.Interface {
+	edges := make(map[string]struct{})
+	for _, filter := range filters {
+		edges[filter] = struct{}{}
+	}
+
+	return &filterEdges{Interface: s, edges: edges}
+}

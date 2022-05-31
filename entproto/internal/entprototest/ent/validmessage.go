@@ -121,17 +121,21 @@ func (vm *ValidMessage) Unwrap() *ValidMessage {
 func (vm *ValidMessage) String() string {
 	var builder strings.Builder
 	builder.WriteString("ValidMessage(")
-	builder.WriteString(fmt.Sprintf("id=%v", vm.ID))
-	builder.WriteString(", name=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", vm.ID))
+	builder.WriteString("name=")
 	builder.WriteString(vm.Name)
-	builder.WriteString(", ts=")
+	builder.WriteString(", ")
+	builder.WriteString("ts=")
 	builder.WriteString(vm.Ts.Format(time.ANSIC))
-	builder.WriteString(", uuid=")
+	builder.WriteString(", ")
+	builder.WriteString("uuid=")
 	builder.WriteString(fmt.Sprintf("%v", vm.UUID))
-	builder.WriteString(", u8=")
+	builder.WriteString(", ")
+	builder.WriteString("u8=")
 	builder.WriteString(fmt.Sprintf("%v", vm.U8))
+	builder.WriteString(", ")
 	if v := vm.Opti8; v != nil {
-		builder.WriteString(", opti8=")
+		builder.WriteString("opti8=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteByte(')')

@@ -18,6 +18,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 )
 
 // User defines the user type schema.
@@ -29,6 +30,14 @@ type User struct {
 func (User) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		pulid.MixinWithPrefix("UR"),
-		schema.User{},
+		schema.FilterEdges(schema.User{}, "friends", "friendships"),
+	}
+}
+
+// Edges of the User.
+func (User) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("friends", User.Type).
+			Through("friendships", Friendship.Type),
 	}
 }

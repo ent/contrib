@@ -653,6 +653,15 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.withGroups = query
+		case "friends":
+			var (
+				path  = append(path, field.Name)
+				query = &UserQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withFriends = query
 		}
 	}
 	return nil

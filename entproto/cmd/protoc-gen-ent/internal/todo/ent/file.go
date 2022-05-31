@@ -80,8 +80,8 @@ func (f *File) Unwrap() *File {
 func (f *File) String() string {
 	var builder strings.Builder
 	builder.WriteString("File(")
-	builder.WriteString(fmt.Sprintf("id=%v", f.ID))
-	builder.WriteString(", contents=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", f.ID))
+	builder.WriteString("contents=")
 	builder.WriteString(f.Contents)
 	builder.WriteByte(')')
 	return builder.String()

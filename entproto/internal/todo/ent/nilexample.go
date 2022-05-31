@@ -95,13 +95,14 @@ func (ne *NilExample) Unwrap() *NilExample {
 func (ne *NilExample) String() string {
 	var builder strings.Builder
 	builder.WriteString("NilExample(")
-	builder.WriteString(fmt.Sprintf("id=%v", ne.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", ne.ID))
 	if v := ne.StrNil; v != nil {
-		builder.WriteString(", str_nil=")
+		builder.WriteString("str_nil=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
 	if v := ne.TimeNil; v != nil {
-		builder.WriteString(", time_nil=")
+		builder.WriteString("time_nil=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')

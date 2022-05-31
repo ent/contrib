@@ -945,6 +945,10 @@ type UserWhereInput struct {
 	// "groups" edge predicates.
 	HasGroups     *bool              `json:"hasGroups,omitempty"`
 	HasGroupsWith []*GroupWhereInput `json:"hasGroupsWith,omitempty"`
+
+	// "friends" edge predicates.
+	HasFriends     *bool             `json:"hasFriends,omitempty"`
+	HasFriendsWith []*UserWhereInput `json:"hasFriendsWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1093,6 +1097,24 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, user.HasGroupsWith(with...))
+	}
+	if i.HasFriends != nil {
+		p := user.HasFriends()
+		if !*i.HasFriends {
+			p = user.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasFriendsWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasFriendsWith))
+		for _, w := range i.HasFriendsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, err
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, user.HasFriendsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

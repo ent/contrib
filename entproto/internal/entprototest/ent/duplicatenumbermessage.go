@@ -90,10 +90,11 @@ func (dnm *DuplicateNumberMessage) Unwrap() *DuplicateNumberMessage {
 func (dnm *DuplicateNumberMessage) String() string {
 	var builder strings.Builder
 	builder.WriteString("DuplicateNumberMessage(")
-	builder.WriteString(fmt.Sprintf("id=%v", dnm.ID))
-	builder.WriteString(", hello=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", dnm.ID))
+	builder.WriteString("hello=")
 	builder.WriteString(dnm.Hello)
-	builder.WriteString(", world=")
+	builder.WriteString(", ")
+	builder.WriteString("world=")
 	builder.WriteString(dnm.World)
 	builder.WriteByte(')')
 	return builder.String()

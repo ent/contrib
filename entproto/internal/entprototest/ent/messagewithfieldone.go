@@ -80,8 +80,8 @@ func (mwfo *MessageWithFieldOne) Unwrap() *MessageWithFieldOne {
 func (mwfo *MessageWithFieldOne) String() string {
 	var builder strings.Builder
 	builder.WriteString("MessageWithFieldOne(")
-	builder.WriteString(fmt.Sprintf("id=%v", mwfo.ID))
-	builder.WriteString(", field_one=")
+	builder.WriteString(fmt.Sprintf("id=%v, ", mwfo.ID))
+	builder.WriteString("field_one=")
 	builder.WriteString(fmt.Sprintf("%v", mwfo.FieldOne))
 	builder.WriteByte(')')
 	return builder.String()
