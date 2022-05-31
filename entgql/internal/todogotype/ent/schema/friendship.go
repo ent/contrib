@@ -27,12 +27,6 @@ type Friendship struct {
 	ent.Schema
 }
 
-// func (Friendship) Annotations() []schema.Annotation {
-// 	return []schema.Annotation{
-// 		field.ID("user_id", "friend_id"),
-// 	}
-// }
-
 // Fields of the Friendship.
 func (Friendship) Fields() []ent.Field {
 	return []ent.Field{
