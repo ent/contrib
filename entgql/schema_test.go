@@ -35,7 +35,8 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	disableRelayConnection(graph)
 	plugin := newSchemaGenerator()
 	plugin.genSchema = true
-	plugin.relaySpec = false
+	plugin.relayNode = false
+	plugin.relayConnection = false
 
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
@@ -751,7 +752,10 @@ type PageInfo {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := relayBuiltinTypes("todo/ent")
+			got := append(
+				relayBuiltinConnectionTypes("todo/ent"),
+				relayBuiltinNodeType("todo/ent"),
+			)
 
 			s := &ast.Schema{}
 			s.AddTypes(got...)

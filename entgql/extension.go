@@ -134,10 +134,27 @@ func WithWhereInputs(b bool) ExtensionOption {
 	}
 }
 
-// WithRelaySpec enables or disables generating the Relay Node interface.
+// WithRelaySpec enables or disables Relay Node and Connection support.
 func WithRelaySpec(enabled bool) ExtensionOption {
 	return func(e *Extension) error {
-		e.relaySpec = enabled
+		e.relayNode = enabled
+		e.relayConnection = enabled
+		return nil
+	}
+}
+
+// WithRelayNode enables or disables generating the Relay Node interface.
+func WithRelayNode(enabled bool) ExtensionOption {
+	return func(e *Extension) error {
+		e.relayNode = enabled
+		return nil
+	}
+}
+
+// WithRelayConnection enables or disables generating Relay Connection support.
+func WithRelayConnection(enabled bool) ExtensionOption {
+	return func(e *Extension) error {
+		e.relayConnection = enabled
 		return nil
 	}
 }
