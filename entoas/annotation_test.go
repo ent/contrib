@@ -29,6 +29,9 @@ func TestAnnotation(t *testing.T) {
 	a := ReadOnly(true)
 	require.Equal(t, true, a.ReadOnly)
 
+	a = Ignored(true)
+	require.Equal(t, true, a.Ignored)
+
 	a = Groups("create", "groups")
 	require.Equal(t, serialization.Groups{"create", "groups"}, a.Groups)
 

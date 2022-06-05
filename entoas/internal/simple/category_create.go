@@ -32,6 +32,12 @@ func (cc *CategoryCreate) SetReadonly(s string) *CategoryCreate {
 	return cc
 }
 
+// SetIgnoredInSpec sets the "ignored_in_spec" field.
+func (cc *CategoryCreate) SetIgnoredInSpec(s string) *CategoryCreate {
+	cc.mutation.SetIgnoredInSpec(s)
+	return cc
+}
+
 // AddPetIDs adds the "pets" edge to the Pet entity by IDs.
 func (cc *CategoryCreate) AddPetIDs(ids ...int) *CategoryCreate {
 	cc.mutation.AddPetIDs(ids...)
@@ -129,6 +135,9 @@ func (cc *CategoryCreate) check() error {
 	if _, ok := cc.mutation.Readonly(); !ok {
 		return &ValidationError{Name: "readonly", err: errors.New(`simple: missing required field "Category.readonly"`)}
 	}
+	if _, ok := cc.mutation.IgnoredInSpec(); !ok {
+		return &ValidationError{Name: "ignored_in_spec", err: errors.New(`simple: missing required field "Category.ignored_in_spec"`)}
+	}
 	return nil
 }
 
@@ -171,6 +180,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldReadonly,
 		})
 		_node.Readonly = value
+	}
+	if value, ok := cc.mutation.IgnoredInSpec(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: category.FieldIgnoredInSpec,
+		})
+		_node.IgnoredInSpec = value
 	}
 	if nodes := cc.mutation.PetsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

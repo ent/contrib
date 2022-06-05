@@ -11,6 +11,8 @@ const (
 	FieldName = "name"
 	// FieldReadonly holds the string denoting the readonly field in the database.
 	FieldReadonly = "readonly"
+	// FieldIgnoredInSpec holds the string denoting the ignored_in_spec field in the database.
+	FieldIgnoredInSpec = "ignored_in_spec"
 	// EdgePets holds the string denoting the pets edge name in mutations.
 	EdgePets = "pets"
 	// Table holds the table name of the category in the database.
@@ -27,6 +29,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldReadonly,
+	FieldIgnoredInSpec,
 }
 
 var (

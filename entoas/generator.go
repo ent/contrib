@@ -137,6 +137,10 @@ func addSchemaFields(s *ogen.Schema, fs []*gen.Field) error {
 
 // addProperty adds the ogen.Property to the ogen.Schema and marks it as required if needed.
 func addProperty(s *ogen.Schema, p *ogen.Property, req bool) {
+	// property can be nil if used Ignored annotations.
+	if p == nil {
+		return
+	}
 	if req {
 		s.AddRequiredProperties(p)
 	} else {
@@ -501,6 +505,9 @@ func property(f *gen.Field) (*ogen.Property, error) {
 	if err != nil {
 		return nil, err
 	}
+	if s == nil {
+		return nil, nil
+	}
 	return ogen.NewProperty().SetName(f.Name).SetSchema(s), nil
 }
 
@@ -541,6 +548,11 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if ant.Ignored {
+		return nil, nil
+	}
+
 	if ant.Schema != nil {
 		return ant.Schema, nil
 	}
