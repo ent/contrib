@@ -33,7 +33,7 @@ func (Category) Fields() []ent.Field {
 		field.String("readonly").
 			Annotations(
 				entoas.Annotation{ReadOnly: true}),
-		field.String("ignored_in_spec").Annotations(entoas.Annotation{Ignored: true}),
+		field.String("ignored_in_spec").Annotations(entoas.Annotation{Skip: true}),
 	}
 }
 

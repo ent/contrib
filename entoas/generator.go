@@ -137,7 +137,7 @@ func addSchemaFields(s *ogen.Schema, fs []*gen.Field) error {
 
 // addProperty adds the ogen.Property to the ogen.Schema and marks it as required if needed.
 func addProperty(s *ogen.Schema, p *ogen.Property, req bool) {
-	// property can be nil if used Ignored annotations.
+	// property can be nil if used Skip annotations.
 	if p == nil {
 		return
 	}
@@ -549,7 +549,7 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 		return nil, err
 	}
 
-	if ant.Ignored {
+	if ant.Skip {
 		return nil, nil
 	}
 

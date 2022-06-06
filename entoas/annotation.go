@@ -44,8 +44,8 @@ type (
 		List OperationConfig
 		// ReadOnly specifies that the field/edge is read only (no create/update parameter)
 		ReadOnly bool
-		// Ignored specifies that the field will be ignored in spec.
-		Ignored bool
+		// Skip specifies that the field will be ignored in spec.
+		Skip bool
 	}
 	// OperationConfig holds meta information about a REST operation.
 	OperationConfig struct {
@@ -107,9 +107,9 @@ func ReadOnly(readonly bool) Annotation {
 	return Annotation{ReadOnly: readonly}
 }
 
-// Ignored returns a skip field annotation
-func Ignored(ignored bool) Annotation {
-	return Annotation{Ignored: ignored}
+// Skip returns a skip field annotation
+func Skip(skip bool) Annotation {
+	return Annotation{Skip: skip}
 }
 
 func operationsConfig(opts []OperationConfigOption) OperationConfig {
@@ -150,8 +150,8 @@ func (a Annotation) Merge(o schema.Annotation) schema.Annotation {
 	if ant.ReadOnly {
 		a.ReadOnly = true
 	}
-	if ant.Ignored {
-		a.Ignored = true
+	if ant.Skip {
+		a.Skip = true
 	}
 	return a
 }
