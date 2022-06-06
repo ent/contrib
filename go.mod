@@ -16,7 +16,7 @@ require (
 	github.com/ogen-go/ogen v0.1.1-0.20211220145210-5927cf47f01a
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stoewer/go-strcase v1.2.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/vektah/gqlparser/v2 v2.4.3-0.20220508162109-d3d9eb001575
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
 	go.uber.org/multierr v1.7.0
@@ -60,5 +60,5 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
