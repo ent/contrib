@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
@@ -58,6 +59,12 @@ func init() {
 	groupDescName := groupFields[1].Descriptor()
 	// group.DefaultName holds the default value on creation for the name field.
 	group.DefaultName = groupDescName.Default.(string)
+	petFields := schema.Pet{}.Fields()
+	_ = petFields
+	// petDescName is the schema descriptor for name field.
+	petDescName := petFields[1].Descriptor()
+	// pet.DefaultName holds the default value on creation for the name field.
+	pet.DefaultName = petDescName.Default.(string)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0

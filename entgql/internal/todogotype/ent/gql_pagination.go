@@ -27,6 +27,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"entgo.io/ent/dialect/sql"
@@ -782,6 +783,241 @@ func (gr *Group) ToEdge(order *GroupOrder) *GroupEdge {
 	return &GroupEdge{
 		Node:   gr,
 		Cursor: order.Field.toCursor(gr),
+	}
+}
+
+// PetEdge is the edge representation of Pet.
+type PetEdge struct {
+	Node   *Pet   `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// PetConnection is the connection containing edges to Pet.
+type PetConnection struct {
+	Edges      []*PetEdge `json:"edges"`
+	PageInfo   PageInfo   `json:"pageInfo"`
+	TotalCount int        `json:"totalCount"`
+}
+
+func (c *PetConnection) build(nodes []*Pet, pager *petPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Pet
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Pet {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Pet {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*PetEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &PetEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// PetPaginateOption enables pagination customization.
+type PetPaginateOption func(*petPager) error
+
+// WithPetOrder configures pagination ordering.
+func WithPetOrder(order *PetOrder) PetPaginateOption {
+	if order == nil {
+		order = DefaultPetOrder
+	}
+	o := *order
+	return func(pager *petPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultPetOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithPetFilter configures pagination filter.
+func WithPetFilter(filter func(*PetQuery) (*PetQuery, error)) PetPaginateOption {
+	return func(pager *petPager) error {
+		if filter == nil {
+			return errors.New("PetQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type petPager struct {
+	order  *PetOrder
+	filter func(*PetQuery) (*PetQuery, error)
+}
+
+func newPetPager(opts []PetPaginateOption) (*petPager, error) {
+	pager := &petPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultPetOrder
+	}
+	return pager, nil
+}
+
+func (p *petPager) applyFilter(query *PetQuery) (*PetQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *petPager) toCursor(pe *Pet) Cursor {
+	return p.order.Field.toCursor(pe)
+}
+
+func (p *petPager) applyCursors(query *PetQuery, after, before *Cursor) *PetQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultPetOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *petPager) applyOrder(query *PetQuery, reverse bool) *PetQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultPetOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultPetOrder.Field.field))
+	}
+	return query
+}
+
+func (p *petPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultPetOrder.Field {
+			b.Comma().Ident(DefaultPetOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Pet.
+func (pe *PetQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...PetPaginateOption,
+) (*PetConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newPetPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if pe, err = pager.applyFilter(pe); err != nil {
+		return nil, err
+	}
+	conn := &PetConnection{Edges: []*PetEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if conn.TotalCount, err = pe.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := pe.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	pe = pager.applyCursors(pe, after, before)
+	pe = pager.applyOrder(pe, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		pe.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := pe.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := pe.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// PetOrderField defines the ordering field of Pet.
+type PetOrderField struct {
+	field    string
+	toCursor func(*Pet) Cursor
+}
+
+// PetOrder defines the ordering of Pet.
+type PetOrder struct {
+	Direction OrderDirection `json:"direction"`
+	Field     *PetOrderField `json:"field"`
+}
+
+// DefaultPetOrder is the default ordering of Pet.
+var DefaultPetOrder = &PetOrder{
+	Direction: OrderDirectionAsc,
+	Field: &PetOrderField{
+		field: pet.FieldID,
+		toCursor: func(pe *Pet) Cursor {
+			return Cursor{ID: pe.marshalID()}
+		},
+	},
+}
+
+// ToEdge converts Pet into PetEdge.
+func (pe *Pet) ToEdge(order *PetOrder) *PetEdge {
+	if order == nil {
+		order = DefaultPetOrder
+	}
+	return &PetEdge{
+		Node:   pe,
+		Cursor: order.Field.toCursor(pe),
 	}
 }
 

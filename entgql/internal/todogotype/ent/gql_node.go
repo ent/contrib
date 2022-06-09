@@ -25,7 +25,9 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/uintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"github.com/99designs/gqlgen/graphql"
@@ -159,6 +161,31 @@ func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+func (pe Pet) marshalID() string {
+	var buf bytes.Buffer
+	pe.ID.MarshalGQL(&buf)
+	return buf.String()
+}
+
+func (pe *Pet) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pe.marshalID(),
+		Type:   "Pet",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(pe.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -378,6 +405,22 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 			return nil, err
 		}
 		return n, nil
+	case pet.Table:
+		var uid uintgql.Uint64
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.Pet.Query().
+			Where(pet.ID(uid))
+		query, err := query.CollectFields(ctx, "Pet")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case todo.Table:
 		query := c.Todo.Query().
 			Where(todo.ID(id))
@@ -510,6 +553,28 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		}
 		for _, node := range nodes {
 			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case pet.Table:
+		uids := make([]uintgql.Uint64, len(ids))
+		for i, id := range ids {
+			if err := uids[i].UnmarshalGQL(id); err != nil {
+				return nil, err
+			}
+		}
+		query := c.Pet.Query().
+			Where(pet.IDIn(uids...))
+		query, err := query.CollectFields(ctx, "Pet")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.marshalID()] {
 				*noder = node
 			}
 		}
