@@ -351,6 +351,52 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pe *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*PetQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return pe, nil
+	}
+	if err := pe.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return pe, nil
+}
+
+func (pe *PetQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type petPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []PetPaginateOption
+}
+
+func newPetPaginateArgs(rv map[string]interface{}) *petPaginateArgs {
+	args := &petPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*PetWhereInput); ok {
+		args.opts = append(args.opts, WithPetFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
