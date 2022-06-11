@@ -95,6 +95,14 @@ func TestEnum(t *testing.T) {
 	require.Contains(t, contents, `field.Enum("status").Values("STATUS_UNSPECIFIED", "PENDING", "ACTIVE", "COMPLETE", "FAILED")`)
 }
 
+func TestEdgeCustomName(t *testing.T) {
+	tt, err := newGenTest(t, "testdata/edge_custom_schema_name.proto")
+	require.NoError(t, err)
+	contents, err := tt.fileContents("cat.go")
+	require.NoError(t, err)
+	require.Contains(t, contents, `("custom_name", Rotemtam.Type)`)
+}
+
 type genTest struct {
 	output map[string]string
 }

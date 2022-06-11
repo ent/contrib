@@ -136,6 +136,9 @@ func isEdge(f *protogen.Field) bool {
 func toEdge(f *protogen.Field) (ent.Edge, error) {
 	name := string(f.Desc.Name())
 	msgType := string(f.Desc.Message().Name())
+	if schemaOpts, ok := schemaOpts(f.Message); ok && schemaOpts.Name != nil {
+		msgType = schemaOpts.GetName()
+	}
 	opts, ok := edgeOpts(f)
 	if !ok {
 		return nil, fmt.Errorf("protoc-gen-ent: expected ent.edge option on field %q", name)
