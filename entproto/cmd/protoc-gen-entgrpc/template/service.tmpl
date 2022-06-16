@@ -25,7 +25,6 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
     {{- $methodName := .GoName -}}
     {{- if or (eq $methodName "List") (eq $methodName "BatchCreate") }}
         {{ $needToProtoList = true }}
-        {{break}}
     {{- end }}
 {{ end }}
 
@@ -55,12 +54,15 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
     }
 {{ end }}
 
+{{- $createdBuilder := false }}
 {{ range .Service.Methods }}
-    {{ $methodName := .GoName }}
+    {{- $methodName := .GoName }}
 
     {{- if or (eq $methodName "Create") (eq $methodName "BatchCreate") }}
-        {{- template "create_builder_func" dict "ServiceName" ($.Service.GoName) "Method" (method .) }}
-        {{break}}
+        {{ if not $createdBuilder }}
+            {{- template "create_builder_func" dict "ServiceName" ($.Service.GoName) "Method" (method .) }}
+            {{ $createdBuilder = true }}
+        {{ end }}
     {{- end }}
 {{ end }}
 {{ end }}
