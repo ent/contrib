@@ -459,6 +459,17 @@ func ({{ $r }} *{{ $query }}) Paginate(
 	}
 {{- end }}
 
+// New{{ $orderField }} is a constructor for {{ $orderField }}.
+func New{{ $orderField }}(field string) {{ $orderField }} {
+	return {{ $orderField }}{
+		field: field,
+		toCursor: func({{ $r }} *{{ $name }}) Cursor {
+			{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
+			return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
+		},
+	}
+}
+
 // {{ $orderField }} defines the ordering field of {{ $node.Name }}.
 type {{ $orderField }} struct {
 	field string
