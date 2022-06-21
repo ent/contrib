@@ -248,7 +248,7 @@ type {{ $edge }} struct {
 type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
 	PageInfo PageInfo    `json:"pageInfo"`
-	TotalCount int       `json:"totalCount"`
+	TotalCount uint64    `json:"totalCount"`
 }
 
 {{ $pager := print (camel $name) "Pager" }}
