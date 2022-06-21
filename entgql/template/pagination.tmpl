@@ -460,8 +460,8 @@ func ({{ $r }} *{{ $query }}) Paginate(
 {{- end }}
 
 // New{{ $orderField }} is a constructor for {{ $orderField }}.
-func New{{ $orderField }}(field string) {{ $orderField }} {
-	return {{ $orderField }}{
+func New{{ $orderField }}(field string) *{{ $orderField }} {
+	return &{{ $orderField }}{
 		field: field,
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
 			{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
