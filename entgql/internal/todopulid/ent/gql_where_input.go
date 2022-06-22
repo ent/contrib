@@ -17,6 +17,7 @@
 package ent
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -120,10 +121,16 @@ func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	}
 	p, err := i.P()
 	if err != nil {
+		if err == ErrEmptyCategoryWhereInput {
+			return q, nil
+		}
 		return nil, err
 	}
 	return q.Where(p), nil
 }
+
+// ErrEmptyCategoryWhereInput is returned in case the CategoryWhereInput is empty.
+var ErrEmptyCategoryWhereInput = errors.New("ent: empty predicate CategoryWhereInput")
 
 // P returns a predicate for filtering categories.
 // An error is returned if the input is empty or invalid.
@@ -132,7 +139,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'not'", err)
 		}
 		predicates = append(predicates, category.Not(p))
 	}
@@ -140,7 +147,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	case n == 1:
 		p, err := i.Or[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'or'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -148,7 +155,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'or'", err)
 			}
 			or = append(or, p)
 		}
@@ -158,7 +165,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	case n == 1:
 		p, err := i.And[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'and'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -166,7 +173,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'and'", err)
 			}
 			and = append(and, p)
 		}
@@ -351,7 +358,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		for _, w := range i.HasTodosWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasTodosWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -359,7 +366,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate CategoryWhereInput")
+		return nil, ErrEmptyCategoryWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -416,10 +423,16 @@ func (i *GroupWhereInput) Filter(q *GroupQuery) (*GroupQuery, error) {
 	}
 	p, err := i.P()
 	if err != nil {
+		if err == ErrEmptyGroupWhereInput {
+			return q, nil
+		}
 		return nil, err
 	}
 	return q.Where(p), nil
 }
+
+// ErrEmptyGroupWhereInput is returned in case the GroupWhereInput is empty.
+var ErrEmptyGroupWhereInput = errors.New("ent: empty predicate GroupWhereInput")
 
 // P returns a predicate for filtering groups.
 // An error is returned if the input is empty or invalid.
@@ -428,7 +441,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'not'", err)
 		}
 		predicates = append(predicates, group.Not(p))
 	}
@@ -436,7 +449,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 	case n == 1:
 		p, err := i.Or[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'or'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -444,7 +457,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'or'", err)
 			}
 			or = append(or, p)
 		}
@@ -454,7 +467,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 	case n == 1:
 		p, err := i.And[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'and'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -462,7 +475,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'and'", err)
 			}
 			and = append(and, p)
 		}
@@ -545,7 +558,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		for _, w := range i.HasUsersWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasUsersWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -553,7 +566,7 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate GroupWhereInput")
+		return nil, ErrEmptyGroupWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -661,10 +674,16 @@ func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 	}
 	p, err := i.P()
 	if err != nil {
+		if err == ErrEmptyTodoWhereInput {
+			return q, nil
+		}
 		return nil, err
 	}
 	return q.Where(p), nil
 }
+
+// ErrEmptyTodoWhereInput is returned in case the TodoWhereInput is empty.
+var ErrEmptyTodoWhereInput = errors.New("ent: empty predicate TodoWhereInput")
 
 // P returns a predicate for filtering todos.
 // An error is returned if the input is empty or invalid.
@@ -673,7 +692,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'not'", err)
 		}
 		predicates = append(predicates, todo.Not(p))
 	}
@@ -681,7 +700,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	case n == 1:
 		p, err := i.Or[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'or'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -689,7 +708,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'or'", err)
 			}
 			or = append(or, p)
 		}
@@ -699,7 +718,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	case n == 1:
 		p, err := i.And[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'and'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -707,7 +726,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'and'", err)
 			}
 			and = append(and, p)
 		}
@@ -895,7 +914,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.HasParentWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasParentWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -913,7 +932,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.HasChildrenWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasChildrenWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -931,7 +950,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.HasCategoryWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasCategoryWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -939,7 +958,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate TodoWhereInput")
+		return nil, ErrEmptyTodoWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1000,10 +1019,16 @@ func (i *UserWhereInput) Filter(q *UserQuery) (*UserQuery, error) {
 	}
 	p, err := i.P()
 	if err != nil {
+		if err == ErrEmptyUserWhereInput {
+			return q, nil
+		}
 		return nil, err
 	}
 	return q.Where(p), nil
 }
+
+// ErrEmptyUserWhereInput is returned in case the UserWhereInput is empty.
+var ErrEmptyUserWhereInput = errors.New("ent: empty predicate UserWhereInput")
 
 // P returns a predicate for filtering users.
 // An error is returned if the input is empty or invalid.
@@ -1012,7 +1037,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'not'", err)
 		}
 		predicates = append(predicates, user.Not(p))
 	}
@@ -1020,7 +1045,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	case n == 1:
 		p, err := i.Or[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'or'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -1028,7 +1053,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'or'", err)
 			}
 			or = append(or, p)
 		}
@@ -1038,7 +1063,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	case n == 1:
 		p, err := i.And[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'and'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -1046,7 +1071,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'and'", err)
 			}
 			and = append(and, p)
 		}
@@ -1129,7 +1154,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		for _, w := range i.HasGroupsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasGroupsWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -1147,7 +1172,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		for _, w := range i.HasFriendsWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasFriendsWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -1155,7 +1180,7 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("empty predicate UserWhereInput")
+		return nil, ErrEmptyUserWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

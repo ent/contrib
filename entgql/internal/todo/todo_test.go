@@ -603,6 +603,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		s.Require().NoError(err)
 		s.Require().Equal(0, rsp.Todos.TotalCount)
 	})
+
 	s.Run("WithCategory", func() {
 		ctx := context.Background()
 		id := s.ent.Todo.Query().Order(ent.Asc(todo.FieldID)).FirstIDX(ctx)
@@ -622,6 +623,20 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		err = s.Post(query, &rsp, client.Var("duration", time.Second*2))
 		s.NoError(err)
 		s.Zero(rsp.Todos.TotalCount)
+	})
+
+	s.Run("EmptyFilter", func() {
+		var (
+			rsp   response
+			query = `query() {
+				todos(where:{}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err)
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
 	})
 }
 
