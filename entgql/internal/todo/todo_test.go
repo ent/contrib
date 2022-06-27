@@ -640,6 +640,118 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	})
 }
 
+func (s *todoTestSuite) TestEdgesFiltering() {
+	ctx := context.Background()
+	tr := s.ent.Todo.Create().
+		SetText("t1").
+		SetStatus(todo.StatusInProgress).
+		SaveX(ctx)
+
+	t1 := s.ent.Todo.Create().
+		SetText("t2 0").
+		SetStatus(todo.StatusInProgress).
+		SetParent(tr).
+		SaveX(ctx)
+	s.ent.Todo.Create().
+		SetText("t2 1").
+		SetStatus(todo.StatusCompleted).
+		SetParent(tr).
+		SaveX(ctx)
+
+	t2 := s.ent.Todo.Create().
+		SetText("t3 0").
+		SetStatus(todo.StatusInProgress).
+		SetParent(t1).
+		SaveX(ctx)
+	t3 := s.ent.Todo.Create().
+		SetText("t3 1").
+		SetStatus(todo.StatusInProgress).
+		SetParent(t1).
+		SaveX(ctx)
+
+	query := `query todos($id: ID!, $lv2Status: TodoStatus!) {
+		todos(where:{id: $id}) {
+			edges {
+				node {
+					childrenLevel0: children(where: {statusNEQ: COMPLETED}) {
+						totalCount
+						edges {
+							node {
+								id
+								childrenLevel1: children(where: {statusNEQ: $lv2Status}) {
+									totalCount
+									edges {
+										node {
+											id
+											childrenLevel2: children {
+												totalCount
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}`
+
+	type response struct {
+		Todos struct {
+			Edges []struct {
+				Node struct {
+					ChildrenLevel0 struct {
+						TotalCount int
+						Edges      []struct {
+							Node struct {
+								ID             string
+								ChildrenLevel1 struct {
+									TotalCount int
+									Edges      []struct {
+										Node struct {
+											ID             string
+											ChildrenLevel2 struct {
+												TotalCount int
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	s.Run("query level 2 NEQ IN_PROGRESS", func() {
+		var rsp response
+		err := s.Post(query, &rsp, client.Var("id", tr.ID), client.Var("lv2Status", "IN_PROGRESS"))
+		s.NoError(err)
+
+		s.Equal(1, rsp.Todos.Edges[0].Node.ChildrenLevel0.TotalCount)
+		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node.ID)
+
+		n := rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node
+		s.Equal(0, n.ChildrenLevel1.TotalCount)
+	})
+
+	s.Run("query level 2 NEQ COMPLETED", func() {
+		var rsp response
+		err := s.Post(query, &rsp, client.Var("id", tr.ID), client.Var("lv2Status", "COMPLETED"))
+		s.NoError(err)
+
+		s.Equal(1, rsp.Todos.Edges[0].Node.ChildrenLevel0.TotalCount)
+		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node.ID)
+
+		n := rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node
+		s.Equal(2, n.ChildrenLevel1.TotalCount)
+		s.Equal(fmt.Sprint(t2.ID), n.ChildrenLevel1.Edges[0].Node.ID)
+		s.Equal(fmt.Sprint(t3.ID), n.ChildrenLevel1.Edges[1].Node.ID)
+	})
+}
+
 func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 	ctx := context.Background()
 	td1 := s.ent.Todo.Create().
