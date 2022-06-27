@@ -51,6 +51,12 @@ import "context"
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
 		opts ...{{ $opt }},
 	) (*{{ $conn }}, error) {
+		{{- if orderFields $e.Type }}
+			opts = append(opts, {{ print "With" $order }}(orderBy))
+		{{- end }}
+		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}
+			opts = append(opts, {{ print "With" $names.Node "Filter" }}(where.Filter))
+		{{- end }}
 		{{- /* May be nil if the totalCount was not loaded. */}}
 		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
 		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil {
@@ -58,9 +64,6 @@ import "context"
 			if totalCount != nil {
 				conn.TotalCount = *totalCount
 			}
-			{{- if orderFields $e.Type }}
-				opts = append(opts, {{ print "With" $order }}(orderBy))
-			{{- end }}
 			pager, err := {{ $newPager }}(opts)
 			if err != nil {
 				return nil, err

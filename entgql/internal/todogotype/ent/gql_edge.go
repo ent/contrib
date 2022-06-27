@@ -26,13 +26,14 @@ func (c *Category) Todos(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
 	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
+	opts = append(opts, WithTodoOrder(orderBy))
+	opts = append(opts, WithTodoFilter(where.Filter))
 	totalCount := c.Edges.totalCount[0]
 	if nodes, err := c.Edges.TodosOrErr(); err == nil {
 		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
-		opts = append(opts, WithTodoOrder(orderBy))
 		pager, err := newTodoPager(opts)
 		if err != nil {
 			return nil, err
@@ -96,6 +97,7 @@ func (gr *Group) Users(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
 	opts ...UserPaginateOption,
 ) (*UserConnection, error) {
+	opts = append(opts, WithUserFilter(where.Filter))
 	totalCount := gr.Edges.totalCount[0]
 	if nodes, err := gr.Edges.UsersOrErr(); err == nil {
 		conn := &UserConnection{Edges: []*UserEdge{}}
@@ -173,13 +175,14 @@ func (t *Todo) Children(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
 	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
+	opts = append(opts, WithTodoOrder(orderBy))
+	opts = append(opts, WithTodoFilter(where.Filter))
 	totalCount := t.Edges.totalCount[1]
 	if nodes, err := t.Edges.ChildrenOrErr(); err == nil {
 		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
-		opts = append(opts, WithTodoOrder(orderBy))
 		pager, err := newTodoPager(opts)
 		if err != nil {
 			return nil, err
@@ -251,6 +254,7 @@ func (u *User) Groups(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *GroupWhereInput,
 	opts ...GroupPaginateOption,
 ) (*GroupConnection, error) {
+	opts = append(opts, WithGroupFilter(where.Filter))
 	totalCount := u.Edges.totalCount[0]
 	if nodes, err := u.Edges.GroupsOrErr(); err == nil {
 		conn := &GroupConnection{Edges: []*GroupEdge{}}
