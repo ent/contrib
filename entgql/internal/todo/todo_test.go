@@ -673,17 +673,17 @@ func (s *todoTestSuite) TestEdgesFiltering() {
 		todos(where:{id: $id}) {
 			edges {
 				node {
-					childrenLevel0: children(where: {statusNEQ: COMPLETED}) {
+					children(where: {statusNEQ: COMPLETED}) {
 						totalCount
 						edges {
 							node {
 								id
-								childrenLevel1: children(where: {statusNEQ: $lv2Status}) {
+								children(where: {statusNEQ: $lv2Status}) {
 									totalCount
 									edges {
 										node {
 											id
-											childrenLevel2: children {
+											children {
 												totalCount
 											}
 										}
@@ -701,17 +701,17 @@ func (s *todoTestSuite) TestEdgesFiltering() {
 		Todos struct {
 			Edges []struct {
 				Node struct {
-					ChildrenLevel0 struct {
+					Children struct {
 						TotalCount int
 						Edges      []struct {
 							Node struct {
-								ID             string
-								ChildrenLevel1 struct {
+								ID       string
+								Children struct {
 									TotalCount int
 									Edges      []struct {
 										Node struct {
-											ID             string
-											ChildrenLevel2 struct {
+											ID       string
+											Children struct {
 												TotalCount int
 											}
 										}
@@ -730,11 +730,11 @@ func (s *todoTestSuite) TestEdgesFiltering() {
 		err := s.Post(query, &rsp, client.Var("id", tr.ID), client.Var("lv2Status", "IN_PROGRESS"))
 		s.NoError(err)
 
-		s.Equal(1, rsp.Todos.Edges[0].Node.ChildrenLevel0.TotalCount)
-		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node.ID)
+		s.Equal(1, rsp.Todos.Edges[0].Node.Children.TotalCount)
+		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.Children.Edges[0].Node.ID)
 
-		n := rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node
-		s.Equal(0, n.ChildrenLevel1.TotalCount)
+		n := rsp.Todos.Edges[0].Node.Children.Edges[0].Node
+		s.Equal(0, n.Children.TotalCount)
 	})
 
 	s.Run("query level 2 NEQ COMPLETED", func() {
@@ -742,13 +742,13 @@ func (s *todoTestSuite) TestEdgesFiltering() {
 		err := s.Post(query, &rsp, client.Var("id", tr.ID), client.Var("lv2Status", "COMPLETED"))
 		s.NoError(err)
 
-		s.Equal(1, rsp.Todos.Edges[0].Node.ChildrenLevel0.TotalCount)
-		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node.ID)
+		s.Equal(1, rsp.Todos.Edges[0].Node.Children.TotalCount)
+		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.Children.Edges[0].Node.ID)
 
-		n := rsp.Todos.Edges[0].Node.ChildrenLevel0.Edges[0].Node
-		s.Equal(2, n.ChildrenLevel1.TotalCount)
-		s.Equal(fmt.Sprint(t2.ID), n.ChildrenLevel1.Edges[0].Node.ID)
-		s.Equal(fmt.Sprint(t3.ID), n.ChildrenLevel1.Edges[1].Node.ID)
+		n := rsp.Todos.Edges[0].Node.Children.Edges[0].Node
+		s.Equal(2, n.Children.TotalCount)
+		s.Equal(fmt.Sprint(t2.ID), n.Children.Edges[0].Node.ID)
+		s.Equal(fmt.Sprint(t3.ID), n.Children.Edges[1].Node.ID)
 	})
 }
 
