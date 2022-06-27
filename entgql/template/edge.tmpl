@@ -60,7 +60,8 @@ import "context"
 		}
 		{{- /* May be nil if the totalCount was not loaded. */}}
 		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
-		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil {
+		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
+		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil || totalCount != nil {
 			conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
 			if totalCount != nil {
 				conn.TotalCount = *totalCount

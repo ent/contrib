@@ -30,7 +30,7 @@ func (c *Category) Todos(
 		WithTodoFilter(where.Filter),
 	}
 	totalCount := c.Edges.totalCount[0]
-	if nodes, err := c.Edges.TodosOrErr(); err == nil {
+	if nodes, err := c.Edges.TodosOrErr(); err == nil || totalCount != nil {
 		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
@@ -101,7 +101,7 @@ func (gr *Group) Users(
 		WithUserFilter(where.Filter),
 	}
 	totalCount := gr.Edges.totalCount[0]
-	if nodes, err := gr.Edges.UsersOrErr(); err == nil {
+	if nodes, err := gr.Edges.UsersOrErr(); err == nil || totalCount != nil {
 		conn := &UserConnection{Edges: []*UserEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
@@ -181,7 +181,7 @@ func (t *Todo) Children(
 		WithTodoFilter(where.Filter),
 	}
 	totalCount := t.Edges.totalCount[1]
-	if nodes, err := t.Edges.ChildrenOrErr(); err == nil {
+	if nodes, err := t.Edges.ChildrenOrErr(); err == nil || totalCount != nil {
 		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
@@ -260,7 +260,7 @@ func (u *User) Groups(
 		WithGroupFilter(where.Filter),
 	}
 	totalCount := u.Edges.totalCount[0]
-	if nodes, err := u.Edges.GroupsOrErr(); err == nil {
+	if nodes, err := u.Edges.GroupsOrErr(); err == nil || totalCount != nil {
 		conn := &GroupConnection{Edges: []*GroupEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
