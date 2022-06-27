@@ -220,6 +220,20 @@ func (uc *UserCreate) SetLabels(s []string) *UserCreate {
 	return uc
 }
 
+// SetDeviceType sets the "device_type" field.
+func (uc *UserCreate) SetDeviceType(ut user.DeviceType) *UserCreate {
+	uc.mutation.SetDeviceType(ut)
+	return uc
+}
+
+// SetNillableDeviceType sets the "device_type" field if the given value is not nil.
+func (uc *UserCreate) SetNillableDeviceType(ut *user.DeviceType) *UserCreate {
+	if ut != nil {
+		uc.SetDeviceType(*ut)
+	}
+	return uc
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uc *UserCreate) SetGroupID(id int) *UserCreate {
 	uc.mutation.SetGroupID(id)
@@ -400,6 +414,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultAccountBalance
 		uc.mutation.SetAccountBalance(v)
 	}
+	if _, ok := uc.mutation.DeviceType(); !ok {
+		v := user.DefaultDeviceType
+		uc.mutation.SetDeviceType(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -441,6 +459,14 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.AccountBalance(); !ok {
 		return &ValidationError{Name: "account_balance", err: errors.New(`ent: missing required field "User.account_balance"`)}
+	}
+	if _, ok := uc.mutation.DeviceType(); !ok {
+		return &ValidationError{Name: "device_type", err: errors.New(`ent: missing required field "User.device_type"`)}
+	}
+	if v, ok := uc.mutation.DeviceType(); ok {
+		if err := user.DeviceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -620,6 +646,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldLabels,
 		})
 		_node.Labels = value
+	}
+	if value, ok := uc.mutation.DeviceType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: user.FieldDeviceType,
+		})
+		_node.DeviceType = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -3070,6 +3070,7 @@ type UserMutation struct {
 	unnecessary        *string
 	_type              *string
 	labels             *[]string
+	device_type        *user.DeviceType
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -4135,6 +4136,42 @@ func (m *UserMutation) ResetLabels() {
 	delete(m.clearedFields, user.FieldLabels)
 }
 
+// SetDeviceType sets the "device_type" field.
+func (m *UserMutation) SetDeviceType(ut user.DeviceType) {
+	m.device_type = &ut
+}
+
+// DeviceType returns the value of the "device_type" field in the mutation.
+func (m *UserMutation) DeviceType() (r user.DeviceType, exists bool) {
+	v := m.device_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeviceType returns the old "device_type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDeviceType(ctx context.Context) (v user.DeviceType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeviceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeviceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeviceType: %w", err)
+	}
+	return oldValue.DeviceType, nil
+}
+
+// ResetDeviceType resets all changes to the "device_type" field.
+func (m *UserMutation) ResetDeviceType() {
+	m.device_type = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -4364,7 +4401,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4422,6 +4459,9 @@ func (m *UserMutation) Fields() []string {
 	if m.labels != nil {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.device_type != nil {
+		fields = append(fields, user.FieldDeviceType)
+	}
 	return fields
 }
 
@@ -4468,6 +4508,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case user.FieldLabels:
 		return m.Labels()
+	case user.FieldDeviceType:
+		return m.DeviceType()
 	}
 	return nil, false
 }
@@ -4515,6 +4557,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldType(ctx)
 	case user.FieldLabels:
 		return m.OldLabels(ctx)
+	case user.FieldDeviceType:
+		return m.OldDeviceType(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4656,6 +4700,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLabels(v)
+		return nil
+	case user.FieldDeviceType:
+		v, ok := value.(user.DeviceType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeviceType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -4912,6 +4963,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case user.FieldDeviceType:
+		m.ResetDeviceType()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

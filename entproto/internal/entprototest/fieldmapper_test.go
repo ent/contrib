@@ -51,14 +51,14 @@ func (suite *AdapterTestSuite) TestFieldMap() {
 	status, ok := mp["status"]
 	require.True(ok)
 	assert.EqualValues("Status", status.PbStructField())
-	assert.True(status.IsEnumFIeld)
+	assert.True(status.IsEnumField)
 
 	for _, en := range mp.Edges() {
 		assert.True(en.IsEdgeField, "expected .Edges() to return only Edge fields")
 		assert.NotNil(en.EntEdge)
 	}
 	for _, en := range mp.Enums() {
-		assert.True(en.IsEnumFIeld, "expected .Enums() to return only enum fields")
+		assert.True(en.IsEnumField, "expected .Enums() to return only enum fields")
 	}
 }
 

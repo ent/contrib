@@ -49,6 +49,8 @@ const (
 	FieldType = "type"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldDeviceType holds the string denoting the device_type field in the database.
+	FieldDeviceType = "device_type"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -118,6 +120,7 @@ var Columns = []string{
 	FieldUnnecessary,
 	FieldType,
 	FieldLabels,
+	FieldDeviceType,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -176,5 +179,31 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
+	}
+}
+
+// DeviceType defines the type for the "device_type" enum field.
+type DeviceType string
+
+// DeviceTypeGLOWY9000 is the default value of the DeviceType enum.
+const DefaultDeviceType = DeviceTypeGLOWY9000
+
+// DeviceType values.
+const (
+	DeviceTypeGLOWY9000 DeviceType = "GLOWY9000"
+	DeviceTypeSPEEDY300 DeviceType = "SPEEDY300"
+)
+
+func (dt DeviceType) String() string {
+	return string(dt)
+}
+
+// DeviceTypeValidator is a validator for the "device_type" field enum values. It is called by the builders before save.
+func DeviceTypeValidator(dt DeviceType) error {
+	switch dt {
+	case DeviceTypeGLOWY9000, DeviceTypeSPEEDY300:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for device_type field: %q", dt)
 	}
 }

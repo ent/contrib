@@ -1682,6 +1682,54 @@ func LabelsNotNil() predicate.User {
 	})
 }
 
+// DeviceTypeEQ applies the EQ predicate on the "device_type" field.
+func DeviceTypeEQ(v DeviceType) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDeviceType), v))
+	})
+}
+
+// DeviceTypeNEQ applies the NEQ predicate on the "device_type" field.
+func DeviceTypeNEQ(v DeviceType) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDeviceType), v))
+	})
+}
+
+// DeviceTypeIn applies the In predicate on the "device_type" field.
+func DeviceTypeIn(vs ...DeviceType) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDeviceType), v...))
+	})
+}
+
+// DeviceTypeNotIn applies the NotIn predicate on the "device_type" field.
+func DeviceTypeNotIn(vs ...DeviceType) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDeviceType), v...))
+	})
+}
+
 // HasGroup applies the HasEdge predicate on the "group" edge.
 func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
