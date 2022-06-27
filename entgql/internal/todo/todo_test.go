@@ -29,6 +29,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
 
 	"entgo.io/contrib/entgql"
@@ -42,7 +43,6 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/suite"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
@@ -637,118 +637,6 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		err := s.Post(query, &rsp)
 		s.NoError(err)
 		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
-	})
-}
-
-func (s *todoTestSuite) TestEdgesFiltering() {
-	ctx := context.Background()
-	tr := s.ent.Todo.Create().
-		SetText("t1").
-		SetStatus(todo.StatusInProgress).
-		SaveX(ctx)
-
-	t1 := s.ent.Todo.Create().
-		SetText("t2 0").
-		SetStatus(todo.StatusInProgress).
-		SetParent(tr).
-		SaveX(ctx)
-	s.ent.Todo.Create().
-		SetText("t2 1").
-		SetStatus(todo.StatusCompleted).
-		SetParent(tr).
-		SaveX(ctx)
-
-	t2 := s.ent.Todo.Create().
-		SetText("t3 0").
-		SetStatus(todo.StatusInProgress).
-		SetParent(t1).
-		SaveX(ctx)
-	t3 := s.ent.Todo.Create().
-		SetText("t3 1").
-		SetStatus(todo.StatusInProgress).
-		SetParent(t1).
-		SaveX(ctx)
-
-	query := `query todos($id: ID!, $lv2Status: TodoStatus!) {
-		todos(where:{id: $id}) {
-			edges {
-				node {
-					children(where: {statusNEQ: COMPLETED}) {
-						totalCount
-						edges {
-							node {
-								id
-								children(where: {statusNEQ: $lv2Status}) {
-									totalCount
-									edges {
-										node {
-											id
-											children {
-												totalCount
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}`
-
-	type response struct {
-		Todos struct {
-			Edges []struct {
-				Node struct {
-					Children struct {
-						TotalCount int
-						Edges      []struct {
-							Node struct {
-								ID       string
-								Children struct {
-									TotalCount int
-									Edges      []struct {
-										Node struct {
-											ID       string
-											Children struct {
-												TotalCount int
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	s.Run("query level 2 NEQ IN_PROGRESS", func() {
-		var rsp response
-		err := s.Post(query, &rsp, client.Var("id", tr.ID), client.Var("lv2Status", "IN_PROGRESS"))
-		s.NoError(err)
-
-		s.Equal(1, rsp.Todos.Edges[0].Node.Children.TotalCount)
-		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.Children.Edges[0].Node.ID)
-
-		n := rsp.Todos.Edges[0].Node.Children.Edges[0].Node
-		s.Equal(0, n.Children.TotalCount)
-	})
-
-	s.Run("query level 2 NEQ COMPLETED", func() {
-		var rsp response
-		err := s.Post(query, &rsp, client.Var("id", tr.ID), client.Var("lv2Status", "COMPLETED"))
-		s.NoError(err)
-
-		s.Equal(1, rsp.Todos.Edges[0].Node.Children.TotalCount)
-		s.Equal(fmt.Sprint(t1.ID), rsp.Todos.Edges[0].Node.Children.Edges[0].Node.ID)
-
-		n := rsp.Todos.Edges[0].Node.Children.Edges[0].Node
-		s.Equal(2, n.Children.TotalCount)
-		s.Equal(fmt.Sprint(t2.ID), n.Children.Edges[0].Node.ID)
-		s.Equal(fmt.Sprint(t3.ID), n.Children.Edges[1].Node.ID)
 	})
 }
 
@@ -1635,5 +1523,140 @@ func TestNestedConnection(t *testing.T) {
 			}
 			require.EqualValues(t, 3, count.value())
 		}
+	})
+}
+
+func TestEdgesFiltering(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	count := &queryCount{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(count)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	gqlc := client.New(srv)
+
+	root := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t0.2").SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted),
+	).SaveX(ctx)
+
+	child := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1.1").SetParent(root[0]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParent(root[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParent(root[0]).SetStatus(todo.StatusCompleted),
+	).SaveX(ctx)
+
+	grandchild := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t2.1").SetParent(child[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t2.2").SetParent(child[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t2.3").SetParent(child[0]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t2.4").SetParent(child[1]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t2.5").SetParent(child[1]).SetStatus(todo.StatusInProgress),
+	).SaveX(ctx)
+
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t3.1").SetParent(grandchild[0]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.2").SetParent(grandchild[0]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.3").SetParent(grandchild[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t3.4").SetParent(grandchild[1]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.5").SetParent(grandchild[1]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.6").SetParent(grandchild[1]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t3.7").SetParent(grandchild[1]).SetStatus(todo.StatusCompleted),
+	).ExecX(ctx)
+
+	query := `query todos($id: ID!, $lv2Status: TodoStatus!) {
+		todos(where:{id: $id}) {
+			edges {
+				node {
+					children(where: {statusNEQ: COMPLETED}) {
+						totalCount
+						edges {
+							node {
+								text
+								children(where: {statusNEQ: $lv2Status}) {
+									totalCount
+									edges {
+										node {
+											text
+											children {
+												totalCount
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}`
+
+	var rsp struct {
+		Todos struct {
+			Edges []struct {
+				Node struct {
+					Children struct {
+						TotalCount int
+						Edges      []struct {
+							Node struct {
+								Text     string
+								Children struct {
+									TotalCount int
+									Edges      []struct {
+										Node struct {
+											Text     string
+											Children struct {
+												TotalCount int
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	t.Run("query level 2 NEQ IN_PROGRESS", func(t *testing.T) {
+		count.reset()
+		err := gqlc.Post(query, &rsp, client.Var("id", root[0].ID), client.Var("lv2Status", "IN_PROGRESS"))
+		require.NoError(t, err)
+
+		require.Equal(t, 1, rsp.Todos.Edges[0].Node.Children.TotalCount)
+		require.Equal(t, child[0].Text, rsp.Todos.Edges[0].Node.Children.Edges[0].Node.Text)
+
+		n := rsp.Todos.Edges[0].Node.Children.Edges[0].Node
+		require.Equal(t, 2, n.Children.TotalCount)
+		require.Equal(t, grandchild[0].Text, n.Children.Edges[0].Node.Text)
+		require.Equal(t, 3, n.Children.Edges[0].Node.Children.TotalCount)
+		require.Equal(t, grandchild[1].Text, n.Children.Edges[1].Node.Text)
+		require.Equal(t, 4, n.Children.Edges[1].Node.Children.TotalCount)
+
+		// Top-level todos, children, grand-children and totalCount of great-children.
+		require.EqualValues(t, 4, count.n)
+	})
+
+	t.Run("query level 2 NEQ COMPLETED", func(t *testing.T) {
+		count.reset()
+		err := gqlc.Post(query, &rsp, client.Var("id", root[0].ID), client.Var("lv2Status", "COMPLETED"))
+		require.NoError(t, err)
+
+		require.Equal(t, 1, rsp.Todos.Edges[0].Node.Children.TotalCount)
+		require.Equal(t, child[0].Text, rsp.Todos.Edges[0].Node.Children.Edges[0].Node.Text)
+
+		n := rsp.Todos.Edges[0].Node.Children.Edges[0].Node
+		require.Equal(t, 1, n.Children.TotalCount)
+		require.Equal(t, grandchild[2].Text, n.Children.Edges[0].Node.Text)
+		require.Zero(t, n.Children.Edges[0].Node.Children.TotalCount)
+
+		// Top-level todos, children, grand-children and totalCount of great-children.
+		require.EqualValues(t, 4, count.n)
 	})
 }

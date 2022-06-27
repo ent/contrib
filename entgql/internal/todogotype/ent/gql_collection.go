@@ -137,8 +137,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			c.withTodos = query
 		}
@@ -312,8 +314,10 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			gr.withUsers = query
 		}
@@ -512,8 +516,10 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			t.withChildren = query
 		case "category":
@@ -696,8 +702,10 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			u.withGroups = query
 		case "friends":

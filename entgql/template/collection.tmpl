@@ -97,10 +97,16 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 								query = pager.applyOrder(query, args.last != nil)
 							}
 							path = append(path, edgesField, nodeField)
+							if field := collectedField(ctx, path...); field != nil {
+								if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+									return err
+								}
+							}
+						{{- else }}
+							if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+								return err
+							}
 						{{- end }}
-						if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-							return err
-						}
 						{{ $receiver }}.{{ $e.EagerLoadField }} = query
 				{{- end }}
 			}
