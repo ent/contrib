@@ -49,14 +49,15 @@ import "context"
 		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
 		{{- if orderFields $e.Type }}orderBy *{{ $order }},{{ end }}
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
-		opts ...{{ $opt }},
 	) (*{{ $conn }}, error) {
+		opts := []{{ $opt }}{
 		{{- if orderFields $e.Type }}
-			opts = append(opts, {{ print "With" $order }}(orderBy))
+			{{ print "With" $order }}(orderBy),
 		{{- end }}
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}
-			opts = append(opts, {{ print "With" $names.Node "Filter" }}(where.Filter))
+			{{ print "With" $names.Node "Filter" }}(where.Filter),
 		{{- end }}
+		}
 		{{- /* May be nil if the totalCount was not loaded. */}}
 		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
 		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil {
