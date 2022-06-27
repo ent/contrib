@@ -13,9 +13,16 @@
             return {{ $pbEnumIdent | ident }}(0)
         }
 
+
+
         func toEnt{{ $pbEnumIdent.GoName }}(e {{ ident $pbEnumIdent }}) {{ ident $entEnumIdent  }} {
             if v, ok := {{ $pbEnumIdent.GoName }}_name[int32(e)]; ok {
-                return {{ ident $entEnumIdent }}({{ qualify "strings" "ToLower" }}(v))
+                entVal := map[string]string{
+                {{- range .EntField.Enums }}
+                    "{{ upper .Value }}": "{{ .Value }}",
+                {{- end }}
+                }[v]
+                return {{ ident $entEnumIdent }}(entVal)
             }
             return ""
         }

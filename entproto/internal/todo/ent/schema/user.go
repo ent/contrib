@@ -118,6 +118,16 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(24),
 			),
+		field.Enum("device_type").
+			Values("GLOWY9000", "SPEEDY300").
+			Default("GLOWY9000").
+			Annotations(
+				entproto.Field(100),
+				entproto.Enum(map[string]int32{
+					"GLOWY9000": 0,
+					"SPEEDY300": 1,
+				}),
+			),
 	}
 }
 
