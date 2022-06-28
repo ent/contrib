@@ -24,11 +24,23 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
+func (r *mutationResolver) ClearFriendships(ctx context.Context) (int, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) ClearUsers(ctx context.Context) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateUser(ctx context.Context, input CreateUserInput) (*ent.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

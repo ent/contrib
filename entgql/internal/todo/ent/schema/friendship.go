@@ -22,6 +22,10 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
+// TimeNow is a function that returns the current time.
+// This is helpful for testing.
+var TimeNow = time.Now
+
 // Friendship holds the edge schema definition of the Friendship relationship.
 type Friendship struct {
 	ent.Schema
@@ -31,7 +35,9 @@ type Friendship struct {
 func (Friendship) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("created_at").
-			Default(time.Now),
+			Default(func() time.Time {
+				return TimeNow()
+			}),
 		field.Int("user_id"),
 		field.Int("friend_id"),
 	}

@@ -33,7 +33,9 @@ type Todo struct {
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("created_at").
-			Default(time.Now).
+			Default(func() time.Time {
+				return TimeNow()
+			}).
 			Immutable().
 			Annotations(
 				entgql.OrderField("CREATED_AT"),

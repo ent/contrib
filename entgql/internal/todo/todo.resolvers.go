@@ -25,11 +25,11 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
-	return ent.FromContext(ctx).Todo.
-		Create().
-		SetInput(input).
-		Save(ctx)
+func (r *mutationResolver) ClearFriendships(ctx context.Context) (int, error) {
+	client := ent.FromContext(ctx)
+	return client.Friendship.
+		Delete().
+		Exec(ctx)
 }
 
 func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
@@ -37,6 +37,27 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 	return client.Todo.
 		Delete().
 		Exec(ctx)
+}
+
+func (r *mutationResolver) ClearUsers(ctx context.Context) (int, error) {
+	client := ent.FromContext(ctx)
+	return client.User.
+		Delete().
+		Exec(ctx)
+}
+
+func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
+	return ent.FromContext(ctx).Todo.
+		Create().
+		SetInput(input).
+		Save(ctx)
+}
+
+func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
+	return ent.FromContext(ctx).User.
+		Create().
+		SetInput(input).
+		Save(ctx)
 }
 
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
