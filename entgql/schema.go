@@ -143,7 +143,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 	}
 
 	for _, node := range g.Nodes {
-		if node.IsEdgeSchema() {
+		if node.HasCompositeID() {
 			continue
 		}
 		gqlType, ant, err := gqlTypeFromNode(node)
@@ -386,7 +386,7 @@ func (e *schemaGenerator) buildFieldEnum(f *gen.Field, gqlType, goType string) (
 }
 
 func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
-	if edge.Type.IsEdgeSchema() {
+	if edge.Type.HasCompositeID() {
 		return nil, nil
 	}
 	gqlType, ant, err := gqlTypeFromNode(edge.Type)
