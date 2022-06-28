@@ -461,6 +461,9 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 
 	fields := allFields(t)
 	for _, f := range fields {
+		if t.IsEdgeSchema() && f.IsEdgeField() {
+			continue
+		}
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
@@ -477,6 +480,9 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 		}
 	}
 
+	if t.IsEdgeSchema() {
+		return def, nil
+	}
 	edges, err := filterEdges(t.Edges, SkipWhereInput)
 	if err != nil {
 		return nil, err
