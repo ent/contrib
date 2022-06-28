@@ -170,22 +170,6 @@ input FriendshipWhereInput {
   createdAtGTE: Time
   createdAtLT: Time
   createdAtLTE: Time
-  """user_id field predicates"""
-  userID: ID
-  userIDNEQ: ID
-  userIDIn: [ID!]
-  userIDNotIn: [ID!]
-  """friend_id field predicates"""
-  friendID: ID
-  friendIDNEQ: ID
-  friendIDIn: [ID!]
-  friendIDNotIn: [ID!]
-  """user edge predicates"""
-  hasUser: Boolean
-  hasUserWith: [UserWhereInput!]
-  """friend edge predicates"""
-  hasFriend: Boolean
-  hasFriendWith: [UserWhereInput!]
 }
 type Group implements Node {
   id: ID!
