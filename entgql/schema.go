@@ -281,6 +281,9 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 
 	fields := allFields(t)
 	for _, f := range fields {
+		if t.IsEdgeSchema() && f.IsEdgeField() {
+			continue
+		}
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
