@@ -888,7 +888,7 @@ type FriendshipMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	created_at    *time.Time
 	clearedFields map[string]struct{}
 	user          *uuid.UUID
@@ -920,7 +920,7 @@ func newFriendshipMutation(c config, op Op, opts ...friendshipOption) *Friendshi
 }
 
 // withFriendshipID sets the ID field of the mutation.
-func withFriendshipID(id int) friendshipOption {
+func withFriendshipID(id uuid.UUID) friendshipOption {
 	return func(m *FriendshipMutation) {
 		var (
 			err   error
@@ -970,9 +970,15 @@ func (m FriendshipMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Friendship entities.
+func (m *FriendshipMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *FriendshipMutation) ID() (id int, exists bool) {
+func (m *FriendshipMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -983,12 +989,12 @@ func (m *FriendshipMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *FriendshipMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *FriendshipMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2746,8 +2752,8 @@ type UserMutation struct {
 	friends            map[uuid.UUID]struct{}
 	removedfriends     map[uuid.UUID]struct{}
 	clearedfriends     bool
-	friendships        map[int]struct{}
-	removedfriendships map[int]struct{}
+	friendships        map[uuid.UUID]struct{}
+	removedfriendships map[uuid.UUID]struct{}
 	clearedfriendships bool
 	done               bool
 	oldValue           func(context.Context) (*User, error)
@@ -3003,9 +3009,9 @@ func (m *UserMutation) ResetFriends() {
 }
 
 // AddFriendshipIDs adds the "friendships" edge to the Friendship entity by ids.
-func (m *UserMutation) AddFriendshipIDs(ids ...int) {
+func (m *UserMutation) AddFriendshipIDs(ids ...uuid.UUID) {
 	if m.friendships == nil {
-		m.friendships = make(map[int]struct{})
+		m.friendships = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.friendships[ids[i]] = struct{}{}
@@ -3023,9 +3029,9 @@ func (m *UserMutation) FriendshipsCleared() bool {
 }
 
 // RemoveFriendshipIDs removes the "friendships" edge to the Friendship entity by IDs.
-func (m *UserMutation) RemoveFriendshipIDs(ids ...int) {
+func (m *UserMutation) RemoveFriendshipIDs(ids ...uuid.UUID) {
 	if m.removedfriendships == nil {
-		m.removedfriendships = make(map[int]struct{})
+		m.removedfriendships = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.friendships, ids[i])
@@ -3034,7 +3040,7 @@ func (m *UserMutation) RemoveFriendshipIDs(ids ...int) {
 }
 
 // RemovedFriendships returns the removed IDs of the "friendships" edge to the Friendship entity.
-func (m *UserMutation) RemovedFriendshipsIDs() (ids []int) {
+func (m *UserMutation) RemovedFriendshipsIDs() (ids []uuid.UUID) {
 	for id := range m.removedfriendships {
 		ids = append(ids, id)
 	}
@@ -3042,7 +3048,7 @@ func (m *UserMutation) RemovedFriendshipsIDs() (ids []int) {
 }
 
 // FriendshipsIDs returns the "friendships" edge IDs in the mutation.
-func (m *UserMutation) FriendshipsIDs() (ids []int) {
+func (m *UserMutation) FriendshipsIDs() (ids []uuid.UUID) {
 	for id := range m.friendships {
 		ids = append(ids, id)
 	}

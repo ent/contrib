@@ -31,7 +31,7 @@ import (
 type Friendship struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -89,11 +89,9 @@ func (*Friendship) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case friendship.FieldID:
-			values[i] = new(sql.NullInt64)
 		case friendship.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case friendship.FieldUserID, friendship.FieldFriendID:
+		case friendship.FieldID, friendship.FieldUserID, friendship.FieldFriendID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Friendship", columns[i])
@@ -111,11 +109,11 @@ func (f *Friendship) assignValues(columns []string, values []interface{}) error 
 	for i := range columns {
 		switch columns[i] {
 		case friendship.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				f.ID = *value
 			}
-			f.ID = int(value.Int64)
 		case friendship.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])

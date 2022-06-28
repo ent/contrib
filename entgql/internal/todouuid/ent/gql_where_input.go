@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
@@ -371,6 +372,244 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		return predicates[0], nil
 	default:
 		return category.And(predicates...), nil
+	}
+}
+
+// FriendshipWhereInput represents a where input for filtering Friendship queries.
+type FriendshipWhereInput struct {
+	Predicates []predicate.Friendship  `json:"-"`
+	Not        *FriendshipWhereInput   `json:"not,omitempty"`
+	Or         []*FriendshipWhereInput `json:"or,omitempty"`
+	And        []*FriendshipWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *uuid.UUID  `json:"id,omitempty"`
+	IDNEQ   *uuid.UUID  `json:"idNEQ,omitempty"`
+	IDIn    []uuid.UUID `json:"idIn,omitempty"`
+	IDNotIn []uuid.UUID `json:"idNotIn,omitempty"`
+	IDGT    *uuid.UUID  `json:"idGT,omitempty"`
+	IDGTE   *uuid.UUID  `json:"idGTE,omitempty"`
+	IDLT    *uuid.UUID  `json:"idLT,omitempty"`
+	IDLTE   *uuid.UUID  `json:"idLTE,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "user_id" field predicates.
+	UserID      *uuid.UUID  `json:"userID,omitempty"`
+	UserIDNEQ   *uuid.UUID  `json:"userIDNEQ,omitempty"`
+	UserIDIn    []uuid.UUID `json:"userIDIn,omitempty"`
+	UserIDNotIn []uuid.UUID `json:"userIDNotIn,omitempty"`
+
+	// "friend_id" field predicates.
+	FriendID      *uuid.UUID  `json:"friendID,omitempty"`
+	FriendIDNEQ   *uuid.UUID  `json:"friendIDNEQ,omitempty"`
+	FriendIDIn    []uuid.UUID `json:"friendIDIn,omitempty"`
+	FriendIDNotIn []uuid.UUID `json:"friendIDNotIn,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
+
+	// "friend" edge predicates.
+	HasFriend     *bool             `json:"hasFriend,omitempty"`
+	HasFriendWith []*UserWhereInput `json:"hasFriendWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *FriendshipWhereInput) AddPredicates(predicates ...predicate.Friendship) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the FriendshipWhereInput filter on the FriendshipQuery builder.
+func (i *FriendshipWhereInput) Filter(q *FriendshipQuery) (*FriendshipQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyFriendshipWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyFriendshipWhereInput is returned in case the FriendshipWhereInput is empty.
+var ErrEmptyFriendshipWhereInput = errors.New("ent: empty predicate FriendshipWhereInput")
+
+// P returns a predicate for filtering friendships.
+// An error is returned if the input is empty or invalid.
+func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
+	var predicates []predicate.Friendship
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, friendship.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.Friendship, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, friendship.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.Friendship, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, friendship.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, friendship.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, friendship.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, friendship.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, friendship.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, friendship.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, friendship.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, friendship.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, friendship.IDLTE(*i.IDLTE))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, friendship.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, friendship.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, friendship.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, friendship.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, friendship.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, friendship.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, friendship.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, friendship.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+	if i.UserID != nil {
+		predicates = append(predicates, friendship.UserIDEQ(*i.UserID))
+	}
+	if i.UserIDNEQ != nil {
+		predicates = append(predicates, friendship.UserIDNEQ(*i.UserIDNEQ))
+	}
+	if len(i.UserIDIn) > 0 {
+		predicates = append(predicates, friendship.UserIDIn(i.UserIDIn...))
+	}
+	if len(i.UserIDNotIn) > 0 {
+		predicates = append(predicates, friendship.UserIDNotIn(i.UserIDNotIn...))
+	}
+	if i.FriendID != nil {
+		predicates = append(predicates, friendship.FriendIDEQ(*i.FriendID))
+	}
+	if i.FriendIDNEQ != nil {
+		predicates = append(predicates, friendship.FriendIDNEQ(*i.FriendIDNEQ))
+	}
+	if len(i.FriendIDIn) > 0 {
+		predicates = append(predicates, friendship.FriendIDIn(i.FriendIDIn...))
+	}
+	if len(i.FriendIDNotIn) > 0 {
+		predicates = append(predicates, friendship.FriendIDNotIn(i.FriendIDNotIn...))
+	}
+
+	if i.HasUser != nil {
+		p := friendship.HasUser()
+		if !*i.HasUser {
+			p = friendship.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, friendship.HasUserWith(with...))
+	}
+	if i.HasFriend != nil {
+		p := friendship.HasFriend()
+		if !*i.HasFriend {
+			p = friendship.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasFriendWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasFriendWith))
+		for _, w := range i.HasFriendWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasFriendWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, friendship.HasFriendWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyFriendshipWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return friendship.And(predicates...), nil
 	}
 }
 
@@ -969,6 +1208,10 @@ type UserWhereInput struct {
 	// "friends" edge predicates.
 	HasFriends     *bool             `json:"hasFriends,omitempty"`
 	HasFriendsWith []*UserWhereInput `json:"hasFriendsWith,omitempty"`
+
+	// "friendships" edge predicates.
+	HasFriendships     *bool                   `json:"hasFriendships,omitempty"`
+	HasFriendshipsWith []*FriendshipWhereInput `json:"hasFriendshipsWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1141,6 +1384,24 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, user.HasFriendsWith(with...))
+	}
+	if i.HasFriendships != nil {
+		p := user.HasFriendships()
+		if !*i.HasFriendships {
+			p = user.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasFriendshipsWith) > 0 {
+		with := make([]predicate.Friendship, 0, len(i.HasFriendshipsWith))
+		for _, w := range i.HasFriendshipsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasFriendshipsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, user.HasFriendshipsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
