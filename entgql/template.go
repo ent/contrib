@@ -267,7 +267,8 @@ func (m *MutationDescriptor) InputEdges() ([]*gen.Edge, error) {
 		if err != nil {
 			return nil, err
 		}
-		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
+		if e.Type.IsEdgeSchema() ||
+			(m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
 			(!m.IsCreate && ant.Skip.Is(SkipMutationUpdateInput)) {
 			continue
 		}
