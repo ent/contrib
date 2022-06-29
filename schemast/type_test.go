@@ -17,7 +17,7 @@ package schemast
 import (
 	"bytes"
 	"go/printer"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -60,7 +60,7 @@ func TestContext_RemoveType(t *testing.T) {
 	removed = tt.getType("NewType")
 	require.Nil(t, removed)
 
-	file, err := ioutil.ReadFile(path.Join(tt.schemaDir(), "user.go"))
+	file, err := os.ReadFile(path.Join(tt.schemaDir(), "user.go"))
 	require.NoError(t, err)
 	require.NotContains(t, string(file), "// Message holds the schema definition for the Message entity.")
 }

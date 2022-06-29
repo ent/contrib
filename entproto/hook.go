@@ -17,7 +17,6 @@ package entproto
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -89,7 +88,7 @@ func Generate(g *gen.Graph) error {
 		genGoPath := filepath.Join(dir, "generate.go")
 		if !fileExists(genGoPath) {
 			contents := protocGenerateGo(fd)
-			if err := ioutil.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
+			if err := os.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
 				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 			}
 		}
