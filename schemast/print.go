@@ -17,7 +17,7 @@ package schemast
 import (
 	"bytes"
 	"go/printer"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 
@@ -50,7 +50,7 @@ func (c *Context) Print(path string, opts ...PrintOption) error {
 				process = []byte(options.headerComment + "\n\n" + s)
 			}
 		}
-		if err := ioutil.WriteFile(fn, process, 0600); err != nil {
+		if err := os.WriteFile(fn, process, 0600); err != nil {
 			return err
 		}
 	}
