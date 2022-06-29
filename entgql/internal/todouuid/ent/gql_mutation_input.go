@@ -58,3 +58,69 @@ func (c *TodoCreate) SetInput(i CreateTodoInput) *TodoCreate {
 	i.Mutate(c.Mutation())
 	return c
 }
+
+// CreateUserInput represents a mutation input for creating users.
+type CreateUserInput struct {
+	Name      *string
+	GroupIDs  []uuid.UUID
+	FriendIDs []uuid.UUID
+}
+
+// Mutate applies the CreateUserInput on the UserMutation builder.
+func (i *CreateUserInput) Mutate(m *UserMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.GroupIDs; len(v) > 0 {
+		m.AddGroupIDs(v...)
+	}
+	if v := i.FriendIDs; len(v) > 0 {
+		m.AddFriendIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
+func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateUserInput represents a mutation input for updating users.
+type UpdateUserInput struct {
+	Name            *string
+	AddGroupIDs     []uuid.UUID
+	RemoveGroupIDs  []uuid.UUID
+	AddFriendIDs    []uuid.UUID
+	RemoveFriendIDs []uuid.UUID
+}
+
+// Mutate applies the UpdateUserInput on the UserMutation builder.
+func (i *UpdateUserInput) Mutate(m *UserMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.AddGroupIDs; len(v) > 0 {
+		m.AddGroupIDs(v...)
+	}
+	if v := i.RemoveGroupIDs; len(v) > 0 {
+		m.RemoveGroupIDs(v...)
+	}
+	if v := i.AddFriendIDs; len(v) > 0 {
+		m.AddFriendIDs(v...)
+	}
+	if v := i.RemoveFriendIDs; len(v) > 0 {
+		m.RemoveFriendIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdate builder.
+func (c *UserUpdate) SetInput(i UpdateUserInput) *UserUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdateOne builder.
+func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
