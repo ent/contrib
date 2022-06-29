@@ -94,6 +94,22 @@ func (c *Category) Todos(
 	return conn, nil
 }
 
+func (f *Friendship) User(ctx context.Context) (*User, error) {
+	result, err := f.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (f *Friendship) Friend(ctx context.Context) (*User, error) {
+	result, err := f.Edges.FriendOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryFriend().Only(ctx)
+	}
+	return result, err
+}
+
 func (gr *Group) Users(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
 ) (*UserConnection, error) {
@@ -328,6 +344,14 @@ func (u *User) Friends(ctx context.Context) ([]*User, error) {
 	result, err := u.Edges.FriendsOrErr()
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriends().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) Friendships(ctx context.Context) ([]*Friendship, error) {
+	result, err := u.Edges.FriendshipsOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryFriendships().All(ctx)
 	}
 	return result, err
 }

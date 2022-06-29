@@ -48,12 +48,19 @@ func init() {
 	categoryDescID := categoryMixinFields0[0].Descriptor()
 	// category.DefaultID holds the default value on creation for the id field.
 	category.DefaultID = categoryDescID.Default.(func() pulid.ID)
+	friendshipMixin := schema.Friendship{}.Mixin()
+	friendshipMixinFields0 := friendshipMixin[0].Fields()
+	_ = friendshipMixinFields0
 	friendshipFields := schema.Friendship{}.Fields()
 	_ = friendshipFields
 	// friendshipDescCreatedAt is the schema descriptor for created_at field.
 	friendshipDescCreatedAt := friendshipFields[0].Descriptor()
 	// friendship.DefaultCreatedAt holds the default value on creation for the created_at field.
 	friendship.DefaultCreatedAt = friendshipDescCreatedAt.Default.(func() time.Time)
+	// friendshipDescID is the schema descriptor for id field.
+	friendshipDescID := friendshipMixinFields0[0].Descriptor()
+	// friendship.DefaultID holds the default value on creation for the id field.
+	friendship.DefaultID = friendshipDescID.Default.(func() pulid.ID)
 	groupMixin := schema.Group{}.Mixin()
 	groupMixinFields0 := groupMixin[0].Fields()
 	_ = groupMixinFields0

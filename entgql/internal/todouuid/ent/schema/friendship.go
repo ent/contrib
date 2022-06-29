@@ -31,6 +31,8 @@ type Friendship struct {
 // Fields of the Friendship.
 func (Friendship) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).
+			Default(uuid.New),
 		field.Time("created_at").
 			Default(time.Now),
 		field.UUID("user_id", uuid.UUID{}),

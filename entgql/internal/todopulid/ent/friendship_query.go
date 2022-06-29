@@ -148,8 +148,8 @@ func (fq *FriendshipQuery) FirstX(ctx context.Context) *Friendship {
 
 // FirstID returns the first Friendship ID from the query.
 // Returns a *NotFoundError when no Friendship ID was found.
-func (fq *FriendshipQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (fq *FriendshipQuery) FirstID(ctx context.Context) (id pulid.ID, err error) {
+	var ids []pulid.ID
 	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -161,7 +161,7 @@ func (fq *FriendshipQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (fq *FriendshipQuery) FirstIDX(ctx context.Context) int {
+func (fq *FriendshipQuery) FirstIDX(ctx context.Context) pulid.ID {
 	id, err := fq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -199,8 +199,8 @@ func (fq *FriendshipQuery) OnlyX(ctx context.Context) *Friendship {
 // OnlyID is like Only, but returns the only Friendship ID in the query.
 // Returns a *NotSingularError when more than one Friendship ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (fq *FriendshipQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (fq *FriendshipQuery) OnlyID(ctx context.Context) (id pulid.ID, err error) {
+	var ids []pulid.ID
 	if ids, err = fq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -216,7 +216,7 @@ func (fq *FriendshipQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (fq *FriendshipQuery) OnlyIDX(ctx context.Context) int {
+func (fq *FriendshipQuery) OnlyIDX(ctx context.Context) pulid.ID {
 	id, err := fq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -242,8 +242,8 @@ func (fq *FriendshipQuery) AllX(ctx context.Context) []*Friendship {
 }
 
 // IDs executes the query and returns a list of Friendship IDs.
-func (fq *FriendshipQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (fq *FriendshipQuery) IDs(ctx context.Context) ([]pulid.ID, error) {
+	var ids []pulid.ID
 	if err := fq.Select(friendship.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (fq *FriendshipQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fq *FriendshipQuery) IDsX(ctx context.Context) []int {
+func (fq *FriendshipQuery) IDsX(ctx context.Context) []pulid.ID {
 	ids, err := fq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -519,7 +519,7 @@ func (fq *FriendshipQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   friendship.Table,
 			Columns: friendship.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: friendship.FieldID,
 			},
 		},

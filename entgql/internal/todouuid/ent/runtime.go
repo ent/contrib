@@ -49,9 +49,13 @@ func init() {
 	friendshipFields := schema.Friendship{}.Fields()
 	_ = friendshipFields
 	// friendshipDescCreatedAt is the schema descriptor for created_at field.
-	friendshipDescCreatedAt := friendshipFields[0].Descriptor()
+	friendshipDescCreatedAt := friendshipFields[1].Descriptor()
 	// friendship.DefaultCreatedAt holds the default value on creation for the created_at field.
 	friendship.DefaultCreatedAt = friendshipDescCreatedAt.Default.(func() time.Time)
+	// friendshipDescID is the schema descriptor for id field.
+	friendshipDescID := friendshipFields[0].Descriptor()
+	// friendship.DefaultID holds the default value on creation for the id field.
+	friendship.DefaultID = friendshipDescID.Default.(func() uuid.UUID)
 	groupMixin := schema.Group{}.Mixin()
 	groupMixinFields0 := groupMixin[0].Fields()
 	_ = groupMixinFields0

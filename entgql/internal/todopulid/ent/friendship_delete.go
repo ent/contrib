@@ -86,7 +86,7 @@ func (fd *FriendshipDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: friendship.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: friendship.FieldID,
 			},
 		},

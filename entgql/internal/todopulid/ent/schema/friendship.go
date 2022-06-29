@@ -28,6 +28,13 @@ type Friendship struct {
 	ent.Schema
 }
 
+// Mixin returns user mixed-in schema.
+func (Friendship) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		pulid.MixinWithPrefix("FS"),
+	}
+}
+
 // Fields of the Friendship.
 func (Friendship) Fields() []ent.Field {
 	return []ent.Field{

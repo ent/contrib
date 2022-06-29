@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
@@ -130,6 +131,61 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	err = c.QueryTodos().
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     f.ID,
+		Type:   "Friendship",
+		Fields: make([]*Field, 3),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(f.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(f.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(f.FriendID); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "friend_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user",
+	}
+	err = f.QueryUser().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "User",
+		Name: "friend",
+	}
+	err = f.QueryFriend().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +332,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 1),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.Name); err != nil {
@@ -304,6 +360,16 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	err = u.QueryFriends().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Friendship",
+		Name: "friendships",
+	}
+	err = u.QueryFriendships().
+		Select(friendship.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -385,6 +451,18 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 		query := c.Category.Query().
 			Where(category.ID(uid))
 		query, err := query.CollectFields(ctx, "Category")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case friendship.Table:
+		query := c.Friendship.Query().
+			Where(friendship.ID(id))
+		query, err := query.CollectFields(ctx, "Friendship")
 		if err != nil {
 			return nil, err
 		}
@@ -537,6 +615,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		}
 		for _, node := range nodes {
 			for _, noder := range idmap[node.marshalID()] {
+				*noder = node
+			}
+		}
+	case friendship.Table:
+		query := c.Friendship.Query().
+			Where(friendship.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Friendship")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
 				*noder = node
 			}
 		}

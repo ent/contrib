@@ -174,7 +174,7 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   friendship.Table,
 			Columns: friendship.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: friendship.FieldID,
 			},
 		},
@@ -425,7 +425,7 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 			Table:   friendship.Table,
 			Columns: friendship.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: friendship.FieldID,
 			},
 		},
