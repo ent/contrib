@@ -71,8 +71,10 @@ type ComplexityRoot struct {
 	Friendship struct {
 		CreatedAt func(childComplexity int) int
 		Friend    func(childComplexity int) int
+		FriendID  func(childComplexity int) int
 		ID        func(childComplexity int) int
 		User      func(childComplexity int) int
+		UserID    func(childComplexity int) int
 	}
 
 	Group struct {
@@ -281,6 +283,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Friendship.Friend(childComplexity), true
 
+	case "Friendship.friendID":
+		if e.complexity.Friendship.FriendID == nil {
+			break
+		}
+
+		return e.complexity.Friendship.FriendID(childComplexity), true
+
 	case "Friendship.id":
 		if e.complexity.Friendship.ID == nil {
 			break
@@ -294,6 +303,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Friendship.User(childComplexity), true
+
+	case "Friendship.userID":
+		if e.complexity.Friendship.UserID == nil {
+			break
+		}
+
+		return e.complexity.Friendship.UserID(childComplexity), true
 
 	case "Group.id":
 		if e.complexity.Group.ID == nil {
@@ -894,6 +910,8 @@ scalar Cursor
 type Friendship implements Node {
   id: ID!
   createdAt: Time!
+  userID: ID!
+  friendID: ID!
   user: User!
   friend: User!
 }
@@ -2278,6 +2296,94 @@ func (ec *executionContext) fieldContext_Friendship_createdAt(ctx context.Contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Friendship_userID(ctx context.Context, field graphql.CollectedField, obj *ent.Friendship) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Friendship_userID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Friendship_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Friendship",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Friendship_friendID(ctx context.Context, field graphql.CollectedField, obj *ent.Friendship) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Friendship_friendID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FriendID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Friendship_friendID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Friendship",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4480,6 +4586,10 @@ func (ec *executionContext) fieldContext_User_friendships(ctx context.Context, f
 				return ec.fieldContext_Friendship_id(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Friendship_createdAt(ctx, field)
+			case "userID":
+				return ec.fieldContext_Friendship_userID(ctx, field)
+			case "friendID":
+				return ec.fieldContext_Friendship_friendID(ctx, field)
 			case "user":
 				return ec.fieldContext_Friendship_user(ctx, field)
 			case "friend":
@@ -8464,6 +8574,20 @@ func (ec *executionContext) _Friendship(ctx context.Context, sel ast.SelectionSe
 		case "createdAt":
 
 			out.Values[i] = ec._Friendship_createdAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "userID":
+
+			out.Values[i] = ec._Friendship_userID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "friendID":
+
+			out.Values[i] = ec._Friendship_friendID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

@@ -139,6 +139,8 @@ scalar Cursor
 type Friendship implements Node {
   id: ID!
   createdAt: Time!
+  userID: ID!
+  friendID: ID!
   user: User!
   friend: User!
 }
