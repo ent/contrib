@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
@@ -93,7 +94,52 @@ func WithConfigPath(path string, gqlgenOptions ...api.Option) ExtensionOption {
 		if err != nil {
 			return err
 		}
-		ex.cfg = cfg
+		ex.configMapFunc = func(f *gen.Field, def ast.DefinitionKind) string {
+			// The string representation uses shortened package
+			// names, and we override it for custom Go types.
+			ident := f.Type.String()
+			if idx := strings.IndexByte(ident, '.'); idx != -1 && f.HasGoType() && f.Type.PkgPath != "" {
+				ident = f.Type.PkgPath + ident[idx:]
+			}
+
+			var gqlNames []string
+			for t, v := range cfg.Models {
+				for _, m := range v.Model {
+					// A mapping was found from GraphQL name to field type.
+					if strings.HasSuffix(m, ident) {
+						gqlNames = append(gqlNames, t)
+					}
+				}
+			}
+			if count := len(gqlNames); count == 1 {
+				return gqlNames[0]
+			} else if count > 1 {
+				for _, t := range gqlNames {
+					switch s := strings.HasSuffix(t, "Input"); def {
+					case ast.InputObject:
+						if s {
+							return t
+						}
+					case ast.Object:
+						if !s {
+							return t
+						}
+					}
+				}
+				return ""
+			}
+
+			// If no custom mapping was found, fallback to the builtin scalar
+			// types as mentioned in https://gqlgen.com/reference/scalars
+			switch f.Type.String() {
+			case "time.Time":
+				return "Time"
+			case "map[string]interface{}":
+				return "Map"
+			default:
+				return ""
+			}
+		}
 		return nil
 	}
 }
