@@ -1687,4 +1687,69 @@ func TestEdgesFiltering(t *testing.T) {
 		// Top-level todos, children, grand-children and totalCount of great-children.
 		require.EqualValues(t, 4, count.n)
 	})
+
+	query = `query todos($id: ID!) {
+		todos(where:{id: $id}) {
+			edges {
+				node {
+					completed: children(where: {status: COMPLETED}) {
+						totalCount
+						edges {
+							node {
+								text
+							}
+						}
+					}
+					inProgress: children(where: {statusNEQ: COMPLETED}) {
+						totalCount
+						edges {
+							node {
+								text
+							}
+						}
+					}
+				}
+			}
+		}
+	}`
+
+	var rsp2 struct {
+		Todos struct {
+			Edges []struct {
+				Node struct {
+					Completed struct {
+						TotalCount int
+						Edges      []struct {
+							Node struct {
+								Text string
+							}
+						}
+					}
+					InProgress struct {
+						TotalCount int
+						Edges      []struct {
+							Node struct {
+								Text string
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	t.Run("filter connection with alias", func(t *testing.T) {
+		count.reset()
+		err := gqlc.Post(query, &rsp2, client.Var("id", root[0].ID), client.Var("lv2Status", "IN_PROGRESS"))
+		require.NoError(t, err)
+
+		require.Equal(t, 2, rsp2.Todos.Edges[0].Node.Completed.TotalCount)
+		n := rsp2.Todos.Edges[0].Node.Completed
+		require.Equal(t, "t1.2", n.Edges[0].Node.Text)
+		require.Equal(t, "t1.3", n.Edges[1].Node.Text)
+
+		require.Equal(t, 1, rsp2.Todos.Edges[0].Node.InProgress.TotalCount)
+		n = rsp2.Todos.Edges[0].Node.InProgress
+		require.Equal(t, "t1.1", n.Edges[0].Node.Text)
+	})
 }
