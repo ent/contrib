@@ -130,7 +130,6 @@ func addSchemaFields(s *ogen.Schema, fs []*gen.Field) error {
 		if err != nil {
 			return err
 		}
-
 		if ant.Skip {
 			continue
 		}
