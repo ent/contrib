@@ -18,7 +18,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-
 	"entgo.io/contrib/entoas"
 )
 
