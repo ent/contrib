@@ -32,9 +32,9 @@ func (cc *CategoryCreate) SetReadonly(s string) *CategoryCreate {
 	return cc
 }
 
-// SetIgnoredInSpec sets the "ignored_in_spec" field.
-func (cc *CategoryCreate) SetIgnoredInSpec(s string) *CategoryCreate {
-	cc.mutation.SetIgnoredInSpec(s)
+// SetSkipInSpec sets the "skip_in_spec" field.
+func (cc *CategoryCreate) SetSkipInSpec(s string) *CategoryCreate {
+	cc.mutation.SetSkipInSpec(s)
 	return cc
 }
 
@@ -135,8 +135,8 @@ func (cc *CategoryCreate) check() error {
 	if _, ok := cc.mutation.Readonly(); !ok {
 		return &ValidationError{Name: "readonly", err: errors.New(`simple: missing required field "Category.readonly"`)}
 	}
-	if _, ok := cc.mutation.IgnoredInSpec(); !ok {
-		return &ValidationError{Name: "ignored_in_spec", err: errors.New(`simple: missing required field "Category.ignored_in_spec"`)}
+	if _, ok := cc.mutation.SkipInSpec(); !ok {
+		return &ValidationError{Name: "skip_in_spec", err: errors.New(`simple: missing required field "Category.skip_in_spec"`)}
 	}
 	return nil
 }
@@ -181,13 +181,13 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 		})
 		_node.Readonly = value
 	}
-	if value, ok := cc.mutation.IgnoredInSpec(); ok {
+	if value, ok := cc.mutation.SkipInSpec(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: category.FieldIgnoredInSpec,
+			Column: category.FieldSkipInSpec,
 		})
-		_node.IgnoredInSpec = value
+		_node.SkipInSpec = value
 	}
 	if nodes := cc.mutation.PetsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

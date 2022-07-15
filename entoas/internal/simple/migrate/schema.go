@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "readonly", Type: field.TypeString},
-		{Name: "ignored_in_spec", Type: field.TypeString},
+		{Name: "skip_in_spec", Type: field.TypeString},
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{

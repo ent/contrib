@@ -33,19 +33,19 @@ const (
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
 type CategoryMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	name            *string
-	readonly        *string
-	ignored_in_spec *string
-	clearedFields   map[string]struct{}
-	pets            map[int]struct{}
-	removedpets     map[int]struct{}
-	clearedpets     bool
-	done            bool
-	oldValue        func(context.Context) (*Category, error)
-	predicates      []predicate.Category
+	op            Op
+	typ           string
+	id            *int
+	name          *string
+	readonly      *string
+	skip_in_spec  *string
+	clearedFields map[string]struct{}
+	pets          map[int]struct{}
+	removedpets   map[int]struct{}
+	clearedpets   bool
+	done          bool
+	oldValue      func(context.Context) (*Category, error)
+	predicates    []predicate.Category
 }
 
 var _ ent.Mutation = (*CategoryMutation)(nil)
@@ -218,40 +218,40 @@ func (m *CategoryMutation) ResetReadonly() {
 	m.readonly = nil
 }
 
-// SetIgnoredInSpec sets the "ignored_in_spec" field.
-func (m *CategoryMutation) SetIgnoredInSpec(s string) {
-	m.ignored_in_spec = &s
+// SetSkipInSpec sets the "skip_in_spec" field.
+func (m *CategoryMutation) SetSkipInSpec(s string) {
+	m.skip_in_spec = &s
 }
 
-// IgnoredInSpec returns the value of the "ignored_in_spec" field in the mutation.
-func (m *CategoryMutation) IgnoredInSpec() (r string, exists bool) {
-	v := m.ignored_in_spec
+// SkipInSpec returns the value of the "skip_in_spec" field in the mutation.
+func (m *CategoryMutation) SkipInSpec() (r string, exists bool) {
+	v := m.skip_in_spec
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIgnoredInSpec returns the old "ignored_in_spec" field's value of the Category entity.
+// OldSkipInSpec returns the old "skip_in_spec" field's value of the Category entity.
 // If the Category object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CategoryMutation) OldIgnoredInSpec(ctx context.Context) (v string, err error) {
+func (m *CategoryMutation) OldSkipInSpec(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIgnoredInSpec is only allowed on UpdateOne operations")
+		return v, errors.New("OldSkipInSpec is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIgnoredInSpec requires an ID field in the mutation")
+		return v, errors.New("OldSkipInSpec requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIgnoredInSpec: %w", err)
+		return v, fmt.Errorf("querying old value for OldSkipInSpec: %w", err)
 	}
-	return oldValue.IgnoredInSpec, nil
+	return oldValue.SkipInSpec, nil
 }
 
-// ResetIgnoredInSpec resets all changes to the "ignored_in_spec" field.
-func (m *CategoryMutation) ResetIgnoredInSpec() {
-	m.ignored_in_spec = nil
+// ResetSkipInSpec resets all changes to the "skip_in_spec" field.
+func (m *CategoryMutation) ResetSkipInSpec() {
+	m.skip_in_spec = nil
 }
 
 // AddPetIDs adds the "pets" edge to the Pet entity by ids.
@@ -334,8 +334,8 @@ func (m *CategoryMutation) Fields() []string {
 	if m.readonly != nil {
 		fields = append(fields, category.FieldReadonly)
 	}
-	if m.ignored_in_spec != nil {
-		fields = append(fields, category.FieldIgnoredInSpec)
+	if m.skip_in_spec != nil {
+		fields = append(fields, category.FieldSkipInSpec)
 	}
 	return fields
 }
@@ -349,8 +349,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case category.FieldReadonly:
 		return m.Readonly()
-	case category.FieldIgnoredInSpec:
-		return m.IgnoredInSpec()
+	case category.FieldSkipInSpec:
+		return m.SkipInSpec()
 	}
 	return nil, false
 }
@@ -364,8 +364,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldName(ctx)
 	case category.FieldReadonly:
 		return m.OldReadonly(ctx)
-	case category.FieldIgnoredInSpec:
-		return m.OldIgnoredInSpec(ctx)
+	case category.FieldSkipInSpec:
+		return m.OldSkipInSpec(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -389,12 +389,12 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetReadonly(v)
 		return nil
-	case category.FieldIgnoredInSpec:
+	case category.FieldSkipInSpec:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIgnoredInSpec(v)
+		m.SetSkipInSpec(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
@@ -451,8 +451,8 @@ func (m *CategoryMutation) ResetField(name string) error {
 	case category.FieldReadonly:
 		m.ResetReadonly()
 		return nil
-	case category.FieldIgnoredInSpec:
-		m.ResetIgnoredInSpec()
+	case category.FieldSkipInSpec:
+		m.ResetSkipInSpec()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

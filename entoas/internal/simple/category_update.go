@@ -40,9 +40,9 @@ func (cu *CategoryUpdate) SetReadonly(s string) *CategoryUpdate {
 	return cu
 }
 
-// SetIgnoredInSpec sets the "ignored_in_spec" field.
-func (cu *CategoryUpdate) SetIgnoredInSpec(s string) *CategoryUpdate {
-	cu.mutation.SetIgnoredInSpec(s)
+// SetSkipInSpec sets the "skip_in_spec" field.
+func (cu *CategoryUpdate) SetSkipInSpec(s string) *CategoryUpdate {
+	cu.mutation.SetSkipInSpec(s)
 	return cu
 }
 
@@ -173,11 +173,11 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldReadonly,
 		})
 	}
-	if value, ok := cu.mutation.IgnoredInSpec(); ok {
+	if value, ok := cu.mutation.SkipInSpec(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: category.FieldIgnoredInSpec,
+			Column: category.FieldSkipInSpec,
 		})
 	}
 	if cu.mutation.PetsCleared() {
@@ -265,9 +265,9 @@ func (cuo *CategoryUpdateOne) SetReadonly(s string) *CategoryUpdateOne {
 	return cuo
 }
 
-// SetIgnoredInSpec sets the "ignored_in_spec" field.
-func (cuo *CategoryUpdateOne) SetIgnoredInSpec(s string) *CategoryUpdateOne {
-	cuo.mutation.SetIgnoredInSpec(s)
+// SetSkipInSpec sets the "skip_in_spec" field.
+func (cuo *CategoryUpdateOne) SetSkipInSpec(s string) *CategoryUpdateOne {
+	cuo.mutation.SetSkipInSpec(s)
 	return cuo
 }
 
@@ -428,11 +428,11 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			Column: category.FieldReadonly,
 		})
 	}
-	if value, ok := cuo.mutation.IgnoredInSpec(); ok {
+	if value, ok := cuo.mutation.SkipInSpec(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: category.FieldIgnoredInSpec,
+			Column: category.FieldSkipInSpec,
 		})
 	}
 	if cuo.mutation.PetsCleared() {

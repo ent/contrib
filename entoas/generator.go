@@ -126,6 +126,15 @@ func schemas(g *gen.Graph, spec *ogen.Spec) error {
 // addSchemaFields adds the given gen.Field slice to the ogen.Schema.
 func addSchemaFields(s *ogen.Schema, fs []*gen.Field) error {
 	for _, f := range fs {
+		ant, err := FieldAnnotation(f)
+		if err != nil {
+			return err
+		}
+
+		if ant.Skip {
+			continue
+		}
+
 		p, err := property(f)
 		if err != nil {
 			return err
@@ -137,10 +146,6 @@ func addSchemaFields(s *ogen.Schema, fs []*gen.Field) error {
 
 // addProperty adds the ogen.Property to the ogen.Schema and marks it as required if needed.
 func addProperty(s *ogen.Schema, p *ogen.Property, req bool) {
-	// property can be nil if used Skip annotations.
-	if p == nil {
-		return
-	}
 	if req {
 		s.AddRequiredProperties(p)
 	} else {
@@ -548,11 +553,6 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if ant.Skip {
-		return nil, nil
-	}
-
 	if ant.Schema != nil {
 		return ant.Schema, nil
 	}
@@ -690,7 +690,12 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		if err != nil {
 			return nil, err
 		}
-		if (a != nil && !a.ReadOnly) && (op == OpCreate || !f.Immutable) {
+
+		if a.ReadOnly || a.Skip {
+			continue
+		}
+
+		if op == OpCreate || !f.Immutable {
 			p, err := property(f)
 			if err != nil {
 				return nil, err
