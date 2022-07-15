@@ -691,7 +691,6 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		if a.ReadOnly || a.Skip {
 			continue
 		}
-
 		if op == OpCreate || !f.Immutable {
 			p, err := property(f)
 			if err != nil {
