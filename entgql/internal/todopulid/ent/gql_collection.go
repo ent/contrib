@@ -48,7 +48,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 		switch field.Name {
 		case "todos":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &TodoQuery{config: c.config}
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
@@ -194,7 +194,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 		switch field.Name {
 		case "user":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &UserQuery{config: f.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -203,7 +203,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 			f.withUser = query
 		case "friend":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &UserQuery{config: f.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -262,7 +262,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 		switch field.Name {
 		case "users":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &UserQuery{config: gr.config}
 			)
 			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
@@ -390,7 +390,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		switch field.Name {
 		case "parent":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &TodoQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -399,7 +399,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			t.withParent = query
 		case "children":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &TodoQuery{config: t.config}
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
@@ -473,7 +473,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			t.withChildren = query
 		case "category":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &CategoryQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -554,7 +554,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		switch field.Name {
 		case "groups":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &GroupQuery{config: u.config}
 			)
 			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
@@ -632,7 +632,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.withGroups = query
 		case "friends":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &UserQuery{config: u.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -641,7 +641,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			u.withFriends = query
 		case "friendships":
 			var (
-				path  = append(path, field.Name)
+				path  = append(path, field.Alias)
 				query = &FriendshipQuery{config: u.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -702,7 +702,7 @@ func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[
 	for _, name := range path {
 		var field *graphql.CollectedField
 		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Name == name {
+			if f.Alias == name {
 				field = &f
 				break
 			}

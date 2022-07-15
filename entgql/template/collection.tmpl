@@ -43,7 +43,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 					case {{ range $i, $value := $fc.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
 						{{- $ebuilder := $e.Type.QueryName }}
 						var (
-							path = append(path, field.Name)
+							path = append(path, field.Alias)
 							query = &{{ $ebuilder }}{config: {{ $receiver }}.config}
 						)
 						{{- if isRelayConn $e }}
@@ -198,7 +198,7 @@ func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[
 	for _, name := range path {
 		var field *graphql.CollectedField
 		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Name == name {
+			if f.Alias == name {
 				field = &f
 				break
 			}
