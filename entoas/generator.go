@@ -685,7 +685,6 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		if a.ReadOnly || a.Skip {
 			continue
 		}
