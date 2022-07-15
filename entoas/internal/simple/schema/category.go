@@ -15,10 +15,11 @@
 package schema
 
 import (
-	"entgo.io/contrib/entoas"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+
+	"entgo.io/contrib/entoas"
 )
 
 // Category holds the schema definition for the Category entity.
@@ -33,6 +34,7 @@ func (Category) Fields() []ent.Field {
 		field.String("readonly").
 			Annotations(
 				entoas.Annotation{ReadOnly: true}),
+		field.String("skip_in_spec").Annotations(entoas.Annotation{Skip: true}),
 	}
 }
 

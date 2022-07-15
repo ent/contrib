@@ -105,6 +105,13 @@ func Readonly(v string) predicate.Category {
 	})
 }
 
+// SkipInSpec applies equality check predicate on the "skip_in_spec" field. It's identical to SkipInSpecEQ.
+func SkipInSpec(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSkipInSpec), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
@@ -324,6 +331,117 @@ func ReadonlyEqualFold(v string) predicate.Category {
 func ReadonlyContainsFold(v string) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldReadonly), v))
+	})
+}
+
+// SkipInSpecEQ applies the EQ predicate on the "skip_in_spec" field.
+func SkipInSpecEQ(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecNEQ applies the NEQ predicate on the "skip_in_spec" field.
+func SkipInSpecNEQ(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecIn applies the In predicate on the "skip_in_spec" field.
+func SkipInSpecIn(vs ...string) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldSkipInSpec), v...))
+	})
+}
+
+// SkipInSpecNotIn applies the NotIn predicate on the "skip_in_spec" field.
+func SkipInSpecNotIn(vs ...string) predicate.Category {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Category(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldSkipInSpec), v...))
+	})
+}
+
+// SkipInSpecGT applies the GT predicate on the "skip_in_spec" field.
+func SkipInSpecGT(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecGTE applies the GTE predicate on the "skip_in_spec" field.
+func SkipInSpecGTE(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecLT applies the LT predicate on the "skip_in_spec" field.
+func SkipInSpecLT(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecLTE applies the LTE predicate on the "skip_in_spec" field.
+func SkipInSpecLTE(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecContains applies the Contains predicate on the "skip_in_spec" field.
+func SkipInSpecContains(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecHasPrefix applies the HasPrefix predicate on the "skip_in_spec" field.
+func SkipInSpecHasPrefix(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecHasSuffix applies the HasSuffix predicate on the "skip_in_spec" field.
+func SkipInSpecHasSuffix(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecEqualFold applies the EqualFold predicate on the "skip_in_spec" field.
+func SkipInSpecEqualFold(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldSkipInSpec), v))
+	})
+}
+
+// SkipInSpecContainsFold applies the ContainsFold predicate on the "skip_in_spec" field.
+func SkipInSpecContainsFold(v string) predicate.Category {
+	return predicate.Category(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldSkipInSpec), v))
 	})
 }
 

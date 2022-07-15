@@ -19,6 +19,8 @@ type Category struct {
 	Name string `json:"name,omitempty"`
 	// Readonly holds the value of the "readonly" field.
 	Readonly string `json:"readonly,omitempty"`
+	// SkipInSpec holds the value of the "skip_in_spec" field.
+	SkipInSpec string `json:"skip_in_spec,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
 	Edges CategoryEdges `json:"edges"`
@@ -49,7 +51,7 @@ func (*Category) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case category.FieldID:
 			values[i] = new(sql.NullInt64)
-		case category.FieldName, category.FieldReadonly:
+		case category.FieldName, category.FieldReadonly, category.FieldSkipInSpec:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
@@ -83,6 +85,12 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field readonly", values[i])
 			} else if value.Valid {
 				c.Readonly = value.String
+			}
+		case category.FieldSkipInSpec:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field skip_in_spec", values[i])
+			} else if value.Valid {
+				c.SkipInSpec = value.String
 			}
 		}
 	}
@@ -122,6 +130,9 @@ func (c *Category) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("readonly=")
 	builder.WriteString(c.Readonly)
+	builder.WriteString(", ")
+	builder.WriteString("skip_in_spec=")
+	builder.WriteString(c.SkipInSpec)
 	builder.WriteByte(')')
 	return builder.String()
 }
