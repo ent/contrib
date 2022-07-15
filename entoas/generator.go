@@ -510,9 +510,6 @@ func property(f *gen.Field) (*ogen.Property, error) {
 	if err != nil {
 		return nil, err
 	}
-	if s == nil {
-		return nil, nil
-	}
 	return ogen.NewProperty().SetName(f.Name).SetSchema(s), nil
 }
 
