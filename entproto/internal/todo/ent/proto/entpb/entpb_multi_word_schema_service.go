@@ -38,7 +38,11 @@ func toProtoMultiWordSchema_Unit(e multiwordschema.Unit) MultiWordSchema_Unit {
 
 func toEntMultiWordSchema_Unit(e MultiWordSchema_Unit) multiwordschema.Unit {
 	if v, ok := MultiWordSchema_Unit_name[int32(e)]; ok {
-		return multiwordschema.Unit(strings.ToLower(v))
+		entVal := map[string]string{
+			"M":  "m",
+			"FT": "ft",
+		}[v]
+		return multiwordschema.Unit(entVal)
 	}
 	return ""
 }

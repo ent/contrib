@@ -16,7 +16,6 @@ package entgql
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -221,7 +220,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			if err != nil {
 				return err
 			}
-			return ioutil.WriteFile(e.path, []byte(printSchema(schema)), 0644)
+			return os.WriteFile(e.path, []byte(printSchema(schema)), 0644)
 		})
 	}
 }

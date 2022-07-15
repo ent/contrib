@@ -41,6 +41,7 @@ type hooks struct {
 	Category   []ent.Hook
 	Friendship []ent.Hook
 	Group      []ent.Hook
+	Pet        []ent.Hook
 	Todo       []ent.Hook
 	User       []ent.Hook
 	VerySecret []ent.Hook

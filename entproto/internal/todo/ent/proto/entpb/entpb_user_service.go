@@ -38,6 +38,24 @@ func NewUserService(client *ent.Client) *UserService {
 	}
 }
 
+func toProtoUser_DeviceType(e user.DeviceType) User_DeviceType {
+	if v, ok := User_DeviceType_value[strings.ToUpper(string(e))]; ok {
+		return User_DeviceType(v)
+	}
+	return User_DeviceType(0)
+}
+
+func toEntUser_DeviceType(e User_DeviceType) user.DeviceType {
+	if v, ok := User_DeviceType_name[int32(e)]; ok {
+		entVal := map[string]string{
+			"GLOWY9000": "GLOWY9000",
+			"SPEEDY300": "SPEEDY300",
+		}[v]
+		return user.DeviceType(entVal)
+	}
+	return ""
+}
+
 func toProtoUser_Status(e user.Status) User_Status {
 	if v, ok := User_Status_value[strings.ToUpper(string(e))]; ok {
 		return User_Status(v)
@@ -47,7 +65,11 @@ func toProtoUser_Status(e user.Status) User_Status {
 
 func toEntUser_Status(e User_Status) user.Status {
 	if v, ok := User_Status_name[int32(e)]; ok {
-		return user.Status(strings.ToLower(v))
+		entVal := map[string]string{
+			"PENDING": "pending",
+			"ACTIVE":  "active",
+		}[v]
+		return user.Status(entVal)
 	}
 	return ""
 }
@@ -78,6 +100,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.CrmId = crm_id
 	custom_pb := uint64(e.CustomPb)
 	v.CustomPb = custom_pb
+	device_type := toProtoUser_DeviceType(e.DeviceType)
+	v.DeviceType = device_type
 	exp := e.Exp
 	v.Exp = exp
 	external_id := int64(e.ExternalID)
@@ -242,6 +266,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetCrmID(userCrmID)
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
+	userDeviceType := toEntUser_DeviceType(user.GetDeviceType())
+	m.SetDeviceType(userDeviceType)
 	userExp := uint64(user.GetExp())
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
@@ -461,6 +487,8 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m.SetCrmID(userCrmID)
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
+	userDeviceType := toEntUser_DeviceType(user.GetDeviceType())
+	m.SetDeviceType(userDeviceType)
 	userExp := uint64(user.GetExp())
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())

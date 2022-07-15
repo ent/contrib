@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
@@ -548,6 +549,241 @@ func (c *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
 	return &CategoryEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// FriendshipEdge is the edge representation of Friendship.
+type FriendshipEdge struct {
+	Node   *Friendship `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// FriendshipConnection is the connection containing edges to Friendship.
+type FriendshipConnection struct {
+	Edges      []*FriendshipEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *FriendshipConnection) build(nodes []*Friendship, pager *friendshipPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Friendship
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Friendship {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Friendship {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*FriendshipEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &FriendshipEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// FriendshipPaginateOption enables pagination customization.
+type FriendshipPaginateOption func(*friendshipPager) error
+
+// WithFriendshipOrder configures pagination ordering.
+func WithFriendshipOrder(order *FriendshipOrder) FriendshipPaginateOption {
+	if order == nil {
+		order = DefaultFriendshipOrder
+	}
+	o := *order
+	return func(pager *friendshipPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultFriendshipOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithFriendshipFilter configures pagination filter.
+func WithFriendshipFilter(filter func(*FriendshipQuery) (*FriendshipQuery, error)) FriendshipPaginateOption {
+	return func(pager *friendshipPager) error {
+		if filter == nil {
+			return errors.New("FriendshipQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type friendshipPager struct {
+	order  *FriendshipOrder
+	filter func(*FriendshipQuery) (*FriendshipQuery, error)
+}
+
+func newFriendshipPager(opts []FriendshipPaginateOption) (*friendshipPager, error) {
+	pager := &friendshipPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultFriendshipOrder
+	}
+	return pager, nil
+}
+
+func (p *friendshipPager) applyFilter(query *FriendshipQuery) (*FriendshipQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *friendshipPager) toCursor(f *Friendship) Cursor {
+	return p.order.Field.toCursor(f)
+}
+
+func (p *friendshipPager) applyCursors(query *FriendshipQuery, after, before *Cursor) *FriendshipQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultFriendshipOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *friendshipPager) applyOrder(query *FriendshipQuery, reverse bool) *FriendshipQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultFriendshipOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultFriendshipOrder.Field.field))
+	}
+	return query
+}
+
+func (p *friendshipPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultFriendshipOrder.Field {
+			b.Comma().Ident(DefaultFriendshipOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Friendship.
+func (f *FriendshipQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...FriendshipPaginateOption,
+) (*FriendshipConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newFriendshipPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if f, err = pager.applyFilter(f); err != nil {
+		return nil, err
+	}
+	conn := &FriendshipConnection{Edges: []*FriendshipEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+			if conn.TotalCount, err = f.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := f.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	f = pager.applyCursors(f, after, before)
+	f = pager.applyOrder(f, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		f.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := f.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := f.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// FriendshipOrderField defines the ordering field of Friendship.
+type FriendshipOrderField struct {
+	field    string
+	toCursor func(*Friendship) Cursor
+}
+
+// FriendshipOrder defines the ordering of Friendship.
+type FriendshipOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *FriendshipOrderField `json:"field"`
+}
+
+// DefaultFriendshipOrder is the default ordering of Friendship.
+var DefaultFriendshipOrder = &FriendshipOrder{
+	Direction: OrderDirectionAsc,
+	Field: &FriendshipOrderField{
+		field: friendship.FieldID,
+		toCursor: func(f *Friendship) Cursor {
+			return Cursor{ID: f.ID}
+		},
+	},
+}
+
+// ToEdge converts Friendship into FriendshipEdge.
+func (f *Friendship) ToEdge(order *FriendshipOrder) *FriendshipEdge {
+	if order == nil {
+		order = DefaultFriendshipOrder
+	}
+	return &FriendshipEdge{
+		Node:   f,
+		Cursor: order.Field.toCursor(f),
 	}
 }
 

@@ -24,8 +24,11 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/uintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"github.com/99designs/gqlgen/graphql"
@@ -134,6 +137,61 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     f.ID,
+		Type:   "Friendship",
+		Fields: make([]*Field, 3),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(f.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(f.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(f.FriendID); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "friend_id",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "user",
+	}
+	err = f.QueryUser().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "User",
+		Name: "friend",
+	}
+	err = f.QueryFriend().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     gr.ID,
@@ -159,6 +217,31 @@ func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+func (pe Pet) marshalID() string {
+	var buf bytes.Buffer
+	pe.ID.MarshalGQL(&buf)
+	return buf.String()
+}
+
+func (pe *Pet) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pe.marshalID(),
+		Type:   "Pet",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(pe.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
 	}
 	return node, nil
 }
@@ -249,7 +332,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 1),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.Name); err != nil {
@@ -277,6 +360,16 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	err = u.QueryFriends().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Friendship",
+		Name: "friendships",
+	}
+	err = u.QueryFriendships().
+		Select(friendship.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -366,10 +459,38 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 			return nil, err
 		}
 		return n, nil
+	case friendship.Table:
+		query := c.Friendship.Query().
+			Where(friendship.ID(id))
+		query, err := query.CollectFields(ctx, "Friendship")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.ID(id))
 		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case pet.Table:
+		var uid uintgql.Uint64
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.Pet.Query().
+			Where(pet.ID(uid))
+		query, err := query.CollectFields(ctx, "Pet")
 		if err != nil {
 			return nil, err
 		}
@@ -497,6 +618,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 				*noder = node
 			}
 		}
+	case friendship.Table:
+		query := c.Friendship.Query().
+			Where(friendship.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Friendship")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
@@ -510,6 +647,28 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		}
 		for _, node := range nodes {
 			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case pet.Table:
+		uids := make([]uintgql.Uint64, len(ids))
+		for i, id := range ids {
+			if err := uids[i].UnmarshalGQL(id); err != nil {
+				return nil, err
+			}
+		}
+		query := c.Pet.Query().
+			Where(pet.IDIn(uids...))
+		query, err := query.CollectFields(ctx, "Pet")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.marshalID()] {
 				*noder = node
 			}
 		}

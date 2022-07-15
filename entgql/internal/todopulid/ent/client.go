@@ -319,7 +319,7 @@ func (c *FriendshipClient) UpdateOne(f *Friendship) *FriendshipUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FriendshipClient) UpdateOneID(id int) *FriendshipUpdateOne {
+func (c *FriendshipClient) UpdateOneID(id pulid.ID) *FriendshipUpdateOne {
 	mutation := newFriendshipMutation(c.config, OpUpdateOne, withFriendshipID(id))
 	return &FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -336,7 +336,7 @@ func (c *FriendshipClient) DeleteOne(f *Friendship) *FriendshipDeleteOne {
 }
 
 // DeleteOne returns a builder for deleting the given entity by its id.
-func (c *FriendshipClient) DeleteOneID(id int) *FriendshipDeleteOne {
+func (c *FriendshipClient) DeleteOneID(id pulid.ID) *FriendshipDeleteOne {
 	builder := c.Delete().Where(friendship.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -351,12 +351,12 @@ func (c *FriendshipClient) Query() *FriendshipQuery {
 }
 
 // Get returns a Friendship entity by its id.
-func (c *FriendshipClient) Get(ctx context.Context, id int) (*Friendship, error) {
+func (c *FriendshipClient) Get(ctx context.Context, id pulid.ID) (*Friendship, error) {
 	return c.Query().Where(friendship.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FriendshipClient) GetX(ctx context.Context, id int) *Friendship {
+func (c *FriendshipClient) GetX(ctx context.Context, id pulid.ID) *Friendship {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

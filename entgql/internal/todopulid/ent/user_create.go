@@ -95,14 +95,14 @@ func (uc *UserCreate) AddFriends(u ...*User) *UserCreate {
 }
 
 // AddFriendshipIDs adds the "friendships" edge to the Friendship entity by IDs.
-func (uc *UserCreate) AddFriendshipIDs(ids ...int) *UserCreate {
+func (uc *UserCreate) AddFriendshipIDs(ids ...pulid.ID) *UserCreate {
 	uc.mutation.AddFriendshipIDs(ids...)
 	return uc
 }
 
 // AddFriendships adds the "friendships" edges to the Friendship entity.
 func (uc *UserCreate) AddFriendships(f ...*Friendship) *UserCreate {
-	ids := make([]int, len(f))
+	ids := make([]pulid.ID, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -296,7 +296,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},

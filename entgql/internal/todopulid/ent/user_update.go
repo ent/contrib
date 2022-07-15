@@ -89,14 +89,14 @@ func (uu *UserUpdate) AddFriends(u ...*User) *UserUpdate {
 }
 
 // AddFriendshipIDs adds the "friendships" edge to the Friendship entity by IDs.
-func (uu *UserUpdate) AddFriendshipIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) AddFriendshipIDs(ids ...pulid.ID) *UserUpdate {
 	uu.mutation.AddFriendshipIDs(ids...)
 	return uu
 }
 
 // AddFriendships adds the "friendships" edges to the Friendship entity.
 func (uu *UserUpdate) AddFriendships(f ...*Friendship) *UserUpdate {
-	ids := make([]int, len(f))
+	ids := make([]pulid.ID, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -157,14 +157,14 @@ func (uu *UserUpdate) ClearFriendships() *UserUpdate {
 }
 
 // RemoveFriendshipIDs removes the "friendships" edge to Friendship entities by IDs.
-func (uu *UserUpdate) RemoveFriendshipIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) RemoveFriendshipIDs(ids ...pulid.ID) *UserUpdate {
 	uu.mutation.RemoveFriendshipIDs(ids...)
 	return uu
 }
 
 // RemoveFriendships removes "friendships" edges to Friendship entities.
 func (uu *UserUpdate) RemoveFriendships(f ...*Friendship) *UserUpdate {
-	ids := make([]int, len(f))
+	ids := make([]pulid.ID, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -379,7 +379,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},
@@ -395,7 +395,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},
@@ -414,7 +414,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},
@@ -488,14 +488,14 @@ func (uuo *UserUpdateOne) AddFriends(u ...*User) *UserUpdateOne {
 }
 
 // AddFriendshipIDs adds the "friendships" edge to the Friendship entity by IDs.
-func (uuo *UserUpdateOne) AddFriendshipIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddFriendshipIDs(ids ...pulid.ID) *UserUpdateOne {
 	uuo.mutation.AddFriendshipIDs(ids...)
 	return uuo
 }
 
 // AddFriendships adds the "friendships" edges to the Friendship entity.
 func (uuo *UserUpdateOne) AddFriendships(f ...*Friendship) *UserUpdateOne {
-	ids := make([]int, len(f))
+	ids := make([]pulid.ID, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -556,14 +556,14 @@ func (uuo *UserUpdateOne) ClearFriendships() *UserUpdateOne {
 }
 
 // RemoveFriendshipIDs removes the "friendships" edge to Friendship entities by IDs.
-func (uuo *UserUpdateOne) RemoveFriendshipIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveFriendshipIDs(ids ...pulid.ID) *UserUpdateOne {
 	uuo.mutation.RemoveFriendshipIDs(ids...)
 	return uuo
 }
 
 // RemoveFriendships removes "friendships" edges to Friendship entities.
 func (uuo *UserUpdateOne) RemoveFriendships(f ...*Friendship) *UserUpdateOne {
-	ids := make([]int, len(f))
+	ids := make([]pulid.ID, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -808,7 +808,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},
@@ -824,7 +824,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},
@@ -843,7 +843,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: friendship.FieldID,
 				},
 			},

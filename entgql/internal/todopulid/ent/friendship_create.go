@@ -62,6 +62,20 @@ func (fc *FriendshipCreate) SetFriendID(pu pulid.ID) *FriendshipCreate {
 	return fc
 }
 
+// SetID sets the "id" field.
+func (fc *FriendshipCreate) SetID(pu pulid.ID) *FriendshipCreate {
+	fc.mutation.SetID(pu)
+	return fc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (fc *FriendshipCreate) SetNillableID(pu *pulid.ID) *FriendshipCreate {
+	if pu != nil {
+		fc.SetID(*pu)
+	}
+	return fc
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (fc *FriendshipCreate) SetUser(u *User) *FriendshipCreate {
 	return fc.SetUserID(u.ID)
@@ -153,6 +167,10 @@ func (fc *FriendshipCreate) defaults() {
 		v := friendship.DefaultCreatedAt()
 		fc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := fc.mutation.ID(); !ok {
+		v := friendship.DefaultID()
+		fc.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -183,8 +201,13 @@ func (fc *FriendshipCreate) sqlSave(ctx context.Context) (*Friendship, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*pulid.ID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	return _node, nil
 }
 
@@ -194,11 +217,15 @@ func (fc *FriendshipCreate) createSpec() (*Friendship, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: friendship.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: friendship.FieldID,
 			},
 		}
 	)
+	if id, ok := fc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := fc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -291,10 +318,6 @@ func (fcb *FriendshipCreateBulk) Save(ctx context.Context) ([]*Friendship, error
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

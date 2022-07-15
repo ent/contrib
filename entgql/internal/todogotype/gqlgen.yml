@@ -21,6 +21,7 @@ models:
     model:
       - github.com/99designs/gqlgen/graphql.ID
       - entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql.BigInt
+      - entgo.io/contrib/entgql/internal/todogotype/ent/schema/uintgql.Uint64
   Uint64:
     model:
       - github.com/99designs/gqlgen/graphql.Uint64

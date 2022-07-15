@@ -137,8 +137,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			c.withTodos = query
 		}
@@ -193,6 +195,74 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*CategoryWhereInput); ok {
 		args.opts = append(args.opts, WithCategoryFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string) (*FriendshipQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return f, nil
+	}
+	if err := f.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "user":
+			var (
+				path  = append(path, field.Name)
+				query = &UserQuery{config: f.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			f.withUser = query
+		case "friend":
+			var (
+				path  = append(path, field.Name)
+				query = &UserQuery{config: f.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			f.withFriend = query
+		}
+	}
+	return nil
+}
+
+type friendshipPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []FriendshipPaginateOption
+}
+
+func newFriendshipPaginateArgs(rv map[string]interface{}) *friendshipPaginateArgs {
+	args := &friendshipPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*FriendshipWhereInput); ok {
+		args.opts = append(args.opts, WithFriendshipFilter(v.Filter))
 	}
 	return args
 }
@@ -312,8 +382,10 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			gr.withUsers = query
 		}
@@ -466,8 +538,10 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			t.withChildren = query
 		case "category":
@@ -650,8 +724,10 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				query = pager.applyOrder(query, args.last != nil)
 			}
 			path = append(path, edgesField, nodeField)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
-				return err
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+					return err
+				}
 			}
 			u.withGroups = query
 		case "friends":
@@ -663,6 +739,15 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			u.withFriends = query
+		case "friendships":
+			var (
+				path  = append(path, field.Name)
+				query = &FriendshipQuery{config: u.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			u.withFriendships = query
 		}
 	}
 	return nil

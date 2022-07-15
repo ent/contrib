@@ -325,6 +325,20 @@ func (uu *UserUpdate) ClearLabels() *UserUpdate {
 	return uu
 }
 
+// SetDeviceType sets the "device_type" field.
+func (uu *UserUpdate) SetDeviceType(ut user.DeviceType) *UserUpdate {
+	uu.mutation.SetDeviceType(ut)
+	return uu
+}
+
+// SetNillableDeviceType sets the "device_type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate {
+	if ut != nil {
+		uu.SetDeviceType(*ut)
+	}
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -531,6 +545,11 @@ func (uu *UserUpdate) check() error {
 	if v, ok := uu.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.DeviceType(); ok {
+		if err := user.DeviceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
 		}
 	}
 	return nil
@@ -782,6 +801,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: user.FieldLabels,
+		})
+	}
+	if value, ok := uu.mutation.DeviceType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: user.FieldDeviceType,
 		})
 	}
 	if uu.mutation.GroupCleared() {
@@ -1289,6 +1315,20 @@ func (uuo *UserUpdateOne) ClearLabels() *UserUpdateOne {
 	return uuo
 }
 
+// SetDeviceType sets the "device_type" field.
+func (uuo *UserUpdateOne) SetDeviceType(ut user.DeviceType) *UserUpdateOne {
+	uuo.mutation.SetDeviceType(ut)
+	return uuo
+}
+
+// SetNillableDeviceType sets the "device_type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableDeviceType(ut *user.DeviceType) *UserUpdateOne {
+	if ut != nil {
+		uuo.SetDeviceType(*ut)
+	}
+	return uuo
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uuo *UserUpdateOne) SetGroupID(id int) *UserUpdateOne {
 	uuo.mutation.SetGroupID(id)
@@ -1508,6 +1548,11 @@ func (uuo *UserUpdateOne) check() error {
 	if v, ok := uuo.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.DeviceType(); ok {
+		if err := user.DeviceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
 		}
 	}
 	return nil
@@ -1776,6 +1821,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: user.FieldLabels,
+		})
+	}
+	if value, ok := uuo.mutation.DeviceType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: user.FieldDeviceType,
 		})
 	}
 	if uuo.mutation.GroupCleared() {

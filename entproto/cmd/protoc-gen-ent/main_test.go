@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -100,7 +99,7 @@ type genTest struct {
 }
 
 func newGenTest(t *testing.T, files ...string) (*genTest, error) {
-	tmp, err := ioutil.TempDir("", "protoc-gen-ent-")
+	tmp, err := os.MkdirTemp("", "protoc-gen-ent-")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		os.RemoveAll(tmp)
@@ -135,7 +134,7 @@ func newGenTest(t *testing.T, files ...string) (*genTest, error) {
 		if info.IsDir() {
 			return nil
 		}
-		contents, rerr := ioutil.ReadFile(path)
+		contents, rerr := os.ReadFile(path)
 		if rerr != nil {
 			return rerr
 		}

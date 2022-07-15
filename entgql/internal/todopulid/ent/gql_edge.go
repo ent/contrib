@@ -24,15 +24,17 @@ import (
 
 func (c *Category) Todos(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
-	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
+	opts := []TodoPaginateOption{
+		WithTodoOrder(orderBy),
+		WithTodoFilter(where.Filter),
+	}
 	totalCount := c.Edges.totalCount[0]
-	if nodes, err := c.Edges.TodosOrErr(); err == nil {
+	if nodes, err := c.Edges.TodosOrErr(); err == nil || totalCount != nil {
 		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
-		opts = append(opts, WithTodoOrder(orderBy))
 		pager, err := newTodoPager(opts)
 		if err != nil {
 			return nil, err
@@ -92,12 +94,30 @@ func (c *Category) Todos(
 	return conn, nil
 }
 
+func (f *Friendship) User(ctx context.Context) (*User, error) {
+	result, err := f.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (f *Friendship) Friend(ctx context.Context) (*User, error) {
+	result, err := f.Edges.FriendOrErr()
+	if IsNotLoaded(err) {
+		result, err = f.QueryFriend().Only(ctx)
+	}
+	return result, err
+}
+
 func (gr *Group) Users(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
-	opts ...UserPaginateOption,
 ) (*UserConnection, error) {
+	opts := []UserPaginateOption{
+		WithUserFilter(where.Filter),
+	}
 	totalCount := gr.Edges.totalCount[0]
-	if nodes, err := gr.Edges.UsersOrErr(); err == nil {
+	if nodes, err := gr.Edges.UsersOrErr(); err == nil || totalCount != nil {
 		conn := &UserConnection{Edges: []*UserEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
@@ -171,15 +191,17 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 
 func (t *Todo) Children(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
-	opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
+	opts := []TodoPaginateOption{
+		WithTodoOrder(orderBy),
+		WithTodoFilter(where.Filter),
+	}
 	totalCount := t.Edges.totalCount[1]
-	if nodes, err := t.Edges.ChildrenOrErr(); err == nil {
+	if nodes, err := t.Edges.ChildrenOrErr(); err == nil || totalCount != nil {
 		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
-		opts = append(opts, WithTodoOrder(orderBy))
 		pager, err := newTodoPager(opts)
 		if err != nil {
 			return nil, err
@@ -249,10 +271,12 @@ func (t *Todo) Category(ctx context.Context) (*Category, error) {
 
 func (u *User) Groups(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *GroupWhereInput,
-	opts ...GroupPaginateOption,
 ) (*GroupConnection, error) {
+	opts := []GroupPaginateOption{
+		WithGroupFilter(where.Filter),
+	}
 	totalCount := u.Edges.totalCount[0]
-	if nodes, err := u.Edges.GroupsOrErr(); err == nil {
+	if nodes, err := u.Edges.GroupsOrErr(); err == nil || totalCount != nil {
 		conn := &GroupConnection{Edges: []*GroupEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
@@ -320,6 +344,14 @@ func (u *User) Friends(ctx context.Context) ([]*User, error) {
 	result, err := u.Edges.FriendsOrErr()
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriends().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) Friendships(ctx context.Context) ([]*Friendship, error) {
+	result, err := u.Edges.FriendshipsOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryFriendships().All(ctx)
 	}
 	return result, err
 }

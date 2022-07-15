@@ -84,7 +84,7 @@ func (m FieldMap) Edges() []*FieldMappingDescriptor {
 func (m FieldMap) Enums() []*FieldMappingDescriptor {
 	var out []*FieldMappingDescriptor
 	for _, f := range m {
-		if f.IsEnumFIeld {
+		if f.IsEnumField {
 			out = append(out, f)
 		}
 	}
@@ -101,7 +101,7 @@ type FieldMappingDescriptor struct {
 	PbFieldDescriptor *desc.FieldDescriptor
 	IsEdgeField       bool
 	IsIDField         bool
-	IsEnumFIeld       bool
+	IsEnumField       bool
 	ReferencedPbType  *desc.MessageDescriptor
 }
 
@@ -129,7 +129,7 @@ func (a *Adapter) mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (
 		fd := &FieldMappingDescriptor{
 			PbFieldDescriptor: fld,
 			IsIDField:         pascal(fld.GetName()) == pascal(entType.ID.Name),
-			IsEnumFIeld:       fld.GetEnumType() != nil,
+			IsEnumField:       fld.GetEnumType() != nil,
 		}
 		for _, edg := range entType.Edges {
 			if fld.GetName() == edg.Name {
