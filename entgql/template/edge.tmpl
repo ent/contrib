@@ -62,21 +62,18 @@ import "context"
 		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
 		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil || totalCount != nil {
-			conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
-			if totalCount != nil {
-				conn.TotalCount = *totalCount
-			}
 			pager, err := {{ $newPager }}(opts)
 			if err != nil {
 				return nil, err
 			}
+			conn := &{{ $conn }}{}
+			if totalCount != nil {
+				conn.TotalCount = *totalCount
+			}
 			conn.build(nodes, pager, after, first, before, last)
 			return conn, nil
 		}
-		query := {{ $r }}.Query{{ $e.StructField }}()
-		{{ with extend $n "Node" $e.Type "Query" "query" "TotalCount" "totalCount" -}}
-			{{ template "gql_pagination/helper/paginate" . }}
-		{{- end -}}
+		return {{ $r }}.Query{{ $e.StructField }}().Paginate(ctx, after, first, before, last, opts...)
 	}
 {{ end }}
 
