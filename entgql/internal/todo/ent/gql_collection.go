@@ -101,7 +101,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 					})
 				}
 			}
-			if ignoredEdges {
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
 
@@ -319,7 +319,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 					})
 				}
 			}
-			if ignoredEdges {
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
 
@@ -452,7 +452,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					})
 				}
 			}
-			if ignoredEdges {
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
 
@@ -611,7 +611,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					})
 				}
 			}
-			if ignoredEdges {
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
 

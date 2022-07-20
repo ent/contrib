@@ -81,7 +81,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 									})
 								}
 							}
-							if ignoredEdges {
+							if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 								{{- /* Skip querying edges if "edges" "node" was not required. */}}
 								continue
 							}

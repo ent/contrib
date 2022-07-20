@@ -638,6 +638,34 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		s.NoError(err)
 		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
 	})
+
+	s.Run("Zero first", func() {
+		var (
+			rsp   response
+			query = `query() {
+				todos(first: 0) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err)
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+
+	s.Run("Zero last", func() {
+		var (
+			rsp   response
+			query = `query() {
+				todos(last: 0) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err)
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
 }
 
 func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
