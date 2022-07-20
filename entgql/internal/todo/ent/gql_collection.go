@@ -61,8 +61,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			if !hasCollectedField(ctx, append(path, edgesField)...) || args.first != nil && *args.first == 0 || args.last != nil && *args.last == 0 {
-				if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
 						ids := make([]driver.Value, len(nodes))
@@ -89,45 +91,20 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 						}
 						return nil
 					})
+				} else {
+					c.loadTotal = append(c.loadTotal, func(_ context.Context, nodes []*Category) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.Todos)
+							nodes[i].Edges.totalCount[0] = &n
+						}
+						return nil
+					})
 				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-			if (args.after != nil || args.first != nil || args.before != nil || args.last != nil) && hasCollectedField(ctx, append(path, totalCountField)...) {
-				query := query.Clone()
-				c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
-					ids := make([]driver.Value, len(nodes))
-					for i := range nodes {
-						ids[i] = nodes[i].ID
-					}
-					var v []struct {
-						NodeID int `sql:"category_id"`
-						Count  int `sql:"count"`
-					}
-					query.Where(func(s *sql.Selector) {
-						s.Where(sql.InValues(category.TodosColumn, ids...))
-					})
-					if err := query.GroupBy(category.TodosColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
-						return err
-					}
-					m := make(map[int]int, len(v))
-					for i := range v {
-						m[v[i].NodeID] = v[i].Count
-					}
-					for i := range nodes {
-						n := m[nodes[i].ID]
-						nodes[i].Edges.totalCount[0] = &n
-					}
-					return nil
-				})
-			} else {
-				c.loadTotal = append(c.loadTotal, func(_ context.Context, nodes []*Category) error {
-					for i := range nodes {
-						n := len(nodes[i].Edges.Todos)
-						nodes[i].Edges.totalCount[0] = &n
-					}
-					return nil
-				})
-			}
+
 			query = pager.applyCursors(query, args.after, args.before)
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
 				modify := limitRows(category.TodosColumn, limit, pager.orderExpr(args.last != nil))
@@ -298,8 +275,10 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			if !hasCollectedField(ctx, append(path, edgesField)...) || args.first != nil && *args.first == 0 || args.last != nil && *args.last == 0 {
-				if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					gr.loadTotal = append(gr.loadTotal, func(ctx context.Context, nodes []*Group) error {
 						ids := make([]driver.Value, len(nodes))
@@ -330,49 +309,20 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 						}
 						return nil
 					})
+				} else {
+					gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.Users)
+							nodes[i].Edges.totalCount[0] = &n
+						}
+						return nil
+					})
 				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-			if (args.after != nil || args.first != nil || args.before != nil || args.last != nil) && hasCollectedField(ctx, append(path, totalCountField)...) {
-				query := query.Clone()
-				gr.loadTotal = append(gr.loadTotal, func(ctx context.Context, nodes []*Group) error {
-					ids := make([]driver.Value, len(nodes))
-					for i := range nodes {
-						ids[i] = nodes[i].ID
-					}
-					var v []struct {
-						NodeID int `sql:"group_id"`
-						Count  int `sql:"count"`
-					}
-					query.Where(func(s *sql.Selector) {
-						joinT := sql.Table(group.UsersTable)
-						s.Join(joinT).On(s.C(user.FieldID), joinT.C(group.UsersPrimaryKey[0]))
-						s.Where(sql.InValues(joinT.C(group.UsersPrimaryKey[1]), ids...))
-						s.Select(joinT.C(group.UsersPrimaryKey[1]), sql.Count("*"))
-						s.GroupBy(joinT.C(group.UsersPrimaryKey[1]))
-					})
-					if err := query.Select().Scan(ctx, &v); err != nil {
-						return err
-					}
-					m := make(map[int]int, len(v))
-					for i := range v {
-						m[v[i].NodeID] = v[i].Count
-					}
-					for i := range nodes {
-						n := m[nodes[i].ID]
-						nodes[i].Edges.totalCount[0] = &n
-					}
-					return nil
-				})
-			} else {
-				gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
-					for i := range nodes {
-						n := len(nodes[i].Edges.Users)
-						nodes[i].Edges.totalCount[0] = &n
-					}
-					return nil
-				})
-			}
+
 			query = pager.applyCursors(query, args.after, args.before)
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
 				modify := limitRows(group.UsersPrimaryKey[1], limit, pager.orderExpr(args.last != nil))
@@ -462,8 +412,10 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			if !hasCollectedField(ctx, append(path, edgesField)...) || args.first != nil && *args.first == 0 || args.last != nil && *args.last == 0 {
-				if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
 						ids := make([]driver.Value, len(nodes))
@@ -490,45 +442,20 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 						}
 						return nil
 					})
+				} else {
+					t.loadTotal = append(t.loadTotal, func(_ context.Context, nodes []*Todo) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.Children)
+							nodes[i].Edges.totalCount[1] = &n
+						}
+						return nil
+					})
 				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-			if (args.after != nil || args.first != nil || args.before != nil || args.last != nil) && hasCollectedField(ctx, append(path, totalCountField)...) {
-				query := query.Clone()
-				t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
-					ids := make([]driver.Value, len(nodes))
-					for i := range nodes {
-						ids[i] = nodes[i].ID
-					}
-					var v []struct {
-						NodeID int `sql:"todo_children"`
-						Count  int `sql:"count"`
-					}
-					query.Where(func(s *sql.Selector) {
-						s.Where(sql.InValues(todo.ChildrenColumn, ids...))
-					})
-					if err := query.GroupBy(todo.ChildrenColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
-						return err
-					}
-					m := make(map[int]int, len(v))
-					for i := range v {
-						m[v[i].NodeID] = v[i].Count
-					}
-					for i := range nodes {
-						n := m[nodes[i].ID]
-						nodes[i].Edges.totalCount[1] = &n
-					}
-					return nil
-				})
-			} else {
-				t.loadTotal = append(t.loadTotal, func(_ context.Context, nodes []*Todo) error {
-					for i := range nodes {
-						n := len(nodes[i].Edges.Children)
-						nodes[i].Edges.totalCount[1] = &n
-					}
-					return nil
-				})
-			}
+
 			query = pager.applyCursors(query, args.after, args.before)
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
 				modify := limitRows(todo.ChildrenColumn, limit, pager.orderExpr(args.last != nil))
@@ -640,8 +567,10 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			if !hasCollectedField(ctx, append(path, edgesField)...) || args.first != nil && *args.first == 0 || args.last != nil && *args.last == 0 {
-				if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					u.loadTotal = append(u.loadTotal, func(ctx context.Context, nodes []*User) error {
 						ids := make([]driver.Value, len(nodes))
@@ -672,49 +601,20 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 						}
 						return nil
 					})
+				} else {
+					u.loadTotal = append(u.loadTotal, func(_ context.Context, nodes []*User) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.Groups)
+							nodes[i].Edges.totalCount[0] = &n
+						}
+						return nil
+					})
 				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-			if (args.after != nil || args.first != nil || args.before != nil || args.last != nil) && hasCollectedField(ctx, append(path, totalCountField)...) {
-				query := query.Clone()
-				u.loadTotal = append(u.loadTotal, func(ctx context.Context, nodes []*User) error {
-					ids := make([]driver.Value, len(nodes))
-					for i := range nodes {
-						ids[i] = nodes[i].ID
-					}
-					var v []struct {
-						NodeID int `sql:"user_id"`
-						Count  int `sql:"count"`
-					}
-					query.Where(func(s *sql.Selector) {
-						joinT := sql.Table(user.GroupsTable)
-						s.Join(joinT).On(s.C(group.FieldID), joinT.C(user.GroupsPrimaryKey[1]))
-						s.Where(sql.InValues(joinT.C(user.GroupsPrimaryKey[0]), ids...))
-						s.Select(joinT.C(user.GroupsPrimaryKey[0]), sql.Count("*"))
-						s.GroupBy(joinT.C(user.GroupsPrimaryKey[0]))
-					})
-					if err := query.Select().Scan(ctx, &v); err != nil {
-						return err
-					}
-					m := make(map[int]int, len(v))
-					for i := range v {
-						m[v[i].NodeID] = v[i].Count
-					}
-					for i := range nodes {
-						n := m[nodes[i].ID]
-						nodes[i].Edges.totalCount[0] = &n
-					}
-					return nil
-				})
-			} else {
-				u.loadTotal = append(u.loadTotal, func(_ context.Context, nodes []*User) error {
-					for i := range nodes {
-						n := len(nodes[i].Edges.Groups)
-						nodes[i].Edges.totalCount[0] = &n
-					}
-					return nil
-				})
-			}
+
 			query = pager.applyCursors(query, args.after, args.before)
 			if limit := paginateLimit(args.first, args.last); limit > 0 {
 				modify := limitRows(user.GroupsPrimaryKey[0], limit, pager.orderExpr(args.last != nil))
