@@ -449,8 +449,8 @@ func (c *CategoryQuery) Paginate(
 	}
 
 	nodes, err := c.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
+	if err != nil {
+		return nil, err
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
@@ -737,8 +737,8 @@ func (f *FriendshipQuery) Paginate(
 	}
 
 	nodes, err := f.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
+	if err != nil {
+		return nil, err
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
@@ -968,8 +968,8 @@ func (gr *GroupQuery) Paginate(
 	}
 
 	nodes, err := gr.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
+	if err != nil {
+		return nil, err
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
@@ -1199,8 +1199,8 @@ func (t *TodoQuery) Paginate(
 	}
 
 	nodes, err := t.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
+	if err != nil {
+		return nil, err
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
@@ -1515,8 +1515,8 @@ func (u *UserQuery) Paginate(
 	}
 
 	nodes, err := u.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
+	if err != nil {
+		return nil, err
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
