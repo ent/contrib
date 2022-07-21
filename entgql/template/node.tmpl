@@ -66,18 +66,18 @@ type Edge struct {
 {{ range $n := $gqlNodes }}
 	{{ $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
 	{{- if $marshalID }}
-		func (q {{ $n.Name }}) marshalID() string {
+		func (n {{ $n.Name }}) marshalID() string {
 			var buf bytes.Buffer
-			q.ID.MarshalGQL(&buf)
+			n.ID.MarshalGQL(&buf)
 			return buf.String()
 		}
 	{{- end }}
 
-	func (q *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
+	func (n *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		{{- $fields := filterFields $n.Fields (skipMode "type") }}
 		{{- $edges := filterEdges $n.Edges (skipMode "type") }}
 		node = &Node{
-			ID: q.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+			ID: n.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $fields }}),
 			Edges: make([]*Edge, {{ len $edges }}),
@@ -85,7 +85,7 @@ type Edge struct {
 		{{- with $fields }}
 			var buf []byte
 			{{- range $i, $f := $fields }}
-				if buf, err = json.Marshal(q.{{ pascal $f.Name }}); err != nil {
+				if buf, err = json.Marshal(n.{{ pascal $f.Name }}); err != nil {
 					return nil, err
 				}
 				node.Fields[{{ $i }}] = &Field{
@@ -101,7 +101,7 @@ type Edge struct {
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
 				}
-				err = q.{{ print "Query" (pascal $e.Name) }}().
+				err = n.{{ print "Query" (pascal $e.Name) }}().
 					Select({{ $e.Type.Package }}.FieldID).
 					Scan(ctx, &node.Edges[{{ $i }}].IDs)
 				if err != nil {

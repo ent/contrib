@@ -364,8 +364,8 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 	return query, nil
 }
 
-func (p *categoryPager) toCursor(q *Category) Cursor {
-	return p.order.Field.toCursor(q)
+func (p *categoryPager) toCursor(n *Category) Cursor {
+	return p.order.Field.toCursor(n)
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
@@ -461,20 +461,20 @@ var (
 	// CategoryOrderFieldText orders Category by text.
 	CategoryOrderFieldText = &CategoryOrderField{
 		field: category.FieldText,
-		toCursor: func(q *Category) Cursor {
+		toCursor: func(n *Category) Cursor {
 			return Cursor{
-				ID:    q.ID,
-				Value: q.Text,
+				ID:    n.ID,
+				Value: n.Text,
 			}
 		},
 	}
 	// CategoryOrderFieldDuration orders Category by duration.
 	CategoryOrderFieldDuration = &CategoryOrderField{
 		field: category.FieldDuration,
-		toCursor: func(q *Category) Cursor {
+		toCursor: func(n *Category) Cursor {
 			return Cursor{
-				ID:    q.ID,
-				Value: q.Duration,
+				ID:    n.ID,
+				Value: n.Duration,
 			}
 		},
 	}
@@ -531,20 +531,20 @@ var DefaultCategoryOrder = &CategoryOrder{
 	Direction: OrderDirectionAsc,
 	Field: &CategoryOrderField{
 		field: category.FieldID,
-		toCursor: func(q *Category) Cursor {
-			return Cursor{ID: q.ID}
+		toCursor: func(n *Category) Cursor {
+			return Cursor{ID: n.ID}
 		},
 	},
 }
 
 // ToEdge converts Category into CategoryEdge.
-func (q *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
+func (n *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
 	if order == nil {
 		order = DefaultCategoryOrder
 	}
 	return &CategoryEdge{
-		Node:   q,
-		Cursor: order.Field.toCursor(q),
+		Node:   n,
+		Cursor: order.Field.toCursor(n),
 	}
 }
 
@@ -656,8 +656,8 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 	return query, nil
 }
 
-func (p *todoPager) toCursor(q *Todo) Cursor {
-	return p.order.Field.toCursor(q)
+func (p *todoPager) toCursor(n *Todo) Cursor {
+	return p.order.Field.toCursor(n)
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) *TodoQuery {
@@ -753,40 +753,40 @@ var (
 	// TodoOrderFieldCreatedAt orders Todo by created_at.
 	TodoOrderFieldCreatedAt = &TodoOrderField{
 		field: todo.FieldCreatedAt,
-		toCursor: func(q *Todo) Cursor {
+		toCursor: func(n *Todo) Cursor {
 			return Cursor{
-				ID:    q.ID,
-				Value: q.CreatedAt,
+				ID:    n.ID,
+				Value: n.CreatedAt,
 			}
 		},
 	}
 	// TodoOrderFieldStatus orders Todo by status.
 	TodoOrderFieldStatus = &TodoOrderField{
 		field: todo.FieldStatus,
-		toCursor: func(q *Todo) Cursor {
+		toCursor: func(n *Todo) Cursor {
 			return Cursor{
-				ID:    q.ID,
-				Value: q.Status,
+				ID:    n.ID,
+				Value: n.Status,
 			}
 		},
 	}
 	// TodoOrderFieldPriority orders Todo by priority.
 	TodoOrderFieldPriority = &TodoOrderField{
 		field: todo.FieldPriority,
-		toCursor: func(q *Todo) Cursor {
+		toCursor: func(n *Todo) Cursor {
 			return Cursor{
-				ID:    q.ID,
-				Value: q.Priority,
+				ID:    n.ID,
+				Value: n.Priority,
 			}
 		},
 	}
 	// TodoOrderFieldText orders Todo by text.
 	TodoOrderFieldText = &TodoOrderField{
 		field: todo.FieldText,
-		toCursor: func(q *Todo) Cursor {
+		toCursor: func(n *Todo) Cursor {
 			return Cursor{
-				ID:    q.ID,
-				Value: q.Text,
+				ID:    n.ID,
+				Value: n.Text,
 			}
 		},
 	}
@@ -851,19 +851,19 @@ var DefaultTodoOrder = &TodoOrder{
 	Direction: OrderDirectionAsc,
 	Field: &TodoOrderField{
 		field: todo.FieldID,
-		toCursor: func(q *Todo) Cursor {
-			return Cursor{ID: q.ID}
+		toCursor: func(n *Todo) Cursor {
+			return Cursor{ID: n.ID}
 		},
 	},
 }
 
 // ToEdge converts Todo into TodoEdge.
-func (q *Todo) ToEdge(order *TodoOrder) *TodoEdge {
+func (n *Todo) ToEdge(order *TodoOrder) *TodoEdge {
 	if order == nil {
 		order = DefaultTodoOrder
 	}
 	return &TodoEdge{
-		Node:   q,
-		Cursor: order.Field.toCursor(q),
+		Node:   n,
+		Cursor: order.Field.toCursor(n),
 	}
 }
