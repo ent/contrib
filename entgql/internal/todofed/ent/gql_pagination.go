@@ -364,8 +364,8 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 	return query, nil
 }
 
-func (p *categoryPager) toCursor(c *Category) Cursor {
-	return p.order.Field.toCursor(c)
+func (p *categoryPager) toCursor(q *Category) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
@@ -404,7 +404,7 @@ func (p *categoryPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Category.
-func (c *CategoryQuery) Paginate(
+func (q *CategoryQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...CategoryPaginateOption,
 ) (*CategoryConnection, error) {
@@ -415,13 +415,13 @@ func (c *CategoryQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if c, err = pager.applyFilter(c); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = c.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -431,25 +431,25 @@ func (c *CategoryQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := c.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	c = pager.applyCursors(c, after, before)
-	c = pager.applyOrder(c, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		c.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := c.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -461,20 +461,20 @@ var (
 	// CategoryOrderFieldText orders Category by text.
 	CategoryOrderFieldText = &CategoryOrderField{
 		field: category.FieldText,
-		toCursor: func(c *Category) Cursor {
+		toCursor: func(q *Category) Cursor {
 			return Cursor{
-				ID:    c.ID,
-				Value: c.Text,
+				ID:    q.ID,
+				Value: q.Text,
 			}
 		},
 	}
 	// CategoryOrderFieldDuration orders Category by duration.
 	CategoryOrderFieldDuration = &CategoryOrderField{
 		field: category.FieldDuration,
-		toCursor: func(c *Category) Cursor {
+		toCursor: func(q *Category) Cursor {
 			return Cursor{
-				ID:    c.ID,
-				Value: c.Duration,
+				ID:    q.ID,
+				Value: q.Duration,
 			}
 		},
 	}
@@ -531,20 +531,20 @@ var DefaultCategoryOrder = &CategoryOrder{
 	Direction: OrderDirectionAsc,
 	Field: &CategoryOrderField{
 		field: category.FieldID,
-		toCursor: func(c *Category) Cursor {
-			return Cursor{ID: c.ID}
+		toCursor: func(q *Category) Cursor {
+			return Cursor{ID: q.ID}
 		},
 	},
 }
 
 // ToEdge converts Category into CategoryEdge.
-func (c *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
+func (q *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
 	if order == nil {
 		order = DefaultCategoryOrder
 	}
 	return &CategoryEdge{
-		Node:   c,
-		Cursor: order.Field.toCursor(c),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 
@@ -656,8 +656,8 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 	return query, nil
 }
 
-func (p *todoPager) toCursor(t *Todo) Cursor {
-	return p.order.Field.toCursor(t)
+func (p *todoPager) toCursor(q *Todo) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) *TodoQuery {
@@ -696,7 +696,7 @@ func (p *todoPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Todo.
-func (t *TodoQuery) Paginate(
+func (q *TodoQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
@@ -707,13 +707,13 @@ func (t *TodoQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if t, err = pager.applyFilter(t); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = t.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -723,25 +723,25 @@ func (t *TodoQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := t.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	t = pager.applyCursors(t, after, before)
-	t = pager.applyOrder(t, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		t.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := t.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -753,40 +753,40 @@ var (
 	// TodoOrderFieldCreatedAt orders Todo by created_at.
 	TodoOrderFieldCreatedAt = &TodoOrderField{
 		field: todo.FieldCreatedAt,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.CreatedAt,
+				ID:    q.ID,
+				Value: q.CreatedAt,
 			}
 		},
 	}
 	// TodoOrderFieldStatus orders Todo by status.
 	TodoOrderFieldStatus = &TodoOrderField{
 		field: todo.FieldStatus,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.Status,
+				ID:    q.ID,
+				Value: q.Status,
 			}
 		},
 	}
 	// TodoOrderFieldPriority orders Todo by priority.
 	TodoOrderFieldPriority = &TodoOrderField{
 		field: todo.FieldPriority,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.Priority,
+				ID:    q.ID,
+				Value: q.Priority,
 			}
 		},
 	}
 	// TodoOrderFieldText orders Todo by text.
 	TodoOrderFieldText = &TodoOrderField{
 		field: todo.FieldText,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.Text,
+				ID:    q.ID,
+				Value: q.Text,
 			}
 		},
 	}
@@ -851,19 +851,19 @@ var DefaultTodoOrder = &TodoOrder{
 	Direction: OrderDirectionAsc,
 	Field: &TodoOrderField{
 		field: todo.FieldID,
-		toCursor: func(t *Todo) Cursor {
-			return Cursor{ID: t.ID}
+		toCursor: func(q *Todo) Cursor {
+			return Cursor{ID: q.ID}
 		},
 	},
 }
 
 // ToEdge converts Todo into TodoEdge.
-func (t *Todo) ToEdge(order *TodoOrder) *TodoEdge {
+func (q *Todo) ToEdge(order *TodoOrder) *TodoEdge {
 	if order == nil {
 		order = DefaultTodoOrder
 	}
 	return &TodoEdge{
-		Node:   t,
-		Cursor: order.Field.toCursor(t),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }

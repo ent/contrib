@@ -18,34 +18,34 @@ package ent
 
 import "context"
 
-func (c *Category) Todos(ctx context.Context) ([]*Todo, error) {
-	result, err := c.Edges.TodosOrErr()
+func (q *Category) Todos(ctx context.Context) ([]*Todo, error) {
+	result, err := q.Edges.TodosOrErr()
 	if IsNotLoaded(err) {
-		result, err = c.QueryTodos().All(ctx)
+		result, err = q.QueryTodos().All(ctx)
 	}
 	return result, err
 }
 
-func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
-	result, err := t.Edges.ParentOrErr()
+func (q *Todo) Parent(ctx context.Context) (*Todo, error) {
+	result, err := q.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryParent().Only(ctx)
+		result, err = q.QueryParent().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
 
-func (t *Todo) Children(ctx context.Context) ([]*Todo, error) {
-	result, err := t.Edges.ChildrenOrErr()
+func (q *Todo) Children(ctx context.Context) ([]*Todo, error) {
+	result, err := q.Edges.ChildrenOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryChildren().All(ctx)
+		result, err = q.QueryChildren().All(ctx)
 	}
 	return result, err
 }
 
-func (t *Todo) Category(ctx context.Context) (*Category, error) {
-	result, err := t.Edges.CategoryOrErr()
+func (q *Todo) Category(ctx context.Context) (*Category, error) {
+	result, err := q.Edges.CategoryOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryCategory().Only(ctx)
+		result, err = q.QueryCategory().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }

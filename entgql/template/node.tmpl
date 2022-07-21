@@ -64,21 +64,20 @@ type Edge struct {
 
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
-	{{ $receiver := $n.Receiver }}
 	{{ $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
 	{{- if $marshalID }}
-		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
+		func (q {{ $n.Name }}) marshalID() string {
 			var buf bytes.Buffer
-			{{ $receiver }}.ID.MarshalGQL(&buf)
+			q.ID.MarshalGQL(&buf)
 			return buf.String()
 		}
 	{{- end }}
 
-	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
+	func (q *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
 		{{- $fields := filterFields $n.Fields (skipMode "type") }}
 		{{- $edges := filterEdges $n.Edges (skipMode "type") }}
 		node = &Node{
-			ID: {{ $receiver }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+			ID: q.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $fields }}),
 			Edges: make([]*Edge, {{ len $edges }}),
@@ -86,7 +85,7 @@ type Edge struct {
 		{{- with $fields }}
 			var buf []byte
 			{{- range $i, $f := $fields }}
-				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
+				if buf, err = json.Marshal(q.{{ pascal $f.Name }}); err != nil {
 					return nil, err
 				}
 				node.Fields[{{ $i }}] = &Field{
@@ -102,7 +101,7 @@ type Edge struct {
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
 				}
-				err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+				err = q.{{ print "Query" (pascal $e.Name) }}().
 					Select({{ $e.Type.Package }}.FieldID).
 					Scan(ctx, &node.Edges[{{ $i }}].IDs)
 				if err != nil {

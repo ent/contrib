@@ -24,30 +24,30 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
+func (q *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return c, nil
+		return q, nil
 	}
-	if err := c.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return q, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "todos":
 			var (
 				path  = append(path, field.Name)
-				query = &TodoQuery{config: c.config}
+				query = &TodoQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			c.withTodos = query
+			q.withTodos = query
 		}
 	}
 	return nil
@@ -102,48 +102,48 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
+func (q *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return t, nil
+		return q, nil
 	}
-	if err := t.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return q, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "parent":
 			var (
 				path  = append(path, field.Name)
-				query = &TodoQuery{config: t.config}
+				query = &TodoQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withParent = query
+			q.withParent = query
 		case "children":
 			var (
 				path  = append(path, field.Name)
-				query = &TodoQuery{config: t.config}
+				query = &TodoQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withChildren = query
+			q.withChildren = query
 		case "category":
 			var (
 				path  = append(path, field.Name)
-				query = &CategoryQuery{config: t.config}
+				query = &CategoryQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withCategory = query
+			q.withCategory = query
 		}
 	}
 	return nil

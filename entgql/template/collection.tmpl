@@ -19,21 +19,20 @@ import (
 {{ $names := nodePaginationNames $node }}
 {{ $name := $names.Node }}
 
-{{ $receiver := $node.Receiver }}
 {{ $query := $node.QueryName }}
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfies ...string) (*{{ $query }}, error) {
+func (q *{{ $query }}) CollectFields(ctx context.Context, satisfies ...string) (*{{ $query }}, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return {{ $receiver }}, nil
+		return q, nil
 	}
-	if err := {{ $receiver }}.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return {{ $receiver }}, nil
+	return q, nil
 }
 
-func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
 		for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -44,7 +43,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 						{{- $ebuilder := $e.Type.QueryName }}
 						var (
 							path = append(path, field.Name)
-							query = &{{ $ebuilder }}{config: {{ $receiver }}.config}
+							query = &{{ $ebuilder }}{config: q.config}
 						)
 						{{- if isRelayConn $e }}
 							{{- $tnames := nodePaginationNames $e.Type }}
@@ -67,12 +66,12 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 								{{- /* Only add loadTotal query when needs */}}
 								hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 								if hasPagination || ignoredEdges {
-									{{- with extend $node "Edge" $e "Index" $i "Receiver" $receiver }}
+									{{- with extend $node "Edge" $e "Index" $i "Receiver" "q" }}
 										{{- template "gql_pagination/helper/load_total" . }}
 									{{- end -}}
 								} else {
 									{{- /* All records will be loaded, so just count it */}}
-									{{ $receiver }}.loadTotal = append({{ $receiver }}.loadTotal, func(_ context.Context, nodes []*{{ $node.Name }}) error {
+									q.loadTotal = append(q.loadTotal, func(_ context.Context, nodes []*{{ $node.Name }}) error {
 										for i := range nodes {
 											n := len(nodes[i].Edges.{{ $e.StructField }})
 											nodes[i].Edges.totalCount[{{ $i }}] = &n
@@ -109,7 +108,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 								return err
 							}
 						{{- end }}
-						{{ $receiver }}.{{ $e.EagerLoadField }} = query
+						q.{{ $e.EagerLoadField }} = query
 				{{- end }}
 			}
 		}

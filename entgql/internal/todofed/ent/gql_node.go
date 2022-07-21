@@ -61,15 +61,15 @@ type Edge struct {
 	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
-func (c *Category) Node(ctx context.Context) (node *Node, err error) {
+func (q *Category) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     c.ID,
+		ID:     q.ID,
 		Type:   "Category",
 		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(c.Text); err != nil {
+	if buf, err = json.Marshal(q.Text); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -77,7 +77,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Status); err != nil {
+	if buf, err = json.Marshal(q.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -85,7 +85,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "status",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Config); err != nil {
+	if buf, err = json.Marshal(q.Config); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
@@ -93,7 +93,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "config",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Duration); err != nil {
+	if buf, err = json.Marshal(q.Duration); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
@@ -101,7 +101,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "duration",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Count); err != nil {
+	if buf, err = json.Marshal(q.Count); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
@@ -109,7 +109,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "count",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Strings); err != nil {
+	if buf, err = json.Marshal(q.Strings); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
@@ -121,7 +121,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "todos",
 	}
-	err = c.QueryTodos().
+	err = q.QueryTodos().
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -130,15 +130,15 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
+func (q *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     t.ID,
+		ID:     q.ID,
 		Type:   "Todo",
 		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(t.CreatedAt); err != nil {
+	if buf, err = json.Marshal(q.CreatedAt); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -146,7 +146,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "created_at",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Status); err != nil {
+	if buf, err = json.Marshal(q.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -154,7 +154,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "status",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Priority); err != nil {
+	if buf, err = json.Marshal(q.Priority); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
@@ -162,7 +162,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "priority",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Text); err != nil {
+	if buf, err = json.Marshal(q.Text); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
@@ -170,7 +170,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Blob); err != nil {
+	if buf, err = json.Marshal(q.Blob); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
@@ -182,7 +182,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "parent",
 	}
-	err = t.QueryParent().
+	err = q.QueryParent().
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -192,7 +192,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "children",
 	}
-	err = t.QueryChildren().
+	err = q.QueryChildren().
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -202,7 +202,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Category",
 		Name: "category",
 	}
-	err = t.QueryCategory().
+	err = q.QueryCategory().
 		Select(category.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {

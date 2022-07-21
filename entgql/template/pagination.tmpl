@@ -355,9 +355,8 @@ func (p *{{ $pager }}) applyFilter(query *{{ $query }}) (*{{ $query }}, error) {
 	return query, nil
 }
 
-{{ $r := $node.Receiver }}
-func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
-	return p.order.Field.toCursor({{ $r }})
+func (p *{{ $pager }}) toCursor(q *{{ $name }}) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *{{ $pager }}) applyCursors(query *{{ $query }}, after, before *Cursor) *{{ $query }} {
@@ -396,11 +395,11 @@ func (p *{{ $pager }}) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to {{ $name }}.
-func ({{ $r }} *{{ $query }}) Paginate(
+func (q *{{ $query }}) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...{{ $opt }},
 ) (*{{ $conn }}, error) {
-	{{- with extend $ "Node" $node "Query" $r -}}
+	{{- with extend $ "Node" $node "Query" "q" -}}
 		{{ template "gql_pagination/helper/paginate" . }}
 	{{- end -}}
 }
@@ -413,11 +412,11 @@ func ({{ $r }} *{{ $query }}) Paginate(
 			// {{ $var }} orders {{ $name }} by {{ $f.Name }}.
 			{{ $var }} = &{{ $orderField }}{
 				field: {{ $node.Package }}.{{ $f.Constant }},
-				toCursor: func({{ $r }} *{{ $name }}) Cursor {
+				toCursor: func(q *{{ $name }}) Cursor {
 					{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
 					return Cursor{
-						ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
-						Value: {{ $r }}.{{ $f.StructField }},
+						ID: q.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+						Value: q.{{ $f.StructField }},
 					}
 				},
 			}
@@ -476,21 +475,21 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	Direction: OrderDirectionAsc,
 	Field: &{{ $orderField }}{
 		field: {{ $node.Package }}.{{ $node.ID.Constant }},
-		toCursor: func({{ $r }} *{{ $name }}) Cursor {
+		toCursor: func(q *{{ $name }}) Cursor {
 			{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
-			return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
+			return Cursor{ID: q.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
 		},
 	},
 }
 
 // ToEdge converts {{ $name }} into {{ $edge }}.
-func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
+func (q *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if order == nil {
 		order = {{ $defaultOrder }}
 	}
 	return &{{ $edge }}{
-		Node:   {{ $r }},
-		Cursor: order.Field.toCursor({{ $r }}),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 

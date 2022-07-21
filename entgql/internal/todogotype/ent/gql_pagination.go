@@ -368,8 +368,8 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 	return query, nil
 }
 
-func (p *categoryPager) toCursor(c *Category) Cursor {
-	return p.order.Field.toCursor(c)
+func (p *categoryPager) toCursor(q *Category) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
@@ -408,7 +408,7 @@ func (p *categoryPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Category.
-func (c *CategoryQuery) Paginate(
+func (q *CategoryQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...CategoryPaginateOption,
 ) (*CategoryConnection, error) {
@@ -419,13 +419,13 @@ func (c *CategoryQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if c, err = pager.applyFilter(c); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = c.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -435,25 +435,25 @@ func (c *CategoryQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := c.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	c = pager.applyCursors(c, after, before)
-	c = pager.applyOrder(c, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		c.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := c.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -465,20 +465,20 @@ var (
 	// CategoryOrderFieldText orders Category by text.
 	CategoryOrderFieldText = &CategoryOrderField{
 		field: category.FieldText,
-		toCursor: func(c *Category) Cursor {
+		toCursor: func(q *Category) Cursor {
 			return Cursor{
-				ID:    c.marshalID(),
-				Value: c.Text,
+				ID:    q.marshalID(),
+				Value: q.Text,
 			}
 		},
 	}
 	// CategoryOrderFieldDuration orders Category by duration.
 	CategoryOrderFieldDuration = &CategoryOrderField{
 		field: category.FieldDuration,
-		toCursor: func(c *Category) Cursor {
+		toCursor: func(q *Category) Cursor {
 			return Cursor{
-				ID:    c.marshalID(),
-				Value: c.Duration,
+				ID:    q.marshalID(),
+				Value: q.Duration,
 			}
 		},
 	}
@@ -535,20 +535,20 @@ var DefaultCategoryOrder = &CategoryOrder{
 	Direction: OrderDirectionAsc,
 	Field: &CategoryOrderField{
 		field: category.FieldID,
-		toCursor: func(c *Category) Cursor {
-			return Cursor{ID: c.marshalID()}
+		toCursor: func(q *Category) Cursor {
+			return Cursor{ID: q.marshalID()}
 		},
 	},
 }
 
 // ToEdge converts Category into CategoryEdge.
-func (c *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
+func (q *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
 	if order == nil {
 		order = DefaultCategoryOrder
 	}
 	return &CategoryEdge{
-		Node:   c,
-		Cursor: order.Field.toCursor(c),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 
@@ -660,8 +660,8 @@ func (p *friendshipPager) applyFilter(query *FriendshipQuery) (*FriendshipQuery,
 	return query, nil
 }
 
-func (p *friendshipPager) toCursor(f *Friendship) Cursor {
-	return p.order.Field.toCursor(f)
+func (p *friendshipPager) toCursor(q *Friendship) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *friendshipPager) applyCursors(query *FriendshipQuery, after, before *Cursor) *FriendshipQuery {
@@ -700,7 +700,7 @@ func (p *friendshipPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Friendship.
-func (f *FriendshipQuery) Paginate(
+func (q *FriendshipQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...FriendshipPaginateOption,
 ) (*FriendshipConnection, error) {
@@ -711,13 +711,13 @@ func (f *FriendshipQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if f, err = pager.applyFilter(f); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &FriendshipConnection{Edges: []*FriendshipEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = f.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -727,25 +727,25 @@ func (f *FriendshipQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := f.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	f = pager.applyCursors(f, after, before)
-	f = pager.applyOrder(f, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		f.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := f.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := f.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -770,20 +770,20 @@ var DefaultFriendshipOrder = &FriendshipOrder{
 	Direction: OrderDirectionAsc,
 	Field: &FriendshipOrderField{
 		field: friendship.FieldID,
-		toCursor: func(f *Friendship) Cursor {
-			return Cursor{ID: f.ID}
+		toCursor: func(q *Friendship) Cursor {
+			return Cursor{ID: q.ID}
 		},
 	},
 }
 
 // ToEdge converts Friendship into FriendshipEdge.
-func (f *Friendship) ToEdge(order *FriendshipOrder) *FriendshipEdge {
+func (q *Friendship) ToEdge(order *FriendshipOrder) *FriendshipEdge {
 	if order == nil {
 		order = DefaultFriendshipOrder
 	}
 	return &FriendshipEdge{
-		Node:   f,
-		Cursor: order.Field.toCursor(f),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 
@@ -895,8 +895,8 @@ func (p *groupPager) applyFilter(query *GroupQuery) (*GroupQuery, error) {
 	return query, nil
 }
 
-func (p *groupPager) toCursor(gr *Group) Cursor {
-	return p.order.Field.toCursor(gr)
+func (p *groupPager) toCursor(q *Group) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *groupPager) applyCursors(query *GroupQuery, after, before *Cursor) *GroupQuery {
@@ -935,7 +935,7 @@ func (p *groupPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Group.
-func (gr *GroupQuery) Paginate(
+func (q *GroupQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...GroupPaginateOption,
 ) (*GroupConnection, error) {
@@ -946,13 +946,13 @@ func (gr *GroupQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if gr, err = pager.applyFilter(gr); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &GroupConnection{Edges: []*GroupEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = gr.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -962,25 +962,25 @@ func (gr *GroupQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := gr.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	gr = pager.applyCursors(gr, after, before)
-	gr = pager.applyOrder(gr, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		gr.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := gr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := gr.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -1005,20 +1005,20 @@ var DefaultGroupOrder = &GroupOrder{
 	Direction: OrderDirectionAsc,
 	Field: &GroupOrderField{
 		field: group.FieldID,
-		toCursor: func(gr *Group) Cursor {
-			return Cursor{ID: gr.ID}
+		toCursor: func(q *Group) Cursor {
+			return Cursor{ID: q.ID}
 		},
 	},
 }
 
 // ToEdge converts Group into GroupEdge.
-func (gr *Group) ToEdge(order *GroupOrder) *GroupEdge {
+func (q *Group) ToEdge(order *GroupOrder) *GroupEdge {
 	if order == nil {
 		order = DefaultGroupOrder
 	}
 	return &GroupEdge{
-		Node:   gr,
-		Cursor: order.Field.toCursor(gr),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 
@@ -1130,8 +1130,8 @@ func (p *petPager) applyFilter(query *PetQuery) (*PetQuery, error) {
 	return query, nil
 }
 
-func (p *petPager) toCursor(pe *Pet) Cursor {
-	return p.order.Field.toCursor(pe)
+func (p *petPager) toCursor(q *Pet) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *petPager) applyCursors(query *PetQuery, after, before *Cursor) *PetQuery {
@@ -1170,7 +1170,7 @@ func (p *petPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Pet.
-func (pe *PetQuery) Paginate(
+func (q *PetQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...PetPaginateOption,
 ) (*PetConnection, error) {
@@ -1181,13 +1181,13 @@ func (pe *PetQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if pe, err = pager.applyFilter(pe); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &PetConnection{Edges: []*PetEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = pe.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -1197,25 +1197,25 @@ func (pe *PetQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := pe.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	pe = pager.applyCursors(pe, after, before)
-	pe = pager.applyOrder(pe, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		pe.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := pe.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := pe.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -1240,20 +1240,20 @@ var DefaultPetOrder = &PetOrder{
 	Direction: OrderDirectionAsc,
 	Field: &PetOrderField{
 		field: pet.FieldID,
-		toCursor: func(pe *Pet) Cursor {
-			return Cursor{ID: pe.marshalID()}
+		toCursor: func(q *Pet) Cursor {
+			return Cursor{ID: q.marshalID()}
 		},
 	},
 }
 
 // ToEdge converts Pet into PetEdge.
-func (pe *Pet) ToEdge(order *PetOrder) *PetEdge {
+func (q *Pet) ToEdge(order *PetOrder) *PetEdge {
 	if order == nil {
 		order = DefaultPetOrder
 	}
 	return &PetEdge{
-		Node:   pe,
-		Cursor: order.Field.toCursor(pe),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 
@@ -1365,8 +1365,8 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 	return query, nil
 }
 
-func (p *todoPager) toCursor(t *Todo) Cursor {
-	return p.order.Field.toCursor(t)
+func (p *todoPager) toCursor(q *Todo) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) *TodoQuery {
@@ -1405,7 +1405,7 @@ func (p *todoPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Todo.
-func (t *TodoQuery) Paginate(
+func (q *TodoQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...TodoPaginateOption,
 ) (*TodoConnection, error) {
@@ -1416,13 +1416,13 @@ func (t *TodoQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if t, err = pager.applyFilter(t); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = t.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -1432,25 +1432,25 @@ func (t *TodoQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := t.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	t = pager.applyCursors(t, after, before)
-	t = pager.applyOrder(t, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		t.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := t.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -1462,40 +1462,40 @@ var (
 	// TodoOrderFieldCreatedAt orders Todo by created_at.
 	TodoOrderFieldCreatedAt = &TodoOrderField{
 		field: todo.FieldCreatedAt,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.CreatedAt,
+				ID:    q.ID,
+				Value: q.CreatedAt,
 			}
 		},
 	}
 	// TodoOrderFieldStatus orders Todo by status.
 	TodoOrderFieldStatus = &TodoOrderField{
 		field: todo.FieldStatus,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.Status,
+				ID:    q.ID,
+				Value: q.Status,
 			}
 		},
 	}
 	// TodoOrderFieldPriority orders Todo by priority.
 	TodoOrderFieldPriority = &TodoOrderField{
 		field: todo.FieldPriority,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.Priority,
+				ID:    q.ID,
+				Value: q.Priority,
 			}
 		},
 	}
 	// TodoOrderFieldText orders Todo by text.
 	TodoOrderFieldText = &TodoOrderField{
 		field: todo.FieldText,
-		toCursor: func(t *Todo) Cursor {
+		toCursor: func(q *Todo) Cursor {
 			return Cursor{
-				ID:    t.ID,
-				Value: t.Text,
+				ID:    q.ID,
+				Value: q.Text,
 			}
 		},
 	}
@@ -1560,20 +1560,20 @@ var DefaultTodoOrder = &TodoOrder{
 	Direction: OrderDirectionAsc,
 	Field: &TodoOrderField{
 		field: todo.FieldID,
-		toCursor: func(t *Todo) Cursor {
-			return Cursor{ID: t.ID}
+		toCursor: func(q *Todo) Cursor {
+			return Cursor{ID: q.ID}
 		},
 	},
 }
 
 // ToEdge converts Todo into TodoEdge.
-func (t *Todo) ToEdge(order *TodoOrder) *TodoEdge {
+func (q *Todo) ToEdge(order *TodoOrder) *TodoEdge {
 	if order == nil {
 		order = DefaultTodoOrder
 	}
 	return &TodoEdge{
-		Node:   t,
-		Cursor: order.Field.toCursor(t),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }
 
@@ -1685,8 +1685,8 @@ func (p *userPager) applyFilter(query *UserQuery) (*UserQuery, error) {
 	return query, nil
 }
 
-func (p *userPager) toCursor(u *User) Cursor {
-	return p.order.Field.toCursor(u)
+func (p *userPager) toCursor(q *User) Cursor {
+	return p.order.Field.toCursor(q)
 }
 
 func (p *userPager) applyCursors(query *UserQuery, after, before *Cursor) *UserQuery {
@@ -1725,7 +1725,7 @@ func (p *userPager) orderExpr(reverse bool) sql.Querier {
 }
 
 // Paginate executes the query and returns a relay based cursor connection to User.
-func (u *UserQuery) Paginate(
+func (q *UserQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...UserPaginateOption,
 ) (*UserConnection, error) {
@@ -1736,13 +1736,13 @@ func (u *UserQuery) Paginate(
 	if err != nil {
 		return nil, err
 	}
-	if u, err = pager.applyFilter(u); err != nil {
+	if q, err = pager.applyFilter(q); err != nil {
 		return nil, err
 	}
 	conn := &UserConnection{Edges: []*UserEdge{}}
 	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
 		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			if conn.TotalCount, err = u.Count(ctx); err != nil {
+			if conn.TotalCount, err = q.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -1752,25 +1752,25 @@ func (u *UserQuery) Paginate(
 	}
 
 	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := u.Clone().Count(ctx)
+		count, err := q.Clone().Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		conn.TotalCount = count
 	}
 
-	u = pager.applyCursors(u, after, before)
-	u = pager.applyOrder(u, last != nil)
+	q = pager.applyCursors(q, after, before)
+	q = pager.applyOrder(q, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
-		u.Limit(limit)
+		q.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := u.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 
-	nodes, err := u.All(ctx)
+	nodes, err := q.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return conn, err
 	}
@@ -1795,19 +1795,19 @@ var DefaultUserOrder = &UserOrder{
 	Direction: OrderDirectionAsc,
 	Field: &UserOrderField{
 		field: user.FieldID,
-		toCursor: func(u *User) Cursor {
-			return Cursor{ID: u.ID}
+		toCursor: func(q *User) Cursor {
+			return Cursor{ID: q.ID}
 		},
 	},
 }
 
 // ToEdge converts User into UserEdge.
-func (u *User) ToEdge(order *UserOrder) *UserEdge {
+func (q *User) ToEdge(order *UserOrder) *UserEdge {
 	if order == nil {
 		order = DefaultUserOrder
 	}
 	return &UserEdge{
-		Node:   u,
-		Cursor: order.Field.toCursor(u),
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }

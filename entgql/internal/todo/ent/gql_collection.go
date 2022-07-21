@@ -30,25 +30,25 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
+func (q *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return c, nil
+		return q, nil
 	}
-	if err := c.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return q, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "todos":
 			var (
 				path  = append(path, field.Name)
-				query = &TodoQuery{config: c.config}
+				query = &TodoQuery{config: q.config}
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -66,7 +66,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
+					q.loadTotal = append(q.loadTotal, func(ctx context.Context, nodes []*Category) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -92,7 +92,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 						return nil
 					})
 				} else {
-					c.loadTotal = append(c.loadTotal, func(_ context.Context, nodes []*Category) error {
+					q.loadTotal = append(q.loadTotal, func(_ context.Context, nodes []*Category) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Todos)
 							nodes[i].Edges.totalCount[0] = &n
@@ -118,7 +118,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 					return err
 				}
 			}
-			c.withTodos = query
+			q.withTodos = query
 		}
 	}
 	return nil
@@ -176,39 +176,39 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string) (*FriendshipQuery, error) {
+func (q *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string) (*FriendshipQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return f, nil
+		return q, nil
 	}
-	if err := f.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return f, nil
+	return q, nil
 }
 
-func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "user":
 			var (
 				path  = append(path, field.Name)
-				query = &UserQuery{config: f.config}
+				query = &UserQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			f.withUser = query
+			q.withUser = query
 		case "friend":
 			var (
 				path  = append(path, field.Name)
-				query = &UserQuery{config: f.config}
+				query = &UserQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			f.withFriend = query
+			q.withFriend = query
 		}
 	}
 	return nil
@@ -244,25 +244,25 @@ func newFriendshipPaginateArgs(rv map[string]interface{}) *friendshipPaginateArg
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*GroupQuery, error) {
+func (q *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*GroupQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return gr, nil
+		return q, nil
 	}
-	if err := gr.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return gr, nil
+	return q, nil
 }
 
-func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *GroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "users":
 			var (
 				path  = append(path, field.Name)
-				query = &UserQuery{config: gr.config}
+				query = &UserQuery{config: q.config}
 			)
 			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -280,7 +280,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					gr.loadTotal = append(gr.loadTotal, func(ctx context.Context, nodes []*Group) error {
+					q.loadTotal = append(q.loadTotal, func(ctx context.Context, nodes []*Group) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -310,7 +310,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 						return nil
 					})
 				} else {
-					gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
+					q.loadTotal = append(q.loadTotal, func(_ context.Context, nodes []*Group) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Users)
 							nodes[i].Edges.totalCount[0] = &n
@@ -336,7 +336,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 					return err
 				}
 			}
-			gr.withUsers = query
+			q.withUsers = query
 		}
 	}
 	return nil
@@ -372,34 +372,34 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
+func (q *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return t, nil
+		return q, nil
 	}
-	if err := t.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return q, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "parent":
 			var (
 				path  = append(path, field.Name)
-				query = &TodoQuery{config: t.config}
+				query = &TodoQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withParent = query
+			q.withParent = query
 		case "children":
 			var (
 				path  = append(path, field.Name)
-				query = &TodoQuery{config: t.config}
+				query = &TodoQuery{config: q.config}
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -417,7 +417,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
+					q.loadTotal = append(q.loadTotal, func(ctx context.Context, nodes []*Todo) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -443,7 +443,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 						return nil
 					})
 				} else {
-					t.loadTotal = append(t.loadTotal, func(_ context.Context, nodes []*Todo) error {
+					q.loadTotal = append(q.loadTotal, func(_ context.Context, nodes []*Todo) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Children)
 							nodes[i].Edges.totalCount[1] = &n
@@ -469,16 +469,16 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					return err
 				}
 			}
-			t.withChildren = query
+			q.withChildren = query
 		case "category":
 			var (
 				path  = append(path, field.Name)
-				query = &CategoryQuery{config: t.config}
+				query = &CategoryQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withCategory = query
+			q.withCategory = query
 		}
 	}
 	return nil
@@ -536,25 +536,25 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
+func (q *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return u, nil
+		return q, nil
 	}
-	if err := u.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return u, nil
+	return q, nil
 }
 
-func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (q *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 		case "groups":
 			var (
 				path  = append(path, field.Name)
-				query = &GroupQuery{config: u.config}
+				query = &GroupQuery{config: q.config}
 			)
 			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -572,7 +572,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					u.loadTotal = append(u.loadTotal, func(ctx context.Context, nodes []*User) error {
+					q.loadTotal = append(q.loadTotal, func(ctx context.Context, nodes []*User) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -602,7 +602,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 						return nil
 					})
 				} else {
-					u.loadTotal = append(u.loadTotal, func(_ context.Context, nodes []*User) error {
+					q.loadTotal = append(q.loadTotal, func(_ context.Context, nodes []*User) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Groups)
 							nodes[i].Edges.totalCount[0] = &n
@@ -628,25 +628,25 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					return err
 				}
 			}
-			u.withGroups = query
+			q.withGroups = query
 		case "friends":
 			var (
 				path  = append(path, field.Name)
-				query = &UserQuery{config: u.config}
+				query = &UserQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withFriends = query
+			q.withFriends = query
 		case "friendships":
 			var (
 				path  = append(path, field.Name)
-				query = &FriendshipQuery{config: u.config}
+				query = &FriendshipQuery{config: q.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withFriendships = query
+			q.withFriendships = query
 		}
 	}
 	return nil

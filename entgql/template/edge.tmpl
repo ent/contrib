@@ -12,17 +12,16 @@ in the LICENSE file in the root directory of this source tree.
 import "context"
 
 {{ range $n := filterNodes $.Nodes (skipMode "type") }}
-	{{ $r := $n.Receiver }}
 	{{ range $i, $e := filterEdges $n.Edges (skipMode "type") }}
 		{{ if isRelayConn $e }}
 			{{ with extend $n "Node" $n "Edge" $e "Index" $i }}
 				{{ template "gql_edge/helper/paginate" . }}
 			{{ end }}
 		{{ else }}
-			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
-				result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
+			func (q *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
+				result, err := q.Edges.{{ $e.StructField }}OrErr()
 				if IsNotLoaded(err) {
-					result, err = {{ $r }}.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
+					result, err = q.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
 				}
 				return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
 			}
@@ -42,10 +41,9 @@ import "context"
 	{{- $edge := $names.Edge }}
 	{{ $conn := $names.Connection }}
 	{{ $opt := print $names.Node "PaginateOption" }}
-	{{ $r := $n.Receiver }}
 	{{ $newPager := print "new" $names.Node "Pager" }}
 
-	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
+	func (q *{{ $n.Name }}) {{ $e.StructField }}(
 		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
 		{{- if orderFields $e.Type }}orderBy *{{ $order }},{{ end }}
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
@@ -59,9 +57,9 @@ import "context"
 		{{- end }}
 		}
 		{{- /* May be nil if the totalCount was not loaded. */}}
-		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
+		totalCount := q.Edges.totalCount[{{ $i }}]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
-		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil || totalCount != nil {
+		if nodes, err := q.Edges.{{ $e.StructField }}OrErr(); err == nil || totalCount != nil {
 			pager, err := {{ $newPager }}(opts)
 			if err != nil {
 				return nil, err
@@ -73,7 +71,7 @@ import "context"
 			conn.build(nodes, pager, after, first, before, last)
 			return conn, nil
 		}
-		return {{ $r }}.Query{{ $e.StructField }}().Paginate(ctx, after, first, before, last, opts...)
+		return q.Query{{ $e.StructField }}().Paginate(ctx, after, first, before, last, opts...)
 	}
 {{ end }}
 
