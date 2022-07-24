@@ -52,7 +52,7 @@ type FriendshipEdges struct {
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]*int
+	totalCount [2]map[string]int
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -60,8 +60,7 @@ type FriendshipEdges struct {
 func (e FriendshipEdges) UserOrErr() (*User, error) {
 	if e.loadedTypes[0] {
 		if e.User == nil {
-			// The edge user was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
 		return e.User, nil
@@ -74,8 +73,7 @@ func (e FriendshipEdges) UserOrErr() (*User, error) {
 func (e FriendshipEdges) FriendOrErr() (*User, error) {
 	if e.loadedTypes[1] {
 		if e.Friend == nil {
-			// The edge friend was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
 		return e.Friend, nil
@@ -156,11 +154,11 @@ func (f *Friendship) Update() *FriendshipUpdateOne {
 // Unwrap unwraps the Friendship entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
 func (f *Friendship) Unwrap() *Friendship {
-	tx, ok := f.config.driver.(*txDriver)
+	_tx, ok := f.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Friendship is not a transactional entity")
 	}
-	f.config.driver = tx.drv
+	f.config.driver = _tx.drv
 	return f
 }
 

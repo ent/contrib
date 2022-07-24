@@ -48,12 +48,6 @@ func IDNEQ(id int) predicate.Todo {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -65,12 +59,6 @@ func IDIn(ids ...int) predicate.Todo {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -156,12 +144,6 @@ func CreatedAtIn(vs ...time.Time) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldCreatedAt), v...))
 	})
 }
@@ -173,12 +155,6 @@ func CreatedAtNotIn(vs ...time.Time) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
 	})
 }
@@ -232,12 +208,6 @@ func StatusIn(vs ...Status) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldStatus), v...))
 	})
 }
@@ -249,12 +219,6 @@ func StatusNotIn(vs ...Status) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
 	})
 }
@@ -280,12 +244,6 @@ func PriorityIn(vs ...int) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldPriority), v...))
 	})
 }
@@ -297,12 +255,6 @@ func PriorityNotIn(vs ...int) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldPriority), v...))
 	})
 }
@@ -356,12 +308,6 @@ func TextIn(vs ...string) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldText), v...))
 	})
 }
@@ -373,12 +319,6 @@ func TextNotIn(vs ...string) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldText), v...))
 	})
 }
@@ -467,12 +407,6 @@ func BlobIn(vs ...[]byte) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldBlob), v...))
 	})
 }
@@ -484,12 +418,6 @@ func BlobNotIn(vs ...[]byte) predicate.Todo {
 		v[i] = vs[i]
 	}
 	return predicate.Todo(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldBlob), v...))
 	})
 }

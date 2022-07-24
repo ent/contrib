@@ -45,12 +45,6 @@ func IDNEQ(id string) predicate.VerySecret {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.VerySecret {
 	return predicate.VerySecret(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -62,12 +56,6 @@ func IDIn(ids ...string) predicate.VerySecret {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.VerySecret {
 	return predicate.VerySecret(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -132,12 +120,6 @@ func PasswordIn(vs ...string) predicate.VerySecret {
 		v[i] = vs[i]
 	}
 	return predicate.VerySecret(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldPassword), v...))
 	})
 }
@@ -149,12 +131,6 @@ func PasswordNotIn(vs ...string) predicate.VerySecret {
 		v[i] = vs[i]
 	}
 	return predicate.VerySecret(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldPassword), v...))
 	})
 }

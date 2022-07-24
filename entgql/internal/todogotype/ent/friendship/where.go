@@ -48,12 +48,6 @@ func IDNEQ(id string) predicate.Friendship {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -65,12 +59,6 @@ func IDIn(ids ...string) predicate.Friendship {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -149,12 +137,6 @@ func CreatedAtIn(vs ...time.Time) predicate.Friendship {
 		v[i] = vs[i]
 	}
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldCreatedAt), v...))
 	})
 }
@@ -166,12 +148,6 @@ func CreatedAtNotIn(vs ...time.Time) predicate.Friendship {
 		v[i] = vs[i]
 	}
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
 	})
 }
@@ -225,12 +201,6 @@ func UserIDIn(vs ...string) predicate.Friendship {
 		v[i] = vs[i]
 	}
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldUserID), v...))
 	})
 }
@@ -242,12 +212,6 @@ func UserIDNotIn(vs ...string) predicate.Friendship {
 		v[i] = vs[i]
 	}
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldUserID), v...))
 	})
 }
@@ -336,12 +300,6 @@ func FriendIDIn(vs ...string) predicate.Friendship {
 		v[i] = vs[i]
 	}
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldFriendID), v...))
 	})
 }
@@ -353,12 +311,6 @@ func FriendIDNotIn(vs ...string) predicate.Friendship {
 		v[i] = vs[i]
 	}
 	return predicate.Friendship(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldFriendID), v...))
 	})
 }

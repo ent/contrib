@@ -84,11 +84,11 @@ func (vs *VerySecret) Update() *VerySecretUpdateOne {
 // Unwrap unwraps the VerySecret entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
 func (vs *VerySecret) Unwrap() *VerySecret {
-	tx, ok := vs.config.driver.(*txDriver)
+	_tx, ok := vs.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: VerySecret is not a transactional entity")
 	}
-	vs.config.driver = tx.drv
+	vs.config.driver = _tx.drv
 	return vs
 }
 

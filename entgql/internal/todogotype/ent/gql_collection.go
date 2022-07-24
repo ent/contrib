@@ -48,7 +48,8 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 		switch field.Name {
 		case "todos":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &TodoQuery{config: c.config}
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
@@ -88,7 +89,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							nodes[i].Edges.totalCount[0] = &n
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
 						}
 						return nil
 					})
@@ -96,7 +100,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 					c.loadTotal = append(c.loadTotal, func(_ context.Context, nodes []*Category) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Todos)
-							nodes[i].Edges.totalCount[0] = &n
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
 						}
 						return nil
 					})
@@ -119,7 +126,9 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 					return err
 				}
 			}
-			c.withTodos = query
+			c.WithNamedTodos(alias, func(wq *TodoQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -194,22 +203,28 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 		switch field.Name {
 		case "user":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &UserQuery{config: f.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			f.withUser = query
+			f.WithUser(func(wq *UserQuery) {
+				*wq = *query
+			})
 		case "friend":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &UserQuery{config: f.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			f.withFriend = query
+			f.WithFriend(func(wq *UserQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -262,7 +277,8 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 		switch field.Name {
 		case "users":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &UserQuery{config: gr.config}
 			)
 			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
@@ -306,7 +322,10 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							nodes[i].Edges.totalCount[0] = &n
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
 						}
 						return nil
 					})
@@ -314,7 +333,10 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 					gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Users)
-							nodes[i].Edges.totalCount[0] = &n
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
 						}
 						return nil
 					})
@@ -337,7 +359,9 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 					return err
 				}
 			}
-			gr.withUsers = query
+			gr.WithNamedUsers(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -436,16 +460,20 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		switch field.Name {
 		case "parent":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &TodoQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withParent = query
+			t.WithParent(func(wq *TodoQuery) {
+				*wq = *query
+			})
 		case "children":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &TodoQuery{config: t.config}
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
@@ -485,7 +513,10 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							nodes[i].Edges.totalCount[1] = &n
+							if nodes[i].Edges.totalCount[1] == nil {
+								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[1][alias] = n
 						}
 						return nil
 					})
@@ -493,7 +524,10 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					t.loadTotal = append(t.loadTotal, func(_ context.Context, nodes []*Todo) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Children)
-							nodes[i].Edges.totalCount[1] = &n
+							if nodes[i].Edges.totalCount[1] == nil {
+								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[1][alias] = n
 						}
 						return nil
 					})
@@ -516,16 +550,21 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					return err
 				}
 			}
-			t.withChildren = query
+			t.WithNamedChildren(alias, func(wq *TodoQuery) {
+				*wq = *query
+			})
 		case "category":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &CategoryQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withCategory = query
+			t.WithCategory(func(wq *CategoryQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -600,7 +639,8 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		switch field.Name {
 		case "groups":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &GroupQuery{config: u.config}
 			)
 			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
@@ -644,7 +684,10 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							nodes[i].Edges.totalCount[0] = &n
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
 						}
 						return nil
 					})
@@ -652,7 +695,10 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					u.loadTotal = append(u.loadTotal, func(_ context.Context, nodes []*User) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Groups)
-							nodes[i].Edges.totalCount[0] = &n
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
 						}
 						return nil
 					})
@@ -675,25 +721,33 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 					return err
 				}
 			}
-			u.withGroups = query
+			u.WithNamedGroups(alias, func(wq *GroupQuery) {
+				*wq = *query
+			})
 		case "friends":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &UserQuery{config: u.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withFriends = query
+			u.WithNamedFriends(alias, func(wq *UserQuery) {
+				*wq = *query
+			})
 		case "friendships":
 			var (
-				path  = append(path, field.Alias)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &FriendshipQuery{config: u.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			u.withFriendships = query
+			u.WithNamedFriendships(alias, func(wq *FriendshipQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
