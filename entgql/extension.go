@@ -208,14 +208,16 @@ func (e *Extension) Hooks() []gen.Hook {
 func (e *Extension) genSchemaHook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
 		return gen.GenerateFunc(func(g *gen.Graph) (err error) {
+			hasNamedEdges, _ := g.FeatureEnabled(gen.FeatureNamedEdges.Name)
+			if !hasNamedEdges {
+				return fmt.Errorf("entgql: the entgql extension requires the `namedges` feature")
+			}
 			if err = next.Generate(g); err != nil {
 				return err
 			}
-
 			if e.path == "" || !(e.genSchema || e.genWhereInput || e.genMutations) {
 				return nil
 			}
-
 			schema, err := e.BuildSchema(g)
 			if err != nil {
 				return err
