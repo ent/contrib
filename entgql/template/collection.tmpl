@@ -114,13 +114,11 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 							}
 						{{- end }}
 						{{- if $e.Unique }}
-						{{ $receiver }}.With{{ $e.StructField }}(func (wq *{{ $e.Type.QueryName }}) {
-							*wq = *query
-						})
+							{{ $receiver }}.{{ $e.EagerLoadField }} = query
 						{{- else }}
-						{{ $receiver }}.WithNamed{{ $e.StructField }}(alias, func (wq *{{ $e.Type.QueryName }}) {
-							*wq = *query
-						})
+							{{ $receiver }}.WithNamed{{ $e.StructField }}(alias, func (wq *{{ $e.Type.QueryName }}) {
+								*wq = *query
+							})
 						{{- end }}
 				{{- end }}
 			}

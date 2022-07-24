@@ -210,9 +210,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			f.WithUser(func(wq *UserQuery) {
-				*wq = *query
-			})
+			f.withUser = query
 		case "friend":
 			var (
 				alias = field.Alias
@@ -222,9 +220,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			f.WithFriend(func(wq *UserQuery) {
-				*wq = *query
-			})
+			f.withFriend = query
 		}
 	}
 	return nil
@@ -421,9 +417,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.WithParent(func(wq *TodoQuery) {
-				*wq = *query
-			})
+			t.withParent = query
 		case "children":
 			var (
 				alias = field.Alias
@@ -516,9 +510,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.WithCategory(func(wq *CategoryQuery) {
-				*wq = *query
-			})
+			t.withCategory = query
 		}
 	}
 	return nil
