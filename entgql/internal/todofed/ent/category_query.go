@@ -33,16 +33,16 @@ import (
 // CategoryQuery is the builder for querying Category entities.
 type CategoryQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Category
-	// eager-loading edges.
-	withTodos *TodoQuery
-	modifiers []func(*sql.Selector)
-	loadTotal []func(context.Context, []*Category) error
+	limit          *int
+	offset         *int
+	unique         *bool
+	order          []OrderFunc
+	fields         []string
+	predicates     []predicate.Category
+	withTodos      *TodoQuery
+	modifiers      []func(*sql.Selector)
+	loadTotal      []func(context.Context, []*Category) error
+	withNamedTodos map[string]*TodoQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -396,42 +396,58 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-
 	if query := cq.withTodos; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*Category)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Todos = []*Todo{}
-		}
-		query.withFKs = true
-		query.Where(predicate.Todo(func(s *sql.Selector) {
-			s.Where(sql.InValues(category.TodosColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := cq.loadTodos(ctx, query, nodes,
+			func(n *Category) { n.Edges.Todos = []*Todo{} },
+			func(n *Category, e *Todo) { n.Edges.Todos = append(n.Edges.Todos, e) }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			fk := n.category_todos
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "category_todos" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_todos" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.Todos = append(node.Edges.Todos, n)
+	}
+	for name, query := range cq.withNamedTodos {
+		if err := cq.loadTodos(ctx, query, nodes,
+			func(n *Category) { n.appendNamedTodos(name) },
+			func(n *Category, e *Todo) { n.appendNamedTodos(name, e) }); err != nil {
+			return nil, err
 		}
 	}
-
 	for i := range cq.loadTotal {
 		if err := cq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (cq *CategoryQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes []*Category, init func(*Category), assign func(*Category, *Todo)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Category)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.InValues(category.TodosColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.category_todos
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "category_todos" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "category_todos" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (cq *CategoryQuery) sqlCount(ctx context.Context) (int, error) {
@@ -532,6 +548,20 @@ func (cq *CategoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedTodos tells the query-builder to eager-load the nodes that are connected to the "todos"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CategoryQuery) WithNamedTodos(name string, opts ...func(*TodoQuery)) *CategoryQuery {
+	query := &TodoQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedTodos == nil {
+		cq.withNamedTodos = make(map[string]*TodoQuery)
+	}
+	cq.withNamedTodos[name] = query
+	return cq
 }
 
 // CategoryGroupBy is the group-by builder for Category entities.

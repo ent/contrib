@@ -225,7 +225,7 @@ func collectedField(ctx context.Context, path ...string) *graphql.CollectedField
 walk:
 	for _, name := range path {
 		for _, f := range graphql.CollectFields(oc, field.Selections, nil) {
-			if f.Name == name {
+			if f.Alias == name {
 				field = f
 				continue walk
 			}

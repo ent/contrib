@@ -59,11 +59,11 @@ func (pe *Pet) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case pet.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				pe.ID = uintgql.Uint64(value.Int64)
 			}
-			pe.ID = uintgql.Uint64(value.Int64)
 		case pet.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -85,11 +85,11 @@ func (pe *Pet) Update() *PetUpdateOne {
 // Unwrap unwraps the Pet entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
 func (pe *Pet) Unwrap() *Pet {
-	tx, ok := pe.config.driver.(*txDriver)
+	_tx, ok := pe.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Pet is not a transactional entity")
 	}
-	pe.config.driver = tx.drv
+	pe.config.driver = _tx.drv
 	return pe
 }
 

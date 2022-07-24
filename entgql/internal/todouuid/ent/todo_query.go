@@ -35,20 +35,20 @@ import (
 // TodoQuery is the builder for querying Todo entities.
 type TodoQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Todo
-	// eager-loading edges.
-	withParent   *TodoQuery
-	withChildren *TodoQuery
-	withCategory *CategoryQuery
-	withSecret   *VerySecretQuery
-	withFKs      bool
-	modifiers    []func(*sql.Selector)
-	loadTotal    []func(context.Context, []*Todo) error
+	limit             *int
+	offset            *int
+	unique            *bool
+	order             []OrderFunc
+	fields            []string
+	predicates        []predicate.Todo
+	withParent        *TodoQuery
+	withChildren      *TodoQuery
+	withCategory      *CategoryQuery
+	withSecret        *VerySecretQuery
+	withFKs           bool
+	modifiers         []func(*sql.Selector)
+	loadTotal         []func(context.Context, []*Todo) error
+	withNamedChildren map[string]*TodoQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -514,126 +514,160 @@ func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-
 	if query := tq.withParent; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Todo)
-		for i := range nodes {
-			if nodes[i].todo_children == nil {
-				continue
-			}
-			fk := *nodes[i].todo_children
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(todo.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := tq.loadParent(ctx, query, nodes, nil,
+			func(n *Todo, e *Todo) { n.Edges.Parent = e }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "todo_children" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Parent = n
-			}
-		}
 	}
-
 	if query := tq.withChildren; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*Todo)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Children = []*Todo{}
-		}
-		query.withFKs = true
-		query.Where(predicate.Todo(func(s *sql.Selector) {
-			s.Where(sql.InValues(todo.ChildrenColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := tq.loadChildren(ctx, query, nodes,
+			func(n *Todo) { n.Edges.Children = []*Todo{} },
+			func(n *Todo, e *Todo) { n.Edges.Children = append(n.Edges.Children, e) }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			fk := n.todo_children
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "todo_children" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "todo_children" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.Children = append(node.Edges.Children, n)
-		}
 	}
-
 	if query := tq.withCategory; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Todo)
-		for i := range nodes {
-			fk := nodes[i].CategoryID
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(category.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := tq.loadCategory(ctx, query, nodes, nil,
+			func(n *Todo, e *Category) { n.Edges.Category = e }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Category = n
-			}
-		}
 	}
-
 	if query := tq.withSecret; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Todo)
-		for i := range nodes {
-			if nodes[i].todo_secret == nil {
-				continue
-			}
-			fk := *nodes[i].todo_secret
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
-		}
-		query.Where(verysecret.IDIn(ids...))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := tq.loadSecret(ctx, query, nodes, nil,
+			func(n *Todo, e *VerySecret) { n.Edges.Secret = e }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "todo_secret" returned %v`, n.ID)
-			}
-			for i := range nodes {
-				nodes[i].Edges.Secret = n
-			}
+	}
+	for name, query := range tq.withNamedChildren {
+		if err := tq.loadChildren(ctx, query, nodes,
+			func(n *Todo) { n.appendNamedChildren(name) },
+			func(n *Todo, e *Todo) { n.appendNamedChildren(name, e) }); err != nil {
+			return nil, err
 		}
 	}
-
 	for i := range tq.loadTotal {
 		if err := tq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (tq *TodoQuery) loadParent(ctx context.Context, query *TodoQuery, nodes []*Todo, init func(*Todo), assign func(*Todo, *Todo)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Todo)
+	for i := range nodes {
+		if nodes[i].todo_children == nil {
+			continue
+		}
+		fk := *nodes[i].todo_children
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(todo.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "todo_children" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (tq *TodoQuery) loadChildren(ctx context.Context, query *TodoQuery, nodes []*Todo, init func(*Todo), assign func(*Todo, *Todo)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Todo)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.InValues(todo.ChildrenColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.todo_children
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "todo_children" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "todo_children" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tq *TodoQuery) loadCategory(ctx context.Context, query *CategoryQuery, nodes []*Todo, init func(*Todo), assign func(*Todo, *Category)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Todo)
+	for i := range nodes {
+		fk := nodes[i].CategoryID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(category.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (tq *TodoQuery) loadSecret(ctx context.Context, query *VerySecretQuery, nodes []*Todo, init func(*Todo), assign func(*Todo, *VerySecret)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Todo)
+	for i := range nodes {
+		if nodes[i].todo_secret == nil {
+			continue
+		}
+		fk := *nodes[i].todo_secret
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(verysecret.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "todo_secret" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
@@ -734,6 +768,20 @@ func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedChildren tells the query-builder to eager-load the nodes that are connected to the "children"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (tq *TodoQuery) WithNamedChildren(name string, opts ...func(*TodoQuery)) *TodoQuery {
+	query := &TodoQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if tq.withNamedChildren == nil {
+		tq.withNamedChildren = make(map[string]*TodoQuery)
+	}
+	tq.withNamedChildren[name] = query
+	return tq
 }
 
 // TodoGroupBy is the group-by builder for Todo entities.

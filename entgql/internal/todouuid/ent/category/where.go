@@ -50,12 +50,6 @@ func IDNEQ(id uuid.UUID) predicate.Category {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...uuid.UUID) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -67,12 +61,6 @@ func IDIn(ids ...uuid.UUID) predicate.Category {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...uuid.UUID) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(ids) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
 			v[i] = ids[i]
@@ -159,12 +147,6 @@ func TextIn(vs ...string) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldText), v...))
 	})
 }
@@ -176,12 +158,6 @@ func TextNotIn(vs ...string) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldText), v...))
 	})
 }
@@ -270,12 +246,6 @@ func StatusIn(vs ...Status) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldStatus), v...))
 	})
 }
@@ -287,12 +257,6 @@ func StatusNotIn(vs ...Status) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldStatus), v...))
 	})
 }
@@ -318,12 +282,6 @@ func ConfigIn(vs ...*schematype.CategoryConfig) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldConfig), v...))
 	})
 }
@@ -335,12 +293,6 @@ func ConfigNotIn(vs ...*schematype.CategoryConfig) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldConfig), v...))
 	})
 }
@@ -410,12 +362,6 @@ func DurationIn(vs ...time.Duration) predicate.Category {
 		v[i] = int64(vs[i])
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldDuration), v...))
 	})
 }
@@ -427,12 +373,6 @@ func DurationNotIn(vs ...time.Duration) predicate.Category {
 		v[i] = int64(vs[i])
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldDuration), v...))
 	})
 }
@@ -504,12 +444,6 @@ func CountIn(vs ...uint64) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.In(s.C(FieldCount), v...))
 	})
 }
@@ -521,12 +455,6 @@ func CountNotIn(vs ...uint64) predicate.Category {
 		v[i] = vs[i]
 	}
 	return predicate.Category(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
 		s.Where(sql.NotIn(s.C(FieldCount), v...))
 	})
 }

@@ -44,7 +44,9 @@ type GroupEdges struct {
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]*int
+	totalCount [1]map[string]int
+
+	namedUsers map[string][]*User
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -110,11 +112,11 @@ func (gr *Group) Update() *GroupUpdateOne {
 // Unwrap unwraps the Group entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
 func (gr *Group) Unwrap() *Group {
-	tx, ok := gr.config.driver.(*txDriver)
+	_tx, ok := gr.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Group is not a transactional entity")
 	}
-	gr.config.driver = tx.drv
+	gr.config.driver = _tx.drv
 	return gr
 }
 
@@ -127,6 +129,30 @@ func (gr *Group) String() string {
 	builder.WriteString(gr.Name)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedUsers returns the Users named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (gr *Group) NamedUsers(name string) ([]*User, error) {
+	if gr.Edges.namedUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := gr.Edges.namedUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (gr *Group) appendNamedUsers(name string, edges ...*User) {
+	if gr.Edges.namedUsers == nil {
+		gr.Edges.namedUsers = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		gr.Edges.namedUsers[name] = []*User{}
+	} else {
+		gr.Edges.namedUsers[name] = append(gr.Edges.namedUsers[name], edges...)
+	}
 }
 
 // Groups is a parsable slice of Group.

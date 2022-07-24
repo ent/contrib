@@ -66,7 +66,9 @@ type TodoEdges struct {
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]*int
+	totalCount [3]map[string]int
+
+	namedChildren map[string][]*Todo
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -74,8 +76,7 @@ type TodoEdges struct {
 func (e TodoEdges) ParentOrErr() (*Todo, error) {
 	if e.loadedTypes[0] {
 		if e.Parent == nil {
-			// The edge parent was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: todo.Label}
 		}
 		return e.Parent, nil
@@ -97,8 +98,7 @@ func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
 func (e TodoEdges) CategoryOrErr() (*Category, error) {
 	if e.loadedTypes[2] {
 		if e.Category == nil {
-			// The edge category was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: category.Label}
 		}
 		return e.Category, nil
@@ -111,8 +111,7 @@ func (e TodoEdges) CategoryOrErr() (*Category, error) {
 func (e TodoEdges) SecretOrErr() (*VerySecret, error) {
 	if e.loadedTypes[3] {
 		if e.Secret == nil {
-			// The edge secret was loaded in eager-loading,
-			// but was not found.
+			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: verysecret.Label}
 		}
 		return e.Secret, nil
@@ -245,11 +244,11 @@ func (t *Todo) Update() *TodoUpdateOne {
 // Unwrap unwraps the Todo entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
 func (t *Todo) Unwrap() *Todo {
-	tx, ok := t.config.driver.(*txDriver)
+	_tx, ok := t.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Todo is not a transactional entity")
 	}
-	t.config.driver = tx.drv
+	t.config.driver = _tx.drv
 	return t
 }
 
@@ -277,6 +276,30 @@ func (t *Todo) String() string {
 	builder.WriteString(fmt.Sprintf("%v", t.CategoryID))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedChildren returns the Children named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (t *Todo) NamedChildren(name string) ([]*Todo, error) {
+	if t.Edges.namedChildren == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := t.Edges.namedChildren[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (t *Todo) appendNamedChildren(name string, edges ...*Todo) {
+	if t.Edges.namedChildren == nil {
+		t.Edges.namedChildren = make(map[string][]*Todo)
+	}
+	if len(edges) == 0 {
+		t.Edges.namedChildren[name] = []*Todo{}
+	} else {
+		t.Edges.namedChildren[name] = append(t.Edges.namedChildren[name], edges...)
+	}
 }
 
 // Todos is a parsable slice of Todo.

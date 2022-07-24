@@ -16,7 +16,11 @@
 
 package ent
 
-import "context"
+import (
+	"context"
+
+	"github.com/99designs/gqlgen/graphql"
+)
 
 func (c *Category) Todos(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
@@ -25,16 +29,14 @@ func (c *Category) Todos(
 		WithTodoOrder(orderBy),
 		WithTodoFilter(where.Filter),
 	}
-	totalCount := c.Edges.totalCount[0]
-	if nodes, err := c.Edges.TodosOrErr(); err == nil || totalCount != nil {
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := c.Edges.totalCount[0][alias]
+	if nodes, err := c.NamedTodos(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts)
 		if err != nil {
 			return nil, err
 		}
-		conn := &TodoConnection{Edges: []*TodoEdge{}}
-		if totalCount != nil {
-			conn.TotalCount = *totalCount
-		}
+		conn := &TodoConnection{Edges: []*TodoEdge{}, TotalCount: totalCount}
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
@@ -63,16 +65,14 @@ func (gr *Group) Users(
 	opts := []UserPaginateOption{
 		WithUserFilter(where.Filter),
 	}
-	totalCount := gr.Edges.totalCount[0]
-	if nodes, err := gr.Edges.UsersOrErr(); err == nil || totalCount != nil {
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
+	if nodes, err := gr.NamedUsers(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts)
 		if err != nil {
 			return nil, err
 		}
-		conn := &UserConnection{Edges: []*UserEdge{}}
-		if totalCount != nil {
-			conn.TotalCount = *totalCount
-		}
+		conn := &UserConnection{Edges: []*UserEdge{}, TotalCount: totalCount}
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
@@ -94,16 +94,14 @@ func (t *Todo) Children(
 		WithTodoOrder(orderBy),
 		WithTodoFilter(where.Filter),
 	}
-	totalCount := t.Edges.totalCount[1]
-	if nodes, err := t.Edges.ChildrenOrErr(); err == nil || totalCount != nil {
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := t.Edges.totalCount[1][alias]
+	if nodes, err := t.NamedChildren(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts)
 		if err != nil {
 			return nil, err
 		}
-		conn := &TodoConnection{Edges: []*TodoEdge{}}
-		if totalCount != nil {
-			conn.TotalCount = *totalCount
-		}
+		conn := &TodoConnection{Edges: []*TodoEdge{}, TotalCount: totalCount}
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
@@ -124,16 +122,14 @@ func (u *User) Groups(
 	opts := []GroupPaginateOption{
 		WithGroupFilter(where.Filter),
 	}
-	totalCount := u.Edges.totalCount[0]
-	if nodes, err := u.Edges.GroupsOrErr(); err == nil || totalCount != nil {
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := u.Edges.totalCount[0][alias]
+	if nodes, err := u.NamedGroups(alias); err == nil || hasTotalCount {
 		pager, err := newGroupPager(opts)
 		if err != nil {
 			return nil, err
 		}
-		conn := &GroupConnection{Edges: []*GroupEdge{}}
-		if totalCount != nil {
-			conn.TotalCount = *totalCount
-		}
+		conn := &GroupConnection{Edges: []*GroupEdge{}, TotalCount: totalCount}
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}

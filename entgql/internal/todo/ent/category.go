@@ -57,7 +57,9 @@ type CategoryEdges struct {
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]*int
+	totalCount [1]map[string]int
+
+	namedTodos map[string][]*Todo
 }
 
 // TodosOrErr returns the Todos value or an error if the edge
@@ -161,11 +163,11 @@ func (c *Category) Update() *CategoryUpdateOne {
 // Unwrap unwraps the Category entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
 func (c *Category) Unwrap() *Category {
-	tx, ok := c.config.driver.(*txDriver)
+	_tx, ok := c.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Category is not a transactional entity")
 	}
-	c.config.driver = tx.drv
+	c.config.driver = _tx.drv
 	return c
 }
 
@@ -193,6 +195,30 @@ func (c *Category) String() string {
 	builder.WriteString(fmt.Sprintf("%v", c.Strings))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedTodos returns the Todos named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Category) NamedTodos(name string) ([]*Todo, error) {
+	if c.Edges.namedTodos == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedTodos[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Category) appendNamedTodos(name string, edges ...*Todo) {
+	if c.Edges.namedTodos == nil {
+		c.Edges.namedTodos = make(map[string][]*Todo)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedTodos[name] = []*Todo{}
+	} else {
+		c.Edges.namedTodos[name] = append(c.Edges.namedTodos[name], edges...)
+	}
 }
 
 // Categories is a parsable slice of Category.

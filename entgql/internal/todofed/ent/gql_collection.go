@@ -41,13 +41,16 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 		switch field.Name {
 		case "todos":
 			var (
-				path  = append(path, field.Name)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &TodoQuery{config: c.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			c.withTodos = query
+			c.WithNamedTodos(alias, func(wq *TodoQuery) {
+				*wq = *query
+			})
 		}
 	}
 	return nil
@@ -119,7 +122,8 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		switch field.Name {
 		case "parent":
 			var (
-				path  = append(path, field.Name)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &TodoQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -128,16 +132,20 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			t.withParent = query
 		case "children":
 			var (
-				path  = append(path, field.Name)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &TodoQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			t.withChildren = query
+			t.WithNamedChildren(alias, func(wq *TodoQuery) {
+				*wq = *query
+			})
 		case "category":
 			var (
-				path  = append(path, field.Name)
+				alias = field.Alias
+				path  = append(path, alias)
 				query = &CategoryQuery{config: t.config}
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
@@ -217,7 +225,7 @@ func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[
 	for _, name := range path {
 		var field *graphql.CollectedField
 		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Name == name {
+			if f.Alias == name {
 				field = &f
 				break
 			}

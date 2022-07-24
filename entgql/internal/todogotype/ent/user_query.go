@@ -34,18 +34,20 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.User
-	// eager-loading edges.
-	withGroups      *GroupQuery
-	withFriends     *UserQuery
-	withFriendships *FriendshipQuery
-	modifiers       []func(*sql.Selector)
-	loadTotal       []func(context.Context, []*User) error
+	limit                *int
+	offset               *int
+	unique               *bool
+	order                []OrderFunc
+	fields               []string
+	predicates           []predicate.User
+	withGroups           *GroupQuery
+	withFriends          *UserQuery
+	withFriendships      *FriendshipQuery
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*User) error
+	withNamedGroups      map[string]*GroupQuery
+	withNamedFriends     map[string]*UserQuery
+	withNamedFriendships map[string]*FriendshipQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -469,144 +471,192 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-
 	if query := uq.withGroups; query != nil {
-		edgeids := make([]driver.Value, len(nodes))
-		byid := make(map[string]*User)
-		nids := make(map[string]map[*User]struct{})
-		for i, node := range nodes {
-			edgeids[i] = node.ID
-			byid[node.ID] = node
-			node.Edges.Groups = []*Group{}
-		}
-		query.Where(func(s *sql.Selector) {
-			joinT := sql.Table(user.GroupsTable)
-			s.Join(joinT).On(s.C(group.FieldID), joinT.C(user.GroupsPrimaryKey[1]))
-			s.Where(sql.InValues(joinT.C(user.GroupsPrimaryKey[0]), edgeids...))
-			columns := s.SelectedColumns()
-			s.Select(joinT.C(user.GroupsPrimaryKey[0]))
-			s.AppendSelect(columns...)
-			s.SetDistinct(false)
-		})
-		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]interface{}, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]interface{}{new(sql.NullString)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []interface{}) error {
-				outValue := values[0].(*sql.NullString).String
-				inValue := values[1].(*sql.NullString).String
-				if nids[inValue] == nil {
-					nids[inValue] = map[*User]struct{}{byid[outValue]: struct{}{}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byid[outValue]] = struct{}{}
-				return nil
-			}
-		})
-		if err != nil {
+		if err := uq.loadGroups(ctx, query, nodes,
+			func(n *User) { n.Edges.Groups = []*Group{} },
+			func(n *User, e *Group) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
-			}
-			for kn := range nodes {
-				kn.Edges.Groups = append(kn.Edges.Groups, n)
-			}
-		}
 	}
-
 	if query := uq.withFriends; query != nil {
-		edgeids := make([]driver.Value, len(nodes))
-		byid := make(map[string]*User)
-		nids := make(map[string]map[*User]struct{})
-		for i, node := range nodes {
-			edgeids[i] = node.ID
-			byid[node.ID] = node
-			node.Edges.Friends = []*User{}
-		}
-		query.Where(func(s *sql.Selector) {
-			joinT := sql.Table(user.FriendsTable)
-			s.Join(joinT).On(s.C(user.FieldID), joinT.C(user.FriendsPrimaryKey[1]))
-			s.Where(sql.InValues(joinT.C(user.FriendsPrimaryKey[0]), edgeids...))
-			columns := s.SelectedColumns()
-			s.Select(joinT.C(user.FriendsPrimaryKey[0]))
-			s.AppendSelect(columns...)
-			s.SetDistinct(false)
-		})
-		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]interface{}, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]interface{}{new(sql.NullString)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []interface{}) error {
-				outValue := values[0].(*sql.NullString).String
-				inValue := values[1].(*sql.NullString).String
-				if nids[inValue] == nil {
-					nids[inValue] = map[*User]struct{}{byid[outValue]: struct{}{}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byid[outValue]] = struct{}{}
-				return nil
-			}
-		})
-		if err != nil {
+		if err := uq.loadFriends(ctx, query, nodes,
+			func(n *User) { n.Edges.Friends = []*User{} },
+			func(n *User, e *User) { n.Edges.Friends = append(n.Edges.Friends, e) }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			nodes, ok := nids[n.ID]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected "friends" node returned %v`, n.ID)
-			}
-			for kn := range nodes {
-				kn.Edges.Friends = append(kn.Edges.Friends, n)
-			}
-		}
 	}
-
 	if query := uq.withFriendships; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*User)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Friendships = []*Friendship{}
-		}
-		query.Where(predicate.Friendship(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.FriendshipsColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
+		if err := uq.loadFriendships(ctx, query, nodes,
+			func(n *User) { n.Edges.Friendships = []*Friendship{} },
+			func(n *User, e *Friendship) { n.Edges.Friendships = append(n.Edges.Friendships, e) }); err != nil {
 			return nil, err
 		}
-		for _, n := range neighbors {
-			fk := n.UserID
-			node, ok := nodeids[fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
-			}
-			node.Edges.Friendships = append(node.Edges.Friendships, n)
+	}
+	for name, query := range uq.withNamedGroups {
+		if err := uq.loadGroups(ctx, query, nodes,
+			func(n *User) { n.appendNamedGroups(name) },
+			func(n *User, e *Group) { n.appendNamedGroups(name, e) }); err != nil {
+			return nil, err
 		}
 	}
-
+	for name, query := range uq.withNamedFriends {
+		if err := uq.loadFriends(ctx, query, nodes,
+			func(n *User) { n.appendNamedFriends(name) },
+			func(n *User, e *User) { n.appendNamedFriends(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedFriendships {
+		if err := uq.loadFriendships(ctx, query, nodes,
+			func(n *User) { n.appendNamedFriendships(name) },
+			func(n *User, e *Friendship) { n.appendNamedFriendships(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range uq.loadTotal {
 		if err := uq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (uq *UserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []*User, init func(*User), assign func(*User, *Group)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[string]*User)
+	nids := make(map[string]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.GroupsTable)
+		s.Join(joinT).On(s.C(group.FieldID), joinT.C(user.GroupsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.GroupsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.GroupsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]interface{}, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]interface{}{new(sql.NullString)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []interface{}) error {
+			outValue := values[0].(*sql.NullString).String
+			inValue := values[1].(*sql.NullString).String
+			if nids[inValue] == nil {
+				nids[inValue] = map[*User]struct{}{byID[outValue]: struct{}{}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadFriends(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[string]*User)
+	nids := make(map[string]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.FriendsTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(user.FriendsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.FriendsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.FriendsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]interface{}, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]interface{}{new(sql.NullString)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []interface{}) error {
+			outValue := values[0].(*sql.NullString).String
+			inValue := values[1].(*sql.NullString).String
+			if nids[inValue] == nil {
+				nids[inValue] = map[*User]struct{}{byID[outValue]: struct{}{}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "friends" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadFriendships(ctx context.Context, query *FriendshipQuery, nodes []*User, init func(*User), assign func(*User, *Friendship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Friendship(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.FriendshipsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
@@ -707,6 +757,48 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedGroups tells the query-builder to eager-load the nodes that are connected to the "groups"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedGroups(name string, opts ...func(*GroupQuery)) *UserQuery {
+	query := &GroupQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedGroups == nil {
+		uq.withNamedGroups = make(map[string]*GroupQuery)
+	}
+	uq.withNamedGroups[name] = query
+	return uq
+}
+
+// WithNamedFriends tells the query-builder to eager-load the nodes that are connected to the "friends"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedFriends(name string, opts ...func(*UserQuery)) *UserQuery {
+	query := &UserQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedFriends == nil {
+		uq.withNamedFriends = make(map[string]*UserQuery)
+	}
+	uq.withNamedFriends[name] = query
+	return uq
+}
+
+// WithNamedFriendships tells the query-builder to eager-load the nodes that are connected to the "friendships"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedFriendships(name string, opts ...func(*FriendshipQuery)) *UserQuery {
+	query := &FriendshipQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedFriendships == nil {
+		uq.withNamedFriendships = make(map[string]*FriendshipQuery)
+	}
+	uq.withNamedFriendships[name] = query
+	return uq
 }
 
 // UserGroupBy is the group-by builder for User entities.
