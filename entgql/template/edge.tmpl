@@ -66,7 +66,8 @@ import "context"
 			if err != nil {
 				return nil, err
 			}
-			conn := &{{ $conn }}{}
+			{{- /* ensure the edges field always is an array */}}
+			conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
 			if totalCount != nil {
 				conn.TotalCount = *totalCount
 			}
