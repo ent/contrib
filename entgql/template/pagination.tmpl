@@ -517,29 +517,22 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if {{ $r }}, err = pager.applyFilter({{ $r }}); err != nil {
 		return nil, err
 	}
+	{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
 	conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
-	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
-		if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
-			{{- with $totalCount := $.Scope.TotalCount }}
-				if {{ $totalCount }} != nil {
-					conn.TotalCount = *{{ $totalCount }}
-				} {{ print "else " }}
-			{{- end -}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
 			if conn.TotalCount, err = {{ $r }}.Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
-		return conn, nil
+		{{- /* TotalCount will be settled by conn.build() */}}
 	}
-
-	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
-		count, err := {{ $r }}.Clone().Count(ctx)
-		if err != nil {
-			return nil, err
-		}
-		conn.TotalCount = count
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
 	}
 
 	{{ $r }} = pager.applyCursors({{ $r }}, after, before)
@@ -554,8 +547,8 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	}
 
 	nodes, err := {{ $r }}.All(ctx)
-	if err != nil || len(nodes) == 0 {
-		return conn, err
+	if err != nil {
+		return nil, err
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
