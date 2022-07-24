@@ -210,7 +210,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 		return gen.GenerateFunc(func(g *gen.Graph) (err error) {
 			hasNamedEdges, _ := g.FeatureEnabled(gen.FeatureNamedEdges.Name)
 			if !hasNamedEdges {
-				return fmt.Errorf("entgql: the entgql extension requires the `namedges` feature")
+				g.Features = append(g.Features, gen.FeatureNamedEdges)
 			}
 			if err = next.Generate(g); err != nil {
 				return err
