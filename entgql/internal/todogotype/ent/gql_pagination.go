@@ -422,7 +422,7 @@ func (c *CategoryQuery) Paginate(
 	if c, err = pager.applyFilter(c); err != nil {
 		return nil, err
 	}
-	conn := &CategoryConnection{}
+	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -710,7 +710,7 @@ func (f *FriendshipQuery) Paginate(
 	if f, err = pager.applyFilter(f); err != nil {
 		return nil, err
 	}
-	conn := &FriendshipConnection{}
+	conn := &FriendshipConnection{Edges: []*FriendshipEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -941,7 +941,7 @@ func (gr *GroupQuery) Paginate(
 	if gr, err = pager.applyFilter(gr); err != nil {
 		return nil, err
 	}
-	conn := &GroupConnection{}
+	conn := &GroupConnection{Edges: []*GroupEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -1172,7 +1172,7 @@ func (pe *PetQuery) Paginate(
 	if pe, err = pager.applyFilter(pe); err != nil {
 		return nil, err
 	}
-	conn := &PetConnection{}
+	conn := &PetConnection{Edges: []*PetEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -1403,7 +1403,7 @@ func (t *TodoQuery) Paginate(
 	if t, err = pager.applyFilter(t); err != nil {
 		return nil, err
 	}
-	conn := &TodoConnection{}
+	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -1719,7 +1719,7 @@ func (u *UserQuery) Paginate(
 	if u, err = pager.applyFilter(u); err != nil {
 		return nil, err
 	}
-	conn := &UserConnection{}
+	conn := &UserConnection{Edges: []*UserEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil

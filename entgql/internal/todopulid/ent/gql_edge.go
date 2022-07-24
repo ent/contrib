@@ -31,7 +31,7 @@ func (c *Category) Todos(
 		if err != nil {
 			return nil, err
 		}
-		conn := &TodoConnection{}
+		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
@@ -69,7 +69,7 @@ func (gr *Group) Users(
 		if err != nil {
 			return nil, err
 		}
-		conn := &UserConnection{}
+		conn := &UserConnection{Edges: []*UserEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
@@ -100,7 +100,7 @@ func (t *Todo) Children(
 		if err != nil {
 			return nil, err
 		}
-		conn := &TodoConnection{}
+		conn := &TodoConnection{Edges: []*TodoEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}
@@ -130,7 +130,7 @@ func (u *User) Groups(
 		if err != nil {
 			return nil, err
 		}
-		conn := &GroupConnection{}
+		conn := &GroupConnection{Edges: []*GroupEdge{}}
 		if totalCount != nil {
 			conn.TotalCount = *totalCount
 		}

@@ -418,7 +418,7 @@ func (c *CategoryQuery) Paginate(
 	if c, err = pager.applyFilter(c); err != nil {
 		return nil, err
 	}
-	conn := &CategoryConnection{}
+	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -706,7 +706,7 @@ func (t *TodoQuery) Paginate(
 	if t, err = pager.applyFilter(t); err != nil {
 		return nil, err
 	}
-	conn := &TodoConnection{}
+	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
