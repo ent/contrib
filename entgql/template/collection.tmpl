@@ -43,7 +43,8 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 					case {{ range $i, $value := $fc.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
 						{{- $ebuilder := $e.Type.QueryName }}
 						var (
-							path = append(path, field.Alias)
+							alias = field.Alias
+							path  = append(path, alias)
 							query = &{{ $ebuilder }}{config: {{ $receiver }}.config}
 						)
 						{{- if isRelayConn $e }}
@@ -75,7 +76,10 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 									{{ $receiver }}.loadTotal = append({{ $receiver }}.loadTotal, func(_ context.Context, nodes []*{{ $node.Name }}) error {
 										for i := range nodes {
 											n := len(nodes[i].Edges.{{ $e.StructField }})
-											nodes[i].Edges.totalCount[{{ $i }}] = &n
+											if nodes[i].Edges.totalCount[{{ $i }}] == nil {
+												nodes[i].Edges.totalCount[{{ $i }}] = make(map[string]int)
+											}
+											nodes[i].Edges.totalCount[{{ $i }}][alias] = n
 										}
 										return nil
 									})
@@ -109,7 +113,15 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 								return err
 							}
 						{{- end }}
-						{{ $receiver }}.{{ $e.EagerLoadField }} = query
+						{{- if $e.Unique }}
+						{{ $receiver }}.With{{ $e.StructField }}(func (wq *{{ $e.Type.QueryName }}) {
+							*wq = *query
+						})
+						{{- else }}
+						{{ $receiver }}.WithNamed{{ $e.StructField }}(alias, func (wq *{{ $e.Type.QueryName }}) {
+							*wq = *query
+						})
+						{{- end }}
 				{{- end }}
 			}
 		}
@@ -320,8 +332,11 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 				m[v[i].NodeID] = v[i].Count
 			}
 			for i := range nodes {
-				 n := m[nodes[i].{{ $node.ID.StructField }}]
-				nodes[i].Edges.totalCount[{{ $i }}] = &n
+				n := m[nodes[i].{{ $node.ID.StructField }}]
+				if nodes[i].Edges.totalCount[{{ $i }}] == nil {
+					nodes[i].Edges.totalCount[{{ $i }}] = make(map[string]int)
+				}
+				nodes[i].Edges.totalCount[{{ $i }}][alias] = n
 			}
 		return nil
 	})

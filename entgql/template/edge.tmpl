@@ -59,18 +59,16 @@ import "context"
 		{{- end }}
 		}
 		{{- /* May be nil if the totalCount was not loaded. */}}
-		totalCount := {{ $r }}.Edges.totalCount[{{ $i }}]
+		alias := graphql.GetFieldContext(ctx).Field.Alias
+		totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
-		if nodes, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr(); err == nil || totalCount != nil {
+		if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
 			pager, err := {{ $newPager }}(opts)
 			if err != nil {
 				return nil, err
 			}
 			{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
-			conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
-			if totalCount != nil {
-				conn.TotalCount = *totalCount
-			}
+			conn := &{{ $conn }}{Edges: []*{{ $edge }}{}, TotalCount: totalCount}
 			conn.build(nodes, pager, after, first, before, last)
 			return conn, nil
 		}
@@ -81,6 +79,6 @@ import "context"
 {{ define "dialect/sql/model/edges/fields/additional/load_total" }}
 	{{- with filterEdges $.Edges (skipMode "type") }}
 		// totalCount holds the count of the edges above.
-		totalCount [{{ len . }}]*int
+		totalCount [{{ len . }}]map[string]int
 	{{- end }}
 {{ end }}
