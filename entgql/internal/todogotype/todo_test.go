@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/enttest"
-	"entgo.io/contrib/entgql/internal/todogotype/ent/migrate"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 
 	"entgo.io/ent/dialect"
@@ -35,7 +34,6 @@ func TestSanity(t *testing.T) {
 	ec := enttest.Open(
 		t, dialect.SQLite,
 		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
-		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
 	srv := handler.NewDefaultServer(NewSchema(ec))
 	gqlc := client.New(srv)
