@@ -346,7 +346,7 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 {{- define "dialect/sql/query/fields/additional/load_total" }}
 	loadTotal []func(context.Context, []*{{ $.Name }}) error
 {{- end }}
-{{ define "dialect/sql/query/all/nodes/load_total" }}
+{{ define "dialect/sql/query/all/nodes/namedges_load_total" }}
 	{{- $builder := pascal $.Scope.Builder }}
 	{{- $receiver := receiver $builder }}
 	for i := range {{ $receiver }}.loadTotal {

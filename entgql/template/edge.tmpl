@@ -78,7 +78,7 @@ import "context"
 	}
 {{ end }}
 
-{{ define "model/edges/fields/additional" }}
+{{ define "dialect/sql/model/edges/fields/additional/load_total" }}
 	{{- with filterEdges $.Edges (skipMode "type") }}
 		// totalCount holds the count of the edges above.
 		totalCount [{{ len . }}]*int
