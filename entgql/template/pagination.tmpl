@@ -517,7 +517,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if {{ $r }}, err = pager.applyFilter({{ $r }}); err != nil {
 		return nil, err
 	}
-	{{- /* ensure the edges field always is an array */}}
+	{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
 	conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
