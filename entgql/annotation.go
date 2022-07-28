@@ -317,7 +317,7 @@ func Implements(interfaces ...string) Annotation {
 //	field.Text("text").
 //		NotEmpty().
 //		Annotations(
-//			entgql.Directives("Use `description` instead."),
+//			entgql.Directives(entgql.Deprecated("Use `description` instead.")),
 //		),
 //
 // and the GraphQL type will be generated with the directive.
