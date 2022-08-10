@@ -1552,6 +1552,49 @@ func TestNestedConnection(t *testing.T) {
 			require.EqualValues(t, 3, count.value())
 		}
 	})
+
+	t.Run("Node-cursor", func(t *testing.T) {
+		var (
+			query = `query ($id: ID!, $cursor: Cursor) {
+				group: node(id: $id) {
+					... on Group {
+						name
+						users(last: 1, before: $cursor) {
+							totalCount
+							edges {
+								cursor
+								node {
+									name
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Group struct {
+					Name  string
+					Users struct {
+						TotalCount int
+						Edges      []struct {
+							Cursor string
+							Node   struct {
+								Name string
+							}
+						}
+					}
+				}
+			}
+		)
+		// One query to trigger the loading of the ent_types content.
+		err = gqlc.Post(query, &rsp,
+			client.Var("id", groups[0].ID),
+			client.Var("cursor", "gaFp0wAAAAQAAAAK"),
+		)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(rsp.Group.Users.Edges))
+		require.Equal(t, "gaFp0wAAAAQAAAAJ", rsp.Group.Users.Edges[0].Cursor)
+	})
 }
 
 func TestEdgesFiltering(t *testing.T) {
