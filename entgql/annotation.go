@@ -70,6 +70,10 @@ type (
 	FieldConfig struct {
 		// Name is the name of the field in the Query object.
 		Name string `json:"Name,omitempty"`
+
+		// Description is the description of the field in the Query object.
+		Description string `json:"Description,omitempty"`
+
 		// Directives to add on the field
 		Directives []Directive `json:"Directives,omitempty"`
 	}
@@ -344,9 +348,15 @@ func QueryField(name ...string) queryFieldAnnotation {
 	return queryFieldAnnotation{Annotation: a}
 }
 
-// Directives allow you apply directives to the field.
+// Directives allows you to apply directives to the field.
 func (a queryFieldAnnotation) Directives(directives ...Directive) queryFieldAnnotation {
 	a.QueryField.Directives = directives
+	return a
+}
+
+// Description allows you to apply a description to the field.
+func (a queryFieldAnnotation) Description(descriptionText string) queryFieldAnnotation {
+	a.QueryField.Description = descriptionText
 	return a
 }
 
