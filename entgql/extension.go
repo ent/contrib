@@ -203,15 +203,18 @@ func (e *Extension) Hooks() []gen.Hook {
 	return e.hooks
 }
 
+// Options of the extension.
+func (e *Extension) Options() []entc.Option {
+	return []entc.Option{
+		entc.FeatureNames(gen.FeatureNamedEdges.Name),
+	}
+}
+
 // genSchema returns a new hook for generating
 // the GraphQL schema from the graph.
 func (e *Extension) genSchemaHook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
 		return gen.GenerateFunc(func(g *gen.Graph) (err error) {
-			hasNamedEdges, _ := g.FeatureEnabled(gen.FeatureNamedEdges.Name)
-			if !hasNamedEdges {
-				g.Features = append(g.Features, gen.FeatureNamedEdges)
-			}
 			if err = next.Generate(g); err != nil {
 				return err
 			}
