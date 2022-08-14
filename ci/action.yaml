@@ -1,5 +1,5 @@
 name: entci
-description: continuous integration for ent projects
+description: Continuous integration for Ent projects
 inputs:
   tidy:
     description: Run go mod tidy after generate
