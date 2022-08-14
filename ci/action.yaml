@@ -2,7 +2,7 @@ name: entci
 description: continuous integration for ent projects
 inputs:
   tidy:
-    description: run go tidy after generate
+    description: run go mod tidy after generate
     required: false
     default: ""
   working-directory:
