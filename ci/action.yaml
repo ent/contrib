@@ -1,0 +1,42 @@
+name: entci
+description: continuous integration for ent projects
+inputs:
+  tidy:
+    description: run go tidy after generate
+    required: false
+    default: ""
+  working-directory:
+    default: "."
+    required: false
+    description: where to run commands
+runs:
+  using: "composite"
+  steps:
+    - name: Verify Generated
+      uses: actions/github-script@v6
+      with:
+        script: |
+          if ( "${{ inputs.working-directory }}" != "") {
+            process.chdir("${{inputs.working-directory}}");
+          }
+          core.info('checking generated files are checked in.')
+          await exec.exec('go generate ./...');
+          if( "${{inputs.tidy}}" != "") {
+            core.info('running go mod tidy.')
+            await exec.exec('go mod tidy');
+          }
+          let out = '';
+          let listen = (data) => { out += data.toString() }
+          let options = {
+            listeners: {
+              stdout: listen,
+              stderr: listen,
+            }
+          };
+          await exec.exec('git', ['status', '--porcelain'], options)
+          if (out.length > 0) {
+            core.info(out)
+            core.setFailed('Generated code not checked in. Run go generate ./...')
+            return
+          }
+          core.info('Generated code checked-in.');
