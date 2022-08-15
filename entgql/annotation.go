@@ -477,6 +477,9 @@ func (c *FieldConfig) merge(ant *FieldConfig) {
 	if ant.Name != "" {
 		c.Name = ant.Name
 	}
+	if ant.Description != "" {
+		c.Description = ant.Description
+	}
 	c.Directives = append(c.Directives, ant.Directives...)
 }
 

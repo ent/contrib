@@ -223,8 +223,9 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 			} else if ant.QueryField != nil {
 				name := ant.QueryField.fieldName(gqlType)
 				def := &ast.FieldDefinition{
-					Name: name,
-					Type: listNamedType(gqlType, false),
+					Name:        name,
+					Description: ant.QueryField.Description,
+					Type:        listNamedType(gqlType, false),
 				}
 				def.Directives = e.buildDirectives(ant.QueryField.Directives)
 				queryFields = append(queryFields, def)
