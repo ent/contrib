@@ -90,7 +90,7 @@ func (Todo) Edges() []ent.Edge {
 func (Todo) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
-		entgql.QueryField(),
+		entgql.QueryField().Description("This the todo item"),
 		entgql.Mutations(entgql.MutationCreate()),
 	}
 }
