@@ -71,7 +71,7 @@ type (
 		// Name is the name of the field in the Query object.
 		Name string `json:"Name,omitempty"`
 
-		// Description is the description of the field in the Query object.
+		// Description is the description of the field.
 		Description string `json:"Description,omitempty"`
 
 		// Directives to add on the field
