@@ -107,6 +107,7 @@ type Group {
 }
 type Query {
   groups: [Group!]!
+  """This the todo item"""
   todos: [Todo!]!
   users: [User!]!
 }
