@@ -217,6 +217,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					hasWhereInput := e.genWhereInput && !ant.Skip.Is(SkipWhereInput)
 
 					def := names.ConnectionField(name, hasOrderBy, hasWhereInput)
+					def.Description = ant.QueryField.Description
 					def.Directives = e.buildDirectives(ant.QueryField.Directives)
 					queryFields = append(queryFields, def)
 				}
