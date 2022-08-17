@@ -354,9 +354,9 @@ func (a queryFieldAnnotation) Directives(directives ...Directive) queryFieldAnno
 	return a
 }
 
-// Description allows you to apply a description to the field.
-func (a queryFieldAnnotation) Description(descriptionText string) queryFieldAnnotation {
-	a.QueryField.Description = descriptionText
+// Description allows you to set the description for the field.
+func (a queryFieldAnnotation) Description(text string) queryFieldAnnotation {
+	a.QueryField.Description = text
 	return a
 }
 
