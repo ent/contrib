@@ -107,6 +107,7 @@ type Group {
 }
 type Query {
   groups: [Group!]!
+  """This is the todo item"""
   todos: [Todo!]!
   users: [User!]!
 }
@@ -451,6 +452,7 @@ type Query {
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
   ): GroupConnection!
+  """This is the todo item"""
   todos(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor

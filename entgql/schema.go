@@ -217,14 +217,16 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					hasWhereInput := e.genWhereInput && !ant.Skip.Is(SkipWhereInput)
 
 					def := names.ConnectionField(name, hasOrderBy, hasWhereInput)
+					def.Description = ant.QueryField.Description
 					def.Directives = e.buildDirectives(ant.QueryField.Directives)
 					queryFields = append(queryFields, def)
 				}
 			} else if ant.QueryField != nil {
 				name := ant.QueryField.fieldName(gqlType)
 				def := &ast.FieldDefinition{
-					Name: name,
-					Type: listNamedType(gqlType, false),
+					Name:        name,
+					Description: ant.QueryField.Description,
+					Type:        listNamedType(gqlType, false),
 				}
 				def.Directives = e.buildDirectives(ant.QueryField.Directives)
 				queryFields = append(queryFields, def)
