@@ -261,7 +261,6 @@ func (pq *PonyQuery) Clone() *PonyQuery {
 //		GroupBy(pony.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (pq *PonyQuery) GroupBy(field string, fields ...string) *PonyGroupBy {
 	grbuild := &PonyGroupBy{config: pq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (pq *PonyQuery) GroupBy(field string, fields ...string) *PonyGroupBy {
 //	client.Pony.Query().
 //		Select(pony.FieldName).
 //		Scan(ctx, &v)
-//
 func (pq *PonyQuery) Select(fields ...string) *PonySelect {
 	pq.fields = append(pq.fields, fields...)
 	selbuild := &PonySelect{PonyQuery: pq}
@@ -318,10 +316,10 @@ func (pq *PonyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pony, e
 		nodes = []*Pony{}
 		_spec = pq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Pony).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Pony{config: pq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (pgb *PonyGroupBy) Aggregate(fns ...AggregateFunc) *PonyGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (pgb *PonyGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (pgb *PonyGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := pgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (pgb *PonyGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return pgb.sqlScan(ctx, v)
 }
 
-func (pgb *PonyGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (pgb *PonyGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range pgb.fields {
 		if !pony.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type PonySelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ps *PonySelect) Scan(ctx context.Context, v interface{}) error {
+func (ps *PonySelect) Scan(ctx context.Context, v any) error {
 	if err := ps.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (ps *PonySelect) Scan(ctx context.Context, v interface{}) error {
 	return ps.sqlScan(ctx, v)
 }
 
-func (ps *PonySelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ps *PonySelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ps.sql.Query()
 	if err := ps.driver.Query(ctx, query, args, rows); err != nil {

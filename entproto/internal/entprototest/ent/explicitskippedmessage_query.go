@@ -294,10 +294,10 @@ func (esmq *ExplicitSkippedMessageQuery) sqlAll(ctx context.Context, hooks ...qu
 		nodes = []*ExplicitSkippedMessage{}
 		_spec = esmq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ExplicitSkippedMessage).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &ExplicitSkippedMessage{config: esmq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (esmgb *ExplicitSkippedMessageGroupBy) Aggregate(fns ...AggregateFunc) *Exp
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (esmgb *ExplicitSkippedMessageGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (esmgb *ExplicitSkippedMessageGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := esmgb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (esmgb *ExplicitSkippedMessageGroupBy) Scan(ctx context.Context, v interfac
 	return esmgb.sqlScan(ctx, v)
 }
 
-func (esmgb *ExplicitSkippedMessageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (esmgb *ExplicitSkippedMessageGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range esmgb.fields {
 		if !explicitskippedmessage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type ExplicitSkippedMessageSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (esms *ExplicitSkippedMessageSelect) Scan(ctx context.Context, v interface{}) error {
+func (esms *ExplicitSkippedMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := esms.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (esms *ExplicitSkippedMessageSelect) Scan(ctx context.Context, v interface{
 	return esms.sqlScan(ctx, v)
 }
 
-func (esms *ExplicitSkippedMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (esms *ExplicitSkippedMessageSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := esms.sql.Query()
 	if err := esms.driver.Query(ctx, query, args, rows); err != nil {

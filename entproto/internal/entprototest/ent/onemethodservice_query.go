@@ -294,10 +294,10 @@ func (omsq *OneMethodServiceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 		nodes = []*OneMethodService{}
 		_spec = omsq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*OneMethodService).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &OneMethodService{config: omsq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (omsgb *OneMethodServiceGroupBy) Aggregate(fns ...AggregateFunc) *OneMethod
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (omsgb *OneMethodServiceGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (omsgb *OneMethodServiceGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := omsgb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (omsgb *OneMethodServiceGroupBy) Scan(ctx context.Context, v interface{}) e
 	return omsgb.sqlScan(ctx, v)
 }
 
-func (omsgb *OneMethodServiceGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (omsgb *OneMethodServiceGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range omsgb.fields {
 		if !onemethodservice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type OneMethodServiceSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v interface{}) error {
+func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := omss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v interface{}) err
 	return omss.sqlScan(ctx, v)
 }
 
-func (omss *OneMethodServiceSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (omss *OneMethodServiceSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := omss.sql.Query()
 	if err := omss.driver.Query(ctx, query, args, rows); err != nil {

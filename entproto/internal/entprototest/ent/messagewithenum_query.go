@@ -261,7 +261,6 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 //		GroupBy(messagewithenum.FieldEnumType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *MessageWithEnumGroupBy {
 	grbuild := &MessageWithEnumGroupBy{config: mweq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *Messa
 //	client.MessageWithEnum.Query().
 //		Select(messagewithenum.FieldEnumType).
 //		Scan(ctx, &v)
-//
 func (mweq *MessageWithEnumQuery) Select(fields ...string) *MessageWithEnumSelect {
 	mweq.fields = append(mweq.fields, fields...)
 	selbuild := &MessageWithEnumSelect{MessageWithEnumQuery: mweq}
@@ -318,10 +316,10 @@ func (mweq *MessageWithEnumQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		nodes = []*MessageWithEnum{}
 		_spec = mweq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageWithEnum).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MessageWithEnum{config: mweq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (mwegb *MessageWithEnumGroupBy) Aggregate(fns ...AggregateFunc) *MessageWit
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwegb *MessageWithEnumGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwegb *MessageWithEnumGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwegb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (mwegb *MessageWithEnumGroupBy) Scan(ctx context.Context, v interface{}) er
 	return mwegb.sqlScan(ctx, v)
 }
 
-func (mwegb *MessageWithEnumGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwegb *MessageWithEnumGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwegb.fields {
 		if !messagewithenum.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type MessageWithEnumSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwes *MessageWithEnumSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwes *MessageWithEnumSelect) Scan(ctx context.Context, v any) error {
 	if err := mwes.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (mwes *MessageWithEnumSelect) Scan(ctx context.Context, v interface{}) erro
 	return mwes.sqlScan(ctx, v)
 }
 
-func (mwes *MessageWithEnumSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwes *MessageWithEnumSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwes.sql.Query()
 	if err := mwes.driver.Query(ctx, query, args, rows); err != nil {

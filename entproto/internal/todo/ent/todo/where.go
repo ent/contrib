@@ -32,7 +32,7 @@ func IDNEQ(id int) predicate.Todo {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -43,7 +43,7 @@ func IDIn(ids ...int) predicate.Todo {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -102,7 +102,7 @@ func TaskNEQ(v string) predicate.Todo {
 
 // TaskIn applies the In predicate on the "task" field.
 func TaskIn(vs ...string) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -113,7 +113,7 @@ func TaskIn(vs ...string) predicate.Todo {
 
 // TaskNotIn applies the NotIn predicate on the "task" field.
 func TaskNotIn(vs ...string) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -201,7 +201,7 @@ func StatusNEQ(v Status) predicate.Todo {
 
 // StatusIn applies the In predicate on the "status" field.
 func StatusIn(vs ...Status) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -212,7 +212,7 @@ func StatusIn(vs ...Status) predicate.Todo {
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

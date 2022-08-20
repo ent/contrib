@@ -117,7 +117,6 @@ func HasFields(field string, fields ...string) Condition {
 // If executes the given hook under condition.
 //
 //	hook.If(ComputeAverage, And(HasFields(...), HasAddedFields(...)))
-//
 func If(hk oastypes.Hook, cond Condition) oastypes.Hook {
 	return func(next oastypes.Mutator) oastypes.Mutator {
 		return oastypes.MutateFunc(func(ctx context.Context, m oastypes.Mutation) (oastypes.Value, error) {
@@ -132,7 +131,6 @@ func If(hk oastypes.Hook, cond Condition) oastypes.Hook {
 // On executes the given hook only for the given operation.
 //
 //	hook.On(Log, oastypes.Delete|oastypes.Create)
-//
 func On(hk oastypes.Hook, op oastypes.Op) oastypes.Hook {
 	return If(hk, HasOp(op))
 }
@@ -140,7 +138,6 @@ func On(hk oastypes.Hook, op oastypes.Op) oastypes.Hook {
 // Unless skips the given hook only for the given operation.
 //
 //	hook.Unless(Log, oastypes.Update|oastypes.UpdateOne)
-//
 func Unless(hk oastypes.Hook, op oastypes.Op) oastypes.Hook {
 	return If(hk, Not(HasOp(op)))
 }
@@ -161,7 +158,6 @@ func FixedError(err error) oastypes.Hook {
 //			Reject(oastypes.Delete|oastypes.Update),
 //		}
 //	}
-//
 func Reject(op oastypes.Op) oastypes.Hook {
 	hk := FixedError(fmt.Errorf("%s operation is not allowed", op))
 	return On(hk, op)

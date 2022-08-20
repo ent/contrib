@@ -294,10 +294,10 @@ func (wfq *WithoutFieldsQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		nodes = []*WithoutFields{}
 		_spec = wfq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*WithoutFields).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &WithoutFields{config: wfq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (wfgb *WithoutFieldsGroupBy) Aggregate(fns ...AggregateFunc) *WithoutFields
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (wfgb *WithoutFieldsGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (wfgb *WithoutFieldsGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := wfgb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (wfgb *WithoutFieldsGroupBy) Scan(ctx context.Context, v interface{}) error
 	return wfgb.sqlScan(ctx, v)
 }
 
-func (wfgb *WithoutFieldsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (wfgb *WithoutFieldsGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range wfgb.fields {
 		if !withoutfields.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type WithoutFieldsSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (wfs *WithoutFieldsSelect) Scan(ctx context.Context, v interface{}) error {
+func (wfs *WithoutFieldsSelect) Scan(ctx context.Context, v any) error {
 	if err := wfs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (wfs *WithoutFieldsSelect) Scan(ctx context.Context, v interface{}) error {
 	return wfs.sqlScan(ctx, v)
 }
 
-func (wfs *WithoutFieldsSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (wfs *WithoutFieldsSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := wfs.sql.Query()
 	if err := wfs.driver.Query(ctx, query, args, rows); err != nil {

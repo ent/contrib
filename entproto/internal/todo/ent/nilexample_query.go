@@ -261,7 +261,6 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 //		GroupBy(nilexample.FieldStrNil).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleGroupBy {
 	grbuild := &NilExampleGroupBy{config: neq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleG
 //	client.NilExample.Query().
 //		Select(nilexample.FieldStrNil).
 //		Scan(ctx, &v)
-//
 func (neq *NilExampleQuery) Select(fields ...string) *NilExampleSelect {
 	neq.fields = append(neq.fields, fields...)
 	selbuild := &NilExampleSelect{NilExampleQuery: neq}
@@ -318,10 +316,10 @@ func (neq *NilExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = []*NilExample{}
 		_spec = neq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*NilExample).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &NilExample{config: neq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (negb *NilExampleGroupBy) Aggregate(fns ...AggregateFunc) *NilExampleGroupB
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (negb *NilExampleGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (negb *NilExampleGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := negb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (negb *NilExampleGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return negb.sqlScan(ctx, v)
 }
 
-func (negb *NilExampleGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (negb *NilExampleGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range negb.fields {
 		if !nilexample.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type NilExampleSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (nes *NilExampleSelect) Scan(ctx context.Context, v interface{}) error {
+func (nes *NilExampleSelect) Scan(ctx context.Context, v any) error {
 	if err := nes.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (nes *NilExampleSelect) Scan(ctx context.Context, v interface{}) error {
 	return nes.sqlScan(ctx, v)
 }
 
-func (nes *NilExampleSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (nes *NilExampleSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := nes.sql.Query()
 	if err := nes.driver.Query(ctx, query, args, rows); err != nil {

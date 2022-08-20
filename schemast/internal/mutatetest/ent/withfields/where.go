@@ -31,7 +31,7 @@ func IDNEQ(id int) predicate.WithFields {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.WithFields {
 	return predicate.WithFields(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.WithFields {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.WithFields {
 	return predicate.WithFields(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -101,7 +101,7 @@ func ExistingNEQ(v string) predicate.WithFields {
 
 // ExistingIn applies the In predicate on the "existing" field.
 func ExistingIn(vs ...string) predicate.WithFields {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -112,7 +112,7 @@ func ExistingIn(vs ...string) predicate.WithFields {
 
 // ExistingNotIn applies the NotIn predicate on the "existing" field.
 func ExistingNotIn(vs ...string) predicate.WithFields {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

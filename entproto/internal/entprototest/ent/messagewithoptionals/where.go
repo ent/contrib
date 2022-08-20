@@ -34,7 +34,7 @@ func IDNEQ(id int) predicate.MessageWithOptionals {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -45,7 +45,7 @@ func IDIn(ids ...int) predicate.MessageWithOptionals {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.MessageWithOptionals {
 	return predicate.MessageWithOptionals(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -153,7 +153,7 @@ func StrOptionalNEQ(v string) predicate.MessageWithOptionals {
 
 // StrOptionalIn applies the In predicate on the "str_optional" field.
 func StrOptionalIn(vs ...string) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -164,7 +164,7 @@ func StrOptionalIn(vs ...string) predicate.MessageWithOptionals {
 
 // StrOptionalNotIn applies the NotIn predicate on the "str_optional" field.
 func StrOptionalNotIn(vs ...string) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -266,7 +266,7 @@ func IntOptionalNEQ(v int8) predicate.MessageWithOptionals {
 
 // IntOptionalIn applies the In predicate on the "int_optional" field.
 func IntOptionalIn(vs ...int8) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -277,7 +277,7 @@ func IntOptionalIn(vs ...int8) predicate.MessageWithOptionals {
 
 // IntOptionalNotIn applies the NotIn predicate on the "int_optional" field.
 func IntOptionalNotIn(vs ...int8) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -344,7 +344,7 @@ func UintOptionalNEQ(v uint8) predicate.MessageWithOptionals {
 
 // UintOptionalIn applies the In predicate on the "uint_optional" field.
 func UintOptionalIn(vs ...uint8) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -355,7 +355,7 @@ func UintOptionalIn(vs ...uint8) predicate.MessageWithOptionals {
 
 // UintOptionalNotIn applies the NotIn predicate on the "uint_optional" field.
 func UintOptionalNotIn(vs ...uint8) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -422,7 +422,7 @@ func FloatOptionalNEQ(v float32) predicate.MessageWithOptionals {
 
 // FloatOptionalIn applies the In predicate on the "float_optional" field.
 func FloatOptionalIn(vs ...float32) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -433,7 +433,7 @@ func FloatOptionalIn(vs ...float32) predicate.MessageWithOptionals {
 
 // FloatOptionalNotIn applies the NotIn predicate on the "float_optional" field.
 func FloatOptionalNotIn(vs ...float32) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -528,7 +528,7 @@ func BytesOptionalNEQ(v []byte) predicate.MessageWithOptionals {
 
 // BytesOptionalIn applies the In predicate on the "bytes_optional" field.
 func BytesOptionalIn(vs ...[]byte) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -539,7 +539,7 @@ func BytesOptionalIn(vs ...[]byte) predicate.MessageWithOptionals {
 
 // BytesOptionalNotIn applies the NotIn predicate on the "bytes_optional" field.
 func BytesOptionalNotIn(vs ...[]byte) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -606,7 +606,7 @@ func UUIDOptionalNEQ(v uuid.UUID) predicate.MessageWithOptionals {
 
 // UUIDOptionalIn applies the In predicate on the "uuid_optional" field.
 func UUIDOptionalIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -617,7 +617,7 @@ func UUIDOptionalIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
 
 // UUIDOptionalNotIn applies the NotIn predicate on the "uuid_optional" field.
 func UUIDOptionalNotIn(vs ...uuid.UUID) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -684,7 +684,7 @@ func TimeOptionalNEQ(v time.Time) predicate.MessageWithOptionals {
 
 // TimeOptionalIn applies the In predicate on the "time_optional" field.
 func TimeOptionalIn(vs ...time.Time) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -695,7 +695,7 @@ func TimeOptionalIn(vs ...time.Time) predicate.MessageWithOptionals {
 
 // TimeOptionalNotIn applies the NotIn predicate on the "time_optional" field.
 func TimeOptionalNotIn(vs ...time.Time) predicate.MessageWithOptionals {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

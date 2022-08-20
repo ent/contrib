@@ -261,7 +261,6 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 //		GroupBy(multiwordschema.FieldUnit).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *MultiWordSchemaGroupBy {
 	grbuild := &MultiWordSchemaGroupBy{config: mwsq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *Multi
 //	client.MultiWordSchema.Query().
 //		Select(multiwordschema.FieldUnit).
 //		Scan(ctx, &v)
-//
 func (mwsq *MultiWordSchemaQuery) Select(fields ...string) *MultiWordSchemaSelect {
 	mwsq.fields = append(mwsq.fields, fields...)
 	selbuild := &MultiWordSchemaSelect{MultiWordSchemaQuery: mwsq}
@@ -318,10 +316,10 @@ func (mwsq *MultiWordSchemaQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		nodes = []*MultiWordSchema{}
 		_spec = mwsq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MultiWordSchema).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MultiWordSchema{config: mwsq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (mwsgb *MultiWordSchemaGroupBy) Aggregate(fns ...AggregateFunc) *MultiWordS
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwsgb *MultiWordSchemaGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwsgb *MultiWordSchemaGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwsgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (mwsgb *MultiWordSchemaGroupBy) Scan(ctx context.Context, v interface{}) er
 	return mwsgb.sqlScan(ctx, v)
 }
 
-func (mwsgb *MultiWordSchemaGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwsgb *MultiWordSchemaGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwsgb.fields {
 		if !multiwordschema.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type MultiWordSchemaSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v any) error {
 	if err := mwss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v interface{}) erro
 	return mwss.sqlScan(ctx, v)
 }
 
-func (mwss *MultiWordSchemaSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwss *MultiWordSchemaSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwss.sql.Query()
 	if err := mwss.driver.Query(ctx, query, args, rows); err != nil {

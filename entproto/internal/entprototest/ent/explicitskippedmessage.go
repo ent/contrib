@@ -18,8 +18,8 @@ type ExplicitSkippedMessage struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*ExplicitSkippedMessage) scanValues(columns []string) ([]interface{}, error) {
-	values := make([]interface{}, len(columns))
+func (*ExplicitSkippedMessage) scanValues(columns []string) ([]any, error) {
+	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case explicitskippedmessage.FieldID:
@@ -33,7 +33,7 @@ func (*ExplicitSkippedMessage) scanValues(columns []string) ([]interface{}, erro
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ExplicitSkippedMessage fields.
-func (esm *ExplicitSkippedMessage) assignValues(columns []string, values []interface{}) error {
+func (esm *ExplicitSkippedMessage) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}

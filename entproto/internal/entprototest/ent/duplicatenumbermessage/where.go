@@ -31,7 +31,7 @@ func IDNEQ(id int) predicate.DuplicateNumberMessage {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.DuplicateNumberMessage {
 	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.DuplicateNumberMessage {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.DuplicateNumberMessage {
 	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -108,7 +108,7 @@ func HelloNEQ(v string) predicate.DuplicateNumberMessage {
 
 // HelloIn applies the In predicate on the "hello" field.
 func HelloIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -119,7 +119,7 @@ func HelloIn(vs ...string) predicate.DuplicateNumberMessage {
 
 // HelloNotIn applies the NotIn predicate on the "hello" field.
 func HelloNotIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -207,7 +207,7 @@ func WorldNEQ(v string) predicate.DuplicateNumberMessage {
 
 // WorldIn applies the In predicate on the "world" field.
 func WorldIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -218,7 +218,7 @@ func WorldIn(vs ...string) predicate.DuplicateNumberMessage {
 
 // WorldNotIn applies the NotIn predicate on the "world" field.
 func WorldNotIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

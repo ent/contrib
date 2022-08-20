@@ -261,7 +261,6 @@ func (otq *OASTypesQuery) Clone() *OASTypesQuery {
 //		GroupBy(oastypes.FieldInt).
 //		Aggregate(oastypes.Count()).
 //		Scan(ctx, &v)
-//
 func (otq *OASTypesQuery) GroupBy(field string, fields ...string) *OASTypesGroupBy {
 	grbuild := &OASTypesGroupBy{config: otq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (otq *OASTypesQuery) GroupBy(field string, fields ...string) *OASTypesGroup
 //	client.OASTypes.Query().
 //		Select(oastypes.FieldInt).
 //		Scan(ctx, &v)
-//
 func (otq *OASTypesQuery) Select(fields ...string) *OASTypesSelect {
 	otq.fields = append(otq.fields, fields...)
 	selbuild := &OASTypesSelect{OASTypesQuery: otq}
@@ -318,10 +316,10 @@ func (otq *OASTypesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OA
 		nodes = []*OASTypes{}
 		_spec = otq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*OASTypes).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &OASTypes{config: otq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (otgb *OASTypesGroupBy) Aggregate(fns ...AggregateFunc) *OASTypesGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (otgb *OASTypesGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (otgb *OASTypesGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := otgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (otgb *OASTypesGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return otgb.sqlScan(ctx, v)
 }
 
-func (otgb *OASTypesGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (otgb *OASTypesGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range otgb.fields {
 		if !oastypes.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type OASTypesSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ots *OASTypesSelect) Scan(ctx context.Context, v interface{}) error {
+func (ots *OASTypesSelect) Scan(ctx context.Context, v any) error {
 	if err := ots.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (ots *OASTypesSelect) Scan(ctx context.Context, v interface{}) error {
 	return ots.sqlScan(ctx, v)
 }
 
-func (ots *OASTypesSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ots *OASTypesSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ots.sql.Query()
 	if err := ots.driver.Query(ctx, query, args, rows); err != nil {

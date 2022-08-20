@@ -294,10 +294,10 @@ func (mwiq *MessageWithIDQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		nodes = []*MessageWithID{}
 		_spec = mwiq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageWithID).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MessageWithID{config: mwiq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (mwigb *MessageWithIDGroupBy) Aggregate(fns ...AggregateFunc) *MessageWithI
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwigb *MessageWithIDGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwigb *MessageWithIDGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwigb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (mwigb *MessageWithIDGroupBy) Scan(ctx context.Context, v interface{}) erro
 	return mwigb.sqlScan(ctx, v)
 }
 
-func (mwigb *MessageWithIDGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwigb *MessageWithIDGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwigb.fields {
 		if !messagewithid.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type MessageWithIDSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v any) error {
 	if err := mwis.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v interface{}) error 
 	return mwis.sqlScan(ctx, v)
 }
 
-func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwis.sql.Query()
 	if err := mwis.driver.Query(ctx, query, args, rows); err != nil {

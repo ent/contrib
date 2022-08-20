@@ -261,7 +261,6 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 //		GroupBy(validmessage.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMessageGroupBy {
 	grbuild := &ValidMessageGroupBy{config: vmq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMess
 //	client.ValidMessage.Query().
 //		Select(validmessage.FieldName).
 //		Scan(ctx, &v)
-//
 func (vmq *ValidMessageQuery) Select(fields ...string) *ValidMessageSelect {
 	vmq.fields = append(vmq.fields, fields...)
 	selbuild := &ValidMessageSelect{ValidMessageQuery: vmq}
@@ -318,10 +316,10 @@ func (vmq *ValidMessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		nodes = []*ValidMessage{}
 		_spec = vmq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ValidMessage).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &ValidMessage{config: vmq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (vmgb *ValidMessageGroupBy) Aggregate(fns ...AggregateFunc) *ValidMessageGr
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (vmgb *ValidMessageGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (vmgb *ValidMessageGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := vmgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (vmgb *ValidMessageGroupBy) Scan(ctx context.Context, v interface{}) error 
 	return vmgb.sqlScan(ctx, v)
 }
 
-func (vmgb *ValidMessageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (vmgb *ValidMessageGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range vmgb.fields {
 		if !validmessage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type ValidMessageSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (vms *ValidMessageSelect) Scan(ctx context.Context, v interface{}) error {
+func (vms *ValidMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := vms.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (vms *ValidMessageSelect) Scan(ctx context.Context, v interface{}) error {
 	return vms.sqlScan(ctx, v)
 }
 
-func (vms *ValidMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (vms *ValidMessageSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := vms.sql.Query()
 	if err := vms.driver.Query(ctx, query, args, rows); err != nil {

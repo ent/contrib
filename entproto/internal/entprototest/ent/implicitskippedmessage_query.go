@@ -299,10 +299,10 @@ func (ismq *ImplicitSkippedMessageQuery) sqlAll(ctx context.Context, hooks ...qu
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, implicitskippedmessage.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ImplicitSkippedMessage).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &ImplicitSkippedMessage{config: ismq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -434,7 +434,7 @@ func (ismgb *ImplicitSkippedMessageGroupBy) Aggregate(fns ...AggregateFunc) *Imp
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (ismgb *ImplicitSkippedMessageGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (ismgb *ImplicitSkippedMessageGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := ismgb.path(ctx)
 	if err != nil {
 		return err
@@ -443,7 +443,7 @@ func (ismgb *ImplicitSkippedMessageGroupBy) Scan(ctx context.Context, v interfac
 	return ismgb.sqlScan(ctx, v)
 }
 
-func (ismgb *ImplicitSkippedMessageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (ismgb *ImplicitSkippedMessageGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range ismgb.fields {
 		if !implicitskippedmessage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -490,7 +490,7 @@ type ImplicitSkippedMessageSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (isms *ImplicitSkippedMessageSelect) Scan(ctx context.Context, v interface{}) error {
+func (isms *ImplicitSkippedMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := isms.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -498,7 +498,7 @@ func (isms *ImplicitSkippedMessageSelect) Scan(ctx context.Context, v interface{
 	return isms.sqlScan(ctx, v)
 }
 
-func (isms *ImplicitSkippedMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (isms *ImplicitSkippedMessageSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := isms.sql.Query()
 	if err := isms.driver.Query(ctx, query, args, rows); err != nil {

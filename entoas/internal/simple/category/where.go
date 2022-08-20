@@ -32,7 +32,7 @@ func IDNEQ(id int) predicate.Category {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -43,7 +43,7 @@ func IDIn(ids ...int) predicate.Category {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -116,7 +116,7 @@ func NameNEQ(v string) predicate.Category {
 
 // NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -127,7 +127,7 @@ func NameIn(vs ...string) predicate.Category {
 
 // NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -215,7 +215,7 @@ func ReadonlyNEQ(v string) predicate.Category {
 
 // ReadonlyIn applies the In predicate on the "readonly" field.
 func ReadonlyIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -226,7 +226,7 @@ func ReadonlyIn(vs ...string) predicate.Category {
 
 // ReadonlyNotIn applies the NotIn predicate on the "readonly" field.
 func ReadonlyNotIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -314,7 +314,7 @@ func SkipInSpecNEQ(v string) predicate.Category {
 
 // SkipInSpecIn applies the In predicate on the "skip_in_spec" field.
 func SkipInSpecIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -325,7 +325,7 @@ func SkipInSpecIn(vs ...string) predicate.Category {
 
 // SkipInSpecNotIn applies the NotIn predicate on the "skip_in_spec" field.
 func SkipInSpecNotIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

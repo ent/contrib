@@ -33,7 +33,7 @@ func IDNEQ(id int) predicate.NilExample {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.NilExample {
 	return predicate.NilExample(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -44,7 +44,7 @@ func IDIn(ids ...int) predicate.NilExample {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.NilExample {
 	return predicate.NilExample(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -110,7 +110,7 @@ func StrNilNEQ(v string) predicate.NilExample {
 
 // StrNilIn applies the In predicate on the "str_nil" field.
 func StrNilIn(vs ...string) predicate.NilExample {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -121,7 +121,7 @@ func StrNilIn(vs ...string) predicate.NilExample {
 
 // StrNilNotIn applies the NotIn predicate on the "str_nil" field.
 func StrNilNotIn(vs ...string) predicate.NilExample {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -223,7 +223,7 @@ func TimeNilNEQ(v time.Time) predicate.NilExample {
 
 // TimeNilIn applies the In predicate on the "time_nil" field.
 func TimeNilIn(vs ...time.Time) predicate.NilExample {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -234,7 +234,7 @@ func TimeNilIn(vs ...time.Time) predicate.NilExample {
 
 // TimeNilNotIn applies the NotIn predicate on the "time_nil" field.
 func TimeNilNotIn(vs ...time.Time) predicate.NilExample {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

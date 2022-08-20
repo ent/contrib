@@ -33,7 +33,7 @@ func IDNEQ(id uuid.UUID) predicate.Image {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...uuid.UUID) predicate.Image {
 	return predicate.Image(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -44,7 +44,7 @@ func IDIn(ids ...uuid.UUID) predicate.Image {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...uuid.UUID) predicate.Image {
 	return predicate.Image(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -103,7 +103,7 @@ func URLPathNEQ(v string) predicate.Image {
 
 // URLPathIn applies the In predicate on the "url_path" field.
 func URLPathIn(vs ...string) predicate.Image {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -114,7 +114,7 @@ func URLPathIn(vs ...string) predicate.Image {
 
 // URLPathNotIn applies the NotIn predicate on the "url_path" field.
 func URLPathNotIn(vs ...string) predicate.Image {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

@@ -294,10 +294,10 @@ func (wnfq *WithNilFieldsQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		nodes = []*WithNilFields{}
 		_spec = wnfq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*WithNilFields).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &WithNilFields{config: wnfq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (wnfgb *WithNilFieldsGroupBy) Aggregate(fns ...AggregateFunc) *WithNilField
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (wnfgb *WithNilFieldsGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (wnfgb *WithNilFieldsGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := wnfgb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (wnfgb *WithNilFieldsGroupBy) Scan(ctx context.Context, v interface{}) erro
 	return wnfgb.sqlScan(ctx, v)
 }
 
-func (wnfgb *WithNilFieldsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (wnfgb *WithNilFieldsGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range wnfgb.fields {
 		if !withnilfields.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type WithNilFieldsSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v interface{}) error {
+func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v any) error {
 	if err := wnfs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v interface{}) error 
 	return wnfs.sqlScan(ctx, v)
 }
 
-func (wnfs *WithNilFieldsSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (wnfs *WithNilFieldsSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := wnfs.sql.Query()
 	if err := wnfs.driver.Query(ctx, query, args, rows); err != nil {

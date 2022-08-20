@@ -261,7 +261,6 @@ func (mwoq *MessageWithOptionalsQuery) Clone() *MessageWithOptionalsQuery {
 //		GroupBy(messagewithoptionals.FieldStrOptional).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *MessageWithOptionalsGroupBy {
 	grbuild := &MessageWithOptionalsGroupBy{config: mwoq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *
 //	client.MessageWithOptionals.Query().
 //		Select(messagewithoptionals.FieldStrOptional).
 //		Scan(ctx, &v)
-//
 func (mwoq *MessageWithOptionalsQuery) Select(fields ...string) *MessageWithOptionalsSelect {
 	mwoq.fields = append(mwoq.fields, fields...)
 	selbuild := &MessageWithOptionalsSelect{MessageWithOptionalsQuery: mwoq}
@@ -318,10 +316,10 @@ func (mwoq *MessageWithOptionalsQuery) sqlAll(ctx context.Context, hooks ...quer
 		nodes = []*MessageWithOptionals{}
 		_spec = mwoq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageWithOptionals).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MessageWithOptionals{config: mwoq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (mwogb *MessageWithOptionalsGroupBy) Aggregate(fns ...AggregateFunc) *Messa
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwogb *MessageWithOptionalsGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwogb *MessageWithOptionalsGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwogb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (mwogb *MessageWithOptionalsGroupBy) Scan(ctx context.Context, v interface{
 	return mwogb.sqlScan(ctx, v)
 }
 
-func (mwogb *MessageWithOptionalsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwogb *MessageWithOptionalsGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwogb.fields {
 		if !messagewithoptionals.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type MessageWithOptionalsSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwos *MessageWithOptionalsSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwos *MessageWithOptionalsSelect) Scan(ctx context.Context, v any) error {
 	if err := mwos.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (mwos *MessageWithOptionalsSelect) Scan(ctx context.Context, v interface{})
 	return mwos.sqlScan(ctx, v)
 }
 
-func (mwos *MessageWithOptionalsSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwos *MessageWithOptionalsSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwos.sql.Query()
 	if err := mwos.driver.Query(ctx, query, args, rows); err != nil {

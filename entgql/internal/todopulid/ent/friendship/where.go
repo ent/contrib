@@ -49,7 +49,7 @@ func IDNEQ(id pulid.ID) predicate.Friendship {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...pulid.ID) predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -60,7 +60,7 @@ func IDIn(ids ...pulid.ID) predicate.Friendship {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...pulid.ID) predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -133,7 +133,7 @@ func CreatedAtNEQ(v time.Time) predicate.Friendship {
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.Friendship {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -144,7 +144,7 @@ func CreatedAtIn(vs ...time.Time) predicate.Friendship {
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.Friendship {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -197,7 +197,7 @@ func UserIDNEQ(v pulid.ID) predicate.Friendship {
 
 // UserIDIn applies the In predicate on the "user_id" field.
 func UserIDIn(vs ...pulid.ID) predicate.Friendship {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -208,7 +208,7 @@ func UserIDIn(vs ...pulid.ID) predicate.Friendship {
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
 func UserIDNotIn(vs ...pulid.ID) predicate.Friendship {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -301,7 +301,7 @@ func FriendIDNEQ(v pulid.ID) predicate.Friendship {
 
 // FriendIDIn applies the In predicate on the "friend_id" field.
 func FriendIDIn(vs ...pulid.ID) predicate.Friendship {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -312,7 +312,7 @@ func FriendIDIn(vs ...pulid.ID) predicate.Friendship {
 
 // FriendIDNotIn applies the NotIn predicate on the "friend_id" field.
 func FriendIDNotIn(vs ...pulid.ID) predicate.Friendship {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

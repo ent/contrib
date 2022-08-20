@@ -300,7 +300,6 @@ func (iq *ImageQuery) WithUserProfilePic(opts ...func(*UserQuery)) *ImageQuery {
 //		GroupBy(image.FieldURLPath).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
 	grbuild := &ImageGroupBy{config: iq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -327,7 +326,6 @@ func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
 //	client.Image.Query().
 //		Select(image.FieldURLPath).
 //		Scan(ctx, &v)
-//
 func (iq *ImageQuery) Select(fields ...string) *ImageSelect {
 	iq.fields = append(iq.fields, fields...)
 	selbuild := &ImageSelect{ImageQuery: iq}
@@ -364,10 +362,10 @@ func (iq *ImageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Image,
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, image.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Image).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Image{config: iq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -539,7 +537,7 @@ func (igb *ImageGroupBy) Aggregate(fns ...AggregateFunc) *ImageGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (igb *ImageGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (igb *ImageGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := igb.path(ctx)
 	if err != nil {
 		return err
@@ -548,7 +546,7 @@ func (igb *ImageGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return igb.sqlScan(ctx, v)
 }
 
-func (igb *ImageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (igb *ImageGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range igb.fields {
 		if !image.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -595,7 +593,7 @@ type ImageSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (is *ImageSelect) Scan(ctx context.Context, v interface{}) error {
+func (is *ImageSelect) Scan(ctx context.Context, v any) error {
 	if err := is.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -603,7 +601,7 @@ func (is *ImageSelect) Scan(ctx context.Context, v interface{}) error {
 	return is.sqlScan(ctx, v)
 }
 
-func (is *ImageSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (is *ImageSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := is.sql.Query()
 	if err := is.driver.Query(ctx, query, args, rows); err != nil {

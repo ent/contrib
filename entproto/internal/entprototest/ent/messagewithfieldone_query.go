@@ -261,7 +261,6 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 //		GroupBy(messagewithfieldone.FieldFieldOne).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *MessageWithFieldOneGroupBy {
 	grbuild := &MessageWithFieldOneGroupBy{config: mwfoq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *
 //	client.MessageWithFieldOne.Query().
 //		Select(messagewithfieldone.FieldFieldOne).
 //		Scan(ctx, &v)
-//
 func (mwfoq *MessageWithFieldOneQuery) Select(fields ...string) *MessageWithFieldOneSelect {
 	mwfoq.fields = append(mwfoq.fields, fields...)
 	selbuild := &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}
@@ -318,10 +316,10 @@ func (mwfoq *MessageWithFieldOneQuery) sqlAll(ctx context.Context, hooks ...quer
 		nodes = []*MessageWithFieldOne{}
 		_spec = mwfoq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageWithFieldOne).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MessageWithFieldOne{config: mwfoq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (mwfogb *MessageWithFieldOneGroupBy) Aggregate(fns ...AggregateFunc) *Messa
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwfogb *MessageWithFieldOneGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwfogb *MessageWithFieldOneGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwfogb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (mwfogb *MessageWithFieldOneGroupBy) Scan(ctx context.Context, v interface{
 	return mwfogb.sqlScan(ctx, v)
 }
 
-func (mwfogb *MessageWithFieldOneGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwfogb *MessageWithFieldOneGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwfogb.fields {
 		if !messagewithfieldone.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type MessageWithFieldOneSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v any) error {
 	if err := mwfos.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v interface{})
 	return mwfos.sqlScan(ctx, v)
 }
 
-func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwfos.sql.Query()
 	if err := mwfos.driver.Query(ctx, query, args, rows); err != nil {
