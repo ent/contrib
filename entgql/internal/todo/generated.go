@@ -1251,8 +1251,6 @@ input UpdateTodoInput {
   parentID: ID
   addChildIDs: [ID!]
   removeChildIDs: [ID!]
-  clearCategory: Boolean
-  categoryID: ID
   clearSecret: Boolean
   secretID: ID
 }
@@ -8267,22 +8265,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeChildIDs"))
 			it.RemoveChildIDs, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "clearCategory":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearCategory"))
-			it.ClearCategory, err = ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "categoryID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryID"))
-			it.CategoryID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}

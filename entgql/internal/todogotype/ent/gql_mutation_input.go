@@ -68,8 +68,6 @@ type UpdateTodoInput struct {
 	ParentID       *string
 	AddChildIDs    []string
 	RemoveChildIDs []string
-	ClearCategory  bool
-	CategoryID     *bigintgql.BigInt
 	ClearSecret    bool
 	SecretID       *string
 }
@@ -96,12 +94,6 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.RemoveChildIDs; len(v) > 0 {
 		m.RemoveChildIDs(v...)
-	}
-	if i.ClearCategory {
-		m.ClearCategory()
-	}
-	if v := i.CategoryID; v != nil {
-		m.SetCategoryID(*v)
 	}
 	if i.ClearSecret {
 		m.ClearSecret()

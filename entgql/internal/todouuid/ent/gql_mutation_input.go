@@ -68,8 +68,6 @@ type UpdateTodoInput struct {
 	ParentID       *uuid.UUID
 	AddChildIDs    []uuid.UUID
 	RemoveChildIDs []uuid.UUID
-	ClearCategory  bool
-	CategoryID     *uuid.UUID
 	ClearSecret    bool
 	SecretID       *uuid.UUID
 }
@@ -96,12 +94,6 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.RemoveChildIDs; len(v) > 0 {
 		m.RemoveChildIDs(v...)
-	}
-	if i.ClearCategory {
-		m.ClearCategory()
-	}
-	if v := i.CategoryID; v != nil {
-		m.SetCategoryID(*v)
 	}
 	if i.ClearSecret {
 		m.ClearSecret()

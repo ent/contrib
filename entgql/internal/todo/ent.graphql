@@ -491,8 +491,6 @@ input UpdateTodoInput {
   parentID: ID
   addChildIDs: [ID!]
   removeChildIDs: [ID!]
-  clearCategory: Boolean
-  categoryID: ID
   clearSecret: Boolean
   secretID: ID
 }
