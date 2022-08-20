@@ -298,7 +298,6 @@ func (tq *TodoQuery) WithUser(opts ...func(*UserQuery)) *TodoQuery {
 //		GroupBy(todo.FieldTask).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 	grbuild := &TodoGroupBy{config: tq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 //	client.Todo.Query().
 //		Select(todo.FieldTask).
 //		Scan(ctx, &v)
-//
 func (tq *TodoQuery) Select(fields ...string) *TodoSelect {
 	tq.fields = append(tq.fields, fields...)
 	selbuild := &TodoSelect{TodoQuery: tq}
@@ -365,10 +363,10 @@ func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, e
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, todo.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Todo).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Todo{config: tq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -537,7 +535,7 @@ func (tgb *TodoGroupBy) Aggregate(fns ...AggregateFunc) *TodoGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (tgb *TodoGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (tgb *TodoGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := tgb.path(ctx)
 	if err != nil {
 		return err
@@ -546,7 +544,7 @@ func (tgb *TodoGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return tgb.sqlScan(ctx, v)
 }
 
-func (tgb *TodoGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (tgb *TodoGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range tgb.fields {
 		if !todo.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -593,7 +591,7 @@ type TodoSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ts *TodoSelect) Scan(ctx context.Context, v interface{}) error {
+func (ts *TodoSelect) Scan(ctx context.Context, v any) error {
 	if err := ts.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -601,7 +599,7 @@ func (ts *TodoSelect) Scan(ctx context.Context, v interface{}) error {
 	return ts.sqlScan(ctx, v)
 }
 
-func (ts *TodoSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ts *TodoSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ts.sql.Query()
 	if err := ts.driver.Query(ctx, query, args, rows); err != nil {

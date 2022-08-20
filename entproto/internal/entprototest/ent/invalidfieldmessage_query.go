@@ -261,7 +261,6 @@ func (ifmq *InvalidFieldMessageQuery) Clone() *InvalidFieldMessageQuery {
 //		GroupBy(invalidfieldmessage.FieldJSON).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (ifmq *InvalidFieldMessageQuery) GroupBy(field string, fields ...string) *InvalidFieldMessageGroupBy {
 	grbuild := &InvalidFieldMessageGroupBy{config: ifmq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (ifmq *InvalidFieldMessageQuery) GroupBy(field string, fields ...string) *I
 //	client.InvalidFieldMessage.Query().
 //		Select(invalidfieldmessage.FieldJSON).
 //		Scan(ctx, &v)
-//
 func (ifmq *InvalidFieldMessageQuery) Select(fields ...string) *InvalidFieldMessageSelect {
 	ifmq.fields = append(ifmq.fields, fields...)
 	selbuild := &InvalidFieldMessageSelect{InvalidFieldMessageQuery: ifmq}
@@ -318,10 +316,10 @@ func (ifmq *InvalidFieldMessageQuery) sqlAll(ctx context.Context, hooks ...query
 		nodes = []*InvalidFieldMessage{}
 		_spec = ifmq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*InvalidFieldMessage).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &InvalidFieldMessage{config: ifmq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (ifmgb *InvalidFieldMessageGroupBy) Aggregate(fns ...AggregateFunc) *Invali
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (ifmgb *InvalidFieldMessageGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (ifmgb *InvalidFieldMessageGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := ifmgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (ifmgb *InvalidFieldMessageGroupBy) Scan(ctx context.Context, v interface{}
 	return ifmgb.sqlScan(ctx, v)
 }
 
-func (ifmgb *InvalidFieldMessageGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (ifmgb *InvalidFieldMessageGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range ifmgb.fields {
 		if !invalidfieldmessage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type InvalidFieldMessageSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ifms *InvalidFieldMessageSelect) Scan(ctx context.Context, v interface{}) error {
+func (ifms *InvalidFieldMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := ifms.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (ifms *InvalidFieldMessageSelect) Scan(ctx context.Context, v interface{}) 
 	return ifms.sqlScan(ctx, v)
 }
 
-func (ifms *InvalidFieldMessageSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ifms *InvalidFieldMessageSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ifms.sql.Query()
 	if err := ifms.driver.Query(ctx, query, args, rows); err != nil {

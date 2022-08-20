@@ -341,10 +341,10 @@ func (seeq *SkipEdgeExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, skipedgeexample.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*SkipEdgeExample).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &SkipEdgeExample{config: seeq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -513,7 +513,7 @@ func (seegb *SkipEdgeExampleGroupBy) Aggregate(fns ...AggregateFunc) *SkipEdgeEx
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (seegb *SkipEdgeExampleGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (seegb *SkipEdgeExampleGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := seegb.path(ctx)
 	if err != nil {
 		return err
@@ -522,7 +522,7 @@ func (seegb *SkipEdgeExampleGroupBy) Scan(ctx context.Context, v interface{}) er
 	return seegb.sqlScan(ctx, v)
 }
 
-func (seegb *SkipEdgeExampleGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (seegb *SkipEdgeExampleGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range seegb.fields {
 		if !skipedgeexample.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -569,7 +569,7 @@ type SkipEdgeExampleSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v interface{}) error {
+func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v any) error {
 	if err := sees.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -577,7 +577,7 @@ func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v interface{}) erro
 	return sees.sqlScan(ctx, v)
 }
 
-func (sees *SkipEdgeExampleSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (sees *SkipEdgeExampleSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := sees.sql.Query()
 	if err := sees.driver.Query(ctx, query, args, rows); err != nil {

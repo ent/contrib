@@ -31,7 +31,7 @@ func IDNEQ(id string) predicate.File {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -42,7 +42,7 @@ func IDIn(ids ...string) predicate.File {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -101,7 +101,7 @@ func ContentsNEQ(v string) predicate.File {
 
 // ContentsIn applies the In predicate on the "contents" field.
 func ContentsIn(vs ...string) predicate.File {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -112,7 +112,7 @@ func ContentsIn(vs ...string) predicate.File {
 
 // ContentsNotIn applies the NotIn predicate on the "contents" field.
 func ContentsNotIn(vs ...string) predicate.File {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

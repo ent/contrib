@@ -31,7 +31,7 @@ func IDNEQ(id int) predicate.Task {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.Task {
 	return predicate.Task(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.Task {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.Task {
 	return predicate.Task(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -122,7 +122,7 @@ func TitleNEQ(v string) predicate.Task {
 
 // TitleIn applies the In predicate on the "title" field.
 func TitleIn(vs ...string) predicate.Task {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -133,7 +133,7 @@ func TitleIn(vs ...string) predicate.Task {
 
 // TitleNotIn applies the NotIn predicate on the "title" field.
 func TitleNotIn(vs ...string) predicate.Task {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -235,7 +235,7 @@ func DescriptionNEQ(v string) predicate.Task {
 
 // DescriptionIn applies the In predicate on the "description" field.
 func DescriptionIn(vs ...string) predicate.Task {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -246,7 +246,7 @@ func DescriptionIn(vs ...string) predicate.Task {
 
 // DescriptionNotIn applies the NotIn predicate on the "description" field.
 func DescriptionNotIn(vs ...string) predicate.Task {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -348,7 +348,7 @@ func SignatureNEQ(v string) predicate.Task {
 
 // SignatureIn applies the In predicate on the "signature" field.
 func SignatureIn(vs ...string) predicate.Task {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -359,7 +359,7 @@ func SignatureIn(vs ...string) predicate.Task {
 
 // SignatureNotIn applies the NotIn predicate on the "signature" field.
 func SignatureNotIn(vs ...string) predicate.Task {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

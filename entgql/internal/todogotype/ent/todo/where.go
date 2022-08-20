@@ -49,7 +49,7 @@ func IDNEQ(id string) predicate.Todo {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -60,7 +60,7 @@ func IDIn(ids ...string) predicate.Todo {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -147,7 +147,7 @@ func CreatedAtNEQ(v time.Time) predicate.Todo {
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -158,7 +158,7 @@ func CreatedAtIn(vs ...time.Time) predicate.Todo {
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -211,7 +211,7 @@ func StatusNEQ(v Status) predicate.Todo {
 
 // StatusIn applies the In predicate on the "status" field.
 func StatusIn(vs ...Status) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -222,7 +222,7 @@ func StatusIn(vs ...Status) predicate.Todo {
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -247,7 +247,7 @@ func PriorityNEQ(v int) predicate.Todo {
 
 // PriorityIn applies the In predicate on the "priority" field.
 func PriorityIn(vs ...int) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -258,7 +258,7 @@ func PriorityIn(vs ...int) predicate.Todo {
 
 // PriorityNotIn applies the NotIn predicate on the "priority" field.
 func PriorityNotIn(vs ...int) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -311,7 +311,7 @@ func TextNEQ(v string) predicate.Todo {
 
 // TextIn applies the In predicate on the "text" field.
 func TextIn(vs ...string) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -322,7 +322,7 @@ func TextIn(vs ...string) predicate.Todo {
 
 // TextNotIn applies the NotIn predicate on the "text" field.
 func TextNotIn(vs ...string) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -410,7 +410,7 @@ func BlobNEQ(v []byte) predicate.Todo {
 
 // BlobIn applies the In predicate on the "blob" field.
 func BlobIn(vs ...[]byte) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -421,7 +421,7 @@ func BlobIn(vs ...[]byte) predicate.Todo {
 
 // BlobNotIn applies the NotIn predicate on the "blob" field.
 func BlobNotIn(vs ...[]byte) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -488,7 +488,7 @@ func CategoryIDNEQ(v bigintgql.BigInt) predicate.Todo {
 
 // CategoryIDIn applies the In predicate on the "category_id" field.
 func CategoryIDIn(vs ...bigintgql.BigInt) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -499,7 +499,7 @@ func CategoryIDIn(vs ...bigintgql.BigInt) predicate.Todo {
 
 // CategoryIDNotIn applies the NotIn predicate on the "category_id" field.
 func CategoryIDNotIn(vs ...bigintgql.BigInt) predicate.Todo {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

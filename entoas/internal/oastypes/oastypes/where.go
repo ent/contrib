@@ -35,7 +35,7 @@ func IDNEQ(id int) predicate.OASTypes {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -46,7 +46,7 @@ func IDIn(ids ...int) predicate.OASTypes {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -231,7 +231,7 @@ func IntNEQ(v int) predicate.OASTypes {
 
 // IntIn applies the In predicate on the "int" field.
 func IntIn(vs ...int) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -242,7 +242,7 @@ func IntIn(vs ...int) predicate.OASTypes {
 
 // IntNotIn applies the NotIn predicate on the "int" field.
 func IntNotIn(vs ...int) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -295,7 +295,7 @@ func Int8NEQ(v int8) predicate.OASTypes {
 
 // Int8In applies the In predicate on the "int8" field.
 func Int8In(vs ...int8) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -306,7 +306,7 @@ func Int8In(vs ...int8) predicate.OASTypes {
 
 // Int8NotIn applies the NotIn predicate on the "int8" field.
 func Int8NotIn(vs ...int8) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -359,7 +359,7 @@ func Int16NEQ(v int16) predicate.OASTypes {
 
 // Int16In applies the In predicate on the "int16" field.
 func Int16In(vs ...int16) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -370,7 +370,7 @@ func Int16In(vs ...int16) predicate.OASTypes {
 
 // Int16NotIn applies the NotIn predicate on the "int16" field.
 func Int16NotIn(vs ...int16) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -423,7 +423,7 @@ func Int32NEQ(v int32) predicate.OASTypes {
 
 // Int32In applies the In predicate on the "int32" field.
 func Int32In(vs ...int32) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -434,7 +434,7 @@ func Int32In(vs ...int32) predicate.OASTypes {
 
 // Int32NotIn applies the NotIn predicate on the "int32" field.
 func Int32NotIn(vs ...int32) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -487,7 +487,7 @@ func Int64NEQ(v int64) predicate.OASTypes {
 
 // Int64In applies the In predicate on the "int64" field.
 func Int64In(vs ...int64) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -498,7 +498,7 @@ func Int64In(vs ...int64) predicate.OASTypes {
 
 // Int64NotIn applies the NotIn predicate on the "int64" field.
 func Int64NotIn(vs ...int64) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -551,7 +551,7 @@ func UintNEQ(v uint) predicate.OASTypes {
 
 // UintIn applies the In predicate on the "uint" field.
 func UintIn(vs ...uint) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -562,7 +562,7 @@ func UintIn(vs ...uint) predicate.OASTypes {
 
 // UintNotIn applies the NotIn predicate on the "uint" field.
 func UintNotIn(vs ...uint) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -615,7 +615,7 @@ func Uint8NEQ(v uint8) predicate.OASTypes {
 
 // Uint8In applies the In predicate on the "uint8" field.
 func Uint8In(vs ...uint8) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -626,7 +626,7 @@ func Uint8In(vs ...uint8) predicate.OASTypes {
 
 // Uint8NotIn applies the NotIn predicate on the "uint8" field.
 func Uint8NotIn(vs ...uint8) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -679,7 +679,7 @@ func Uint16NEQ(v uint16) predicate.OASTypes {
 
 // Uint16In applies the In predicate on the "uint16" field.
 func Uint16In(vs ...uint16) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -690,7 +690,7 @@ func Uint16In(vs ...uint16) predicate.OASTypes {
 
 // Uint16NotIn applies the NotIn predicate on the "uint16" field.
 func Uint16NotIn(vs ...uint16) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -743,7 +743,7 @@ func Uint32NEQ(v uint32) predicate.OASTypes {
 
 // Uint32In applies the In predicate on the "uint32" field.
 func Uint32In(vs ...uint32) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -754,7 +754,7 @@ func Uint32In(vs ...uint32) predicate.OASTypes {
 
 // Uint32NotIn applies the NotIn predicate on the "uint32" field.
 func Uint32NotIn(vs ...uint32) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -807,7 +807,7 @@ func Uint64NEQ(v uint64) predicate.OASTypes {
 
 // Uint64In applies the In predicate on the "uint64" field.
 func Uint64In(vs ...uint64) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -818,7 +818,7 @@ func Uint64In(vs ...uint64) predicate.OASTypes {
 
 // Uint64NotIn applies the NotIn predicate on the "uint64" field.
 func Uint64NotIn(vs ...uint64) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -871,7 +871,7 @@ func Float32NEQ(v float32) predicate.OASTypes {
 
 // Float32In applies the In predicate on the "float32" field.
 func Float32In(vs ...float32) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -882,7 +882,7 @@ func Float32In(vs ...float32) predicate.OASTypes {
 
 // Float32NotIn applies the NotIn predicate on the "float32" field.
 func Float32NotIn(vs ...float32) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -935,7 +935,7 @@ func Float64NEQ(v float64) predicate.OASTypes {
 
 // Float64In applies the In predicate on the "float64" field.
 func Float64In(vs ...float64) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -946,7 +946,7 @@ func Float64In(vs ...float64) predicate.OASTypes {
 
 // Float64NotIn applies the NotIn predicate on the "float64" field.
 func Float64NotIn(vs ...float64) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -999,7 +999,7 @@ func StringFieldNEQ(v string) predicate.OASTypes {
 
 // StringFieldIn applies the In predicate on the "string_field" field.
 func StringFieldIn(vs ...string) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1010,7 +1010,7 @@ func StringFieldIn(vs ...string) predicate.OASTypes {
 
 // StringFieldNotIn applies the NotIn predicate on the "string_field" field.
 func StringFieldNotIn(vs ...string) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1112,7 +1112,7 @@ func UUIDNEQ(v uuid.UUID) predicate.OASTypes {
 
 // UUIDIn applies the In predicate on the "uuid" field.
 func UUIDIn(vs ...uuid.UUID) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1123,7 +1123,7 @@ func UUIDIn(vs ...uuid.UUID) predicate.OASTypes {
 
 // UUIDNotIn applies the NotIn predicate on the "uuid" field.
 func UUIDNotIn(vs ...uuid.UUID) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1176,7 +1176,7 @@ func TimeNEQ(v time.Time) predicate.OASTypes {
 
 // TimeIn applies the In predicate on the "time" field.
 func TimeIn(vs ...time.Time) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1187,7 +1187,7 @@ func TimeIn(vs ...time.Time) predicate.OASTypes {
 
 // TimeNotIn applies the NotIn predicate on the "time" field.
 func TimeNotIn(vs ...time.Time) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1240,7 +1240,7 @@ func TextNEQ(v string) predicate.OASTypes {
 
 // TextIn applies the In predicate on the "text" field.
 func TextIn(vs ...string) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1251,7 +1251,7 @@ func TextIn(vs ...string) predicate.OASTypes {
 
 // TextNotIn applies the NotIn predicate on the "text" field.
 func TextNotIn(vs ...string) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1339,7 +1339,7 @@ func StateNEQ(v State) predicate.OASTypes {
 
 // StateIn applies the In predicate on the "state" field.
 func StateIn(vs ...State) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1350,7 +1350,7 @@ func StateIn(vs ...State) predicate.OASTypes {
 
 // StateNotIn applies the NotIn predicate on the "state" field.
 func StateNotIn(vs ...State) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1375,7 +1375,7 @@ func BytesNEQ(v []byte) predicate.OASTypes {
 
 // BytesIn applies the In predicate on the "bytes" field.
 func BytesIn(vs ...[]byte) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1386,7 +1386,7 @@ func BytesIn(vs ...[]byte) predicate.OASTypes {
 
 // BytesNotIn applies the NotIn predicate on the "bytes" field.
 func BytesNotIn(vs ...[]byte) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1439,7 +1439,7 @@ func OtherNEQ(v *schema.Link) predicate.OASTypes {
 
 // OtherIn applies the In predicate on the "other" field.
 func OtherIn(vs ...*schema.Link) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -1450,7 +1450,7 @@ func OtherIn(vs ...*schema.Link) predicate.OASTypes {
 
 // OtherNotIn applies the NotIn predicate on the "other" field.
 func OtherNotIn(vs ...*schema.Link) predicate.OASTypes {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

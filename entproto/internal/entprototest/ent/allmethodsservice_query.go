@@ -294,10 +294,10 @@ func (amsq *AllMethodsServiceQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		nodes = []*AllMethodsService{}
 		_spec = amsq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*AllMethodsService).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &AllMethodsService{config: amsq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (amsgb *AllMethodsServiceGroupBy) Aggregate(fns ...AggregateFunc) *AllMetho
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (amsgb *AllMethodsServiceGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (amsgb *AllMethodsServiceGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := amsgb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (amsgb *AllMethodsServiceGroupBy) Scan(ctx context.Context, v interface{}) 
 	return amsgb.sqlScan(ctx, v)
 }
 
-func (amsgb *AllMethodsServiceGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (amsgb *AllMethodsServiceGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range amsgb.fields {
 		if !allmethodsservice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type AllMethodsServiceSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v interface{}) error {
+func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := amss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v interface{}) er
 	return amss.sqlScan(ctx, v)
 }
 
-func (amss *AllMethodsServiceSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (amss *AllMethodsServiceSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := amss.sql.Query()
 	if err := amss.driver.Query(ctx, query, args, rows); err != nil {

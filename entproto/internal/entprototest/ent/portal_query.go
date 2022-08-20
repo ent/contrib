@@ -298,7 +298,6 @@ func (pq *PortalQuery) WithCategory(opts ...func(*CategoryQuery)) *PortalQuery {
 //		GroupBy(portal.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
 	grbuild := &PortalGroupBy{config: pq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
 //	client.Portal.Query().
 //		Select(portal.FieldName).
 //		Scan(ctx, &v)
-//
 func (pq *PortalQuery) Select(fields ...string) *PortalSelect {
 	pq.fields = append(pq.fields, fields...)
 	selbuild := &PortalSelect{PortalQuery: pq}
@@ -365,10 +363,10 @@ func (pq *PortalQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Porta
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, portal.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Portal).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Portal{config: pq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -537,7 +535,7 @@ func (pgb *PortalGroupBy) Aggregate(fns ...AggregateFunc) *PortalGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (pgb *PortalGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (pgb *PortalGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := pgb.path(ctx)
 	if err != nil {
 		return err
@@ -546,7 +544,7 @@ func (pgb *PortalGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return pgb.sqlScan(ctx, v)
 }
 
-func (pgb *PortalGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (pgb *PortalGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range pgb.fields {
 		if !portal.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -593,7 +591,7 @@ type PortalSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ps *PortalSelect) Scan(ctx context.Context, v interface{}) error {
+func (ps *PortalSelect) Scan(ctx context.Context, v any) error {
 	if err := ps.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -601,7 +599,7 @@ func (ps *PortalSelect) Scan(ctx context.Context, v interface{}) error {
 	return ps.sqlScan(ctx, v)
 }
 
-func (ps *PortalSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ps *PortalSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := ps.sql.Query()
 	if err := ps.driver.Query(ctx, query, args, rows); err != nil {

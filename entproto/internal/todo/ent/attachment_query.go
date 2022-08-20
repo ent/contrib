@@ -379,10 +379,10 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, attachment.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Attachment).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Attachment{config: aq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -462,17 +462,20 @@ func (aq *AttachmentQuery) loadRecipients(ctx context.Context, query *UserQuery,
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
 	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
 		assign := spec.Assign
 		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]interface{}, error) {
+		spec.ScanValues = func(columns []string) ([]any, error) {
 			values, err := values(columns[1:])
 			if err != nil {
 				return nil, err
 			}
-			return append([]interface{}{new(uuid.UUID)}, values...), nil
+			return append([]any{new(uuid.UUID)}, values...), nil
 		}
-		spec.Assign = func(columns []string, values []interface{}) error {
+		spec.Assign = func(columns []string, values []any) error {
 			outValue := *values[0].(*uuid.UUID)
 			inValue := int(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
@@ -613,7 +616,7 @@ func (agb *AttachmentGroupBy) Aggregate(fns ...AggregateFunc) *AttachmentGroupBy
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (agb *AttachmentGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (agb *AttachmentGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := agb.path(ctx)
 	if err != nil {
 		return err
@@ -622,7 +625,7 @@ func (agb *AttachmentGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return agb.sqlScan(ctx, v)
 }
 
-func (agb *AttachmentGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (agb *AttachmentGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range agb.fields {
 		if !attachment.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -669,7 +672,7 @@ type AttachmentSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (as *AttachmentSelect) Scan(ctx context.Context, v interface{}) error {
+func (as *AttachmentSelect) Scan(ctx context.Context, v any) error {
 	if err := as.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -677,7 +680,7 @@ func (as *AttachmentSelect) Scan(ctx context.Context, v interface{}) error {
 	return as.sqlScan(ctx, v)
 }
 
-func (as *AttachmentSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (as *AttachmentSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := as.sql.Query()
 	if err := as.driver.Query(ctx, query, args, rows); err != nil {

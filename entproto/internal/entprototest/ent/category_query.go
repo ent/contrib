@@ -298,7 +298,6 @@ func (cq *CategoryQuery) WithBlogPosts(opts ...func(*BlogPostQuery)) *CategoryQu
 //		GroupBy(category.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupBy {
 	grbuild := &CategoryGroupBy{config: cq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupB
 //	client.Category.Query().
 //		Select(category.FieldName).
 //		Scan(ctx, &v)
-//
 func (cq *CategoryQuery) Select(fields ...string) *CategorySelect {
 	cq.fields = append(cq.fields, fields...)
 	selbuild := &CategorySelect{CategoryQuery: cq}
@@ -358,10 +356,10 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 			cq.withBlogPosts != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Category).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Category{config: cq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -406,17 +404,20 @@ func (cq *CategoryQuery) loadBlogPosts(ctx context.Context, query *BlogPostQuery
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
 	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
 		assign := spec.Assign
 		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]interface{}, error) {
+		spec.ScanValues = func(columns []string) ([]any, error) {
 			values, err := values(columns[1:])
 			if err != nil {
 				return nil, err
 			}
-			return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			return append([]any{new(sql.NullInt64)}, values...), nil
 		}
-		spec.Assign = func(columns []string, values []interface{}) error {
+		spec.Assign = func(columns []string, values []any) error {
 			outValue := int(values[0].(*sql.NullInt64).Int64)
 			inValue := int(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
@@ -557,7 +558,7 @@ func (cgb *CategoryGroupBy) Aggregate(fns ...AggregateFunc) *CategoryGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (cgb *CategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (cgb *CategoryGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := cgb.path(ctx)
 	if err != nil {
 		return err
@@ -566,7 +567,7 @@ func (cgb *CategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return cgb.sqlScan(ctx, v)
 }
 
-func (cgb *CategoryGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (cgb *CategoryGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range cgb.fields {
 		if !category.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -613,7 +614,7 @@ type CategorySelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (cs *CategorySelect) Scan(ctx context.Context, v interface{}) error {
+func (cs *CategorySelect) Scan(ctx context.Context, v any) error {
 	if err := cs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -621,7 +622,7 @@ func (cs *CategorySelect) Scan(ctx context.Context, v interface{}) error {
 	return cs.sqlScan(ctx, v)
 }
 
-func (cs *CategorySelect) sqlScan(ctx context.Context, v interface{}) error {
+func (cs *CategorySelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := cs.sql.Query()
 	if err := cs.driver.Query(ctx, query, args, rows); err != nil {

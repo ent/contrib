@@ -277,7 +277,6 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 //		GroupBy(verysecret.FieldPassword).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretGroupBy {
 	grbuild := &VerySecretGroupBy{config: vsq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -304,7 +303,6 @@ func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretG
 //	client.VerySecret.Query().
 //		Select(verysecret.FieldPassword).
 //		Scan(ctx, &v)
-//
 func (vsq *VerySecretQuery) Select(fields ...string) *VerySecretSelect {
 	vsq.fields = append(vsq.fields, fields...)
 	selbuild := &VerySecretSelect{VerySecretQuery: vsq}
@@ -334,10 +332,10 @@ func (vsq *VerySecretQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = []*VerySecret{}
 		_spec = vsq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*VerySecret).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &VerySecret{config: vsq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -480,7 +478,7 @@ func (vsgb *VerySecretGroupBy) Aggregate(fns ...AggregateFunc) *VerySecretGroupB
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (vsgb *VerySecretGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (vsgb *VerySecretGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := vsgb.path(ctx)
 	if err != nil {
 		return err
@@ -489,7 +487,7 @@ func (vsgb *VerySecretGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return vsgb.sqlScan(ctx, v)
 }
 
-func (vsgb *VerySecretGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (vsgb *VerySecretGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range vsgb.fields {
 		if !verysecret.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -536,7 +534,7 @@ type VerySecretSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (vss *VerySecretSelect) Scan(ctx context.Context, v interface{}) error {
+func (vss *VerySecretSelect) Scan(ctx context.Context, v any) error {
 	if err := vss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -544,7 +542,7 @@ func (vss *VerySecretSelect) Scan(ctx context.Context, v interface{}) error {
 	return vss.sqlScan(ctx, v)
 }
 
-func (vss *VerySecretSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (vss *VerySecretSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := vss.sql.Query()
 	if err := vss.driver.Query(ctx, query, args, rows); err != nil {

@@ -34,7 +34,7 @@ func IDNEQ(id int) predicate.ValidMessage {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.ValidMessage {
 	return predicate.ValidMessage(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -45,7 +45,7 @@ func IDIn(ids ...int) predicate.ValidMessage {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.ValidMessage {
 	return predicate.ValidMessage(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -132,7 +132,7 @@ func NameNEQ(v string) predicate.ValidMessage {
 
 // NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -143,7 +143,7 @@ func NameIn(vs ...string) predicate.ValidMessage {
 
 // NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -231,7 +231,7 @@ func TsNEQ(v time.Time) predicate.ValidMessage {
 
 // TsIn applies the In predicate on the "ts" field.
 func TsIn(vs ...time.Time) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -242,7 +242,7 @@ func TsIn(vs ...time.Time) predicate.ValidMessage {
 
 // TsNotIn applies the NotIn predicate on the "ts" field.
 func TsNotIn(vs ...time.Time) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -295,7 +295,7 @@ func UUIDNEQ(v uuid.UUID) predicate.ValidMessage {
 
 // UUIDIn applies the In predicate on the "uuid" field.
 func UUIDIn(vs ...uuid.UUID) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -306,7 +306,7 @@ func UUIDIn(vs ...uuid.UUID) predicate.ValidMessage {
 
 // UUIDNotIn applies the NotIn predicate on the "uuid" field.
 func UUIDNotIn(vs ...uuid.UUID) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -359,7 +359,7 @@ func U8NEQ(v uint8) predicate.ValidMessage {
 
 // U8In applies the In predicate on the "u8" field.
 func U8In(vs ...uint8) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -370,7 +370,7 @@ func U8In(vs ...uint8) predicate.ValidMessage {
 
 // U8NotIn applies the NotIn predicate on the "u8" field.
 func U8NotIn(vs ...uint8) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -423,7 +423,7 @@ func Opti8NEQ(v int8) predicate.ValidMessage {
 
 // Opti8In applies the In predicate on the "opti8" field.
 func Opti8In(vs ...int8) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -434,7 +434,7 @@ func Opti8In(vs ...int8) predicate.ValidMessage {
 
 // Opti8NotIn applies the NotIn predicate on the "opti8" field.
 func Opti8NotIn(vs ...int8) predicate.ValidMessage {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

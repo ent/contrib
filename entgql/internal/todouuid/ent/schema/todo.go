@@ -40,6 +40,7 @@ func (Todo) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
 		field.UUID("category_id", uuid.UUID{}).
-			Optional(),
+			Optional().
+			Immutable(),
 	}
 }

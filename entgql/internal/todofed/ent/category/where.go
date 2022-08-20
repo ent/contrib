@@ -49,7 +49,7 @@ func IDNEQ(id int) predicate.Category {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -60,7 +60,7 @@ func IDIn(ids ...int) predicate.Category {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -141,7 +141,7 @@ func TextNEQ(v string) predicate.Category {
 
 // TextIn applies the In predicate on the "text" field.
 func TextIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -152,7 +152,7 @@ func TextIn(vs ...string) predicate.Category {
 
 // TextNotIn applies the NotIn predicate on the "text" field.
 func TextNotIn(vs ...string) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -240,7 +240,7 @@ func StatusNEQ(v Status) predicate.Category {
 
 // StatusIn applies the In predicate on the "status" field.
 func StatusIn(vs ...Status) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -251,7 +251,7 @@ func StatusIn(vs ...Status) predicate.Category {
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -276,7 +276,7 @@ func ConfigNEQ(v *schematype.CategoryConfig) predicate.Category {
 
 // ConfigIn applies the In predicate on the "config" field.
 func ConfigIn(vs ...*schematype.CategoryConfig) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -287,7 +287,7 @@ func ConfigIn(vs ...*schematype.CategoryConfig) predicate.Category {
 
 // ConfigNotIn applies the NotIn predicate on the "config" field.
 func ConfigNotIn(vs ...*schematype.CategoryConfig) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -356,7 +356,7 @@ func DurationNEQ(v time.Duration) predicate.Category {
 
 // DurationIn applies the In predicate on the "duration" field.
 func DurationIn(vs ...time.Duration) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = int64(vs[i])
 	}
@@ -367,7 +367,7 @@ func DurationIn(vs ...time.Duration) predicate.Category {
 
 // DurationNotIn applies the NotIn predicate on the "duration" field.
 func DurationNotIn(vs ...time.Duration) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = int64(vs[i])
 	}
@@ -438,7 +438,7 @@ func CountNEQ(v uint64) predicate.Category {
 
 // CountIn applies the In predicate on the "count" field.
 func CountIn(vs ...uint64) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -449,7 +449,7 @@ func CountIn(vs ...uint64) predicate.Category {
 
 // CountNotIn applies the NotIn predicate on the "count" field.
 func CountNotIn(vs ...uint64) predicate.Category {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

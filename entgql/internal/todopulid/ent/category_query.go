@@ -316,7 +316,6 @@ func (cq *CategoryQuery) WithTodos(opts ...func(*TodoQuery)) *CategoryQuery {
 //		GroupBy(category.FieldText).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupBy {
 	grbuild := &CategoryGroupBy{config: cq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -343,7 +342,6 @@ func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupB
 //	client.Category.Query().
 //		Select(category.FieldText).
 //		Scan(ctx, &v)
-//
 func (cq *CategoryQuery) Select(fields ...string) *CategorySelect {
 	cq.fields = append(cq.fields, fields...)
 	selbuild := &CategorySelect{CategoryQuery: cq}
@@ -376,10 +374,10 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 			cq.withTodos != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Category).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &Category{config: cq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -580,7 +578,7 @@ func (cgb *CategoryGroupBy) Aggregate(fns ...AggregateFunc) *CategoryGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (cgb *CategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (cgb *CategoryGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := cgb.path(ctx)
 	if err != nil {
 		return err
@@ -589,7 +587,7 @@ func (cgb *CategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return cgb.sqlScan(ctx, v)
 }
 
-func (cgb *CategoryGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (cgb *CategoryGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range cgb.fields {
 		if !category.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -636,7 +634,7 @@ type CategorySelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (cs *CategorySelect) Scan(ctx context.Context, v interface{}) error {
+func (cs *CategorySelect) Scan(ctx context.Context, v any) error {
 	if err := cs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -644,7 +642,7 @@ func (cs *CategorySelect) Scan(ctx context.Context, v interface{}) error {
 	return cs.sqlScan(ctx, v)
 }
 
-func (cs *CategorySelect) sqlScan(ctx context.Context, v interface{}) error {
+func (cs *CategorySelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := cs.sql.Query()
 	if err := cs.driver.Query(ctx, query, args, rows); err != nil {

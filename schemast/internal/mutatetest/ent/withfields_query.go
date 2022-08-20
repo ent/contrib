@@ -261,7 +261,6 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 //		GroupBy(withfields.FieldExisting).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsGroupBy {
 	grbuild := &WithFieldsGroupBy{config: wfq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsG
 //	client.WithFields.Query().
 //		Select(withfields.FieldExisting).
 //		Scan(ctx, &v)
-//
 func (wfq *WithFieldsQuery) Select(fields ...string) *WithFieldsSelect {
 	wfq.fields = append(wfq.fields, fields...)
 	selbuild := &WithFieldsSelect{WithFieldsQuery: wfq}
@@ -318,10 +316,10 @@ func (wfq *WithFieldsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		nodes = []*WithFields{}
 		_spec = wfq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*WithFields).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &WithFields{config: wfq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (wfgb *WithFieldsGroupBy) Aggregate(fns ...AggregateFunc) *WithFieldsGroupB
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (wfgb *WithFieldsGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (wfgb *WithFieldsGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := wfgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (wfgb *WithFieldsGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return wfgb.sqlScan(ctx, v)
 }
 
-func (wfgb *WithFieldsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (wfgb *WithFieldsGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range wfgb.fields {
 		if !withfields.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type WithFieldsSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (wfs *WithFieldsSelect) Scan(ctx context.Context, v interface{}) error {
+func (wfs *WithFieldsSelect) Scan(ctx context.Context, v any) error {
 	if err := wfs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (wfs *WithFieldsSelect) Scan(ctx context.Context, v interface{}) error {
 	return wfs.sqlScan(ctx, v)
 }
 
-func (wfs *WithFieldsSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (wfs *WithFieldsSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := wfs.sql.Query()
 	if err := wfs.driver.Query(ctx, query, args, rows); err != nil {

@@ -41,6 +41,7 @@ func (Todo) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("category_id").
 			GoType(pulid.ID("")).
-			Optional(),
+			Optional().
+			Immutable(),
 	}
 }

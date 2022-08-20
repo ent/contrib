@@ -21,9 +21,7 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/predicate"
-	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
@@ -89,26 +87,6 @@ func (tu *TodoUpdate) ClearBlob() *TodoUpdate {
 	return tu
 }
 
-// SetCategoryID sets the "category_id" field.
-func (tu *TodoUpdate) SetCategoryID(bi bigintgql.BigInt) *TodoUpdate {
-	tu.mutation.SetCategoryID(bi)
-	return tu
-}
-
-// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
-func (tu *TodoUpdate) SetNillableCategoryID(bi *bigintgql.BigInt) *TodoUpdate {
-	if bi != nil {
-		tu.SetCategoryID(*bi)
-	}
-	return tu
-}
-
-// ClearCategoryID clears the value of the "category_id" field.
-func (tu *TodoUpdate) ClearCategoryID() *TodoUpdate {
-	tu.mutation.ClearCategoryID()
-	return tu
-}
-
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tu *TodoUpdate) SetParentID(id string) *TodoUpdate {
 	tu.mutation.SetParentID(id)
@@ -141,11 +119,6 @@ func (tu *TodoUpdate) AddChildren(t ...*Todo) *TodoUpdate {
 		ids[i] = t[i].ID
 	}
 	return tu.AddChildIDs(ids...)
-}
-
-// SetCategory sets the "category" edge to the Category entity.
-func (tu *TodoUpdate) SetCategory(c *Category) *TodoUpdate {
-	return tu.SetCategoryID(c.ID)
 }
 
 // SetSecretID sets the "secret" edge to the VerySecret entity by ID.
@@ -197,12 +170,6 @@ func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 		ids[i] = t[i].ID
 	}
 	return tu.RemoveChildIDs(ids...)
-}
-
-// ClearCategory clears the "category" edge to the Category entity.
-func (tu *TodoUpdate) ClearCategory() *TodoUpdate {
-	tu.mutation.ClearCategory()
-	return tu
 }
 
 // ClearSecret clears the "secret" edge to the VerySecret entity.
@@ -434,41 +401,6 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if tu.mutation.CategoryCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   todo.CategoryTable,
-			Columns: []string{todo.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: category.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tu.mutation.CategoryIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   todo.CategoryTable,
-			Columns: []string{todo.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: category.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if tu.mutation.SecretCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -568,26 +500,6 @@ func (tuo *TodoUpdateOne) ClearBlob() *TodoUpdateOne {
 	return tuo
 }
 
-// SetCategoryID sets the "category_id" field.
-func (tuo *TodoUpdateOne) SetCategoryID(bi bigintgql.BigInt) *TodoUpdateOne {
-	tuo.mutation.SetCategoryID(bi)
-	return tuo
-}
-
-// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
-func (tuo *TodoUpdateOne) SetNillableCategoryID(bi *bigintgql.BigInt) *TodoUpdateOne {
-	if bi != nil {
-		tuo.SetCategoryID(*bi)
-	}
-	return tuo
-}
-
-// ClearCategoryID clears the value of the "category_id" field.
-func (tuo *TodoUpdateOne) ClearCategoryID() *TodoUpdateOne {
-	tuo.mutation.ClearCategoryID()
-	return tuo
-}
-
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tuo *TodoUpdateOne) SetParentID(id string) *TodoUpdateOne {
 	tuo.mutation.SetParentID(id)
@@ -620,11 +532,6 @@ func (tuo *TodoUpdateOne) AddChildren(t ...*Todo) *TodoUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return tuo.AddChildIDs(ids...)
-}
-
-// SetCategory sets the "category" edge to the Category entity.
-func (tuo *TodoUpdateOne) SetCategory(c *Category) *TodoUpdateOne {
-	return tuo.SetCategoryID(c.ID)
 }
 
 // SetSecretID sets the "secret" edge to the VerySecret entity by ID.
@@ -676,12 +583,6 @@ func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return tuo.RemoveChildIDs(ids...)
-}
-
-// ClearCategory clears the "category" edge to the Category entity.
-func (tuo *TodoUpdateOne) ClearCategory() *TodoUpdateOne {
-	tuo.mutation.ClearCategory()
-	return tuo
 }
 
 // ClearSecret clears the "secret" edge to the VerySecret entity.
@@ -935,41 +836,6 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: todo.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if tuo.mutation.CategoryCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   todo.CategoryTable,
-			Columns: []string{todo.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: category.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tuo.mutation.CategoryIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   todo.CategoryTable,
-			Columns: []string{todo.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: category.FieldID,
 				},
 			},
 		}

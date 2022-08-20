@@ -40,6 +40,7 @@ func (Todo) Fields() []ent.Field {
 			Default("plain"),
 		field.String("category_id").
 			GoType(bigintgql.BigInt{}).
-			Optional(),
+			Optional().
+			Immutable(),
 	}
 }

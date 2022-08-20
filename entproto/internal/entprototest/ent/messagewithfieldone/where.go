@@ -31,7 +31,7 @@ func IDNEQ(id int) predicate.MessageWithFieldOne {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.MessageWithFieldOne {
 	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.MessageWithFieldOne {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.MessageWithFieldOne {
 	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -101,7 +101,7 @@ func FieldOneNEQ(v int32) predicate.MessageWithFieldOne {
 
 // FieldOneIn applies the In predicate on the "field_one" field.
 func FieldOneIn(vs ...int32) predicate.MessageWithFieldOne {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -112,7 +112,7 @@ func FieldOneIn(vs ...int32) predicate.MessageWithFieldOne {
 
 // FieldOneNotIn applies the NotIn predicate on the "field_one" field.
 func FieldOneNotIn(vs ...int32) predicate.MessageWithFieldOne {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}

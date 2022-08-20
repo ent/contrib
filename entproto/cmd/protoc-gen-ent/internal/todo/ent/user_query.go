@@ -261,7 +261,6 @@ func (uq *UserQuery) Clone() *UserQuery {
 //		GroupBy(user.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 	grbuild := &UserGroupBy{config: uq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 //	client.User.Query().
 //		Select(user.FieldName).
 //		Scan(ctx, &v)
-//
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.fields = append(uq.fields, fields...)
 	selbuild := &UserSelect{UserQuery: uq}
@@ -318,10 +316,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes = []*User{}
 		_spec = uq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (ugb *UserGroupBy) Aggregate(fns ...AggregateFunc) *UserGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (ugb *UserGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (ugb *UserGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := ugb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (ugb *UserGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return ugb.sqlScan(ctx, v)
 }
 
-func (ugb *UserGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (ugb *UserGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range ugb.fields {
 		if !user.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type UserSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (us *UserSelect) Scan(ctx context.Context, v interface{}) error {
+func (us *UserSelect) Scan(ctx context.Context, v any) error {
 	if err := us.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (us *UserSelect) Scan(ctx context.Context, v interface{}) error {
 	return us.sqlScan(ctx, v)
 }
 
-func (us *UserSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (us *UserSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := us.sql.Query()
 	if err := us.driver.Query(ctx, query, args, rows); err != nil {

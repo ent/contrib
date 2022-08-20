@@ -261,7 +261,6 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 //		GroupBy(messagewithpackagename.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string) *MessageWithPackageNameGroupBy {
 	grbuild := &MessageWithPackageNameGroupBy{config: mwpnq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string
 //	client.MessageWithPackageName.Query().
 //		Select(messagewithpackagename.FieldName).
 //		Scan(ctx, &v)
-//
 func (mwpnq *MessageWithPackageNameQuery) Select(fields ...string) *MessageWithPackageNameSelect {
 	mwpnq.fields = append(mwpnq.fields, fields...)
 	selbuild := &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}
@@ -318,10 +316,10 @@ func (mwpnq *MessageWithPackageNameQuery) sqlAll(ctx context.Context, hooks ...q
 		nodes = []*MessageWithPackageName{}
 		_spec = mwpnq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageWithPackageName).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MessageWithPackageName{config: mwpnq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (mwpngb *MessageWithPackageNameGroupBy) Aggregate(fns ...AggregateFunc) *Me
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwpngb *MessageWithPackageNameGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwpngb *MessageWithPackageNameGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwpngb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (mwpngb *MessageWithPackageNameGroupBy) Scan(ctx context.Context, v interfa
 	return mwpngb.sqlScan(ctx, v)
 }
 
-func (mwpngb *MessageWithPackageNameGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwpngb *MessageWithPackageNameGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwpngb.fields {
 		if !messagewithpackagename.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type MessageWithPackageNameSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v any) error {
 	if err := mwpns.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v interface
 	return mwpns.sqlScan(ctx, v)
 }
 
-func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwpns.sql.Query()
 	if err := mwpns.driver.Query(ctx, query, args, rows); err != nil {

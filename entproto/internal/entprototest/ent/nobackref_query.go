@@ -334,10 +334,10 @@ func (nbq *NoBackrefQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*N
 			nbq.withImages != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*NoBackref).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &NoBackref{config: nbq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -509,7 +509,7 @@ func (nbgb *NoBackrefGroupBy) Aggregate(fns ...AggregateFunc) *NoBackrefGroupBy 
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (nbgb *NoBackrefGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (nbgb *NoBackrefGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := nbgb.path(ctx)
 	if err != nil {
 		return err
@@ -518,7 +518,7 @@ func (nbgb *NoBackrefGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return nbgb.sqlScan(ctx, v)
 }
 
-func (nbgb *NoBackrefGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (nbgb *NoBackrefGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range nbgb.fields {
 		if !nobackref.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -565,7 +565,7 @@ type NoBackrefSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (nbs *NoBackrefSelect) Scan(ctx context.Context, v interface{}) error {
+func (nbs *NoBackrefSelect) Scan(ctx context.Context, v any) error {
 	if err := nbs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -573,7 +573,7 @@ func (nbs *NoBackrefSelect) Scan(ctx context.Context, v interface{}) error {
 	return nbs.sqlScan(ctx, v)
 }
 
-func (nbs *NoBackrefSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (nbs *NoBackrefSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := nbs.sql.Query()
 	if err := nbs.driver.Query(ctx, query, args, rows); err != nil {

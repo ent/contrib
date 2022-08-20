@@ -294,10 +294,10 @@ func (tmsq *TwoMethodServiceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 		nodes = []*TwoMethodService{}
 		_spec = tmsq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*TwoMethodService).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &TwoMethodService{config: tmsq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -429,7 +429,7 @@ func (tmsgb *TwoMethodServiceGroupBy) Aggregate(fns ...AggregateFunc) *TwoMethod
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (tmsgb *TwoMethodServiceGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (tmsgb *TwoMethodServiceGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := tmsgb.path(ctx)
 	if err != nil {
 		return err
@@ -438,7 +438,7 @@ func (tmsgb *TwoMethodServiceGroupBy) Scan(ctx context.Context, v interface{}) e
 	return tmsgb.sqlScan(ctx, v)
 }
 
-func (tmsgb *TwoMethodServiceGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (tmsgb *TwoMethodServiceGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range tmsgb.fields {
 		if !twomethodservice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -485,7 +485,7 @@ type TwoMethodServiceSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v interface{}) error {
+func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := tmss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -493,7 +493,7 @@ func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v interface{}) err
 	return tmss.sqlScan(ctx, v)
 }
 
-func (tmss *TwoMethodServiceSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (tmss *TwoMethodServiceSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := tmss.sql.Query()
 	if err := tmss.driver.Query(ctx, query, args, rows); err != nil {

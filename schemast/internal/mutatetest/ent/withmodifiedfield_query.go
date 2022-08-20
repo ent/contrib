@@ -298,7 +298,6 @@ func (wmfq *WithModifiedFieldQuery) WithOwner(opts ...func(*UserQuery)) *WithMod
 //		GroupBy(withmodifiedfield.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *WithModifiedFieldGroupBy {
 	grbuild := &WithModifiedFieldGroupBy{config: wmfq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *Wit
 //	client.WithModifiedField.Query().
 //		Select(withmodifiedfield.FieldName).
 //		Scan(ctx, &v)
-//
 func (wmfq *WithModifiedFieldQuery) Select(fields ...string) *WithModifiedFieldSelect {
 	wmfq.fields = append(wmfq.fields, fields...)
 	selbuild := &WithModifiedFieldSelect{WithModifiedFieldQuery: wmfq}
@@ -365,10 +363,10 @@ func (wmfq *WithModifiedFieldQuery) sqlAll(ctx context.Context, hooks ...queryHo
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, withmodifiedfield.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*WithModifiedField).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &WithModifiedField{config: wmfq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -537,7 +535,7 @@ func (wmfgb *WithModifiedFieldGroupBy) Aggregate(fns ...AggregateFunc) *WithModi
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (wmfgb *WithModifiedFieldGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (wmfgb *WithModifiedFieldGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := wmfgb.path(ctx)
 	if err != nil {
 		return err
@@ -546,7 +544,7 @@ func (wmfgb *WithModifiedFieldGroupBy) Scan(ctx context.Context, v interface{}) 
 	return wmfgb.sqlScan(ctx, v)
 }
 
-func (wmfgb *WithModifiedFieldGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (wmfgb *WithModifiedFieldGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range wmfgb.fields {
 		if !withmodifiedfield.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -593,7 +591,7 @@ type WithModifiedFieldSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v interface{}) error {
+func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v any) error {
 	if err := wmfs.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -601,7 +599,7 @@ func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v interface{}) er
 	return wmfs.sqlScan(ctx, v)
 }
 
-func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := wmfs.sql.Query()
 	if err := wmfs.driver.Query(ctx, query, args, rows); err != nil {

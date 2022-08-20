@@ -261,7 +261,6 @@ func (mwsq *MessageWithStringsQuery) Clone() *MessageWithStringsQuery {
 //		GroupBy(messagewithstrings.FieldStrings).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwsq *MessageWithStringsQuery) GroupBy(field string, fields ...string) *MessageWithStringsGroupBy {
 	grbuild := &MessageWithStringsGroupBy{config: mwsq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwsq *MessageWithStringsQuery) GroupBy(field string, fields ...string) *Me
 //	client.MessageWithStrings.Query().
 //		Select(messagewithstrings.FieldStrings).
 //		Scan(ctx, &v)
-//
 func (mwsq *MessageWithStringsQuery) Select(fields ...string) *MessageWithStringsSelect {
 	mwsq.fields = append(mwsq.fields, fields...)
 	selbuild := &MessageWithStringsSelect{MessageWithStringsQuery: mwsq}
@@ -318,10 +316,10 @@ func (mwsq *MessageWithStringsQuery) sqlAll(ctx context.Context, hooks ...queryH
 		nodes = []*MessageWithStrings{}
 		_spec = mwsq.querySpec()
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MessageWithStrings).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &MessageWithStrings{config: mwsq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
@@ -453,7 +451,7 @@ func (mwsgb *MessageWithStringsGroupBy) Aggregate(fns ...AggregateFunc) *Message
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (mwsgb *MessageWithStringsGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (mwsgb *MessageWithStringsGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := mwsgb.path(ctx)
 	if err != nil {
 		return err
@@ -462,7 +460,7 @@ func (mwsgb *MessageWithStringsGroupBy) Scan(ctx context.Context, v interface{})
 	return mwsgb.sqlScan(ctx, v)
 }
 
-func (mwsgb *MessageWithStringsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (mwsgb *MessageWithStringsGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range mwsgb.fields {
 		if !messagewithstrings.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -509,7 +507,7 @@ type MessageWithStringsSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v interface{}) error {
+func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v any) error {
 	if err := mwss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -517,7 +515,7 @@ func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v interface{}) e
 	return mwss.sqlScan(ctx, v)
 }
 
-func (mwss *MessageWithStringsSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (mwss *MessageWithStringsSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := mwss.sql.Query()
 	if err := mwss.driver.Query(ctx, query, args, rows); err != nil {

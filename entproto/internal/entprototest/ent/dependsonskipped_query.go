@@ -298,7 +298,6 @@ func (dosq *DependsOnSkippedQuery) WithSkipped(opts ...func(*ImplicitSkippedMess
 //		GroupBy(dependsonskipped.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *DependsOnSkippedGroupBy {
 	grbuild := &DependsOnSkippedGroupBy{config: dosq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *Depe
 //	client.DependsOnSkipped.Query().
 //		Select(dependsonskipped.FieldName).
 //		Scan(ctx, &v)
-//
 func (dosq *DependsOnSkippedQuery) Select(fields ...string) *DependsOnSkippedSelect {
 	dosq.fields = append(dosq.fields, fields...)
 	selbuild := &DependsOnSkippedSelect{DependsOnSkippedQuery: dosq}
@@ -358,10 +356,10 @@ func (dosq *DependsOnSkippedQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 			dosq.withSkipped != nil,
 		}
 	)
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*DependsOnSkipped).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &DependsOnSkipped{config: dosq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -533,7 +531,7 @@ func (dosgb *DependsOnSkippedGroupBy) Aggregate(fns ...AggregateFunc) *DependsOn
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (dosgb *DependsOnSkippedGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (dosgb *DependsOnSkippedGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := dosgb.path(ctx)
 	if err != nil {
 		return err
@@ -542,7 +540,7 @@ func (dosgb *DependsOnSkippedGroupBy) Scan(ctx context.Context, v interface{}) e
 	return dosgb.sqlScan(ctx, v)
 }
 
-func (dosgb *DependsOnSkippedGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (dosgb *DependsOnSkippedGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range dosgb.fields {
 		if !dependsonskipped.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -589,7 +587,7 @@ type DependsOnSkippedSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v interface{}) error {
+func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v any) error {
 	if err := doss.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -597,7 +595,7 @@ func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v interface{}) err
 	return doss.sqlScan(ctx, v)
 }
 
-func (doss *DependsOnSkippedSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (doss *DependsOnSkippedSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := doss.sql.Query()
 	if err := doss.driver.Query(ctx, query, args, rows); err != nil {

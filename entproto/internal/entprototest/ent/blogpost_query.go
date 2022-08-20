@@ -335,7 +335,6 @@ func (bpq *BlogPostQuery) WithCategories(opts ...func(*CategoryQuery)) *BlogPost
 //		GroupBy(blogpost.FieldTitle).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroupBy {
 	grbuild := &BlogPostGroupBy{config: bpq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -362,7 +361,6 @@ func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroup
 //	client.BlogPost.Query().
 //		Select(blogpost.FieldTitle).
 //		Scan(ctx, &v)
-//
 func (bpq *BlogPostQuery) Select(fields ...string) *BlogPostSelect {
 	bpq.fields = append(bpq.fields, fields...)
 	selbuild := &BlogPostSelect{BlogPostQuery: bpq}
@@ -403,10 +401,10 @@ func (bpq *BlogPostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Bl
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, blogpost.ForeignKeys...)
 	}
-	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
+	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*BlogPost).scanValues(nil, columns)
 	}
-	_spec.Assign = func(columns []string, values []interface{}) error {
+	_spec.Assign = func(columns []string, values []any) error {
 		node := &BlogPost{config: bpq.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
@@ -486,17 +484,20 @@ func (bpq *BlogPostQuery) loadCategories(ctx context.Context, query *CategoryQue
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
 	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
 		assign := spec.Assign
 		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]interface{}, error) {
+		spec.ScanValues = func(columns []string) ([]any, error) {
 			values, err := values(columns[1:])
 			if err != nil {
 				return nil, err
 			}
-			return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			return append([]any{new(sql.NullInt64)}, values...), nil
 		}
-		spec.Assign = func(columns []string, values []interface{}) error {
+		spec.Assign = func(columns []string, values []any) error {
 			outValue := int(values[0].(*sql.NullInt64).Int64)
 			inValue := int(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
@@ -637,7 +638,7 @@ func (bpgb *BlogPostGroupBy) Aggregate(fns ...AggregateFunc) *BlogPostGroupBy {
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (bpgb *BlogPostGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (bpgb *BlogPostGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := bpgb.path(ctx)
 	if err != nil {
 		return err
@@ -646,7 +647,7 @@ func (bpgb *BlogPostGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return bpgb.sqlScan(ctx, v)
 }
 
-func (bpgb *BlogPostGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (bpgb *BlogPostGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range bpgb.fields {
 		if !blogpost.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
@@ -693,7 +694,7 @@ type BlogPostSelect struct {
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (bps *BlogPostSelect) Scan(ctx context.Context, v interface{}) error {
+func (bps *BlogPostSelect) Scan(ctx context.Context, v any) error {
 	if err := bps.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -701,7 +702,7 @@ func (bps *BlogPostSelect) Scan(ctx context.Context, v interface{}) error {
 	return bps.sqlScan(ctx, v)
 }
 
-func (bps *BlogPostSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (bps *BlogPostSelect) sqlScan(ctx context.Context, v any) error {
 	rows := &sql.Rows{}
 	query, args := bps.sql.Query()
 	if err := bps.driver.Query(ctx, query, args, rows); err != nil {

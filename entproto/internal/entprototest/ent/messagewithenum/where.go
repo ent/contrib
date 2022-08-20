@@ -31,7 +31,7 @@ func IDNEQ(id int) predicate.MessageWithEnum {
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.MessageWithEnum {
 	return predicate.MessageWithEnum(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -42,7 +42,7 @@ func IDIn(ids ...int) predicate.MessageWithEnum {
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.MessageWithEnum {
 	return predicate.MessageWithEnum(func(s *sql.Selector) {
-		v := make([]interface{}, len(ids))
+		v := make([]any, len(ids))
 		for i := range v {
 			v[i] = ids[i]
 		}
@@ -94,7 +94,7 @@ func EnumTypeNEQ(v EnumType) predicate.MessageWithEnum {
 
 // EnumTypeIn applies the In predicate on the "enum_type" field.
 func EnumTypeIn(vs ...EnumType) predicate.MessageWithEnum {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -105,7 +105,7 @@ func EnumTypeIn(vs ...EnumType) predicate.MessageWithEnum {
 
 // EnumTypeNotIn applies the NotIn predicate on the "enum_type" field.
 func EnumTypeNotIn(vs ...EnumType) predicate.MessageWithEnum {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -130,7 +130,7 @@ func EnumWithoutDefaultNEQ(v EnumWithoutDefault) predicate.MessageWithEnum {
 
 // EnumWithoutDefaultIn applies the In predicate on the "enum_without_default" field.
 func EnumWithoutDefaultIn(vs ...EnumWithoutDefault) predicate.MessageWithEnum {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
@@ -141,7 +141,7 @@ func EnumWithoutDefaultIn(vs ...EnumWithoutDefault) predicate.MessageWithEnum {
 
 // EnumWithoutDefaultNotIn applies the NotIn predicate on the "enum_without_default" field.
 func EnumWithoutDefaultNotIn(vs ...EnumWithoutDefault) predicate.MessageWithEnum {
-	v := make([]interface{}, len(vs))
+	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
