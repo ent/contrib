@@ -63,7 +63,8 @@ func (Todo) Fields() []ent.Field {
 			).
 			Optional(),
 		field.Int("category_id").
-			Optional(),
+			Optional().
+			Immutable(),
 	}
 }
 
@@ -80,7 +81,8 @@ func (Todo) Edges() []ent.Edge {
 		edge.From("category", Category.Type).
 			Ref("todos").
 			Field("category_id").
-			Unique(),
+			Unique().
+			Immutable(),
 		edge.To("secret", VerySecret.Type).
 			Unique(),
 	}
