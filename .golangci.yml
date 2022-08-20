@@ -1,4 +1,11 @@
+run:
+  go: '1.19'
+  timeout: 3m
+
 linters-settings:
+  gosec:
+    config:
+      G306: "0644"
   goheader:
     template: |-
       Copyright 2019-present Facebook
@@ -14,10 +21,6 @@ linters-settings:
       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
       See the License for the specific language governing permissions and
       limitations under the License.
-  gosec:
-    config:
-      G306: "0644"
-
 linters:
   disable-all: true
   enable:
@@ -27,15 +30,13 @@ linters:
     - dogsled
     - dupl
     - errcheck
-    - errorlint
     - gocritic
-    - gofmt
+    # - gofmt; Enable back when upgrading CI to Go 1.20.
     - goheader
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - misspell
     - staticcheck
     - structcheck
@@ -46,5 +47,15 @@ linters:
     - varcheck
     - whitespace
 
-run:
-  go: '1.17'
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl
+        - funlen
+        - gosec
+        - gocritic
+    - path: \.go
+      linters:
+        - staticcheck
+      text: SA1019
