@@ -240,9 +240,7 @@ func (m *MutationDescriptor) InputFields() ([]*InputFieldDescriptor, error) {
 		if err != nil {
 			return nil, err
 		}
-		if (m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
-			(!m.IsCreate && (f.Immutable || ant.Skip.Is(SkipMutationUpdateInput)) ||
-				f.IsEdgeField()) {
+		if f.IsEdgeField() || m.skip(f.Immutable, ant.Skip) {
 			continue
 		}
 
@@ -267,14 +265,19 @@ func (m *MutationDescriptor) InputEdges() ([]*gen.Edge, error) {
 		if err != nil {
 			return nil, err
 		}
-		if e.Type.IsEdgeSchema() ||
-			(m.IsCreate && ant.Skip.Is(SkipMutationCreateInput)) ||
-			(!m.IsCreate && ant.Skip.Is(SkipMutationUpdateInput)) {
+		if e.Type.IsEdgeSchema() || m.skip(e.Immutable, ant.Skip) {
 			continue
 		}
 		edges = append(edges, e)
 	}
 	return edges, nil
+}
+
+func (m *MutationDescriptor) skip(immutable bool, skip SkipMode) bool {
+	if m.IsCreate {
+		return skip.Is(SkipMutationCreateInput)
+	}
+	return immutable || skip.Is(SkipMutationUpdateInput)
 }
 
 // mutationInputs returns the list of input types for the mutation.
