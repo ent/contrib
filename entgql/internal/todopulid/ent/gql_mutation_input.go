@@ -59,6 +59,70 @@ func (c *TodoCreate) SetInput(i CreateTodoInput) *TodoCreate {
 	return c
 }
 
+// UpdateTodoInput represents a mutation input for updating todos.
+type UpdateTodoInput struct {
+	Status         *todo.Status
+	Priority       *int
+	Text           *string
+	ClearParent    bool
+	ParentID       *pulid.ID
+	AddChildIDs    []pulid.ID
+	RemoveChildIDs []pulid.ID
+	ClearCategory  bool
+	CategoryID     *pulid.ID
+	ClearSecret    bool
+	SecretID       *pulid.ID
+}
+
+// Mutate applies the UpdateTodoInput on the TodoMutation builder.
+func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.Priority; v != nil {
+		m.SetPriority(*v)
+	}
+	if v := i.Text; v != nil {
+		m.SetText(*v)
+	}
+	if i.ClearParent {
+		m.ClearParent()
+	}
+	if v := i.ParentID; v != nil {
+		m.SetParentID(*v)
+	}
+	if v := i.AddChildIDs; len(v) > 0 {
+		m.AddChildIDs(v...)
+	}
+	if v := i.RemoveChildIDs; len(v) > 0 {
+		m.RemoveChildIDs(v...)
+	}
+	if i.ClearCategory {
+		m.ClearCategory()
+	}
+	if v := i.CategoryID; v != nil {
+		m.SetCategoryID(*v)
+	}
+	if i.ClearSecret {
+		m.ClearSecret()
+	}
+	if v := i.SecretID; v != nil {
+		m.SetSecretID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateTodoInput on the TodoUpdate builder.
+func (c *TodoUpdate) SetInput(i UpdateTodoInput) *TodoUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateTodoInput on the TodoUpdateOne builder.
+func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
 	Name      *string
