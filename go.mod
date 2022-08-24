@@ -20,11 +20,11 @@ require (
 	github.com/vektah/gqlparser/v2 v2.4.3-0.20220508162109-d3d9eb001575
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
 	go.uber.org/multierr v1.7.0
-	go.uber.org/zap v1.17.0
+	go.uber.org/zap v1.23.0
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/tools v0.1.13-0.20220819182638-587a15310bdd
 	google.golang.org/grpc v1.47.0
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
