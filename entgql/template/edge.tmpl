@@ -24,15 +24,15 @@ import "context"
 				if IsNotLoaded(err) {
 					result, err = {{ $r }}.Query{{ $e.StructField }}().All(ctx)
 				}
-				return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+				return result, err
 			}
 		{{ else }}
-			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
 				result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
 				if IsNotLoaded(err) {
-					result, err = {{ $r }}.Query{{ $e.StructField }}().{{ if $e.Unique }}Only{{ else }}All{{ end }}(ctx)
+					result, err = {{ $r }}.Query{{ $e.StructField }}().Only(ctx)
 				}
-				return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+				return result, {{ if $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
 			}
 		{{ end }}
 	{{ end }}
