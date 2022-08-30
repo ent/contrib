@@ -18,6 +18,14 @@ import "context"
 			{{ with extend $n "Node" $n "Edge" $e "Index" $i }}
 				{{ template "gql_edge/helper/paginate" . }}
 			{{ end }}
+		{{ else if not $e.Unique }}
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
+				result, err := {{ $r }}.Named{{ $e.StructField }}(graphql.GetFieldContext(ctx).Field.Alias)
+				if IsNotLoaded(err) {
+					result, err = {{ $r }}.Query{{ $e.StructField }}().All(ctx)
+				}
+				return result, {{ if and $e.Unique $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+			}
 		{{ else }}
 			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ({{ if not $e.Unique }}[]{{ end }}*{{ $e.Type.Name }}, error) {
 				result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()

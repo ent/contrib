@@ -16,10 +16,14 @@
 
 package ent
 
-import "context"
+import (
+	"context"
+
+	"github.com/99designs/gqlgen/graphql"
+)
 
 func (c *Category) Todos(ctx context.Context) ([]*Todo, error) {
-	result, err := c.Edges.TodosOrErr()
+	result, err := c.NamedTodos(graphql.GetFieldContext(ctx).Field.Alias)
 	if IsNotLoaded(err) {
 		result, err = c.QueryTodos().All(ctx)
 	}
@@ -35,7 +39,7 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 }
 
 func (t *Todo) Children(ctx context.Context) ([]*Todo, error) {
-	result, err := t.Edges.ChildrenOrErr()
+	result, err := t.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
 	if IsNotLoaded(err) {
 		result, err = t.QueryChildren().All(ctx)
 	}
