@@ -1313,6 +1313,7 @@ func TestNestedConnection(t *testing.T) {
 		bulkU[i] = ec.User.Create().SetName(fmt.Sprintf("user-%d", i)).AddGroups(groups[:len(groups)-i]...)
 	}
 	users := ec.User.CreateBulk(bulkU...).SaveX(ctx)
+	users[0].Update().AddFriends(users[1:]...).SaveX(ctx)
 
 	t.Run("TotalCount", func(t *testing.T) {
 		var (
@@ -1324,6 +1325,9 @@ func TestNestedConnection(t *testing.T) {
 							name
 							groups {
 								totalCount
+							}
+							friends {
+								name
 							}
 						}
 					}
@@ -1338,6 +1342,9 @@ func TestNestedConnection(t *testing.T) {
 							Groups struct {
 								TotalCount int
 							}
+							Friends []struct {
+								Name string
+							}
 						}
 					}
 				}
@@ -1348,8 +1355,9 @@ func TestNestedConnection(t *testing.T) {
 		require.NoError(t, err)
 		// One query for loading all users, and one for getting the groups of each user.
 		// The totalCount of the root query can be inferred from the length of the user edges.
-		require.EqualValues(t, 2, count.value())
+		require.EqualValues(t, 3, count.value())
 		require.Equal(t, 10, rsp.Users.TotalCount)
+		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends))
 
 		for n := 1; n <= 10; n++ {
 			count.reset()
@@ -1357,7 +1365,7 @@ func TestNestedConnection(t *testing.T) {
 			require.NoError(t, err)
 			// Two queries for getting the users and their totalCount.
 			// And another one for getting the totalCount of each user.
-			require.EqualValues(t, 3, count.value())
+			require.EqualValues(t, 4, count.value())
 			require.Equal(t, 10, rsp.Users.TotalCount)
 			for i, e := range rsp.Users.Edges {
 				require.Equal(t, users[i].Name, e.Node.Name)

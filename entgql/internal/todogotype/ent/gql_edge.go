@@ -137,7 +137,7 @@ func (u *User) Groups(
 }
 
 func (u *User) Friends(ctx context.Context) ([]*User, error) {
-	result, err := u.Edges.FriendsOrErr()
+	result, err := u.NamedFriends(graphql.GetFieldContext(ctx).Field.Alias)
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriends().All(ctx)
 	}
@@ -145,7 +145,7 @@ func (u *User) Friends(ctx context.Context) ([]*User, error) {
 }
 
 func (u *User) Friendships(ctx context.Context) ([]*Friendship, error) {
-	result, err := u.Edges.FriendshipsOrErr()
+	result, err := u.NamedFriendships(graphql.GetFieldContext(ctx).Field.Alias)
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriendships().All(ctx)
 	}
