@@ -23,7 +23,7 @@ require (
 	go.uber.org/zap v1.23.0
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/tools v0.1.13-0.20220819182638-587a15310bdd
-	google.golang.org/grpc v1.47.0
+	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -38,7 +38,6 @@ require (
 	github.com/go-faster/jx v0.25.0 // indirect
 	github.com/goccy/go-yaml v1.9.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/addlicense v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
