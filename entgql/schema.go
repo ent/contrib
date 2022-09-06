@@ -22,7 +22,6 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
-	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 )
@@ -87,9 +86,6 @@ var (
 			},
 		},
 	}
-
-	inputObjectFilter    = func(t string) bool { return strings.HasSuffix(t, "Input") }
-	nonInputObjectFilter = func(t string) bool { return !inputObjectFilter(t) }
 )
 
 type schemaGenerator struct {
@@ -98,15 +94,16 @@ type schemaGenerator struct {
 	genWhereInput bool
 	genMutations  bool
 
-	cfg         *config.Config
-	scalarFunc  func(*gen.Field, gen.Op) string
-	schemaHooks []SchemaHook
+	configMapFunc func(*gen.Field, ast.DefinitionKind) string
+	scalarFunc    func(*gen.Field, gen.Op) string
+	schemaHooks   []SchemaHook
 }
 
 func newSchemaGenerator() *schemaGenerator {
 	return &schemaGenerator{
-		relaySpec:    true,
-		genMutations: true,
+		configMapFunc: func(*gen.Field, ast.DefinitionKind) string { return "" },
+		genMutations:  true,
+		relaySpec:     true,
 	}
 }
 
@@ -175,7 +172,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					continue
 				}
 				if f.IsEnum() {
-					gqlType := e.mapScalar(gqlType, f, ant, nonInputObjectFilter)
+					gqlType := e.mapScalar(gqlType, f, ant, ast.Object)
 					if gqlType == "" {
 						return errors.New("unable to map enum field " + f.Name)
 					}
@@ -543,7 +540,7 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if err != nil {
 				return nil, err
 			}
-			scalar := e.mapScalar(gqlType, f.Field, ant, inputObjectFilter)
+			scalar := e.mapScalar(gqlType, f.Field, ant, ast.InputObject)
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
@@ -628,15 +625,15 @@ func (e *schemaGenerator) fieldDefinitionOp(gqlType string, f *gen.Field, ant *A
 	case op.Niladic():
 		def.Type = namedType("Boolean", true)
 	case op.Variadic():
-		def.Type = listNamedType(e.mapScalar(gqlType, f, ant, inputObjectFilter), true)
+		def.Type = listNamedType(e.mapScalar(gqlType, f, ant, ast.InputObject), true)
 	default:
-		def.Type = namedType(e.mapScalar(gqlType, f, ant, inputObjectFilter), true)
+		def.Type = namedType(e.mapScalar(gqlType, f, ant, ast.InputObject), true)
 	}
 	return def
 }
 
 func (e *schemaGenerator) typeFromField(gqlType string, f *gen.Field, ant *Annotation) (*ast.Type, error) {
-	if scalar := e.mapScalar(gqlType, f, ant, nonInputObjectFilter); scalar != "" {
+	if scalar := e.mapScalar(gqlType, f, ant, ast.Object); scalar != "" {
 		return namedType(scalar, f.Optional), nil
 	}
 
@@ -651,7 +648,7 @@ func (e *schemaGenerator) typeFromField(gqlType string, f *gen.Field, ant *Annot
 }
 
 // mapScalar provides maps an ent.Schema type into GraphQL scalar type.
-func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotation, typeFilter func(string) bool) string {
+func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotation, kind ast.DefinitionKind) string {
 	if ant != nil && ant.Type != "" {
 		return ant.Type
 	}
@@ -669,17 +666,6 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 		scalar = "String"
 	case t == field.TypeBool:
 		scalar = "Boolean"
-	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
-		if typ, ok := e.hasMapping(f, typeFilter); ok {
-			scalar = typ
-		} else {
-			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
-		}
-		if f.IsEnum() {
-			// Use the GQL type as enum prefix. e.g. Todo.status
-			// will generate an enum named "TodoStatus".
-			scalar = gqlType + scalar
-		}
 	case t == field.TypeJSON:
 		scalar = ""
 		if f.Type.RType != nil {
@@ -695,53 +681,19 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 				}
 			}
 		}
+	case strings.ContainsRune(scalar, '.'): // Time, Enum or Other.
+		if typ := e.configMapFunc(f, kind); typ != "" {
+			scalar = typ
+		} else {
+			scalar = scalar[strings.LastIndexByte(scalar, '.')+1:]
+		}
+		if f.IsEnum() {
+			// Use the GQL type as enum prefix. e.g. Todo.status
+			// will generate an enum named "TodoStatus".
+			scalar = gqlType + scalar
+		}
 	}
 	return scalar
-}
-
-// hasMapping reports if the gqlgen.yml has custom mapping for
-// the given field type and returns its GraphQL name if exists.
-func (e *schemaGenerator) hasMapping(f *gen.Field, typeFilter func(string) bool) (string, bool) {
-	if e.cfg == nil {
-		return "", false
-	}
-
-	// The string representation uses shortened package
-	// names, and we override it for custom Go types.
-	ident := f.Type.String()
-	if idx := strings.IndexByte(ident, '.'); idx != -1 && f.HasGoType() && f.Type.PkgPath != "" {
-		ident = f.Type.PkgPath + ident[idx:]
-	}
-
-	var gqlNames []string
-	for t, v := range e.cfg.Models {
-		for _, m := range v.Model {
-			// A mapping was found from GraphQL name to field type.
-			if strings.HasSuffix(m, ident) {
-				gqlNames = append(gqlNames, t)
-			}
-		}
-	}
-	if count := len(gqlNames); count == 1 {
-		return gqlNames[0], true
-	} else if count > 1 && typeFilter != nil {
-		for _, t := range gqlNames {
-			if typeFilter(t) {
-				return t, true
-			}
-		}
-	}
-
-	// If no custom mapping was found, fallback to the builtin scalar
-	// types as mentioned in https://gqlgen.com/reference/scalars
-	switch f.Type.String() {
-	case "time.Time":
-		return "Time", true
-	case "map[string]interface{}":
-		return "Map", true
-	default:
-		return "", false
-	}
 }
 
 func allFields(t *gen.Type) []*gen.Field {
