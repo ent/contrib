@@ -17,6 +17,7 @@ package entgql
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -93,6 +94,7 @@ var (
 )
 
 type schemaGenerator struct {
+	path          string
 	relaySpec     bool
 	genSchema     bool
 	genWhereInput bool
@@ -103,16 +105,9 @@ type schemaGenerator struct {
 	schemaHooks []SchemaHook
 }
 
-func newSchemaGenerator() *schemaGenerator {
-	return &schemaGenerator{
-		relaySpec:    true,
-		genMutations: true,
-	}
-}
-
 func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 	s = &ast.Schema{
-		Directives: map[string]*ast.DirectiveDefinition{},
+		Directives: make(map[string]*ast.DirectiveDefinition),
 	}
 	if e.genSchema {
 		s.AddTypes(builtinTypes()...)
@@ -132,7 +127,6 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 			return nil, err
 		}
 	}
-
 	return s, nil
 }
 
@@ -162,6 +156,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					return fmt.Errorf("found the GQL type conflict for the node %s, please use the entgql.Type() annotation to rename the GQL type", node.Name)
 				}
 				s.AddTypes(def)
+				e.mayAddScalars(s, def)
 			}
 		}
 
@@ -263,6 +258,43 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 	}
 
 	return nil
+}
+
+func (e *schemaGenerator) mayAddScalars(s *ast.Schema, def *ast.Definition) {
+	var redeclareErr bool
+	// If there is a config file but the schema there was not loaded.
+	if e.cfg != nil && e.cfg.Schema == nil {
+		// Do not fail in case of error.
+		err := e.cfg.LoadSchema()
+		redeclareErr = err != nil && strings.Contains(err.Error(), "Cannot redeclare type")
+	}
+	for _, f := range def.Fields {
+		switch name := f.Type.Name(); name {
+		case "Time", "Map", "Upload", "Any", "Int32", "Int64", "Uint", "Uint32", "Uint64":
+			// Skip adding it if it was added before, or it exists in other schemas.
+			if s.Types[name] == nil && e.externalType(name) {
+				break
+			}
+			// In case of a declaration error generate builtin types only no external
+			// schemas were found to allow users fix these failures.
+			if !redeclareErr || len(e.cfg.SchemaFilename) == 1 && filepath.Clean(e.cfg.SchemaFilename[0]) == filepath.Clean(e.path) {
+				s.AddTypes(&ast.Definition{
+					Name:        name,
+					Kind:        ast.Scalar,
+					Description: fmt.Sprintf("The builtin %s type", name),
+				})
+			}
+		}
+	}
+}
+
+// externalType indicates if the given type name exists in another schema.
+func (e *schemaGenerator) externalType(name string) bool {
+	if e.cfg == nil || e.cfg.Schema == nil || e.cfg.Schema.Types[name] == nil {
+		return false
+	}
+	def := e.cfg.Schema.Types[name]
+	return def.Position != nil && def.Position.Src != nil && filepath.Clean(def.Position.Src.Name) != filepath.Clean(e.path)
 }
 
 func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg string) (*ast.Definition, error) {
@@ -440,7 +472,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 	return fields, nil
 }
 
-// buildWhereInput returns the a <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
+// buildWhereInput returns the <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
 func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType string) (*ast.Definition, error) {
 	def := &ast.Definition{
 		Name:        gqlType,

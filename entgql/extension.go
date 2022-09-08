@@ -29,10 +29,8 @@ import (
 type (
 	// Extension implements the entc.Extension for providing GraphQL integration.
 	Extension struct {
-		*schemaGenerator
-
+		schemaGenerator
 		entc.DefaultExtension
-		path      string
 		hooks     []gen.Hook
 		templates []*gen.Template
 	}
@@ -47,13 +45,12 @@ type (
 
 // WithSchemaPath sets the filepath to the GraphQL schema to write the
 // generated Ent types. If the file does not exist, it will generate a
-// new schema. Please note, that your gqlgen.yml config file should be
+// new schema. Please note that your gqlgen.yml config file should be
 // updated as follows to support multiple schema files:
 //
 //	schema:
 //	 - schema.graphql // existing schema.
 //	 - ent.graphql	  // generated schema.
-//
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.path = path
@@ -163,7 +160,6 @@ func WithSchemaGenerator() ExtensionOption {
 //			return ""
 //		}),
 //	)
-//
 func WithMapScalarFunc(scalarFunc func(*gen.Field, gen.Op) string) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.scalarFunc = scalarFunc
@@ -178,11 +174,13 @@ func WithMapScalarFunc(scalarFunc func(*gen.Field, gen.Op) string) ExtensionOpti
 //		entgql.WithSchemaPath("../ent.graphql"),
 //		entgql.WithWhereInputs(true),
 //	)
-//
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 	ex := &Extension{
-		templates:       AllTemplates,
-		schemaGenerator: newSchemaGenerator(),
+		templates: AllTemplates,
+		schemaGenerator: schemaGenerator{
+			relaySpec:    true,
+			genMutations: true,
+		},
 	}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
