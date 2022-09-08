@@ -756,9 +756,11 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-scalar Time
-scalar Duration
+# Uint64 and Time are builtin supported by gqlgen. Ent codegen will
+# add Time to ent.graphql as it is not defined in this schema.
 scalar Uint64
+
+scalar Duration
 
 extend input TodoWhereInput {
   createdToday: Boolean
@@ -1122,6 +1124,8 @@ type Query {
     where: UserWhereInput
   ): UserConnection!
 }
+"""The builtin Time type"""
+scalar Time
 type Todo implements Node {
   id: ID!
   createdAt: Time!
