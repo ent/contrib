@@ -70,12 +70,22 @@ in the LICENSE file in the root directory of this source tree.
             {{- $names := nodePaginationNames $e.Type }}
             {{ $field }} []*{{ $names.WhereInput }} `json:"{{ camel $jsonTag }},omitempty"`
         {{- end }}
+        {{ if $.FeatureEnabled "sql/modifier" }}
+        modifiers []func(*sql.Selector)
+        {{ end }}
     }
 
     // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
     func (i *{{ $input }}) AddPredicates(predicates ...predicate.{{ $n.Name }}) {
         i.Predicates = append(i.Predicates, predicates...)
     }
+
+    {{ if $.FeatureEnabled "sql/modifier" }}
+    // Modify adds a query modifier for attaching custom logic to queries used during the filtering phase.
+    func (i *{{ $input }}) Modify(modifiers ...func(s *sql.Selector)) {
+        i.modifiers = append(i.modifiers, modifiers...)
+    }
+    {{ end }}
 
     {{ $err := printf "ErrEmpty%s" $input }}
 
@@ -92,7 +102,11 @@ in the LICENSE file in the root directory of this source tree.
             }
             return nil, err
         }
+        {{ if $.FeatureEnabled "sql/modifier" -}}
+        return q.Where(p).Modify(i.modifiers...).{{ $n.QueryName }}, nil
+        {{ else -}}
         return q.Where(p), nil
+        {{ end -}}
     }
 
     // {{ $err }} is returned in case the {{ $input }} is empty.
