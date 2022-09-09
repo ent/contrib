@@ -37,8 +37,8 @@ type VerySecretQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.VerySecret
-	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*VerySecret) error
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -443,6 +443,9 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if vsq.unique != nil && *vsq.unique {
 		selector.Distinct()
 	}
+	for _, m := range vsq.modifiers {
+		m(selector)
+	}
 	for _, p := range vsq.predicates {
 		p(selector)
 	}
@@ -458,6 +461,12 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (vsq *VerySecretQuery) Modify(modifiers ...func(s *sql.Selector)) *VerySecretSelect {
+	vsq.modifiers = append(vsq.modifiers, modifiers...)
+	return vsq.Select()
 }
 
 // VerySecretGroupBy is the group-by builder for VerySecret entities.
@@ -550,4 +559,10 @@ func (vss *VerySecretSelect) sqlScan(ctx context.Context, v any) error {
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (vss *VerySecretSelect) Modify(modifiers ...func(s *sql.Selector)) *VerySecretSelect {
+	vss.modifiers = append(vss.modifiers, modifiers...)
+	return vss
 }
