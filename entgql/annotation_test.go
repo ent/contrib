@@ -87,7 +87,7 @@ func TestDirectiveChildren(t *testing.T) {
 		},
 	}
 
-	actual := entgql.DirectiveChildren([]string{"foo", "bar", "baz"})
+	actual := entgql.DirectiveChildren(ast.StringValue, []string{"foo", "bar", "baz"})
 
 	require.Equal(t, expected, actual)
 }

@@ -515,14 +515,15 @@ func NewDirective(name string, args ...DirectiveArgument) Directive {
 	}
 }
 
-func DirectiveChildren(s []string) ast.ChildValueList {
+// DirectiveChildren returns a ChildValueList for the directive.
+func DirectiveChildren(k ast.ValueKind, s []string) ast.ChildValueList {
 	var list ast.ChildValueList
 
 	for _, v := range s {
 		child := &ast.ChildValue{
 			Value: &ast.Value{
 				Raw:  v,
-				Kind: ast.StringValue,
+				Kind: k,
 			},
 		}
 
