@@ -59,9 +59,10 @@ type (
 
 	// DirectiveArgument return a GraphQL directive argument
 	DirectiveArgument struct {
-		Name  string        `json:"name,omitempty"`
-		Value string        `json:"value,omitempty"`
-		Kind  ast.ValueKind `json:"kind,omitempty"`
+		Name     string             `json:"name,omitempty"`
+		Children ast.ChildValueList `json:"children,omitempty"`
+		Value    string             `json:"value,omitempty"`
+		Kind     ast.ValueKind      `json:"kind,omitempty"`
 	}
 
 	// SkipMode is a bit flag for the Skip annotation.
@@ -512,6 +513,23 @@ func NewDirective(name string, args ...DirectiveArgument) Directive {
 		Name:      name,
 		Arguments: args,
 	}
+}
+
+func DirectiveChildren(s []string) ast.ChildValueList {
+	var list ast.ChildValueList
+
+	for _, v := range s {
+		child := &ast.ChildValue{
+			Value: &ast.Value{
+				Raw:  v,
+				Kind: ast.StringValue,
+			},
+		}
+
+		list = append(list, child)
+	}
+
+	return list
 }
 
 // Deprecated create `@deprecated` directive to apply on the field/type

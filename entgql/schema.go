@@ -364,8 +364,9 @@ func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveL
 			args = append(args, &ast.Argument{
 				Name: a.Name,
 				Value: &ast.Value{
-					Raw:  a.Value,
-					Kind: a.Kind,
+					Raw:      a.Value,
+					Children: a.Children,
+					Kind:     a.Kind,
 				},
 			})
 		}

@@ -96,7 +96,7 @@ type Friendship {
   user: User!
   friend: User!
 }
-type Group {
+type Group @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users: [User!]
@@ -366,7 +366,7 @@ input FriendshipWhereInput {
   createdAtLT: Time
   createdAtLTE: Time
 }
-type Group implements Node {
+type Group implements Node @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users(

@@ -19,6 +19,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"github.com/stretchr/testify/require"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 func TestAnnotation(t *testing.T) {
@@ -60,4 +61,33 @@ func TestAnnotationDecode(t *testing.T) {
 	err = ann.Decode("invalid")
 	require.NotNil(t, err)
 	require.Equal(t, err.Error(), "json: cannot unmarshal string into Go value of type entgql.Annotation")
+}
+
+func TestDirectiveChildren(t *testing.T) {
+	t.Parallel()
+
+	expected := ast.ChildValueList{
+		&ast.ChildValue{
+			Value: &ast.Value{
+				Raw:  "foo",
+				Kind: ast.StringValue,
+			},
+		},
+		&ast.ChildValue{
+			Value: &ast.Value{
+				Raw:  "bar",
+				Kind: ast.StringValue,
+			},
+		},
+		&ast.ChildValue{
+			Value: &ast.Value{
+				Raw:  "baz",
+				Kind: ast.StringValue,
+			},
+		},
+	}
+
+	actual := entgql.DirectiveChildren([]string{"foo", "bar", "baz"})
+
+	require.Equal(t, expected, actual)
 }
