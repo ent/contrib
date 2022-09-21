@@ -23,7 +23,11 @@ import (
 )
 
 func (c *Category) Todos(ctx context.Context) ([]*Todo, error) {
-	result, err := c.NamedTodos(graphql.GetFieldContext(ctx).Field.Alias)
+	alias := "todos"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
+	result, err := c.NamedTodos(alias)
 	if IsNotLoaded(err) {
 		result, err = c.QueryTodos().All(ctx)
 	}
@@ -39,7 +43,11 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 }
 
 func (t *Todo) Children(ctx context.Context) ([]*Todo, error) {
-	result, err := t.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
+	alias := "children"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
+	result, err := t.NamedChildren(alias)
 	if IsNotLoaded(err) {
 		result, err = t.QueryChildren().All(ctx)
 	}

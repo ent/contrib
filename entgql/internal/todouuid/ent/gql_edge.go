@@ -29,7 +29,10 @@ func (c *Category) Todos(
 		WithTodoOrder(orderBy),
 		WithTodoFilter(where.Filter),
 	}
-	alias := graphql.GetFieldContext(ctx).Field.Alias
+	alias := "todos"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
 	totalCount, hasTotalCount := c.Edges.totalCount[0][alias]
 	if nodes, err := c.NamedTodos(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts)
@@ -65,7 +68,10 @@ func (gr *Group) Users(
 	opts := []UserPaginateOption{
 		WithUserFilter(where.Filter),
 	}
-	alias := graphql.GetFieldContext(ctx).Field.Alias
+	alias := "users"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
 	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
 	if nodes, err := gr.NamedUsers(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts)
@@ -94,7 +100,10 @@ func (t *Todo) Children(
 		WithTodoOrder(orderBy),
 		WithTodoFilter(where.Filter),
 	}
-	alias := graphql.GetFieldContext(ctx).Field.Alias
+	alias := "children"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
 	totalCount, hasTotalCount := t.Edges.totalCount[1][alias]
 	if nodes, err := t.NamedChildren(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts)
@@ -122,7 +131,10 @@ func (u *User) Groups(
 	opts := []GroupPaginateOption{
 		WithGroupFilter(where.Filter),
 	}
-	alias := graphql.GetFieldContext(ctx).Field.Alias
+	alias := "groups"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
 	totalCount, hasTotalCount := u.Edges.totalCount[0][alias]
 	if nodes, err := u.NamedGroups(alias); err == nil || hasTotalCount {
 		pager, err := newGroupPager(opts)
@@ -137,7 +149,11 @@ func (u *User) Groups(
 }
 
 func (u *User) Friends(ctx context.Context) ([]*User, error) {
-	result, err := u.NamedFriends(graphql.GetFieldContext(ctx).Field.Alias)
+	alias := "friends"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
+	result, err := u.NamedFriends(alias)
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriends().All(ctx)
 	}
@@ -145,7 +161,11 @@ func (u *User) Friends(ctx context.Context) ([]*User, error) {
 }
 
 func (u *User) Friendships(ctx context.Context) ([]*Friendship, error) {
-	result, err := u.NamedFriendships(graphql.GetFieldContext(ctx).Field.Alias)
+	alias := "friendships"
+	if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+		alias = fctx.Field.Alias
+	}
+	result, err := u.NamedFriendships(alias)
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriendships().All(ctx)
 	}

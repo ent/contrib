@@ -20,7 +20,11 @@ import "context"
 			{{ end }}
 		{{ else if not $e.Unique }}
 			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
-				result, err := {{ $r }}.Named{{ $e.StructField }}(graphql.GetFieldContext(ctx).Field.Alias)
+				alias := "{{ $e.Name }}"
+				if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+					alias = fctx.Field.Alias
+				}
+				result, err := {{ $r }}.Named{{ $e.StructField }}(alias)
 				if IsNotLoaded(err) {
 					result, err = {{ $r }}.Query{{ $e.StructField }}().All(ctx)
 				}
@@ -67,7 +71,10 @@ import "context"
 		{{- end }}
 		}
 		{{- /* May be nil if the totalCount was not loaded. */}}
-		alias := graphql.GetFieldContext(ctx).Field.Alias
+		alias := "{{ $e.Name }}"
+		if fctx := graphql.GetFieldContext(ctx); fctx != nil {
+			alias = fctx.Field.Alias
+		}
 		totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
 		if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
