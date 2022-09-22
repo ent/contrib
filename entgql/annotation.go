@@ -515,22 +515,23 @@ func NewDirective(name string, args ...DirectiveArgument) Directive {
 	}
 }
 
-// DirectiveChildren returns a ChildValueList for the directive.
-func DirectiveChildren(k ast.ValueKind, s []string) ast.ChildValueList {
-	var list ast.ChildValueList
 
-	for _, v := range s {
-		child := &ast.ChildValue{
+// DirectiveListArgument returns an argument with the list of values.
+func DirectiveListArgument(name string, kind ast.ValueKind, rawValues ...string) DirectiveArgument {
+	list := make(ast.ChildValueList, len(rawValues))
+	for i, v := range rawValues {
+		list[i] = &ast.ChildValue{
 			Value: &ast.Value{
 				Raw:  v,
-				Kind: k,
+				Kind: kind,
 			},
 		}
-
-		list = append(list, child)
 	}
-
-	return list
+	return DirectiveArgument{
+		Children: list,
+		Kind:     ast.ListValue,
+		Name:     name,
+	}
 }
 
 // Deprecated create `@deprecated` directive to apply on the field/type
