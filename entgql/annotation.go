@@ -515,7 +515,6 @@ func NewDirective(name string, args ...DirectiveArgument) Directive {
 	}
 }
 
-
 // DirectiveListArgument returns an argument with the list of values.
 func DirectiveListArgument(name string, kind ast.ValueKind, rawValues ...string) DirectiveArgument {
 	list := make(ast.ChildValueList, len(rawValues))

@@ -20,9 +20,8 @@ import (
 )
 
 func HasPermissions(permissions []string) entgql.Directive {
-	return entgql.NewDirective("hasPermissions", entgql.DirectiveArgument{
-		Name:     "permissions",
-		Kind:     ast.ListValue,
-		Children: entgql.DirectiveChildren(ast.StringValue, permissions),
-	})
+	return entgql.NewDirective(
+		"hasPermissions",
+		entgql.DirectiveListArgument("permissions", ast.StringValue, permissions...),
+	)
 }

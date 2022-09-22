@@ -63,31 +63,18 @@ func TestAnnotationDecode(t *testing.T) {
 	require.Equal(t, err.Error(), "json: cannot unmarshal string into Go value of type entgql.Annotation")
 }
 
-func TestDirectiveChildren(t *testing.T) {
+func TestDirectiveListArgument(t *testing.T) {
 	t.Parallel()
-
-	expected := ast.ChildValueList{
-		&ast.ChildValue{
-			Value: &ast.Value{
-				Raw:  "foo",
-				Kind: ast.StringValue,
-			},
-		},
-		&ast.ChildValue{
-			Value: &ast.Value{
-				Raw:  "bar",
-				Kind: ast.StringValue,
-			},
-		},
-		&ast.ChildValue{
-			Value: &ast.Value{
-				Raw:  "baz",
-				Kind: ast.StringValue,
-			},
+	expected := entgql.DirectiveArgument{
+		Name: "foo",
+		Kind: ast.ListValue,
+		Children: ast.ChildValueList{
+			&ast.ChildValue{Value: &ast.Value{Raw: "bar", Kind: ast.StringValue}},
+			&ast.ChildValue{Value: &ast.Value{Raw: "baz", Kind: ast.StringValue}},
 		},
 	}
-
-	actual := entgql.DirectiveChildren(ast.StringValue, []string{"foo", "bar", "baz"})
-
-	require.Equal(t, expected, actual)
+	arg := entgql.DirectiveListArgument("foo", ast.StringValue, "bar", "baz")
+	require.Equal(t, expected.Name, arg.Name)
+	require.Equal(t, expected.Kind, arg.Kind)
+	require.Equal(t, expected.Children, arg.Children)
 }
