@@ -12,23 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package todo
+package annotation
 
 import (
-	"entgo.io/contrib/entgql/internal/todo"
-	"entgo.io/contrib/entgql/internal/todouuid/ent"
-	"github.com/99designs/gqlgen/graphql"
+	"entgo.io/contrib/entgql"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// Resolver is the resolver root.
-type Resolver struct{ client *ent.Client }
-
-// NewSchema creates a graphql executable schema.
-func NewSchema(client *ent.Client) graphql.ExecutableSchema {
-	return NewExecutableSchema(Config{
-		Resolvers: &Resolver{client},
-		Directives: DirectiveRoot{
-			HasPermissions: todo.HasPermission(),
+func HasPermissions(permissions []string) entgql.Directive {
+	children := make(ast.ChildValueList, 0, len(permissions))
+	for _, p := range permissions {
+		children = append(children, &ast.ChildValue{
+			Value: &ast.Value{
+				Raw:  p,
+				Kind: ast.StringValue,
+			},
+		})
+	}
+	return entgql.NewDirective(
+		"hasPermissions",
+		&ast.Argument{
+			Name: "permissions",
+			Value: &ast.Value{
+				Children: children,
+				Kind:     ast.ListValue,
+			},
 		},
-	})
+	)
 }

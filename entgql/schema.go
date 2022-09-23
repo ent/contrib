@@ -359,19 +359,9 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveList {
 	list := make(ast.DirectiveList, 0, len(directives))
 	for _, d := range directives {
-		args := make(ast.ArgumentList, 0, len(d.Arguments))
-		for _, a := range d.Arguments {
-			args = append(args, &ast.Argument{
-				Name: a.Name,
-				Value: &ast.Value{
-					Raw:  a.Value,
-					Kind: a.Kind,
-				},
-			})
-		}
 		list = append(list, &ast.Directive{
 			Name:      d.Name,
-			Arguments: args,
+			Arguments: d.Arguments,
 		})
 	}
 	return list

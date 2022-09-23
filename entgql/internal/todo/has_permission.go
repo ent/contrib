@@ -15,20 +15,19 @@
 package todo
 
 import (
-	"entgo.io/contrib/entgql/internal/todo"
-	"entgo.io/contrib/entgql/internal/todouuid/ent"
+	"context"
+
 	"github.com/99designs/gqlgen/graphql"
 )
 
-// Resolver is the resolver root.
-type Resolver struct{ client *ent.Client }
-
-// NewSchema creates a graphql executable schema.
-func NewSchema(client *ent.Client) graphql.ExecutableSchema {
-	return NewExecutableSchema(Config{
-		Resolvers: &Resolver{client},
-		Directives: DirectiveRoot{
-			HasPermissions: todo.HasPermission(),
-		},
-	})
+func HasPermission() func(context.Context, interface{}, graphql.Resolver, []string) (interface{}, error) {
+	return func(
+		ctx context.Context,
+		obj interface{},
+		next graphql.Resolver,
+		permissions []string,
+	) (res interface{}, err error) {
+		// you can do your thing here for permissions
+		return next(ctx)
+	}
 }
