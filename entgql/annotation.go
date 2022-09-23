@@ -53,16 +53,8 @@ type (
 
 	// Directive to apply on the field/type.
 	Directive struct {
-		Name      string              `json:"name,omitempty"`
-		Arguments []DirectiveArgument `json:"arguments,omitempty"`
-	}
-
-	// DirectiveArgument return a GraphQL directive argument
-	DirectiveArgument struct {
-		Name     string             `json:"name,omitempty"`
-		Children ast.ChildValueList `json:"children,omitempty"`
-		Value    string             `json:"value,omitempty"`
-		Kind     ast.ValueKind      `json:"kind,omitempty"`
+		Name      string          `json:"name,omitempty"`
+		Arguments []*ast.Argument `json:"arguments,omitempty"`
 	}
 
 	// SkipMode is a bit flag for the Skip annotation.
@@ -508,39 +500,23 @@ var (
 
 // NewDirective returns a GraphQL directive
 // to use with the entgql.Directives annotation.
-func NewDirective(name string, args ...DirectiveArgument) Directive {
+func NewDirective(name string, args ...*ast.Argument) Directive {
 	return Directive{
 		Name:      name,
 		Arguments: args,
 	}
 }
 
-// DirectiveListArgument returns an argument with the list of values.
-func DirectiveListArgument(name string, kind ast.ValueKind, rawValues ...string) DirectiveArgument {
-	list := make(ast.ChildValueList, len(rawValues))
-	for i, v := range rawValues {
-		list[i] = &ast.ChildValue{
-			Value: &ast.Value{
-				Raw:  v,
-				Kind: kind,
-			},
-		}
-	}
-	return DirectiveArgument{
-		Children: list,
-		Kind:     ast.ListValue,
-		Name:     name,
-	}
-}
-
 // Deprecated create `@deprecated` directive to apply on the field/type
 func Deprecated(reason string) Directive {
-	var args []DirectiveArgument
+	var args []*ast.Argument
 	if reason != "" {
-		args = append(args, DirectiveArgument{
-			Name:  "reason",
-			Kind:  ast.StringValue,
-			Value: reason,
+		args = append(args, &ast.Argument{
+			Name: "reason",
+			Value: &ast.Value{
+				Raw:  reason,
+				Kind: ast.StringValue,
+			},
 		})
 	}
 	return NewDirective("deprecated", args...)

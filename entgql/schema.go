@@ -361,14 +361,7 @@ func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveL
 	for _, d := range directives {
 		args := make(ast.ArgumentList, 0, len(d.Arguments))
 		for _, a := range d.Arguments {
-			args = append(args, &ast.Argument{
-				Name: a.Name,
-				Value: &ast.Value{
-					Raw:      a.Value,
-					Children: a.Children,
-					Kind:     a.Kind,
-				},
-			})
+			args = append(args, a)
 		}
 		list = append(list, &ast.Directive{
 			Name:      d.Name,

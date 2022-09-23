@@ -20,8 +20,23 @@ import (
 )
 
 func HasPermissions(permissions []string) entgql.Directive {
+	children := make(ast.ChildValueList, 0, len(permissions))
+	for _, p := range permissions {
+		children = append(children, &ast.ChildValue{
+			Value: &ast.Value{
+				Raw:  p,
+				Kind: ast.StringValue,
+			},
+		})
+	}
 	return entgql.NewDirective(
 		"hasPermissions",
-		entgql.DirectiveListArgument("permissions", ast.StringValue, permissions...),
+		&ast.Argument{
+			Name: "permissions",
+			Value: &ast.Value{
+				Children: children,
+				Kind:     ast.ListValue,
+			},
+		},
 	)
 }
