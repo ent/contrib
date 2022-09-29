@@ -116,6 +116,8 @@ type Todo {
   priority: Int!
   text: String!
   categoryID: ID
+  category_id: ID
+  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   parent: Todo
   children: [Todo!]
   category: Category
@@ -510,6 +512,8 @@ type Todo implements Node {
   priority: Int!
   text: String!
   categoryID: ID
+  category_id: ID
+  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""

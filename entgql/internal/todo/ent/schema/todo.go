@@ -64,7 +64,10 @@ func (Todo) Fields() []ent.Field {
 			Optional(),
 		field.Int("category_id").
 			Optional().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entgql.MapsTo("categoryID", "category_id", "categoryX"),
+			),
 	}
 }
 
