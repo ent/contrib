@@ -89,7 +89,7 @@ var (
 	}
 
 	//go:embed template/*
-	templates embed.FS
+	_templates embed.FS
 
 	marshalerType   = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
 	unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
@@ -98,7 +98,7 @@ var (
 func parseT(path string) *gen.Template {
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(TemplateFuncs).
-		ParseFS(templates, path))
+		ParseFS(_templates, path))
 }
 
 // idType is returned by the gqlIDType below to describe the
