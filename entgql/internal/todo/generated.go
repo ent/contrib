@@ -520,7 +520,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Parent(childComplexity), true
 
-	case "Todo.priority":
+	case "Todo.priorityOrder":
 		if e.complexity.Todo.Priority == nil {
 			break
 		}
@@ -1115,7 +1115,7 @@ type Todo implements Node {
   id: ID!
   createdAt: Time!
   status: TodoStatus!
-  priority: Int!
+  priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
   categoryID: ID
   category_id: ID
@@ -1169,7 +1169,7 @@ input TodoOrder {
 enum TodoOrderField {
   CREATED_AT
   STATUS
-  PRIORITY
+  PRIORITY_ORDER
   TEXT
 }
 """TodoStatus is enum for the field status"""
@@ -3008,8 +3008,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_createdAt(ctx, field)
 			case "status":
 				return ec.fieldContext_Todo_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Todo_priority(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "categoryID":
@@ -3857,8 +3857,8 @@ func (ec *executionContext) fieldContext_Todo_status(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Todo_priority(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Todo_priority(ctx, field)
+func (ec *executionContext) _Todo_priorityOrder(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_priorityOrder(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3888,7 +3888,7 @@ func (ec *executionContext) _Todo_priority(ctx context.Context, field graphql.Co
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Todo_priority(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Todo_priorityOrder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Todo",
 		Field:      field,
@@ -4110,8 +4110,8 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 				return ec.fieldContext_Todo_createdAt(ctx, field)
 			case "status":
 				return ec.fieldContext_Todo_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Todo_priority(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "categoryID":
@@ -4442,8 +4442,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Todo_createdAt(ctx, field)
 			case "status":
 				return ec.fieldContext_Todo_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Todo_priority(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "categoryID":
@@ -9401,9 +9401,9 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "priority":
+		case "priorityOrder":
 
-			out.Values[i] = ec._Todo_priority(ctx, field, obj)
+			out.Values[i] = ec._Todo_priorityOrder(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

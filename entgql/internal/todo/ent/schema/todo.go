@@ -50,7 +50,8 @@ func (Todo) Fields() []ent.Field {
 		field.Int("priority").
 			Default(0).
 			Annotations(
-				entgql.OrderField("PRIORITY"),
+				entgql.OrderField("PRIORITY_ORDER"),
+				entgql.MapsTo("priorityOrder"),
 			),
 		field.Text("text").
 			NotEmpty().
