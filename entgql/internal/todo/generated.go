@@ -480,7 +480,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Category(childComplexity), true
 
-	case "Todo.categoryID":
+	case "Todo.categoryID", "Todo.category_id", "Todo.categoryX":
 		if e.complexity.Todo.CategoryID == nil {
 			break
 		}
@@ -520,7 +520,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Parent(childComplexity), true
 
-	case "Todo.priority":
+	case "Todo.priorityOrder":
 		if e.complexity.Todo.Priority == nil {
 			break
 		}
@@ -1115,9 +1115,11 @@ type Todo implements Node {
   id: ID!
   createdAt: Time!
   status: TodoStatus!
-  priority: Int!
+  priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
   categoryID: ID
+  category_id: ID
+  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -1167,7 +1169,7 @@ input TodoOrder {
 enum TodoOrderField {
   CREATED_AT
   STATUS
-  PRIORITY
+  PRIORITY_ORDER
   TEXT
 }
 """TodoStatus is enum for the field status"""
@@ -3006,12 +3008,16 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_createdAt(ctx, field)
 			case "status":
 				return ec.fieldContext_Todo_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Todo_priority(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
+			case "category_id":
+				return ec.fieldContext_Todo_category_id(ctx, field)
+			case "categoryX":
+				return ec.fieldContext_Todo_categoryX(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -3851,8 +3857,8 @@ func (ec *executionContext) fieldContext_Todo_status(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Todo_priority(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Todo_priority(ctx, field)
+func (ec *executionContext) _Todo_priorityOrder(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_priorityOrder(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3882,7 +3888,7 @@ func (ec *executionContext) _Todo_priority(ctx context.Context, field graphql.Co
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Todo_priority(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Todo_priorityOrder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Todo",
 		Field:      field,
@@ -3980,6 +3986,88 @@ func (ec *executionContext) fieldContext_Todo_categoryID(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_category_id(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_category_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CategoryID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_category_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_categoryX(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_categoryX(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CategoryID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_categoryX(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Todo_parent(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_parent(ctx, field)
 	if err != nil {
@@ -4022,12 +4110,16 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 				return ec.fieldContext_Todo_createdAt(ctx, field)
 			case "status":
 				return ec.fieldContext_Todo_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Todo_priority(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
+			case "category_id":
+				return ec.fieldContext_Todo_category_id(ctx, field)
+			case "categoryX":
+				return ec.fieldContext_Todo_categoryX(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -4350,12 +4442,16 @@ func (ec *executionContext) fieldContext_TodoEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Todo_createdAt(ctx, field)
 			case "status":
 				return ec.fieldContext_Todo_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Todo_priority(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
+			case "category_id":
+				return ec.fieldContext_Todo_category_id(ctx, field)
+			case "categoryX":
+				return ec.fieldContext_Todo_categoryX(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -9305,9 +9401,9 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "priority":
+		case "priorityOrder":
 
-			out.Values[i] = ec._Todo_priority(ctx, field, obj)
+			out.Values[i] = ec._Todo_priorityOrder(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -9322,6 +9418,14 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 		case "categoryID":
 
 			out.Values[i] = ec._Todo_categoryID(ctx, field, obj)
+
+		case "category_id":
+
+			out.Values[i] = ec._Todo_category_id(ctx, field, obj)
+
+		case "categoryX":
+
+			out.Values[i] = ec._Todo_categoryX(ctx, field, obj)
 
 		case "parent":
 			field := field

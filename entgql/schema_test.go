@@ -113,9 +113,11 @@ type Todo {
   id: ID!
   createdAt: Time!
   status: TodoStatus!
-  priority: Int!
+  priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
   categoryID: ID
+  category_id: ID
+  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   parent: Todo
   children: [Todo!]
   category: Category
@@ -131,7 +133,7 @@ input TodoOrder {
 enum TodoOrderField {
   CREATED_AT
   STATUS
-  PRIORITY
+  PRIORITY_ORDER
   TEXT
 }
 """TodoStatus is enum for the field status"""
@@ -507,9 +509,11 @@ type Todo implements Node {
   id: ID!
   createdAt: Time!
   status: TodoStatus!
-  priority: Int!
+  priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
   categoryID: ID
+  category_id: ID
+  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -559,7 +563,7 @@ input TodoOrder {
 enum TodoOrderField {
   CREATED_AT
   STATUS
-  PRIORITY
+  PRIORITY_ORDER
   TEXT
 }
 """TodoStatus is enum for the field status"""

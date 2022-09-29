@@ -1258,7 +1258,7 @@ func (f TodoOrderField) String() string {
 	case todo.FieldStatus:
 		str = "STATUS"
 	case todo.FieldPriority:
-		str = "PRIORITY"
+		str = "PRIORITY_ORDER"
 	case todo.FieldText:
 		str = "TEXT"
 	}
@@ -1281,7 +1281,7 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *TodoOrderFieldCreatedAt
 	case "STATUS":
 		*f = *TodoOrderFieldStatus
-	case "PRIORITY":
+	case "PRIORITY_ORDER":
 		*f = *TodoOrderFieldPriority
 	case "TEXT":
 		*f = *TodoOrderFieldText

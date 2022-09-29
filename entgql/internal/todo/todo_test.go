@@ -133,12 +133,12 @@ type response struct {
 		TotalCount int
 		Edges      []struct {
 			Node struct {
-				ID        string
-				CreatedAt string
-				Priority  int
-				Status    todo.Status
-				Text      string
-				Parent    struct {
+				ID            string
+				CreatedAt     string
+				PriorityOrder int
+				Status        todo.Status
+				Text          string
+				Parent        struct {
 					ID string
 				}
 			}
@@ -353,7 +353,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 					node {
 						id
 						createdAt
-						priority
+						priorityOrder
 						status
 						text
 					}
@@ -453,7 +453,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 				client.Var("before", rsp.Todos.PageInfo.StartCursor),
 				client.Var("last", step),
 				client.Var("direction", "ASC"),
-				client.Var("field", "PRIORITY"),
+				client.Var("field", "PRIORITY_ORDER"),
 			)
 			s.Require().NoError(err)
 			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
@@ -465,7 +465,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 				s.Require().False(rsp.Todos.PageInfo.HasPreviousPage)
 			}
 			s.Require().True(sort.SliceIsSorted(rsp.Todos.Edges, func(i, j int) bool {
-				return rsp.Todos.Edges[i].Node.Priority < rsp.Todos.Edges[j].Node.Priority
+				return rsp.Todos.Edges[i].Node.PriorityOrder < rsp.Todos.Edges[j].Node.PriorityOrder
 			}))
 			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
 			start := rsp.Todos.Edges[0]
@@ -474,9 +474,9 @@ func (s *todoTestSuite) TestPaginationOrder() {
 			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
 			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
 			if i > 0 {
-				s.Require().Greater(startPriority, end.Node.Priority)
+				s.Require().Greater(startPriority, end.Node.PriorityOrder)
 			}
-			startPriority = start.Node.Priority
+			startPriority = start.Node.PriorityOrder
 		}
 	})
 	s.Run("BackwardDescending", func() {
@@ -827,12 +827,12 @@ func (s *todoTestSuite) TestNode() {
 		query = `query($id: ID!) {
 			todo: node(id: $id) {
 				... on Todo {
-					priority
+					priorityOrder
 				}
 			}
 		}`
 	)
-	var rsp struct{ Todo struct{ Priority int } }
+	var rsp struct{ Todo struct{ PriorityOrder int } }
 	err := s.Post(query, &rsp, client.Var("id", idOffset+maxTodos))
 	s.Require().NoError(err)
 	err = s.Post(query, &rsp, client.Var("id", -1))
