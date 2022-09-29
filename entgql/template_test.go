@@ -154,15 +154,15 @@ func TestFieldCollections(t *testing.T) {
 	require.Equal(t, []*fieldCollection{
 		{
 			Edge:    edges[0],
-			Mapping: []string{"edge1", "Edge1"},
+			Mapping: []string{"edge1"},
 		},
 		{
 			Edge:    edges[1],
-			Mapping: []string{"edge2", "Edge2"},
+			Mapping: []string{"edge2"},
 		},
 		{
 			Edge:    edges[2],
-			Mapping: []string{"twoWords", "two_words"},
+			Mapping: []string{"twoWords"},
 		},
 		{
 			Edge:    edges[4],
