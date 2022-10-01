@@ -680,11 +680,14 @@ func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tq *TodoQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := tq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := tq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
