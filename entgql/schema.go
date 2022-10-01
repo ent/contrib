@@ -320,7 +320,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Is(SkipType) {
+		if ant.Skip.Is(SkipType) || f.Sensitive() {
 			continue
 		}
 
@@ -486,14 +486,14 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 
 	fields := allFields(t)
 	for _, f := range fields {
-		if t.IsEdgeSchema() && f.IsEdgeField() {
+		if t.IsEdgeSchema() && f.IsEdgeField() || !f.Type.Comparable() || f.Sensitive() {
 			continue
 		}
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Is(SkipWhereInput) || !f.Type.Comparable() {
+		if ant.Skip.Is(SkipWhereInput) {
 			continue
 		}
 		for i, op := range f.Ops() {
