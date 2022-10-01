@@ -1298,6 +1298,7 @@ input UpdateCategoryInput {
   count: Uint64
   clearStrings: Boolean
   strings: [String!]
+  appendStrings: [String!]
   addTodoIDs: [ID!]
   removeTodoIDs: [ID!]
 }
@@ -8580,6 +8581,14 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strings"))
 			it.Strings, err = ec.unmarshalOString2ᚖᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "appendStrings":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appendStrings"))
+			it.AppendStrings, err = ec.unmarshalOString2ᚖᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

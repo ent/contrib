@@ -73,6 +73,7 @@ type UpdateCategoryInput struct {
 	Count         *uint64
 	ClearStrings  bool
 	Strings       *[]string
+	AppendStrings *[]string
 	AddTodoIDs    []string
 	RemoveTodoIDs []string
 }
@@ -106,6 +107,9 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.Strings; v != nil {
 		m.SetStrings(*v)
+	}
+	if i.AppendStrings != nil {
+		m.AppendStrings(*i.Strings)
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)

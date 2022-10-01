@@ -512,6 +512,7 @@ input UpdateCategoryInput {
   count: Uint64
   clearStrings: Boolean
   strings: [String!]
+  appendStrings: [String!]
   addTodoIDs: [ID!]
   removeTodoIDs: [ID!]
 }
