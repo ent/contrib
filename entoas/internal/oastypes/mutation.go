@@ -34,51 +34,56 @@ const (
 // OASTypesMutation represents an operation that mutates the OASTypes nodes in the graph.
 type OASTypesMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	int           *int
-	addint        *int
-	int8          *int8
-	addint8       *int8
-	int16         *int16
-	addint16      *int16
-	int32         *int32
-	addint32      *int32
-	int64         *int64
-	addint64      *int64
-	uint          *uint
-	adduint       *int
-	uint8         *uint8
-	adduint8      *int8
-	uint16        *uint16
-	adduint16     *int16
-	uint32        *uint32
-	adduint32     *int32
-	uint64        *uint64
-	adduint64     *int64
-	float32       *float32
-	addfloat32    *float32
-	float64       *float64
-	addfloat64    *float64
-	string_field  *string
-	bool          *bool
-	uuid          *uuid.UUID
-	time          *time.Time
-	text          *string
-	state         *oastypes.State
-	strings       *[]string
-	ints          *[]int
-	floats        *[]float64
-	bytes         *[]byte
-	nicknames     *[]string
-	json_slice    *[]http.Dir
-	json_obj      *url.URL
-	other         **schema.Link
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*OASTypes, error)
-	predicates    []predicate.OASTypes
+	op               Op
+	typ              string
+	id               *int
+	int              *int
+	addint           *int
+	int8             *int8
+	addint8          *int8
+	int16            *int16
+	addint16         *int16
+	int32            *int32
+	addint32         *int32
+	int64            *int64
+	addint64         *int64
+	uint             *uint
+	adduint          *int
+	uint8            *uint8
+	adduint8         *int8
+	uint16           *uint16
+	adduint16        *int16
+	uint32           *uint32
+	adduint32        *int32
+	uint64           *uint64
+	adduint64        *int64
+	float32          *float32
+	addfloat32       *float32
+	float64          *float64
+	addfloat64       *float64
+	string_field     *string
+	bool             *bool
+	uuid             *uuid.UUID
+	time             *time.Time
+	text             *string
+	state            *oastypes.State
+	strings          *[]string
+	appendstrings    []string
+	ints             *[]int
+	appendints       []int
+	floats           *[]float64
+	appendfloats     []float64
+	bytes            *[]byte
+	nicknames        *[]string
+	appendnicknames  []string
+	json_slice       *[]http.Dir
+	appendjson_slice []http.Dir
+	json_obj         *url.URL
+	other            **schema.Link
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*OASTypes, error)
+	predicates       []predicate.OASTypes
 }
 
 var _ ent.Mutation = (*OASTypesMutation)(nil)
@@ -1070,6 +1075,7 @@ func (m *OASTypesMutation) ResetState() {
 // SetStrings sets the "strings" field.
 func (m *OASTypesMutation) SetStrings(s []string) {
 	m.strings = &s
+	m.appendstrings = nil
 }
 
 // Strings returns the value of the "strings" field in the mutation.
@@ -1098,14 +1104,29 @@ func (m *OASTypesMutation) OldStrings(ctx context.Context) (v []string, err erro
 	return oldValue.Strings, nil
 }
 
+// AppendStrings adds s to the "strings" field.
+func (m *OASTypesMutation) AppendStrings(s []string) {
+	m.appendstrings = append(m.appendstrings, s...)
+}
+
+// AppendedStrings returns the list of values that were appended to the "strings" field in this mutation.
+func (m *OASTypesMutation) AppendedStrings() ([]string, bool) {
+	if len(m.appendstrings) == 0 {
+		return nil, false
+	}
+	return m.appendstrings, true
+}
+
 // ResetStrings resets all changes to the "strings" field.
 func (m *OASTypesMutation) ResetStrings() {
 	m.strings = nil
+	m.appendstrings = nil
 }
 
 // SetInts sets the "ints" field.
 func (m *OASTypesMutation) SetInts(i []int) {
 	m.ints = &i
+	m.appendints = nil
 }
 
 // Ints returns the value of the "ints" field in the mutation.
@@ -1134,14 +1155,29 @@ func (m *OASTypesMutation) OldInts(ctx context.Context) (v []int, err error) {
 	return oldValue.Ints, nil
 }
 
+// AppendInts adds i to the "ints" field.
+func (m *OASTypesMutation) AppendInts(i []int) {
+	m.appendints = append(m.appendints, i...)
+}
+
+// AppendedInts returns the list of values that were appended to the "ints" field in this mutation.
+func (m *OASTypesMutation) AppendedInts() ([]int, bool) {
+	if len(m.appendints) == 0 {
+		return nil, false
+	}
+	return m.appendints, true
+}
+
 // ResetInts resets all changes to the "ints" field.
 func (m *OASTypesMutation) ResetInts() {
 	m.ints = nil
+	m.appendints = nil
 }
 
 // SetFloats sets the "floats" field.
 func (m *OASTypesMutation) SetFloats(f []float64) {
 	m.floats = &f
+	m.appendfloats = nil
 }
 
 // Floats returns the value of the "floats" field in the mutation.
@@ -1170,9 +1206,23 @@ func (m *OASTypesMutation) OldFloats(ctx context.Context) (v []float64, err erro
 	return oldValue.Floats, nil
 }
 
+// AppendFloats adds f to the "floats" field.
+func (m *OASTypesMutation) AppendFloats(f []float64) {
+	m.appendfloats = append(m.appendfloats, f...)
+}
+
+// AppendedFloats returns the list of values that were appended to the "floats" field in this mutation.
+func (m *OASTypesMutation) AppendedFloats() ([]float64, bool) {
+	if len(m.appendfloats) == 0 {
+		return nil, false
+	}
+	return m.appendfloats, true
+}
+
 // ResetFloats resets all changes to the "floats" field.
 func (m *OASTypesMutation) ResetFloats() {
 	m.floats = nil
+	m.appendfloats = nil
 }
 
 // SetBytes sets the "bytes" field.
@@ -1214,6 +1264,7 @@ func (m *OASTypesMutation) ResetBytes() {
 // SetNicknames sets the "nicknames" field.
 func (m *OASTypesMutation) SetNicknames(s []string) {
 	m.nicknames = &s
+	m.appendnicknames = nil
 }
 
 // Nicknames returns the value of the "nicknames" field in the mutation.
@@ -1242,14 +1293,29 @@ func (m *OASTypesMutation) OldNicknames(ctx context.Context) (v []string, err er
 	return oldValue.Nicknames, nil
 }
 
+// AppendNicknames adds s to the "nicknames" field.
+func (m *OASTypesMutation) AppendNicknames(s []string) {
+	m.appendnicknames = append(m.appendnicknames, s...)
+}
+
+// AppendedNicknames returns the list of values that were appended to the "nicknames" field in this mutation.
+func (m *OASTypesMutation) AppendedNicknames() ([]string, bool) {
+	if len(m.appendnicknames) == 0 {
+		return nil, false
+	}
+	return m.appendnicknames, true
+}
+
 // ResetNicknames resets all changes to the "nicknames" field.
 func (m *OASTypesMutation) ResetNicknames() {
 	m.nicknames = nil
+	m.appendnicknames = nil
 }
 
 // SetJSONSlice sets the "json_slice" field.
 func (m *OASTypesMutation) SetJSONSlice(h []http.Dir) {
 	m.json_slice = &h
+	m.appendjson_slice = nil
 }
 
 // JSONSlice returns the value of the "json_slice" field in the mutation.
@@ -1278,9 +1344,23 @@ func (m *OASTypesMutation) OldJSONSlice(ctx context.Context) (v []http.Dir, err 
 	return oldValue.JSONSlice, nil
 }
 
+// AppendJSONSlice adds h to the "json_slice" field.
+func (m *OASTypesMutation) AppendJSONSlice(h []http.Dir) {
+	m.appendjson_slice = append(m.appendjson_slice, h...)
+}
+
+// AppendedJSONSlice returns the list of values that were appended to the "json_slice" field in this mutation.
+func (m *OASTypesMutation) AppendedJSONSlice() ([]http.Dir, bool) {
+	if len(m.appendjson_slice) == 0 {
+		return nil, false
+	}
+	return m.appendjson_slice, true
+}
+
 // ResetJSONSlice resets all changes to the "json_slice" field.
 func (m *OASTypesMutation) ResetJSONSlice() {
 	m.json_slice = nil
+	m.appendjson_slice = nil
 }
 
 // SetJSONObj sets the "json_obj" field.

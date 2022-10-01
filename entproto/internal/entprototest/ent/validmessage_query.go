@@ -346,11 +346,14 @@ func (vmq *ValidMessageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vmq *ValidMessageQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := vmq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := vmq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {

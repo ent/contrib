@@ -15,6 +15,7 @@ import (
 	"entgo.io/contrib/entoas/internal/oastypes/schema"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -238,15 +239,33 @@ func (otu *OASTypesUpdate) SetStrings(s []string) *OASTypesUpdate {
 	return otu
 }
 
+// AppendStrings appends s to the "strings" field.
+func (otu *OASTypesUpdate) AppendStrings(s []string) *OASTypesUpdate {
+	otu.mutation.AppendStrings(s)
+	return otu
+}
+
 // SetInts sets the "ints" field.
 func (otu *OASTypesUpdate) SetInts(i []int) *OASTypesUpdate {
 	otu.mutation.SetInts(i)
 	return otu
 }
 
+// AppendInts appends i to the "ints" field.
+func (otu *OASTypesUpdate) AppendInts(i []int) *OASTypesUpdate {
+	otu.mutation.AppendInts(i)
+	return otu
+}
+
 // SetFloats sets the "floats" field.
 func (otu *OASTypesUpdate) SetFloats(f []float64) *OASTypesUpdate {
 	otu.mutation.SetFloats(f)
+	return otu
+}
+
+// AppendFloats appends f to the "floats" field.
+func (otu *OASTypesUpdate) AppendFloats(f []float64) *OASTypesUpdate {
+	otu.mutation.AppendFloats(f)
 	return otu
 }
 
@@ -262,9 +281,21 @@ func (otu *OASTypesUpdate) SetNicknames(s []string) *OASTypesUpdate {
 	return otu
 }
 
+// AppendNicknames appends s to the "nicknames" field.
+func (otu *OASTypesUpdate) AppendNicknames(s []string) *OASTypesUpdate {
+	otu.mutation.AppendNicknames(s)
+	return otu
+}
+
 // SetJSONSlice sets the "json_slice" field.
 func (otu *OASTypesUpdate) SetJSONSlice(h []http.Dir) *OASTypesUpdate {
 	otu.mutation.SetJSONSlice(h)
+	return otu
+}
+
+// AppendJSONSlice appends h to the "json_slice" field.
+func (otu *OASTypesUpdate) AppendJSONSlice(h []http.Dir) *OASTypesUpdate {
+	otu.mutation.AppendJSONSlice(h)
 	return otu
 }
 
@@ -590,6 +621,11 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: oastypes.FieldStrings,
 		})
 	}
+	if value, ok := otu.mutation.AppendedStrings(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldStrings, value)
+		})
+	}
 	if value, ok := otu.mutation.Ints(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
@@ -597,11 +633,21 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: oastypes.FieldInts,
 		})
 	}
+	if value, ok := otu.mutation.AppendedInts(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldInts, value)
+		})
+	}
 	if value, ok := otu.mutation.Floats(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: oastypes.FieldFloats,
+		})
+	}
+	if value, ok := otu.mutation.AppendedFloats(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldFloats, value)
 		})
 	}
 	if value, ok := otu.mutation.Bytes(); ok {
@@ -618,11 +664,21 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: oastypes.FieldNicknames,
 		})
 	}
+	if value, ok := otu.mutation.AppendedNicknames(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldNicknames, value)
+		})
+	}
 	if value, ok := otu.mutation.JSONSlice(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: oastypes.FieldJSONSlice,
+		})
+	}
+	if value, ok := otu.mutation.AppendedJSONSlice(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldJSONSlice, value)
 		})
 	}
 	if value, ok := otu.mutation.JSONObj(); ok {
@@ -864,15 +920,33 @@ func (otuo *OASTypesUpdateOne) SetStrings(s []string) *OASTypesUpdateOne {
 	return otuo
 }
 
+// AppendStrings appends s to the "strings" field.
+func (otuo *OASTypesUpdateOne) AppendStrings(s []string) *OASTypesUpdateOne {
+	otuo.mutation.AppendStrings(s)
+	return otuo
+}
+
 // SetInts sets the "ints" field.
 func (otuo *OASTypesUpdateOne) SetInts(i []int) *OASTypesUpdateOne {
 	otuo.mutation.SetInts(i)
 	return otuo
 }
 
+// AppendInts appends i to the "ints" field.
+func (otuo *OASTypesUpdateOne) AppendInts(i []int) *OASTypesUpdateOne {
+	otuo.mutation.AppendInts(i)
+	return otuo
+}
+
 // SetFloats sets the "floats" field.
 func (otuo *OASTypesUpdateOne) SetFloats(f []float64) *OASTypesUpdateOne {
 	otuo.mutation.SetFloats(f)
+	return otuo
+}
+
+// AppendFloats appends f to the "floats" field.
+func (otuo *OASTypesUpdateOne) AppendFloats(f []float64) *OASTypesUpdateOne {
+	otuo.mutation.AppendFloats(f)
 	return otuo
 }
 
@@ -888,9 +962,21 @@ func (otuo *OASTypesUpdateOne) SetNicknames(s []string) *OASTypesUpdateOne {
 	return otuo
 }
 
+// AppendNicknames appends s to the "nicknames" field.
+func (otuo *OASTypesUpdateOne) AppendNicknames(s []string) *OASTypesUpdateOne {
+	otuo.mutation.AppendNicknames(s)
+	return otuo
+}
+
 // SetJSONSlice sets the "json_slice" field.
 func (otuo *OASTypesUpdateOne) SetJSONSlice(h []http.Dir) *OASTypesUpdateOne {
 	otuo.mutation.SetJSONSlice(h)
+	return otuo
+}
+
+// AppendJSONSlice appends h to the "json_slice" field.
+func (otuo *OASTypesUpdateOne) AppendJSONSlice(h []http.Dir) *OASTypesUpdateOne {
+	otuo.mutation.AppendJSONSlice(h)
 	return otuo
 }
 
@@ -1246,6 +1332,11 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 			Column: oastypes.FieldStrings,
 		})
 	}
+	if value, ok := otuo.mutation.AppendedStrings(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldStrings, value)
+		})
+	}
 	if value, ok := otuo.mutation.Ints(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
@@ -1253,11 +1344,21 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 			Column: oastypes.FieldInts,
 		})
 	}
+	if value, ok := otuo.mutation.AppendedInts(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldInts, value)
+		})
+	}
 	if value, ok := otuo.mutation.Floats(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: oastypes.FieldFloats,
+		})
+	}
+	if value, ok := otuo.mutation.AppendedFloats(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldFloats, value)
 		})
 	}
 	if value, ok := otuo.mutation.Bytes(); ok {
@@ -1274,11 +1375,21 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 			Column: oastypes.FieldNicknames,
 		})
 	}
+	if value, ok := otuo.mutation.AppendedNicknames(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldNicknames, value)
+		})
+	}
 	if value, ok := otuo.mutation.JSONSlice(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: oastypes.FieldJSONSlice,
+		})
+	}
+	if value, ok := otuo.mutation.AppendedJSONSlice(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, oastypes.FieldJSONSlice, value)
 		})
 	}
 	if value, ok := otuo.mutation.JSONObj(); ok {

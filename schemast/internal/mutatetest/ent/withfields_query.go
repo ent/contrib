@@ -346,11 +346,14 @@ func (wfq *WithFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wfq *WithFieldsQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := wfq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := wfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {

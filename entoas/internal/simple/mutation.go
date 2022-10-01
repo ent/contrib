@@ -550,6 +550,7 @@ type PetMutation struct {
 	id                *int
 	name              *string
 	nicknames         *[]string
+	appendnicknames   []string
 	age               *int
 	addage            *int
 	clearedFields     map[string]struct{}
@@ -709,6 +710,7 @@ func (m *PetMutation) ResetName() {
 // SetNicknames sets the "nicknames" field.
 func (m *PetMutation) SetNicknames(s []string) {
 	m.nicknames = &s
+	m.appendnicknames = nil
 }
 
 // Nicknames returns the value of the "nicknames" field in the mutation.
@@ -737,9 +739,23 @@ func (m *PetMutation) OldNicknames(ctx context.Context) (v []string, err error) 
 	return oldValue.Nicknames, nil
 }
 
+// AppendNicknames adds s to the "nicknames" field.
+func (m *PetMutation) AppendNicknames(s []string) {
+	m.appendnicknames = append(m.appendnicknames, s...)
+}
+
+// AppendedNicknames returns the list of values that were appended to the "nicknames" field in this mutation.
+func (m *PetMutation) AppendedNicknames() ([]string, bool) {
+	if len(m.appendnicknames) == 0 {
+		return nil, false
+	}
+	return m.appendnicknames, true
+}
+
 // ClearNicknames clears the value of the "nicknames" field.
 func (m *PetMutation) ClearNicknames() {
 	m.nicknames = nil
+	m.appendnicknames = nil
 	m.clearedFields[pet.FieldNicknames] = struct{}{}
 }
 
@@ -752,6 +768,7 @@ func (m *PetMutation) NicknamesCleared() bool {
 // ResetNicknames resets all changes to the "nicknames" field.
 func (m *PetMutation) ResetNicknames() {
 	m.nicknames = nil
+	m.appendnicknames = nil
 	delete(m.clearedFields, pet.FieldNicknames)
 }
 

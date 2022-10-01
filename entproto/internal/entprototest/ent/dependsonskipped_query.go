@@ -426,11 +426,14 @@ func (dosq *DependsOnSkippedQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (dosq *DependsOnSkippedQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := dosq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := dosq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {

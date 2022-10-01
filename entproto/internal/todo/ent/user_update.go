@@ -16,6 +16,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -316,6 +317,12 @@ func (uu *UserUpdate) ClearType() *UserUpdate {
 // SetLabels sets the "labels" field.
 func (uu *UserUpdate) SetLabels(s []string) *UserUpdate {
 	uu.mutation.SetLabels(s)
+	return uu
+}
+
+// AppendLabels appends s to the "labels" field.
+func (uu *UserUpdate) AppendLabels(s []string) *UserUpdate {
+	uu.mutation.AppendLabels(s)
 	return uu
 }
 
@@ -795,6 +802,11 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: user.FieldLabels,
+		})
+	}
+	if value, ok := uu.mutation.AppendedLabels(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldLabels, value)
 		})
 	}
 	if uu.mutation.LabelsCleared() {
@@ -1309,6 +1321,12 @@ func (uuo *UserUpdateOne) SetLabels(s []string) *UserUpdateOne {
 	return uuo
 }
 
+// AppendLabels appends s to the "labels" field.
+func (uuo *UserUpdateOne) AppendLabels(s []string) *UserUpdateOne {
+	uuo.mutation.AppendLabels(s)
+	return uuo
+}
+
 // ClearLabels clears the value of the "labels" field.
 func (uuo *UserUpdateOne) ClearLabels() *UserUpdateOne {
 	uuo.mutation.ClearLabels()
@@ -1815,6 +1833,11 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: user.FieldLabels,
+		})
+	}
+	if value, ok := uuo.mutation.AppendedLabels(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldLabels, value)
 		})
 	}
 	if uuo.mutation.LabelsCleared() {

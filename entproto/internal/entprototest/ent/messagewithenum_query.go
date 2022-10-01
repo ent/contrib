@@ -346,11 +346,14 @@ func (mweq *MessageWithEnumQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mweq *MessageWithEnumQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := mweq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := mweq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
