@@ -244,7 +244,7 @@ func (m *MutationDescriptor) InputFields() ([]*InputFieldDescriptor, error) {
 
 		fields = append(fields, &InputFieldDescriptor{
 			Field:    f,
-			AppendOp: !m.IsCreate && f.IsJSON(),
+			AppendOp: !m.IsCreate && f.SupportsMutationAppend(),
 			ClearOp:  !m.IsCreate && f.Optional,
 			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
 		})

@@ -26,7 +26,7 @@
             {{- end }}
             {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
             {{- if $f.AppendOp }}
-                {{ print "Append" $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
@@ -65,8 +65,8 @@
                 m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
             {{- end }}
             {{- if $f.AppendOp }}
-                if i.{{ print "Append" $f.StructField }} != nil {
-                    m.{{ print "Append" $f.StructField }}(*i.{{ $f.StructField }})
+                if i.{{ $f.MutationAppend }} != nil {
+                    m.{{ $f.MutationAppend }}(*i.{{ $f.StructField }})
                 }
             {{- end }}
         {{- end }}
