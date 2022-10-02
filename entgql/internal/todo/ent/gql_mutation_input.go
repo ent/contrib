@@ -115,6 +115,7 @@ func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
 	Name      *string
+	Password  *string
 	GroupIDs  []int
 	FriendIDs []int
 }
@@ -123,6 +124,9 @@ type CreateUserInput struct {
 func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if v := i.Password; v != nil {
+		m.SetPassword(*v)
 	}
 	if v := i.GroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
@@ -141,6 +145,8 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
 	Name            *string
+	ClearPassword   bool
+	Password        *string
 	AddGroupIDs     []int
 	RemoveGroupIDs  []int
 	AddFriendIDs    []int
@@ -151,6 +157,12 @@ type UpdateUserInput struct {
 func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if i.ClearPassword {
+		m.ClearPassword()
+	}
+	if v := i.Password; v != nil {
+		m.SetPassword(*v)
 	}
 	if v := i.AddGroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)

@@ -27,6 +27,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
 	EdgeGroups = "groups"
 	// EdgeFriends holds the string denoting the friends edge name in mutations.
@@ -55,6 +57,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldPassword,
 }
 
 var (
