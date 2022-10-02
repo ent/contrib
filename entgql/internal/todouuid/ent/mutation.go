@@ -67,6 +67,7 @@ type CategoryMutation struct {
 	count         *uint64
 	addcount      *int64
 	strings       *[]string
+	appendstrings []string
 	clearedFields map[string]struct{}
 	todos         map[uuid.UUID]struct{}
 	removedtodos  map[uuid.UUID]struct{}
@@ -444,6 +445,7 @@ func (m *CategoryMutation) ResetCount() {
 // SetStrings sets the "strings" field.
 func (m *CategoryMutation) SetStrings(s []string) {
 	m.strings = &s
+	m.appendstrings = nil
 }
 
 // Strings returns the value of the "strings" field in the mutation.
@@ -472,9 +474,23 @@ func (m *CategoryMutation) OldStrings(ctx context.Context) (v []string, err erro
 	return oldValue.Strings, nil
 }
 
+// AppendStrings adds s to the "strings" field.
+func (m *CategoryMutation) AppendStrings(s []string) {
+	m.appendstrings = append(m.appendstrings, s...)
+}
+
+// AppendedStrings returns the list of values that were appended to the "strings" field in this mutation.
+func (m *CategoryMutation) AppendedStrings() ([]string, bool) {
+	if len(m.appendstrings) == 0 {
+		return nil, false
+	}
+	return m.appendstrings, true
+}
+
 // ClearStrings clears the value of the "strings" field.
 func (m *CategoryMutation) ClearStrings() {
 	m.strings = nil
+	m.appendstrings = nil
 	m.clearedFields[category.FieldStrings] = struct{}{}
 }
 
@@ -487,6 +503,7 @@ func (m *CategoryMutation) StringsCleared() bool {
 // ResetStrings resets all changes to the "strings" field.
 func (m *CategoryMutation) ResetStrings() {
 	m.strings = nil
+	m.appendstrings = nil
 	delete(m.clearedFields, category.FieldStrings)
 }
 

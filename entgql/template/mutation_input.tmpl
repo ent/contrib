@@ -25,6 +25,9 @@
                 {{ print "Clear" $f.StructField }} bool
             {{- end }}
             {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+            {{- if $f.AppendOp }}
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+            {{- end }}
         {{- end }}
         {{- range $e := $edges }}
             {{- if $e.Unique }}
@@ -47,6 +50,7 @@
 
     // Mutate applies the {{ $input }} on the {{ $n.MutationName }} builder.
     func (i *{{ $input }}) Mutate(m *{{ $n.MutationName }}) {
+        {{- /* The order of the operators is purposefully sorted: Clear, Set and Append */}}
         {{- range $f := $fields }}
             {{- if $f.ClearOp }}
                 if i.{{ print "Clear" $f.StructField }} {
@@ -59,6 +63,11 @@
                 }
             {{- else }}
                 m.{{ $f.MutationSet }}(i.{{ $f.StructField }})
+            {{- end }}
+            {{- if $f.AppendOp }}
+                if i.{{ $f.MutationAppend }} != nil {
+                    m.{{ $f.MutationAppend }}(*i.{{ $f.StructField }})
+                }
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}

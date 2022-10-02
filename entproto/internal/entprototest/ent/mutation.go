@@ -5601,6 +5601,7 @@ type MessageWithStringsMutation struct {
 	typ           string
 	id            *int
 	strings       *[]string
+	appendstrings []string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*MessageWithStrings, error)
@@ -5708,6 +5709,7 @@ func (m *MessageWithStringsMutation) IDs(ctx context.Context) ([]int, error) {
 // SetStrings sets the "strings" field.
 func (m *MessageWithStringsMutation) SetStrings(s []string) {
 	m.strings = &s
+	m.appendstrings = nil
 }
 
 // Strings returns the value of the "strings" field in the mutation.
@@ -5736,9 +5738,23 @@ func (m *MessageWithStringsMutation) OldStrings(ctx context.Context) (v []string
 	return oldValue.Strings, nil
 }
 
+// AppendStrings adds s to the "strings" field.
+func (m *MessageWithStringsMutation) AppendStrings(s []string) {
+	m.appendstrings = append(m.appendstrings, s...)
+}
+
+// AppendedStrings returns the list of values that were appended to the "strings" field in this mutation.
+func (m *MessageWithStringsMutation) AppendedStrings() ([]string, bool) {
+	if len(m.appendstrings) == 0 {
+		return nil, false
+	}
+	return m.appendstrings, true
+}
+
 // ResetStrings resets all changes to the "strings" field.
 func (m *MessageWithStringsMutation) ResetStrings() {
 	m.strings = nil
+	m.appendstrings = nil
 }
 
 // Where appends a list predicates to the MessageWithStringsMutation builder.

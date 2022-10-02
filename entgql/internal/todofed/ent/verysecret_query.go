@@ -373,11 +373,14 @@ func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vsq *VerySecretQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := vsq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := vsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {

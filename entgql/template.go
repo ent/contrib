@@ -217,10 +217,12 @@ func (m *MutationDescriptor) Builders() []string {
 // It's shared between GQL and Go types.
 type InputFieldDescriptor struct {
 	*gen.Field
-	// Nullable indicates if the field is nullable.
-	Nullable bool
+	// AppendOp indicates if the field has the Append operator
+	AppendOp bool
 	// ClearOp indicates if the field has the Clear operator
 	ClearOp bool
+	// Nullable indicates if the field is nullable.
+	Nullable bool
 }
 
 // IsPointer returns true if the Go type should be a pointer
@@ -242,8 +244,9 @@ func (m *MutationDescriptor) InputFields() ([]*InputFieldDescriptor, error) {
 
 		fields = append(fields, &InputFieldDescriptor{
 			Field:    f,
-			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
+			AppendOp: !m.IsCreate && f.SupportsMutationAppend(),
 			ClearOp:  !m.IsCreate && f.Optional,
+			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
 		})
 	}
 

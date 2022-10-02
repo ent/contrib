@@ -13,6 +13,7 @@ import (
 	"entgo.io/contrib/entoas/internal/simple/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -38,6 +39,12 @@ func (pu *PetUpdate) SetName(s string) *PetUpdate {
 // SetNicknames sets the "nicknames" field.
 func (pu *PetUpdate) SetNicknames(s []string) *PetUpdate {
 	pu.mutation.SetNicknames(s)
+	return pu
+}
+
+// AppendNicknames appends s to the "nicknames" field.
+func (pu *PetUpdate) AppendNicknames(s []string) *PetUpdate {
+	pu.mutation.AppendNicknames(s)
 	return pu
 }
 
@@ -262,6 +269,11 @@ func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: pet.FieldNicknames,
 		})
 	}
+	if value, ok := pu.mutation.AppendedNicknames(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pet.FieldNicknames, value)
+		})
+	}
 	if pu.mutation.NicknamesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
@@ -459,6 +471,12 @@ func (puo *PetUpdateOne) SetName(s string) *PetUpdateOne {
 // SetNicknames sets the "nicknames" field.
 func (puo *PetUpdateOne) SetNicknames(s []string) *PetUpdateOne {
 	puo.mutation.SetNicknames(s)
+	return puo
+}
+
+// AppendNicknames appends s to the "nicknames" field.
+func (puo *PetUpdateOne) AppendNicknames(s []string) *PetUpdateOne {
+	puo.mutation.AppendNicknames(s)
 	return puo
 }
 
@@ -711,6 +729,11 @@ func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: pet.FieldNicknames,
+		})
+	}
+	if value, ok := puo.mutation.AppendedNicknames(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, pet.FieldNicknames, value)
 		})
 	}
 	if puo.mutation.NicknamesCleared() {

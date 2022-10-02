@@ -432,11 +432,14 @@ func (iq *ImageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (iq *ImageQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := iq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := iq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (iq *ImageQuery) querySpec() *sqlgraph.QuerySpec {

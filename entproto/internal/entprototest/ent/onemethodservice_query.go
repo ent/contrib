@@ -324,11 +324,14 @@ func (omsq *OneMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (omsq *OneMethodServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := omsq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := omsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {

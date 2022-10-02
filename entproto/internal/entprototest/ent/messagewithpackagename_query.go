@@ -346,11 +346,14 @@ func (mwpnq *MessageWithPackageNameQuery) sqlCount(ctx context.Context) (int, er
 }
 
 func (mwpnq *MessageWithPackageNameQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := mwpnq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := mwpnq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {

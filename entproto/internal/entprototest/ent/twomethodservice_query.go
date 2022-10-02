@@ -324,11 +324,14 @@ func (tmsq *TwoMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tmsq *TwoMethodServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := tmsq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := tmsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {

@@ -28,6 +28,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -125,6 +126,12 @@ func (cu *CategoryUpdate) ClearCount() *CategoryUpdate {
 // SetStrings sets the "strings" field.
 func (cu *CategoryUpdate) SetStrings(s []string) *CategoryUpdate {
 	cu.mutation.SetStrings(s)
+	return cu
+}
+
+// AppendStrings appends s to the "strings" field.
+func (cu *CategoryUpdate) AppendStrings(s []string) *CategoryUpdate {
+	cu.mutation.AppendStrings(s)
 	return cu
 }
 
@@ -342,6 +349,11 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldStrings,
 		})
 	}
+	if value, ok := cu.mutation.AppendedStrings(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, category.FieldStrings, value)
+		})
+	}
 	if cu.mutation.StringsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
@@ -502,6 +514,12 @@ func (cuo *CategoryUpdateOne) ClearCount() *CategoryUpdateOne {
 // SetStrings sets the "strings" field.
 func (cuo *CategoryUpdateOne) SetStrings(s []string) *CategoryUpdateOne {
 	cuo.mutation.SetStrings(s)
+	return cuo
+}
+
+// AppendStrings appends s to the "strings" field.
+func (cuo *CategoryUpdateOne) AppendStrings(s []string) *CategoryUpdateOne {
+	cuo.mutation.AppendStrings(s)
 	return cuo
 }
 
@@ -747,6 +765,11 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			Type:   field.TypeJSON,
 			Value:  value,
 			Column: category.FieldStrings,
+		})
+	}
+	if value, ok := cuo.mutation.AppendedStrings(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, category.FieldStrings, value)
 		})
 	}
 	if cuo.mutation.StringsCleared() {

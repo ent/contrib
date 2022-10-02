@@ -581,6 +581,12 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				Type:        namedType(scalar, f.Nullable),
 				Description: f.Comment(),
 			})
+			if f.AppendOp {
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: "append" + f.StructField(),
+					Type: namedType(scalar, true),
+				})
+			}
 		}
 
 		for _, e := range edges {
