@@ -136,16 +136,24 @@ func (u *User) Groups(
 	return u.QueryGroups().Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (u *User) Friends(ctx context.Context) ([]*User, error) {
-	result, err := u.NamedFriends(graphql.GetFieldContext(ctx).Field.Alias)
+func (u *User) Friends(ctx context.Context) (result []*User, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedFriends(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.FriendsOrErr()
+	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriends().All(ctx)
 	}
 	return result, err
 }
 
-func (u *User) Friendships(ctx context.Context) ([]*Friendship, error) {
-	result, err := u.NamedFriendships(graphql.GetFieldContext(ctx).Field.Alias)
+func (u *User) Friendships(ctx context.Context) (result []*Friendship, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedFriendships(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.FriendshipsOrErr()
+	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryFriendships().All(ctx)
 	}

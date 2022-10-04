@@ -22,8 +22,12 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func (c *Category) Todos(ctx context.Context) ([]*Todo, error) {
-	result, err := c.NamedTodos(graphql.GetFieldContext(ctx).Field.Alias)
+func (c *Category) Todos(ctx context.Context) (result []*Todo, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedTodos(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.TodosOrErr()
+	}
 	if IsNotLoaded(err) {
 		result, err = c.QueryTodos().All(ctx)
 	}
@@ -38,8 +42,12 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 	return result, MaskNotFound(err)
 }
 
-func (t *Todo) Children(ctx context.Context) ([]*Todo, error) {
-	result, err := t.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
+func (t *Todo) Children(ctx context.Context) (result []*Todo, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = t.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = t.Edges.ChildrenOrErr()
+	}
 	if IsNotLoaded(err) {
 		result, err = t.QueryChildren().All(ctx)
 	}

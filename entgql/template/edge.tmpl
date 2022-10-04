@@ -19,8 +19,13 @@ import "context"
 				{{ template "gql_edge/helper/paginate" . }}
 			{{ end }}
 		{{ else if not $e.Unique }}
-			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
-				result, err := {{ $r }}.Named{{ $e.StructField }}(graphql.GetFieldContext(ctx).Field.Alias)
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) (result []*{{ $e.Type.Name }}, err error) {
+				if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+					result, err = {{ $r }}.Named{{ $e.StructField }}(graphql.GetFieldContext(ctx).Field.Alias)
+				} else {
+					{{- /* For regular edges (not Relay connections), we fallback to .Edges field in case the context is not GraphQL */}}
+					result, err = {{ $r }}.Edges.{{ $e.StructField }}OrErr()
+				}
 				if IsNotLoaded(err) {
 					result, err = {{ $r }}.Query{{ $e.StructField }}().All(ctx)
 				}
