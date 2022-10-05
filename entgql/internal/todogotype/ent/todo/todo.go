@@ -38,6 +38,8 @@ const (
 	FieldText = "text"
 	// FieldBlob holds the string denoting the blob field in the database.
 	FieldBlob = "blob"
+	// FieldInit holds the string denoting the init field in the database.
+	FieldInit = "init"
 	// FieldCategoryID holds the string denoting the category_id field in the database.
 	FieldCategoryID = "category_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -82,6 +84,7 @@ var Columns = []string{
 	FieldPriority,
 	FieldText,
 	FieldBlob,
+	FieldInit,
 	FieldCategoryID,
 }
 

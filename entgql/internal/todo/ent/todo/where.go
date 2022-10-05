@@ -521,6 +521,20 @@ func CategoryIDNotNil() predicate.Todo {
 	})
 }
 
+// InitIsNil applies the IsNil predicate on the "init" field.
+func InitIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldInit)))
+	})
+}
+
+// InitNotNil applies the NotNil predicate on the "init" field.
+func InitNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldInit)))
+	})
+}
+
 // HasParent applies the HasEdge predicate on the "parent" edge.
 func HasParent() predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {

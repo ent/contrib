@@ -29,8 +29,6 @@ type Todo struct {
 	ent.Schema
 }
 
-type Map map[string]any
-
 // Fields returns todo fields.
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
@@ -71,7 +69,7 @@ func (Todo) Fields() []ent.Field {
 			Annotations(
 				entgql.MapsTo("categoryID", "category_id", "categoryX"),
 			),
-		field.JSON("init", Map{}).
+		field.JSON("init", map[string]any{}).
 			Optional().
 			Annotations(entgql.Type("Map")),
 	}

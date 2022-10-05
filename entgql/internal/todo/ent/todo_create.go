@@ -96,6 +96,12 @@ func (tc *TodoCreate) SetNillableCategoryID(i *int) *TodoCreate {
 	return tc
 }
 
+// SetInit sets the "init" field.
+func (tc *TodoCreate) SetInit(m map[string]interface{}) *TodoCreate {
+	tc.mutation.SetInit(m)
+	return tc
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tc *TodoCreate) SetParentID(id int) *TodoCreate {
 	tc.mutation.SetParentID(id)
@@ -331,6 +337,14 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Column: todo.FieldBlob,
 		})
 		_node.Blob = value
+	}
+	if value, ok := tc.mutation.Init(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: todo.FieldInit,
+		})
+		_node.Init = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

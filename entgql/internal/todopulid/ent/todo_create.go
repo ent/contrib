@@ -83,6 +83,12 @@ func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
 	return tc
 }
 
+// SetInit sets the "init" field.
+func (tc *TodoCreate) SetInit(m map[string]interface{}) *TodoCreate {
+	tc.mutation.SetInit(m)
+	return tc
+}
+
 // SetCategoryID sets the "category_id" field.
 func (tc *TodoCreate) SetCategoryID(pu pulid.ID) *TodoCreate {
 	tc.mutation.SetCategoryID(pu)
@@ -359,6 +365,14 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Column: todo.FieldBlob,
 		})
 		_node.Blob = value
+	}
+	if value, ok := tc.mutation.Init(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  value,
+			Column: todo.FieldInit,
+		})
+		_node.Init = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

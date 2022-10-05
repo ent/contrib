@@ -87,6 +87,7 @@ input CreateTodoInput {
   status: TodoStatus!
   priority: Int
   text: String!
+  init: Map
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -115,6 +116,8 @@ type Group @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   name: String!
   users: [User!]
 }
+"""The builtin Map type"""
+scalar Map
 type Query {
   groups: [Group!]!
   """This is the todo item"""
@@ -132,6 +135,7 @@ type Todo {
   categoryID: ID
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
+  init: Map
   parent: Todo
   children: [Todo!]
   category: Category
@@ -184,6 +188,8 @@ input UpdateTodoInput {
   status: TodoStatus
   priority: Int
   text: String
+  clearInit: Boolean
+  init: Map
   clearParent: Boolean
   parentID: ID
   addChildIDs: [ID!]
@@ -367,6 +373,7 @@ input CreateTodoInput {
   status: TodoStatus!
   priority: Int
   text: String!
+  init: Map
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -488,6 +495,8 @@ input GroupWhereInput {
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
 }
+"""The builtin Map type"""
+scalar Map
 type Query {
   """Fetches an object given its ID."""
   node(
@@ -563,6 +572,7 @@ type Todo implements Node {
   categoryID: ID
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
+  init: Map
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -720,6 +730,8 @@ input UpdateTodoInput {
   status: TodoStatus
   priority: Int
   text: String
+  clearInit: Boolean
+  init: Map
   clearParent: Boolean
   parentID: ID
   addChildIDs: [ID!]

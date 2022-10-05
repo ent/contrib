@@ -1845,6 +1845,7 @@ type TodoMutation struct {
 	addpriority     *int
 	text            *string
 	blob            *[]byte
+	init            *map[string]interface{}
 	clearedFields   map[string]struct{}
 	parent          *pulid.ID
 	clearedparent   bool
@@ -2177,6 +2178,55 @@ func (m *TodoMutation) ResetBlob() {
 	delete(m.clearedFields, todo.FieldBlob)
 }
 
+// SetInit sets the "init" field.
+func (m *TodoMutation) SetInit(value map[string]interface{}) {
+	m.init = &value
+}
+
+// Init returns the value of the "init" field in the mutation.
+func (m *TodoMutation) Init() (r map[string]interface{}, exists bool) {
+	v := m.init
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInit returns the old "init" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldInit(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInit: %w", err)
+	}
+	return oldValue.Init, nil
+}
+
+// ClearInit clears the value of the "init" field.
+func (m *TodoMutation) ClearInit() {
+	m.init = nil
+	m.clearedFields[todo.FieldInit] = struct{}{}
+}
+
+// InitCleared returns if the "init" field was cleared in this mutation.
+func (m *TodoMutation) InitCleared() bool {
+	_, ok := m.clearedFields[todo.FieldInit]
+	return ok
+}
+
+// ResetInit resets all changes to the "init" field.
+func (m *TodoMutation) ResetInit() {
+	m.init = nil
+	delete(m.clearedFields, todo.FieldInit)
+}
+
 // SetCategoryID sets the "category_id" field.
 func (m *TodoMutation) SetCategoryID(pu pulid.ID) {
 	m.category = &pu
@@ -2403,7 +2453,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -2418,6 +2468,9 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.blob != nil {
 		fields = append(fields, todo.FieldBlob)
+	}
+	if m.init != nil {
+		fields = append(fields, todo.FieldInit)
 	}
 	if m.category != nil {
 		fields = append(fields, todo.FieldCategoryID)
@@ -2440,6 +2493,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	case todo.FieldBlob:
 		return m.Blob()
+	case todo.FieldInit:
+		return m.Init()
 	case todo.FieldCategoryID:
 		return m.CategoryID()
 	}
@@ -2461,6 +2516,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldText(ctx)
 	case todo.FieldBlob:
 		return m.OldBlob(ctx)
+	case todo.FieldInit:
+		return m.OldInit(ctx)
 	case todo.FieldCategoryID:
 		return m.OldCategoryID(ctx)
 	}
@@ -2506,6 +2563,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBlob(v)
+		return nil
+	case todo.FieldInit:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInit(v)
 		return nil
 	case todo.FieldCategoryID:
 		v, ok := value.(pulid.ID)
@@ -2562,6 +2626,9 @@ func (m *TodoMutation) ClearedFields() []string {
 	if m.FieldCleared(todo.FieldBlob) {
 		fields = append(fields, todo.FieldBlob)
 	}
+	if m.FieldCleared(todo.FieldInit) {
+		fields = append(fields, todo.FieldInit)
+	}
 	if m.FieldCleared(todo.FieldCategoryID) {
 		fields = append(fields, todo.FieldCategoryID)
 	}
@@ -2581,6 +2648,9 @@ func (m *TodoMutation) ClearField(name string) error {
 	switch name {
 	case todo.FieldBlob:
 		m.ClearBlob()
+		return nil
+	case todo.FieldInit:
+		m.ClearInit()
 		return nil
 	case todo.FieldCategoryID:
 		m.ClearCategoryID()
@@ -2607,6 +2677,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldBlob:
 		m.ResetBlob()
+		return nil
+	case todo.FieldInit:
+		m.ResetInit()
 		return nil
 	case todo.FieldCategoryID:
 		m.ResetCategoryID()
