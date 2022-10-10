@@ -65,6 +65,12 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 		if fld.Descriptor().Info.Type == field.TypeUUID {
 			ctx.appendImport(u.Name, "github.com/google/uuid")
 		}
+		// Append any imported struct for JSON fields
+		if fld.Descriptor().Info.Type == field.TypeJSON {
+			if fld.Descriptor().Info.RType != nil && fld.Descriptor().Info.RType.PkgPath != "" {
+				ctx.appendImport(u.Name, fld.Descriptor().Info.RType.PkgPath)
+			}
+		}
 	}
 	for _, edg := range u.Edges {
 		if err := ctx.AppendEdge(u.Name, edg.Descriptor()); err != nil {
