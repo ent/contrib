@@ -24,9 +24,16 @@ import (
 )
 
 // Mutator changes a Context.
-type Mutator interface {
-	Mutate(ctx *Context) error
-}
+type (
+	Mutator interface {
+		Mutate(ctx *Context) error
+	}
+
+	BaseSchemaConfig struct {
+		BaseSchemaType string
+		BasePkg        string
+	}
+)
 
 // Mutate applies a sequence of mutations to a Context
 func Mutate(ctx *Context, mutations ...Mutator) error {
@@ -42,6 +49,7 @@ func Mutate(ctx *Context, mutations ...Mutator) error {
 // the type's Fields and Edges methods to return the desired fields and edges.
 type UpsertSchema struct {
 	Name        string
+	BaseConfig  *BaseSchemaConfig
 	Fields      []ent.Field
 	Edges       []ent.Edge
 	Indexes     []ent.Index
@@ -51,8 +59,14 @@ type UpsertSchema struct {
 // Mutate applies the UpsertSchema mutation to the Context.
 func (u *UpsertSchema) Mutate(ctx *Context) error {
 	if !ctx.HasType(u.Name) {
-		if err := ctx.AddType(u.Name); err != nil {
-			return err
+		if u.BaseConfig != nil {
+			if err := ctx.AddTypeWithBase(u.Name, u.BaseConfig.BaseSchemaType, u.BaseConfig.BasePkg); err != nil {
+				return err
+			}
+		} else {
+			if err := ctx.AddType(u.Name); err != nil {
+				return err
+			}
 		}
 	}
 	if err := resetMethods(ctx, u.Name); err != nil {

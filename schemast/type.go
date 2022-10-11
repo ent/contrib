@@ -23,6 +23,8 @@ import (
 	"github.com/go-openapi/inflect"
 )
 
+const defaultBaseSchema = "ent.Schema"
+
 // RemoveType removes the type definition as well as any method receivers or associated comment groups from the context.
 func (c *Context) RemoveType(typeName string) error {
 	_, found := c.newTypes[typeName]
@@ -72,13 +74,28 @@ func (c *Context) RemoveType(typeName string) error {
 }
 
 func (c *Context) AddType(typeName string) error {
-	body := fmt.Sprintf(`package schema
+	imports := `import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+)`
+	return c.addType(typeName, defaultBaseSchema, imports)
+}
+
+func (c *Context) AddTypeWithBase(typeName, baseSchema, baseSchemaPkg string) error {
+	imports := fmt.Sprintf(`
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
-)
+	"%s"
+)`, baseSchemaPkg)
+	return c.addType(typeName, baseSchema, imports)
+}
+
+func (c *Context) addType(typeName, baseSchema, imports string) error {
+	body := fmt.Sprintf(`package schema
+%s
 type %s struct {
-	ent.Schema
+	%s
 }
 func (%s) Fields() []ent.Field {
 	return nil
@@ -89,7 +106,7 @@ func (%s) Edges() []ent.Edge {
 func (%s) Annotations() []schema.Annotation {
 	return nil
 }
-`, typeName, typeName, typeName, typeName)
+`, imports, typeName, baseSchema, typeName, typeName, typeName)
 	fn := inflect.Underscore(typeName) + ".go"
 	f, err := parser.ParseFile(c.SchemaPackage.Fset, fn, body, 0)
 	if err != nil {
