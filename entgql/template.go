@@ -227,7 +227,10 @@ type InputFieldDescriptor struct {
 
 // IsPointer returns true if the Go type should be a pointer
 func (f *InputFieldDescriptor) IsPointer() bool {
-	return f.Nullable && !f.Type.RType.IsPtr() && !f.Type.Nillable
+	if f.Type.Nillable || f.Type.RType.IsPtr() {
+		return false
+	}
+	return f.Nullable
 }
 
 // InputFields returns the list of fields in the input type.
