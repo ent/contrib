@@ -216,7 +216,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Todo",
-		Fields: make([]*Field, 5),
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -252,10 +252,18 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.CategoryID); err != nil {
+	if buf, err = json.Marshal(t.Init); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
+		Type:  "map[string]interface {}",
+		Name:  "init",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.CategoryID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
 		Type:  "uuid.UUID",
 		Name:  "category_id",
 		Value: string(buf),

@@ -32,7 +32,7 @@ type CreateCategoryInput struct {
 	Config   *schematype.CategoryConfig
 	Duration *time.Duration
 	Count    *uint64
-	Strings  *[]string
+	Strings  []string
 	TodoIDs  []uuid.UUID
 }
 
@@ -40,7 +40,9 @@ type CreateCategoryInput struct {
 func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetText(i.Text)
 	m.SetStatus(i.Status)
-	m.SetConfig(i.Config)
+	if v := i.Config; v != nil {
+		m.SetConfig(v)
+	}
 	if v := i.Duration; v != nil {
 		m.SetDuration(*v)
 	}
@@ -48,7 +50,7 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 		m.SetCount(*v)
 	}
 	if v := i.Strings; v != nil {
-		m.SetStrings(*v)
+		m.SetStrings(v)
 	}
 	if v := i.TodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
@@ -72,8 +74,8 @@ type UpdateCategoryInput struct {
 	ClearCount    bool
 	Count         *uint64
 	ClearStrings  bool
-	Strings       *[]string
-	AppendStrings *[]string
+	Strings       []string
+	AppendStrings []string
 	AddTodoIDs    []uuid.UUID
 	RemoveTodoIDs []uuid.UUID
 }
@@ -89,7 +91,9 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	if i.ClearConfig {
 		m.ClearConfig()
 	}
-	m.SetConfig(i.Config)
+	if v := i.Config; v != nil {
+		m.SetConfig(v)
+	}
 	if i.ClearDuration {
 		m.ClearDuration()
 	}
@@ -106,10 +110,10 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 		m.ClearStrings()
 	}
 	if v := i.Strings; v != nil {
-		m.SetStrings(*v)
+		m.SetStrings(v)
 	}
 	if i.AppendStrings != nil {
-		m.AppendStrings(*i.Strings)
+		m.AppendStrings(i.Strings)
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
@@ -136,6 +140,7 @@ type CreateTodoInput struct {
 	Status     todo.Status
 	Priority   *int
 	Text       string
+	Init       map[string]interface{}
 	ParentID   *uuid.UUID
 	ChildIDs   []uuid.UUID
 	CategoryID *uuid.UUID
@@ -149,6 +154,9 @@ func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 		m.SetPriority(*v)
 	}
 	m.SetText(i.Text)
+	if v := i.Init; v != nil {
+		m.SetInit(v)
+	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
 	}
@@ -174,6 +182,8 @@ type UpdateTodoInput struct {
 	Status         *todo.Status
 	Priority       *int
 	Text           *string
+	ClearInit      bool
+	Init           map[string]interface{}
 	ClearParent    bool
 	ParentID       *uuid.UUID
 	AddChildIDs    []uuid.UUID
@@ -192,6 +202,12 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.Text; v != nil {
 		m.SetText(*v)
+	}
+	if i.ClearInit {
+		m.ClearInit()
+	}
+	if v := i.Init; v != nil {
+		m.SetInit(v)
 	}
 	if i.ClearParent {
 		m.ClearParent()

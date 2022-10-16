@@ -26,6 +26,9 @@ models:
   Duration:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
+  Map:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent.Noder

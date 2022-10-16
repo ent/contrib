@@ -123,6 +123,7 @@ type ComplexityRoot struct {
 		Children   func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
 		CreatedAt  func(childComplexity int) int
 		ID         func(childComplexity int) int
+		Init       func(childComplexity int) int
 		Parent     func(childComplexity int) int
 		Priority   func(childComplexity int) int
 		Status     func(childComplexity int) int
@@ -531,6 +532,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.ID(childComplexity), true
 
+	case "Todo.init":
+		if e.complexity.Todo.Init == nil {
+			break
+		}
+
+		return e.complexity.Todo.Init(childComplexity), true
+
 	case "Todo.parent":
 		if e.complexity.Todo.Parent == nil {
 			break
@@ -924,6 +932,7 @@ input CreateTodoInput {
   status: TodoStatus!
   priority: Int
   text: String!
+  init: Map
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -1050,6 +1059,8 @@ input GroupWhereInput {
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
 }
+"""The builtin Map type"""
+scalar Map
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
@@ -1154,6 +1165,7 @@ type Todo implements Node {
   categoryID: ID
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
+  init: Map
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -1309,6 +1321,8 @@ input UpdateTodoInput {
   status: TodoStatus
   priority: Int
   text: String
+  clearInit: Boolean
+  init: Map
   clearParent: Boolean
   parentID: ID
   addChildIDs: [ID!]
@@ -3073,6 +3087,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_category_id(ctx, field)
 			case "categoryX":
 				return ec.fieldContext_Todo_categoryX(ctx, field)
+			case "init":
+				return ec.fieldContext_Todo_init(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -4123,6 +4139,47 @@ func (ec *executionContext) fieldContext_Todo_categoryX(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_init(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_init(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Init, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_init(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Todo_parent(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_parent(ctx, field)
 	if err != nil {
@@ -4175,6 +4232,8 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 				return ec.fieldContext_Todo_category_id(ctx, field)
 			case "categoryX":
 				return ec.fieldContext_Todo_categoryX(ctx, field)
+			case "init":
+				return ec.fieldContext_Todo_init(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -4507,6 +4566,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Todo_category_id(ctx, field)
 			case "categoryX":
 				return ec.fieldContext_Todo_categoryX(ctx, field)
+			case "init":
+				return ec.fieldContext_Todo_init(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -7444,7 +7505,7 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strings"))
-			it.Strings, err = ec.unmarshalOString2ᚖᚕstringᚄ(ctx, v)
+			it.Strings, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7495,6 +7556,14 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "init":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("init"))
+			it.Init, err = ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8579,7 +8648,7 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strings"))
-			it.Strings, err = ec.unmarshalOString2ᚖᚕstringᚄ(ctx, v)
+			it.Strings, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8587,7 +8656,7 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appendStrings"))
-			it.AppendStrings, err = ec.unmarshalOString2ᚖᚕstringᚄ(ctx, v)
+			it.AppendStrings, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8646,6 +8715,22 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			it.Text, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clearInit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearInit"))
+			it.ClearInit, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "init":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("init"))
+			it.Init, err = ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9726,6 +9811,10 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 		case "categoryX":
 
 			out.Values[i] = ec._Todo_categoryX(ctx, field, obj)
+
+		case "init":
+
+			out.Values[i] = ec._Todo_init(ctx, field, obj)
 
 		case "parent":
 			field := field
@@ -11528,6 +11617,22 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
+	return res
+}
+
 func (ec *executionContext) marshalONode2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -11587,18 +11692,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOString2ᚖᚕstringᚄ(ctx context.Context, v interface{}) (*[]string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOString2ᚖᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v *[]string) graphql.Marshaler {
-	return ec.marshalOString2ᚕstringᚄ(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx context.Context, v interface{}) ([]time.Time, error) {

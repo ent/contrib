@@ -139,6 +139,7 @@ input CreateTodoInput {
   status: TodoStatus!
   priority: Int
   text: String!
+  init: Map
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -265,6 +266,8 @@ input GroupWhereInput {
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
 }
+"""The builtin Map type"""
+scalar Map
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
@@ -369,6 +372,7 @@ type Todo implements Node {
   categoryID: ID
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
+  init: Map
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
@@ -524,6 +528,8 @@ input UpdateTodoInput {
   status: TodoStatus
   priority: Int
   text: String
+  clearInit: Boolean
+  init: Map
   clearParent: Boolean
   parentID: ID
   addChildIDs: [ID!]
