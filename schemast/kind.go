@@ -45,4 +45,8 @@ var (
 		methodName:    "Indexes",
 		ifaceSelector: selectorLit("ent", "Index"),
 	}
+	kindMixin = kind{
+		methodName:    "Mixin",
+		ifaceSelector: selectorLit("ent", "Mixin"),
+	}
 )

@@ -45,6 +45,7 @@ type UpsertSchema struct {
 	Fields      []ent.Field
 	Edges       []ent.Edge
 	Indexes     []ent.Index
+	Mixin       []ent.Mixin
 	Annotations []schema.Annotation
 }
 
@@ -81,11 +82,17 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 			return err
 		}
 	}
+	for _, mixin := range u.Mixin {
+		if err := ctx.AppendMixin(u.Name, mixin); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func resetMethods(ctx *Context, typeName string) error {
-	for _, m := range []string{"Fields", "Edges", "Annotations", "Indexes"} {
+	for _, m := range []string{"Fields", "Edges", "Annotations", "Indexes", "Mixin"} {
 		if _, ok := ctx.lookupMethod(typeName, m); !ok {
 			continue
 		}

@@ -24,6 +24,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/stretchr/testify/require"
+
+	"entgo.io/contrib/schemast/internal/mixintest"
 )
 
 func TestUpsert(t *testing.T) {
@@ -59,6 +61,9 @@ func TestUpsert(t *testing.T) {
 			Indexes: []ent.Index{
 				index.Fields("name"),
 			},
+			Mixin: []ent.Mixin{
+				mixintest.UUID{},
+			},
 		},
 	}
 	err = Mutate(tt.ctx, mutations...)
@@ -71,6 +76,8 @@ func TestUpsert(t *testing.T) {
 	require.Len(t, team.Edges, 1)
 	require.Len(t, team.Annotations, 1)
 	require.Len(t, team.Indexes, 1)
+	require.Len(t, team.MixedInFields(), 1)
+	require.Len(t, team.MixedInPolicies(), 1)
 	user := tt.getType("User")
 	require.NotNil(t, user)
 	require.Len(t, user.Fields, 1)
