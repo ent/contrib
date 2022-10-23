@@ -261,6 +261,7 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 //		GroupBy(messagewithenum.FieldEnumType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *MessageWithEnumGroupBy {
 	grbuild := &MessageWithEnumGroupBy{config: mweq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *Messa
 //	client.MessageWithEnum.Query().
 //		Select(messagewithenum.FieldEnumType).
 //		Scan(ctx, &v)
+//
 func (mweq *MessageWithEnumQuery) Select(fields ...string) *MessageWithEnumSelect {
 	mweq.fields = append(mweq.fields, fields...)
 	selbuild := &MessageWithEnumSelect{MessageWithEnumQuery: mweq}

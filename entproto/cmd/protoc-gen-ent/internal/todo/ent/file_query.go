@@ -261,6 +261,7 @@ func (fq *FileQuery) Clone() *FileQuery {
 //		GroupBy(file.FieldContents).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 	grbuild := &FileGroupBy{config: fq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 //	client.File.Query().
 //		Select(file.FieldContents).
 //		Scan(ctx, &v)
+//
 func (fq *FileQuery) Select(fields ...string) *FileSelect {
 	fq.fields = append(fq.fields, fields...)
 	selbuild := &FileSelect{FileQuery: fq}

@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/servicewithid"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
@@ -70,6 +71,7 @@ func columnChecker(table string) func(string) error {
 		nobackref.Table:              nobackref.ValidColumn,
 		onemethodservice.Table:       onemethodservice.ValidColumn,
 		portal.Table:                 portal.ValidColumn,
+		servicewithid.Table:          servicewithid.ValidColumn,
 		skipedgeexample.Table:        skipedgeexample.ValidColumn,
 		twomethodservice.Table:       twomethodservice.ValidColumn,
 		user.Table:                   user.ValidColumn,
@@ -123,6 +125,7 @@ type AggregateFunc func(*sql.Selector) string
 //	GroupBy(field1, field2).
 //	Aggregate(ent.As(ent.Sum(field1), "sum_field1"), (ent.As(ent.Sum(field2), "sum_field2")).
 //	Scan(ctx, &v)
+//
 func As(fn AggregateFunc, end string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		return sql.As(fn(s), end)

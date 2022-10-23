@@ -29,6 +29,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/servicewithid"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
@@ -80,6 +81,8 @@ type Client struct {
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
 	Portal *PortalClient
+	// ServiceWithID is the client for interacting with the ServiceWithID builders.
+	ServiceWithID *ServiceWithIDClient
 	// SkipEdgeExample is the client for interacting with the SkipEdgeExample builders.
 	SkipEdgeExample *SkipEdgeExampleClient
 	// TwoMethodService is the client for interacting with the TwoMethodService builders.
@@ -119,6 +122,7 @@ func (c *Client) init() {
 	c.NoBackref = NewNoBackrefClient(c.config)
 	c.OneMethodService = NewOneMethodServiceClient(c.config)
 	c.Portal = NewPortalClient(c.config)
+	c.ServiceWithID = NewServiceWithIDClient(c.config)
 	c.SkipEdgeExample = NewSkipEdgeExampleClient(c.config)
 	c.TwoMethodService = NewTwoMethodServiceClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -174,6 +178,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NoBackref:              NewNoBackrefClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
+		ServiceWithID:          NewServiceWithIDClient(cfg),
 		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
 		TwoMethodService:       NewTwoMethodServiceClient(cfg),
 		User:                   NewUserClient(cfg),
@@ -215,6 +220,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NoBackref:              NewNoBackrefClient(cfg),
 		OneMethodService:       NewOneMethodServiceClient(cfg),
 		Portal:                 NewPortalClient(cfg),
+		ServiceWithID:          NewServiceWithIDClient(cfg),
 		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
 		TwoMethodService:       NewTwoMethodServiceClient(cfg),
 		User:                   NewUserClient(cfg),
@@ -228,6 +234,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 //		AllMethodsService.
 //		Query().
 //		Count(ctx)
+//
 func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
@@ -265,6 +272,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.NoBackref.Use(hooks...)
 	c.OneMethodService.Use(hooks...)
 	c.Portal.Use(hooks...)
+	c.ServiceWithID.Use(hooks...)
 	c.SkipEdgeExample.Use(hooks...)
 	c.TwoMethodService.Use(hooks...)
 	c.User.Use(hooks...)
@@ -2001,6 +2009,96 @@ func (c *PortalClient) QueryCategory(po *Portal) *CategoryQuery {
 // Hooks returns the client hooks.
 func (c *PortalClient) Hooks() []Hook {
 	return c.hooks.Portal
+}
+
+// ServiceWithIDClient is a client for the ServiceWithID schema.
+type ServiceWithIDClient struct {
+	config
+}
+
+// NewServiceWithIDClient returns a client for the ServiceWithID from the given config.
+func NewServiceWithIDClient(c config) *ServiceWithIDClient {
+	return &ServiceWithIDClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `servicewithid.Hooks(f(g(h())))`.
+func (c *ServiceWithIDClient) Use(hooks ...Hook) {
+	c.hooks.ServiceWithID = append(c.hooks.ServiceWithID, hooks...)
+}
+
+// Create returns a builder for creating a ServiceWithID entity.
+func (c *ServiceWithIDClient) Create() *ServiceWithIDCreate {
+	mutation := newServiceWithIDMutation(c.config, OpCreate)
+	return &ServiceWithIDCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ServiceWithID entities.
+func (c *ServiceWithIDClient) CreateBulk(builders ...*ServiceWithIDCreate) *ServiceWithIDCreateBulk {
+	return &ServiceWithIDCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ServiceWithID.
+func (c *ServiceWithIDClient) Update() *ServiceWithIDUpdate {
+	mutation := newServiceWithIDMutation(c.config, OpUpdate)
+	return &ServiceWithIDUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceWithIDClient) UpdateOne(swi *ServiceWithID) *ServiceWithIDUpdateOne {
+	mutation := newServiceWithIDMutation(c.config, OpUpdateOne, withServiceWithID(swi))
+	return &ServiceWithIDUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceWithIDClient) UpdateOneID(id int32) *ServiceWithIDUpdateOne {
+	mutation := newServiceWithIDMutation(c.config, OpUpdateOne, withServiceWithIDID(id))
+	return &ServiceWithIDUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ServiceWithID.
+func (c *ServiceWithIDClient) Delete() *ServiceWithIDDelete {
+	mutation := newServiceWithIDMutation(c.config, OpDelete)
+	return &ServiceWithIDDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ServiceWithIDClient) DeleteOne(swi *ServiceWithID) *ServiceWithIDDeleteOne {
+	return c.DeleteOneID(swi.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *ServiceWithIDClient) DeleteOneID(id int32) *ServiceWithIDDeleteOne {
+	builder := c.Delete().Where(servicewithid.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ServiceWithIDDeleteOne{builder}
+}
+
+// Query returns a query builder for ServiceWithID.
+func (c *ServiceWithIDClient) Query() *ServiceWithIDQuery {
+	return &ServiceWithIDQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a ServiceWithID entity by its id.
+func (c *ServiceWithIDClient) Get(ctx context.Context, id int32) (*ServiceWithID, error) {
+	return c.Query().Where(servicewithid.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceWithIDClient) GetX(ctx context.Context, id int32) *ServiceWithID {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ServiceWithIDClient) Hooks() []Hook {
+	return c.hooks.ServiceWithID
 }
 
 // SkipEdgeExampleClient is a client for the SkipEdgeExample schema.

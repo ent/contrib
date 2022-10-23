@@ -261,6 +261,7 @@ func (mwsq *MessageWithStringsQuery) Clone() *MessageWithStringsQuery {
 //		GroupBy(messagewithstrings.FieldStrings).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (mwsq *MessageWithStringsQuery) GroupBy(field string, fields ...string) *MessageWithStringsGroupBy {
 	grbuild := &MessageWithStringsGroupBy{config: mwsq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (mwsq *MessageWithStringsQuery) GroupBy(field string, fields ...string) *Me
 //	client.MessageWithStrings.Query().
 //		Select(messagewithstrings.FieldStrings).
 //		Scan(ctx, &v)
+//
 func (mwsq *MessageWithStringsQuery) Select(fields ...string) *MessageWithStringsSelect {
 	mwsq.fields = append(mwsq.fields, fields...)
 	selbuild := &MessageWithStringsSelect{MessageWithStringsQuery: mwsq}

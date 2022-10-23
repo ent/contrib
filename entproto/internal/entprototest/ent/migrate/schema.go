@@ -249,6 +249,16 @@ var (
 			},
 		},
 	}
+	// ServiceWithIdsColumns holds the columns for the "service_with_ids" table.
+	ServiceWithIdsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt32, Increment: true},
+	}
+	// ServiceWithIdsTable holds the schema information for the "service_with_ids" table.
+	ServiceWithIdsTable = &schema.Table{
+		Name:       "service_with_ids",
+		Columns:    ServiceWithIdsColumns,
+		PrimaryKey: []*schema.Column{ServiceWithIdsColumns[0]},
+	}
 	// SkipEdgeExamplesColumns holds the columns for the "skip_edge_examples" table.
 	SkipEdgeExamplesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -360,6 +370,7 @@ var (
 		NoBackrefsTable,
 		OneMethodServicesTable,
 		PortalsTable,
+		ServiceWithIdsTable,
 		SkipEdgeExamplesTable,
 		TwoMethodServicesTable,
 		UsersTable,

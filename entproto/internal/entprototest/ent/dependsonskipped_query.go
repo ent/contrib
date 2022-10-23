@@ -298,6 +298,7 @@ func (dosq *DependsOnSkippedQuery) WithSkipped(opts ...func(*ImplicitSkippedMess
 //		GroupBy(dependsonskipped.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *DependsOnSkippedGroupBy {
 	grbuild := &DependsOnSkippedGroupBy{config: dosq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -324,6 +325,7 @@ func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *Depe
 //	client.DependsOnSkipped.Query().
 //		Select(dependsonskipped.FieldName).
 //		Scan(ctx, &v)
+//
 func (dosq *DependsOnSkippedQuery) Select(fields ...string) *DependsOnSkippedSelect {
 	dosq.fields = append(dosq.fields, fields...)
 	selbuild := &DependsOnSkippedSelect{DependsOnSkippedQuery: dosq}

@@ -298,6 +298,7 @@ func (tq *TodoQuery) WithUser(opts ...func(*UserQuery)) *TodoQuery {
 //		GroupBy(todo.FieldTask).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 	grbuild := &TodoGroupBy{config: tq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -324,6 +325,7 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 //	client.Todo.Query().
 //		Select(todo.FieldTask).
 //		Scan(ctx, &v)
+//
 func (tq *TodoQuery) Select(fields ...string) *TodoSelect {
 	tq.fields = append(tq.fields, fields...)
 	selbuild := &TodoSelect{TodoQuery: tq}

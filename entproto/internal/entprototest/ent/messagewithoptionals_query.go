@@ -261,6 +261,7 @@ func (mwoq *MessageWithOptionalsQuery) Clone() *MessageWithOptionalsQuery {
 //		GroupBy(messagewithoptionals.FieldStrOptional).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *MessageWithOptionalsGroupBy {
 	grbuild := &MessageWithOptionalsGroupBy{config: mwoq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (mwoq *MessageWithOptionalsQuery) GroupBy(field string, fields ...string) *
 //	client.MessageWithOptionals.Query().
 //		Select(messagewithoptionals.FieldStrOptional).
 //		Scan(ctx, &v)
+//
 func (mwoq *MessageWithOptionalsQuery) Select(fields ...string) *MessageWithOptionalsSelect {
 	mwoq.fields = append(mwoq.fields, fields...)
 	selbuild := &MessageWithOptionalsSelect{MessageWithOptionalsQuery: mwoq}

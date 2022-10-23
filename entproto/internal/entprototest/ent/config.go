@@ -42,6 +42,7 @@ type hooks struct {
 	NoBackref              []ent.Hook
 	OneMethodService       []ent.Hook
 	Portal                 []ent.Hook
+	ServiceWithID          []ent.Hook
 	SkipEdgeExample        []ent.Hook
 	TwoMethodService       []ent.Hook
 	User                   []ent.Hook

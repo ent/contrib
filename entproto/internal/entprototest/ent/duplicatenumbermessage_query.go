@@ -261,6 +261,7 @@ func (dnmq *DuplicateNumberMessageQuery) Clone() *DuplicateNumberMessageQuery {
 //		GroupBy(duplicatenumbermessage.FieldHello).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (dnmq *DuplicateNumberMessageQuery) GroupBy(field string, fields ...string) *DuplicateNumberMessageGroupBy {
 	grbuild := &DuplicateNumberMessageGroupBy{config: dnmq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (dnmq *DuplicateNumberMessageQuery) GroupBy(field string, fields ...string)
 //	client.DuplicateNumberMessage.Query().
 //		Select(duplicatenumbermessage.FieldHello).
 //		Scan(ctx, &v)
+//
 func (dnmq *DuplicateNumberMessageQuery) Select(fields ...string) *DuplicateNumberMessageSelect {
 	dnmq.fields = append(dnmq.fields, fields...)
 	selbuild := &DuplicateNumberMessageSelect{DuplicateNumberMessageQuery: dnmq}

@@ -300,6 +300,7 @@ func (iq *ImageQuery) WithUserProfilePic(opts ...func(*UserQuery)) *ImageQuery {
 //		GroupBy(image.FieldURLPath).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
 	grbuild := &ImageGroupBy{config: iq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -326,6 +327,7 @@ func (iq *ImageQuery) GroupBy(field string, fields ...string) *ImageGroupBy {
 //	client.Image.Query().
 //		Select(image.FieldURLPath).
 //		Scan(ctx, &v)
+//
 func (iq *ImageQuery) Select(fields ...string) *ImageSelect {
 	iq.fields = append(iq.fields, fields...)
 	selbuild := &ImageSelect{ImageQuery: iq}

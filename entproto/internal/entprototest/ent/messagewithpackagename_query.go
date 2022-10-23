@@ -261,6 +261,7 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 //		GroupBy(messagewithpackagename.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string) *MessageWithPackageNameGroupBy {
 	grbuild := &MessageWithPackageNameGroupBy{config: mwpnq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string
 //	client.MessageWithPackageName.Query().
 //		Select(messagewithpackagename.FieldName).
 //		Scan(ctx, &v)
+//
 func (mwpnq *MessageWithPackageNameQuery) Select(fields ...string) *MessageWithPackageNameSelect {
 	mwpnq.fields = append(mwpnq.fields, fields...)
 	selbuild := &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}

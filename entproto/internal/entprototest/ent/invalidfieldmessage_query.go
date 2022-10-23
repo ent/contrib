@@ -261,6 +261,7 @@ func (ifmq *InvalidFieldMessageQuery) Clone() *InvalidFieldMessageQuery {
 //		GroupBy(invalidfieldmessage.FieldJSON).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
+//
 func (ifmq *InvalidFieldMessageQuery) GroupBy(field string, fields ...string) *InvalidFieldMessageGroupBy {
 	grbuild := &InvalidFieldMessageGroupBy{config: ifmq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -287,6 +288,7 @@ func (ifmq *InvalidFieldMessageQuery) GroupBy(field string, fields ...string) *I
 //	client.InvalidFieldMessage.Query().
 //		Select(invalidfieldmessage.FieldJSON).
 //		Scan(ctx, &v)
+//
 func (ifmq *InvalidFieldMessageQuery) Select(fields ...string) *InvalidFieldMessageSelect {
 	ifmq.fields = append(ifmq.fields, fields...)
 	selbuild := &InvalidFieldMessageSelect{InvalidFieldMessageQuery: ifmq}
