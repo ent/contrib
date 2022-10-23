@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 3 << 32
+	idOffset = 4 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1094,15 +1094,15 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 			}
 		}
 	}
-	err := s.Post(`mutation {
-		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: 12884901889 }) {
+	err := s.Post(`mutation ($parentID: ID!) {
+		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: $parentID }) {
 			parent {
 				id
 				text
 			}
 			text
 		}
-	}`, &rsp, client.Var("text", s.T().Name()))
+	}`, &rsp, client.Var("parentID", strconv.Itoa(idOffset+1)))
 	s.Require().NoError(err)
 	s.Require().Equal("OKE", rsp.CreateTodo.Text)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.ID)
@@ -1597,11 +1597,11 @@ func TestNestedConnection(t *testing.T) {
 		// One query to trigger the loading of the ent_types content.
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAQAAAAK"),
+			client.Var("cursor", "gaFp0wAAAAUAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAQAAAAJ", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAUAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
