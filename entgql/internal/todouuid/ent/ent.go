@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
@@ -50,12 +51,13 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		category.Table:   category.ValidColumn,
-		friendship.Table: friendship.ValidColumn,
-		group.Table:      group.ValidColumn,
-		todo.Table:       todo.ValidColumn,
-		user.Table:       user.ValidColumn,
-		verysecret.Table: verysecret.ValidColumn,
+		billproduct.Table: billproduct.ValidColumn,
+		category.Table:    category.ValidColumn,
+		friendship.Table:  friendship.ValidColumn,
+		group.Table:       group.ValidColumn,
+		todo.Table:        todo.ValidColumn,
+		user.Table:        user.ValidColumn,
+		verysecret.Table:  verysecret.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

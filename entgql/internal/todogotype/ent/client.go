@@ -26,6 +26,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/uintgql"
 
+	"entgo.io/contrib/entgql/internal/todogotype/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
@@ -44,6 +45,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// BillProduct is the client for interacting with the BillProduct builders.
+	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -71,6 +74,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.BillProduct = NewBillProductClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
@@ -109,15 +113,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Category:   NewCategoryClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Group:      NewGroupClient(cfg),
-		Pet:        NewPetClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
-		VerySecret: NewVerySecretClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		BillProduct: NewBillProductClient(cfg),
+		Category:    NewCategoryClient(cfg),
+		Friendship:  NewFriendshipClient(cfg),
+		Group:       NewGroupClient(cfg),
+		Pet:         NewPetClient(cfg),
+		Todo:        NewTodoClient(cfg),
+		User:        NewUserClient(cfg),
+		VerySecret:  NewVerySecretClient(cfg),
 	}, nil
 }
 
@@ -135,22 +140,23 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Category:   NewCategoryClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Group:      NewGroupClient(cfg),
-		Pet:        NewPetClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
-		VerySecret: NewVerySecretClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		BillProduct: NewBillProductClient(cfg),
+		Category:    NewCategoryClient(cfg),
+		Friendship:  NewFriendshipClient(cfg),
+		Group:       NewGroupClient(cfg),
+		Pet:         NewPetClient(cfg),
+		Todo:        NewTodoClient(cfg),
+		User:        NewUserClient(cfg),
+		VerySecret:  NewVerySecretClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Category.
+//		BillProduct.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -172,6 +178,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.BillProduct.Use(hooks...)
 	c.Category.Use(hooks...)
 	c.Friendship.Use(hooks...)
 	c.Group.Use(hooks...)
@@ -179,6 +186,96 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
 	c.VerySecret.Use(hooks...)
+}
+
+// BillProductClient is a client for the BillProduct schema.
+type BillProductClient struct {
+	config
+}
+
+// NewBillProductClient returns a client for the BillProduct from the given config.
+func NewBillProductClient(c config) *BillProductClient {
+	return &BillProductClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `billproduct.Hooks(f(g(h())))`.
+func (c *BillProductClient) Use(hooks ...Hook) {
+	c.hooks.BillProduct = append(c.hooks.BillProduct, hooks...)
+}
+
+// Create returns a builder for creating a BillProduct entity.
+func (c *BillProductClient) Create() *BillProductCreate {
+	mutation := newBillProductMutation(c.config, OpCreate)
+	return &BillProductCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BillProduct entities.
+func (c *BillProductClient) CreateBulk(builders ...*BillProductCreate) *BillProductCreateBulk {
+	return &BillProductCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BillProduct.
+func (c *BillProductClient) Update() *BillProductUpdate {
+	mutation := newBillProductMutation(c.config, OpUpdate)
+	return &BillProductUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BillProductClient) UpdateOne(bp *BillProduct) *BillProductUpdateOne {
+	mutation := newBillProductMutation(c.config, OpUpdateOne, withBillProduct(bp))
+	return &BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BillProductClient) UpdateOneID(id string) *BillProductUpdateOne {
+	mutation := newBillProductMutation(c.config, OpUpdateOne, withBillProductID(id))
+	return &BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BillProduct.
+func (c *BillProductClient) Delete() *BillProductDelete {
+	mutation := newBillProductMutation(c.config, OpDelete)
+	return &BillProductDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BillProductClient) DeleteOne(bp *BillProduct) *BillProductDeleteOne {
+	return c.DeleteOneID(bp.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *BillProductClient) DeleteOneID(id string) *BillProductDeleteOne {
+	builder := c.Delete().Where(billproduct.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BillProductDeleteOne{builder}
+}
+
+// Query returns a query builder for BillProduct.
+func (c *BillProductClient) Query() *BillProductQuery {
+	return &BillProductQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a BillProduct entity by its id.
+func (c *BillProductClient) Get(ctx context.Context, id string) (*BillProduct, error) {
+	return c.Query().Where(billproduct.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BillProductClient) GetX(ctx context.Context, id string) *BillProduct {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BillProductClient) Hooks() []Hook {
+	return c.hooks.BillProduct
 }
 
 // CategoryClient is a client for the Category schema.

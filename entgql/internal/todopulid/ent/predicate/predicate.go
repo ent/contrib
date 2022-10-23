@@ -20,6 +20,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// BillProduct is the predicate function for billproduct builders.
+type BillProduct func(*sql.Selector)
+
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 

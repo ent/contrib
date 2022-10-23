@@ -34,6 +34,10 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder,
 	return r.client.Noders(ctx, ids, ent.WithNodeType(ent.IDToType))
 }
 
+func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,

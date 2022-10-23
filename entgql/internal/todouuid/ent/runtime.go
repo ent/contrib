@@ -19,6 +19,7 @@ package ent
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
@@ -33,6 +34,12 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	billproductFields := schema.BillProduct{}.Fields()
+	_ = billproductFields
+	// billproductDescID is the schema descriptor for id field.
+	billproductDescID := billproductFields[0].Descriptor()
+	// billproduct.DefaultID holds the default value on creation for the id field.
+	billproduct.DefaultID = billproductDescID.Default.(func() uuid.UUID)
 	categoryMixin := schema.Category{}.Mixin()
 	categoryMixinFields0 := categoryMixin[0].Fields()
 	_ = categoryMixinFields0
