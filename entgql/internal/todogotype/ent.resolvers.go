@@ -34,7 +34,7 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]ent.Noder, e
 }
 
 func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.BillProduct.Query().All(ctx)
 }
 
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
