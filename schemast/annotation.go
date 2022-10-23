@@ -15,6 +15,7 @@
 package schemast
 
 import (
+	"entgo.io/contrib/entgql"
 	"fmt"
 	"go/ast"
 	"sort"
@@ -48,6 +49,7 @@ func Annotation(annot schema.Annotation) (ast.Expr, bool, error) {
 		entproto.FieldAnnotation:   protoField,
 		entproto.EnumAnnotation:    protoEnum,
 		"EntSQL":                   entSQL,
+		"EntGQL":                   entGQL,
 	}
 	fn, ok := annotators[annot.Name()]
 	if !ok {
@@ -132,14 +134,18 @@ func protoEnum(annot schema.Annotation) (ast.Expr, bool, error) {
 		},
 	}
 	for k, v := range m.Options {
-		opts.Elts = append(opts.Elts, &ast.KeyValueExpr{
-			Key:   strLit(k),
-			Value: intLit(int(v)),
-		})
+		opts.Elts = append(
+			opts.Elts, &ast.KeyValueExpr{
+				Key:   strLit(k),
+				Value: intLit(int(v)),
+			},
+		)
 	}
-	sort.Slice(opts.Elts, func(i, j int) bool {
-		return opts.Elts[i].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value < opts.Elts[j].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value
-	})
+	sort.Slice(
+		opts.Elts, func(i, j int) bool {
+			return opts.Elts[i].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value < opts.Elts[j].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value
+		},
+	)
 	return fnCall(selectorLit("entproto", "Enum"), opts), true, nil
 }
 
@@ -183,6 +189,31 @@ func entSQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		}
 	}
 	// TODO(rotemtam): support m.Incremental (it is a *bool)
+	return c, true, nil
+}
+
+func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
+	m := &entgql.Annotation{}
+	if err := mapstructure.Decode(annot, m); err != nil {
+		return nil, false, err
+	}
+	var c *ast.CallExpr
+	if m.MutationInputs != nil && len(m.MutationInputs) > 0 {
+		args := []ast.Expr{}
+		for _, input := range m.MutationInputs {
+			if input.IsCreate {
+				args = append(args, fnCall(selectorLit("entgql", "MutationCreate")))
+			} else {
+				args = append(args, fnCall(selectorLit("entgql", "MutationUpdate")))
+			}
+		}
+		c = fnCall(
+			selectorLit("entgql", "Mutations"), args...,
+		)
+	} else {
+		c = fnCall(selectorLit("entgql", "QueryField"))
+	}
+
 	return c, true, nil
 }
 

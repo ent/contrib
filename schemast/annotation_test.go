@@ -16,6 +16,7 @@ package schemast
 
 import (
 	"bytes"
+	"entgo.io/contrib/entgql"
 	"go/printer"
 	"go/token"
 	"testing"
@@ -79,10 +80,12 @@ func TestAnnotation(t *testing.T) {
 		},
 		{
 			name: "proto enum",
-			annot: entproto.Enum(map[string]int32{
-				"unspecified": 0,
-				"active":      1,
-			}),
+			annot: entproto.Enum(
+				map[string]int32{
+					"unspecified": 0,
+					"active":      1,
+				},
+			),
 			expectedOk: true,
 			expected:   `entproto.Enum(map[string]int32{"unspecified": 0, "active": 1})`,
 		},
@@ -143,6 +146,18 @@ func TestAnnotation(t *testing.T) {
 			expectedErrMsg: `schemast: unknown entsql ReferenceOption: "UNSUPPORTED"`,
 		},
 		{
+			name:       "entgql annotation QueryField",
+			annot:      entgql.QueryField(),
+			expectedOk: true,
+			expected:   `entgql.QueryField()`,
+		},
+		{
+			name:       "entgql annotation Mutations with MutationCreate and MutationUpdate",
+			annot:      entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+			expectedOk: true,
+			expected:   `entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate())`,
+		},
+		{
 			name:           "unsupported annotation",
 			annot:          annotation("unsupported"),
 			expectedErrMsg: `schemast: no Annotator configured for annotation "unsupported"`,
@@ -151,20 +166,22 @@ func TestAnnotation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r, ok, err := Annotation(tt.annot)
-			if tt.expectedErrMsg != "" {
-				require.EqualError(t, err, tt.expectedErrMsg)
-				return
-			}
-			require.NoError(t, err)
-			require.EqualValues(t, tt.expectedOk, ok)
-			var buf bytes.Buffer
-			fst := token.NewFileSet()
-			err = printer.Fprint(&buf, fst, r)
-			require.NoError(t, err)
-			require.EqualValues(t, tt.expected, buf.String())
-		})
+		t.Run(
+			tt.name, func(t *testing.T) {
+				r, ok, err := Annotation(tt.annot)
+				if tt.expectedErrMsg != "" {
+					require.EqualError(t, err, tt.expectedErrMsg)
+					return
+				}
+				require.NoError(t, err)
+				require.EqualValues(t, tt.expectedOk, ok)
+				var buf bytes.Buffer
+				fst := token.NewFileSet()
+				err = printer.Fprint(&buf, fst, r)
+				require.NoError(t, err)
+				require.EqualValues(t, tt.expected, buf.String())
+			},
+		)
 	}
 }
 
@@ -181,9 +198,11 @@ func TestContext_AnnotateType(t *testing.T) {
 	nt := tt.getType("NewType")
 	require.Len(t, nt.Annotations, 1)
 	contents := tt.contents("new_type.go")
-	require.Contains(t, contents, `func (NewType) Annotations() []schema.Annotation {
+	require.Contains(
+		t, contents, `func (NewType) Annotations() []schema.Annotation {
 	return []schema.Annotation{entproto.Message()}
-}`)
+}`,
+	)
 }
 
 func TestContext_AnnotateTypeExisting(t *testing.T) {
@@ -196,7 +215,9 @@ func TestContext_AnnotateTypeExisting(t *testing.T) {
 	nt := tt.getType("Message")
 	require.Len(t, nt.Annotations, 1)
 	contents := tt.contents("message.go")
-	require.Contains(t, contents, `func (Message) Annotations() []schema.Annotation {
+	require.Contains(
+		t, contents, `func (Message) Annotations() []schema.Annotation {
 	return []schema.Annotation{entproto.Message()}
-}`)
+}`,
+	)
 }
