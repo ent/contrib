@@ -19,6 +19,8 @@ package ent
 import (
 	"context"
 
+	"entgo.io/contrib/entgql/internal/todofed/ent/category"
+	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -36,6 +38,8 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	c = c.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -54,6 +58,34 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 		}
 	}
 	return nil
+}
+
+func (c *CategoryQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+	selectFields := []string{category.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "text":
+			selectFields = append(selectFields, category.FieldText)
+
+		case "status":
+			selectFields = append(selectFields, category.FieldStatus)
+
+		case "config":
+			selectFields = append(selectFields, category.FieldConfig)
+
+		case "duration":
+			selectFields = append(selectFields, category.FieldDuration)
+
+		case "count":
+			selectFields = append(selectFields, category.FieldCount)
+
+		case "strings":
+			selectFields = append(selectFields, category.FieldStrings)
+
+		}
+	}
+	return c.Select(selectFields...).CategoryQuery
 }
 
 type categoryPaginateArgs struct {
@@ -117,6 +149,8 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 }
 
 func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	t = t.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -155,6 +189,31 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		}
 	}
 	return nil
+}
+
+func (t *TodoQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
+	selectFields := []string{todo.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "createdAt":
+			selectFields = append(selectFields, todo.FieldCreatedAt)
+
+		case "status":
+			selectFields = append(selectFields, todo.FieldStatus)
+
+		case "priority":
+			selectFields = append(selectFields, todo.FieldPriority)
+
+		case "text":
+			selectFields = append(selectFields, todo.FieldText)
+
+		case "blob":
+			selectFields = append(selectFields, todo.FieldBlob)
+
+		}
+	}
+	return t.Select(selectFields...).TodoQuery
 }
 
 type todoPaginateArgs struct {

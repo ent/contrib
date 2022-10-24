@@ -22,7 +22,9 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
@@ -43,6 +45,8 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	c = c.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -134,6 +138,34 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 	return nil
 }
 
+func (c *CategoryQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+	selectFields := []string{category.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "text":
+			selectFields = append(selectFields, category.FieldText)
+
+		case "status":
+			selectFields = append(selectFields, category.FieldStatus)
+
+		case "config":
+			selectFields = append(selectFields, category.FieldConfig)
+
+		case "duration":
+			selectFields = append(selectFields, category.FieldDuration)
+
+		case "count":
+			selectFields = append(selectFields, category.FieldCount)
+
+		case "strings":
+			selectFields = append(selectFields, category.FieldStrings)
+
+		}
+	}
+	return c.Select(selectFields...).CategoryQuery
+}
+
 type categoryPaginateArgs struct {
 	first, last   *int
 	after, before *Cursor
@@ -198,6 +230,8 @@ func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string
 }
 
 func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	f = f.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -224,6 +258,25 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 		}
 	}
 	return nil
+}
+
+func (f *FriendshipQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *FriendshipQuery {
+	selectFields := []string{friendship.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "createdAt":
+			selectFields = append(selectFields, friendship.FieldCreatedAt)
+
+		case "userID":
+			selectFields = append(selectFields, friendship.FieldUserID)
+
+		case "friendID":
+			selectFields = append(selectFields, friendship.FieldFriendID)
+
+		}
+	}
+	return f.Select(selectFields...).FriendshipQuery
 }
 
 type friendshipPaginateArgs struct {
@@ -268,6 +321,8 @@ func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*
 }
 
 func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	gr = gr.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -363,6 +418,19 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 	return nil
 }
 
+func (gr *GroupQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *GroupQuery {
+	selectFields := []string{group.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "name":
+			selectFields = append(selectFields, group.FieldName)
+
+		}
+	}
+	return gr.Select(selectFields...).GroupQuery
+}
+
 type groupPaginateArgs struct {
 	first, last   *int
 	after, before *Cursor
@@ -405,8 +473,23 @@ func (pe *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*Pe
 }
 
 func (pe *PetQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	pe = pe.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	return nil
+}
+
+func (pe *PetQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *PetQuery {
+	selectFields := []string{pet.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "name":
+			selectFields = append(selectFields, pet.FieldName)
+
+		}
+	}
+	return pe.Select(selectFields...).PetQuery
 }
 
 type petPaginateArgs struct {
@@ -451,6 +534,8 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 }
 
 func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	t = t.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -562,6 +647,34 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
+func (t *TodoQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
+	selectFields := []string{todo.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "createdAt":
+			selectFields = append(selectFields, todo.FieldCreatedAt)
+
+		case "status":
+			selectFields = append(selectFields, todo.FieldStatus)
+
+		case "priority":
+			selectFields = append(selectFields, todo.FieldPriority)
+
+		case "text":
+			selectFields = append(selectFields, todo.FieldText)
+
+		case "init":
+			selectFields = append(selectFields, todo.FieldInit)
+
+		case "categoryID":
+			selectFields = append(selectFields, todo.FieldCategoryID)
+
+		}
+	}
+	return t.Select(selectFields...).TodoQuery
+}
+
 type todoPaginateArgs struct {
 	first, last   *int
 	after, before *Cursor
@@ -626,6 +739,8 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 }
 
 func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	u = u.limitSelection(ctx, op, field, satisfies...)
+
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -743,6 +858,19 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 		}
 	}
 	return nil
+}
+
+func (u *UserQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *UserQuery {
+	selectFields := []string{user.FieldID}
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+
+		case "name":
+			selectFields = append(selectFields, user.FieldName)
+
+		}
+	}
+	return u.Select(selectFields...).UserQuery
 }
 
 type userPaginateArgs struct {
