@@ -45,7 +45,7 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	c = c.limitSelection(ctx, op, field, satisfies...)
+	c = c.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -138,7 +138,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 	return nil
 }
 
-func (c *CategoryQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
 	selectFields := []string{category.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -230,7 +230,7 @@ func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string
 }
 
 func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	f = f.limitSelection(ctx, op, field, satisfies...)
+	f = f.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -260,7 +260,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 	return nil
 }
 
-func (f *FriendshipQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *FriendshipQuery {
+func (f *FriendshipQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *FriendshipQuery {
 	selectFields := []string{friendship.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -321,7 +321,7 @@ func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*
 }
 
 func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	gr = gr.limitSelection(ctx, op, field, satisfies...)
+	gr = gr.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -418,7 +418,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 	return nil
 }
 
-func (gr *GroupQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *GroupQuery {
+func (gr *GroupQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *GroupQuery {
 	selectFields := []string{group.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -473,13 +473,13 @@ func (pe *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*Pe
 }
 
 func (pe *PetQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	pe = pe.limitSelection(ctx, op, field, satisfies...)
+	pe = pe.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	return nil
 }
 
-func (pe *PetQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *PetQuery {
+func (pe *PetQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *PetQuery {
 	selectFields := []string{pet.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -534,7 +534,7 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 }
 
 func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	t = t.limitSelection(ctx, op, field, satisfies...)
+	t = t.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -647,7 +647,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
-func (t *TodoQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
+func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
 	selectFields := []string{todo.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -658,7 +658,7 @@ func (t *TodoQuery) limitSelection(ctx context.Context, op *graphql.OperationCon
 		case "status":
 			selectFields = append(selectFields, todo.FieldStatus)
 
-		case "priority":
+		case "priorityOrder":
 			selectFields = append(selectFields, todo.FieldPriority)
 
 		case "text":
@@ -739,7 +739,7 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 }
 
 func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	u = u.limitSelection(ctx, op, field, satisfies...)
+	u = u.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -860,7 +860,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
-func (u *UserQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *UserQuery {
+func (u *UserQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *UserQuery {
 	selectFields := []string{user.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {

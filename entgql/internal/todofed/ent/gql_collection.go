@@ -38,7 +38,7 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	c = c.limitSelection(ctx, op, field, satisfies...)
+	c = c.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -60,7 +60,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 	return nil
 }
 
-func (c *CategoryQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
 	selectFields := []string{category.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
@@ -149,7 +149,7 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 }
 
 func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	t = t.limitSelection(ctx, op, field, satisfies...)
+	t = t.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -191,7 +191,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
-func (t *TodoQuery) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
+func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
 	selectFields := []string{todo.FieldID}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
