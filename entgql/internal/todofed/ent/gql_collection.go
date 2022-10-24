@@ -61,31 +61,36 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 }
 
 func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
-	selectFields := []string{category.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[category.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "text":
-			selectFields = append(selectFields, category.FieldText)
+			selectFields[category.FieldText] = struct{}{}
 
 		case "status":
-			selectFields = append(selectFields, category.FieldStatus)
+			selectFields[category.FieldStatus] = struct{}{}
 
 		case "config":
-			selectFields = append(selectFields, category.FieldConfig)
+			selectFields[category.FieldConfig] = struct{}{}
 
 		case "duration":
-			selectFields = append(selectFields, category.FieldDuration)
+			selectFields[category.FieldDuration] = struct{}{}
 
 		case "count":
-			selectFields = append(selectFields, category.FieldCount)
+			selectFields[category.FieldCount] = struct{}{}
 
 		case "strings":
-			selectFields = append(selectFields, category.FieldStrings)
+			selectFields[category.FieldStrings] = struct{}{}
 
 		}
 	}
-	return c.Select(selectFields...).CategoryQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return c.Select(s...).CategoryQuery
 }
 
 type categoryPaginateArgs struct {
@@ -192,28 +197,33 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 }
 
 func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
-	selectFields := []string{todo.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[todo.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "createdAt":
-			selectFields = append(selectFields, todo.FieldCreatedAt)
+			selectFields[todo.FieldCreatedAt] = struct{}{}
 
 		case "status":
-			selectFields = append(selectFields, todo.FieldStatus)
+			selectFields[todo.FieldStatus] = struct{}{}
 
 		case "priority":
-			selectFields = append(selectFields, todo.FieldPriority)
+			selectFields[todo.FieldPriority] = struct{}{}
 
 		case "text":
-			selectFields = append(selectFields, todo.FieldText)
+			selectFields[todo.FieldText] = struct{}{}
 
 		case "blob":
-			selectFields = append(selectFields, todo.FieldBlob)
+			selectFields[todo.FieldBlob] = struct{}{}
 
 		}
 	}
-	return t.Select(selectFields...).TodoQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return t.Select(s...).TodoQuery
 }
 
 type todoPaginateArgs struct {

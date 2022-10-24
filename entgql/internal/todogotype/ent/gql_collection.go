@@ -139,31 +139,36 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 }
 
 func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
-	selectFields := []string{category.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[category.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "text":
-			selectFields = append(selectFields, category.FieldText)
+			selectFields[category.FieldText] = struct{}{}
 
 		case "status":
-			selectFields = append(selectFields, category.FieldStatus)
+			selectFields[category.FieldStatus] = struct{}{}
 
 		case "config":
-			selectFields = append(selectFields, category.FieldConfig)
+			selectFields[category.FieldConfig] = struct{}{}
 
 		case "duration":
-			selectFields = append(selectFields, category.FieldDuration)
+			selectFields[category.FieldDuration] = struct{}{}
 
 		case "count":
-			selectFields = append(selectFields, category.FieldCount)
+			selectFields[category.FieldCount] = struct{}{}
 
 		case "strings":
-			selectFields = append(selectFields, category.FieldStrings)
+			selectFields[category.FieldStrings] = struct{}{}
 
 		}
 	}
-	return c.Select(selectFields...).CategoryQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return c.Select(s...).CategoryQuery
 }
 
 type categoryPaginateArgs struct {
@@ -261,22 +266,27 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 }
 
 func (f *FriendshipQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *FriendshipQuery {
-	selectFields := []string{friendship.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[friendship.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "createdAt":
-			selectFields = append(selectFields, friendship.FieldCreatedAt)
+			selectFields[friendship.FieldCreatedAt] = struct{}{}
 
 		case "userID":
-			selectFields = append(selectFields, friendship.FieldUserID)
+			selectFields[friendship.FieldUserID] = struct{}{}
 
 		case "friendID":
-			selectFields = append(selectFields, friendship.FieldFriendID)
+			selectFields[friendship.FieldFriendID] = struct{}{}
 
 		}
 	}
-	return f.Select(selectFields...).FriendshipQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return f.Select(s...).FriendshipQuery
 }
 
 type friendshipPaginateArgs struct {
@@ -419,16 +429,21 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 }
 
 func (gr *GroupQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *GroupQuery {
-	selectFields := []string{group.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[group.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "name":
-			selectFields = append(selectFields, group.FieldName)
+			selectFields[group.FieldName] = struct{}{}
 
 		}
 	}
-	return gr.Select(selectFields...).GroupQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return gr.Select(s...).GroupQuery
 }
 
 type groupPaginateArgs struct {
@@ -480,16 +495,21 @@ func (pe *PetQuery) collectField(ctx context.Context, op *graphql.OperationConte
 }
 
 func (pe *PetQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *PetQuery {
-	selectFields := []string{pet.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[pet.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "name":
-			selectFields = append(selectFields, pet.FieldName)
+			selectFields[pet.FieldName] = struct{}{}
 
 		}
 	}
-	return pe.Select(selectFields...).PetQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return pe.Select(s...).PetQuery
 }
 
 type petPaginateArgs struct {
@@ -648,31 +668,36 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 }
 
 func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
-	selectFields := []string{todo.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[todo.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "createdAt":
-			selectFields = append(selectFields, todo.FieldCreatedAt)
+			selectFields[todo.FieldCreatedAt] = struct{}{}
 
 		case "status":
-			selectFields = append(selectFields, todo.FieldStatus)
+			selectFields[todo.FieldStatus] = struct{}{}
 
 		case "priorityOrder":
-			selectFields = append(selectFields, todo.FieldPriority)
+			selectFields[todo.FieldPriority] = struct{}{}
 
 		case "text":
-			selectFields = append(selectFields, todo.FieldText)
+			selectFields[todo.FieldText] = struct{}{}
 
 		case "init":
-			selectFields = append(selectFields, todo.FieldInit)
+			selectFields[todo.FieldInit] = struct{}{}
 
 		case "categoryID":
-			selectFields = append(selectFields, todo.FieldCategoryID)
+			selectFields[todo.FieldCategoryID] = struct{}{}
 
 		}
 	}
-	return t.Select(selectFields...).TodoQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return t.Select(s...).TodoQuery
 }
 
 type todoPaginateArgs struct {
@@ -861,16 +886,21 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 }
 
 func (u *UserQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *UserQuery {
-	selectFields := []string{user.FieldID}
+	selectFields := map[string]struct{}{}
+	selectFields[user.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 
 		case "name":
-			selectFields = append(selectFields, user.FieldName)
+			selectFields[user.FieldName] = struct{}{}
 
 		}
 	}
-	return u.Select(selectFields...).UserQuery
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return u.Select(s...).UserQuery
 }
 
 type userPaginateArgs struct {

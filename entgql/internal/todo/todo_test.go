@@ -136,9 +136,13 @@ type response struct {
 				ID            string
 				CreatedAt     string
 				PriorityOrder int
-				Status        todo.Status
-				Text          string
-				Parent        struct {
+				CategoryID    string `json:"categoryID"`
+				Category_ID   string `json:"category_id"`
+				CategoryX     string `json:"categoryX"`
+
+				Status todo.Status
+				Text   string
+				Parent struct {
 					ID string
 				}
 			}
@@ -838,6 +842,45 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		err := s.Post(query, &rsp)
 		s.NoError(err)
 		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+}
+
+func (s *todoTestSuite) TestMultipleSameField() {
+	const (
+		query = `query {
+			todos(first: 5) {
+				totalCount
+				edges {
+					node {
+						id
+						categoryID
+						category_id
+						categoryX
+						parent {
+							id
+						}
+					}
+					cursor
+				}
+				pageInfo {
+					hasNextPage
+					hasPreviousPage
+					startCursor
+					endCursor
+				}
+			}
+		}`
+		step  = 5
+		steps = maxTodos/step + 1
+	)
+	s.Run("can get all categoryid fields", func() {
+		var rsp response
+		err := s.Post(query, &rsp)
+		s.NoError(err)
+		s.NotZero(rsp.Todos.TotalCount)
+		s.NotZero(rsp.Todos.Edges[0].Node.CategoryID)
+		s.NotZero(rsp.Todos.Edges[0].Node.CategoryX)
+		s.NotZero(rsp.Todos.Edges[0].Node.Category_ID)
 	})
 }
 
