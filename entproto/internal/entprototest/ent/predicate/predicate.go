@@ -60,9 +60,6 @@ type OneMethodService func(*sql.Selector)
 // Portal is the predicate function for portal builders.
 type Portal func(*sql.Selector)
 
-// ServiceWithID is the predicate function for servicewithid builders.
-type ServiceWithID func(*sql.Selector)
-
 // SkipEdgeExample is the predicate function for skipedgeexample builders.
 type SkipEdgeExample func(*sql.Selector)
 

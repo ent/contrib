@@ -11,6 +11,8 @@ const (
 	EdgeOwner = "owner"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
 	EdgeAttachment = "attachment"
+	// UserFieldID holds the string denoting the ID field of the User.
+	UserFieldID = "user_id"
 	// Table holds the table name of the pet in the database.
 	Table = "pets"
 	// OwnerTable is the table that holds the owner relation/edge.

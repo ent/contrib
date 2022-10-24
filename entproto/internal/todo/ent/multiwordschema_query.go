@@ -261,7 +261,6 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 //		GroupBy(multiwordschema.FieldUnit).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *MultiWordSchemaGroupBy {
 	grbuild := &MultiWordSchemaGroupBy{config: mwsq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *Multi
 //	client.MultiWordSchema.Query().
 //		Select(multiwordschema.FieldUnit).
 //		Scan(ctx, &v)
-//
 func (mwsq *MultiWordSchemaQuery) Select(fields ...string) *MultiWordSchemaSelect {
 	mwsq.fields = append(mwsq.fields, fields...)
 	selbuild := &MultiWordSchemaSelect{MultiWordSchemaQuery: mwsq}

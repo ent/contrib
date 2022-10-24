@@ -52,10 +52,10 @@ type AttachmentMutation struct {
 	typ               string
 	id                *uuid.UUID
 	clearedFields     map[string]struct{}
-	user              *int
+	user              *uint32
 	cleareduser       bool
-	recipients        map[int]struct{}
-	removedrecipients map[int]struct{}
+	recipients        map[uint32]struct{}
+	removedrecipients map[uint32]struct{}
 	clearedrecipients bool
 	done              bool
 	oldValue          func(context.Context) (*Attachment, error)
@@ -167,7 +167,7 @@ func (m *AttachmentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *AttachmentMutation) SetUserID(id int) {
+func (m *AttachmentMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -182,7 +182,7 @@ func (m *AttachmentMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *AttachmentMutation) UserID() (id int, exists bool) {
+func (m *AttachmentMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -192,7 +192,7 @@ func (m *AttachmentMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) UserIDs() (ids []int) {
+func (m *AttachmentMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -206,9 +206,9 @@ func (m *AttachmentMutation) ResetUser() {
 }
 
 // AddRecipientIDs adds the "recipients" edge to the User entity by ids.
-func (m *AttachmentMutation) AddRecipientIDs(ids ...int) {
+func (m *AttachmentMutation) AddRecipientIDs(ids ...uint32) {
 	if m.recipients == nil {
-		m.recipients = make(map[int]struct{})
+		m.recipients = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		m.recipients[ids[i]] = struct{}{}
@@ -226,9 +226,9 @@ func (m *AttachmentMutation) RecipientsCleared() bool {
 }
 
 // RemoveRecipientIDs removes the "recipients" edge to the User entity by IDs.
-func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
+func (m *AttachmentMutation) RemoveRecipientIDs(ids ...uint32) {
 	if m.removedrecipients == nil {
-		m.removedrecipients = make(map[int]struct{})
+		m.removedrecipients = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		delete(m.recipients, ids[i])
@@ -237,7 +237,7 @@ func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
 }
 
 // RemovedRecipients returns the removed IDs of the "recipients" edge to the User entity.
-func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
+func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []uint32) {
 	for id := range m.removedrecipients {
 		ids = append(ids, id)
 	}
@@ -245,7 +245,7 @@ func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
 }
 
 // RecipientsIDs returns the "recipients" edge IDs in the mutation.
-func (m *AttachmentMutation) RecipientsIDs() (ids []int) {
+func (m *AttachmentMutation) RecipientsIDs() (ids []uint32) {
 	for id := range m.recipients {
 		ids = append(ids, id)
 	}
@@ -460,8 +460,8 @@ type GroupMutation struct {
 	id            *int
 	name          *string
 	clearedFields map[string]struct{}
-	users         map[int]struct{}
-	removedusers  map[int]struct{}
+	users         map[uint32]struct{}
+	removedusers  map[uint32]struct{}
 	clearedusers  bool
 	done          bool
 	oldValue      func(context.Context) (*Group, error)
@@ -603,9 +603,9 @@ func (m *GroupMutation) ResetName() {
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
-func (m *GroupMutation) AddUserIDs(ids ...int) {
+func (m *GroupMutation) AddUserIDs(ids ...uint32) {
 	if m.users == nil {
-		m.users = make(map[int]struct{})
+		m.users = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		m.users[ids[i]] = struct{}{}
@@ -623,9 +623,9 @@ func (m *GroupMutation) UsersCleared() bool {
 }
 
 // RemoveUserIDs removes the "users" edge to the User entity by IDs.
-func (m *GroupMutation) RemoveUserIDs(ids ...int) {
+func (m *GroupMutation) RemoveUserIDs(ids ...uint32) {
 	if m.removedusers == nil {
-		m.removedusers = make(map[int]struct{})
+		m.removedusers = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		delete(m.users, ids[i])
@@ -634,7 +634,7 @@ func (m *GroupMutation) RemoveUserIDs(ids ...int) {
 }
 
 // RemovedUsers returns the removed IDs of the "users" edge to the User entity.
-func (m *GroupMutation) RemovedUsersIDs() (ids []int) {
+func (m *GroupMutation) RemovedUsersIDs() (ids []uint32) {
 	for id := range m.removedusers {
 		ids = append(ids, id)
 	}
@@ -642,7 +642,7 @@ func (m *GroupMutation) RemovedUsersIDs() (ids []int) {
 }
 
 // UsersIDs returns the "users" edge IDs in the mutation.
-func (m *GroupMutation) UsersIDs() (ids []int) {
+func (m *GroupMutation) UsersIDs() (ids []uint32) {
 	for id := range m.users {
 		ids = append(ids, id)
 	}
@@ -1580,7 +1580,7 @@ type PetMutation struct {
 	typ               string
 	id                *int
 	clearedFields     map[string]struct{}
-	owner             *int
+	owner             *uint32
 	clearedowner      bool
 	attachment        map[uuid.UUID]struct{}
 	removedattachment map[uuid.UUID]struct{}
@@ -1689,7 +1689,7 @@ func (m *PetMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by id.
-func (m *PetMutation) SetOwnerID(id int) {
+func (m *PetMutation) SetOwnerID(id uint32) {
 	m.owner = &id
 }
 
@@ -1704,7 +1704,7 @@ func (m *PetMutation) OwnerCleared() bool {
 }
 
 // OwnerID returns the "owner" edge ID in the mutation.
-func (m *PetMutation) OwnerID() (id int, exists bool) {
+func (m *PetMutation) OwnerID() (id uint32, exists bool) {
 	if m.owner != nil {
 		return *m.owner, true
 	}
@@ -1714,7 +1714,7 @@ func (m *PetMutation) OwnerID() (id int, exists bool) {
 // OwnerIDs returns the "owner" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // OwnerID instead. It exists only for internal usage by the builders.
-func (m *PetMutation) OwnerIDs() (ids []int) {
+func (m *PetMutation) OwnerIDs() (ids []uint32) {
 	if id := m.owner; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2292,7 +2292,7 @@ type SkipEdgeExampleMutation struct {
 	typ           string
 	id            *int
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint32
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*SkipEdgeExample, error)
@@ -2398,7 +2398,7 @@ func (m *SkipEdgeExampleMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *SkipEdgeExampleMutation) SetUserID(id int) {
+func (m *SkipEdgeExampleMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -2413,7 +2413,7 @@ func (m *SkipEdgeExampleMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
+func (m *SkipEdgeExampleMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -2423,7 +2423,7 @@ func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *SkipEdgeExampleMutation) UserIDs() (ids []int) {
+func (m *SkipEdgeExampleMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2610,7 +2610,7 @@ type TodoMutation struct {
 	task          *string
 	status        *todo.Status
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint32
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*Todo, error)
@@ -2788,7 +2788,7 @@ func (m *TodoMutation) ResetStatus() {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *TodoMutation) SetUserID(id int) {
+func (m *TodoMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -2803,7 +2803,7 @@ func (m *TodoMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *TodoMutation) UserID() (id int, exists bool) {
+func (m *TodoMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -2813,7 +2813,7 @@ func (m *TodoMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *TodoMutation) UserIDs() (ids []int) {
+func (m *TodoMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3038,7 +3038,7 @@ type UserMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
+	id                 *uint32
 	user_name          *string
 	joined             *time.Time
 	points             *uint
@@ -3105,7 +3105,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uint32) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -3155,9 +3155,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id uint32) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uint32, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3168,12 +3174,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]uint32, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uint32{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):

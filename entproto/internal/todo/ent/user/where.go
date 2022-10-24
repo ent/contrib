@@ -13,28 +13,28 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.User {
+func ID(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.User {
+func IDEQ(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.User {
+func IDNEQ(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.User {
+func IDIn(ids ...uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		v := make([]any, len(ids))
 		for i := range v {
@@ -45,7 +45,7 @@ func IDIn(ids ...int) predicate.User {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.User {
+func IDNotIn(ids ...uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		v := make([]any, len(ids))
 		for i := range v {
@@ -56,28 +56,28 @@ func IDNotIn(ids ...int) predicate.User {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.User {
+func IDGT(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.User {
+func IDGTE(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.User {
+func IDLT(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.User {
+func IDLTE(id uint32) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
 	})
@@ -1519,7 +1519,7 @@ func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GroupTable, FieldID),
+			sqlgraph.To(GroupTable, GroupFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -1531,7 +1531,7 @@ func HasGroupWith(preds ...predicate.Group) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GroupInverseTable, FieldID),
+			sqlgraph.To(GroupInverseTable, GroupFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -1547,7 +1547,7 @@ func HasAttachment() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AttachmentTable, FieldID),
+			sqlgraph.To(AttachmentTable, AttachmentFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, AttachmentTable, AttachmentColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -1559,7 +1559,7 @@ func HasAttachmentWith(preds ...predicate.Attachment) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AttachmentInverseTable, FieldID),
+			sqlgraph.To(AttachmentInverseTable, AttachmentFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, AttachmentTable, AttachmentColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -1575,7 +1575,7 @@ func HasReceived1() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Received1Table, FieldID),
+			sqlgraph.To(Received1Table, AttachmentFieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, Received1Table, Received1PrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -1587,7 +1587,7 @@ func HasReceived1With(preds ...predicate.Attachment) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Received1InverseTable, FieldID),
+			sqlgraph.To(Received1InverseTable, AttachmentFieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, Received1Table, Received1PrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -1603,7 +1603,7 @@ func HasPet() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PetTable, FieldID),
+			sqlgraph.To(PetTable, PetFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, PetTable, PetColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -1615,7 +1615,7 @@ func HasPetWith(preds ...predicate.Pet) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PetInverseTable, FieldID),
+			sqlgraph.To(PetInverseTable, PetFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, PetTable, PetColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -1631,7 +1631,7 @@ func HasSkipEdge() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SkipEdgeTable, FieldID),
+			sqlgraph.To(SkipEdgeTable, SkipEdgeExampleFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, SkipEdgeTable, SkipEdgeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -1643,7 +1643,7 @@ func HasSkipEdgeWith(preds ...predicate.SkipEdgeExample) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SkipEdgeInverseTable, FieldID),
+			sqlgraph.To(SkipEdgeInverseTable, SkipEdgeExampleFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, SkipEdgeTable, SkipEdgeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

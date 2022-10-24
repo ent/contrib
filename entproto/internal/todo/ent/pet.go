@@ -19,7 +19,7 @@ type Pet struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PetQuery when eager-loading is set.
 	Edges    PetEdges `json:"edges"`
-	user_pet *int
+	user_pet *uint32
 }
 
 // PetEdges holds the relations/edges for other nodes in the graph.
@@ -89,8 +89,8 @@ func (pe *Pet) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_pet", value)
 			} else if value.Valid {
-				pe.user_pet = new(int)
-				*pe.user_pet = int(value.Int64)
+				pe.user_pet = new(uint32)
+				*pe.user_pet = uint32(value.Int64)
 			}
 		}
 	}

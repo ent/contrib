@@ -261,7 +261,6 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 //		GroupBy(messagewithfieldone.FieldFieldOne).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *MessageWithFieldOneGroupBy {
 	grbuild := &MessageWithFieldOneGroupBy{config: mwfoq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *
 //	client.MessageWithFieldOne.Query().
 //		Select(messagewithfieldone.FieldFieldOne).
 //		Scan(ctx, &v)
-//
 func (mwfoq *MessageWithFieldOneQuery) Select(fields ...string) *MessageWithFieldOneSelect {
 	mwfoq.fields = append(mwfoq.fields, fields...)
 	selbuild := &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}

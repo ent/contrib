@@ -68,7 +68,7 @@ func TestUserService_Create(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, created.Status, User_ACTIVE)
 
-	fromDB := client.User.GetX(ctx, int(created.Id))
+	fromDB := client.User.GetX(ctx, created.Id)
 	require.EqualValues(t, inputUser.UserName, fromDB.UserName)
 	require.EqualValues(t, inputUser.Joined.AsTime().Unix(), fromDB.Joined.Unix())
 	require.EqualValues(t, inputUser.Exp, fromDB.Exp)
@@ -107,7 +107,7 @@ func TestUserService_Get(t *testing.T) {
 		SetLabels([]string{"on", "off"}).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
-		Id: int64(created.ID),
+		Id: created.ID,
 	})
 	require.NoError(t, err)
 	require.EqualValues(t, created.UserName, get.UserName)
@@ -142,7 +142,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetCustomPb(1).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
-		Id: int64(created.ID),
+		Id: created.ID,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, d)
@@ -185,7 +185,7 @@ func TestUserService_Update(t *testing.T) {
 	require.NoError(t, err, "Converting UUID to Bytes: %v", crmID)
 
 	inputUser := &User{
-		Id:         int64(created.ID),
+		Id:         created.ID,
 		UserName:   "rotemtam",
 		Joined:     timestamppb.Now(),
 		Exp:        999,

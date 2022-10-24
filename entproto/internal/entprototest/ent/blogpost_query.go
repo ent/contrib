@@ -335,7 +335,6 @@ func (bpq *BlogPostQuery) WithCategories(opts ...func(*CategoryQuery)) *BlogPost
 //		GroupBy(blogpost.FieldTitle).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroupBy {
 	grbuild := &BlogPostGroupBy{config: bpq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -362,7 +361,6 @@ func (bpq *BlogPostQuery) GroupBy(field string, fields ...string) *BlogPostGroup
 //	client.BlogPost.Query().
 //		Select(blogpost.FieldTitle).
 //		Scan(ctx, &v)
-//
 func (bpq *BlogPostQuery) Select(fields ...string) *BlogPostSelect {
 	bpq.fields = append(bpq.fields, fields...)
 	selbuild := &BlogPostSelect{BlogPostQuery: bpq}

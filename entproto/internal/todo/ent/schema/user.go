@@ -45,6 +45,7 @@ func (User) Annotations() []schema.Annotation {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.Uint32("id").StorageKey("user_id").Annotations(entproto.Field(1)),
 		field.String("user_name").
 			Unique().
 			Annotations(entproto.Field(2)),

@@ -298,7 +298,6 @@ func (pq *PortalQuery) WithCategory(opts ...func(*CategoryQuery)) *PortalQuery {
 //		GroupBy(portal.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
 	grbuild := &PortalGroupBy{config: pq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
 //	client.Portal.Query().
 //		Select(portal.FieldName).
 //		Scan(ctx, &v)
-//
 func (pq *PortalQuery) Select(fields ...string) *PortalSelect {
 	pq.fields = append(pq.fields, fields...)
 	selbuild := &PortalSelect{PortalQuery: pq}

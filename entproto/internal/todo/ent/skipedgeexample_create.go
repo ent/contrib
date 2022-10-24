@@ -20,13 +20,13 @@ type SkipEdgeExampleCreate struct {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (seec *SkipEdgeExampleCreate) SetUserID(id int) *SkipEdgeExampleCreate {
+func (seec *SkipEdgeExampleCreate) SetUserID(id uint32) *SkipEdgeExampleCreate {
 	seec.mutation.SetUserID(id)
 	return seec
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (seec *SkipEdgeExampleCreate) SetNillableUserID(id *int) *SkipEdgeExampleCreate {
+func (seec *SkipEdgeExampleCreate) SetNillableUserID(id *uint32) *SkipEdgeExampleCreate {
 	if id != nil {
 		seec = seec.SetUserID(*id)
 	}
@@ -150,7 +150,7 @@ func (seec *SkipEdgeExampleCreate) createSpec() (*SkipEdgeExample, *sqlgraph.Cre
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

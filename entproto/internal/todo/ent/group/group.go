@@ -11,6 +11,8 @@ const (
 	FieldName = "name"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
+	// UserFieldID holds the string denoting the ID field of the User.
+	UserFieldID = "user_id"
 	// Table holds the table name of the group in the database.
 	Table = "groups"
 	// UsersTable is the table that holds the users relation/edge.

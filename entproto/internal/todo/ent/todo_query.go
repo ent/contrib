@@ -298,7 +298,6 @@ func (tq *TodoQuery) WithUser(opts ...func(*UserQuery)) *TodoQuery {
 //		GroupBy(todo.FieldTask).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 	grbuild := &TodoGroupBy{config: tq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 //	client.Todo.Query().
 //		Select(todo.FieldTask).
 //		Scan(ctx, &v)
-//
 func (tq *TodoQuery) Select(fields ...string) *TodoSelect {
 	tq.fields = append(tq.fields, fields...)
 	selbuild := &TodoSelect{TodoQuery: tq}
@@ -398,8 +396,8 @@ func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, e
 }
 
 func (tq *TodoQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Todo, init func(*Todo), assign func(*Todo, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Todo)
+	ids := make([]uint32, 0, len(nodes))
+	nodeids := make(map[uint32][]*Todo)
 	for i := range nodes {
 		if nodes[i].todo_user == nil {
 			continue

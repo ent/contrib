@@ -145,41 +145,41 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 	batchCreateMeth = svc.FindMethodByName("BatchCreate")
 	suite.Require().Nil(batchCreateMeth)
 
-	// Test service with id generation
-	fd, err = suite.adapter.GetFileDescriptor("ServiceWithID")
+	// Test message with id generation
+	fd, err = suite.adapter.GetFileDescriptor("MessageWithID")
 	suite.Require().NoError(err)
 
-	svc = fd.FindService("entpb.ServiceWithIDService")
+	svc = fd.FindService("entpb.MessageWithIDService")
 	suite.NotNil(svc)
 
 	getMeth = svc.FindMethodByName("Get")
 	suite.Require().NotNil(getMeth)
-	suite.EqualValues("GetServiceWithIDRequest", getMeth.GetInputType().GetName())
-	suite.EqualValues("ServiceWithID", getMeth.GetOutputType().GetName())
+	suite.EqualValues("GetMessageWithIDRequest", getMeth.GetInputType().GetName())
+	suite.EqualValues("MessageWithID", getMeth.GetOutputType().GetName())
 
 	createMeth = svc.FindMethodByName("Create")
 	suite.Require().NotNil(createMeth)
-	suite.EqualValues("CreateServiceWithIDRequest", createMeth.GetInputType().GetName())
-	suite.EqualValues("ServiceWithID", createMeth.GetOutputType().GetName())
+	suite.EqualValues("CreateMessageWithIDRequest", createMeth.GetInputType().GetName())
+	suite.EqualValues("MessageWithID", createMeth.GetOutputType().GetName())
 
 	deleteMeth = svc.FindMethodByName("Delete")
 	suite.Require().NotNil(deleteMeth)
-	suite.EqualValues("DeleteServiceWithIDRequest", deleteMeth.GetInputType().GetName())
+	suite.EqualValues("DeleteMessageWithIDRequest", deleteMeth.GetInputType().GetName())
 	suite.EqualValues("google.protobuf.Empty", deleteMeth.GetOutputType().GetFullyQualifiedName())
 
 	updateMeth = svc.FindMethodByName("Update")
 	suite.Require().NotNil(updateMeth)
-	suite.EqualValues("UpdateServiceWithIDRequest", updateMeth.GetInputType().GetName())
-	suite.EqualValues("ServiceWithID", updateMeth.GetOutputType().GetName())
+	suite.EqualValues("UpdateMessageWithIDRequest", updateMeth.GetInputType().GetName())
+	suite.EqualValues("MessageWithID", updateMeth.GetOutputType().GetName())
 
 	listMeth = svc.FindMethodByName("List")
 	suite.Require().NotNil(listMeth)
-	suite.EqualValues("ListServiceWithIDRequest", listMeth.GetInputType().GetName())
-	suite.EqualValues("ListServiceWithIDResponse", listMeth.GetOutputType().GetName())
+	suite.EqualValues("ListMessageWithIDRequest", listMeth.GetInputType().GetName())
+	suite.EqualValues("ListMessageWithIDResponse", listMeth.GetOutputType().GetName())
 
 	batchCreateMeth = svc.FindMethodByName("BatchCreate")
 	suite.Require().NotNil(batchCreateMeth)
-	suite.EqualValues("BatchCreateServiceWithIDsRequest", batchCreateMeth.GetInputType().GetName())
-	suite.EqualValues("BatchCreateServiceWithIDsResponse", batchCreateMeth.GetOutputType().GetName())
+	suite.EqualValues("BatchCreateMessageWithIDsRequest", batchCreateMeth.GetInputType().GetName())
+	suite.EqualValues("BatchCreateMessageWithIDsResponse", batchCreateMeth.GetOutputType().GetName())
 
 }

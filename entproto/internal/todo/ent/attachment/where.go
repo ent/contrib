@@ -85,7 +85,7 @@ func HasUser() predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserTable, FieldID),
+			sqlgraph.To(UserTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -97,7 +97,7 @@ func HasUserWith(preds ...predicate.User) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, FieldID),
+			sqlgraph.To(UserInverseTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -113,7 +113,7 @@ func HasRecipients() predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RecipientsTable, FieldID),
+			sqlgraph.To(RecipientsTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, RecipientsTable, RecipientsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -125,7 +125,7 @@ func HasRecipientsWith(preds ...predicate.User) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RecipientsInverseTable, FieldID),
+			sqlgraph.To(RecipientsInverseTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, RecipientsTable, RecipientsPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

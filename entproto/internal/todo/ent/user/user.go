@@ -10,7 +10,7 @@ const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
+	FieldID = "user_id"
 	// FieldUserName holds the string denoting the user_name field in the database.
 	FieldUserName = "user_name"
 	// FieldJoined holds the string denoting the joined field in the database.
@@ -61,6 +61,14 @@ const (
 	EdgePet = "pet"
 	// EdgeSkipEdge holds the string denoting the skip_edge edge name in mutations.
 	EdgeSkipEdge = "skip_edge"
+	// GroupFieldID holds the string denoting the ID field of the Group.
+	GroupFieldID = "id"
+	// AttachmentFieldID holds the string denoting the ID field of the Attachment.
+	AttachmentFieldID = "id"
+	// PetFieldID holds the string denoting the ID field of the Pet.
+	PetFieldID = "id"
+	// SkipEdgeExampleFieldID holds the string denoting the ID field of the SkipEdgeExample.
+	SkipEdgeExampleFieldID = "id"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupTable is the table that holds the group relation/edge.

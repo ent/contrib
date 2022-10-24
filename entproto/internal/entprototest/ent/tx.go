@@ -48,8 +48,6 @@ type Tx struct {
 	OneMethodService *OneMethodServiceClient
 	// Portal is the client for interacting with the Portal builders.
 	Portal *PortalClient
-	// ServiceWithID is the client for interacting with the ServiceWithID builders.
-	ServiceWithID *ServiceWithIDClient
 	// SkipEdgeExample is the client for interacting with the SkipEdgeExample builders.
 	SkipEdgeExample *SkipEdgeExampleClient
 	// TwoMethodService is the client for interacting with the TwoMethodService builders.
@@ -207,7 +205,6 @@ func (tx *Tx) init() {
 	tx.NoBackref = NewNoBackrefClient(tx.config)
 	tx.OneMethodService = NewOneMethodServiceClient(tx.config)
 	tx.Portal = NewPortalClient(tx.config)
-	tx.ServiceWithID = NewServiceWithIDClient(tx.config)
 	tx.SkipEdgeExample = NewSkipEdgeExampleClient(tx.config)
 	tx.TwoMethodService = NewTwoMethodServiceClient(tx.config)
 	tx.User = NewUserClient(tx.config)

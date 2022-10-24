@@ -419,8 +419,8 @@ func (pq *PetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pet, err
 }
 
 func (pq *PetQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Pet, init func(*Pet), assign func(*Pet, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Pet)
+	ids := make([]uint32, 0, len(nodes))
+	nodeids := make(map[uint32][]*Pet)
 	for i := range nodes {
 		if nodes[i].user_pet == nil {
 			continue

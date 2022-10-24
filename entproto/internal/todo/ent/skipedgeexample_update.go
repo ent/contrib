@@ -29,13 +29,13 @@ func (seeu *SkipEdgeExampleUpdate) Where(ps ...predicate.SkipEdgeExample) *SkipE
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (seeu *SkipEdgeExampleUpdate) SetUserID(id int) *SkipEdgeExampleUpdate {
+func (seeu *SkipEdgeExampleUpdate) SetUserID(id uint32) *SkipEdgeExampleUpdate {
 	seeu.mutation.SetUserID(id)
 	return seeu
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (seeu *SkipEdgeExampleUpdate) SetNillableUserID(id *int) *SkipEdgeExampleUpdate {
+func (seeu *SkipEdgeExampleUpdate) SetNillableUserID(id *uint32) *SkipEdgeExampleUpdate {
 	if id != nil {
 		seeu = seeu.SetUserID(*id)
 	}
@@ -139,7 +139,7 @@ func (seeu *SkipEdgeExampleUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -155,7 +155,7 @@ func (seeu *SkipEdgeExampleUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -185,13 +185,13 @@ type SkipEdgeExampleUpdateOne struct {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (seeuo *SkipEdgeExampleUpdateOne) SetUserID(id int) *SkipEdgeExampleUpdateOne {
+func (seeuo *SkipEdgeExampleUpdateOne) SetUserID(id uint32) *SkipEdgeExampleUpdateOne {
 	seeuo.mutation.SetUserID(id)
 	return seeuo
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (seeuo *SkipEdgeExampleUpdateOne) SetNillableUserID(id *int) *SkipEdgeExampleUpdateOne {
+func (seeuo *SkipEdgeExampleUpdateOne) SetNillableUserID(id *uint32) *SkipEdgeExampleUpdateOne {
 	if id != nil {
 		seeuo = seeuo.SetUserID(*id)
 	}
@@ -325,7 +325,7 @@ func (seeuo *SkipEdgeExampleUpdateOne) sqlSave(ctx context.Context) (_node *Skip
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -341,7 +341,7 @@ func (seeuo *SkipEdgeExampleUpdateOne) sqlSave(ctx context.Context) (_node *Skip
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

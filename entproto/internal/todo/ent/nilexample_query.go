@@ -261,7 +261,6 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 //		GroupBy(nilexample.FieldStrNil).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleGroupBy {
 	grbuild := &NilExampleGroupBy{config: neq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleG
 //	client.NilExample.Query().
 //		Select(nilexample.FieldStrNil).
 //		Scan(ctx, &v)
-//
 func (neq *NilExampleQuery) Select(fields ...string) *NilExampleSelect {
 	neq.fields = append(neq.fields, fields...)
 	selbuild := &NilExampleSelect{NilExampleQuery: neq}

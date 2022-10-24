@@ -27,14 +27,14 @@ func (gc *GroupCreate) SetName(s string) *GroupCreate {
 }
 
 // AddUserIDs adds the "users" edge to the User entity by IDs.
-func (gc *GroupCreate) AddUserIDs(ids ...int) *GroupCreate {
+func (gc *GroupCreate) AddUserIDs(ids ...uint32) *GroupCreate {
 	gc.mutation.AddUserIDs(ids...)
 	return gc
 }
 
 // AddUsers adds the "users" edges to the User entity.
 func (gc *GroupCreate) AddUsers(u ...*User) *GroupCreate {
-	ids := make([]int, len(u))
+	ids := make([]uint32, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -160,7 +160,7 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

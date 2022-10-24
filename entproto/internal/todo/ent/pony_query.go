@@ -261,7 +261,6 @@ func (pq *PonyQuery) Clone() *PonyQuery {
 //		GroupBy(pony.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (pq *PonyQuery) GroupBy(field string, fields ...string) *PonyGroupBy {
 	grbuild := &PonyGroupBy{config: pq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (pq *PonyQuery) GroupBy(field string, fields ...string) *PonyGroupBy {
 //	client.Pony.Query().
 //		Select(pony.FieldName).
 //		Scan(ctx, &v)
-//
 func (pq *PonyQuery) Select(fields ...string) *PonySelect {
 	pq.fields = append(pq.fields, fields...)
 	selbuild := &PonySelect{PonyQuery: pq}

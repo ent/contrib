@@ -261,7 +261,6 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 //		GroupBy(validmessage.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMessageGroupBy {
 	grbuild := &ValidMessageGroupBy{config: vmq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMess
 //	client.ValidMessage.Query().
 //		Select(validmessage.FieldName).
 //		Scan(ctx, &v)
-//
 func (vmq *ValidMessageQuery) Select(fields ...string) *ValidMessageSelect {
 	vmq.fields = append(vmq.fields, fields...)
 	selbuild := &ValidMessageSelect{ValidMessageQuery: vmq}

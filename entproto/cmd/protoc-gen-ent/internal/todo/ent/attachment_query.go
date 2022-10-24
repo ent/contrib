@@ -261,7 +261,6 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 //		GroupBy(attachment.FieldContents).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGroupBy {
 	grbuild := &AttachmentGroupBy{config: aq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -288,7 +287,6 @@ func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGr
 //	client.Attachment.Query().
 //		Select(attachment.FieldContents).
 //		Scan(ctx, &v)
-//
 func (aq *AttachmentQuery) Select(fields ...string) *AttachmentSelect {
 	aq.fields = append(aq.fields, fields...)
 	selbuild := &AttachmentSelect{AttachmentQuery: aq}

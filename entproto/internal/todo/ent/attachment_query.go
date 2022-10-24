@@ -419,8 +419,8 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 }
 
 func (aq *AttachmentQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Attachment)
+	ids := make([]uint32, 0, len(nodes))
+	nodeids := make(map[uint32][]*Attachment)
 	for i := range nodes {
 		if nodes[i].user_attachment == nil {
 			continue
@@ -450,7 +450,7 @@ func (aq *AttachmentQuery) loadUser(ctx context.Context, query *UserQuery, nodes
 func (aq *AttachmentQuery) loadRecipients(ctx context.Context, query *UserQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *User)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[uuid.UUID]*Attachment)
-	nids := make(map[int]map[*Attachment]struct{})
+	nids := make(map[uint32]map[*Attachment]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -482,7 +482,7 @@ func (aq *AttachmentQuery) loadRecipients(ctx context.Context, query *UserQuery,
 		}
 		spec.Assign = func(columns []string, values []any) error {
 			outValue := *values[0].(*uuid.UUID)
-			inValue := int(values[1].(*sql.NullInt64).Int64)
+			inValue := uint32(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
 				nids[inValue] = map[*Attachment]struct{}{byID[outValue]: {}}
 				return assign(columns[1:], values[1:])
