@@ -34,6 +34,8 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 }
 
 func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	{{ $receiver }} = {{ $receiver }}.limitSelection(ctx,op,field,satisfies)
+
 	path = append([]string(nil), path...)
 	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
 		for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -125,6 +127,19 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 		}
 	{{- end }}
 	return nil
+}
+
+func ({{ $receiver }} *{{ $query }}) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) *{{ $query }} {
+	selectFields := []string{ {{lower $name}}.FieldID }
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+			{{ range $i, $f := filterFields $node.Fields (skipMode "type") }}
+			case "{{camel $f.Name}}":
+			selectFields = append(selectFields, {{lower $name}}.Field{{$f.StructField}})
+			{{ end }}
+		}
+	}
+	return {{ $receiver }}.Select(selectFields...).{{ $query }}
 }
 
 {{ $order := $names.Order }}
