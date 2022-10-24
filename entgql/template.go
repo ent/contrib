@@ -72,20 +72,21 @@ var (
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"fieldCollections":    fieldCollections,
-		"filterEdges":         filterEdges,
-		"filterFields":        filterFields,
-		"filterNodes":         filterNodes,
-		"gqlIDType":           gqlIDType,
-		"gqlMarshaler":        gqlMarshaler,
-		"gqlUnmarshaler":      gqlUnmarshaler,
-		"hasWhereInput":       hasWhereInput,
-		"isRelayConn":         isRelayConn,
-		"isSkipMode":          isSkipMode,
-		"mutationInputs":      mutationInputs,
-		"nodePaginationNames": nodePaginationNames,
-		"orderFields":         orderFields,
-		"skipMode":            skipModeFromString,
+		"fieldMappingCollections": fieldMappingCollections,
+		"fieldCollections":        fieldCollections,
+		"filterEdges":             filterEdges,
+		"filterFields":            filterFields,
+		"filterNodes":             filterNodes,
+		"gqlIDType":               gqlIDType,
+		"gqlMarshaler":            gqlMarshaler,
+		"gqlUnmarshaler":          gqlUnmarshaler,
+		"hasWhereInput":           hasWhereInput,
+		"isRelayConn":             isRelayConn,
+		"isSkipMode":              isSkipMode,
+		"mutationInputs":          mutationInputs,
+		"nodePaginationNames":     nodePaginationNames,
+		"orderFields":             orderFields,
+		"skipMode":                skipModeFromString,
 	}
 
 	//go:embed template/*
@@ -180,6 +181,32 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 		case !ant.Unbind:
 			mapping := []string{camel(e.Name)}
 			collect = append(collect, &fieldCollection{Edge: e, Mapping: mapping})
+		}
+	}
+	return collect, nil
+}
+
+type fieldMappingCollection struct {
+	Field   *gen.Field
+	Mapping []string
+}
+
+func fieldMappingCollections(fields []*gen.Field) ([]*fieldMappingCollection, error) {
+	collect := make([]*fieldMappingCollection, 0, len(fields))
+	for _, f := range fields {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		switch {
+		case len(ant.Mapping) > 0:
+			if !ant.Unbind {
+				return nil, errors.New("bind and mapping annotations are mutually exclusive")
+			}
+			collect = append(collect, &fieldMappingCollection{Field: f, Mapping: ant.Mapping})
+		case !ant.Unbind:
+			mapping := []string{camel(f.Name)}
+			collect = append(collect, &fieldMappingCollection{Field: f, Mapping: mapping})
 		}
 	}
 	return collect, nil

@@ -133,9 +133,9 @@ func ({{ $receiver }} *{{ $query }}) limitSelection(ctx context.Context, op *gra
 	selectFields := []string{ {{lower $name}}.FieldID }
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
-			{{ range $i, $f := filterFields $node.Fields (skipMode "type") }}
-			case "{{camel $f.Name}}":
-			selectFields = append(selectFields, {{lower $name}}.Field{{$f.StructField}})
+			{{ range $i, $f := fieldMappingCollections (filterFields $node.Fields (skipMode "type")) }}
+			 case {{ range $i, $value := $f.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
+			selectFields = append(selectFields, {{lower $name}}.Field{{$f.Field.StructField}})
 			{{ end }}
 		}
 	}
