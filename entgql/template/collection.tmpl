@@ -34,7 +34,7 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 }
 
 func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	{{ $receiver }} = {{ $receiver }}.limitSelection(ctx,op,field,satisfies)
+	{{ $receiver }} = {{ $receiver }}.limitSelection(ctx, op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
@@ -129,7 +129,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 	return nil
 }
 
-func ({{ $receiver }} *{{ $query }}) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) *{{ $query }} {
+func ({{ $receiver }} *{{ $query }}) limitSelection(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
 	selectFields := []string{ {{lower $name}}.FieldID }
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
