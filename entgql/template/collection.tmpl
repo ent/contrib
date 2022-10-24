@@ -130,16 +130,21 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 }
 
 func ({{ $receiver }} *{{ $query }}) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
-	selectFields := []string{ {{lower $name}}.FieldID }
+	selectFields := map[string]struct{}{}
+	selectFields[{{lower $name}}.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
 		switch field.Name {
 			{{ range $i, $f := fieldMappingCollections (filterFields $node.Fields (skipMode "type")) }}
 			 case {{ range $i, $value := $f.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
-			selectFields = append(selectFields, {{lower $name}}.Field{{$f.Field.StructField}})
+			selectFields[{{lower $name}}.Field{{$f.Field.StructField}}] = struct{}{}
 			{{ end }}
 		}
 	}
-	return {{ $receiver }}.Select(selectFields...).{{ $query }}
+	s := make([]string, 0, len(selectFields))
+	for k := range selectFields {
+		s = append(s, k)
+	}
+	return {{ $receiver }}.Select(s...).{{ $query }}
 }
 
 {{ $order := $names.Order }}
