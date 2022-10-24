@@ -22,6 +22,19 @@ import (
 )
 
 var (
+	// BillProductsColumns holds the columns for the "bill_products" table.
+	BillProductsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "sku", Type: field.TypeString},
+		{Name: "quantity", Type: field.TypeUint64},
+	}
+	// BillProductsTable holds the schema information for the "bill_products" table.
+	BillProductsTable = &schema.Table{
+		Name:       "bill_products",
+		Columns:    BillProductsColumns,
+		PrimaryKey: []*schema.Column{BillProductsColumns[0]},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -172,6 +185,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BillProductsTable,
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,

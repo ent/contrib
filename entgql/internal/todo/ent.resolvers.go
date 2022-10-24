@@ -31,6 +31,10 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 	return r.client.Noders(ctx, ids)
 }
 
+func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
+	return r.client.BillProduct.Query().All(ctx)
+}
+
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,

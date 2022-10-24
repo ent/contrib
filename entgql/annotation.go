@@ -466,7 +466,7 @@ func (c FieldConfig) fieldName(gqlType string) string {
 	if c.Name != "" {
 		return c.Name
 	}
-	return camel(plural(gqlType))
+	return camel(snake(plural(gqlType)))
 }
 
 func (c *FieldConfig) merge(ant *FieldConfig) {
