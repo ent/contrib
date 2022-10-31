@@ -148,11 +148,7 @@ func (dosc *DependsOnSkippedCreate) createSpec() (*DependsOnSkipped, *sqlgraph.C
 		}
 	)
 	if value, ok := dosc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: dependsonskipped.FieldName,
-		})
+		_spec.SetField(dependsonskipped.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if nodes := dosc.mutation.SkippedIDs(); len(nodes) > 0 {

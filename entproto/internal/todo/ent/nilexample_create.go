@@ -151,19 +151,11 @@ func (nec *NilExampleCreate) createSpec() (*NilExample, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := nec.mutation.StrNil(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.SetField(nilexample.FieldStrNil, field.TypeString, value)
 		_node.StrNil = &value
 	}
 	if value, ok := nec.mutation.TimeNil(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.SetField(nilexample.FieldTimeNil, field.TypeTime, value)
 		_node.TimeNil = &value
 	}
 	return _node, _spec

@@ -437,6 +437,10 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 		switch {
 		case edge.Unique:
 			fieldDef.Type = namedType(gqlType, edge.Optional)
+		// Avoid error in case the RelayConnection is defined on the
+		// `Through` edge, but the edge-schema is not a Relay connection.
+		case edgeAnt.RelayConnection && edge.Type.IsEdgeSchema() && !ant.RelayConnection:
+			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		case edgeAnt.RelayConnection:
 			if !e.relaySpec {
 				return nil, ErrRelaySpecDisabled

@@ -217,27 +217,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := uc.mutation.UserName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUserName,
-		})
+		_spec.SetField(user.FieldUserName, field.TypeString, value)
 		_node.UserName = value
 	}
 	if value, ok := uc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := uc.mutation.Unnecessary(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.SetField(user.FieldUnnecessary, field.TypeString, value)
 		_node.Unnecessary = value
 	}
 	if nodes := uc.mutation.BlogPostsIDs(); len(nodes) > 0 {

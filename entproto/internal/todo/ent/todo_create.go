@@ -183,19 +183,11 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := tc.mutation.Task(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldTask,
-		})
+		_spec.SetField(todo.FieldTask, field.TypeString, value)
 		_node.Task = value
 	}
 	if value, ok := tc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if nodes := tc.mutation.UserIDs(); len(nodes) > 0 {

@@ -118,11 +118,7 @@ func (mwsu *MessageWithStringsUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 	}
 	if value, ok := mwsu.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
-		})
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := mwsu.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -268,11 +264,7 @@ func (mwsuo *MessageWithStringsUpdateOne) sqlSave(ctx context.Context) (_node *M
 		}
 	}
 	if value, ok := mwsuo.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
-		})
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := mwsuo.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {

@@ -164,35 +164,19 @@ func (tc *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := tc.mutation.Title(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldTitle,
-		})
+		_spec.SetField(task.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
 	if value, ok := tc.mutation.Description(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldDescription,
-		})
+		_spec.SetField(task.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
 	if value, ok := tc.mutation.Complete(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: task.FieldComplete,
-		})
+		_spec.SetField(task.FieldComplete, field.TypeBool, value)
 		_node.Complete = value
 	}
 	if value, ok := tc.mutation.Signature(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldSignature,
-		})
+		_spec.SetField(task.FieldSignature, field.TypeString, value)
 		_node.Signature = value
 	}
 	return _node, _spec

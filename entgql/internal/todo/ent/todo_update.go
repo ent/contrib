@@ -284,58 +284,28 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := tu.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := tu.mutation.Priority(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: todo.FieldPriority,
-		})
+		_spec.SetField(todo.FieldPriority, field.TypeInt, value)
 	}
 	if value, ok := tu.mutation.AddedPriority(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: todo.FieldPriority,
-		})
+		_spec.AddField(todo.FieldPriority, field.TypeInt, value)
 	}
 	if value, ok := tu.mutation.Text(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldText,
-		})
+		_spec.SetField(todo.FieldText, field.TypeString, value)
 	}
 	if value, ok := tu.mutation.Blob(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: todo.FieldBlob,
-		})
+		_spec.SetField(todo.FieldBlob, field.TypeBytes, value)
 	}
 	if tu.mutation.BlobCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Column: todo.FieldBlob,
-		})
+		_spec.ClearField(todo.FieldBlob, field.TypeBytes)
 	}
 	if value, ok := tu.mutation.Init(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: todo.FieldInit,
-		})
+		_spec.SetField(todo.FieldInit, field.TypeJSON, value)
 	}
 	if tu.mutation.InitCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: todo.FieldInit,
-		})
+		_spec.ClearField(todo.FieldInit, field.TypeJSON)
 	}
 	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -752,58 +722,28 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		}
 	}
 	if value, ok := tuo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := tuo.mutation.Priority(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: todo.FieldPriority,
-		})
+		_spec.SetField(todo.FieldPriority, field.TypeInt, value)
 	}
 	if value, ok := tuo.mutation.AddedPriority(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: todo.FieldPriority,
-		})
+		_spec.AddField(todo.FieldPriority, field.TypeInt, value)
 	}
 	if value, ok := tuo.mutation.Text(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldText,
-		})
+		_spec.SetField(todo.FieldText, field.TypeString, value)
 	}
 	if value, ok := tuo.mutation.Blob(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: todo.FieldBlob,
-		})
+		_spec.SetField(todo.FieldBlob, field.TypeBytes, value)
 	}
 	if tuo.mutation.BlobCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Column: todo.FieldBlob,
-		})
+		_spec.ClearField(todo.FieldBlob, field.TypeBytes)
 	}
 	if value, ok := tuo.mutation.Init(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: todo.FieldInit,
-		})
+		_spec.SetField(todo.FieldInit, field.TypeJSON, value)
 	}
 	if tuo.mutation.InitCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: todo.FieldInit,
-		})
+		_spec.ClearField(todo.FieldInit, field.TypeJSON)
 	}
 	if tuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{

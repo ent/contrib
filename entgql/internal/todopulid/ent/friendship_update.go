@@ -187,11 +187,7 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := fu.mutation.CreatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: friendship.FieldCreatedAt,
-		})
+		_spec.SetField(friendship.FieldCreatedAt, field.TypeTime, value)
 	}
 	if fu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -455,11 +451,7 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 		}
 	}
 	if value, ok := fuo.mutation.CreatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: friendship.FieldCreatedAt,
-		})
+		_spec.SetField(friendship.FieldCreatedAt, field.TypeTime, value)
 	}
 	if fuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -143,18 +143,10 @@ func (pu *PortalUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := pu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldName,
-		})
+		_spec.SetField(portal.FieldName, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Description(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldDescription,
-		})
+		_spec.SetField(portal.FieldDescription, field.TypeString, value)
 	}
 	if pu.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -355,18 +347,10 @@ func (puo *PortalUpdateOne) sqlSave(ctx context.Context) (_node *Portal, err err
 		}
 	}
 	if value, ok := puo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldName,
-		})
+		_spec.SetField(portal.FieldName, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Description(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldDescription,
-		})
+		_spec.SetField(portal.FieldDescription, field.TypeString, value)
 	}
 	if puo.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{

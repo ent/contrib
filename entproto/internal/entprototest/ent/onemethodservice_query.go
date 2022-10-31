@@ -273,6 +273,11 @@ func (omsq *OneMethodServiceQuery) Select(fields ...string) *OneMethodServiceSel
 	return selbuild
 }
 
+// Aggregate returns a OneMethodServiceSelect configured with the given aggregations.
+func (omsq *OneMethodServiceQuery) Aggregate(fns ...AggregateFunc) *OneMethodServiceSelect {
+	return omsq.Select().Aggregate(fns...)
+}
+
 func (omsq *OneMethodServiceQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range omsq.fields {
 		if !onemethodservice.ValidColumn(f) {
@@ -466,8 +471,6 @@ func (omsgb *OneMethodServiceGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range omsgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(omsgb.fields)+len(omsgb.fns))
 		for _, f := range omsgb.fields {
@@ -487,6 +490,12 @@ type OneMethodServiceSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (omss *OneMethodServiceSelect) Aggregate(fns ...AggregateFunc) *OneMethodServiceSelect {
+	omss.fns = append(omss.fns, fns...)
+	return omss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := omss.prepareQuery(ctx); err != nil {
@@ -497,6 +506,16 @@ func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (omss *OneMethodServiceSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(omss.fns))
+	for _, fn := range omss.fns {
+		aggregation = append(aggregation, fn(omss.sql))
+	}
+	switch n := len(*omss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		omss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		omss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := omss.sql.Query()
 	if err := omss.driver.Query(ctx, query, args, rows); err != nil {

@@ -154,11 +154,7 @@ func (mwsc *MultiWordSchemaCreate) createSpec() (*MultiWordSchema, *sqlgraph.Cre
 		}
 	)
 	if value, ok := mwsc.mutation.Unit(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: multiwordschema.FieldUnit,
-		})
+		_spec.SetField(multiwordschema.FieldUnit, field.TypeEnum, value)
 		_node.Unit = value
 	}
 	return _node, _spec

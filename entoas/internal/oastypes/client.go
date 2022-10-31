@@ -178,7 +178,7 @@ func (c *OASTypesClient) DeleteOne(ot *OASTypes) *OASTypesDeleteOne {
 	return c.DeleteOneID(ot.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *OASTypesClient) DeleteOneID(id int) *OASTypesDeleteOne {
 	builder := c.Delete().Where(oastypes.ID(id))
 	builder.mutation.id = &id

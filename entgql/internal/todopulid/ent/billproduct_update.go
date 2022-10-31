@@ -144,32 +144,16 @@ func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := bpu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: billproduct.FieldName,
-		})
+		_spec.SetField(billproduct.FieldName, field.TypeString, value)
 	}
 	if value, ok := bpu.mutation.Sku(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: billproduct.FieldSku,
-		})
+		_spec.SetField(billproduct.FieldSku, field.TypeString, value)
 	}
 	if value, ok := bpu.mutation.Quantity(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: billproduct.FieldQuantity,
-		})
+		_spec.SetField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
 	if value, ok := bpu.mutation.AddedQuantity(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: billproduct.FieldQuantity,
-		})
+		_spec.AddField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, bpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -323,32 +307,16 @@ func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProdu
 		}
 	}
 	if value, ok := bpuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: billproduct.FieldName,
-		})
+		_spec.SetField(billproduct.FieldName, field.TypeString, value)
 	}
 	if value, ok := bpuo.mutation.Sku(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: billproduct.FieldSku,
-		})
+		_spec.SetField(billproduct.FieldSku, field.TypeString, value)
 	}
 	if value, ok := bpuo.mutation.Quantity(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: billproduct.FieldQuantity,
-		})
+		_spec.SetField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
 	if value, ok := bpuo.mutation.AddedQuantity(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: billproduct.FieldQuantity,
-		})
+		_spec.AddField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
 	_node = &BillProduct{config: bpuo.config}
 	_spec.Assign = _node.assignValues

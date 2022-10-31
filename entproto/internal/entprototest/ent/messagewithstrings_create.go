@@ -132,11 +132,7 @@ func (mwsc *MessageWithStringsCreate) createSpec() (*MessageWithStrings, *sqlgra
 		}
 	)
 	if value, ok := mwsc.mutation.Strings(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
-		})
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
 		_node.Strings = value
 	}
 	return _node, _spec

@@ -146,30 +146,16 @@ func (neu *NilExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := neu.mutation.StrNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.SetField(nilexample.FieldStrNil, field.TypeString, value)
 	}
 	if neu.mutation.StrNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.ClearField(nilexample.FieldStrNil, field.TypeString)
 	}
 	if value, ok := neu.mutation.TimeNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.SetField(nilexample.FieldTimeNil, field.TypeTime, value)
 	}
 	if neu.mutation.TimeNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.ClearField(nilexample.FieldTimeNil, field.TypeTime)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, neu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -338,30 +324,16 @@ func (neuo *NilExampleUpdateOne) sqlSave(ctx context.Context) (_node *NilExample
 		}
 	}
 	if value, ok := neuo.mutation.StrNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.SetField(nilexample.FieldStrNil, field.TypeString, value)
 	}
 	if neuo.mutation.StrNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.ClearField(nilexample.FieldStrNil, field.TypeString)
 	}
 	if value, ok := neuo.mutation.TimeNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.SetField(nilexample.FieldTimeNil, field.TypeTime, value)
 	}
 	if neuo.mutation.TimeNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.ClearField(nilexample.FieldTimeNil, field.TypeTime)
 	}
 	_node = &NilExample{config: neuo.config}
 	_spec.Assign = _node.assignValues

@@ -111,11 +111,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := fu.mutation.Contents(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: file.FieldContents,
-		})
+		_spec.SetField(file.FieldContents, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -250,11 +246,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 		}
 	}
 	if value, ok := fuo.mutation.Contents(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: file.FieldContents,
-		})
+		_spec.SetField(file.FieldContents, field.TypeString, value)
 	}
 	_node = &File{config: fuo.config}
 	_spec.Assign = _node.assignValues

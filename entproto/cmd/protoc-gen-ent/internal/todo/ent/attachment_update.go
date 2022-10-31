@@ -111,11 +111,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := au.mutation.Contents(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: attachment.FieldContents,
-		})
+		_spec.SetField(attachment.FieldContents, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -250,11 +246,7 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 	}
 	if value, ok := auo.mutation.Contents(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: attachment.FieldContents,
-		})
+		_spec.SetField(attachment.FieldContents, field.TypeString, value)
 	}
 	_node = &Attachment{config: auo.config}
 	_spec.Assign = _node.assignValues

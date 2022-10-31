@@ -17,7 +17,9 @@ package schema
 import (
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -48,5 +50,12 @@ func (Friendship) Edges() []ent.Edge {
 			Required().
 			Unique().
 			Field("friend_id"),
+	}
+}
+
+// Annotations of the Friendship.
+func (Friendship) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
 	}
 }

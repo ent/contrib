@@ -405,221 +405,97 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := otu.mutation.Int(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: oastypes.FieldInt,
-		})
+		_spec.SetField(oastypes.FieldInt, field.TypeInt, value)
 	}
 	if value, ok := otu.mutation.AddedInt(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: oastypes.FieldInt,
-		})
+		_spec.AddField(oastypes.FieldInt, field.TypeInt, value)
 	}
 	if value, ok := otu.mutation.Int8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: oastypes.FieldInt8,
-		})
+		_spec.SetField(oastypes.FieldInt8, field.TypeInt8, value)
 	}
 	if value, ok := otu.mutation.AddedInt8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: oastypes.FieldInt8,
-		})
+		_spec.AddField(oastypes.FieldInt8, field.TypeInt8, value)
 	}
 	if value, ok := otu.mutation.Int16(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt16,
-			Value:  value,
-			Column: oastypes.FieldInt16,
-		})
+		_spec.SetField(oastypes.FieldInt16, field.TypeInt16, value)
 	}
 	if value, ok := otu.mutation.AddedInt16(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt16,
-			Value:  value,
-			Column: oastypes.FieldInt16,
-		})
+		_spec.AddField(oastypes.FieldInt16, field.TypeInt16, value)
 	}
 	if value, ok := otu.mutation.Int32(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: oastypes.FieldInt32,
-		})
+		_spec.SetField(oastypes.FieldInt32, field.TypeInt32, value)
 	}
 	if value, ok := otu.mutation.AddedInt32(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: oastypes.FieldInt32,
-		})
+		_spec.AddField(oastypes.FieldInt32, field.TypeInt32, value)
 	}
 	if value, ok := otu.mutation.Int64(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: oastypes.FieldInt64,
-		})
+		_spec.SetField(oastypes.FieldInt64, field.TypeInt64, value)
 	}
 	if value, ok := otu.mutation.AddedInt64(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: oastypes.FieldInt64,
-		})
+		_spec.AddField(oastypes.FieldInt64, field.TypeInt64, value)
 	}
 	if value, ok := otu.mutation.Uint(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
-			Value:  value,
-			Column: oastypes.FieldUint,
-		})
+		_spec.SetField(oastypes.FieldUint, field.TypeUint, value)
 	}
 	if value, ok := otu.mutation.AddedUint(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
-			Value:  value,
-			Column: oastypes.FieldUint,
-		})
+		_spec.AddField(oastypes.FieldUint, field.TypeUint, value)
 	}
 	if value, ok := otu.mutation.Uint8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: oastypes.FieldUint8,
-		})
+		_spec.SetField(oastypes.FieldUint8, field.TypeUint8, value)
 	}
 	if value, ok := otu.mutation.AddedUint8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: oastypes.FieldUint8,
-		})
+		_spec.AddField(oastypes.FieldUint8, field.TypeUint8, value)
 	}
 	if value, ok := otu.mutation.Uint16(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint16,
-			Value:  value,
-			Column: oastypes.FieldUint16,
-		})
+		_spec.SetField(oastypes.FieldUint16, field.TypeUint16, value)
 	}
 	if value, ok := otu.mutation.AddedUint16(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint16,
-			Value:  value,
-			Column: oastypes.FieldUint16,
-		})
+		_spec.AddField(oastypes.FieldUint16, field.TypeUint16, value)
 	}
 	if value, ok := otu.mutation.Uint32(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint32,
-			Value:  value,
-			Column: oastypes.FieldUint32,
-		})
+		_spec.SetField(oastypes.FieldUint32, field.TypeUint32, value)
 	}
 	if value, ok := otu.mutation.AddedUint32(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint32,
-			Value:  value,
-			Column: oastypes.FieldUint32,
-		})
+		_spec.AddField(oastypes.FieldUint32, field.TypeUint32, value)
 	}
 	if value, ok := otu.mutation.Uint64(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: oastypes.FieldUint64,
-		})
+		_spec.SetField(oastypes.FieldUint64, field.TypeUint64, value)
 	}
 	if value, ok := otu.mutation.AddedUint64(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: oastypes.FieldUint64,
-		})
+		_spec.AddField(oastypes.FieldUint64, field.TypeUint64, value)
 	}
 	if value, ok := otu.mutation.Float32(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: oastypes.FieldFloat32,
-		})
+		_spec.SetField(oastypes.FieldFloat32, field.TypeFloat32, value)
 	}
 	if value, ok := otu.mutation.AddedFloat32(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: oastypes.FieldFloat32,
-		})
+		_spec.AddField(oastypes.FieldFloat32, field.TypeFloat32, value)
 	}
 	if value, ok := otu.mutation.Float64(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat64,
-			Value:  value,
-			Column: oastypes.FieldFloat64,
-		})
+		_spec.SetField(oastypes.FieldFloat64, field.TypeFloat64, value)
 	}
 	if value, ok := otu.mutation.AddedFloat64(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat64,
-			Value:  value,
-			Column: oastypes.FieldFloat64,
-		})
+		_spec.AddField(oastypes.FieldFloat64, field.TypeFloat64, value)
 	}
 	if value, ok := otu.mutation.StringField(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: oastypes.FieldStringField,
-		})
+		_spec.SetField(oastypes.FieldStringField, field.TypeString, value)
 	}
 	if value, ok := otu.mutation.Bool(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: oastypes.FieldBool,
-		})
+		_spec.SetField(oastypes.FieldBool, field.TypeBool, value)
 	}
 	if value, ok := otu.mutation.UUID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: oastypes.FieldUUID,
-		})
+		_spec.SetField(oastypes.FieldUUID, field.TypeUUID, value)
 	}
 	if value, ok := otu.mutation.Time(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: oastypes.FieldTime,
-		})
+		_spec.SetField(oastypes.FieldTime, field.TypeTime, value)
 	}
 	if value, ok := otu.mutation.Text(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: oastypes.FieldText,
-		})
+		_spec.SetField(oastypes.FieldText, field.TypeString, value)
 	}
 	if value, ok := otu.mutation.State(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: oastypes.FieldState,
-		})
+		_spec.SetField(oastypes.FieldState, field.TypeEnum, value)
 	}
 	if value, ok := otu.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldStrings,
-		})
+		_spec.SetField(oastypes.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := otu.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -627,11 +503,7 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if value, ok := otu.mutation.Ints(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldInts,
-		})
+		_spec.SetField(oastypes.FieldInts, field.TypeJSON, value)
 	}
 	if value, ok := otu.mutation.AppendedInts(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -639,11 +511,7 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if value, ok := otu.mutation.Floats(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldFloats,
-		})
+		_spec.SetField(oastypes.FieldFloats, field.TypeJSON, value)
 	}
 	if value, ok := otu.mutation.AppendedFloats(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -651,18 +519,10 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if value, ok := otu.mutation.Bytes(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: oastypes.FieldBytes,
-		})
+		_spec.SetField(oastypes.FieldBytes, field.TypeBytes, value)
 	}
 	if value, ok := otu.mutation.Nicknames(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldNicknames,
-		})
+		_spec.SetField(oastypes.FieldNicknames, field.TypeJSON, value)
 	}
 	if value, ok := otu.mutation.AppendedNicknames(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -670,11 +530,7 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if value, ok := otu.mutation.JSONSlice(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldJSONSlice,
-		})
+		_spec.SetField(oastypes.FieldJSONSlice, field.TypeJSON, value)
 	}
 	if value, ok := otu.mutation.AppendedJSONSlice(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -682,18 +538,10 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if value, ok := otu.mutation.JSONObj(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldJSONObj,
-		})
+		_spec.SetField(oastypes.FieldJSONObj, field.TypeJSON, value)
 	}
 	if value, ok := otu.mutation.Other(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: oastypes.FieldOther,
-		})
+		_spec.SetField(oastypes.FieldOther, field.TypeOther, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, otu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -1116,221 +964,97 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		}
 	}
 	if value, ok := otuo.mutation.Int(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: oastypes.FieldInt,
-		})
+		_spec.SetField(oastypes.FieldInt, field.TypeInt, value)
 	}
 	if value, ok := otuo.mutation.AddedInt(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: oastypes.FieldInt,
-		})
+		_spec.AddField(oastypes.FieldInt, field.TypeInt, value)
 	}
 	if value, ok := otuo.mutation.Int8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: oastypes.FieldInt8,
-		})
+		_spec.SetField(oastypes.FieldInt8, field.TypeInt8, value)
 	}
 	if value, ok := otuo.mutation.AddedInt8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: oastypes.FieldInt8,
-		})
+		_spec.AddField(oastypes.FieldInt8, field.TypeInt8, value)
 	}
 	if value, ok := otuo.mutation.Int16(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt16,
-			Value:  value,
-			Column: oastypes.FieldInt16,
-		})
+		_spec.SetField(oastypes.FieldInt16, field.TypeInt16, value)
 	}
 	if value, ok := otuo.mutation.AddedInt16(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt16,
-			Value:  value,
-			Column: oastypes.FieldInt16,
-		})
+		_spec.AddField(oastypes.FieldInt16, field.TypeInt16, value)
 	}
 	if value, ok := otuo.mutation.Int32(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: oastypes.FieldInt32,
-		})
+		_spec.SetField(oastypes.FieldInt32, field.TypeInt32, value)
 	}
 	if value, ok := otuo.mutation.AddedInt32(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: oastypes.FieldInt32,
-		})
+		_spec.AddField(oastypes.FieldInt32, field.TypeInt32, value)
 	}
 	if value, ok := otuo.mutation.Int64(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: oastypes.FieldInt64,
-		})
+		_spec.SetField(oastypes.FieldInt64, field.TypeInt64, value)
 	}
 	if value, ok := otuo.mutation.AddedInt64(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: oastypes.FieldInt64,
-		})
+		_spec.AddField(oastypes.FieldInt64, field.TypeInt64, value)
 	}
 	if value, ok := otuo.mutation.Uint(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
-			Value:  value,
-			Column: oastypes.FieldUint,
-		})
+		_spec.SetField(oastypes.FieldUint, field.TypeUint, value)
 	}
 	if value, ok := otuo.mutation.AddedUint(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
-			Value:  value,
-			Column: oastypes.FieldUint,
-		})
+		_spec.AddField(oastypes.FieldUint, field.TypeUint, value)
 	}
 	if value, ok := otuo.mutation.Uint8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: oastypes.FieldUint8,
-		})
+		_spec.SetField(oastypes.FieldUint8, field.TypeUint8, value)
 	}
 	if value, ok := otuo.mutation.AddedUint8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: oastypes.FieldUint8,
-		})
+		_spec.AddField(oastypes.FieldUint8, field.TypeUint8, value)
 	}
 	if value, ok := otuo.mutation.Uint16(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint16,
-			Value:  value,
-			Column: oastypes.FieldUint16,
-		})
+		_spec.SetField(oastypes.FieldUint16, field.TypeUint16, value)
 	}
 	if value, ok := otuo.mutation.AddedUint16(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint16,
-			Value:  value,
-			Column: oastypes.FieldUint16,
-		})
+		_spec.AddField(oastypes.FieldUint16, field.TypeUint16, value)
 	}
 	if value, ok := otuo.mutation.Uint32(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint32,
-			Value:  value,
-			Column: oastypes.FieldUint32,
-		})
+		_spec.SetField(oastypes.FieldUint32, field.TypeUint32, value)
 	}
 	if value, ok := otuo.mutation.AddedUint32(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint32,
-			Value:  value,
-			Column: oastypes.FieldUint32,
-		})
+		_spec.AddField(oastypes.FieldUint32, field.TypeUint32, value)
 	}
 	if value, ok := otuo.mutation.Uint64(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: oastypes.FieldUint64,
-		})
+		_spec.SetField(oastypes.FieldUint64, field.TypeUint64, value)
 	}
 	if value, ok := otuo.mutation.AddedUint64(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: oastypes.FieldUint64,
-		})
+		_spec.AddField(oastypes.FieldUint64, field.TypeUint64, value)
 	}
 	if value, ok := otuo.mutation.Float32(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: oastypes.FieldFloat32,
-		})
+		_spec.SetField(oastypes.FieldFloat32, field.TypeFloat32, value)
 	}
 	if value, ok := otuo.mutation.AddedFloat32(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: oastypes.FieldFloat32,
-		})
+		_spec.AddField(oastypes.FieldFloat32, field.TypeFloat32, value)
 	}
 	if value, ok := otuo.mutation.Float64(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat64,
-			Value:  value,
-			Column: oastypes.FieldFloat64,
-		})
+		_spec.SetField(oastypes.FieldFloat64, field.TypeFloat64, value)
 	}
 	if value, ok := otuo.mutation.AddedFloat64(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat64,
-			Value:  value,
-			Column: oastypes.FieldFloat64,
-		})
+		_spec.AddField(oastypes.FieldFloat64, field.TypeFloat64, value)
 	}
 	if value, ok := otuo.mutation.StringField(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: oastypes.FieldStringField,
-		})
+		_spec.SetField(oastypes.FieldStringField, field.TypeString, value)
 	}
 	if value, ok := otuo.mutation.Bool(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: oastypes.FieldBool,
-		})
+		_spec.SetField(oastypes.FieldBool, field.TypeBool, value)
 	}
 	if value, ok := otuo.mutation.UUID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: oastypes.FieldUUID,
-		})
+		_spec.SetField(oastypes.FieldUUID, field.TypeUUID, value)
 	}
 	if value, ok := otuo.mutation.Time(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: oastypes.FieldTime,
-		})
+		_spec.SetField(oastypes.FieldTime, field.TypeTime, value)
 	}
 	if value, ok := otuo.mutation.Text(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: oastypes.FieldText,
-		})
+		_spec.SetField(oastypes.FieldText, field.TypeString, value)
 	}
 	if value, ok := otuo.mutation.State(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: oastypes.FieldState,
-		})
+		_spec.SetField(oastypes.FieldState, field.TypeEnum, value)
 	}
 	if value, ok := otuo.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldStrings,
-		})
+		_spec.SetField(oastypes.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := otuo.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -1338,11 +1062,7 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		})
 	}
 	if value, ok := otuo.mutation.Ints(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldInts,
-		})
+		_spec.SetField(oastypes.FieldInts, field.TypeJSON, value)
 	}
 	if value, ok := otuo.mutation.AppendedInts(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -1350,11 +1070,7 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		})
 	}
 	if value, ok := otuo.mutation.Floats(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldFloats,
-		})
+		_spec.SetField(oastypes.FieldFloats, field.TypeJSON, value)
 	}
 	if value, ok := otuo.mutation.AppendedFloats(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -1362,18 +1078,10 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		})
 	}
 	if value, ok := otuo.mutation.Bytes(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: oastypes.FieldBytes,
-		})
+		_spec.SetField(oastypes.FieldBytes, field.TypeBytes, value)
 	}
 	if value, ok := otuo.mutation.Nicknames(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldNicknames,
-		})
+		_spec.SetField(oastypes.FieldNicknames, field.TypeJSON, value)
 	}
 	if value, ok := otuo.mutation.AppendedNicknames(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -1381,11 +1089,7 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		})
 	}
 	if value, ok := otuo.mutation.JSONSlice(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldJSONSlice,
-		})
+		_spec.SetField(oastypes.FieldJSONSlice, field.TypeJSON, value)
 	}
 	if value, ok := otuo.mutation.AppendedJSONSlice(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -1393,18 +1097,10 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		})
 	}
 	if value, ok := otuo.mutation.JSONObj(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: oastypes.FieldJSONObj,
-		})
+		_spec.SetField(oastypes.FieldJSONObj, field.TypeJSON, value)
 	}
 	if value, ok := otuo.mutation.Other(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: oastypes.FieldOther,
-		})
+		_spec.SetField(oastypes.FieldOther, field.TypeOther, value)
 	}
 	_node = &OASTypes{config: otuo.config}
 	_spec.Assign = _node.assignValues

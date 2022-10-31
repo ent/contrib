@@ -132,11 +132,7 @@ func (mwpnc *MessageWithPackageNameCreate) createSpec() (*MessageWithPackageName
 		}
 	)
 	if value, ok := mwpnc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithpackagename.FieldName,
-		})
+		_spec.SetField(messagewithpackagename.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	return _node, _spec

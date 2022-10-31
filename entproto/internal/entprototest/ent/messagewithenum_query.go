@@ -295,6 +295,11 @@ func (mweq *MessageWithEnumQuery) Select(fields ...string) *MessageWithEnumSelec
 	return selbuild
 }
 
+// Aggregate returns a MessageWithEnumSelect configured with the given aggregations.
+func (mweq *MessageWithEnumQuery) Aggregate(fns ...AggregateFunc) *MessageWithEnumSelect {
+	return mweq.Select().Aggregate(fns...)
+}
+
 func (mweq *MessageWithEnumQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mweq.fields {
 		if !messagewithenum.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (mwegb *MessageWithEnumGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwegb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwegb.fields)+len(mwegb.fns))
 		for _, f := range mwegb.fields {
@@ -509,6 +512,12 @@ type MessageWithEnumSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwes *MessageWithEnumSelect) Aggregate(fns ...AggregateFunc) *MessageWithEnumSelect {
+	mwes.fns = append(mwes.fns, fns...)
+	return mwes
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwes *MessageWithEnumSelect) Scan(ctx context.Context, v any) error {
 	if err := mwes.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (mwes *MessageWithEnumSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (mwes *MessageWithEnumSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwes.fns))
+	for _, fn := range mwes.fns {
+		aggregation = append(aggregation, fn(mwes.sql))
+	}
+	switch n := len(*mwes.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwes.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwes.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwes.sql.Query()
 	if err := mwes.driver.Query(ctx, query, args, rows); err != nil {

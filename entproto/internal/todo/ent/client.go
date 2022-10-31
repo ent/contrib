@@ -236,7 +236,7 @@ func (c *AttachmentClient) DeleteOne(a *Attachment) *AttachmentDeleteOne {
 	return c.DeleteOneID(a.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *AttachmentClient) DeleteOneID(id uuid.UUID) *AttachmentDeleteOne {
 	builder := c.Delete().Where(attachment.ID(id))
 	builder.mutation.id = &id
@@ -268,7 +268,7 @@ func (c *AttachmentClient) GetX(ctx context.Context, id uuid.UUID) *Attachment {
 // QueryUser queries the user edge of a Attachment.
 func (c *AttachmentClient) QueryUser(a *Attachment) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
@@ -284,7 +284,7 @@ func (c *AttachmentClient) QueryUser(a *Attachment) *UserQuery {
 // QueryRecipients queries the recipients edge of a Attachment.
 func (c *AttachmentClient) QueryRecipients(a *Attachment) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(attachment.Table, attachment.FieldID, id),
@@ -358,7 +358,7 @@ func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
 	return c.DeleteOneID(gr.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *GroupClient) DeleteOneID(id int) *GroupDeleteOne {
 	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
@@ -390,7 +390,7 @@ func (c *GroupClient) GetX(ctx context.Context, id int) *Group {
 // QueryUsers queries the users edge of a Group.
 func (c *GroupClient) QueryUsers(gr *Group) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
@@ -464,7 +464,7 @@ func (c *MultiWordSchemaClient) DeleteOne(mws *MultiWordSchema) *MultiWordSchema
 	return c.DeleteOneID(mws.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MultiWordSchemaClient) DeleteOneID(id int) *MultiWordSchemaDeleteOne {
 	builder := c.Delete().Where(multiwordschema.ID(id))
 	builder.mutation.id = &id
@@ -554,7 +554,7 @@ func (c *NilExampleClient) DeleteOne(ne *NilExample) *NilExampleDeleteOne {
 	return c.DeleteOneID(ne.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *NilExampleClient) DeleteOneID(id int) *NilExampleDeleteOne {
 	builder := c.Delete().Where(nilexample.ID(id))
 	builder.mutation.id = &id
@@ -644,7 +644,7 @@ func (c *PetClient) DeleteOne(pe *Pet) *PetDeleteOne {
 	return c.DeleteOneID(pe.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *PetClient) DeleteOneID(id int) *PetDeleteOne {
 	builder := c.Delete().Where(pet.ID(id))
 	builder.mutation.id = &id
@@ -676,7 +676,7 @@ func (c *PetClient) GetX(ctx context.Context, id int) *Pet {
 // QueryOwner queries the owner edge of a Pet.
 func (c *PetClient) QueryOwner(pe *Pet) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pe.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(pet.Table, pet.FieldID, id),
@@ -692,7 +692,7 @@ func (c *PetClient) QueryOwner(pe *Pet) *UserQuery {
 // QueryAttachment queries the attachment edge of a Pet.
 func (c *PetClient) QueryAttachment(pe *Pet) *AttachmentQuery {
 	query := &AttachmentQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pe.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(pet.Table, pet.FieldID, id),
@@ -766,7 +766,7 @@ func (c *PonyClient) DeleteOne(po *Pony) *PonyDeleteOne {
 	return c.DeleteOneID(po.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *PonyClient) DeleteOneID(id int) *PonyDeleteOne {
 	builder := c.Delete().Where(pony.ID(id))
 	builder.mutation.id = &id
@@ -856,7 +856,7 @@ func (c *SkipEdgeExampleClient) DeleteOne(see *SkipEdgeExample) *SkipEdgeExample
 	return c.DeleteOneID(see.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *SkipEdgeExampleClient) DeleteOneID(id int) *SkipEdgeExampleDeleteOne {
 	builder := c.Delete().Where(skipedgeexample.ID(id))
 	builder.mutation.id = &id
@@ -888,7 +888,7 @@ func (c *SkipEdgeExampleClient) GetX(ctx context.Context, id int) *SkipEdgeExamp
 // QueryUser queries the user edge of a SkipEdgeExample.
 func (c *SkipEdgeExampleClient) QueryUser(see *SkipEdgeExample) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := see.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(skipedgeexample.Table, skipedgeexample.FieldID, id),
@@ -962,7 +962,7 @@ func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
 	builder := c.Delete().Where(todo.ID(id))
 	builder.mutation.id = &id
@@ -994,7 +994,7 @@ func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 // QueryUser queries the user edge of a Todo.
 func (c *TodoClient) QueryUser(t *Todo) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -1068,7 +1068,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -1100,7 +1100,7 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 // QueryGroup queries the group edge of a User.
 func (c *UserClient) QueryGroup(u *User) *GroupQuery {
 	query := &GroupQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -1116,7 +1116,7 @@ func (c *UserClient) QueryGroup(u *User) *GroupQuery {
 // QueryAttachment queries the attachment edge of a User.
 func (c *UserClient) QueryAttachment(u *User) *AttachmentQuery {
 	query := &AttachmentQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -1132,7 +1132,7 @@ func (c *UserClient) QueryAttachment(u *User) *AttachmentQuery {
 // QueryReceived1 queries the received_1 edge of a User.
 func (c *UserClient) QueryReceived1(u *User) *AttachmentQuery {
 	query := &AttachmentQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -1148,7 +1148,7 @@ func (c *UserClient) QueryReceived1(u *User) *AttachmentQuery {
 // QueryPet queries the pet edge of a User.
 func (c *UserClient) QueryPet(u *User) *PetQuery {
 	query := &PetQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -1164,7 +1164,7 @@ func (c *UserClient) QueryPet(u *User) *PetQuery {
 // QuerySkipEdge queries the skip_edge edge of a User.
 func (c *UserClient) QuerySkipEdge(u *User) *SkipEdgeExampleQuery {
 	query := &SkipEdgeExampleQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),

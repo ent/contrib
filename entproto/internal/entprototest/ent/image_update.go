@@ -148,11 +148,7 @@ func (iu *ImageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := iu.mutation.URLPath(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: image.FieldURLPath,
-		})
+		_spec.SetField(image.FieldURLPath, field.TypeString, value)
 	}
 	if iu.mutation.UserProfilePicCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -377,11 +373,7 @@ func (iuo *ImageUpdateOne) sqlSave(ctx context.Context) (_node *Image, err error
 		}
 	}
 	if value, ok := iuo.mutation.URLPath(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: image.FieldURLPath,
-		})
+		_spec.SetField(image.FieldURLPath, field.TypeString, value)
 	}
 	if iuo.mutation.UserProfilePicCleared() {
 		edge := &sqlgraph.EdgeSpec{

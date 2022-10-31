@@ -146,18 +146,10 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 	}
 	if value, ok := mweu.mutation.EnumType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumType,
-		})
+		_spec.SetField(messagewithenum.FieldEnumType, field.TypeEnum, value)
 	}
 	if value, ok := mweu.mutation.EnumWithoutDefault(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumWithoutDefault,
-		})
+		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mweu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -327,18 +319,10 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 		}
 	}
 	if value, ok := mweuo.mutation.EnumType(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumType,
-		})
+		_spec.SetField(messagewithenum.FieldEnumType, field.TypeEnum, value)
 	}
 	if value, ok := mweuo.mutation.EnumWithoutDefault(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumWithoutDefault,
-		})
+		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
 	}
 	_node = &MessageWithEnum{config: mweuo.config}
 	_spec.Assign = _node.assignValues

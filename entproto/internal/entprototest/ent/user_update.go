@@ -243,31 +243,16 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := uu.mutation.UserName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUserName,
-		})
+		_spec.SetField(user.FieldUserName, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.Unnecessary(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.SetField(user.FieldUnnecessary, field.TypeString, value)
 	}
 	if uu.mutation.UnnecessaryCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.ClearField(user.FieldUnnecessary, field.TypeString)
 	}
 	if uu.mutation.BlogPostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -654,31 +639,16 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 	}
 	if value, ok := uuo.mutation.UserName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUserName,
-		})
+		_spec.SetField(user.FieldUserName, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.Unnecessary(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.SetField(user.FieldUnnecessary, field.TypeString, value)
 	}
 	if uuo.mutation.UnnecessaryCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.ClearField(user.FieldUnnecessary, field.TypeString)
 	}
 	if uuo.mutation.BlogPostsCleared() {
 		edge := &sqlgraph.EdgeSpec{

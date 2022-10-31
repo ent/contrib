@@ -295,6 +295,11 @@ func (mwsq *MessageWithStringsQuery) Select(fields ...string) *MessageWithString
 	return selbuild
 }
 
+// Aggregate returns a MessageWithStringsSelect configured with the given aggregations.
+func (mwsq *MessageWithStringsQuery) Aggregate(fns ...AggregateFunc) *MessageWithStringsSelect {
+	return mwsq.Select().Aggregate(fns...)
+}
+
 func (mwsq *MessageWithStringsQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mwsq.fields {
 		if !messagewithstrings.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (mwsgb *MessageWithStringsGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwsgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwsgb.fields)+len(mwsgb.fns))
 		for _, f := range mwsgb.fields {
@@ -509,6 +512,12 @@ type MessageWithStringsSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwss *MessageWithStringsSelect) Aggregate(fns ...AggregateFunc) *MessageWithStringsSelect {
+	mwss.fns = append(mwss.fns, fns...)
+	return mwss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v any) error {
 	if err := mwss.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (mwss *MessageWithStringsSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwss.fns))
+	for _, fn := range mwss.fns {
+		aggregation = append(aggregation, fn(mwss.sql))
+	}
+	switch n := len(*mwss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwss.sql.Query()
 	if err := mwss.driver.Query(ctx, query, args, rows); err != nil {

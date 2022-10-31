@@ -276,78 +276,37 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := cu.mutation.Text(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldText,
-		})
+		_spec.SetField(category.FieldText, field.TypeString, value)
 	}
 	if value, ok := cu.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: category.FieldStatus,
-		})
+		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := cu.mutation.Config(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: category.FieldConfig,
-		})
+		_spec.SetField(category.FieldConfig, field.TypeOther, value)
 	}
 	if cu.mutation.ConfigCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Column: category.FieldConfig,
-		})
+		_spec.ClearField(category.FieldConfig, field.TypeOther)
 	}
 	if value, ok := cu.mutation.Duration(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: category.FieldDuration,
-		})
+		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
 	}
 	if value, ok := cu.mutation.AddedDuration(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: category.FieldDuration,
-		})
+		_spec.AddField(category.FieldDuration, field.TypeInt64, value)
 	}
 	if cu.mutation.DurationCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Column: category.FieldDuration,
-		})
+		_spec.ClearField(category.FieldDuration, field.TypeInt64)
 	}
 	if value, ok := cu.mutation.Count(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: category.FieldCount,
-		})
+		_spec.SetField(category.FieldCount, field.TypeUint64, value)
 	}
 	if value, ok := cu.mutation.AddedCount(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: category.FieldCount,
-		})
+		_spec.AddField(category.FieldCount, field.TypeUint64, value)
 	}
 	if cu.mutation.CountCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Column: category.FieldCount,
-		})
+		_spec.ClearField(category.FieldCount, field.TypeUint64)
 	}
 	if value, ok := cu.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
+		_spec.SetField(category.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := cu.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -355,10 +314,7 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if cu.mutation.StringsCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: category.FieldStrings,
-		})
+		_spec.ClearField(category.FieldStrings, field.TypeJSON)
 	}
 	if cu.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -694,78 +650,37 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		}
 	}
 	if value, ok := cuo.mutation.Text(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldText,
-		})
+		_spec.SetField(category.FieldText, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: category.FieldStatus,
-		})
+		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := cuo.mutation.Config(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: category.FieldConfig,
-		})
+		_spec.SetField(category.FieldConfig, field.TypeOther, value)
 	}
 	if cuo.mutation.ConfigCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Column: category.FieldConfig,
-		})
+		_spec.ClearField(category.FieldConfig, field.TypeOther)
 	}
 	if value, ok := cuo.mutation.Duration(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: category.FieldDuration,
-		})
+		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
 	}
 	if value, ok := cuo.mutation.AddedDuration(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: category.FieldDuration,
-		})
+		_spec.AddField(category.FieldDuration, field.TypeInt64, value)
 	}
 	if cuo.mutation.DurationCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Column: category.FieldDuration,
-		})
+		_spec.ClearField(category.FieldDuration, field.TypeInt64)
 	}
 	if value, ok := cuo.mutation.Count(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: category.FieldCount,
-		})
+		_spec.SetField(category.FieldCount, field.TypeUint64, value)
 	}
 	if value, ok := cuo.mutation.AddedCount(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: category.FieldCount,
-		})
+		_spec.AddField(category.FieldCount, field.TypeUint64, value)
 	}
 	if cuo.mutation.CountCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Column: category.FieldCount,
-		})
+		_spec.ClearField(category.FieldCount, field.TypeUint64)
 	}
 	if value, ok := cuo.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
+		_spec.SetField(category.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := cuo.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -773,10 +688,7 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		})
 	}
 	if cuo.mutation.StringsCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: category.FieldStrings,
-		})
+		_spec.ClearField(category.FieldStrings, field.TypeJSON)
 	}
 	if cuo.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{

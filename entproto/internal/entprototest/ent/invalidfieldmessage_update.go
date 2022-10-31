@@ -112,11 +112,7 @@ func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err 
 		}
 	}
 	if value, ok := ifmu.mutation.JSON(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: invalidfieldmessage.FieldJSON,
-		})
+		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ifmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -251,11 +247,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 		}
 	}
 	if value, ok := ifmuo.mutation.JSON(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: invalidfieldmessage.FieldJSON,
-		})
+		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
 	}
 	_node = &InvalidFieldMessage{config: ifmuo.config}
 	_spec.Assign = _node.assignValues

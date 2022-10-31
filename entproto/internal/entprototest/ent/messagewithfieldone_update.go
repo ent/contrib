@@ -118,18 +118,10 @@ func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 	}
 	if value, ok := mwfou.mutation.FieldOne(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.SetField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	if value, ok := mwfou.mutation.AddedFieldOne(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.AddField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwfou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -271,18 +263,10 @@ func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 	}
 	if value, ok := mwfouo.mutation.FieldOne(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.SetField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	if value, ok := mwfouo.mutation.AddedFieldOne(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.AddField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	_node = &MessageWithFieldOne{config: mwfouo.config}
 	_spec.Assign = _node.assignValues

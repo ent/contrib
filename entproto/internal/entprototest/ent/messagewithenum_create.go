@@ -168,19 +168,11 @@ func (mwec *MessageWithEnumCreate) createSpec() (*MessageWithEnum, *sqlgraph.Cre
 		}
 	)
 	if value, ok := mwec.mutation.EnumType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumType,
-		})
+		_spec.SetField(messagewithenum.FieldEnumType, field.TypeEnum, value)
 		_node.EnumType = value
 	}
 	if value, ok := mwec.mutation.EnumWithoutDefault(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumWithoutDefault,
-		})
+		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
 		_node.EnumWithoutDefault = value
 	}
 	return _node, _spec

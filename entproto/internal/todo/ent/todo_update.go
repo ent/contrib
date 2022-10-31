@@ -167,18 +167,10 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := tu.mutation.Task(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldTask,
-		})
+		_spec.SetField(todo.FieldTask, field.TypeString, value)
 	}
 	if value, ok := tu.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 	}
 	if tu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -403,18 +395,10 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		}
 	}
 	if value, ok := tuo.mutation.Task(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldTask,
-		})
+		_spec.SetField(todo.FieldTask, field.TypeString, value)
 	}
 	if value, ok := tuo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 	}
 	if tuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

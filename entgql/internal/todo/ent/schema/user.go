@@ -44,7 +44,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("groups", Group.Type).
 			Annotations(entgql.RelayConnection()),
 		edge.To("friends", User.Type).
-			Through("friendships", Friendship.Type),
+			Through("friendships", Friendship.Type).
+			Annotations(entgql.RelayConnection()),
 	}
 }
 

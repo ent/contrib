@@ -334,6 +334,11 @@ func (iq *ImageQuery) Select(fields ...string) *ImageSelect {
 	return selbuild
 }
 
+// Aggregate returns a ImageSelect configured with the given aggregations.
+func (iq *ImageQuery) Aggregate(fns ...AggregateFunc) *ImageSelect {
+	return iq.Select().Aggregate(fns...)
+}
+
 func (iq *ImageQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range iq.fields {
 		if !image.ValidColumn(f) {
@@ -574,8 +579,6 @@ func (igb *ImageGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range igb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(igb.fields)+len(igb.fns))
 		for _, f := range igb.fields {
@@ -595,6 +598,12 @@ type ImageSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (is *ImageSelect) Aggregate(fns ...AggregateFunc) *ImageSelect {
+	is.fns = append(is.fns, fns...)
+	return is
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (is *ImageSelect) Scan(ctx context.Context, v any) error {
 	if err := is.prepareQuery(ctx); err != nil {
@@ -605,6 +614,16 @@ func (is *ImageSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (is *ImageSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(is.fns))
+	for _, fn := range is.fns {
+		aggregation = append(aggregation, fn(is.sql))
+	}
+	switch n := len(*is.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		is.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		is.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := is.sql.Query()
 	if err := is.driver.Query(ctx, query, args, rows); err != nil {
