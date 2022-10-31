@@ -147,11 +147,7 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = id
 	}
 	if value, ok := ac.mutation.Contents(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: attachment.FieldContents,
-		})
+		_spec.SetField(attachment.FieldContents, field.TypeString, value)
 		_node.Contents = value
 	}
 	return _node, _spec

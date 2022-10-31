@@ -295,6 +295,11 @@ func (mwpnq *MessageWithPackageNameQuery) Select(fields ...string) *MessageWithP
 	return selbuild
 }
 
+// Aggregate returns a MessageWithPackageNameSelect configured with the given aggregations.
+func (mwpnq *MessageWithPackageNameQuery) Aggregate(fns ...AggregateFunc) *MessageWithPackageNameSelect {
+	return mwpnq.Select().Aggregate(fns...)
+}
+
 func (mwpnq *MessageWithPackageNameQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mwpnq.fields {
 		if !messagewithpackagename.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (mwpngb *MessageWithPackageNameGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwpngb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwpngb.fields)+len(mwpngb.fns))
 		for _, f := range mwpngb.fields {
@@ -509,6 +512,12 @@ type MessageWithPackageNameSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwpns *MessageWithPackageNameSelect) Aggregate(fns ...AggregateFunc) *MessageWithPackageNameSelect {
+	mwpns.fns = append(mwpns.fns, fns...)
+	return mwpns
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v any) error {
 	if err := mwpns.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v any) erro
 }
 
 func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwpns.fns))
+	for _, fn := range mwpns.fns {
+		aggregation = append(aggregation, fn(mwpns.sql))
+	}
+	switch n := len(*mwpns.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwpns.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwpns.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwpns.sql.Query()
 	if err := mwpns.driver.Query(ctx, query, args, rows); err != nil {

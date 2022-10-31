@@ -164,27 +164,15 @@ func (bpc *BillProductCreate) createSpec() (*BillProduct, *sqlgraph.CreateSpec) 
 		}
 	)
 	if value, ok := bpc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: billproduct.FieldName,
-		})
+		_spec.SetField(billproduct.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := bpc.mutation.Sku(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: billproduct.FieldSku,
-		})
+		_spec.SetField(billproduct.FieldSku, field.TypeString, value)
 		_node.Sku = value
 	}
 	if value, ok := bpc.mutation.Quantity(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: billproduct.FieldQuantity,
-		})
+		_spec.SetField(billproduct.FieldQuantity, field.TypeUint64, value)
 		_node.Quantity = value
 	}
 	return _node, _spec

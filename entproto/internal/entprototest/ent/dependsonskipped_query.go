@@ -332,6 +332,11 @@ func (dosq *DependsOnSkippedQuery) Select(fields ...string) *DependsOnSkippedSel
 	return selbuild
 }
 
+// Aggregate returns a DependsOnSkippedSelect configured with the given aggregations.
+func (dosq *DependsOnSkippedQuery) Aggregate(fns ...AggregateFunc) *DependsOnSkippedSelect {
+	return dosq.Select().Aggregate(fns...)
+}
+
 func (dosq *DependsOnSkippedQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range dosq.fields {
 		if !dependsonskipped.ValidColumn(f) {
@@ -568,8 +573,6 @@ func (dosgb *DependsOnSkippedGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range dosgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(dosgb.fields)+len(dosgb.fns))
 		for _, f := range dosgb.fields {
@@ -589,6 +592,12 @@ type DependsOnSkippedSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (doss *DependsOnSkippedSelect) Aggregate(fns ...AggregateFunc) *DependsOnSkippedSelect {
+	doss.fns = append(doss.fns, fns...)
+	return doss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v any) error {
 	if err := doss.prepareQuery(ctx); err != nil {
@@ -599,6 +608,16 @@ func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (doss *DependsOnSkippedSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(doss.fns))
+	for _, fn := range doss.fns {
+		aggregation = append(aggregation, fn(doss.sql))
+	}
+	switch n := len(*doss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		doss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		doss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := doss.sql.Query()
 	if err := doss.driver.Query(ctx, query, args, rows); err != nil {

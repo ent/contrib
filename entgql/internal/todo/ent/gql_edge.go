@@ -136,26 +136,42 @@ func (u *User) Groups(
 	return u.QueryGroups().Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (u *User) Friends(ctx context.Context) (result []*User, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedFriends(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = u.Edges.FriendsOrErr()
+func (u *User) Friends(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
+) (*UserConnection, error) {
+	opts := []UserPaginateOption{
+		WithUserFilter(where.Filter),
 	}
-	if IsNotLoaded(err) {
-		result, err = u.QueryFriends().All(ctx)
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := u.Edges.totalCount[1][alias]
+	if nodes, err := u.NamedFriends(alias); err == nil || hasTotalCount {
+		pager, err := newUserPager(opts)
+		if err != nil {
+			return nil, err
+		}
+		conn := &UserConnection{Edges: []*UserEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
 	}
-	return result, err
+	return u.QueryFriends().Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (u *User) Friendships(ctx context.Context) (result []*Friendship, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = u.NamedFriendships(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = u.Edges.FriendshipsOrErr()
+func (u *User) Friendships(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *FriendshipWhereInput,
+) (*FriendshipConnection, error) {
+	opts := []FriendshipPaginateOption{
+		WithFriendshipFilter(where.Filter),
 	}
-	if IsNotLoaded(err) {
-		result, err = u.QueryFriendships().All(ctx)
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := u.Edges.totalCount[2][alias]
+	if nodes, err := u.NamedFriendships(alias); err == nil || hasTotalCount {
+		pager, err := newFriendshipPager(opts)
+		if err != nil {
+			return nil, err
+		}
+		conn := &FriendshipConnection{Edges: []*FriendshipEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
 	}
-	return result, err
+	return u.QueryFriendships().Paginate(ctx, after, first, before, last, opts...)
 }

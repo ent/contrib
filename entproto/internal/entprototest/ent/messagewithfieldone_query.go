@@ -295,6 +295,11 @@ func (mwfoq *MessageWithFieldOneQuery) Select(fields ...string) *MessageWithFiel
 	return selbuild
 }
 
+// Aggregate returns a MessageWithFieldOneSelect configured with the given aggregations.
+func (mwfoq *MessageWithFieldOneQuery) Aggregate(fns ...AggregateFunc) *MessageWithFieldOneSelect {
+	return mwfoq.Select().Aggregate(fns...)
+}
+
 func (mwfoq *MessageWithFieldOneQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mwfoq.fields {
 		if !messagewithfieldone.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (mwfogb *MessageWithFieldOneGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwfogb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwfogb.fields)+len(mwfogb.fns))
 		for _, f := range mwfogb.fields {
@@ -509,6 +512,12 @@ type MessageWithFieldOneSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwfos *MessageWithFieldOneSelect) Aggregate(fns ...AggregateFunc) *MessageWithFieldOneSelect {
+	mwfos.fns = append(mwfos.fns, fns...)
+	return mwfos
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v any) error {
 	if err := mwfos.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwfos.fns))
+	for _, fn := range mwfos.fns {
+		aggregation = append(aggregation, fn(mwfos.sql))
+	}
+	switch n := len(*mwfos.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwfos.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwfos.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwfos.sql.Query()
 	if err := mwfos.driver.Query(ctx, query, args, rows); err != nil {

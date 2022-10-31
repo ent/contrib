@@ -111,11 +111,7 @@ func (wfu *WithFieldsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := wfu.mutation.Existing(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: withfields.FieldExisting,
-		})
+		_spec.SetField(withfields.FieldExisting, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -250,11 +246,7 @@ func (wfuo *WithFieldsUpdateOne) sqlSave(ctx context.Context) (_node *WithFields
 		}
 	}
 	if value, ok := wfuo.mutation.Existing(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: withfields.FieldExisting,
-		})
+		_spec.SetField(withfields.FieldExisting, field.TypeString, value)
 	}
 	_node = &WithFields{config: wfuo.config}
 	_spec.Assign = _node.assignValues

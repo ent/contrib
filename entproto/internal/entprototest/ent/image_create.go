@@ -164,11 +164,7 @@ func (ic *ImageCreate) createSpec() (*Image, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := ic.mutation.URLPath(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: image.FieldURLPath,
-		})
+		_spec.SetField(image.FieldURLPath, field.TypeString, value)
 		_node.URLPath = value
 	}
 	if nodes := ic.mutation.UserProfilePicIDs(); len(nodes) > 0 {

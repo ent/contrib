@@ -165,59 +165,28 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := vmu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: validmessage.FieldName,
-		})
+		_spec.SetField(validmessage.FieldName, field.TypeString, value)
 	}
 	if value, ok := vmu.mutation.Ts(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: validmessage.FieldTs,
-		})
+		_spec.SetField(validmessage.FieldTs, field.TypeTime, value)
 	}
 	if value, ok := vmu.mutation.UUID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: validmessage.FieldUUID,
-		})
+		_spec.SetField(validmessage.FieldUUID, field.TypeUUID, value)
 	}
 	if value, ok := vmu.mutation.U8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.SetField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmu.mutation.AddedU8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.AddField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmu.mutation.Opti8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.SetField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if value, ok := vmu.mutation.AddedOpti8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.AddField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if vmu.mutation.Opti8Cleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.ClearField(validmessage.FieldOpti8, field.TypeInt8)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, vmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -404,59 +373,28 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 		}
 	}
 	if value, ok := vmuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: validmessage.FieldName,
-		})
+		_spec.SetField(validmessage.FieldName, field.TypeString, value)
 	}
 	if value, ok := vmuo.mutation.Ts(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: validmessage.FieldTs,
-		})
+		_spec.SetField(validmessage.FieldTs, field.TypeTime, value)
 	}
 	if value, ok := vmuo.mutation.UUID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: validmessage.FieldUUID,
-		})
+		_spec.SetField(validmessage.FieldUUID, field.TypeUUID, value)
 	}
 	if value, ok := vmuo.mutation.U8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.SetField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmuo.mutation.AddedU8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.AddField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmuo.mutation.Opti8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.SetField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if value, ok := vmuo.mutation.AddedOpti8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.AddField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if vmuo.mutation.Opti8Cleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.ClearField(validmessage.FieldOpti8, field.TypeInt8)
 	}
 	_node = &ValidMessage{config: vmuo.config}
 	_spec.Assign = _node.assignValues

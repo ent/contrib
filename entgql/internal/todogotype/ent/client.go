@@ -244,7 +244,7 @@ func (c *BillProductClient) DeleteOne(bp *BillProduct) *BillProductDeleteOne {
 	return c.DeleteOneID(bp.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *BillProductClient) DeleteOneID(id string) *BillProductDeleteOne {
 	builder := c.Delete().Where(billproduct.ID(id))
 	builder.mutation.id = &id
@@ -334,7 +334,7 @@ func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id bigintgql.BigInt) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -366,7 +366,7 @@ func (c *CategoryClient) GetX(ctx context.Context, id bigintgql.BigInt) *Categor
 // QueryTodos queries the todos edge of a Category.
 func (c *CategoryClient) QueryTodos(ca *Category) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ca.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(category.Table, category.FieldID, id),
@@ -440,7 +440,7 @@ func (c *FriendshipClient) DeleteOne(f *Friendship) *FriendshipDeleteOne {
 	return c.DeleteOneID(f.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *FriendshipClient) DeleteOneID(id string) *FriendshipDeleteOne {
 	builder := c.Delete().Where(friendship.ID(id))
 	builder.mutation.id = &id
@@ -472,7 +472,7 @@ func (c *FriendshipClient) GetX(ctx context.Context, id string) *Friendship {
 // QueryUser queries the user edge of a Friendship.
 func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := f.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(friendship.Table, friendship.FieldID, id),
@@ -488,7 +488,7 @@ func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
 // QueryFriend queries the friend edge of a Friendship.
 func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := f.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(friendship.Table, friendship.FieldID, id),
@@ -562,7 +562,7 @@ func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
 	return c.DeleteOneID(gr.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *GroupClient) DeleteOneID(id string) *GroupDeleteOne {
 	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
@@ -594,7 +594,7 @@ func (c *GroupClient) GetX(ctx context.Context, id string) *Group {
 // QueryUsers queries the users edge of a Group.
 func (c *GroupClient) QueryUsers(gr *Group) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
@@ -668,7 +668,7 @@ func (c *PetClient) DeleteOne(pe *Pet) *PetDeleteOne {
 	return c.DeleteOneID(pe.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *PetClient) DeleteOneID(id uintgql.Uint64) *PetDeleteOne {
 	builder := c.Delete().Where(pet.ID(id))
 	builder.mutation.id = &id
@@ -758,7 +758,7 @@ func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *TodoClient) DeleteOneID(id string) *TodoDeleteOne {
 	builder := c.Delete().Where(todo.ID(id))
 	builder.mutation.id = &id
@@ -790,7 +790,7 @@ func (c *TodoClient) GetX(ctx context.Context, id string) *Todo {
 // QueryParent queries the parent edge of a Todo.
 func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -806,7 +806,7 @@ func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
 // QueryChildren queries the children edge of a Todo.
 func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -822,7 +822,7 @@ func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 // QueryCategory queries the category edge of a Todo.
 func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
 	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -838,7 +838,7 @@ func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
 // QuerySecret queries the secret edge of a Todo.
 func (c *TodoClient) QuerySecret(t *Todo) *VerySecretQuery {
 	query := &VerySecretQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -912,7 +912,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id string) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -944,7 +944,7 @@ func (c *UserClient) GetX(ctx context.Context, id string) *User {
 // QueryGroups queries the groups edge of a User.
 func (c *UserClient) QueryGroups(u *User) *GroupQuery {
 	query := &GroupQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -960,7 +960,7 @@ func (c *UserClient) QueryGroups(u *User) *GroupQuery {
 // QueryFriends queries the friends edge of a User.
 func (c *UserClient) QueryFriends(u *User) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -976,7 +976,7 @@ func (c *UserClient) QueryFriends(u *User) *UserQuery {
 // QueryFriendships queries the friendships edge of a User.
 func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
 	query := &FriendshipQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -1050,7 +1050,7 @@ func (c *VerySecretClient) DeleteOne(vs *VerySecret) *VerySecretDeleteOne {
 	return c.DeleteOneID(vs.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *VerySecretClient) DeleteOneID(id string) *VerySecretDeleteOne {
 	builder := c.Delete().Where(verysecret.ID(id))
 	builder.mutation.id = &id

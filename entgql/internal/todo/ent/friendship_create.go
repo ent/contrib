@@ -199,11 +199,7 @@ func (fc *FriendshipCreate) createSpec() (*Friendship, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := fc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: friendship.FieldCreatedAt,
-		})
+		_spec.SetField(friendship.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if nodes := fc.mutation.UserIDs(); len(nodes) > 0 {

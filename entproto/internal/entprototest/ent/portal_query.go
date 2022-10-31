@@ -332,6 +332,11 @@ func (pq *PortalQuery) Select(fields ...string) *PortalSelect {
 	return selbuild
 }
 
+// Aggregate returns a PortalSelect configured with the given aggregations.
+func (pq *PortalQuery) Aggregate(fns ...AggregateFunc) *PortalSelect {
+	return pq.Select().Aggregate(fns...)
+}
+
 func (pq *PortalQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range pq.fields {
 		if !portal.ValidColumn(f) {
@@ -572,8 +577,6 @@ func (pgb *PortalGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range pgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
 		for _, f := range pgb.fields {
@@ -593,6 +596,12 @@ type PortalSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (ps *PortalSelect) Aggregate(fns ...AggregateFunc) *PortalSelect {
+	ps.fns = append(ps.fns, fns...)
+	return ps
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (ps *PortalSelect) Scan(ctx context.Context, v any) error {
 	if err := ps.prepareQuery(ctx); err != nil {
@@ -603,6 +612,16 @@ func (ps *PortalSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (ps *PortalSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(ps.fns))
+	for _, fn := range ps.fns {
+		aggregation = append(aggregation, fn(ps.sql))
+	}
+	switch n := len(*ps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		ps.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		ps.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := ps.sql.Query()
 	if err := ps.driver.Query(ctx, query, args, rows); err != nil {

@@ -132,11 +132,7 @@ func (mwfoc *MessageWithFieldOneCreate) createSpec() (*MessageWithFieldOne, *sql
 		}
 	)
 	if value, ok := mwfoc.mutation.FieldOne(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.SetField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 		_node.FieldOne = value
 	}
 	return _node, _spec

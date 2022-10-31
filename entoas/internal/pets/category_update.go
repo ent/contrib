@@ -148,11 +148,7 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := cu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldName,
-		})
+		_spec.SetField(category.FieldName, field.TypeString, value)
 	}
 	if cu.mutation.PetsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -377,11 +373,7 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		}
 	}
 	if value, ok := cuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldName,
-		})
+		_spec.SetField(category.FieldName, field.TypeString, value)
 	}
 	if cuo.mutation.PetsCleared() {
 		edge := &sqlgraph.EdgeSpec{

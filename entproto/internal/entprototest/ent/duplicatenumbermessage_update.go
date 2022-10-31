@@ -117,18 +117,10 @@ func (dnmu *DuplicateNumberMessageUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 	}
 	if value, ok := dnmu.mutation.Hello(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldHello,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
 	}
 	if value, ok := dnmu.mutation.World(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldWorld,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldWorld, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, dnmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -269,18 +261,10 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		}
 	}
 	if value, ok := dnmuo.mutation.Hello(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldHello,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
 	}
 	if value, ok := dnmuo.mutation.World(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldWorld,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldWorld, field.TypeString, value)
 	}
 	_node = &DuplicateNumberMessage{config: dnmuo.config}
 	_spec.Assign = _node.assignValues

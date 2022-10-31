@@ -179,11 +179,7 @@ func (vsc *VerySecretCreate) createSpec() (*VerySecret, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := vsc.mutation.Password(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: verysecret.FieldPassword,
-		})
+		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 		_node.Password = value
 	}
 	return _node, _spec

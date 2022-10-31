@@ -186,27 +186,15 @@ func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := bpc.mutation.Title(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldTitle,
-		})
+		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
 	if value, ok := bpc.mutation.Body(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldBody,
-		})
+		_spec.SetField(blogpost.FieldBody, field.TypeString, value)
 		_node.Body = value
 	}
 	if value, ok := bpc.mutation.ExternalID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.SetField(blogpost.FieldExternalID, field.TypeInt, value)
 		_node.ExternalID = value
 	}
 	if nodes := bpc.mutation.AuthorIDs(); len(nodes) > 0 {

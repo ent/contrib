@@ -135,11 +135,7 @@ func (mwsu *MultiWordSchemaUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 	}
 	if value, ok := mwsu.mutation.Unit(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: multiwordschema.FieldUnit,
-		})
+		_spec.SetField(multiwordschema.FieldUnit, field.TypeEnum, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwsu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -298,11 +294,7 @@ func (mwsuo *MultiWordSchemaUpdateOne) sqlSave(ctx context.Context) (_node *Mult
 		}
 	}
 	if value, ok := mwsuo.mutation.Unit(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: multiwordschema.FieldUnit,
-		})
+		_spec.SetField(multiwordschema.FieldUnit, field.TypeEnum, value)
 	}
 	_node = &MultiWordSchema{config: mwsuo.config}
 	_spec.Assign = _node.assignValues

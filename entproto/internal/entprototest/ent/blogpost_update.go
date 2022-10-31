@@ -193,32 +193,16 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := bpu.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldTitle,
-		})
+		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := bpu.mutation.Body(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldBody,
-		})
+		_spec.SetField(blogpost.FieldBody, field.TypeString, value)
 	}
 	if value, ok := bpu.mutation.ExternalID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.SetField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if value, ok := bpu.mutation.AddedExternalID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.AddField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if bpu.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -522,32 +506,16 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 		}
 	}
 	if value, ok := bpuo.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldTitle,
-		})
+		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := bpuo.mutation.Body(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldBody,
-		})
+		_spec.SetField(blogpost.FieldBody, field.TypeString, value)
 	}
 	if value, ok := bpuo.mutation.ExternalID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.SetField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if value, ok := bpuo.mutation.AddedExternalID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.AddField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if bpuo.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{

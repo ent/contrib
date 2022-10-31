@@ -295,6 +295,11 @@ func (mwsq *MultiWordSchemaQuery) Select(fields ...string) *MultiWordSchemaSelec
 	return selbuild
 }
 
+// Aggregate returns a MultiWordSchemaSelect configured with the given aggregations.
+func (mwsq *MultiWordSchemaQuery) Aggregate(fns ...AggregateFunc) *MultiWordSchemaSelect {
+	return mwsq.Select().Aggregate(fns...)
+}
+
 func (mwsq *MultiWordSchemaQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mwsq.fields {
 		if !multiwordschema.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (mwsgb *MultiWordSchemaGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwsgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwsgb.fields)+len(mwsgb.fns))
 		for _, f := range mwsgb.fields {
@@ -509,6 +512,12 @@ type MultiWordSchemaSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwss *MultiWordSchemaSelect) Aggregate(fns ...AggregateFunc) *MultiWordSchemaSelect {
+	mwss.fns = append(mwss.fns, fns...)
+	return mwss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v any) error {
 	if err := mwss.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (mwss *MultiWordSchemaSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwss.fns))
+	for _, fn := range mwss.fns {
+		aggregation = append(aggregation, fn(mwss.sql))
+	}
+	switch n := len(*mwss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwss.sql.Query()
 	if err := mwss.driver.Query(ctx, query, args, rows); err != nil {

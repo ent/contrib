@@ -295,6 +295,11 @@ func (vmq *ValidMessageQuery) Select(fields ...string) *ValidMessageSelect {
 	return selbuild
 }
 
+// Aggregate returns a ValidMessageSelect configured with the given aggregations.
+func (vmq *ValidMessageQuery) Aggregate(fns ...AggregateFunc) *ValidMessageSelect {
+	return vmq.Select().Aggregate(fns...)
+}
+
 func (vmq *ValidMessageQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range vmq.fields {
 		if !validmessage.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (vmgb *ValidMessageGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range vmgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(vmgb.fields)+len(vmgb.fns))
 		for _, f := range vmgb.fields {
@@ -509,6 +512,12 @@ type ValidMessageSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (vms *ValidMessageSelect) Aggregate(fns ...AggregateFunc) *ValidMessageSelect {
+	vms.fns = append(vms.fns, fns...)
+	return vms
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (vms *ValidMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := vms.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (vms *ValidMessageSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (vms *ValidMessageSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(vms.fns))
+	for _, fn := range vms.fns {
+		aggregation = append(aggregation, fn(vms.sql))
+	}
+	switch n := len(*vms.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		vms.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		vms.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := vms.sql.Query()
 	if err := vms.driver.Query(ctx, query, args, rows); err != nil {

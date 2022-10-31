@@ -256,51 +256,27 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = &id
 	}
 	if value, ok := cc.mutation.Text(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldText,
-		})
+		_spec.SetField(category.FieldText, field.TypeString, value)
 		_node.Text = value
 	}
 	if value, ok := cc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: category.FieldStatus,
-		})
+		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := cc.mutation.Config(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: category.FieldConfig,
-		})
+		_spec.SetField(category.FieldConfig, field.TypeOther, value)
 		_node.Config = value
 	}
 	if value, ok := cc.mutation.Duration(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: category.FieldDuration,
-		})
+		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
 		_node.Duration = value
 	}
 	if value, ok := cc.mutation.Count(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: category.FieldCount,
-		})
+		_spec.SetField(category.FieldCount, field.TypeUint64, value)
 		_node.Count = value
 	}
 	if value, ok := cc.mutation.Strings(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
+		_spec.SetField(category.FieldStrings, field.TypeJSON, value)
 		_node.Strings = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {

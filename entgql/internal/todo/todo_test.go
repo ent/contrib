@@ -1327,7 +1327,11 @@ func TestNestedConnection(t *testing.T) {
 								totalCount
 							}
 							friends {
-								name
+								edges {
+									node {
+										name
+									}
+								}
 							}
 						}
 					}
@@ -1342,8 +1346,12 @@ func TestNestedConnection(t *testing.T) {
 							Groups struct {
 								TotalCount int
 							}
-							Friends []struct {
-								Name string
+							Friends struct {
+								Edges []struct {
+									Node struct {
+										Name string
+									}
+								}
 							}
 						}
 					}
@@ -1357,7 +1365,7 @@ func TestNestedConnection(t *testing.T) {
 		// The totalCount of the root query can be inferred from the length of the user edges.
 		require.EqualValues(t, 3, count.value())
 		require.Equal(t, 10, rsp.Users.TotalCount)
-		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends))
+		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends.Edges))
 
 		for n := 1; n <= 10; n++ {
 			count.reset()

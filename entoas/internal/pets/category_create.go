@@ -148,11 +148,7 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := cc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldName,
-		})
+		_spec.SetField(category.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if nodes := cc.mutation.PetsIDs(); len(nodes) > 0 {

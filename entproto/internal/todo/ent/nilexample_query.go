@@ -295,6 +295,11 @@ func (neq *NilExampleQuery) Select(fields ...string) *NilExampleSelect {
 	return selbuild
 }
 
+// Aggregate returns a NilExampleSelect configured with the given aggregations.
+func (neq *NilExampleQuery) Aggregate(fns ...AggregateFunc) *NilExampleSelect {
+	return neq.Select().Aggregate(fns...)
+}
+
 func (neq *NilExampleQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range neq.fields {
 		if !nilexample.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (negb *NilExampleGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range negb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(negb.fields)+len(negb.fns))
 		for _, f := range negb.fields {
@@ -509,6 +512,12 @@ type NilExampleSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (nes *NilExampleSelect) Aggregate(fns ...AggregateFunc) *NilExampleSelect {
+	nes.fns = append(nes.fns, fns...)
+	return nes
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (nes *NilExampleSelect) Scan(ctx context.Context, v any) error {
 	if err := nes.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (nes *NilExampleSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (nes *NilExampleSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(nes.fns))
+	for _, fn := range nes.fns {
+		aggregation = append(aggregation, fn(nes.sql))
+	}
+	switch n := len(*nes.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		nes.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		nes.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := nes.sql.Query()
 	if err := nes.driver.Query(ctx, query, args, rows); err != nil {

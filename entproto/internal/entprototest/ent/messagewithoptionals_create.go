@@ -228,67 +228,35 @@ func (mwoc *MessageWithOptionalsCreate) createSpec() (*MessageWithOptionals, *sq
 		}
 	)
 	if value, ok := mwoc.mutation.StrOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithoptionals.FieldStrOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldStrOptional, field.TypeString, value)
 		_node.StrOptional = value
 	}
 	if value, ok := mwoc.mutation.IntOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldIntOptional, field.TypeInt8, value)
 		_node.IntOptional = value
 	}
 	if value, ok := mwoc.mutation.UintOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldUintOptional, field.TypeUint8, value)
 		_node.UintOptional = value
 	}
 	if value, ok := mwoc.mutation.FloatOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32, value)
 		_node.FloatOptional = value
 	}
 	if value, ok := mwoc.mutation.BoolOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: messagewithoptionals.FieldBoolOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldBoolOptional, field.TypeBool, value)
 		_node.BoolOptional = value
 	}
 	if value, ok := mwoc.mutation.BytesOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: messagewithoptionals.FieldBytesOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldBytesOptional, field.TypeBytes, value)
 		_node.BytesOptional = value
 	}
 	if value, ok := mwoc.mutation.UUIDOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: messagewithoptionals.FieldUUIDOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldUUIDOptional, field.TypeUUID, value)
 		_node.UUIDOptional = value
 	}
 	if value, ok := mwoc.mutation.TimeOptional(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: messagewithoptionals.FieldTimeOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldTimeOptional, field.TypeTime, value)
 		_node.TimeOptional = value
 	}
 	return _node, _spec

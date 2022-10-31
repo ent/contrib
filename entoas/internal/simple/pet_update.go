@@ -256,18 +256,10 @@ func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := pu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: pet.FieldName,
-		})
+		_spec.SetField(pet.FieldName, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.Nicknames(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: pet.FieldNicknames,
-		})
+		_spec.SetField(pet.FieldNicknames, field.TypeJSON, value)
 	}
 	if value, ok := pu.mutation.AppendedNicknames(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -275,30 +267,16 @@ func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		})
 	}
 	if pu.mutation.NicknamesCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: pet.FieldNicknames,
-		})
+		_spec.ClearField(pet.FieldNicknames, field.TypeJSON)
 	}
 	if value, ok := pu.mutation.Age(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: pet.FieldAge,
-		})
+		_spec.SetField(pet.FieldAge, field.TypeInt, value)
 	}
 	if value, ok := pu.mutation.AddedAge(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: pet.FieldAge,
-		})
+		_spec.AddField(pet.FieldAge, field.TypeInt, value)
 	}
 	if pu.mutation.AgeCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Column: pet.FieldAge,
-		})
+		_spec.ClearField(pet.FieldAge, field.TypeInt)
 	}
 	if pu.mutation.CategoriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -718,18 +696,10 @@ func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {
 		}
 	}
 	if value, ok := puo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: pet.FieldName,
-		})
+		_spec.SetField(pet.FieldName, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.Nicknames(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: pet.FieldNicknames,
-		})
+		_spec.SetField(pet.FieldNicknames, field.TypeJSON, value)
 	}
 	if value, ok := puo.mutation.AppendedNicknames(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -737,30 +707,16 @@ func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {
 		})
 	}
 	if puo.mutation.NicknamesCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Column: pet.FieldNicknames,
-		})
+		_spec.ClearField(pet.FieldNicknames, field.TypeJSON)
 	}
 	if value, ok := puo.mutation.Age(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: pet.FieldAge,
-		})
+		_spec.SetField(pet.FieldAge, field.TypeInt, value)
 	}
 	if value, ok := puo.mutation.AddedAge(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: pet.FieldAge,
-		})
+		_spec.AddField(pet.FieldAge, field.TypeInt, value)
 	}
 	if puo.mutation.AgeCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Column: pet.FieldAge,
-		})
+		_spec.ClearField(pet.FieldAge, field.TypeInt)
 	}
 	if puo.mutation.CategoriesCleared() {
 		edge := &sqlgraph.EdgeSpec{

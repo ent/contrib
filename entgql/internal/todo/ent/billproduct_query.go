@@ -311,6 +311,11 @@ func (bpq *BillProductQuery) Select(fields ...string) *BillProductSelect {
 	return selbuild
 }
 
+// Aggregate returns a BillProductSelect configured with the given aggregations.
+func (bpq *BillProductQuery) Aggregate(fns ...AggregateFunc) *BillProductSelect {
+	return bpq.Select().Aggregate(fns...)
+}
+
 func (bpq *BillProductQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range bpq.fields {
 		if !billproduct.ValidColumn(f) {
@@ -515,8 +520,6 @@ func (bpgb *BillProductGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range bpgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(bpgb.fields)+len(bpgb.fns))
 		for _, f := range bpgb.fields {
@@ -536,6 +539,12 @@ type BillProductSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (bps *BillProductSelect) Aggregate(fns ...AggregateFunc) *BillProductSelect {
+	bps.fns = append(bps.fns, fns...)
+	return bps
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (bps *BillProductSelect) Scan(ctx context.Context, v any) error {
 	if err := bps.prepareQuery(ctx); err != nil {
@@ -546,6 +555,16 @@ func (bps *BillProductSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (bps *BillProductSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(bps.fns))
+	for _, fn := range bps.fns {
+		aggregation = append(aggregation, fn(bps.sql))
+	}
+	switch n := len(*bps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		bps.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		bps.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := bps.sql.Query()
 	if err := bps.driver.Query(ctx, query, args, rows); err != nil {

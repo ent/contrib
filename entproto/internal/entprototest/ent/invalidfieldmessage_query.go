@@ -295,6 +295,11 @@ func (ifmq *InvalidFieldMessageQuery) Select(fields ...string) *InvalidFieldMess
 	return selbuild
 }
 
+// Aggregate returns a InvalidFieldMessageSelect configured with the given aggregations.
+func (ifmq *InvalidFieldMessageQuery) Aggregate(fns ...AggregateFunc) *InvalidFieldMessageSelect {
+	return ifmq.Select().Aggregate(fns...)
+}
+
 func (ifmq *InvalidFieldMessageQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range ifmq.fields {
 		if !invalidfieldmessage.ValidColumn(f) {
@@ -488,8 +493,6 @@ func (ifmgb *InvalidFieldMessageGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range ifmgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(ifmgb.fields)+len(ifmgb.fns))
 		for _, f := range ifmgb.fields {
@@ -509,6 +512,12 @@ type InvalidFieldMessageSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (ifms *InvalidFieldMessageSelect) Aggregate(fns ...AggregateFunc) *InvalidFieldMessageSelect {
+	ifms.fns = append(ifms.fns, fns...)
+	return ifms
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (ifms *InvalidFieldMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := ifms.prepareQuery(ctx); err != nil {
@@ -519,6 +528,16 @@ func (ifms *InvalidFieldMessageSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (ifms *InvalidFieldMessageSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(ifms.fns))
+	for _, fn := range ifms.fns {
+		aggregation = append(aggregation, fn(ifms.sql))
+	}
+	switch n := len(*ifms.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		ifms.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		ifms.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := ifms.sql.Query()
 	if err := ifms.driver.Query(ctx, query, args, rows); err != nil {
