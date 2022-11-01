@@ -730,6 +730,10 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 			// Use the GQL type as enum prefix. e.g. Todo.status
 			// will generate an enum named "TodoStatus".
 			scalar = gqlType + scalar
+		} else if f.Type.RType != nil &&
+			(f.Type.RType.Kind == reflect.Array || f.Type.RType.Kind == reflect.Slice) {
+			// Make the scalar an array for complex types
+			scalar = fmt.Sprintf("[%s!]", scalar)
 		}
 	case t == field.TypeJSON:
 		scalar = ""
