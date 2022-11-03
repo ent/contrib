@@ -295,6 +295,11 @@ func (mwoq *MessageWithOptionalsQuery) Select(fields ...string) *MessageWithOpti
 	return selbuild
 }
 
+// Aggregate returns a MessageWithOptionalsSelect configured with the given aggregations.
+func (mwoq *MessageWithOptionalsQuery) Aggregate(fns ...AggregateFunc) *MessageWithOptionalsSelect {
+	return mwoq.Select().Aggregate(fns...)
+}
+
 func (mwoq *MessageWithOptionalsQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mwoq.fields {
 		if !messagewithoptionals.ValidColumn(f) {
@@ -346,11 +351,14 @@ func (mwoq *MessageWithOptionalsQuery) sqlCount(ctx context.Context) (int, error
 }
 
 func (mwoq *MessageWithOptionalsQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := mwoq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := mwoq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (mwoq *MessageWithOptionalsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -485,8 +493,6 @@ func (mwogb *MessageWithOptionalsGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwogb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwogb.fields)+len(mwogb.fns))
 		for _, f := range mwogb.fields {
@@ -506,6 +512,12 @@ type MessageWithOptionalsSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwos *MessageWithOptionalsSelect) Aggregate(fns ...AggregateFunc) *MessageWithOptionalsSelect {
+	mwos.fns = append(mwos.fns, fns...)
+	return mwos
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwos *MessageWithOptionalsSelect) Scan(ctx context.Context, v any) error {
 	if err := mwos.prepareQuery(ctx); err != nil {
@@ -516,6 +528,16 @@ func (mwos *MessageWithOptionalsSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (mwos *MessageWithOptionalsSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwos.fns))
+	for _, fn := range mwos.fns {
+		aggregation = append(aggregation, fn(mwos.sql))
+	}
+	switch n := len(*mwos.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwos.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwos.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwos.sql.Query()
 	if err := mwos.driver.Query(ctx, query, args, rows); err != nil {

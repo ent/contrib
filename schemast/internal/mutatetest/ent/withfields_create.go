@@ -132,11 +132,7 @@ func (wfc *WithFieldsCreate) createSpec() (*WithFields, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := wfc.mutation.Existing(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: withfields.FieldExisting,
-		})
+		_spec.SetField(withfields.FieldExisting, field.TypeString, value)
 		_node.Existing = value
 	}
 	return _node, _spec

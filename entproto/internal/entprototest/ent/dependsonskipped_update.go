@@ -148,11 +148,7 @@ func (dosu *DependsOnSkippedUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 	}
 	if value, ok := dosu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: dependsonskipped.FieldName,
-		})
+		_spec.SetField(dependsonskipped.FieldName, field.TypeString, value)
 	}
 	if dosu.mutation.SkippedCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -377,11 +373,7 @@ func (dosuo *DependsOnSkippedUpdateOne) sqlSave(ctx context.Context) (_node *Dep
 		}
 	}
 	if value, ok := dosuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: dependsonskipped.FieldName,
-		})
+		_spec.SetField(dependsonskipped.FieldName, field.TypeString, value)
 	}
 	if dosuo.mutation.SkippedCleared() {
 		edge := &sqlgraph.EdgeSpec{

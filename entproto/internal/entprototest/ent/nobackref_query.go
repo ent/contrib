@@ -310,6 +310,11 @@ func (nbq *NoBackrefQuery) Select(fields ...string) *NoBackrefSelect {
 	return selbuild
 }
 
+// Aggregate returns a NoBackrefSelect configured with the given aggregations.
+func (nbq *NoBackrefQuery) Aggregate(fns ...AggregateFunc) *NoBackrefSelect {
+	return nbq.Select().Aggregate(fns...)
+}
+
 func (nbq *NoBackrefQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range nbq.fields {
 		if !nobackref.ValidColumn(f) {
@@ -404,11 +409,14 @@ func (nbq *NoBackrefQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (nbq *NoBackrefQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := nbq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := nbq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
@@ -543,8 +551,6 @@ func (nbgb *NoBackrefGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range nbgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(nbgb.fields)+len(nbgb.fns))
 		for _, f := range nbgb.fields {
@@ -564,6 +570,12 @@ type NoBackrefSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (nbs *NoBackrefSelect) Aggregate(fns ...AggregateFunc) *NoBackrefSelect {
+	nbs.fns = append(nbs.fns, fns...)
+	return nbs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (nbs *NoBackrefSelect) Scan(ctx context.Context, v any) error {
 	if err := nbs.prepareQuery(ctx); err != nil {
@@ -574,6 +586,16 @@ func (nbs *NoBackrefSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (nbs *NoBackrefSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(nbs.fns))
+	for _, fn := range nbs.fns {
+		aggregation = append(aggregation, fn(nbs.sql))
+	}
+	switch n := len(*nbs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		nbs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		nbs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := nbs.sql.Query()
 	if err := nbs.driver.Query(ctx, query, args, rows); err != nil {

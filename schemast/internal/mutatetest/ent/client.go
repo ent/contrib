@@ -207,7 +207,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -297,7 +297,7 @@ func (c *WithFieldsClient) DeleteOne(wf *WithFields) *WithFieldsDeleteOne {
 	return c.DeleteOneID(wf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithFieldsClient) DeleteOneID(id int) *WithFieldsDeleteOne {
 	builder := c.Delete().Where(withfields.ID(id))
 	builder.mutation.id = &id
@@ -387,7 +387,7 @@ func (c *WithModifiedFieldClient) DeleteOne(wmf *WithModifiedField) *WithModifie
 	return c.DeleteOneID(wmf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithModifiedFieldClient) DeleteOneID(id int) *WithModifiedFieldDeleteOne {
 	builder := c.Delete().Where(withmodifiedfield.ID(id))
 	builder.mutation.id = &id
@@ -419,7 +419,7 @@ func (c *WithModifiedFieldClient) GetX(ctx context.Context, id int) *WithModifie
 // QueryOwner queries the owner edge of a WithModifiedField.
 func (c *WithModifiedFieldClient) QueryOwner(wmf *WithModifiedField) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := wmf.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(withmodifiedfield.Table, withmodifiedfield.FieldID, id),
@@ -493,7 +493,7 @@ func (c *WithNilFieldsClient) DeleteOne(wnf *WithNilFields) *WithNilFieldsDelete
 	return c.DeleteOneID(wnf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithNilFieldsClient) DeleteOneID(id int) *WithNilFieldsDeleteOne {
 	builder := c.Delete().Where(withnilfields.ID(id))
 	builder.mutation.id = &id
@@ -583,7 +583,7 @@ func (c *WithoutFieldsClient) DeleteOne(wf *WithoutFields) *WithoutFieldsDeleteO
 	return c.DeleteOneID(wf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithoutFieldsClient) DeleteOneID(id int) *WithoutFieldsDeleteOne {
 	builder := c.Delete().Where(withoutfields.ID(id))
 	builder.mutation.id = &id

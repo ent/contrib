@@ -496,163 +496,83 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := uc.mutation.UserName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUserName,
-		})
+		_spec.SetField(user.FieldUserName, field.TypeString, value)
 		_node.UserName = value
 	}
 	if value, ok := uc.mutation.Joined(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldJoined,
-		})
+		_spec.SetField(user.FieldJoined, field.TypeTime, value)
 		_node.Joined = value
 	}
 	if value, ok := uc.mutation.Points(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
-			Value:  value,
-			Column: user.FieldPoints,
-		})
+		_spec.SetField(user.FieldPoints, field.TypeUint, value)
 		_node.Points = value
 	}
 	if value, ok := uc.mutation.Exp(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: user.FieldExp,
-		})
+		_spec.SetField(user.FieldExp, field.TypeUint64, value)
 		_node.Exp = value
 	}
 	if value, ok := uc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := uc.mutation.ExternalID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldExternalID,
-		})
+		_spec.SetField(user.FieldExternalID, field.TypeInt, value)
 		_node.ExternalID = value
 	}
 	if value, ok := uc.mutation.CrmID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: user.FieldCrmID,
-		})
+		_spec.SetField(user.FieldCrmID, field.TypeUUID, value)
 		_node.CrmID = value
 	}
 	if value, ok := uc.mutation.Banned(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: user.FieldBanned,
-		})
+		_spec.SetField(user.FieldBanned, field.TypeBool, value)
 		_node.Banned = value
 	}
 	if value, ok := uc.mutation.CustomPb(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: user.FieldCustomPb,
-		})
+		_spec.SetField(user.FieldCustomPb, field.TypeUint8, value)
 		_node.CustomPb = value
 	}
 	if value, ok := uc.mutation.OptNum(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldOptNum,
-		})
+		_spec.SetField(user.FieldOptNum, field.TypeInt, value)
 		_node.OptNum = value
 	}
 	if value, ok := uc.mutation.OptStr(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldOptStr,
-		})
+		_spec.SetField(user.FieldOptStr, field.TypeString, value)
 		_node.OptStr = value
 	}
 	if value, ok := uc.mutation.OptBool(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: user.FieldOptBool,
-		})
+		_spec.SetField(user.FieldOptBool, field.TypeBool, value)
 		_node.OptBool = value
 	}
 	if value, ok := uc.mutation.BigInt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldBigInt,
-		})
+		_spec.SetField(user.FieldBigInt, field.TypeInt, value)
 		_node.BigInt = value
 	}
 	if value, ok := uc.mutation.BUser1(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldBUser1,
-		})
+		_spec.SetField(user.FieldBUser1, field.TypeInt, value)
 		_node.BUser1 = value
 	}
 	if value, ok := uc.mutation.HeightInCm(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: user.FieldHeightInCm,
-		})
+		_spec.SetField(user.FieldHeightInCm, field.TypeFloat32, value)
 		_node.HeightInCm = value
 	}
 	if value, ok := uc.mutation.AccountBalance(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat64,
-			Value:  value,
-			Column: user.FieldAccountBalance,
-		})
+		_spec.SetField(user.FieldAccountBalance, field.TypeFloat64, value)
 		_node.AccountBalance = value
 	}
 	if value, ok := uc.mutation.Unnecessary(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.SetField(user.FieldUnnecessary, field.TypeString, value)
 		_node.Unnecessary = value
 	}
 	if value, ok := uc.mutation.GetType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldType,
-		})
+		_spec.SetField(user.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
 	if value, ok := uc.mutation.Labels(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: user.FieldLabels,
-		})
+		_spec.SetField(user.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
 	}
 	if value, ok := uc.mutation.DeviceType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldDeviceType,
-		})
+		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 		_node.DeviceType = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {

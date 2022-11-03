@@ -141,19 +141,11 @@ func (dnmc *DuplicateNumberMessageCreate) createSpec() (*DuplicateNumberMessage,
 		}
 	)
 	if value, ok := dnmc.mutation.Hello(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldHello,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
 		_node.Hello = value
 	}
 	if value, ok := dnmc.mutation.World(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldWorld,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldWorld, field.TypeString, value)
 		_node.World = value
 	}
 	return _node, _spec

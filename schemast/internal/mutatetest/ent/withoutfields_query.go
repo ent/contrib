@@ -273,6 +273,11 @@ func (wfq *WithoutFieldsQuery) Select(fields ...string) *WithoutFieldsSelect {
 	return selbuild
 }
 
+// Aggregate returns a WithoutFieldsSelect configured with the given aggregations.
+func (wfq *WithoutFieldsQuery) Aggregate(fns ...AggregateFunc) *WithoutFieldsSelect {
+	return wfq.Select().Aggregate(fns...)
+}
+
 func (wfq *WithoutFieldsQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range wfq.fields {
 		if !withoutfields.ValidColumn(f) {
@@ -324,11 +329,14 @@ func (wfq *WithoutFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wfq *WithoutFieldsQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := wfq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := wfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (wfq *WithoutFieldsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -463,8 +471,6 @@ func (wfgb *WithoutFieldsGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range wfgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(wfgb.fields)+len(wfgb.fns))
 		for _, f := range wfgb.fields {
@@ -484,6 +490,12 @@ type WithoutFieldsSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (wfs *WithoutFieldsSelect) Aggregate(fns ...AggregateFunc) *WithoutFieldsSelect {
+	wfs.fns = append(wfs.fns, fns...)
+	return wfs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (wfs *WithoutFieldsSelect) Scan(ctx context.Context, v any) error {
 	if err := wfs.prepareQuery(ctx); err != nil {
@@ -494,6 +506,16 @@ func (wfs *WithoutFieldsSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (wfs *WithoutFieldsSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(wfs.fns))
+	for _, fn := range wfs.fns {
+		aggregation = append(aggregation, fn(wfs.sql))
+	}
+	switch n := len(*wfs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		wfs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		wfs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := wfs.sql.Query()
 	if err := wfs.driver.Query(ctx, query, args, rows); err != nil {

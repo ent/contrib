@@ -132,11 +132,7 @@ func (pc *PonyCreate) createSpec() (*Pony, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := pc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: pony.FieldName,
-		})
+		_spec.SetField(pony.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	return _node, _spec

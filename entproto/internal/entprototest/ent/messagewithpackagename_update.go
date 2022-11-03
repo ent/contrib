@@ -111,11 +111,7 @@ func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, 
 		}
 	}
 	if value, ok := mwpnu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithpackagename.FieldName,
-		})
+		_spec.SetField(messagewithpackagename.FieldName, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwpnu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -250,11 +246,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_no
 		}
 	}
 	if value, ok := mwpnuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithpackagename.FieldName,
-		})
+		_spec.SetField(messagewithpackagename.FieldName, field.TypeString, value)
 	}
 	_node = &MessageWithPackageName{config: mwpnuo.config}
 	_spec.Assign = _node.assignValues

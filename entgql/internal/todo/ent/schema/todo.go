@@ -50,7 +50,8 @@ func (Todo) Fields() []ent.Field {
 		field.Int("priority").
 			Default(0).
 			Annotations(
-				entgql.OrderField("PRIORITY"),
+				entgql.OrderField("PRIORITY_ORDER"),
+				entgql.MapsTo("priorityOrder"),
 			),
 		field.Text("text").
 			NotEmpty().
@@ -64,7 +65,13 @@ func (Todo) Fields() []ent.Field {
 			Optional(),
 		field.Int("category_id").
 			Optional().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entgql.MapsTo("categoryID", "category_id", "categoryX"),
+			),
+		field.JSON("init", map[string]any{}).
+			Optional().
+			Annotations(entgql.Type("Map")),
 	}
 }
 

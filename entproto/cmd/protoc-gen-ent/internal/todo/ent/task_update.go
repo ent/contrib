@@ -137,31 +137,16 @@ func (tu *TaskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := tu.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldTitle,
-		})
+		_spec.SetField(task.FieldTitle, field.TypeString, value)
 	}
 	if tu.mutation.TitleCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: task.FieldTitle,
-		})
+		_spec.ClearField(task.FieldTitle, field.TypeString)
 	}
 	if value, ok := tu.mutation.Complete(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: task.FieldComplete,
-		})
+		_spec.SetField(task.FieldComplete, field.TypeBool, value)
 	}
 	if value, ok := tu.mutation.Signature(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldSignature,
-		})
+		_spec.SetField(task.FieldSignature, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -322,31 +307,16 @@ func (tuo *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) 
 		}
 	}
 	if value, ok := tuo.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldTitle,
-		})
+		_spec.SetField(task.FieldTitle, field.TypeString, value)
 	}
 	if tuo.mutation.TitleCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: task.FieldTitle,
-		})
+		_spec.ClearField(task.FieldTitle, field.TypeString)
 	}
 	if value, ok := tuo.mutation.Complete(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: task.FieldComplete,
-		})
+		_spec.SetField(task.FieldComplete, field.TypeBool, value)
 	}
 	if value, ok := tuo.mutation.Signature(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: task.FieldSignature,
-		})
+		_spec.SetField(task.FieldSignature, field.TypeString, value)
 	}
 	_node = &Task{config: tuo.config}
 	_spec.Assign = _node.assignValues

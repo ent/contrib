@@ -133,11 +133,7 @@ func (ifmc *InvalidFieldMessageCreate) createSpec() (*InvalidFieldMessage, *sqlg
 		}
 	)
 	if value, ok := ifmc.mutation.JSON(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: invalidfieldmessage.FieldJSON,
-		})
+		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
 		_node.JSON = value
 	}
 	return _node, _spec

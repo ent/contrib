@@ -274,6 +274,11 @@ func (ismq *ImplicitSkippedMessageQuery) Select(fields ...string) *ImplicitSkipp
 	return selbuild
 }
 
+// Aggregate returns a ImplicitSkippedMessageSelect configured with the given aggregations.
+func (ismq *ImplicitSkippedMessageQuery) Aggregate(fns ...AggregateFunc) *ImplicitSkippedMessageSelect {
+	return ismq.Select().Aggregate(fns...)
+}
+
 func (ismq *ImplicitSkippedMessageQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range ismq.fields {
 		if !implicitskippedmessage.ValidColumn(f) {
@@ -329,11 +334,14 @@ func (ismq *ImplicitSkippedMessageQuery) sqlCount(ctx context.Context) (int, err
 }
 
 func (ismq *ImplicitSkippedMessageQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := ismq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := ismq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (ismq *ImplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
@@ -468,8 +476,6 @@ func (ismgb *ImplicitSkippedMessageGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range ismgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(ismgb.fields)+len(ismgb.fns))
 		for _, f := range ismgb.fields {
@@ -489,6 +495,12 @@ type ImplicitSkippedMessageSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (isms *ImplicitSkippedMessageSelect) Aggregate(fns ...AggregateFunc) *ImplicitSkippedMessageSelect {
+	isms.fns = append(isms.fns, fns...)
+	return isms
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (isms *ImplicitSkippedMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := isms.prepareQuery(ctx); err != nil {
@@ -499,6 +511,16 @@ func (isms *ImplicitSkippedMessageSelect) Scan(ctx context.Context, v any) error
 }
 
 func (isms *ImplicitSkippedMessageSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(isms.fns))
+	for _, fn := range isms.fns {
+		aggregation = append(aggregation, fn(isms.sql))
+	}
+	switch n := len(*isms.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		isms.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		isms.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := isms.sql.Query()
 	if err := isms.driver.Query(ctx, query, args, rows); err != nil {

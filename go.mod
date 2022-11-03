@@ -3,15 +3,15 @@ module entgo.io/contrib
 go 1.18
 
 require (
-	entgo.io/ent v0.11.3-0.20220830071904-3b1b75b9d7a9
+	entgo.io/ent v0.11.5-0.20221031135557-521f9b57bc3d
 	github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90
 	github.com/AlekSi/pointer v1.1.0
-	github.com/alecthomas/kong v0.2.11
+	github.com/alecthomas/kong v0.7.0
 	github.com/go-openapi/inflect v0.19.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jhump/protoreflect v1.10.1
-	github.com/mattn/go-sqlite3 v1.14.15
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ogen-go/ogen v0.1.1-0.20211220145210-5927cf47f01a
 	github.com/oklog/ulid/v2 v2.0.2
@@ -28,7 +28,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.6.2-0.20220819114704-2060066abac7 // indirect
+	ariga.io/atlas v0.7.3-0.20221011160332-3ca609863edd // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -48,7 +48,6 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect

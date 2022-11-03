@@ -273,6 +273,11 @@ func (mwiq *MessageWithIDQuery) Select(fields ...string) *MessageWithIDSelect {
 	return selbuild
 }
 
+// Aggregate returns a MessageWithIDSelect configured with the given aggregations.
+func (mwiq *MessageWithIDQuery) Aggregate(fns ...AggregateFunc) *MessageWithIDSelect {
+	return mwiq.Select().Aggregate(fns...)
+}
+
 func (mwiq *MessageWithIDQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mwiq.fields {
 		if !messagewithid.ValidColumn(f) {
@@ -324,11 +329,14 @@ func (mwiq *MessageWithIDQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mwiq *MessageWithIDQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := mwiq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := mwiq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
@@ -463,8 +471,6 @@ func (mwigb *MessageWithIDGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mwigb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mwigb.fields)+len(mwigb.fns))
 		for _, f := range mwigb.fields {
@@ -484,6 +490,12 @@ type MessageWithIDSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwis *MessageWithIDSelect) Aggregate(fns ...AggregateFunc) *MessageWithIDSelect {
+	mwis.fns = append(mwis.fns, fns...)
+	return mwis
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v any) error {
 	if err := mwis.prepareQuery(ctx); err != nil {
@@ -494,6 +506,16 @@ func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(mwis.fns))
+	for _, fn := range mwis.fns {
+		aggregation = append(aggregation, fn(mwis.sql))
+	}
+	switch n := len(*mwis.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		mwis.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		mwis.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := mwis.sql.Query()
 	if err := mwis.driver.Query(ctx, query, args, rows); err != nil {

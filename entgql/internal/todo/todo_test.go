@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 3 << 32
+	idOffset = 4 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -133,12 +133,12 @@ type response struct {
 		TotalCount int
 		Edges      []struct {
 			Node struct {
-				ID        string
-				CreatedAt string
-				Priority  int
-				Status    todo.Status
-				Text      string
-				Parent    struct {
+				ID            string
+				CreatedAt     string
+				PriorityOrder int
+				Status        todo.Status
+				Text          string
+				Parent        struct {
 					ID string
 				}
 			}
@@ -353,7 +353,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 					node {
 						id
 						createdAt
-						priority
+						priorityOrder
 						status
 						text
 					}
@@ -453,7 +453,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 				client.Var("before", rsp.Todos.PageInfo.StartCursor),
 				client.Var("last", step),
 				client.Var("direction", "ASC"),
-				client.Var("field", "PRIORITY"),
+				client.Var("field", "PRIORITY_ORDER"),
 			)
 			s.Require().NoError(err)
 			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
@@ -465,7 +465,7 @@ func (s *todoTestSuite) TestPaginationOrder() {
 				s.Require().False(rsp.Todos.PageInfo.HasPreviousPage)
 			}
 			s.Require().True(sort.SliceIsSorted(rsp.Todos.Edges, func(i, j int) bool {
-				return rsp.Todos.Edges[i].Node.Priority < rsp.Todos.Edges[j].Node.Priority
+				return rsp.Todos.Edges[i].Node.PriorityOrder < rsp.Todos.Edges[j].Node.PriorityOrder
 			}))
 			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
 			start := rsp.Todos.Edges[0]
@@ -474,9 +474,9 @@ func (s *todoTestSuite) TestPaginationOrder() {
 			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
 			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
 			if i > 0 {
-				s.Require().Greater(startPriority, end.Node.Priority)
+				s.Require().Greater(startPriority, end.Node.PriorityOrder)
 			}
-			startPriority = start.Node.Priority
+			startPriority = start.Node.PriorityOrder
 		}
 	})
 	s.Run("BackwardDescending", func() {
@@ -827,12 +827,12 @@ func (s *todoTestSuite) TestNode() {
 		query = `query($id: ID!) {
 			todo: node(id: $id) {
 				... on Todo {
-					priority
+					priorityOrder
 				}
 			}
 		}`
 	)
-	var rsp struct{ Todo struct{ Priority int } }
+	var rsp struct{ Todo struct{ PriorityOrder int } }
 	err := s.Post(query, &rsp, client.Var("id", idOffset+maxTodos))
 	s.Require().NoError(err)
 	err = s.Post(query, &rsp, client.Var("id", -1))
@@ -1094,15 +1094,15 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 			}
 		}
 	}
-	err := s.Post(`mutation {
-		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: 12884901889 }) {
+	err := s.Post(`mutation ($parentID: ID!) {
+		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: $parentID }) {
 			parent {
 				id
 				text
 			}
 			text
 		}
-	}`, &rsp, client.Var("text", s.T().Name()))
+	}`, &rsp, client.Var("parentID", strconv.Itoa(idOffset+1)))
 	s.Require().NoError(err)
 	s.Require().Equal("OKE", rsp.CreateTodo.Text)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.ID)
@@ -1327,7 +1327,11 @@ func TestNestedConnection(t *testing.T) {
 								totalCount
 							}
 							friends {
-								name
+								edges {
+									node {
+										name
+									}
+								}
 							}
 						}
 					}
@@ -1342,8 +1346,12 @@ func TestNestedConnection(t *testing.T) {
 							Groups struct {
 								TotalCount int
 							}
-							Friends []struct {
-								Name string
+							Friends struct {
+								Edges []struct {
+									Node struct {
+										Name string
+									}
+								}
 							}
 						}
 					}
@@ -1357,7 +1365,7 @@ func TestNestedConnection(t *testing.T) {
 		// The totalCount of the root query can be inferred from the length of the user edges.
 		require.EqualValues(t, 3, count.value())
 		require.Equal(t, 10, rsp.Users.TotalCount)
-		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends))
+		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends.Edges))
 
 		for n := 1; n <= 10; n++ {
 			count.reset()
@@ -1597,11 +1605,11 @@ func TestNestedConnection(t *testing.T) {
 		// One query to trigger the loading of the ent_types content.
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAQAAAAK"),
+			client.Var("cursor", "gaFp0wAAAAUAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAQAAAAJ", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAUAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 

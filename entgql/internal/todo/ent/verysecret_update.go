@@ -132,11 +132,7 @@ func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := vsu.mutation.Password(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: verysecret.FieldPassword,
-		})
+		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 	}
 	_spec.Modifiers = vsu.modifiers
 	if n, err = sqlgraph.UpdateNodes(ctx, vsu.driver, _spec); err != nil {
@@ -279,11 +275,7 @@ func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret
 		}
 	}
 	if value, ok := vsuo.mutation.Password(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: verysecret.FieldPassword,
-		})
+		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 	}
 	_spec.Modifiers = vsuo.modifiers
 	_node = &VerySecret{config: vsuo.config}

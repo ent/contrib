@@ -24,6 +24,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/codegen/config"
+	"github.com/99designs/gqlgen/codegen/templates"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 )
@@ -319,16 +320,16 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Is(SkipType) {
+		if ant.Skip.Is(SkipType) || f.Sensitive() {
 			continue
 		}
 
-		f, err := e.fieldDefinition(gqlType, f, ant)
+		fieldDefs, err := e.fieldDefinitions(gqlType, f, ant)
 		if err != nil {
 			return nil, err
 		}
-		if f != nil {
-			def.Fields = append(def.Fields, f)
+		if fieldDefs != nil {
+			def.Fields = append(def.Fields, fieldDefs...)
 		}
 	}
 
@@ -359,19 +360,9 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveList {
 	list := make(ast.DirectiveList, 0, len(directives))
 	for _, d := range directives {
-		args := make(ast.ArgumentList, 0, len(d.Arguments))
-		for _, a := range d.Arguments {
-			args = append(args, &ast.Argument{
-				Name: a.Name,
-				Value: &ast.Value{
-					Raw:  a.Value,
-					Kind: a.Kind,
-				},
-			})
-		}
 		list = append(list, &ast.Directive{
 			Name:      d.Name,
-			Arguments: args,
+			Arguments: d.Arguments,
 		})
 	}
 	return list
@@ -433,19 +424,23 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 	}
 
 	var (
-		edgeField = camel(edge.Name)
-		mappings  = []string{edgeField}
+		fields      []*ast.FieldDefinition
+		mappings    = []string{camel(edge.Name)}
+		goFieldName = templates.ToGo(edge.Name)
+		structField = edge.StructField()
 	)
 	if len(edgeAnt.Mapping) > 0 {
 		mappings = edgeAnt.Mapping
 	}
-
-	var fields []*ast.FieldDefinition
 	for _, name := range mappings {
 		fieldDef := &ast.FieldDefinition{Name: name}
 		switch {
 		case edge.Unique:
 			fieldDef.Type = namedType(gqlType, edge.Optional)
+		// Avoid error in case the RelayConnection is defined on the
+		// `Through` edge, but the edge-schema is not a Relay connection.
+		case edgeAnt.RelayConnection && edge.Type.IsEdgeSchema() && !ant.RelayConnection:
+			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		case edgeAnt.RelayConnection:
 			if !e.relaySpec {
 				return nil, ErrRelaySpecDisabled
@@ -463,8 +458,8 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 		}
 
 		fieldDef.Directives = e.buildDirectives(edgeAnt.Directives)
-		if name != edgeField {
-			fieldDef.Directives = append(fieldDef.Directives, goField(edgeField))
+		if goFieldName != templates.ToGo(name) {
+			fieldDef.Directives = append(fieldDef.Directives, goField(structField))
 		}
 		fields = append(fields, fieldDef)
 	}
@@ -495,14 +490,14 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 
 	fields := allFields(t)
 	for _, f := range fields {
-		if t.IsEdgeSchema() && f.IsEdgeField() {
+		if t.IsEdgeSchema() && f.IsEdgeField() || !f.Type.Comparable() || f.Sensitive() {
 			continue
 		}
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
 		}
-		if ant.Skip.Is(SkipWhereInput) || !f.Type.Comparable() {
+		if ant.Skip.Is(SkipWhereInput) {
 			continue
 		}
 		for i, op := range f.Ops() {
@@ -590,6 +585,12 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				Type:        namedType(scalar, f.Nullable),
 				Description: f.Comment(),
 			})
+			if f.AppendOp {
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: "append" + f.StructField(),
+					Type: namedType(scalar, true),
+				})
+			}
 		}
 
 		for _, e := range edges {
@@ -627,18 +628,36 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 	return defs, nil
 }
 
-func (e *schemaGenerator) fieldDefinition(gqlType string, f *gen.Field, ant *Annotation) (*ast.FieldDefinition, error) {
+func (e *schemaGenerator) fieldDefinitions(gqlType string, f *gen.Field, ant *Annotation) ([]*ast.FieldDefinition, error) {
 	ft, err := e.typeFromField(gqlType, f, ant)
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}
 
-	return &ast.FieldDefinition{
-		Name:        camel(f.Name),
-		Type:        ft,
-		Description: f.Comment(),
-		Directives:  e.buildDirectives(ant.Directives),
-	}, nil
+	var (
+		fields      = []*ast.FieldDefinition{}
+		mappings    = []string{camel(f.Name)}
+		goFieldName = templates.ToGo(f.Name)
+		structField = f.StructField()
+	)
+	if len(ant.Mapping) > 0 {
+		mappings = ant.Mapping
+	}
+	for _, name := range mappings {
+		field := &ast.FieldDefinition{
+			Name:        name,
+			Type:        ft,
+			Description: f.Comment(),
+			Directives:  e.buildDirectives(ant.Directives),
+		}
+		// We check the field name with gqlgen's naming convention.
+		// To avoid unnecessary @goField directives
+		if goFieldName != templates.ToGo(name) {
+			field.Directives = append(field.Directives, goField(structField))
+		}
+		fields = append(fields, field)
+	}
+	return fields, nil
 }
 
 func (e *schemaGenerator) fieldDefinitionOp(gqlType string, f *gen.Field, ant *Annotation, op gen.Op) *ast.FieldDefinition {

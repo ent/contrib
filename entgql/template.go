@@ -89,7 +89,7 @@ var (
 	}
 
 	//go:embed template/*
-	templates embed.FS
+	_templates embed.FS
 
 	marshalerType   = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
 	unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
@@ -98,7 +98,7 @@ var (
 func parseT(path string) *gen.Template {
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(TemplateFuncs).
-		ParseFS(templates, path))
+		ParseFS(_templates, path))
 }
 
 // idType is returned by the gqlIDType below to describe the
@@ -179,10 +179,6 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 			collect = append(collect, &fieldCollection{Edge: e, Mapping: ant.Mapping})
 		case !ant.Unbind:
 			mapping := []string{camel(e.Name)}
-			// TODO(@giautm): remove this backwards compatibility when we release v0.12
-			if mapping[0] != e.Name {
-				mapping = append(mapping, e.Name)
-			}
 			collect = append(collect, &fieldCollection{Edge: e, Mapping: mapping})
 		}
 	}
@@ -221,15 +217,20 @@ func (m *MutationDescriptor) Builders() []string {
 // It's shared between GQL and Go types.
 type InputFieldDescriptor struct {
 	*gen.Field
-	// Nullable indicates if the field is nullable.
-	Nullable bool
+	// AppendOp indicates if the field has the Append operator
+	AppendOp bool
 	// ClearOp indicates if the field has the Clear operator
 	ClearOp bool
+	// Nullable indicates if the field is nullable.
+	Nullable bool
 }
 
 // IsPointer returns true if the Go type should be a pointer
 func (f *InputFieldDescriptor) IsPointer() bool {
-	return f.Nullable && !f.Type.RType.IsPtr()
+	if f.Type.Nillable || f.Type.RType.IsPtr() {
+		return false
+	}
+	return f.Nullable
 }
 
 // InputFields returns the list of fields in the input type.
@@ -246,8 +247,9 @@ func (m *MutationDescriptor) InputFields() ([]*InputFieldDescriptor, error) {
 
 		fields = append(fields, &InputFieldDescriptor{
 			Field:    f,
-			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
+			AppendOp: !m.IsCreate && f.SupportsMutationAppend(),
 			ClearOp:  !m.IsCreate && f.Optional,
+			Nullable: !m.IsCreate || f.Optional || f.Default || f.DefaultFunc(),
 		})
 	}
 

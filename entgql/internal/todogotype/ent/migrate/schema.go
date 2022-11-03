@@ -22,6 +22,19 @@ import (
 )
 
 var (
+	// BillProductsColumns holds the columns for the "bill_products" table.
+	BillProductsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "sku", Type: field.TypeString},
+		{Name: "quantity", Type: field.TypeUint64},
+	}
+	// BillProductsTable holds the schema information for the "bill_products" table.
+	BillProductsTable = &schema.Table{
+		Name:       "bill_products",
+		Columns:    BillProductsColumns,
+		PrimaryKey: []*schema.Column{BillProductsColumns[0]},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -102,6 +115,7 @@ var (
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
+		{Name: "init", Type: field.TypeJSON, Nullable: true},
 		{Name: "category_id", Type: field.TypeString, Nullable: true},
 		{Name: "todo_children", Type: field.TypeString, Nullable: true},
 		{Name: "todo_secret", Type: field.TypeString, Nullable: true},
@@ -114,19 +128,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "todos_categories_todos",
-				Columns:    []*schema.Column{TodosColumns[6]},
+				Columns:    []*schema.Column{TodosColumns[7]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_todos_children",
-				Columns:    []*schema.Column{TodosColumns[7]},
+				Columns:    []*schema.Column{TodosColumns[8]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_very_secrets_secret",
-				Columns:    []*schema.Column{TodosColumns[8]},
+				Columns:    []*schema.Column{TodosColumns[9]},
 				RefColumns: []*schema.Column{VerySecretsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -181,6 +195,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BillProductsTable,
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,

@@ -295,6 +295,11 @@ func (dnmq *DuplicateNumberMessageQuery) Select(fields ...string) *DuplicateNumb
 	return selbuild
 }
 
+// Aggregate returns a DuplicateNumberMessageSelect configured with the given aggregations.
+func (dnmq *DuplicateNumberMessageQuery) Aggregate(fns ...AggregateFunc) *DuplicateNumberMessageSelect {
+	return dnmq.Select().Aggregate(fns...)
+}
+
 func (dnmq *DuplicateNumberMessageQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range dnmq.fields {
 		if !duplicatenumbermessage.ValidColumn(f) {
@@ -346,11 +351,14 @@ func (dnmq *DuplicateNumberMessageQuery) sqlCount(ctx context.Context) (int, err
 }
 
 func (dnmq *DuplicateNumberMessageQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := dnmq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := dnmq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
@@ -485,8 +493,6 @@ func (dnmgb *DuplicateNumberMessageGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range dnmgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(dnmgb.fields)+len(dnmgb.fns))
 		for _, f := range dnmgb.fields {
@@ -506,6 +512,12 @@ type DuplicateNumberMessageSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (dnms *DuplicateNumberMessageSelect) Aggregate(fns ...AggregateFunc) *DuplicateNumberMessageSelect {
+	dnms.fns = append(dnms.fns, fns...)
+	return dnms
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (dnms *DuplicateNumberMessageSelect) Scan(ctx context.Context, v any) error {
 	if err := dnms.prepareQuery(ctx); err != nil {
@@ -516,6 +528,16 @@ func (dnms *DuplicateNumberMessageSelect) Scan(ctx context.Context, v any) error
 }
 
 func (dnms *DuplicateNumberMessageSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(dnms.fns))
+	for _, fn := range dnms.fns {
+		aggregation = append(aggregation, fn(dnms.sql))
+	}
+	switch n := len(*dnms.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		dnms.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		dnms.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := dnms.sql.Query()
 	if err := dnms.driver.Query(ctx, query, args, rows); err != nil {

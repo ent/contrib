@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
@@ -260,6 +261,237 @@ func paginateLimit(first, last *int) int {
 	return limit
 }
 
+// BillProductEdge is the edge representation of BillProduct.
+type BillProductEdge struct {
+	Node   *BillProduct `json:"node"`
+	Cursor Cursor       `json:"cursor"`
+}
+
+// BillProductConnection is the connection containing edges to BillProduct.
+type BillProductConnection struct {
+	Edges      []*BillProductEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+func (c *BillProductConnection) build(nodes []*BillProduct, pager *billproductPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *BillProduct
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *BillProduct {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *BillProduct {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*BillProductEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &BillProductEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// BillProductPaginateOption enables pagination customization.
+type BillProductPaginateOption func(*billproductPager) error
+
+// WithBillProductOrder configures pagination ordering.
+func WithBillProductOrder(order *BillProductOrder) BillProductPaginateOption {
+	if order == nil {
+		order = DefaultBillProductOrder
+	}
+	o := *order
+	return func(pager *billproductPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultBillProductOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithBillProductFilter configures pagination filter.
+func WithBillProductFilter(filter func(*BillProductQuery) (*BillProductQuery, error)) BillProductPaginateOption {
+	return func(pager *billproductPager) error {
+		if filter == nil {
+			return errors.New("BillProductQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type billproductPager struct {
+	order  *BillProductOrder
+	filter func(*BillProductQuery) (*BillProductQuery, error)
+}
+
+func newBillProductPager(opts []BillProductPaginateOption) (*billproductPager, error) {
+	pager := &billproductPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultBillProductOrder
+	}
+	return pager, nil
+}
+
+func (p *billproductPager) applyFilter(query *BillProductQuery) (*BillProductQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *billproductPager) toCursor(bp *BillProduct) Cursor {
+	return p.order.Field.toCursor(bp)
+}
+
+func (p *billproductPager) applyCursors(query *BillProductQuery, after, before *Cursor) *BillProductQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultBillProductOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *billproductPager) applyOrder(query *BillProductQuery, reverse bool) *BillProductQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultBillProductOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultBillProductOrder.Field.field))
+	}
+	return query
+}
+
+func (p *billproductPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultBillProductOrder.Field {
+			b.Comma().Ident(DefaultBillProductOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to BillProduct.
+func (bp *BillProductQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...BillProductPaginateOption,
+) (*BillProductConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newBillProductPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if bp, err = pager.applyFilter(bp); err != nil {
+		return nil, err
+	}
+	conn := &BillProductConnection{Edges: []*BillProductEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = bp.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	bp = pager.applyCursors(bp, after, before)
+	bp = pager.applyOrder(bp, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		bp.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := bp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := bp.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// BillProductOrderField defines the ordering field of BillProduct.
+type BillProductOrderField struct {
+	field    string
+	toCursor func(*BillProduct) Cursor
+}
+
+// BillProductOrder defines the ordering of BillProduct.
+type BillProductOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *BillProductOrderField `json:"field"`
+}
+
+// DefaultBillProductOrder is the default ordering of BillProduct.
+var DefaultBillProductOrder = &BillProductOrder{
+	Direction: OrderDirectionAsc,
+	Field: &BillProductOrderField{
+		field: billproduct.FieldID,
+		toCursor: func(bp *BillProduct) Cursor {
+			return Cursor{ID: bp.ID}
+		},
+	},
+}
+
+// ToEdge converts BillProduct into BillProductEdge.
+func (bp *BillProduct) ToEdge(order *BillProductOrder) *BillProductEdge {
+	if order == nil {
+		order = DefaultBillProductOrder
+	}
+	return &BillProductEdge{
+		Node:   bp,
+		Cursor: order.Field.toCursor(bp),
+	}
+}
+
 // CategoryEdge is the edge representation of Category.
 type CategoryEdge struct {
 	Node   *Category `json:"node"`
@@ -427,7 +659,7 @@ func (c *CategoryQuery) Paginate(
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = c.Count(ctx); err != nil {
+			if conn.TotalCount, err = c.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -715,7 +947,7 @@ func (f *FriendshipQuery) Paginate(
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = f.Count(ctx); err != nil {
+			if conn.TotalCount, err = f.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -946,7 +1178,7 @@ func (gr *GroupQuery) Paginate(
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = gr.Count(ctx); err != nil {
+			if conn.TotalCount, err = gr.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -1177,7 +1409,7 @@ func (t *TodoQuery) Paginate(
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = t.Count(ctx); err != nil {
+			if conn.TotalCount, err = t.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
@@ -1259,7 +1491,7 @@ func (f TodoOrderField) String() string {
 	case todo.FieldStatus:
 		str = "STATUS"
 	case todo.FieldPriority:
-		str = "PRIORITY"
+		str = "PRIORITY_ORDER"
 	case todo.FieldText:
 		str = "TEXT"
 	}
@@ -1282,7 +1514,7 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *TodoOrderFieldCreatedAt
 	case "STATUS":
 		*f = *TodoOrderFieldStatus
-	case "PRIORITY":
+	case "PRIORITY_ORDER":
 		*f = *TodoOrderFieldPriority
 	case "TEXT":
 		*f = *TodoOrderFieldText
@@ -1493,7 +1725,7 @@ func (u *UserQuery) Paginate(
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
-			if conn.TotalCount, err = u.Count(ctx); err != nil {
+			if conn.TotalCount, err = u.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0

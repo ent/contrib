@@ -311,6 +311,11 @@ func (vsq *VerySecretQuery) Select(fields ...string) *VerySecretSelect {
 	return selbuild
 }
 
+// Aggregate returns a VerySecretSelect configured with the given aggregations.
+func (vsq *VerySecretQuery) Aggregate(fns ...AggregateFunc) *VerySecretSelect {
+	return vsq.Select().Aggregate(fns...)
+}
+
 func (vsq *VerySecretQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range vsq.fields {
 		if !verysecret.ValidColumn(f) {
@@ -373,11 +378,14 @@ func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vsq *VerySecretQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := vsq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := vsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
@@ -512,8 +520,6 @@ func (vsgb *VerySecretGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range vsgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(vsgb.fields)+len(vsgb.fns))
 		for _, f := range vsgb.fields {
@@ -533,6 +539,12 @@ type VerySecretSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (vss *VerySecretSelect) Aggregate(fns ...AggregateFunc) *VerySecretSelect {
+	vss.fns = append(vss.fns, fns...)
+	return vss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (vss *VerySecretSelect) Scan(ctx context.Context, v any) error {
 	if err := vss.prepareQuery(ctx); err != nil {
@@ -543,6 +555,16 @@ func (vss *VerySecretSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (vss *VerySecretSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(vss.fns))
+	for _, fn := range vss.fns {
+		aggregation = append(aggregation, fn(vss.sql))
+	}
+	switch n := len(*vss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		vss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		vss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := vss.sql.Query()
 	if err := vss.driver.Query(ctx, query, args, rows); err != nil {

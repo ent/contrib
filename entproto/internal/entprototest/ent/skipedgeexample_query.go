@@ -310,6 +310,11 @@ func (seeq *SkipEdgeExampleQuery) Select(fields ...string) *SkipEdgeExampleSelec
 	return selbuild
 }
 
+// Aggregate returns a SkipEdgeExampleSelect configured with the given aggregations.
+func (seeq *SkipEdgeExampleQuery) Aggregate(fns ...AggregateFunc) *SkipEdgeExampleSelect {
+	return seeq.Select().Aggregate(fns...)
+}
+
 func (seeq *SkipEdgeExampleQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range seeq.fields {
 		if !skipedgeexample.ValidColumn(f) {
@@ -408,11 +413,14 @@ func (seeq *SkipEdgeExampleQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (seeq *SkipEdgeExampleQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := seeq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := seeq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (seeq *SkipEdgeExampleQuery) querySpec() *sqlgraph.QuerySpec {
@@ -547,8 +555,6 @@ func (seegb *SkipEdgeExampleGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range seegb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(seegb.fields)+len(seegb.fns))
 		for _, f := range seegb.fields {
@@ -568,6 +574,12 @@ type SkipEdgeExampleSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (sees *SkipEdgeExampleSelect) Aggregate(fns ...AggregateFunc) *SkipEdgeExampleSelect {
+	sees.fns = append(sees.fns, fns...)
+	return sees
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v any) error {
 	if err := sees.prepareQuery(ctx); err != nil {
@@ -578,6 +590,16 @@ func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (sees *SkipEdgeExampleSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(sees.fns))
+	for _, fn := range sees.fns {
+		aggregation = append(aggregation, fn(sees.sql))
+	}
+	switch n := len(*sees.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		sees.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		sees.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := sees.sql.Query()
 	if err := sees.driver.Query(ctx, query, args, rows); err != nil {

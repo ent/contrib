@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
@@ -44,13 +45,469 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCategory   = "Category"
-	TypeFriendship = "Friendship"
-	TypeGroup      = "Group"
-	TypeTodo       = "Todo"
-	TypeUser       = "User"
-	TypeVerySecret = "VerySecret"
+	TypeBillProduct = "BillProduct"
+	TypeCategory    = "Category"
+	TypeFriendship  = "Friendship"
+	TypeGroup       = "Group"
+	TypeTodo        = "Todo"
+	TypeUser        = "User"
+	TypeVerySecret  = "VerySecret"
 )
+
+// BillProductMutation represents an operation that mutates the BillProduct nodes in the graph.
+type BillProductMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	name          *string
+	sku           *string
+	quantity      *uint64
+	addquantity   *int64
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*BillProduct, error)
+	predicates    []predicate.BillProduct
+}
+
+var _ ent.Mutation = (*BillProductMutation)(nil)
+
+// billproductOption allows management of the mutation configuration using functional options.
+type billproductOption func(*BillProductMutation)
+
+// newBillProductMutation creates new mutation for the BillProduct entity.
+func newBillProductMutation(c config, op Op, opts ...billproductOption) *BillProductMutation {
+	m := &BillProductMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBillProduct,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBillProductID sets the ID field of the mutation.
+func withBillProductID(id int) billproductOption {
+	return func(m *BillProductMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *BillProduct
+		)
+		m.oldValue = func(ctx context.Context) (*BillProduct, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().BillProduct.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBillProduct sets the old BillProduct of the mutation.
+func withBillProduct(node *BillProduct) billproductOption {
+	return func(m *BillProductMutation) {
+		m.oldValue = func(context.Context) (*BillProduct, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BillProductMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BillProductMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BillProductMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BillProductMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().BillProduct.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *BillProductMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *BillProductMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the BillProduct entity.
+// If the BillProduct object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillProductMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *BillProductMutation) ResetName() {
+	m.name = nil
+}
+
+// SetSku sets the "sku" field.
+func (m *BillProductMutation) SetSku(s string) {
+	m.sku = &s
+}
+
+// Sku returns the value of the "sku" field in the mutation.
+func (m *BillProductMutation) Sku() (r string, exists bool) {
+	v := m.sku
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSku returns the old "sku" field's value of the BillProduct entity.
+// If the BillProduct object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillProductMutation) OldSku(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSku is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSku requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSku: %w", err)
+	}
+	return oldValue.Sku, nil
+}
+
+// ResetSku resets all changes to the "sku" field.
+func (m *BillProductMutation) ResetSku() {
+	m.sku = nil
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *BillProductMutation) SetQuantity(u uint64) {
+	m.quantity = &u
+	m.addquantity = nil
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *BillProductMutation) Quantity() (r uint64, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the BillProduct entity.
+// If the BillProduct object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillProductMutation) OldQuantity(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// AddQuantity adds u to the "quantity" field.
+func (m *BillProductMutation) AddQuantity(u int64) {
+	if m.addquantity != nil {
+		*m.addquantity += u
+	} else {
+		m.addquantity = &u
+	}
+}
+
+// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
+func (m *BillProductMutation) AddedQuantity() (r int64, exists bool) {
+	v := m.addquantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *BillProductMutation) ResetQuantity() {
+	m.quantity = nil
+	m.addquantity = nil
+}
+
+// Where appends a list predicates to the BillProductMutation builder.
+func (m *BillProductMutation) Where(ps ...predicate.BillProduct) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *BillProductMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (BillProduct).
+func (m *BillProductMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BillProductMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.name != nil {
+		fields = append(fields, billproduct.FieldName)
+	}
+	if m.sku != nil {
+		fields = append(fields, billproduct.FieldSku)
+	}
+	if m.quantity != nil {
+		fields = append(fields, billproduct.FieldQuantity)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BillProductMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case billproduct.FieldName:
+		return m.Name()
+	case billproduct.FieldSku:
+		return m.Sku()
+	case billproduct.FieldQuantity:
+		return m.Quantity()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BillProductMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case billproduct.FieldName:
+		return m.OldName(ctx)
+	case billproduct.FieldSku:
+		return m.OldSku(ctx)
+	case billproduct.FieldQuantity:
+		return m.OldQuantity(ctx)
+	}
+	return nil, fmt.Errorf("unknown BillProduct field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BillProductMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case billproduct.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case billproduct.FieldSku:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSku(v)
+		return nil
+	case billproduct.FieldQuantity:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BillProduct field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BillProductMutation) AddedFields() []string {
+	var fields []string
+	if m.addquantity != nil {
+		fields = append(fields, billproduct.FieldQuantity)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BillProductMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case billproduct.FieldQuantity:
+		return m.AddedQuantity()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BillProductMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case billproduct.FieldQuantity:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BillProduct numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BillProductMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BillProductMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BillProductMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown BillProduct nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BillProductMutation) ResetField(name string) error {
+	switch name {
+	case billproduct.FieldName:
+		m.ResetName()
+		return nil
+	case billproduct.FieldSku:
+		m.ResetSku()
+		return nil
+	case billproduct.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	}
+	return fmt.Errorf("unknown BillProduct field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BillProductMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BillProductMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BillProductMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BillProductMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BillProductMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BillProductMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BillProductMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown BillProduct unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BillProductMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown BillProduct edge %s", name)
+}
 
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
 type CategoryMutation struct {
@@ -66,6 +523,7 @@ type CategoryMutation struct {
 	count         *uint64
 	addcount      *int64
 	strings       *[]string
+	appendstrings []string
 	clearedFields map[string]struct{}
 	todos         map[int]struct{}
 	removedtodos  map[int]struct{}
@@ -437,6 +895,7 @@ func (m *CategoryMutation) ResetCount() {
 // SetStrings sets the "strings" field.
 func (m *CategoryMutation) SetStrings(s []string) {
 	m.strings = &s
+	m.appendstrings = nil
 }
 
 // Strings returns the value of the "strings" field in the mutation.
@@ -465,9 +924,23 @@ func (m *CategoryMutation) OldStrings(ctx context.Context) (v []string, err erro
 	return oldValue.Strings, nil
 }
 
+// AppendStrings adds s to the "strings" field.
+func (m *CategoryMutation) AppendStrings(s []string) {
+	m.appendstrings = append(m.appendstrings, s...)
+}
+
+// AppendedStrings returns the list of values that were appended to the "strings" field in this mutation.
+func (m *CategoryMutation) AppendedStrings() ([]string, bool) {
+	if len(m.appendstrings) == 0 {
+		return nil, false
+	}
+	return m.appendstrings, true
+}
+
 // ClearStrings clears the value of the "strings" field.
 func (m *CategoryMutation) ClearStrings() {
 	m.strings = nil
+	m.appendstrings = nil
 	m.clearedFields[category.FieldStrings] = struct{}{}
 }
 
@@ -480,6 +953,7 @@ func (m *CategoryMutation) StringsCleared() bool {
 // ResetStrings resets all changes to the "strings" field.
 func (m *CategoryMutation) ResetStrings() {
 	m.strings = nil
+	m.appendstrings = nil
 	delete(m.clearedFields, category.FieldStrings)
 }
 
@@ -1812,6 +2286,7 @@ type TodoMutation struct {
 	addpriority     *int
 	text            *string
 	blob            *[]byte
+	init            *map[string]interface{}
 	clearedFields   map[string]struct{}
 	parent          *int
 	clearedparent   bool
@@ -2187,6 +2662,55 @@ func (m *TodoMutation) ResetCategoryID() {
 	delete(m.clearedFields, todo.FieldCategoryID)
 }
 
+// SetInit sets the "init" field.
+func (m *TodoMutation) SetInit(value map[string]interface{}) {
+	m.init = &value
+}
+
+// Init returns the value of the "init" field in the mutation.
+func (m *TodoMutation) Init() (r map[string]interface{}, exists bool) {
+	v := m.init
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInit returns the old "init" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldInit(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInit: %w", err)
+	}
+	return oldValue.Init, nil
+}
+
+// ClearInit clears the value of the "init" field.
+func (m *TodoMutation) ClearInit() {
+	m.init = nil
+	m.clearedFields[todo.FieldInit] = struct{}{}
+}
+
+// InitCleared returns if the "init" field was cleared in this mutation.
+func (m *TodoMutation) InitCleared() bool {
+	_, ok := m.clearedFields[todo.FieldInit]
+	return ok
+}
+
+// ResetInit resets all changes to the "init" field.
+func (m *TodoMutation) ResetInit() {
+	m.init = nil
+	delete(m.clearedFields, todo.FieldInit)
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by id.
 func (m *TodoMutation) SetParentID(id int) {
 	m.parent = &id
@@ -2364,7 +2888,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -2382,6 +2906,9 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.category != nil {
 		fields = append(fields, todo.FieldCategoryID)
+	}
+	if m.init != nil {
+		fields = append(fields, todo.FieldInit)
 	}
 	return fields
 }
@@ -2403,6 +2930,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Blob()
 	case todo.FieldCategoryID:
 		return m.CategoryID()
+	case todo.FieldInit:
+		return m.Init()
 	}
 	return nil, false
 }
@@ -2424,6 +2953,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldBlob(ctx)
 	case todo.FieldCategoryID:
 		return m.OldCategoryID(ctx)
+	case todo.FieldInit:
+		return m.OldInit(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -2474,6 +3005,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCategoryID(v)
+		return nil
+	case todo.FieldInit:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInit(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
@@ -2526,6 +3064,9 @@ func (m *TodoMutation) ClearedFields() []string {
 	if m.FieldCleared(todo.FieldCategoryID) {
 		fields = append(fields, todo.FieldCategoryID)
 	}
+	if m.FieldCleared(todo.FieldInit) {
+		fields = append(fields, todo.FieldInit)
+	}
 	return fields
 }
 
@@ -2545,6 +3086,9 @@ func (m *TodoMutation) ClearField(name string) error {
 		return nil
 	case todo.FieldCategoryID:
 		m.ClearCategoryID()
+		return nil
+	case todo.FieldInit:
+		m.ClearInit()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo nullable field %s", name)
@@ -2571,6 +3115,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldCategoryID:
 		m.ResetCategoryID()
+		return nil
+	case todo.FieldInit:
+		m.ResetInit()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
@@ -2721,6 +3268,7 @@ type UserMutation struct {
 	typ                string
 	id                 *int
 	name               *string
+	password           *string
 	clearedFields      map[string]struct{}
 	groups             map[int]struct{}
 	removedgroups      map[int]struct{}
@@ -2868,6 +3416,55 @@ func (m *UserMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *UserMutation) ResetName() {
 	m.name = nil
+}
+
+// SetPassword sets the "password" field.
+func (m *UserMutation) SetPassword(s string) {
+	m.password = &s
+}
+
+// Password returns the value of the "password" field in the mutation.
+func (m *UserMutation) Password() (r string, exists bool) {
+	v := m.password
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPassword returns the old "password" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPassword requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
+	}
+	return oldValue.Password, nil
+}
+
+// ClearPassword clears the value of the "password" field.
+func (m *UserMutation) ClearPassword() {
+	m.password = nil
+	m.clearedFields[user.FieldPassword] = struct{}{}
+}
+
+// PasswordCleared returns if the "password" field was cleared in this mutation.
+func (m *UserMutation) PasswordCleared() bool {
+	_, ok := m.clearedFields[user.FieldPassword]
+	return ok
+}
+
+// ResetPassword resets all changes to the "password" field.
+func (m *UserMutation) ResetPassword() {
+	m.password = nil
+	delete(m.clearedFields, user.FieldPassword)
 }
 
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
@@ -3051,9 +3648,12 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
+	}
+	if m.password != nil {
+		fields = append(fields, user.FieldPassword)
 	}
 	return fields
 }
@@ -3065,6 +3665,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case user.FieldName:
 		return m.Name()
+	case user.FieldPassword:
+		return m.Password()
 	}
 	return nil, false
 }
@@ -3076,6 +3678,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case user.FieldName:
 		return m.OldName(ctx)
+	case user.FieldPassword:
+		return m.OldPassword(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -3091,6 +3695,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case user.FieldPassword:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPassword(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -3121,7 +3732,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldPassword) {
+		fields = append(fields, user.FieldPassword)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3134,6 +3749,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldPassword:
+		m.ClearPassword()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -3143,6 +3763,9 @@ func (m *UserMutation) ResetField(name string) error {
 	switch name {
 	case user.FieldName:
 		m.ResetName()
+		return nil
+	case user.FieldPassword:
+		m.ResetPassword()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

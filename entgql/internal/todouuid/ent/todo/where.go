@@ -472,6 +472,20 @@ func BlobNotNil() predicate.Todo {
 	})
 }
 
+// InitIsNil applies the IsNil predicate on the "init" field.
+func InitIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldInit)))
+	})
+}
+
+// InitNotNil applies the NotNil predicate on the "init" field.
+func InitNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldInit)))
+	})
+}
+
 // CategoryIDEQ applies the EQ predicate on the "category_id" field.
 func CategoryIDEQ(v uuid.UUID) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {

@@ -11,6 +11,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -30,6 +31,12 @@ func (mwsu *MessageWithStringsUpdate) Where(ps ...predicate.MessageWithStrings) 
 // SetStrings sets the "strings" field.
 func (mwsu *MessageWithStringsUpdate) SetStrings(s []string) *MessageWithStringsUpdate {
 	mwsu.mutation.SetStrings(s)
+	return mwsu
+}
+
+// AppendStrings appends s to the "strings" field.
+func (mwsu *MessageWithStringsUpdate) AppendStrings(s []string) *MessageWithStringsUpdate {
+	mwsu.mutation.AppendStrings(s)
 	return mwsu
 }
 
@@ -111,10 +118,11 @@ func (mwsu *MessageWithStringsUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 	}
 	if value, ok := mwsu.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
+	}
+	if value, ok := mwsu.mutation.AppendedStrings(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, messagewithstrings.FieldStrings, value)
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwsu.driver, _spec); err != nil {
@@ -139,6 +147,12 @@ type MessageWithStringsUpdateOne struct {
 // SetStrings sets the "strings" field.
 func (mwsuo *MessageWithStringsUpdateOne) SetStrings(s []string) *MessageWithStringsUpdateOne {
 	mwsuo.mutation.SetStrings(s)
+	return mwsuo
+}
+
+// AppendStrings appends s to the "strings" field.
+func (mwsuo *MessageWithStringsUpdateOne) AppendStrings(s []string) *MessageWithStringsUpdateOne {
+	mwsuo.mutation.AppendStrings(s)
 	return mwsuo
 }
 
@@ -250,10 +264,11 @@ func (mwsuo *MessageWithStringsUpdateOne) sqlSave(ctx context.Context) (_node *M
 		}
 	}
 	if value, ok := mwsuo.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
+	}
+	if value, ok := mwsuo.mutation.AppendedStrings(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, messagewithstrings.FieldStrings, value)
 		})
 	}
 	_node = &MessageWithStrings{config: mwsuo.config}

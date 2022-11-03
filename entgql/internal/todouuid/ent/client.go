@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/migrate"
 	"github.com/google/uuid"
 
+	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
@@ -42,6 +43,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// BillProduct is the client for interacting with the BillProduct builders.
+	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -67,6 +70,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.BillProduct = NewBillProductClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
@@ -104,14 +108,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Category:   NewCategoryClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Group:      NewGroupClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
-		VerySecret: NewVerySecretClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		BillProduct: NewBillProductClient(cfg),
+		Category:    NewCategoryClient(cfg),
+		Friendship:  NewFriendshipClient(cfg),
+		Group:       NewGroupClient(cfg),
+		Todo:        NewTodoClient(cfg),
+		User:        NewUserClient(cfg),
+		VerySecret:  NewVerySecretClient(cfg),
 	}, nil
 }
 
@@ -129,21 +134,22 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Category:   NewCategoryClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Group:      NewGroupClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
-		VerySecret: NewVerySecretClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		BillProduct: NewBillProductClient(cfg),
+		Category:    NewCategoryClient(cfg),
+		Friendship:  NewFriendshipClient(cfg),
+		Group:       NewGroupClient(cfg),
+		Todo:        NewTodoClient(cfg),
+		User:        NewUserClient(cfg),
+		VerySecret:  NewVerySecretClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Category.
+//		BillProduct.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -165,12 +171,103 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.BillProduct.Use(hooks...)
 	c.Category.Use(hooks...)
 	c.Friendship.Use(hooks...)
 	c.Group.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
 	c.VerySecret.Use(hooks...)
+}
+
+// BillProductClient is a client for the BillProduct schema.
+type BillProductClient struct {
+	config
+}
+
+// NewBillProductClient returns a client for the BillProduct from the given config.
+func NewBillProductClient(c config) *BillProductClient {
+	return &BillProductClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `billproduct.Hooks(f(g(h())))`.
+func (c *BillProductClient) Use(hooks ...Hook) {
+	c.hooks.BillProduct = append(c.hooks.BillProduct, hooks...)
+}
+
+// Create returns a builder for creating a BillProduct entity.
+func (c *BillProductClient) Create() *BillProductCreate {
+	mutation := newBillProductMutation(c.config, OpCreate)
+	return &BillProductCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BillProduct entities.
+func (c *BillProductClient) CreateBulk(builders ...*BillProductCreate) *BillProductCreateBulk {
+	return &BillProductCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BillProduct.
+func (c *BillProductClient) Update() *BillProductUpdate {
+	mutation := newBillProductMutation(c.config, OpUpdate)
+	return &BillProductUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BillProductClient) UpdateOne(bp *BillProduct) *BillProductUpdateOne {
+	mutation := newBillProductMutation(c.config, OpUpdateOne, withBillProduct(bp))
+	return &BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BillProductClient) UpdateOneID(id uuid.UUID) *BillProductUpdateOne {
+	mutation := newBillProductMutation(c.config, OpUpdateOne, withBillProductID(id))
+	return &BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BillProduct.
+func (c *BillProductClient) Delete() *BillProductDelete {
+	mutation := newBillProductMutation(c.config, OpDelete)
+	return &BillProductDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BillProductClient) DeleteOne(bp *BillProduct) *BillProductDeleteOne {
+	return c.DeleteOneID(bp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BillProductClient) DeleteOneID(id uuid.UUID) *BillProductDeleteOne {
+	builder := c.Delete().Where(billproduct.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BillProductDeleteOne{builder}
+}
+
+// Query returns a query builder for BillProduct.
+func (c *BillProductClient) Query() *BillProductQuery {
+	return &BillProductQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a BillProduct entity by its id.
+func (c *BillProductClient) Get(ctx context.Context, id uuid.UUID) (*BillProduct, error) {
+	return c.Query().Where(billproduct.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BillProductClient) GetX(ctx context.Context, id uuid.UUID) *BillProduct {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BillProductClient) Hooks() []Hook {
+	return c.hooks.BillProduct
 }
 
 // CategoryClient is a client for the Category schema.
@@ -229,7 +326,7 @@ func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id uuid.UUID) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -261,7 +358,7 @@ func (c *CategoryClient) GetX(ctx context.Context, id uuid.UUID) *Category {
 // QueryTodos queries the todos edge of a Category.
 func (c *CategoryClient) QueryTodos(ca *Category) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ca.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(category.Table, category.FieldID, id),
@@ -335,7 +432,7 @@ func (c *FriendshipClient) DeleteOne(f *Friendship) *FriendshipDeleteOne {
 	return c.DeleteOneID(f.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *FriendshipClient) DeleteOneID(id uuid.UUID) *FriendshipDeleteOne {
 	builder := c.Delete().Where(friendship.ID(id))
 	builder.mutation.id = &id
@@ -367,7 +464,7 @@ func (c *FriendshipClient) GetX(ctx context.Context, id uuid.UUID) *Friendship {
 // QueryUser queries the user edge of a Friendship.
 func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := f.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(friendship.Table, friendship.FieldID, id),
@@ -383,7 +480,7 @@ func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
 // QueryFriend queries the friend edge of a Friendship.
 func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := f.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(friendship.Table, friendship.FieldID, id),
@@ -457,7 +554,7 @@ func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
 	return c.DeleteOneID(gr.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *GroupClient) DeleteOneID(id uuid.UUID) *GroupDeleteOne {
 	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
@@ -489,7 +586,7 @@ func (c *GroupClient) GetX(ctx context.Context, id uuid.UUID) *Group {
 // QueryUsers queries the users edge of a Group.
 func (c *GroupClient) QueryUsers(gr *Group) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
@@ -563,7 +660,7 @@ func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *TodoClient) DeleteOneID(id uuid.UUID) *TodoDeleteOne {
 	builder := c.Delete().Where(todo.ID(id))
 	builder.mutation.id = &id
@@ -595,7 +692,7 @@ func (c *TodoClient) GetX(ctx context.Context, id uuid.UUID) *Todo {
 // QueryParent queries the parent edge of a Todo.
 func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -611,7 +708,7 @@ func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
 // QueryChildren queries the children edge of a Todo.
 func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -627,7 +724,7 @@ func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 // QueryCategory queries the category edge of a Todo.
 func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
 	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -643,7 +740,7 @@ func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
 // QuerySecret queries the secret edge of a Todo.
 func (c *TodoClient) QuerySecret(t *Todo) *VerySecretQuery {
 	query := &VerySecretQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -717,7 +814,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id uuid.UUID) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -749,7 +846,7 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 // QueryGroups queries the groups edge of a User.
 func (c *UserClient) QueryGroups(u *User) *GroupQuery {
 	query := &GroupQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -765,7 +862,7 @@ func (c *UserClient) QueryGroups(u *User) *GroupQuery {
 // QueryFriends queries the friends edge of a User.
 func (c *UserClient) QueryFriends(u *User) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -781,7 +878,7 @@ func (c *UserClient) QueryFriends(u *User) *UserQuery {
 // QueryFriendships queries the friendships edge of a User.
 func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
 	query := &FriendshipQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -855,7 +952,7 @@ func (c *VerySecretClient) DeleteOne(vs *VerySecret) *VerySecretDeleteOne {
 	return c.DeleteOneID(vs.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *VerySecretClient) DeleteOneID(id uuid.UUID) *VerySecretDeleteOne {
 	builder := c.Delete().Where(verysecret.ID(id))
 	builder.mutation.id = &id

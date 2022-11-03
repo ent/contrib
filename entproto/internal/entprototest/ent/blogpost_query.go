@@ -369,6 +369,11 @@ func (bpq *BlogPostQuery) Select(fields ...string) *BlogPostSelect {
 	return selbuild
 }
 
+// Aggregate returns a BlogPostSelect configured with the given aggregations.
+func (bpq *BlogPostQuery) Aggregate(fns ...AggregateFunc) *BlogPostSelect {
+	return bpq.Select().Aggregate(fns...)
+}
+
 func (bpq *BlogPostQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range bpq.fields {
 		if !blogpost.ValidColumn(f) {
@@ -501,7 +506,7 @@ func (bpq *BlogPostQuery) loadCategories(ctx context.Context, query *CategoryQue
 			outValue := int(values[0].(*sql.NullInt64).Int64)
 			inValue := int(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
-				nids[inValue] = map[*BlogPost]struct{}{byID[outValue]: struct{}{}}
+				nids[inValue] = map[*BlogPost]struct{}{byID[outValue]: {}}
 				return assign(columns[1:], values[1:])
 			}
 			nids[inValue][byID[outValue]] = struct{}{}
@@ -533,11 +538,14 @@ func (bpq *BlogPostQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (bpq *BlogPostQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := bpq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := bpq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (bpq *BlogPostQuery) querySpec() *sqlgraph.QuerySpec {
@@ -672,8 +680,6 @@ func (bpgb *BlogPostGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range bpgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(bpgb.fields)+len(bpgb.fns))
 		for _, f := range bpgb.fields {
@@ -693,6 +699,12 @@ type BlogPostSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (bps *BlogPostSelect) Aggregate(fns ...AggregateFunc) *BlogPostSelect {
+	bps.fns = append(bps.fns, fns...)
+	return bps
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (bps *BlogPostSelect) Scan(ctx context.Context, v any) error {
 	if err := bps.prepareQuery(ctx); err != nil {
@@ -703,6 +715,16 @@ func (bps *BlogPostSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (bps *BlogPostSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(bps.fns))
+	for _, fn := range bps.fns {
+		aggregation = append(aggregation, fn(bps.sql))
+	}
+	switch n := len(*bps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		bps.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		bps.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := bps.sql.Query()
 	if err := bps.driver.Query(ctx, query, args, rows); err != nil {

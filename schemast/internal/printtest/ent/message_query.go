@@ -273,6 +273,11 @@ func (mq *MessageQuery) Select(fields ...string) *MessageSelect {
 	return selbuild
 }
 
+// Aggregate returns a MessageSelect configured with the given aggregations.
+func (mq *MessageQuery) Aggregate(fns ...AggregateFunc) *MessageSelect {
+	return mq.Select().Aggregate(fns...)
+}
+
 func (mq *MessageQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range mq.fields {
 		if !message.ValidColumn(f) {
@@ -324,11 +329,14 @@ func (mq *MessageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mq *MessageQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := mq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := mq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (mq *MessageQuery) querySpec() *sqlgraph.QuerySpec {
@@ -463,8 +471,6 @@ func (mgb *MessageGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range mgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(mgb.fields)+len(mgb.fns))
 		for _, f := range mgb.fields {
@@ -484,6 +490,12 @@ type MessageSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (ms *MessageSelect) Aggregate(fns ...AggregateFunc) *MessageSelect {
+	ms.fns = append(ms.fns, fns...)
+	return ms
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (ms *MessageSelect) Scan(ctx context.Context, v any) error {
 	if err := ms.prepareQuery(ctx); err != nil {
@@ -494,6 +506,16 @@ func (ms *MessageSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (ms *MessageSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(ms.fns))
+	for _, fn := range ms.fns {
+		aggregation = append(aggregation, fn(ms.sql))
+	}
+	switch n := len(*ms.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		ms.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		ms.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := ms.sql.Query()
 	if err := ms.driver.Query(ctx, query, args, rows); err != nil {

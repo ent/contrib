@@ -1,3 +1,5 @@
+directive @hasPermissions(permissions: [String!]!) on OBJECT | FIELD_DEFINITION
+
 type CategoryConfig {
   maxMembers: Int
 }

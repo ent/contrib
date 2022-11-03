@@ -273,6 +273,11 @@ func (tmsq *TwoMethodServiceQuery) Select(fields ...string) *TwoMethodServiceSel
 	return selbuild
 }
 
+// Aggregate returns a TwoMethodServiceSelect configured with the given aggregations.
+func (tmsq *TwoMethodServiceQuery) Aggregate(fns ...AggregateFunc) *TwoMethodServiceSelect {
+	return tmsq.Select().Aggregate(fns...)
+}
+
 func (tmsq *TwoMethodServiceQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range tmsq.fields {
 		if !twomethodservice.ValidColumn(f) {
@@ -324,11 +329,14 @@ func (tmsq *TwoMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tmsq *TwoMethodServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := tmsq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := tmsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
@@ -463,8 +471,6 @@ func (tmsgb *TwoMethodServiceGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range tmsgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(tmsgb.fields)+len(tmsgb.fns))
 		for _, f := range tmsgb.fields {
@@ -484,6 +490,12 @@ type TwoMethodServiceSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (tmss *TwoMethodServiceSelect) Aggregate(fns ...AggregateFunc) *TwoMethodServiceSelect {
+	tmss.fns = append(tmss.fns, fns...)
+	return tmss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := tmss.prepareQuery(ctx); err != nil {
@@ -494,6 +506,16 @@ func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (tmss *TwoMethodServiceSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(tmss.fns))
+	for _, fn := range tmss.fns {
+		aggregation = append(aggregation, fn(tmss.sql))
+	}
+	switch n := len(*tmss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		tmss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		tmss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := tmss.sql.Query()
 	if err := tmss.driver.Query(ctx, query, args, rows); err != nil {

@@ -273,6 +273,11 @@ func (amsq *AllMethodsServiceQuery) Select(fields ...string) *AllMethodsServiceS
 	return selbuild
 }
 
+// Aggregate returns a AllMethodsServiceSelect configured with the given aggregations.
+func (amsq *AllMethodsServiceQuery) Aggregate(fns ...AggregateFunc) *AllMethodsServiceSelect {
+	return amsq.Select().Aggregate(fns...)
+}
+
 func (amsq *AllMethodsServiceQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range amsq.fields {
 		if !allmethodsservice.ValidColumn(f) {
@@ -324,11 +329,14 @@ func (amsq *AllMethodsServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (amsq *AllMethodsServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := amsq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := amsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (amsq *AllMethodsServiceQuery) querySpec() *sqlgraph.QuerySpec {
@@ -463,8 +471,6 @@ func (amsgb *AllMethodsServiceGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range amsgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(amsgb.fields)+len(amsgb.fns))
 		for _, f := range amsgb.fields {
@@ -484,6 +490,12 @@ type AllMethodsServiceSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (amss *AllMethodsServiceSelect) Aggregate(fns ...AggregateFunc) *AllMethodsServiceSelect {
+	amss.fns = append(amss.fns, fns...)
+	return amss
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v any) error {
 	if err := amss.prepareQuery(ctx); err != nil {
@@ -494,6 +506,16 @@ func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (amss *AllMethodsServiceSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(amss.fns))
+	for _, fn := range amss.fns {
+		aggregation = append(aggregation, fn(amss.sql))
+	}
+	switch n := len(*amss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		amss.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		amss.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := amss.sql.Query()
 	if err := amss.driver.Query(ctx, query, args, rows); err != nil {

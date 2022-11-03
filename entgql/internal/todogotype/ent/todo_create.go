@@ -83,6 +83,12 @@ func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
 	return tc
 }
 
+// SetInit sets the "init" field.
+func (tc *TodoCreate) SetInit(m map[string]interface{}) *TodoCreate {
+	tc.mutation.SetInit(m)
+	return tc
+}
+
 // SetCategoryID sets the "category_id" field.
 func (tc *TodoCreate) SetCategoryID(bi bigintgql.BigInt) *TodoCreate {
 	tc.mutation.SetCategoryID(bi)
@@ -321,44 +327,28 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = id
 	}
 	if value, ok := tc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: todo.FieldCreatedAt,
-		})
+		_spec.SetField(todo.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := tc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := tc.mutation.Priority(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: todo.FieldPriority,
-		})
+		_spec.SetField(todo.FieldPriority, field.TypeInt, value)
 		_node.Priority = value
 	}
 	if value, ok := tc.mutation.Text(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldText,
-		})
+		_spec.SetField(todo.FieldText, field.TypeString, value)
 		_node.Text = value
 	}
 	if value, ok := tc.mutation.Blob(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: todo.FieldBlob,
-		})
+		_spec.SetField(todo.FieldBlob, field.TypeBytes, value)
 		_node.Blob = value
+	}
+	if value, ok := tc.mutation.Init(); ok {
+		_spec.SetField(todo.FieldInit, field.TypeJSON, value)
+		_node.Init = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

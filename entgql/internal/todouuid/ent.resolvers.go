@@ -34,6 +34,10 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []uuid.UUID) ([]ent.Noder
 	return r.client.Noders(ctx, ids, ent.WithFixedNodeType(todo.Table))
 }
 
+func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
+	return r.client.BillProduct.Query().All(ctx)
+}
+
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,
@@ -57,6 +61,14 @@ func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int
 }
 
 func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -90,6 +102,9 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // Todo returns TodoResolver implementation.
 func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
 
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 // CreateTodoInput returns CreateTodoInputResolver implementation.
 func (r *Resolver) CreateTodoInput() CreateTodoInputResolver { return &createTodoInputResolver{r} }
 
@@ -101,6 +116,7 @@ func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTod
 
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
 type createTodoInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
 type updateTodoInputResolver struct{ *Resolver }

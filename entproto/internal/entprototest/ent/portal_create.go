@@ -161,19 +161,11 @@ func (pc *PortalCreate) createSpec() (*Portal, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := pc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldName,
-		})
+		_spec.SetField(portal.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := pc.mutation.Description(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldDescription,
-		})
+		_spec.SetField(portal.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
 	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {

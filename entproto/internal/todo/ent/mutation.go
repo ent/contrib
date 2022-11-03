@@ -3066,6 +3066,7 @@ type UserMutation struct {
 	unnecessary        *string
 	_type              *string
 	labels             *[]string
+	appendlabels       []string
 	device_type        *user.DeviceType
 	clearedFields      map[string]struct{}
 	group              *int
@@ -4086,6 +4087,7 @@ func (m *UserMutation) ResetType() {
 // SetLabels sets the "labels" field.
 func (m *UserMutation) SetLabels(s []string) {
 	m.labels = &s
+	m.appendlabels = nil
 }
 
 // Labels returns the value of the "labels" field in the mutation.
@@ -4114,9 +4116,23 @@ func (m *UserMutation) OldLabels(ctx context.Context) (v []string, err error) {
 	return oldValue.Labels, nil
 }
 
+// AppendLabels adds s to the "labels" field.
+func (m *UserMutation) AppendLabels(s []string) {
+	m.appendlabels = append(m.appendlabels, s...)
+}
+
+// AppendedLabels returns the list of values that were appended to the "labels" field in this mutation.
+func (m *UserMutation) AppendedLabels() ([]string, bool) {
+	if len(m.appendlabels) == 0 {
+		return nil, false
+	}
+	return m.appendlabels, true
+}
+
 // ClearLabels clears the value of the "labels" field.
 func (m *UserMutation) ClearLabels() {
 	m.labels = nil
+	m.appendlabels = nil
 	m.clearedFields[user.FieldLabels] = struct{}{}
 }
 
@@ -4129,6 +4145,7 @@ func (m *UserMutation) LabelsCleared() bool {
 // ResetLabels resets all changes to the "labels" field.
 func (m *UserMutation) ResetLabels() {
 	m.labels = nil
+	m.appendlabels = nil
 	delete(m.clearedFields, user.FieldLabels)
 }
 

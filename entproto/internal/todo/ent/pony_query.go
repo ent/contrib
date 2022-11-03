@@ -295,6 +295,11 @@ func (pq *PonyQuery) Select(fields ...string) *PonySelect {
 	return selbuild
 }
 
+// Aggregate returns a PonySelect configured with the given aggregations.
+func (pq *PonyQuery) Aggregate(fns ...AggregateFunc) *PonySelect {
+	return pq.Select().Aggregate(fns...)
+}
+
 func (pq *PonyQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range pq.fields {
 		if !pony.ValidColumn(f) {
@@ -346,11 +351,14 @@ func (pq *PonyQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PonyQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := pq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := pq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (pq *PonyQuery) querySpec() *sqlgraph.QuerySpec {
@@ -485,8 +493,6 @@ func (pgb *PonyGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range pgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
 		for _, f := range pgb.fields {
@@ -506,6 +512,12 @@ type PonySelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (ps *PonySelect) Aggregate(fns ...AggregateFunc) *PonySelect {
+	ps.fns = append(ps.fns, fns...)
+	return ps
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (ps *PonySelect) Scan(ctx context.Context, v any) error {
 	if err := ps.prepareQuery(ctx); err != nil {
@@ -516,6 +528,16 @@ func (ps *PonySelect) Scan(ctx context.Context, v any) error {
 }
 
 func (ps *PonySelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(ps.fns))
+	for _, fn := range ps.fns {
+		aggregation = append(aggregation, fn(ps.sql))
+	}
+	switch n := len(*ps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		ps.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		ps.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := ps.sql.Query()
 	if err := ps.driver.Query(ctx, query, args, rows); err != nil {

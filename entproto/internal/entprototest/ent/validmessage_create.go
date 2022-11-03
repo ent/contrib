@@ -175,43 +175,23 @@ func (vmc *ValidMessageCreate) createSpec() (*ValidMessage, *sqlgraph.CreateSpec
 		}
 	)
 	if value, ok := vmc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: validmessage.FieldName,
-		})
+		_spec.SetField(validmessage.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := vmc.mutation.Ts(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: validmessage.FieldTs,
-		})
+		_spec.SetField(validmessage.FieldTs, field.TypeTime, value)
 		_node.Ts = value
 	}
 	if value, ok := vmc.mutation.UUID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: validmessage.FieldUUID,
-		})
+		_spec.SetField(validmessage.FieldUUID, field.TypeUUID, value)
 		_node.UUID = value
 	}
 	if value, ok := vmc.mutation.U8(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.SetField(validmessage.FieldU8, field.TypeUint8, value)
 		_node.U8 = value
 	}
 	if value, ok := vmc.mutation.Opti8(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.SetField(validmessage.FieldOpti8, field.TypeInt8, value)
 		_node.Opti8 = &value
 	}
 	return _node, _spec

@@ -327,7 +327,7 @@ func (c *AllMethodsServiceClient) DeleteOne(ams *AllMethodsService) *AllMethodsS
 	return c.DeleteOneID(ams.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *AllMethodsServiceClient) DeleteOneID(id int) *AllMethodsServiceDeleteOne {
 	builder := c.Delete().Where(allmethodsservice.ID(id))
 	builder.mutation.id = &id
@@ -417,7 +417,7 @@ func (c *BlogPostClient) DeleteOne(bp *BlogPost) *BlogPostDeleteOne {
 	return c.DeleteOneID(bp.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *BlogPostClient) DeleteOneID(id int) *BlogPostDeleteOne {
 	builder := c.Delete().Where(blogpost.ID(id))
 	builder.mutation.id = &id
@@ -449,7 +449,7 @@ func (c *BlogPostClient) GetX(ctx context.Context, id int) *BlogPost {
 // QueryAuthor queries the author edge of a BlogPost.
 func (c *BlogPostClient) QueryAuthor(bp *BlogPost) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := bp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(blogpost.Table, blogpost.FieldID, id),
@@ -465,7 +465,7 @@ func (c *BlogPostClient) QueryAuthor(bp *BlogPost) *UserQuery {
 // QueryCategories queries the categories edge of a BlogPost.
 func (c *BlogPostClient) QueryCategories(bp *BlogPost) *CategoryQuery {
 	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := bp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(blogpost.Table, blogpost.FieldID, id),
@@ -539,7 +539,7 @@ func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -571,7 +571,7 @@ func (c *CategoryClient) GetX(ctx context.Context, id int) *Category {
 // QueryBlogPosts queries the blog_posts edge of a Category.
 func (c *CategoryClient) QueryBlogPosts(ca *Category) *BlogPostQuery {
 	query := &BlogPostQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ca.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(category.Table, category.FieldID, id),
@@ -645,7 +645,7 @@ func (c *DependsOnSkippedClient) DeleteOne(dos *DependsOnSkipped) *DependsOnSkip
 	return c.DeleteOneID(dos.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *DependsOnSkippedClient) DeleteOneID(id int) *DependsOnSkippedDeleteOne {
 	builder := c.Delete().Where(dependsonskipped.ID(id))
 	builder.mutation.id = &id
@@ -677,7 +677,7 @@ func (c *DependsOnSkippedClient) GetX(ctx context.Context, id int) *DependsOnSki
 // QuerySkipped queries the skipped edge of a DependsOnSkipped.
 func (c *DependsOnSkippedClient) QuerySkipped(dos *DependsOnSkipped) *ImplicitSkippedMessageQuery {
 	query := &ImplicitSkippedMessageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := dos.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(dependsonskipped.Table, dependsonskipped.FieldID, id),
@@ -751,7 +751,7 @@ func (c *DuplicateNumberMessageClient) DeleteOne(dnm *DuplicateNumberMessage) *D
 	return c.DeleteOneID(dnm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *DuplicateNumberMessageClient) DeleteOneID(id int) *DuplicateNumberMessageDeleteOne {
 	builder := c.Delete().Where(duplicatenumbermessage.ID(id))
 	builder.mutation.id = &id
@@ -841,7 +841,7 @@ func (c *ExplicitSkippedMessageClient) DeleteOne(esm *ExplicitSkippedMessage) *E
 	return c.DeleteOneID(esm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ExplicitSkippedMessageClient) DeleteOneID(id int) *ExplicitSkippedMessageDeleteOne {
 	builder := c.Delete().Where(explicitskippedmessage.ID(id))
 	builder.mutation.id = &id
@@ -931,7 +931,7 @@ func (c *ImageClient) DeleteOne(i *Image) *ImageDeleteOne {
 	return c.DeleteOneID(i.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ImageClient) DeleteOneID(id uuid.UUID) *ImageDeleteOne {
 	builder := c.Delete().Where(image.ID(id))
 	builder.mutation.id = &id
@@ -963,7 +963,7 @@ func (c *ImageClient) GetX(ctx context.Context, id uuid.UUID) *Image {
 // QueryUserProfilePic queries the user_profile_pic edge of a Image.
 func (c *ImageClient) QueryUserProfilePic(i *Image) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := i.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(image.Table, image.FieldID, id),
@@ -1037,7 +1037,7 @@ func (c *ImplicitSkippedMessageClient) DeleteOne(ism *ImplicitSkippedMessage) *I
 	return c.DeleteOneID(ism.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ImplicitSkippedMessageClient) DeleteOneID(id int) *ImplicitSkippedMessageDeleteOne {
 	builder := c.Delete().Where(implicitskippedmessage.ID(id))
 	builder.mutation.id = &id
@@ -1127,7 +1127,7 @@ func (c *InvalidFieldMessageClient) DeleteOne(ifm *InvalidFieldMessage) *Invalid
 	return c.DeleteOneID(ifm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *InvalidFieldMessageClient) DeleteOneID(id int) *InvalidFieldMessageDeleteOne {
 	builder := c.Delete().Where(invalidfieldmessage.ID(id))
 	builder.mutation.id = &id
@@ -1217,7 +1217,7 @@ func (c *MessageWithEnumClient) DeleteOne(mwe *MessageWithEnum) *MessageWithEnum
 	return c.DeleteOneID(mwe.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithEnumClient) DeleteOneID(id int) *MessageWithEnumDeleteOne {
 	builder := c.Delete().Where(messagewithenum.ID(id))
 	builder.mutation.id = &id
@@ -1307,7 +1307,7 @@ func (c *MessageWithFieldOneClient) DeleteOne(mwfo *MessageWithFieldOne) *Messag
 	return c.DeleteOneID(mwfo.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithFieldOneClient) DeleteOneID(id int) *MessageWithFieldOneDeleteOne {
 	builder := c.Delete().Where(messagewithfieldone.ID(id))
 	builder.mutation.id = &id
@@ -1397,7 +1397,7 @@ func (c *MessageWithIDClient) DeleteOne(mwi *MessageWithID) *MessageWithIDDelete
 	return c.DeleteOneID(mwi.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithIDClient) DeleteOneID(id int32) *MessageWithIDDeleteOne {
 	builder := c.Delete().Where(messagewithid.ID(id))
 	builder.mutation.id = &id
@@ -1487,7 +1487,7 @@ func (c *MessageWithOptionalsClient) DeleteOne(mwo *MessageWithOptionals) *Messa
 	return c.DeleteOneID(mwo.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithOptionalsClient) DeleteOneID(id int) *MessageWithOptionalsDeleteOne {
 	builder := c.Delete().Where(messagewithoptionals.ID(id))
 	builder.mutation.id = &id
@@ -1577,7 +1577,7 @@ func (c *MessageWithPackageNameClient) DeleteOne(mwpn *MessageWithPackageName) *
 	return c.DeleteOneID(mwpn.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithPackageNameClient) DeleteOneID(id int) *MessageWithPackageNameDeleteOne {
 	builder := c.Delete().Where(messagewithpackagename.ID(id))
 	builder.mutation.id = &id
@@ -1667,7 +1667,7 @@ func (c *MessageWithStringsClient) DeleteOne(mws *MessageWithStrings) *MessageWi
 	return c.DeleteOneID(mws.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithStringsClient) DeleteOneID(id int) *MessageWithStringsDeleteOne {
 	builder := c.Delete().Where(messagewithstrings.ID(id))
 	builder.mutation.id = &id
@@ -1757,7 +1757,7 @@ func (c *NoBackrefClient) DeleteOne(nb *NoBackref) *NoBackrefDeleteOne {
 	return c.DeleteOneID(nb.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *NoBackrefClient) DeleteOneID(id int) *NoBackrefDeleteOne {
 	builder := c.Delete().Where(nobackref.ID(id))
 	builder.mutation.id = &id
@@ -1789,7 +1789,7 @@ func (c *NoBackrefClient) GetX(ctx context.Context, id int) *NoBackref {
 // QueryImages queries the images edge of a NoBackref.
 func (c *NoBackrefClient) QueryImages(nb *NoBackref) *ImageQuery {
 	query := &ImageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := nb.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(nobackref.Table, nobackref.FieldID, id),
@@ -1863,7 +1863,7 @@ func (c *OneMethodServiceClient) DeleteOne(oms *OneMethodService) *OneMethodServ
 	return c.DeleteOneID(oms.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *OneMethodServiceClient) DeleteOneID(id int) *OneMethodServiceDeleteOne {
 	builder := c.Delete().Where(onemethodservice.ID(id))
 	builder.mutation.id = &id
@@ -1953,7 +1953,7 @@ func (c *PortalClient) DeleteOne(po *Portal) *PortalDeleteOne {
 	return c.DeleteOneID(po.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *PortalClient) DeleteOneID(id int) *PortalDeleteOne {
 	builder := c.Delete().Where(portal.ID(id))
 	builder.mutation.id = &id
@@ -1985,7 +1985,7 @@ func (c *PortalClient) GetX(ctx context.Context, id int) *Portal {
 // QueryCategory queries the category edge of a Portal.
 func (c *PortalClient) QueryCategory(po *Portal) *CategoryQuery {
 	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := po.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(portal.Table, portal.FieldID, id),
@@ -2059,7 +2059,7 @@ func (c *SkipEdgeExampleClient) DeleteOne(see *SkipEdgeExample) *SkipEdgeExample
 	return c.DeleteOneID(see.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *SkipEdgeExampleClient) DeleteOneID(id int) *SkipEdgeExampleDeleteOne {
 	builder := c.Delete().Where(skipedgeexample.ID(id))
 	builder.mutation.id = &id
@@ -2091,7 +2091,7 @@ func (c *SkipEdgeExampleClient) GetX(ctx context.Context, id int) *SkipEdgeExamp
 // QueryUser queries the user edge of a SkipEdgeExample.
 func (c *SkipEdgeExampleClient) QueryUser(see *SkipEdgeExample) *UserQuery {
 	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := see.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(skipedgeexample.Table, skipedgeexample.FieldID, id),
@@ -2165,7 +2165,7 @@ func (c *TwoMethodServiceClient) DeleteOne(tms *TwoMethodService) *TwoMethodServ
 	return c.DeleteOneID(tms.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *TwoMethodServiceClient) DeleteOneID(id int) *TwoMethodServiceDeleteOne {
 	builder := c.Delete().Where(twomethodservice.ID(id))
 	builder.mutation.id = &id
@@ -2255,7 +2255,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -2287,7 +2287,7 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 // QueryBlogPosts queries the blog_posts edge of a User.
 func (c *UserClient) QueryBlogPosts(u *User) *BlogPostQuery {
 	query := &BlogPostQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -2303,7 +2303,7 @@ func (c *UserClient) QueryBlogPosts(u *User) *BlogPostQuery {
 // QueryProfilePic queries the profile_pic edge of a User.
 func (c *UserClient) QueryProfilePic(u *User) *ImageQuery {
 	query := &ImageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -2319,7 +2319,7 @@ func (c *UserClient) QueryProfilePic(u *User) *ImageQuery {
 // QuerySkipEdge queries the skip_edge edge of a User.
 func (c *UserClient) QuerySkipEdge(u *User) *SkipEdgeExampleQuery {
 	query := &SkipEdgeExampleQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -2393,7 +2393,7 @@ func (c *ValidMessageClient) DeleteOne(vm *ValidMessage) *ValidMessageDeleteOne 
 	return c.DeleteOneID(vm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ValidMessageClient) DeleteOneID(id int) *ValidMessageDeleteOne {
 	builder := c.Delete().Where(validmessage.ID(id))
 	builder.mutation.id = &id

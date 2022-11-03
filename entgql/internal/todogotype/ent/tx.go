@@ -26,6 +26,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// BillProduct is the client for interacting with the BillProduct builders.
+	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -44,12 +46,6 @@ type Tx struct {
 	// lazily loaded.
 	client     *Client
 	clientOnce sync.Once
-
-	// completion callbacks.
-	mu         sync.Mutex
-	onCommit   []CommitHook
-	onRollback []RollbackHook
-
 	// ctx lives for the life of the transaction. It is
 	// the same context used by the underlying connection.
 	ctx context.Context
@@ -94,9 +90,9 @@ func (tx *Tx) Commit() error {
 	var fn Committer = CommitFunc(func(context.Context, *Tx) error {
 		return txDriver.tx.Commit()
 	})
-	tx.mu.Lock()
-	hooks := append([]CommitHook(nil), tx.onCommit...)
-	tx.mu.Unlock()
+	txDriver.mu.Lock()
+	hooks := append([]CommitHook(nil), txDriver.onCommit...)
+	txDriver.mu.Unlock()
 	for i := len(hooks) - 1; i >= 0; i-- {
 		fn = hooks[i](fn)
 	}
@@ -105,9 +101,10 @@ func (tx *Tx) Commit() error {
 
 // OnCommit adds a hook to call on commit.
 func (tx *Tx) OnCommit(f CommitHook) {
-	tx.mu.Lock()
-	defer tx.mu.Unlock()
-	tx.onCommit = append(tx.onCommit, f)
+	txDriver := tx.config.driver.(*txDriver)
+	txDriver.mu.Lock()
+	txDriver.onCommit = append(txDriver.onCommit, f)
+	txDriver.mu.Unlock()
 }
 
 type (
@@ -149,9 +146,9 @@ func (tx *Tx) Rollback() error {
 	var fn Rollbacker = RollbackFunc(func(context.Context, *Tx) error {
 		return txDriver.tx.Rollback()
 	})
-	tx.mu.Lock()
-	hooks := append([]RollbackHook(nil), tx.onRollback...)
-	tx.mu.Unlock()
+	txDriver.mu.Lock()
+	hooks := append([]RollbackHook(nil), txDriver.onRollback...)
+	txDriver.mu.Unlock()
 	for i := len(hooks) - 1; i >= 0; i-- {
 		fn = hooks[i](fn)
 	}
@@ -160,9 +157,10 @@ func (tx *Tx) Rollback() error {
 
 // OnRollback adds a hook to call on rollback.
 func (tx *Tx) OnRollback(f RollbackHook) {
-	tx.mu.Lock()
-	defer tx.mu.Unlock()
-	tx.onRollback = append(tx.onRollback, f)
+	txDriver := tx.config.driver.(*txDriver)
+	txDriver.mu.Lock()
+	txDriver.onRollback = append(txDriver.onRollback, f)
+	txDriver.mu.Unlock()
 }
 
 // Client returns a Client that binds to current transaction.
@@ -175,6 +173,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.BillProduct = NewBillProductClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
@@ -191,7 +190,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Category.QueryXXX(), the query will be executed
+// applies a query, for example: BillProduct.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
@@ -200,6 +199,10 @@ type txDriver struct {
 	drv dialect.Driver
 	// tx is the underlying transaction.
 	tx dialect.Tx
+	// completion hooks.
+	mu         sync.Mutex
+	onCommit   []CommitHook
+	onRollback []RollbackHook
 }
 
 // newTx creates a new transactional driver.

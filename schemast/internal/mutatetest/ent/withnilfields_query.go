@@ -273,6 +273,11 @@ func (wnfq *WithNilFieldsQuery) Select(fields ...string) *WithNilFieldsSelect {
 	return selbuild
 }
 
+// Aggregate returns a WithNilFieldsSelect configured with the given aggregations.
+func (wnfq *WithNilFieldsQuery) Aggregate(fns ...AggregateFunc) *WithNilFieldsSelect {
+	return wnfq.Select().Aggregate(fns...)
+}
+
 func (wnfq *WithNilFieldsQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range wnfq.fields {
 		if !withnilfields.ValidColumn(f) {
@@ -324,11 +329,14 @@ func (wnfq *WithNilFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wnfq *WithNilFieldsQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := wnfq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := wnfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -463,8 +471,6 @@ func (wnfgb *WithNilFieldsGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range wnfgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(wnfgb.fields)+len(wnfgb.fns))
 		for _, f := range wnfgb.fields {
@@ -484,6 +490,12 @@ type WithNilFieldsSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (wnfs *WithNilFieldsSelect) Aggregate(fns ...AggregateFunc) *WithNilFieldsSelect {
+	wnfs.fns = append(wnfs.fns, fns...)
+	return wnfs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v any) error {
 	if err := wnfs.prepareQuery(ctx); err != nil {
@@ -494,6 +506,16 @@ func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (wnfs *WithNilFieldsSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(wnfs.fns))
+	for _, fn := range wnfs.fns {
+		aggregation = append(aggregation, fn(wnfs.sql))
+	}
+	switch n := len(*wnfs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		wnfs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		wnfs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := wnfs.sql.Query()
 	if err := wnfs.driver.Query(ctx, query, args, rows); err != nil {

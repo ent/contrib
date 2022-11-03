@@ -332,6 +332,11 @@ func (wmfq *WithModifiedFieldQuery) Select(fields ...string) *WithModifiedFieldS
 	return selbuild
 }
 
+// Aggregate returns a WithModifiedFieldSelect configured with the given aggregations.
+func (wmfq *WithModifiedFieldQuery) Aggregate(fns ...AggregateFunc) *WithModifiedFieldSelect {
+	return wmfq.Select().Aggregate(fns...)
+}
+
 func (wmfq *WithModifiedFieldQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range wmfq.fields {
 		if !withmodifiedfield.ValidColumn(f) {
@@ -430,11 +435,14 @@ func (wmfq *WithModifiedFieldQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wmfq *WithModifiedFieldQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := wmfq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := wmfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
@@ -569,8 +577,6 @@ func (wmfgb *WithModifiedFieldGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range wmfgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(wmfgb.fields)+len(wmfgb.fns))
 		for _, f := range wmfgb.fields {
@@ -590,6 +596,12 @@ type WithModifiedFieldSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (wmfs *WithModifiedFieldSelect) Aggregate(fns ...AggregateFunc) *WithModifiedFieldSelect {
+	wmfs.fns = append(wmfs.fns, fns...)
+	return wmfs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v any) error {
 	if err := wmfs.prepareQuery(ctx); err != nil {
@@ -600,6 +612,16 @@ func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(wmfs.fns))
+	for _, fn := range wmfs.fns {
+		aggregation = append(aggregation, fn(wmfs.sql))
+	}
+	switch n := len(*wmfs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		wmfs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		wmfs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := wmfs.sql.Query()
 	if err := wmfs.driver.Query(ctx, query, args, rows); err != nil {

@@ -383,6 +383,11 @@ func (fq *FriendshipQuery) Select(fields ...string) *FriendshipSelect {
 	return selbuild
 }
 
+// Aggregate returns a FriendshipSelect configured with the given aggregations.
+func (fq *FriendshipQuery) Aggregate(fns ...AggregateFunc) *FriendshipSelect {
+	return fq.Select().Aggregate(fns...)
+}
+
 func (fq *FriendshipQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range fq.fields {
 		if !friendship.ValidColumn(f) {
@@ -515,11 +520,14 @@ func (fq *FriendshipQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (fq *FriendshipQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := fq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := fq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (fq *FriendshipQuery) querySpec() *sqlgraph.QuerySpec {
@@ -654,8 +662,6 @@ func (fgb *FriendshipGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range fgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(fgb.fields)+len(fgb.fns))
 		for _, f := range fgb.fields {
@@ -675,6 +681,12 @@ type FriendshipSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (fs *FriendshipSelect) Aggregate(fns ...AggregateFunc) *FriendshipSelect {
+	fs.fns = append(fs.fns, fns...)
+	return fs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (fs *FriendshipSelect) Scan(ctx context.Context, v any) error {
 	if err := fs.prepareQuery(ctx); err != nil {
@@ -685,6 +697,16 @@ func (fs *FriendshipSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (fs *FriendshipSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(fs.fns))
+	for _, fn := range fs.fns {
+		aggregation = append(aggregation, fn(fs.sql))
+	}
+	switch n := len(*fs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		fs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		fs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := fs.sql.Query()
 	if err := fs.driver.Query(ctx, query, args, rows); err != nil {

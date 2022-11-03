@@ -332,6 +332,11 @@ func (cq *CategoryQuery) Select(fields ...string) *CategorySelect {
 	return selbuild
 }
 
+// Aggregate returns a CategorySelect configured with the given aggregations.
+func (cq *CategoryQuery) Aggregate(fns ...AggregateFunc) *CategorySelect {
+	return cq.Select().Aggregate(fns...)
+}
+
 func (cq *CategoryQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range cq.fields {
 		if !category.ValidColumn(f) {
@@ -421,7 +426,7 @@ func (cq *CategoryQuery) loadPets(ctx context.Context, query *PetQuery, nodes []
 			outValue := int(values[0].(*sql.NullInt64).Int64)
 			inValue := int(values[1].(*sql.NullInt64).Int64)
 			if nids[inValue] == nil {
-				nids[inValue] = map[*Category]struct{}{byID[outValue]: struct{}{}}
+				nids[inValue] = map[*Category]struct{}{byID[outValue]: {}}
 				return assign(columns[1:], values[1:])
 			}
 			nids[inValue][byID[outValue]] = struct{}{}
@@ -453,11 +458,14 @@ func (cq *CategoryQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (cq *CategoryQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := cq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := cq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("simple: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (cq *CategoryQuery) querySpec() *sqlgraph.QuerySpec {
@@ -592,8 +600,6 @@ func (cgb *CategoryGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range cgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(cgb.fields)+len(cgb.fns))
 		for _, f := range cgb.fields {
@@ -613,6 +619,12 @@ type CategorySelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (cs *CategorySelect) Aggregate(fns ...AggregateFunc) *CategorySelect {
+	cs.fns = append(cs.fns, fns...)
+	return cs
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (cs *CategorySelect) Scan(ctx context.Context, v any) error {
 	if err := cs.prepareQuery(ctx); err != nil {
@@ -623,6 +635,16 @@ func (cs *CategorySelect) Scan(ctx context.Context, v any) error {
 }
 
 func (cs *CategorySelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(cs.fns))
+	for _, fn := range cs.fns {
+		aggregation = append(aggregation, fn(cs.sql))
+	}
+	switch n := len(*cs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		cs.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		cs.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := cs.sql.Query()
 	if err := cs.driver.Query(ctx, query, args, rows); err != nil {

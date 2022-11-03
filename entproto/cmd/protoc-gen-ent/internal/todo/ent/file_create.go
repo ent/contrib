@@ -147,11 +147,7 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = id
 	}
 	if value, ok := fc.mutation.Contents(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: file.FieldContents,
-		})
+		_spec.SetField(file.FieldContents, field.TypeString, value)
 		_node.Contents = value
 	}
 	return _node, _spec

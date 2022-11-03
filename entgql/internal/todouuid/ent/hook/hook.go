@@ -23,6 +23,19 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 )
 
+// The BillProductFunc type is an adapter to allow the use of ordinary
+// function as BillProduct mutator.
+type BillProductFunc func(context.Context, *ent.BillProductMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BillProductFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.BillProductMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BillProductMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The CategoryFunc type is an adapter to allow the use of ordinary
 // function as Category mutator.
 type CategoryFunc func(context.Context, *ent.CategoryMutation) (ent.Value, error)

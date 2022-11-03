@@ -17,6 +17,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -44,6 +45,8 @@ type Todo struct {
 	Blob []byte `json:"blob,omitempty"`
 	// CategoryID holds the value of the "category_id" field.
 	CategoryID int `json:"category_id,omitempty"`
+	// Init holds the value of the "init" field.
+	Init map[string]interface{} `json:"init,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
@@ -123,7 +126,7 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case todo.FieldBlob:
+		case todo.FieldBlob, todo.FieldInit:
 			values[i] = new([]byte)
 		case todo.FieldID, todo.FieldPriority, todo.FieldCategoryID:
 			values[i] = new(sql.NullInt64)
@@ -191,6 +194,14 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field category_id", values[i])
 			} else if value.Valid {
 				t.CategoryID = int(value.Int64)
+			}
+		case todo.FieldInit:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field init", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Init); err != nil {
+					return fmt.Errorf("unmarshal field init: %w", err)
+				}
 			}
 		case todo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -271,6 +282,9 @@ func (t *Todo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("category_id=")
 	builder.WriteString(fmt.Sprintf("%v", t.CategoryID))
+	builder.WriteString(", ")
+	builder.WriteString("init=")
+	builder.WriteString(fmt.Sprintf("%v", t.Init))
 	builder.WriteByte(')')
 	return builder.String()
 }

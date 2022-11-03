@@ -295,6 +295,11 @@ func (otq *OASTypesQuery) Select(fields ...string) *OASTypesSelect {
 	return selbuild
 }
 
+// Aggregate returns a OASTypesSelect configured with the given aggregations.
+func (otq *OASTypesQuery) Aggregate(fns ...AggregateFunc) *OASTypesSelect {
+	return otq.Select().Aggregate(fns...)
+}
+
 func (otq *OASTypesQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range otq.fields {
 		if !oastypes.ValidColumn(f) {
@@ -346,11 +351,14 @@ func (otq *OASTypesQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (otq *OASTypesQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := otq.sqlCount(ctx)
-	if err != nil {
+	switch _, err := otq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
 		return false, fmt.Errorf("oastypes: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return n > 0, nil
 }
 
 func (otq *OASTypesQuery) querySpec() *sqlgraph.QuerySpec {
@@ -485,8 +493,6 @@ func (otgb *OASTypesGroupBy) sqlQuery() *sql.Selector {
 	for _, fn := range otgb.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
 	if len(selector.SelectedColumns()) == 0 {
 		columns := make([]string, 0, len(otgb.fields)+len(otgb.fns))
 		for _, f := range otgb.fields {
@@ -506,6 +512,12 @@ type OASTypesSelect struct {
 	sql *sql.Selector
 }
 
+// Aggregate adds the given aggregation functions to the selector query.
+func (ots *OASTypesSelect) Aggregate(fns ...AggregateFunc) *OASTypesSelect {
+	ots.fns = append(ots.fns, fns...)
+	return ots
+}
+
 // Scan applies the selector query and scans the result into the given value.
 func (ots *OASTypesSelect) Scan(ctx context.Context, v any) error {
 	if err := ots.prepareQuery(ctx); err != nil {
@@ -516,6 +528,16 @@ func (ots *OASTypesSelect) Scan(ctx context.Context, v any) error {
 }
 
 func (ots *OASTypesSelect) sqlScan(ctx context.Context, v any) error {
+	aggregation := make([]string, 0, len(ots.fns))
+	for _, fn := range ots.fns {
+		aggregation = append(aggregation, fn(ots.sql))
+	}
+	switch n := len(*ots.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		ots.sql.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		ots.sql.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
 	query, args := ots.sql.Query()
 	if err := ots.driver.Query(ctx, query, args, rows); err != nil {

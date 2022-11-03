@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
@@ -30,6 +31,272 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 )
+
+// BillProductWhereInput represents a where input for filtering BillProduct queries.
+type BillProductWhereInput struct {
+	Predicates []predicate.BillProduct  `json:"-"`
+	Not        *BillProductWhereInput   `json:"not,omitempty"`
+	Or         []*BillProductWhereInput `json:"or,omitempty"`
+	And        []*BillProductWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *int  `json:"id,omitempty"`
+	IDNEQ   *int  `json:"idNEQ,omitempty"`
+	IDIn    []int `json:"idIn,omitempty"`
+	IDNotIn []int `json:"idNotIn,omitempty"`
+	IDGT    *int  `json:"idGT,omitempty"`
+	IDGTE   *int  `json:"idGTE,omitempty"`
+	IDLT    *int  `json:"idLT,omitempty"`
+	IDLTE   *int  `json:"idLTE,omitempty"`
+
+	// "name" field predicates.
+	Name             *string  `json:"name,omitempty"`
+	NameNEQ          *string  `json:"nameNEQ,omitempty"`
+	NameIn           []string `json:"nameIn,omitempty"`
+	NameNotIn        []string `json:"nameNotIn,omitempty"`
+	NameGT           *string  `json:"nameGT,omitempty"`
+	NameGTE          *string  `json:"nameGTE,omitempty"`
+	NameLT           *string  `json:"nameLT,omitempty"`
+	NameLTE          *string  `json:"nameLTE,omitempty"`
+	NameContains     *string  `json:"nameContains,omitempty"`
+	NameHasPrefix    *string  `json:"nameHasPrefix,omitempty"`
+	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
+	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
+	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
+
+	// "sku" field predicates.
+	Sku             *string  `json:"sku,omitempty"`
+	SkuNEQ          *string  `json:"skuNEQ,omitempty"`
+	SkuIn           []string `json:"skuIn,omitempty"`
+	SkuNotIn        []string `json:"skuNotIn,omitempty"`
+	SkuGT           *string  `json:"skuGT,omitempty"`
+	SkuGTE          *string  `json:"skuGTE,omitempty"`
+	SkuLT           *string  `json:"skuLT,omitempty"`
+	SkuLTE          *string  `json:"skuLTE,omitempty"`
+	SkuContains     *string  `json:"skuContains,omitempty"`
+	SkuHasPrefix    *string  `json:"skuHasPrefix,omitempty"`
+	SkuHasSuffix    *string  `json:"skuHasSuffix,omitempty"`
+	SkuEqualFold    *string  `json:"skuEqualFold,omitempty"`
+	SkuContainsFold *string  `json:"skuContainsFold,omitempty"`
+
+	// "quantity" field predicates.
+	Quantity      *uint64  `json:"quantity,omitempty"`
+	QuantityNEQ   *uint64  `json:"quantityNEQ,omitempty"`
+	QuantityIn    []uint64 `json:"quantityIn,omitempty"`
+	QuantityNotIn []uint64 `json:"quantityNotIn,omitempty"`
+	QuantityGT    *uint64  `json:"quantityGT,omitempty"`
+	QuantityGTE   *uint64  `json:"quantityGTE,omitempty"`
+	QuantityLT    *uint64  `json:"quantityLT,omitempty"`
+	QuantityLTE   *uint64  `json:"quantityLTE,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *BillProductWhereInput) AddPredicates(predicates ...predicate.BillProduct) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the BillProductWhereInput filter on the BillProductQuery builder.
+func (i *BillProductWhereInput) Filter(q *BillProductQuery) (*BillProductQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyBillProductWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyBillProductWhereInput is returned in case the BillProductWhereInput is empty.
+var ErrEmptyBillProductWhereInput = errors.New("ent: empty predicate BillProductWhereInput")
+
+// P returns a predicate for filtering billproducts.
+// An error is returned if the input is empty or invalid.
+func (i *BillProductWhereInput) P() (predicate.BillProduct, error) {
+	var predicates []predicate.BillProduct
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, billproduct.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.BillProduct, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, billproduct.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.BillProduct, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, billproduct.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, billproduct.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, billproduct.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, billproduct.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, billproduct.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, billproduct.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, billproduct.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, billproduct.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, billproduct.IDLTE(*i.IDLTE))
+	}
+	if i.Name != nil {
+		predicates = append(predicates, billproduct.NameEQ(*i.Name))
+	}
+	if i.NameNEQ != nil {
+		predicates = append(predicates, billproduct.NameNEQ(*i.NameNEQ))
+	}
+	if len(i.NameIn) > 0 {
+		predicates = append(predicates, billproduct.NameIn(i.NameIn...))
+	}
+	if len(i.NameNotIn) > 0 {
+		predicates = append(predicates, billproduct.NameNotIn(i.NameNotIn...))
+	}
+	if i.NameGT != nil {
+		predicates = append(predicates, billproduct.NameGT(*i.NameGT))
+	}
+	if i.NameGTE != nil {
+		predicates = append(predicates, billproduct.NameGTE(*i.NameGTE))
+	}
+	if i.NameLT != nil {
+		predicates = append(predicates, billproduct.NameLT(*i.NameLT))
+	}
+	if i.NameLTE != nil {
+		predicates = append(predicates, billproduct.NameLTE(*i.NameLTE))
+	}
+	if i.NameContains != nil {
+		predicates = append(predicates, billproduct.NameContains(*i.NameContains))
+	}
+	if i.NameHasPrefix != nil {
+		predicates = append(predicates, billproduct.NameHasPrefix(*i.NameHasPrefix))
+	}
+	if i.NameHasSuffix != nil {
+		predicates = append(predicates, billproduct.NameHasSuffix(*i.NameHasSuffix))
+	}
+	if i.NameEqualFold != nil {
+		predicates = append(predicates, billproduct.NameEqualFold(*i.NameEqualFold))
+	}
+	if i.NameContainsFold != nil {
+		predicates = append(predicates, billproduct.NameContainsFold(*i.NameContainsFold))
+	}
+	if i.Sku != nil {
+		predicates = append(predicates, billproduct.SkuEQ(*i.Sku))
+	}
+	if i.SkuNEQ != nil {
+		predicates = append(predicates, billproduct.SkuNEQ(*i.SkuNEQ))
+	}
+	if len(i.SkuIn) > 0 {
+		predicates = append(predicates, billproduct.SkuIn(i.SkuIn...))
+	}
+	if len(i.SkuNotIn) > 0 {
+		predicates = append(predicates, billproduct.SkuNotIn(i.SkuNotIn...))
+	}
+	if i.SkuGT != nil {
+		predicates = append(predicates, billproduct.SkuGT(*i.SkuGT))
+	}
+	if i.SkuGTE != nil {
+		predicates = append(predicates, billproduct.SkuGTE(*i.SkuGTE))
+	}
+	if i.SkuLT != nil {
+		predicates = append(predicates, billproduct.SkuLT(*i.SkuLT))
+	}
+	if i.SkuLTE != nil {
+		predicates = append(predicates, billproduct.SkuLTE(*i.SkuLTE))
+	}
+	if i.SkuContains != nil {
+		predicates = append(predicates, billproduct.SkuContains(*i.SkuContains))
+	}
+	if i.SkuHasPrefix != nil {
+		predicates = append(predicates, billproduct.SkuHasPrefix(*i.SkuHasPrefix))
+	}
+	if i.SkuHasSuffix != nil {
+		predicates = append(predicates, billproduct.SkuHasSuffix(*i.SkuHasSuffix))
+	}
+	if i.SkuEqualFold != nil {
+		predicates = append(predicates, billproduct.SkuEqualFold(*i.SkuEqualFold))
+	}
+	if i.SkuContainsFold != nil {
+		predicates = append(predicates, billproduct.SkuContainsFold(*i.SkuContainsFold))
+	}
+	if i.Quantity != nil {
+		predicates = append(predicates, billproduct.QuantityEQ(*i.Quantity))
+	}
+	if i.QuantityNEQ != nil {
+		predicates = append(predicates, billproduct.QuantityNEQ(*i.QuantityNEQ))
+	}
+	if len(i.QuantityIn) > 0 {
+		predicates = append(predicates, billproduct.QuantityIn(i.QuantityIn...))
+	}
+	if len(i.QuantityNotIn) > 0 {
+		predicates = append(predicates, billproduct.QuantityNotIn(i.QuantityNotIn...))
+	}
+	if i.QuantityGT != nil {
+		predicates = append(predicates, billproduct.QuantityGT(*i.QuantityGT))
+	}
+	if i.QuantityGTE != nil {
+		predicates = append(predicates, billproduct.QuantityGTE(*i.QuantityGTE))
+	}
+	if i.QuantityLT != nil {
+		predicates = append(predicates, billproduct.QuantityLT(*i.QuantityLT))
+	}
+	if i.QuantityLTE != nil {
+		predicates = append(predicates, billproduct.QuantityLTE(*i.QuantityLTE))
+	}
+
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyBillProductWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return billproduct.And(predicates...), nil
+	}
+}
 
 // CategoryWhereInput represents a where input for filtering Category queries.
 type CategoryWhereInput struct {
@@ -1229,6 +1496,23 @@ type UserWhereInput struct {
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
 
+	// "password" field predicates.
+	Password             *string  `json:"password,omitempty"`
+	PasswordNEQ          *string  `json:"passwordNEQ,omitempty"`
+	PasswordIn           []string `json:"passwordIn,omitempty"`
+	PasswordNotIn        []string `json:"passwordNotIn,omitempty"`
+	PasswordGT           *string  `json:"passwordGT,omitempty"`
+	PasswordGTE          *string  `json:"passwordGTE,omitempty"`
+	PasswordLT           *string  `json:"passwordLT,omitempty"`
+	PasswordLTE          *string  `json:"passwordLTE,omitempty"`
+	PasswordContains     *string  `json:"passwordContains,omitempty"`
+	PasswordHasPrefix    *string  `json:"passwordHasPrefix,omitempty"`
+	PasswordHasSuffix    *string  `json:"passwordHasSuffix,omitempty"`
+	PasswordIsNil        bool     `json:"passwordIsNil,omitempty"`
+	PasswordNotNil       bool     `json:"passwordNotNil,omitempty"`
+	PasswordEqualFold    *string  `json:"passwordEqualFold,omitempty"`
+	PasswordContainsFold *string  `json:"passwordContainsFold,omitempty"`
+
 	// "groups" edge predicates.
 	HasGroups     *bool              `json:"hasGroups,omitempty"`
 	HasGroupsWith []*GroupWhereInput `json:"hasGroupsWith,omitempty"`
@@ -1382,6 +1666,51 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if i.NameContainsFold != nil {
 		predicates = append(predicates, user.NameContainsFold(*i.NameContainsFold))
+	}
+	if i.Password != nil {
+		predicates = append(predicates, user.PasswordEQ(*i.Password))
+	}
+	if i.PasswordNEQ != nil {
+		predicates = append(predicates, user.PasswordNEQ(*i.PasswordNEQ))
+	}
+	if len(i.PasswordIn) > 0 {
+		predicates = append(predicates, user.PasswordIn(i.PasswordIn...))
+	}
+	if len(i.PasswordNotIn) > 0 {
+		predicates = append(predicates, user.PasswordNotIn(i.PasswordNotIn...))
+	}
+	if i.PasswordGT != nil {
+		predicates = append(predicates, user.PasswordGT(*i.PasswordGT))
+	}
+	if i.PasswordGTE != nil {
+		predicates = append(predicates, user.PasswordGTE(*i.PasswordGTE))
+	}
+	if i.PasswordLT != nil {
+		predicates = append(predicates, user.PasswordLT(*i.PasswordLT))
+	}
+	if i.PasswordLTE != nil {
+		predicates = append(predicates, user.PasswordLTE(*i.PasswordLTE))
+	}
+	if i.PasswordContains != nil {
+		predicates = append(predicates, user.PasswordContains(*i.PasswordContains))
+	}
+	if i.PasswordHasPrefix != nil {
+		predicates = append(predicates, user.PasswordHasPrefix(*i.PasswordHasPrefix))
+	}
+	if i.PasswordHasSuffix != nil {
+		predicates = append(predicates, user.PasswordHasSuffix(*i.PasswordHasSuffix))
+	}
+	if i.PasswordIsNil {
+		predicates = append(predicates, user.PasswordIsNil())
+	}
+	if i.PasswordNotNil {
+		predicates = append(predicates, user.PasswordNotNil())
+	}
+	if i.PasswordEqualFold != nil {
+		predicates = append(predicates, user.PasswordEqualFold(*i.PasswordEqualFold))
+	}
+	if i.PasswordContainsFold != nil {
+		predicates = append(predicates, user.PasswordContainsFold(*i.PasswordContainsFold))
 	}
 
 	if i.HasGroups != nil {
