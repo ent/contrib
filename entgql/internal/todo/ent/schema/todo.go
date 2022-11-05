@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
@@ -72,6 +73,18 @@ func (Todo) Fields() []ent.Field {
 		field.JSON("init", map[string]any{}).
 			Optional().
 			Annotations(entgql.Type("Map")),
+		field.JSON("custom", []customstruct.Custom{}).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput),
+				entgql.Skip(entgql.SkipMutationUpdateInput),
+			).
+			Optional(),
+		field.JSON("customp", []*customstruct.Custom{}).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput),
+				entgql.Skip(entgql.SkipMutationUpdateInput),
+			).
+			Optional(),
 	}
 }
 

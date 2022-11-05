@@ -22,10 +22,12 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -96,6 +98,42 @@ func (tu *TodoUpdate) SetInit(m map[string]interface{}) *TodoUpdate {
 // ClearInit clears the value of the "init" field.
 func (tu *TodoUpdate) ClearInit() *TodoUpdate {
 	tu.mutation.ClearInit()
+	return tu
+}
+
+// SetCustom sets the "custom" field.
+func (tu *TodoUpdate) SetCustom(c []customstruct.Custom) *TodoUpdate {
+	tu.mutation.SetCustom(c)
+	return tu
+}
+
+// AppendCustom appends c to the "custom" field.
+func (tu *TodoUpdate) AppendCustom(c []customstruct.Custom) *TodoUpdate {
+	tu.mutation.AppendCustom(c)
+	return tu
+}
+
+// ClearCustom clears the value of the "custom" field.
+func (tu *TodoUpdate) ClearCustom() *TodoUpdate {
+	tu.mutation.ClearCustom()
+	return tu
+}
+
+// SetCustomp sets the "customp" field.
+func (tu *TodoUpdate) SetCustomp(c []*customstruct.Custom) *TodoUpdate {
+	tu.mutation.SetCustomp(c)
+	return tu
+}
+
+// AppendCustomp appends c to the "customp" field.
+func (tu *TodoUpdate) AppendCustomp(c []*customstruct.Custom) *TodoUpdate {
+	tu.mutation.AppendCustomp(c)
+	return tu
+}
+
+// ClearCustomp clears the value of the "customp" field.
+func (tu *TodoUpdate) ClearCustomp() *TodoUpdate {
+	tu.mutation.ClearCustomp()
 	return tu
 }
 
@@ -307,6 +345,28 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if tu.mutation.InitCleared() {
 		_spec.ClearField(todo.FieldInit, field.TypeJSON)
 	}
+	if value, ok := tu.mutation.Custom(); ok {
+		_spec.SetField(todo.FieldCustom, field.TypeJSON, value)
+	}
+	if value, ok := tu.mutation.AppendedCustom(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, todo.FieldCustom, value)
+		})
+	}
+	if tu.mutation.CustomCleared() {
+		_spec.ClearField(todo.FieldCustom, field.TypeJSON)
+	}
+	if value, ok := tu.mutation.Customp(); ok {
+		_spec.SetField(todo.FieldCustomp, field.TypeJSON, value)
+	}
+	if value, ok := tu.mutation.AppendedCustomp(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, todo.FieldCustomp, value)
+		})
+	}
+	if tu.mutation.CustompCleared() {
+		_spec.ClearField(todo.FieldCustomp, field.TypeJSON)
+	}
 	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -504,6 +564,42 @@ func (tuo *TodoUpdateOne) SetInit(m map[string]interface{}) *TodoUpdateOne {
 // ClearInit clears the value of the "init" field.
 func (tuo *TodoUpdateOne) ClearInit() *TodoUpdateOne {
 	tuo.mutation.ClearInit()
+	return tuo
+}
+
+// SetCustom sets the "custom" field.
+func (tuo *TodoUpdateOne) SetCustom(c []customstruct.Custom) *TodoUpdateOne {
+	tuo.mutation.SetCustom(c)
+	return tuo
+}
+
+// AppendCustom appends c to the "custom" field.
+func (tuo *TodoUpdateOne) AppendCustom(c []customstruct.Custom) *TodoUpdateOne {
+	tuo.mutation.AppendCustom(c)
+	return tuo
+}
+
+// ClearCustom clears the value of the "custom" field.
+func (tuo *TodoUpdateOne) ClearCustom() *TodoUpdateOne {
+	tuo.mutation.ClearCustom()
+	return tuo
+}
+
+// SetCustomp sets the "customp" field.
+func (tuo *TodoUpdateOne) SetCustomp(c []*customstruct.Custom) *TodoUpdateOne {
+	tuo.mutation.SetCustomp(c)
+	return tuo
+}
+
+// AppendCustomp appends c to the "customp" field.
+func (tuo *TodoUpdateOne) AppendCustomp(c []*customstruct.Custom) *TodoUpdateOne {
+	tuo.mutation.AppendCustomp(c)
+	return tuo
+}
+
+// ClearCustomp clears the value of the "customp" field.
+func (tuo *TodoUpdateOne) ClearCustomp() *TodoUpdateOne {
+	tuo.mutation.ClearCustomp()
 	return tuo
 }
 
@@ -744,6 +840,28 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 	}
 	if tuo.mutation.InitCleared() {
 		_spec.ClearField(todo.FieldInit, field.TypeJSON)
+	}
+	if value, ok := tuo.mutation.Custom(); ok {
+		_spec.SetField(todo.FieldCustom, field.TypeJSON, value)
+	}
+	if value, ok := tuo.mutation.AppendedCustom(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, todo.FieldCustom, value)
+		})
+	}
+	if tuo.mutation.CustomCleared() {
+		_spec.ClearField(todo.FieldCustom, field.TypeJSON)
+	}
+	if value, ok := tuo.mutation.Customp(); ok {
+		_spec.SetField(todo.FieldCustomp, field.TypeJSON, value)
+	}
+	if value, ok := tuo.mutation.AppendedCustomp(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, todo.FieldCustomp, value)
+		})
+	}
+	if tuo.mutation.CustompCleared() {
+		_spec.ClearField(todo.FieldCustomp, field.TypeJSON)
 	}
 	if tuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{

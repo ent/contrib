@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
@@ -2309,6 +2310,10 @@ type TodoMutation struct {
 	text            *string
 	blob            *[]byte
 	init            *map[string]interface{}
+	custom          *[]customstruct.Custom
+	appendcustom    []customstruct.Custom
+	customp         *[]*customstruct.Custom
+	appendcustomp   []*customstruct.Custom
 	clearedFields   map[string]struct{}
 	parent          *uuid.UUID
 	clearedparent   bool
@@ -2690,6 +2695,136 @@ func (m *TodoMutation) ResetInit() {
 	delete(m.clearedFields, todo.FieldInit)
 }
 
+// SetCustom sets the "custom" field.
+func (m *TodoMutation) SetCustom(c []customstruct.Custom) {
+	m.custom = &c
+	m.appendcustom = nil
+}
+
+// Custom returns the value of the "custom" field in the mutation.
+func (m *TodoMutation) Custom() (r []customstruct.Custom, exists bool) {
+	v := m.custom
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustom returns the old "custom" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldCustom(ctx context.Context) (v []customstruct.Custom, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustom: %w", err)
+	}
+	return oldValue.Custom, nil
+}
+
+// AppendCustom adds c to the "custom" field.
+func (m *TodoMutation) AppendCustom(c []customstruct.Custom) {
+	m.appendcustom = append(m.appendcustom, c...)
+}
+
+// AppendedCustom returns the list of values that were appended to the "custom" field in this mutation.
+func (m *TodoMutation) AppendedCustom() ([]customstruct.Custom, bool) {
+	if len(m.appendcustom) == 0 {
+		return nil, false
+	}
+	return m.appendcustom, true
+}
+
+// ClearCustom clears the value of the "custom" field.
+func (m *TodoMutation) ClearCustom() {
+	m.custom = nil
+	m.appendcustom = nil
+	m.clearedFields[todo.FieldCustom] = struct{}{}
+}
+
+// CustomCleared returns if the "custom" field was cleared in this mutation.
+func (m *TodoMutation) CustomCleared() bool {
+	_, ok := m.clearedFields[todo.FieldCustom]
+	return ok
+}
+
+// ResetCustom resets all changes to the "custom" field.
+func (m *TodoMutation) ResetCustom() {
+	m.custom = nil
+	m.appendcustom = nil
+	delete(m.clearedFields, todo.FieldCustom)
+}
+
+// SetCustomp sets the "customp" field.
+func (m *TodoMutation) SetCustomp(c []*customstruct.Custom) {
+	m.customp = &c
+	m.appendcustomp = nil
+}
+
+// Customp returns the value of the "customp" field in the mutation.
+func (m *TodoMutation) Customp() (r []*customstruct.Custom, exists bool) {
+	v := m.customp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomp returns the old "customp" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldCustomp(ctx context.Context) (v []*customstruct.Custom, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomp: %w", err)
+	}
+	return oldValue.Customp, nil
+}
+
+// AppendCustomp adds c to the "customp" field.
+func (m *TodoMutation) AppendCustomp(c []*customstruct.Custom) {
+	m.appendcustomp = append(m.appendcustomp, c...)
+}
+
+// AppendedCustomp returns the list of values that were appended to the "customp" field in this mutation.
+func (m *TodoMutation) AppendedCustomp() ([]*customstruct.Custom, bool) {
+	if len(m.appendcustomp) == 0 {
+		return nil, false
+	}
+	return m.appendcustomp, true
+}
+
+// ClearCustomp clears the value of the "customp" field.
+func (m *TodoMutation) ClearCustomp() {
+	m.customp = nil
+	m.appendcustomp = nil
+	m.clearedFields[todo.FieldCustomp] = struct{}{}
+}
+
+// CustompCleared returns if the "customp" field was cleared in this mutation.
+func (m *TodoMutation) CustompCleared() bool {
+	_, ok := m.clearedFields[todo.FieldCustomp]
+	return ok
+}
+
+// ResetCustomp resets all changes to the "customp" field.
+func (m *TodoMutation) ResetCustomp() {
+	m.customp = nil
+	m.appendcustomp = nil
+	delete(m.clearedFields, todo.FieldCustomp)
+}
+
 // SetCategoryID sets the "category_id" field.
 func (m *TodoMutation) SetCategoryID(u uuid.UUID) {
 	m.category = &u
@@ -2916,7 +3051,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -2934,6 +3069,12 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.init != nil {
 		fields = append(fields, todo.FieldInit)
+	}
+	if m.custom != nil {
+		fields = append(fields, todo.FieldCustom)
+	}
+	if m.customp != nil {
+		fields = append(fields, todo.FieldCustomp)
 	}
 	if m.category != nil {
 		fields = append(fields, todo.FieldCategoryID)
@@ -2958,6 +3099,10 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Blob()
 	case todo.FieldInit:
 		return m.Init()
+	case todo.FieldCustom:
+		return m.Custom()
+	case todo.FieldCustomp:
+		return m.Customp()
 	case todo.FieldCategoryID:
 		return m.CategoryID()
 	}
@@ -2981,6 +3126,10 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldBlob(ctx)
 	case todo.FieldInit:
 		return m.OldInit(ctx)
+	case todo.FieldCustom:
+		return m.OldCustom(ctx)
+	case todo.FieldCustomp:
+		return m.OldCustomp(ctx)
 	case todo.FieldCategoryID:
 		return m.OldCategoryID(ctx)
 	}
@@ -3033,6 +3182,20 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInit(v)
+		return nil
+	case todo.FieldCustom:
+		v, ok := value.([]customstruct.Custom)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustom(v)
+		return nil
+	case todo.FieldCustomp:
+		v, ok := value.([]*customstruct.Custom)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomp(v)
 		return nil
 	case todo.FieldCategoryID:
 		v, ok := value.(uuid.UUID)
@@ -3092,6 +3255,12 @@ func (m *TodoMutation) ClearedFields() []string {
 	if m.FieldCleared(todo.FieldInit) {
 		fields = append(fields, todo.FieldInit)
 	}
+	if m.FieldCleared(todo.FieldCustom) {
+		fields = append(fields, todo.FieldCustom)
+	}
+	if m.FieldCleared(todo.FieldCustomp) {
+		fields = append(fields, todo.FieldCustomp)
+	}
 	if m.FieldCleared(todo.FieldCategoryID) {
 		fields = append(fields, todo.FieldCategoryID)
 	}
@@ -3114,6 +3283,12 @@ func (m *TodoMutation) ClearField(name string) error {
 		return nil
 	case todo.FieldInit:
 		m.ClearInit()
+		return nil
+	case todo.FieldCustom:
+		m.ClearCustom()
+		return nil
+	case todo.FieldCustomp:
+		m.ClearCustomp()
 		return nil
 	case todo.FieldCategoryID:
 		m.ClearCategoryID()
@@ -3143,6 +3318,12 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldInit:
 		m.ResetInit()
+		return nil
+	case todo.FieldCustom:
+		m.ResetCustom()
+		return nil
+	case todo.FieldCustomp:
+		m.ResetCustomp()
 		return nil
 	case todo.FieldCategoryID:
 		m.ResetCategoryID()

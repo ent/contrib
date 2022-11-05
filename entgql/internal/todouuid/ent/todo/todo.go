@@ -42,6 +42,10 @@ const (
 	FieldBlob = "blob"
 	// FieldInit holds the string denoting the init field in the database.
 	FieldInit = "init"
+	// FieldCustom holds the string denoting the custom field in the database.
+	FieldCustom = "custom"
+	// FieldCustomp holds the string denoting the customp field in the database.
+	FieldCustomp = "customp"
 	// FieldCategoryID holds the string denoting the category_id field in the database.
 	FieldCategoryID = "category_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -87,6 +91,8 @@ var Columns = []string{
 	FieldText,
 	FieldBlob,
 	FieldInit,
+	FieldCustom,
+	FieldCustomp,
 	FieldCategoryID,
 }
 

@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
@@ -46,6 +47,10 @@ type Todo struct {
 	Blob []byte `json:"blob,omitempty"`
 	// Init holds the value of the "init" field.
 	Init map[string]interface{} `json:"init,omitempty"`
+	// Custom holds the value of the "custom" field.
+	Custom []customstruct.Custom `json:"custom,omitempty"`
+	// Customp holds the value of the "customp" field.
+	Customp []*customstruct.Custom `json:"customp,omitempty"`
 	// CategoryID holds the value of the "category_id" field.
 	CategoryID bigintgql.BigInt `json:"category_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -127,7 +132,7 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case todo.FieldBlob, todo.FieldInit:
+		case todo.FieldBlob, todo.FieldInit, todo.FieldCustom, todo.FieldCustomp:
 			values[i] = new([]byte)
 		case todo.FieldCategoryID:
 			values[i] = new(bigintgql.BigInt)
@@ -198,6 +203,22 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &t.Init); err != nil {
 					return fmt.Errorf("unmarshal field init: %w", err)
+				}
+			}
+		case todo.FieldCustom:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field custom", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Custom); err != nil {
+					return fmt.Errorf("unmarshal field custom: %w", err)
+				}
+			}
+		case todo.FieldCustomp:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field customp", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Customp); err != nil {
+					return fmt.Errorf("unmarshal field customp: %w", err)
 				}
 			}
 		case todo.FieldCategoryID:
@@ -285,6 +306,12 @@ func (t *Todo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("init=")
 	builder.WriteString(fmt.Sprintf("%v", t.Init))
+	builder.WriteString(", ")
+	builder.WriteString("custom=")
+	builder.WriteString(fmt.Sprintf("%v", t.Custom))
+	builder.WriteString(", ")
+	builder.WriteString("customp=")
+	builder.WriteString(fmt.Sprintf("%v", t.Customp))
 	builder.WriteString(", ")
 	builder.WriteString("category_id=")
 	builder.WriteString(fmt.Sprintf("%v", t.CategoryID))

@@ -252,7 +252,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Todo",
-		Fields: make([]*Field, 6),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -296,10 +296,26 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "init",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.CategoryID); err != nil {
+	if buf, err = json.Marshal(t.Custom); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
+		Type:  "[]customstruct.Custom",
+		Name:  "custom",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Customp); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "[]*customstruct.Custom",
+		Name:  "customp",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.CategoryID); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
 		Type:  "pulid.ID",
 		Name:  "category_id",
 		Value: string(buf),

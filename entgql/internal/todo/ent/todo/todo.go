@@ -42,6 +42,10 @@ const (
 	FieldCategoryID = "category_id"
 	// FieldInit holds the string denoting the init field in the database.
 	FieldInit = "init"
+	// FieldCustom holds the string denoting the custom field in the database.
+	FieldCustom = "custom"
+	// FieldCustomp holds the string denoting the customp field in the database.
+	FieldCustomp = "customp"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -86,6 +90,8 @@ var Columns = []string{
 	FieldBlob,
 	FieldCategoryID,
 	FieldInit,
+	FieldCustom,
+	FieldCustomp,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
