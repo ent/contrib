@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -99,6 +100,18 @@ func (tc *TodoCreate) SetNillableCategoryID(i *int) *TodoCreate {
 // SetInit sets the "init" field.
 func (tc *TodoCreate) SetInit(m map[string]interface{}) *TodoCreate {
 	tc.mutation.SetInit(m)
+	return tc
+}
+
+// SetCustom sets the "custom" field.
+func (tc *TodoCreate) SetCustom(c []customstruct.Custom) *TodoCreate {
+	tc.mutation.SetCustom(c)
+	return tc
+}
+
+// SetCustomp sets the "customp" field.
+func (tc *TodoCreate) SetCustomp(c []*customstruct.Custom) *TodoCreate {
+	tc.mutation.SetCustomp(c)
 	return tc
 }
 
@@ -321,6 +334,14 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.Init(); ok {
 		_spec.SetField(todo.FieldInit, field.TypeJSON, value)
 		_node.Init = value
+	}
+	if value, ok := tc.mutation.Custom(); ok {
+		_spec.SetField(todo.FieldCustom, field.TypeJSON, value)
+		_node.Custom = value
+	}
+	if value, ok := tc.mutation.Customp(); ok {
+		_spec.SetField(todo.FieldCustomp, field.TypeJSON, value)
+		_node.Customp = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

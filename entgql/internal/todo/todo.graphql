@@ -8,10 +8,6 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
-# Uint64 and Time are builtin supported by gqlgen. Ent codegen will
-# add Time to ent.graphql as it is not defined in this schema.
-scalar Uint64
-
 scalar Duration
 
 extend input TodoWhereInput {
@@ -28,4 +24,8 @@ extend type Query {
 type Mutation {
   createTodo(input: CreateTodoInput!): Todo!
   clearTodos: Int!
+}
+
+type Custom {
+  info: String!
 }

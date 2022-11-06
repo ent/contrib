@@ -535,6 +535,34 @@ func InitNotNil() predicate.Todo {
 	})
 }
 
+// CustomIsNil applies the IsNil predicate on the "custom" field.
+func CustomIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCustom)))
+	})
+}
+
+// CustomNotNil applies the NotNil predicate on the "custom" field.
+func CustomNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCustom)))
+	})
+}
+
+// CustompIsNil applies the IsNil predicate on the "customp" field.
+func CustompIsNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCustomp)))
+	})
+}
+
+// CustompNotNil applies the NotNil predicate on the "customp" field.
+func CustompNotNil() predicate.Todo {
+	return predicate.Todo(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCustomp)))
+	})
+}
+
 // HasParent applies the HasEdge predicate on the "parent" edge.
 func HasParent() predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {

@@ -143,6 +143,8 @@ type Todo {
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   init: Map
+  custom: [Custom!]
+  customp: [Custom]
   parent: Todo
   children: [Todo!]
   category: Category
@@ -658,6 +660,8 @@ type Todo implements Node {
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
   init: Map
+  custom: [Custom!]
+  customp: [Custom]
   parent: Todo
   children(
     """Returns the elements in the list that come after the specified cursor."""
