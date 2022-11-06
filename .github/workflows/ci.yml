@@ -54,9 +54,16 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - uses: arduino/setup-protoc@v1
+      - uses: actions/setup-node@v2
+      - run: npm install @actions/tool-cache
+      - name: install protoc
+        uses: actions/github-script@v6
         with:
-          version: v3.19.4
+          script: |
+            const tc = require('@actions/tool-cache')
+            const p = await tc.downloadTool('https://github.com/protocolbuffers/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip')
+            const d = await tc.extractZip(p, 'protoc');
+            core.addPath(d)
       - name: Install protoc plugins
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.0
