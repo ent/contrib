@@ -734,7 +734,7 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 		if f.Type.RType != nil {
 			switch f.Type.RType.Kind {
 			case reflect.Slice, reflect.Array:
-				if strings.Contains(f.Type.Ident, "*") {
+				if strings.HasPrefix(f.Type.RType.Ident, "[]*") {
 					scalar = "[" + scalar + "]"
 				} else {
 					scalar = "[" + scalar + "!]"
