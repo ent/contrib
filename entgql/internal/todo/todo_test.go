@@ -622,8 +622,8 @@ func (s *todoTestSuite) TestPaginationOrderSelectionSet() {
 	})
 	s.Run("BackwardAscending", func() {
 		var (
-			rsp           response
-			startPriority int
+			rsp     response
+			startID int
 		)
 		for i := 0; i < steps; i++ {
 			err := s.Post(query, &rsp,
@@ -651,9 +651,10 @@ func (s *todoTestSuite) TestPaginationOrderSelectionSet() {
 			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
 			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
 			if i > 0 {
-				s.Require().Greater(startPriority, end.Node.PriorityOrder)
+				id, _ := strconv.Atoi(rsp.Todos.Edges[0].Node.ID)
+				s.Require().Greater(startID, id)
 			}
-			startPriority = start.Node.PriorityOrder
+			startID, _ = strconv.Atoi(start.Node.ID)
 		}
 	})
 	s.Run("BackwardDescending", func() {
