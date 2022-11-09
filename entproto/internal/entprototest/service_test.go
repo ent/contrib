@@ -181,5 +181,4 @@ func (suite *AdapterTestSuite) TestServiceGeneration() {
 	suite.Require().NotNil(batchCreateMeth)
 	suite.EqualValues("BatchCreateMessageWithIDsRequest", batchCreateMeth.GetInputType().GetName())
 	suite.EqualValues("BatchCreateMessageWithIDsResponse", batchCreateMeth.GetOutputType().GetName())
-
 }
