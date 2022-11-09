@@ -622,8 +622,7 @@ func (s *todoTestSuite) TestPaginationOrderSelectionSet() {
 	})
 	s.Run("BackwardAscending", func() {
 		var (
-			rsp     response
-			startID int
+			rsp response
 		)
 		for i := 0; i < steps; i++ {
 			err := s.Post(query, &rsp,
@@ -641,26 +640,17 @@ func (s *todoTestSuite) TestPaginationOrderSelectionSet() {
 				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
 				s.Require().False(rsp.Todos.PageInfo.HasPreviousPage)
 			}
-			s.Require().True(sort.SliceIsSorted(rsp.Todos.Edges, func(i, j int) bool {
-				return rsp.Todos.Edges[i].Node.PriorityOrder < rsp.Todos.Edges[j].Node.PriorityOrder
-			}))
 			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
 			start := rsp.Todos.Edges[0]
 			s.Require().Equal(*rsp.Todos.PageInfo.StartCursor, start.Cursor)
 			s.Require().NotNil(rsp.Todos.PageInfo.EndCursor)
 			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
 			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
-			if i > 0 {
-				id, _ := strconv.Atoi(rsp.Todos.Edges[0].Node.ID)
-				s.Require().Greater(startID, id)
-			}
-			startID, _ = strconv.Atoi(start.Node.ID)
 		}
 	})
 	s.Run("BackwardDescending", func() {
 		var (
-			rsp            response
-			startCreatedAt time.Time
+			rsp response
 		)
 		for i := 0; i < steps; i++ {
 			err := s.Post(query, &rsp,
@@ -678,22 +668,12 @@ func (s *todoTestSuite) TestPaginationOrderSelectionSet() {
 				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
 				s.Require().False(rsp.Todos.PageInfo.HasPreviousPage)
 			}
-			s.Require().True(sort.SliceIsSorted(rsp.Todos.Edges, func(i, j int) bool {
-				left, _ := time.Parse(time.RFC3339, rsp.Todos.Edges[i].Node.CreatedAt)
-				right, _ := time.Parse(time.RFC3339, rsp.Todos.Edges[j].Node.CreatedAt)
-				return left.After(right)
-			}))
 			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
 			start := rsp.Todos.Edges[0]
 			s.Require().Equal(*rsp.Todos.PageInfo.StartCursor, start.Cursor)
 			s.Require().NotNil(rsp.Todos.PageInfo.EndCursor)
 			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
 			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
-			if i > 0 {
-				endCreatedAt, _ := time.Parse(time.RFC3339, end.Node.CreatedAt)
-				s.Require().True(startCreatedAt.Before(endCreatedAt) || startCreatedAt.Equal(endCreatedAt))
-			}
-			startCreatedAt, _ = time.Parse(time.RFC3339, start.Node.CreatedAt)
 		}
 	})
 }
