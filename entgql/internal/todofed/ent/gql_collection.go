@@ -38,7 +38,7 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	c = c.limitSelection(op, field, satisfies...)
+	c.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -60,7 +60,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 	return nil
 }
 
-func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[category.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -86,11 +86,14 @@ func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graph
 
 		}
 	}
+	for _, k := range c.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return c.Select(s...).CategoryQuery
+	c.fields = s
 }
 
 type categoryPaginateArgs struct {
@@ -154,7 +157,7 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 }
 
 func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	t = t.limitSelection(op, field, satisfies...)
+	t.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -196,7 +199,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
-func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
+func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[todo.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -219,11 +222,14 @@ func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.C
 
 		}
 	}
+	for _, k := range t.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return t.Select(s...).TodoQuery
+	t.fields = s
 }
 
 type todoPaginateArgs struct {

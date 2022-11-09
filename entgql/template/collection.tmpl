@@ -34,7 +34,7 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 }
 
 func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	{{ $receiver }} = {{ $receiver }}.limitSelection(op, field, satisfies...)
+	{{ $receiver }}.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
@@ -129,7 +129,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 	return nil
 }
 
-func ({{ $receiver }} *{{ $query }}) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *{{ $query }} {
+func ({{ $receiver }} *{{ $query }}) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[{{lower $name}}.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -140,11 +140,14 @@ func ({{ $receiver }} *{{ $query }}) limitSelection(op *graphql.OperationContext
 			{{ end }}
 		}
 	}
+	for _, k := range {{ $receiver }}.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return {{ $receiver }}.Select(s...).{{ $query }}
+	{{ $receiver }}.fields = s
 }
 
 {{ $order := $names.Order }}

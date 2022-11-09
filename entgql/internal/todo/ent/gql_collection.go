@@ -43,7 +43,7 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	c = c.limitSelection(op, field, satisfies...)
+	c.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -136,7 +136,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 	return nil
 }
 
-func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *CategoryQuery {
+func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[category.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -162,11 +162,14 @@ func (c *CategoryQuery) limitSelection(op *graphql.OperationContext, field graph
 
 		}
 	}
+	for _, k := range c.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return c.Select(s...).CategoryQuery
+	c.fields = s
 }
 
 type categoryPaginateArgs struct {
@@ -233,7 +236,7 @@ func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string
 }
 
 func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	f = f.limitSelection(op, field, satisfies...)
+	f.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -263,7 +266,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 	return nil
 }
 
-func (f *FriendshipQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *FriendshipQuery {
+func (f *FriendshipQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[friendship.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -280,11 +283,14 @@ func (f *FriendshipQuery) limitSelection(op *graphql.OperationContext, field gra
 
 		}
 	}
+	for _, k := range f.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return f.Select(s...).FriendshipQuery
+	f.fields = s
 }
 
 type friendshipPaginateArgs struct {
@@ -329,7 +335,7 @@ func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*
 }
 
 func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	gr = gr.limitSelection(op, field, satisfies...)
+	gr.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -426,7 +432,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 	return nil
 }
 
-func (gr *GroupQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *GroupQuery {
+func (gr *GroupQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[group.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -437,11 +443,14 @@ func (gr *GroupQuery) limitSelection(op *graphql.OperationContext, field graphql
 
 		}
 	}
+	for _, k := range gr.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return gr.Select(s...).GroupQuery
+	gr.fields = s
 }
 
 type groupPaginateArgs struct {
@@ -486,7 +495,7 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 }
 
 func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	t = t.limitSelection(op, field, satisfies...)
+	t.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -599,7 +608,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
-func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *TodoQuery {
+func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[todo.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -625,11 +634,14 @@ func (t *TodoQuery) limitSelection(op *graphql.OperationContext, field graphql.C
 
 		}
 	}
+	for _, k := range t.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return t.Select(s...).TodoQuery
+	t.fields = s
 }
 
 type todoPaginateArgs struct {
@@ -696,7 +708,7 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 }
 
 func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
-	u = u.limitSelection(op, field, satisfies...)
+	u.limitSelection(op, field, satisfies...)
 
 	path = append([]string(nil), path...)
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -817,7 +829,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 	return nil
 }
 
-func (u *UserQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *UserQuery {
+func (u *UserQuery) limitSelection(op *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) {
 	selectFields := map[string]struct{}{}
 	selectFields[user.FieldID] = struct{}{}
 	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
@@ -831,11 +843,14 @@ func (u *UserQuery) limitSelection(op *graphql.OperationContext, field graphql.C
 
 		}
 	}
+	for _, k := range u.fields {
+		selectFields[k] = struct{}{}
+	}
 	s := make([]string, 0, len(selectFields))
 	for k := range selectFields {
 		s = append(s, k)
 	}
-	return u.Select(s...).UserQuery
+	u.fields = s
 }
 
 type userPaginateArgs struct {

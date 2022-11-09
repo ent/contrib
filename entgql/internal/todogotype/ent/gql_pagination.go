@@ -373,6 +373,11 @@ func (p *categoryPager) toCursor(c *Category) Cursor {
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
+	query.fields = append(query.fields, DefaultCategoryOrder.Field.field)
+	if p.order.Field.field != DefaultCategoryOrder.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, DefaultCategoryOrder.Field.field,
@@ -661,6 +666,11 @@ func (p *friendshipPager) toCursor(f *Friendship) Cursor {
 }
 
 func (p *friendshipPager) applyCursors(query *FriendshipQuery, after, before *Cursor) *FriendshipQuery {
+	query.fields = append(query.fields, DefaultFriendshipOrder.Field.field)
+	if p.order.Field.field != DefaultFriendshipOrder.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, DefaultFriendshipOrder.Field.field,
@@ -892,6 +902,11 @@ func (p *groupPager) toCursor(gr *Group) Cursor {
 }
 
 func (p *groupPager) applyCursors(query *GroupQuery, after, before *Cursor) *GroupQuery {
+	query.fields = append(query.fields, DefaultGroupOrder.Field.field)
+	if p.order.Field.field != DefaultGroupOrder.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, DefaultGroupOrder.Field.field,
@@ -1123,6 +1138,11 @@ func (p *petPager) toCursor(pe *Pet) Cursor {
 }
 
 func (p *petPager) applyCursors(query *PetQuery, after, before *Cursor) *PetQuery {
+	query.fields = append(query.fields, DefaultPetOrder.Field.field)
+	if p.order.Field.field != DefaultPetOrder.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, DefaultPetOrder.Field.field,
@@ -1354,6 +1374,11 @@ func (p *todoPager) toCursor(t *Todo) Cursor {
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) *TodoQuery {
+	query.fields = append(query.fields, DefaultTodoOrder.Field.field)
+	if p.order.Field.field != DefaultTodoOrder.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, DefaultTodoOrder.Field.field,
@@ -1670,6 +1695,11 @@ func (p *userPager) toCursor(u *User) Cursor {
 }
 
 func (p *userPager) applyCursors(query *UserQuery, after, before *Cursor) *UserQuery {
+	query.fields = append(query.fields, DefaultUserOrder.Field.field)
+	if p.order.Field.field != DefaultUserOrder.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, DefaultUserOrder.Field.field,

@@ -361,6 +361,11 @@ func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
 }
 
 func (p *{{ $pager }}) applyCursors(query *{{ $query }}, after, before *Cursor) *{{ $query }} {
+	query.fields = append(query.fields, {{ $defaultOrder }}.Field.field)
+	if p.order.Field.field != {{ $defaultOrder }}.Field.field {
+		query.fields = append(query.fields, p.order.Field.field)
+	}
+
 	for _, predicate := range cursorsToPredicates(
 		p.order.Direction, after, before,
 		p.order.Field.field, {{ $defaultOrder }}.Field.field,
@@ -534,7 +539,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
+	
 	{{ $r }} = pager.applyCursors({{ $r }}, after, before)
 	{{ $r }} = pager.applyOrder({{ $r }}, last != nil)
 	if limit := paginateLimit(first, last); limit != 0 {
