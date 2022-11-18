@@ -17,16 +17,20 @@ in the LICENSE file in the root directory of this source tree.
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 {{ $idType := gqlIDType $gqlNodes $.IDType }}
 
+{{ template "import" $ }}
+
 import (
+	"sync"
+	"sync/atomic"
+	"encoding/json"
+
 	{{- range $n := $.Nodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
 	{{- with $package := $idType.PkgPath }}
 		"{{ $package }}"
 	{{- end }}
-)
 
-import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/contrib/entgql"
