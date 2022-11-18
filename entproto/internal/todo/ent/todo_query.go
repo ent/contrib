@@ -396,8 +396,8 @@ func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, e
 }
 
 func (tq *TodoQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Todo, init func(*Todo), assign func(*Todo, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Todo)
+	ids := make([]uint32, 0, len(nodes))
+	nodeids := make(map[uint32][]*Todo)
 	for i := range nodes {
 		if nodes[i].todo_user == nil {
 			continue

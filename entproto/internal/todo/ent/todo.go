@@ -23,7 +23,7 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges     TodoEdges `json:"edges"`
-	todo_user *int
+	todo_user *uint32
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -96,8 +96,8 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field todo_user", value)
 			} else if value.Valid {
-				t.todo_user = new(int)
-				*t.todo_user = int(value.Int64)
+				t.todo_user = new(uint32)
+				*t.todo_user = uint32(value.Int64)
 			}
 		}
 	}

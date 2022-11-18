@@ -35,13 +35,13 @@ func (ac *AttachmentCreate) SetNillableID(u *uuid.UUID) *AttachmentCreate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (ac *AttachmentCreate) SetUserID(id int) *AttachmentCreate {
+func (ac *AttachmentCreate) SetUserID(id uint32) *AttachmentCreate {
 	ac.mutation.SetUserID(id)
 	return ac
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (ac *AttachmentCreate) SetNillableUserID(id *int) *AttachmentCreate {
+func (ac *AttachmentCreate) SetNillableUserID(id *uint32) *AttachmentCreate {
 	if id != nil {
 		ac = ac.SetUserID(*id)
 	}
@@ -54,14 +54,14 @@ func (ac *AttachmentCreate) SetUser(u *User) *AttachmentCreate {
 }
 
 // AddRecipientIDs adds the "recipients" edge to the User entity by IDs.
-func (ac *AttachmentCreate) AddRecipientIDs(ids ...int) *AttachmentCreate {
+func (ac *AttachmentCreate) AddRecipientIDs(ids ...uint32) *AttachmentCreate {
 	ac.mutation.AddRecipientIDs(ids...)
 	return ac
 }
 
 // AddRecipients adds the "recipients" edges to the User entity.
 func (ac *AttachmentCreate) AddRecipients(u ...*User) *AttachmentCreate {
-	ids := make([]int, len(u))
+	ids := make([]uint32, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -198,7 +198,7 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -218,7 +218,7 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

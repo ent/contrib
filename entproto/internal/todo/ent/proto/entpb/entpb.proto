@@ -316,7 +316,7 @@ message Todo {
 }
 
 message User {
-  int64 id = 1;
+  uint32 id = 1;
 
   string user_name = 2;
 
@@ -384,7 +384,7 @@ message CreateUserRequest {
 }
 
 message GetUserRequest {
-  int64 id = 1;
+  uint32 id = 1;
 
   View view = 2;
 
@@ -402,7 +402,7 @@ message UpdateUserRequest {
 }
 
 message DeleteUserRequest {
-  int64 id = 1;
+  uint32 id = 1;
 }
 
 message ListUserRequest {

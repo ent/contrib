@@ -41,13 +41,13 @@ func (tc *TodoCreate) SetNillableStatus(t *todo.Status) *TodoCreate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (tc *TodoCreate) SetUserID(id int) *TodoCreate {
+func (tc *TodoCreate) SetUserID(id uint32) *TodoCreate {
 	tc.mutation.SetUserID(id)
 	return tc
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (tc *TodoCreate) SetNillableUserID(id *int) *TodoCreate {
+func (tc *TodoCreate) SetNillableUserID(id *uint32) *TodoCreate {
 	if id != nil {
 		tc = tc.SetUserID(*id)
 	}
@@ -199,7 +199,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

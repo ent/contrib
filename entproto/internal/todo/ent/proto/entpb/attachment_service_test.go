@@ -74,13 +74,13 @@ func TestAttachmentService_MultiEdge(t *testing.T) {
 	}
 	att, err := svc.Create(ctx, &CreateAttachmentRequest{Attachment: &Attachment{
 		User: &User{
-			Id: int64(users[0].ID),
+			Id: users[0].ID,
 		},
 		Recipients: []*User{
-			{Id: int64(users[1].ID)},
-			{Id: int64(users[2].ID)},
-			{Id: int64(users[3].ID)},
-			{Id: int64(users[4].ID)},
+			{Id: users[1].ID},
+			{Id: users[2].ID},
+			{Id: users[3].ID},
+			{Id: users[4].ID},
 		},
 	}})
 	all := client.Attachment.Query().WithRecipients(func(query *ent.UserQuery) {

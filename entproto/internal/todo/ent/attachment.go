@@ -21,7 +21,7 @@ type Attachment struct {
 	// The values are being populated by the AttachmentQuery when eager-loading is set.
 	Edges           AttachmentEdges `json:"edges"`
 	pet_attachment  *int
-	user_attachment *int
+	user_attachment *uint32
 }
 
 // AttachmentEdges holds the relations/edges for other nodes in the graph.
@@ -100,8 +100,8 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_attachment", value)
 			} else if value.Valid {
-				a.user_attachment = new(int)
-				*a.user_attachment = int(value.Int64)
+				a.user_attachment = new(uint32)
+				*a.user_attachment = uint32(value.Int64)
 			}
 		}
 	}

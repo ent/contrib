@@ -190,7 +190,7 @@ func HasUsers() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UsersTable, FieldID),
+			sqlgraph.To(UsersTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, UsersTable, UsersColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -202,7 +202,7 @@ func HasUsersWith(preds ...predicate.User) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UsersInverseTable, FieldID),
+			sqlgraph.To(UsersInverseTable, UserFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, UsersTable, UsersColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

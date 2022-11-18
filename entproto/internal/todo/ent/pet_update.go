@@ -31,13 +31,13 @@ func (pu *PetUpdate) Where(ps ...predicate.Pet) *PetUpdate {
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by ID.
-func (pu *PetUpdate) SetOwnerID(id int) *PetUpdate {
+func (pu *PetUpdate) SetOwnerID(id uint32) *PetUpdate {
 	pu.mutation.SetOwnerID(id)
 	return pu
 }
 
 // SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (pu *PetUpdate) SetNillableOwnerID(id *int) *PetUpdate {
+func (pu *PetUpdate) SetNillableOwnerID(id *uint32) *PetUpdate {
 	if id != nil {
 		pu = pu.SetOwnerID(*id)
 	}
@@ -177,7 +177,7 @@ func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -193,7 +193,7 @@ func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -277,13 +277,13 @@ type PetUpdateOne struct {
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by ID.
-func (puo *PetUpdateOne) SetOwnerID(id int) *PetUpdateOne {
+func (puo *PetUpdateOne) SetOwnerID(id uint32) *PetUpdateOne {
 	puo.mutation.SetOwnerID(id)
 	return puo
 }
 
 // SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (puo *PetUpdateOne) SetNillableOwnerID(id *int) *PetUpdateOne {
+func (puo *PetUpdateOne) SetNillableOwnerID(id *uint32) *PetUpdateOne {
 	if id != nil {
 		puo = puo.SetOwnerID(*id)
 	}
@@ -453,7 +453,7 @@ func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -469,7 +469,7 @@ func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

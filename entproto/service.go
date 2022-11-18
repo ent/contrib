@@ -189,7 +189,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		outputName = "google.protobuf.Empty"
 		messages = append(messages, input)
 	case MethodList:
-		if !(genType.ID.IsInt() || genType.ID.IsInt64() || genType.ID.IsUUID() || genType.ID.IsString()) {
+		if !(genType.ID.Type.Type.Integer() || genType.ID.IsUUID() || genType.ID.IsString()) {
 			return methodResources{}, fmt.Errorf("entproto: list method does not support schema %q id type %q",
 				genType.Name, genType.ID.Type.String())
 		}

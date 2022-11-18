@@ -19,7 +19,7 @@ type SkipEdgeExample struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SkipEdgeExampleQuery when eager-loading is set.
 	Edges          SkipEdgeExampleEdges `json:"edges"`
-	user_skip_edge *int
+	user_skip_edge *uint32
 }
 
 // SkipEdgeExampleEdges holds the relations/edges for other nodes in the graph.
@@ -78,8 +78,8 @@ func (see *SkipEdgeExample) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_skip_edge", value)
 			} else if value.Valid {
-				see.user_skip_edge = new(int)
-				*see.user_skip_edge = int(value.Int64)
+				see.user_skip_edge = new(uint32)
+				*see.user_skip_edge = uint32(value.Int64)
 			}
 		}
 	}

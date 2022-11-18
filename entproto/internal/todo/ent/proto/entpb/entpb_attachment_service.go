@@ -38,13 +38,13 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	}
 	v.Id = id
 	for _, edg := range e.Edges.Recipients {
-		id := int64(edg.ID)
+		id := edg.ID
 		v.Recipients = append(v.Recipients, &User{
 			Id: id,
 		})
 	}
 	if edg := e.Edges.User; edg != nil {
-		id := int64(edg.ID)
+		id := edg.ID
 		v.User = &User{
 			Id: id,
 		}
@@ -136,11 +136,11 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	}
 	m := svc.client.Attachment.UpdateOneID(attachmentID)
 	for _, item := range attachment.GetRecipients() {
-		recipients := int(item.GetId())
+		recipients := uint32(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
 	if attachment.GetUser() != nil {
-		attachmentUser := int(attachment.GetUser().GetId())
+		attachmentUser := uint32(attachment.GetUser().GetId())
 		m.SetUserID(attachmentUser)
 	}
 
@@ -283,11 +283,11 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 func (svc *AttachmentService) createBuilder(attachment *Attachment) (*ent.AttachmentCreate, error) {
 	m := svc.client.Attachment.Create()
 	for _, item := range attachment.GetRecipients() {
-		recipients := int(item.GetId())
+		recipients := uint32(item.GetId())
 		m.AddRecipientIDs(recipients)
 	}
 	if attachment.GetUser() != nil {
-		attachmentUser := int(attachment.GetUser().GetId())
+		attachmentUser := uint32(attachment.GetUser().GetId())
 		m.SetUserID(attachmentUser)
 	}
 	return m, nil

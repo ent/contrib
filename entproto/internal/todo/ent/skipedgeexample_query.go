@@ -374,8 +374,8 @@ func (seeq *SkipEdgeExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook
 }
 
 func (seeq *SkipEdgeExampleQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*SkipEdgeExample, init func(*SkipEdgeExample), assign func(*SkipEdgeExample, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*SkipEdgeExample)
+	ids := make([]uint32, 0, len(nodes))
+	nodeids := make(map[uint32][]*SkipEdgeExample)
 	for i := range nodes {
 		if nodes[i].user_skip_edge == nil {
 			continue

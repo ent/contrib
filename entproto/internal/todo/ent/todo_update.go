@@ -49,13 +49,13 @@ func (tu *TodoUpdate) SetNillableStatus(t *todo.Status) *TodoUpdate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (tu *TodoUpdate) SetUserID(id int) *TodoUpdate {
+func (tu *TodoUpdate) SetUserID(id uint32) *TodoUpdate {
 	tu.mutation.SetUserID(id)
 	return tu
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (tu *TodoUpdate) SetNillableUserID(id *int) *TodoUpdate {
+func (tu *TodoUpdate) SetNillableUserID(id *uint32) *TodoUpdate {
 	if id != nil {
 		tu = tu.SetUserID(*id)
 	}
@@ -181,7 +181,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -197,7 +197,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -247,13 +247,13 @@ func (tuo *TodoUpdateOne) SetNillableStatus(t *todo.Status) *TodoUpdateOne {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (tuo *TodoUpdateOne) SetUserID(id int) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) SetUserID(id uint32) *TodoUpdateOne {
 	tuo.mutation.SetUserID(id)
 	return tuo
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (tuo *TodoUpdateOne) SetNillableUserID(id *int) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) SetNillableUserID(id *uint32) *TodoUpdateOne {
 	if id != nil {
 		tuo = tuo.SetUserID(*id)
 	}
@@ -409,7 +409,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -425,7 +425,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

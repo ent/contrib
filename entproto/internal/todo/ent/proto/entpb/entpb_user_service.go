@@ -108,7 +108,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.ExternalId = external_id
 	height_in_cm := e.HeightInCm
 	v.HeightInCm = height_in_cm
-	id := int64(e.ID)
+	id := e.ID
 	v.Id = id
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
@@ -205,7 +205,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 		err error
 		get *ent.User
 	)
-	id := int(req.GetId())
+	id := uint32(req.GetId())
 	switch req.GetView() {
 	case GetUserRequest_VIEW_UNSPECIFIED, GetUserRequest_BASIC:
 		get, err = svc.client.User.Get(ctx, id)
@@ -242,7 +242,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 // Update implements UserServiceServer.Update
 func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*User, error) {
 	user := req.GetUser()
-	userID := int(user.GetId())
+	userID := uint32(user.GetId())
 	m := svc.client.User.UpdateOneID(userID)
 	userAccountBalance := float64(user.GetAccountBalance())
 	m.SetAccountBalance(userAccountBalance)
@@ -344,7 +344,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 // Delete implements UserServiceServer.Delete
 func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
 	var err error
-	id := int(req.GetId())
+	id := uint32(req.GetId())
 	err = svc.client.User.DeleteOneID(id).Exec(ctx)
 	switch {
 	case err == nil:
@@ -383,7 +383,7 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
 		}
-		pageToken := int(token)
+		pageToken := uint32(token)
 		listQuery = listQuery.
 			Where(user.IDLTE(pageToken))
 	}
