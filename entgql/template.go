@@ -395,22 +395,27 @@ func hasWhereInput(n *gen.Edge) (v bool, err error) {
 }
 
 // skipModeFromString returns SkipFlag from a string
-func skipModeFromString(s string) (SkipMode, error) {
-	switch s {
-	case "type":
-		return SkipType, nil
-	case "enum_field":
-		return SkipEnumField, nil
-	case "order_field":
-		return SkipOrderField, nil
-	case "where_input":
-		return SkipWhereInput, nil
-	case "mutation_create_input":
-		return SkipMutationCreateInput, nil
-	case "mutation_update_input":
-		return SkipMutationUpdateInput, nil
+func skipModeFromString(modes ...string) (SkipMode, error) {
+	var m SkipMode
+	for _, s := range modes {
+		switch s {
+		case "type":
+			m |= SkipType
+		case "enum_field":
+			m |= SkipEnumField
+		case "order_field":
+			m |= SkipOrderField
+		case "where_input":
+			m |= SkipWhereInput
+		case "mutation_create_input":
+			m |= SkipMutationCreateInput
+		case "mutation_update_input":
+			m |= SkipMutationUpdateInput
+		default:
+			return 0, fmt.Errorf("invalid skip mode: %s", s)
+		}
 	}
-	return 0, fmt.Errorf("invalid skip mode: %s", s)
+	return m, nil
 }
 
 func isSkipMode(antSkip interface{}, m string) (bool, error) {

@@ -9,7 +9,11 @@ in the LICENSE file in the root directory of this source tree.
 {{ define "gql_edge" }}
 {{ template "header" $ }}
 
-import "context"
+import (
+	"context"
+
+	"github.com/99designs/gqlgen/graphql"
+)
 
 {{ range $n := filterNodes $.Nodes (skipMode "type") }}
 	{{ $r := $n.Receiver }}
