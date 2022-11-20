@@ -54,6 +54,7 @@ type (
 //	 - ent.graphql	  // generated schema.
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
+		ex.path = path
 		ex.outputWriter = func(s *ast.Schema) error {
 			return os.WriteFile(path, []byte(printSchema(s)), 0644)
 		}
