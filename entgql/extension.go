@@ -55,9 +55,6 @@ type (
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.path = path
-		ex.outputWriter = func(s *ast.Schema) error {
-			return os.WriteFile(path, []byte(printSchema(s)), 0644)
-		}
 		return nil
 	}
 }
@@ -235,6 +232,12 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			schema, err := e.BuildSchema(g)
 			if err != nil {
 				return err
+			}
+			if e.outputWriter == nil {
+				if e.path == "" {
+					return nil
+				}
+				return os.WriteFile(e.path, []byte(printSchema(schema)), 0644)
 			}
 			return e.outputWriter(schema)
 		})
