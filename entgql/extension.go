@@ -226,7 +226,7 @@ func (e *Extension) genSchemaHook() gen.Hook {
 				return err
 			}
 
-			if e.outputWriter == nil || !(e.genSchema || e.genWhereInput || e.genMutations) {
+			if !(e.genSchema || e.genWhereInput || e.genMutations) {
 				return nil
 			}
 			schema, err := e.BuildSchema(g)
