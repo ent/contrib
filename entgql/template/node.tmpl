@@ -22,7 +22,6 @@ in the LICENSE file in the root directory of this source tree.
 import (
 	"sync"
 	"sync/atomic"
-	"encoding/json"
 
 	{{- range $n := $.Nodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
@@ -41,91 +40,26 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
+{{- if hasTemplate "gql_node_descriptor" }}
 	Node(context.Context) (*Node, error)
-}
-
-// Node in the graph.
-type Node struct {
-	ID 	   {{ $idType }} `json:"id,omitempty"`// node id.
-	Type   string   `json:"type,omitempty"`   // node type.
-	Fields []*Field `json:"fields,omitempty"` // node fields.
-	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
-}
-
-// Field of a node.
-type Field struct {
-	Type  string `json:"type,omitempty"`  // field type.
-	Name  string `json:"name,omitempty"`  // field name (as in struct).
-	Value string `json:"value,omitempty"` // stringified value.
-}
-
-// Edges between two nodes.
-type Edge struct {
-	Type string   `json:"type,omitempty"` // edge type.
-	Name string   `json:"name,omitempty"` // edge name.
-	IDs  []{{ $idType }} `json:"ids,omitempty"`  // node ids (where this edge point to).
+{{- end }}
+	IsNode()
 }
 
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
-	{{ $receiver := $n.Receiver }}
-	{{ $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
-	{{- if $marshalID }}
+	// IsNode implements the Node interface check for GQLGen.
+	func (n *{{ $n.Name }}) IsNode() {}
+
+	{{- if and $idType.Mixed (gqlMarshaler $n.ID) }}
+		{{ $receiver := $n.Receiver }}
 		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
 			var buf bytes.Buffer
 			{{ $receiver }}.ID.MarshalGQL(&buf)
 			return buf.String()
 		}
 	{{- end }}
-
-	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
-		{{- $fields := filterFields $n.Fields (skipMode "type") }}
-		{{- $edges := filterEdges $n.Edges (skipMode "type") }}
-		node = &Node{
-			ID: {{ $receiver }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
-			Type: "{{ $n.Name }}",
-			Fields: make([]*Field, {{ len $fields }}),
-			Edges: make([]*Edge, {{ len $edges }}),
-		}
-		{{- with $fields }}
-			var buf []byte
-			{{- range $i, $f := $fields }}
-				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
-					return nil, err
-				}
-				node.Fields[{{ $i }}] = &Field{
-					Type:  "{{ $f.Type }}",
-					Name:  "{{ $f.Name }}",
-					Value: string(buf),
-				}
-			{{- end }}
-		{{- end }}
-		{{- with $edges }}
-			{{- range $i, $e := $edges }}
-				node.Edges[{{ $i }}] = &Edge{
-					Type: "{{ $e.Type.Name }}",
-					Name: "{{ $e.Name }}",
-				}
-				err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
-					Select({{ $e.Type.Package }}.FieldID).
-					Scan(ctx, &node.Edges[{{ $i }}].IDs)
-				if err != nil {
-					return nil, err
-				}
-			{{- end }}
-		{{- end }}
-		return node, nil
-	}
 {{ end }}
-
-{{/* Add the node api to the client */}}
-func (c *Client) Node(ctx context.Context, id {{ $idType }}) (*Node, error) {
-	n, err := c.Noder(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return n.Node(ctx)
-}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 

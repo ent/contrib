@@ -139,6 +139,25 @@ func WithWhereInputs(b bool) ExtensionOption {
 	}
 }
 
+// WithNodeDescriptor configures the extension to either add or
+// remove the NodeDescriptorTemplate from the code generation templates.
+//
+// In case this option is enabled, EntGQL generates a `Node()` method for each
+// type that returns its representation in one standard way. A common use case for
+// this option is to develop an administrator tool on top of Ent as implemented in:
+// https://github.com/ent/ent/issues/1000#issuecomment-735663175.
+func WithNodeDescriptor(b bool) ExtensionOption {
+	return func(ex *Extension) error {
+		i, exists := ex.hasTemplate(NodeDescriptorTemplate)
+		if b && !exists {
+			ex.templates = append(ex.templates, NodeDescriptorTemplate)
+		} else if !b && exists && len(ex.templates) > 0 {
+			ex.templates = append(ex.templates[:i], ex.templates[i+1:]...)
+		}
+		return nil
+	}
+}
+
 // WithRelaySpec enables or disables generating the Relay Node interface.
 func WithRelaySpec(enabled bool) ExtensionOption {
 	return func(e *Extension) error {
