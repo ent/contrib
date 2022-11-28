@@ -42,8 +42,8 @@ var (
 	// NodeTemplate implements the Relay Node interface for all types.
 	NodeTemplate = parseT("template/node.tmpl")
 
-	// NodeDescriptorTemplate implements the client Node API for all types.
-	NodeDescriptorTemplate = parseT("template/node_client.tmpl")
+	// NodeDescriptorTemplate implements the Node descriptor API for all types.
+	NodeDescriptorTemplate = parseT("template/node_descriptor.tmpl")
 
 	// PaginationTemplate adds pagination support according to the GraphQL Cursor Connections Spec.
 	// More info can be found in the following link: https://relay.dev/graphql/connections.htm.

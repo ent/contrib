@@ -40,7 +40,7 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
-{{- if hasTemplate "gql_client_node" }}
+{{- if hasTemplate "gql_node_descriptor" }}
 	Node(context.Context) (*Node, error)
 {{- end }}
 	IsNode()
