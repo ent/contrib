@@ -15,6 +15,18 @@ in the LICENSE file in the root directory of this source tree.
 
 {{ template "import" $ }}
 
+import (
+	"context"
+	"encoding/json"
+
+	{{- range $n := $.Nodes }}
+		"{{ $.Config.Package }}/{{ $n.Package }}"
+	{{- end }}
+	{{- with $package := $idType.PkgPath }}
+		"{{ $package }}"
+	{{- end }}
+)
+
 // Node in the graph.
 type Node struct {
 	ID 	   {{ $idType }} `json:"id,omitempty"`// node id.
