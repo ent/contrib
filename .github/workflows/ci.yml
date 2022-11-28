@@ -69,9 +69,11 @@ jobs:
         run: go install
       - name: Run go generate
         run: go generate ./...
+      - name: Go mod tidy
+        run: go mod tidy
       - name: Check generated files
         run: |
-          status=$(git status --porcelain | grep -v "go.\(sum\|mod\)" | cat)
+          status=$(git status --porcelain | cat)
           if [ -n "$status" ]; then
             echo "you need to run 'go generate ./...' and commit the changes"
             echo "$status"
