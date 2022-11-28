@@ -40,28 +40,37 @@ type Noder interface {
 	IsNode()
 }
 
+// IsNode implements the Node interface check for GQLGen
 func (n *BillProduct) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen
+func (n *Category) IsNode() {}
 
 func (c Category) marshalID() string {
 	var buf bytes.Buffer
 	c.ID.MarshalGQL(&buf)
 	return buf.String()
 }
-func (n *Category) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Friendship) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Group) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen
+func (n *Pet) IsNode() {}
 
 func (pe Pet) marshalID() string {
 	var buf bytes.Buffer
 	pe.ID.MarshalGQL(&buf)
 	return buf.String()
 }
-func (n *Pet) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Todo) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *User) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}

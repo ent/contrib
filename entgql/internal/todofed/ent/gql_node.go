@@ -38,8 +38,10 @@ type Noder interface {
 	IsNode()
 }
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Category) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Todo) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}

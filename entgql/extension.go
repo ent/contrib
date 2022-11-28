@@ -139,6 +139,22 @@ func WithWhereInputs(b bool) ExtensionOption {
 	}
 }
 
+// WithClientNode configures the extension to either add or
+// remove the ClientNodeTemplate from the code generation templates.
+//
+// The ClientNodeTemplate generates client.Node() API for all types
+func WithClientNode(b bool) ExtensionOption {
+	return func(ex *Extension) error {
+		i, exists := ex.hasTemplate(ClientNodeTemplate)
+		if b && !exists {
+			ex.templates = append(ex.templates, ClientNodeTemplate)
+		} else if !b && exists && len(ex.templates) > 0 {
+			ex.templates = append(ex.templates[:i], ex.templates[i+1:]...)
+		}
+		return nil
+	}
+}
+
 // WithRelaySpec enables or disables generating the Relay Node interface.
 func WithRelaySpec(enabled bool) ExtensionOption {
 	return func(e *Extension) error {

@@ -39,19 +39,26 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
+	Node(context.Context) (*Node, error)
 	IsNode()
 }
 
+// IsNode implements the Node interface check for GQLGen
 func (n *BillProduct) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Category) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Friendship) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Group) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *Todo) IsNode() {}
 
+// IsNode implements the Node interface check for GQLGen
 func (n *User) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}

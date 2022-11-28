@@ -41,21 +41,25 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
+{{- if hasTemplate "gql_client_node" }}
+	Node(context.Context) (*Node, error)
+{{- end }}
 	IsNode()
 }
 
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
-	{{ $receiver := $n.Receiver }}
-	{{ $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
-	{{- if $marshalID }}
+	// IsNode implements the Node interface check for GQLGen
+	func (n *{{ $n.Name }}) IsNode() {}
+
+	{{- if and $idType.Mixed (gqlMarshaler $n.ID) }}
+		{{ $receiver := $n.Receiver }}
 		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
 			var buf bytes.Buffer
 			{{ $receiver }}.ID.MarshalGQL(&buf)
 			return buf.String()
 		}
 	{{- end }}
-	func (n *{{ $n.Name }}) IsNode() {}
 {{ end }}
 
 var errNodeInvalidID = &NotFoundError{"node"}
