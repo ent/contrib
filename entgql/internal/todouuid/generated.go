@@ -122,8 +122,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ClearTodos func(childComplexity int) int
-		CreateTodo func(childComplexity int, input ent.CreateTodoInput) int
+		ClearFriendships func(childComplexity int) int
+		ClearTodos       func(childComplexity int) int
+		ClearUsers       func(childComplexity int) int
+		CreateTodo       func(childComplexity int, input ent.CreateTodoInput) int
+		CreateUser       func(childComplexity int, input ent.CreateUserInput) int
 	}
 
 	PageInfo struct {
@@ -190,8 +193,11 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error)
+	ClearFriendships(ctx context.Context) (int, error)
 	ClearTodos(ctx context.Context) (int, error)
+	ClearUsers(ctx context.Context) (int, error)
+	CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error)
+	CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id uuid.UUID) (ent.Noder, error)
@@ -481,12 +487,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GroupEdge.Node(childComplexity), true
 
+	case "Mutation.clearFriendships":
+		if e.complexity.Mutation.ClearFriendships == nil {
+			break
+		}
+
+		return e.complexity.Mutation.ClearFriendships(childComplexity), true
+
 	case "Mutation.clearTodos":
 		if e.complexity.Mutation.ClearTodos == nil {
 			break
 		}
 
 		return e.complexity.Mutation.ClearTodos(childComplexity), true
+
+	case "Mutation.clearUsers":
+		if e.complexity.Mutation.ClearUsers == nil {
+			break
+		}
+
+		return e.complexity.Mutation.ClearUsers(childComplexity), true
 
 	case "Mutation.createTodo":
 		if e.complexity.Mutation.CreateTodo == nil {
@@ -499,6 +519,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(ent.CreateTodoInput)), true
+
+	case "Mutation.createUser":
+		if e.complexity.Mutation.CreateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(ent.CreateUserInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -918,8 +950,11 @@ extend type Query {
 }
 
 type Mutation {
-  createTodo(input: CreateTodoInput!): Todo!
+  clearFriendships: Int!
   clearTodos: Int!
+  clearUsers: Int!
+  createTodo(input: CreateTodoInput!): Todo!
+  createUser(input: CreateUserInput!): User!
 }
 
 type Custom {
@@ -1810,6 +1845,21 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCreateTodoInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateUserInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCreateUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3845,6 +3895,138 @@ func (ec *executionContext) fieldContext_GroupEdge_cursor(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_clearFriendships(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_clearFriendships(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ClearFriendships(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_clearFriendships(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_clearTodos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_clearTodos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ClearTodos(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_clearTodos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_clearUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_clearUsers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ClearUsers(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_clearUsers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createTodo(ctx, field)
 	if err != nil {
@@ -3930,8 +4112,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_clearTodos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_clearTodos(ctx, field)
+func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3944,7 +4126,7 @@ func (ec *executionContext) _Mutation_clearTodos(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ClearTodos(rctx)
+		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["input"].(ent.CreateUserInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3956,20 +4138,43 @@ func (ec *executionContext) _Mutation_clearTodos(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_clearTodos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "friends":
+				return ec.fieldContext_User_friends(ctx, field)
+			case "friendships":
+				return ec.fieldContext_User_friendships(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -11008,10 +11213,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createTodo":
+		case "clearFriendships":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createTodo(ctx, field)
+				return ec._Mutation_clearFriendships(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -11021,6 +11226,33 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_clearTodos(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "clearUsers":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_clearUsers(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createTodo":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createTodo(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createUser":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createUser(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -12097,6 +12329,11 @@ func (ec *executionContext) unmarshalNCreateTodoInput2entgoᚗioᚋcontribᚋent
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateUserInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCreateUserInput(ctx context.Context, v interface{}) (ent.CreateUserInput, error) {
+	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCursor2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
 	var res ent.Cursor
 	err := res.UnmarshalGQL(v)
@@ -12412,6 +12649,10 @@ func (ec *executionContext) marshalNUint642uint64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUser2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {

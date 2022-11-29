@@ -22,8 +22,11 @@ extend type Query {
 }
 
 type Mutation {
-  createTodo(input: CreateTodoInput!): Todo!
+  clearFriendships: Int!
   clearTodos: Int!
+  clearUsers: Int!
+  createTodo(input: CreateTodoInput!): Todo!
+  createUser(input: CreateUserInput!): User!
 }
 
 type Custom {
