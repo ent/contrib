@@ -26,6 +26,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
+func (r *categoryResolver) Todos(ctx context.Context, obj *ent.Category, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
 	return r.client.Noder(ctx, id, ent.WithNodeType(ent.IDToType))
 }
@@ -45,10 +49,10 @@ func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *in
 		)
 }
 
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,
-			ent.WithTodoOrder(orderBy),
+			ent.WithTodoOrder(orderBy...),
 			ent.WithTodoFilter(where.Filter),
 		)
 }
@@ -61,6 +65,10 @@ func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int
 }
 
 func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *todoResolver) Children(ctx context.Context, obj *ent.Todo, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -96,6 +104,9 @@ func (r *updateTodoInputResolver) Status(ctx context.Context, obj *ent.UpdateTod
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Category returns CategoryResolver implementation.
+func (r *Resolver) Category() CategoryResolver { return &categoryResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -114,6 +125,7 @@ func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereIn
 // UpdateTodoInput returns UpdateTodoInputResolver implementation.
 func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTodoInputResolver{r} }
 
+type categoryResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }

@@ -91,69 +91,6 @@ func (o OrderDirection) orderFunc(field string) OrderFunc {
 	return Asc(field)
 }
 
-func cursorsToPredicates(direction OrderDirection, after, before *Cursor, field, idField string) []func(s *sql.Selector) {
-	var predicates []func(s *sql.Selector)
-	if after != nil {
-		if after.Value != nil {
-			var predicate func([]string, ...interface{}) *sql.Predicate
-			if direction == OrderDirectionAsc {
-				predicate = sql.CompositeGT
-			} else {
-				predicate = sql.CompositeLT
-			}
-			predicates = append(predicates, func(s *sql.Selector) {
-				s.Where(predicate(
-					s.Columns(field, idField),
-					after.Value, after.ID,
-				))
-			})
-		} else {
-			var predicate func(string, interface{}) *sql.Predicate
-			if direction == OrderDirectionAsc {
-				predicate = sql.GT
-			} else {
-				predicate = sql.LT
-			}
-			predicates = append(predicates, func(s *sql.Selector) {
-				s.Where(predicate(
-					s.C(idField),
-					after.ID,
-				))
-			})
-		}
-	}
-	if before != nil {
-		if before.Value != nil {
-			var predicate func([]string, ...interface{}) *sql.Predicate
-			if direction == OrderDirectionAsc {
-				predicate = sql.CompositeLT
-			} else {
-				predicate = sql.CompositeGT
-			}
-			predicates = append(predicates, func(s *sql.Selector) {
-				s.Where(predicate(
-					s.Columns(field, idField),
-					before.Value, before.ID,
-				))
-			})
-		} else {
-			var predicate func(string, interface{}) *sql.Predicate
-			if direction == OrderDirectionAsc {
-				predicate = sql.LT
-			} else {
-				predicate = sql.GT
-			}
-			predicates = append(predicates, func(s *sql.Selector) {
-				s.Where(predicate(
-					s.C(idField),
-					before.ID,
-				))
-			})
-		}
-	}
-	return predicates
-}
-
 // PageInfo of a connection type.
 type PageInfo struct {
 	HasNextPage     bool    `json:"hasNextPage"`
@@ -316,19 +253,27 @@ func (c *BillProductConnection) build(nodes []*BillProduct, pager *billproductPa
 type BillProductPaginateOption func(*billproductPager) error
 
 // WithBillProductOrder configures pagination ordering.
-func WithBillProductOrder(order *BillProductOrder) BillProductPaginateOption {
-	if order == nil {
-		order = DefaultBillProductOrder
+func WithBillProductOrder(orders ...*BillProductOrder) BillProductPaginateOption {
+	var compactedOrder []BillProductOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultBillProductOrder)
+	}
 	return func(pager *billproductPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultBillProductOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultBillProductOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -345,7 +290,7 @@ func WithBillProductFilter(filter func(*BillProductQuery) (*BillProductQuery, er
 }
 
 type billproductPager struct {
-	order  *BillProductOrder
+	orders []BillProductOrder
 	filter func(*BillProductQuery) (*BillProductQuery, error)
 }
 
@@ -356,8 +301,8 @@ func newBillProductPager(opts []BillProductPaginateOption) (*billproductPager, e
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultBillProductOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultBillProductOrder)
 	}
 	return pager, nil
 }
@@ -370,40 +315,161 @@ func (p *billproductPager) applyFilter(query *BillProductQuery) (*BillProductQue
 }
 
 func (p *billproductPager) toCursor(bp *BillProduct) Cursor {
-	return p.order.Field.toCursor(bp)
+	var values []any
+	for _, order := range p.orders {
+		switch order.Field.field {
+		}
+	}
+
+	return Cursor{
+		ID:    bp.ID,
+		Value: values,
+	}
 }
 
 func (p *billproductPager) applyCursors(query *BillProductQuery, after, before *Cursor) *BillProductQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultBillProductOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	if after != nil {
+		if values, ok := after.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, after.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultBillProductOrder.Direction
+			fields[len(p.orders)] = DefaultBillProductOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.GT
+						} else {
+							predicate = sql.LT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultBillProductOrder.Direction == OrderDirectionAsc {
+				predicate = sql.GT
+			} else {
+				predicate = sql.LT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultBillProductOrder.Field.field), after.ID))
+			})
+		}
+	}
+	if before != nil {
+		if values, ok := before.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, before.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultBillProductOrder.Direction
+			fields[len(p.orders)] = DefaultBillProductOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.LT
+						} else {
+							predicate = sql.GT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultBillProductOrder.Direction == OrderDirectionAsc {
+				predicate = sql.LT
+			} else {
+				predicate = sql.GT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultBillProductOrder.Field.field), before.ID))
+			})
+		}
 	}
 	return query
 }
 
 func (p *billproductPager) applyOrder(query *BillProductQuery, reverse bool) *BillProductQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var orders []OrderFunc
+	addDefault := false
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(order.Field.field))
+		if order.Field != DefaultBillProductOrder.Field {
+			addDefault = true
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultBillProductOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultBillProductOrder.Field.field))
+	if addDefault {
+		direction := DefaultBillProductOrder.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(DefaultBillProductOrder.Field.field))
 	}
+	query.Order(orders...)
 	return query
 }
 
 func (p *billproductPager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultBillProductOrder.Field {
-			b.Comma().Ident(DefaultBillProductOrder.Field.field).Pad().WriteString(string(direction))
+		for _, order := range p.orders {
+			direction := order.Direction
+			if reverse {
+				direction = direction.reverse()
+			}
+			b.Ident(order.Field.field).Pad().WriteString(string(direction))
+			if order.Field != DefaultBillProductOrder.Field {
+				b.Comma().Ident(DefaultBillProductOrder.Field.field).Pad().WriteString(string(direction))
+			}
 		}
 	})
 }
@@ -547,19 +613,27 @@ func (c *CategoryConnection) build(nodes []*Category, pager *categoryPager, afte
 type CategoryPaginateOption func(*categoryPager) error
 
 // WithCategoryOrder configures pagination ordering.
-func WithCategoryOrder(order *CategoryOrder) CategoryPaginateOption {
-	if order == nil {
-		order = DefaultCategoryOrder
+func WithCategoryOrder(orders ...*CategoryOrder) CategoryPaginateOption {
+	var compactedOrder []CategoryOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultCategoryOrder)
+	}
 	return func(pager *categoryPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultCategoryOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultCategoryOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -576,7 +650,7 @@ func WithCategoryFilter(filter func(*CategoryQuery) (*CategoryQuery, error)) Cat
 }
 
 type categoryPager struct {
-	order  *CategoryOrder
+	orders []CategoryOrder
 	filter func(*CategoryQuery) (*CategoryQuery, error)
 }
 
@@ -587,8 +661,8 @@ func newCategoryPager(opts []CategoryPaginateOption) (*categoryPager, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultCategoryOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultCategoryOrder)
 	}
 	return pager, nil
 }
@@ -601,40 +675,165 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 }
 
 func (p *categoryPager) toCursor(c *Category) Cursor {
-	return p.order.Field.toCursor(c)
+	var values []any
+	for _, order := range p.orders {
+		switch order.Field.field {
+		case category.FieldText:
+			values = append(values, c.Text)
+		case category.FieldDuration:
+			values = append(values, c.Duration)
+		}
+	}
+
+	return Cursor{
+		ID:    c.ID,
+		Value: values,
+	}
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) *CategoryQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultCategoryOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	if after != nil {
+		if values, ok := after.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, after.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultCategoryOrder.Direction
+			fields[len(p.orders)] = DefaultCategoryOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.GT
+						} else {
+							predicate = sql.LT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultCategoryOrder.Direction == OrderDirectionAsc {
+				predicate = sql.GT
+			} else {
+				predicate = sql.LT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultCategoryOrder.Field.field), after.ID))
+			})
+		}
+	}
+	if before != nil {
+		if values, ok := before.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, before.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultCategoryOrder.Direction
+			fields[len(p.orders)] = DefaultCategoryOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.LT
+						} else {
+							predicate = sql.GT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultCategoryOrder.Direction == OrderDirectionAsc {
+				predicate = sql.LT
+			} else {
+				predicate = sql.GT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultCategoryOrder.Field.field), before.ID))
+			})
+		}
 	}
 	return query
 }
 
 func (p *categoryPager) applyOrder(query *CategoryQuery, reverse bool) *CategoryQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var orders []OrderFunc
+	addDefault := false
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(order.Field.field))
+		if order.Field != DefaultCategoryOrder.Field {
+			addDefault = true
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultCategoryOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultCategoryOrder.Field.field))
+	if addDefault {
+		direction := DefaultCategoryOrder.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(DefaultCategoryOrder.Field.field))
 	}
+	query.Order(orders...)
 	return query
 }
 
 func (p *categoryPager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultCategoryOrder.Field {
-			b.Comma().Ident(DefaultCategoryOrder.Field.field).Pad().WriteString(string(direction))
+		for _, order := range p.orders {
+			direction := order.Direction
+			if reverse {
+				direction = direction.reverse()
+			}
+			b.Ident(order.Field.field).Pad().WriteString(string(direction))
+			if order.Field != DefaultCategoryOrder.Field {
+				b.Comma().Ident(DefaultCategoryOrder.Field.field).Pad().WriteString(string(direction))
+			}
 		}
 	})
 }
@@ -835,19 +1034,27 @@ func (c *FriendshipConnection) build(nodes []*Friendship, pager *friendshipPager
 type FriendshipPaginateOption func(*friendshipPager) error
 
 // WithFriendshipOrder configures pagination ordering.
-func WithFriendshipOrder(order *FriendshipOrder) FriendshipPaginateOption {
-	if order == nil {
-		order = DefaultFriendshipOrder
+func WithFriendshipOrder(orders ...*FriendshipOrder) FriendshipPaginateOption {
+	var compactedOrder []FriendshipOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultFriendshipOrder)
+	}
 	return func(pager *friendshipPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultFriendshipOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultFriendshipOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -864,7 +1071,7 @@ func WithFriendshipFilter(filter func(*FriendshipQuery) (*FriendshipQuery, error
 }
 
 type friendshipPager struct {
-	order  *FriendshipOrder
+	orders []FriendshipOrder
 	filter func(*FriendshipQuery) (*FriendshipQuery, error)
 }
 
@@ -875,8 +1082,8 @@ func newFriendshipPager(opts []FriendshipPaginateOption) (*friendshipPager, erro
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultFriendshipOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultFriendshipOrder)
 	}
 	return pager, nil
 }
@@ -889,40 +1096,161 @@ func (p *friendshipPager) applyFilter(query *FriendshipQuery) (*FriendshipQuery,
 }
 
 func (p *friendshipPager) toCursor(f *Friendship) Cursor {
-	return p.order.Field.toCursor(f)
+	var values []any
+	for _, order := range p.orders {
+		switch order.Field.field {
+		}
+	}
+
+	return Cursor{
+		ID:    f.ID,
+		Value: values,
+	}
 }
 
 func (p *friendshipPager) applyCursors(query *FriendshipQuery, after, before *Cursor) *FriendshipQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultFriendshipOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	if after != nil {
+		if values, ok := after.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, after.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultFriendshipOrder.Direction
+			fields[len(p.orders)] = DefaultFriendshipOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.GT
+						} else {
+							predicate = sql.LT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultFriendshipOrder.Direction == OrderDirectionAsc {
+				predicate = sql.GT
+			} else {
+				predicate = sql.LT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultFriendshipOrder.Field.field), after.ID))
+			})
+		}
+	}
+	if before != nil {
+		if values, ok := before.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, before.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultFriendshipOrder.Direction
+			fields[len(p.orders)] = DefaultFriendshipOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.LT
+						} else {
+							predicate = sql.GT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultFriendshipOrder.Direction == OrderDirectionAsc {
+				predicate = sql.LT
+			} else {
+				predicate = sql.GT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultFriendshipOrder.Field.field), before.ID))
+			})
+		}
 	}
 	return query
 }
 
 func (p *friendshipPager) applyOrder(query *FriendshipQuery, reverse bool) *FriendshipQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var orders []OrderFunc
+	addDefault := false
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(order.Field.field))
+		if order.Field != DefaultFriendshipOrder.Field {
+			addDefault = true
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultFriendshipOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultFriendshipOrder.Field.field))
+	if addDefault {
+		direction := DefaultFriendshipOrder.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(DefaultFriendshipOrder.Field.field))
 	}
+	query.Order(orders...)
 	return query
 }
 
 func (p *friendshipPager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultFriendshipOrder.Field {
-			b.Comma().Ident(DefaultFriendshipOrder.Field.field).Pad().WriteString(string(direction))
+		for _, order := range p.orders {
+			direction := order.Direction
+			if reverse {
+				direction = direction.reverse()
+			}
+			b.Ident(order.Field.field).Pad().WriteString(string(direction))
+			if order.Field != DefaultFriendshipOrder.Field {
+				b.Comma().Ident(DefaultFriendshipOrder.Field.field).Pad().WriteString(string(direction))
+			}
 		}
 	})
 }
@@ -1066,19 +1394,27 @@ func (c *GroupConnection) build(nodes []*Group, pager *groupPager, after *Cursor
 type GroupPaginateOption func(*groupPager) error
 
 // WithGroupOrder configures pagination ordering.
-func WithGroupOrder(order *GroupOrder) GroupPaginateOption {
-	if order == nil {
-		order = DefaultGroupOrder
+func WithGroupOrder(orders ...*GroupOrder) GroupPaginateOption {
+	var compactedOrder []GroupOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultGroupOrder)
+	}
 	return func(pager *groupPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultGroupOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultGroupOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -1095,7 +1431,7 @@ func WithGroupFilter(filter func(*GroupQuery) (*GroupQuery, error)) GroupPaginat
 }
 
 type groupPager struct {
-	order  *GroupOrder
+	orders []GroupOrder
 	filter func(*GroupQuery) (*GroupQuery, error)
 }
 
@@ -1106,8 +1442,8 @@ func newGroupPager(opts []GroupPaginateOption) (*groupPager, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultGroupOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultGroupOrder)
 	}
 	return pager, nil
 }
@@ -1120,40 +1456,161 @@ func (p *groupPager) applyFilter(query *GroupQuery) (*GroupQuery, error) {
 }
 
 func (p *groupPager) toCursor(gr *Group) Cursor {
-	return p.order.Field.toCursor(gr)
+	var values []any
+	for _, order := range p.orders {
+		switch order.Field.field {
+		}
+	}
+
+	return Cursor{
+		ID:    gr.ID,
+		Value: values,
+	}
 }
 
 func (p *groupPager) applyCursors(query *GroupQuery, after, before *Cursor) *GroupQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultGroupOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	if after != nil {
+		if values, ok := after.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, after.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultGroupOrder.Direction
+			fields[len(p.orders)] = DefaultGroupOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.GT
+						} else {
+							predicate = sql.LT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultGroupOrder.Direction == OrderDirectionAsc {
+				predicate = sql.GT
+			} else {
+				predicate = sql.LT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultGroupOrder.Field.field), after.ID))
+			})
+		}
+	}
+	if before != nil {
+		if values, ok := before.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, before.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultGroupOrder.Direction
+			fields[len(p.orders)] = DefaultGroupOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.LT
+						} else {
+							predicate = sql.GT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultGroupOrder.Direction == OrderDirectionAsc {
+				predicate = sql.LT
+			} else {
+				predicate = sql.GT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultGroupOrder.Field.field), before.ID))
+			})
+		}
 	}
 	return query
 }
 
 func (p *groupPager) applyOrder(query *GroupQuery, reverse bool) *GroupQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var orders []OrderFunc
+	addDefault := false
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(order.Field.field))
+		if order.Field != DefaultGroupOrder.Field {
+			addDefault = true
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultGroupOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultGroupOrder.Field.field))
+	if addDefault {
+		direction := DefaultGroupOrder.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(DefaultGroupOrder.Field.field))
 	}
+	query.Order(orders...)
 	return query
 }
 
 func (p *groupPager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultGroupOrder.Field {
-			b.Comma().Ident(DefaultGroupOrder.Field.field).Pad().WriteString(string(direction))
+		for _, order := range p.orders {
+			direction := order.Direction
+			if reverse {
+				direction = direction.reverse()
+			}
+			b.Ident(order.Field.field).Pad().WriteString(string(direction))
+			if order.Field != DefaultGroupOrder.Field {
+				b.Comma().Ident(DefaultGroupOrder.Field.field).Pad().WriteString(string(direction))
+			}
 		}
 	})
 }
@@ -1297,19 +1754,27 @@ func (c *TodoConnection) build(nodes []*Todo, pager *todoPager, after *Cursor, f
 type TodoPaginateOption func(*todoPager) error
 
 // WithTodoOrder configures pagination ordering.
-func WithTodoOrder(order *TodoOrder) TodoPaginateOption {
-	if order == nil {
-		order = DefaultTodoOrder
+func WithTodoOrder(orders ...*TodoOrder) TodoPaginateOption {
+	var compactedOrder []TodoOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultTodoOrder)
+	}
 	return func(pager *todoPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultTodoOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultTodoOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -1326,7 +1791,7 @@ func WithTodoFilter(filter func(*TodoQuery) (*TodoQuery, error)) TodoPaginateOpt
 }
 
 type todoPager struct {
-	order  *TodoOrder
+	orders []TodoOrder
 	filter func(*TodoQuery) (*TodoQuery, error)
 }
 
@@ -1337,8 +1802,8 @@ func newTodoPager(opts []TodoPaginateOption) (*todoPager, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultTodoOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultTodoOrder)
 	}
 	return pager, nil
 }
@@ -1351,40 +1816,169 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 }
 
 func (p *todoPager) toCursor(t *Todo) Cursor {
-	return p.order.Field.toCursor(t)
+	var values []any
+	for _, order := range p.orders {
+		switch order.Field.field {
+		case todo.FieldCreatedAt:
+			values = append(values, t.CreatedAt)
+		case todo.FieldStatus:
+			values = append(values, t.Status)
+		case todo.FieldPriority:
+			values = append(values, t.Priority)
+		case todo.FieldText:
+			values = append(values, t.Text)
+		}
+	}
+
+	return Cursor{
+		ID:    t.ID,
+		Value: values,
+	}
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) *TodoQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultTodoOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	if after != nil {
+		if values, ok := after.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, after.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultTodoOrder.Direction
+			fields[len(p.orders)] = DefaultTodoOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.GT
+						} else {
+							predicate = sql.LT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultTodoOrder.Direction == OrderDirectionAsc {
+				predicate = sql.GT
+			} else {
+				predicate = sql.LT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultTodoOrder.Field.field), after.ID))
+			})
+		}
+	}
+	if before != nil {
+		if values, ok := before.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, before.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultTodoOrder.Direction
+			fields[len(p.orders)] = DefaultTodoOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.LT
+						} else {
+							predicate = sql.GT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultTodoOrder.Direction == OrderDirectionAsc {
+				predicate = sql.LT
+			} else {
+				predicate = sql.GT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultTodoOrder.Field.field), before.ID))
+			})
+		}
 	}
 	return query
 }
 
 func (p *todoPager) applyOrder(query *TodoQuery, reverse bool) *TodoQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var orders []OrderFunc
+	addDefault := false
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(order.Field.field))
+		if order.Field != DefaultTodoOrder.Field {
+			addDefault = true
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultTodoOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultTodoOrder.Field.field))
+	if addDefault {
+		direction := DefaultTodoOrder.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(DefaultTodoOrder.Field.field))
 	}
+	query.Order(orders...)
 	return query
 }
 
 func (p *todoPager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultTodoOrder.Field {
-			b.Comma().Ident(DefaultTodoOrder.Field.field).Pad().WriteString(string(direction))
+		for _, order := range p.orders {
+			direction := order.Direction
+			if reverse {
+				direction = direction.reverse()
+			}
+			b.Ident(order.Field.field).Pad().WriteString(string(direction))
+			if order.Field != DefaultTodoOrder.Field {
+				b.Comma().Ident(DefaultTodoOrder.Field.field).Pad().WriteString(string(direction))
+			}
 		}
 	})
 }
@@ -1613,19 +2207,27 @@ func (c *UserConnection) build(nodes []*User, pager *userPager, after *Cursor, f
 type UserPaginateOption func(*userPager) error
 
 // WithUserOrder configures pagination ordering.
-func WithUserOrder(order *UserOrder) UserPaginateOption {
-	if order == nil {
-		order = DefaultUserOrder
+func WithUserOrder(orders ...*UserOrder) UserPaginateOption {
+	var compactedOrder []UserOrder
+	for _, order := range orders {
+		if order == nil {
+			continue
+		}
+		compactedOrder = append(compactedOrder, *order)
 	}
-	o := *order
+	if len(compactedOrder) == 0 {
+		compactedOrder = append(compactedOrder, *DefaultUserOrder)
+	}
 	return func(pager *userPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, order := range compactedOrder {
+			if err := order.Direction.Validate(); err != nil {
+				return err
+			}
+			if order.Field == nil {
+				order.Field = DefaultUserOrder.Field
+			}
+			pager.orders = append(pager.orders, order)
 		}
-		if o.Field == nil {
-			o.Field = DefaultUserOrder.Field
-		}
-		pager.order = &o
 		return nil
 	}
 }
@@ -1642,7 +2244,7 @@ func WithUserFilter(filter func(*UserQuery) (*UserQuery, error)) UserPaginateOpt
 }
 
 type userPager struct {
-	order  *UserOrder
+	orders []UserOrder
 	filter func(*UserQuery) (*UserQuery, error)
 }
 
@@ -1653,8 +2255,8 @@ func newUserPager(opts []UserPaginateOption) (*userPager, error) {
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultUserOrder
+	if len(pager.orders) == 0 {
+		pager.orders = append(pager.orders, *DefaultUserOrder)
 	}
 	return pager, nil
 }
@@ -1667,40 +2269,161 @@ func (p *userPager) applyFilter(query *UserQuery) (*UserQuery, error) {
 }
 
 func (p *userPager) toCursor(u *User) Cursor {
-	return p.order.Field.toCursor(u)
+	var values []any
+	for _, order := range p.orders {
+		switch order.Field.field {
+		}
+	}
+
+	return Cursor{
+		ID:    u.ID,
+		Value: values,
+	}
 }
 
 func (p *userPager) applyCursors(query *UserQuery, after, before *Cursor) *UserQuery {
-	for _, predicate := range cursorsToPredicates(
-		p.order.Direction, after, before,
-		p.order.Field.field, DefaultUserOrder.Field.field,
-	) {
-		query = query.Where(predicate)
+	if after != nil {
+		if values, ok := after.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, after.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultUserOrder.Direction
+			fields[len(p.orders)] = DefaultUserOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.GT
+						} else {
+							predicate = sql.LT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultUserOrder.Direction == OrderDirectionAsc {
+				predicate = sql.GT
+			} else {
+				predicate = sql.LT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultUserOrder.Field.field), after.ID))
+			})
+		}
+	}
+	if before != nil {
+		if values, ok := before.Value.([]any); ok && len(values) == len(p.orders) {
+			vals := append(values, before.ID)
+			directions := make([]OrderDirection, len(p.orders)+1)
+			fields := make([]string, len(p.orders)+1)
+			for i := 0; i < len(p.orders); i++ {
+				directions[i] = p.orders[i].Direction
+				fields[i] = p.orders[i].Field.field
+			}
+			directions[len(p.orders)] = DefaultUserOrder.Direction
+			fields[len(p.orders)] = DefaultUserOrder.Field.field
+
+			query = query.Where(
+				func(s *sql.Selector) {
+					ors := make([]*sql.Predicate, len(vals))
+					for i := 0; i < len(vals); i++ {
+						direction := directions[i]
+						field := fields[i]
+						val := vals[i]
+
+						ands := make([]*sql.Predicate, i)
+						for j := 0; j < i; j++ {
+							field := fields[j]
+							val := vals[j]
+							ands[j] = sql.EQ(s.C(field), val)
+						}
+
+						var predicate func(string, interface{}) *sql.Predicate
+						if direction == OrderDirectionAsc {
+							predicate = sql.LT
+						} else {
+							predicate = sql.GT
+						}
+
+						ors[i] = sql.And(append(ands, predicate(s.C(field), val))...)
+					}
+					s.Where(sql.Or(ors...))
+				},
+			)
+		} else {
+			var predicate func(string, interface{}) *sql.Predicate
+			if DefaultUserOrder.Direction == OrderDirectionAsc {
+				predicate = sql.LT
+			} else {
+				predicate = sql.GT
+			}
+
+			query = query.Where(func(s *sql.Selector) {
+				s.Where(predicate(s.C(DefaultUserOrder.Field.field), before.ID))
+			})
+		}
 	}
 	return query
 }
 
 func (p *userPager) applyOrder(query *UserQuery, reverse bool) *UserQuery {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
+	var orders []OrderFunc
+	addDefault := false
+	for _, order := range p.orders {
+		direction := order.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(order.Field.field))
+		if order.Field != DefaultUserOrder.Field {
+			addDefault = true
+		}
 	}
-	query = query.Order(direction.orderFunc(p.order.Field.field))
-	if p.order.Field != DefaultUserOrder.Field {
-		query = query.Order(direction.orderFunc(DefaultUserOrder.Field.field))
+	if addDefault {
+		direction := DefaultUserOrder.Direction
+		if reverse {
+			direction = direction.reverse()
+		}
+		orders = append(orders, direction.orderFunc(DefaultUserOrder.Field.field))
 	}
+	query.Order(orders...)
 	return query
 }
 
 func (p *userPager) orderExpr(reverse bool) sql.Querier {
-	direction := p.order.Direction
-	if reverse {
-		direction = direction.reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultUserOrder.Field {
-			b.Comma().Ident(DefaultUserOrder.Field.field).Pad().WriteString(string(direction))
+		for _, order := range p.orders {
+			direction := order.Direction
+			if reverse {
+				direction = direction.reverse()
+			}
+			b.Ident(order.Field.field).Pad().WriteString(string(direction))
+			if order.Field != DefaultUserOrder.Field {
+				b.Comma().Ident(DefaultUserOrder.Field.field).Pad().WriteString(string(direction))
+			}
 		}
 	})
 }

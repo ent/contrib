@@ -326,7 +326,7 @@ type Category implements Node {
     last: Int
 
     """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
+    orderBy: [TodoOrder!]
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
@@ -626,7 +626,7 @@ type Query {
     last: Int
 
     """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
+    orderBy: [TodoOrder!]
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
@@ -677,7 +677,7 @@ type Todo implements Node {
     last: Int
 
     """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
+    orderBy: [TodoOrder!]
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
