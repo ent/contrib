@@ -97,9 +97,7 @@ func (t Transactioner) InterceptResponse(ctx context.Context, next graphql.Respo
 	rsp := next(ctx)
 	if len(rsp.Errors) > 0 {
 		_ = tx.Rollback()
-		return &graphql.Response{
-			Errors: rsp.Errors,
-		}
+		return rsp
 	}
 	if err := tx.Commit(); err != nil {
 		return graphql.ErrorResponse(ctx,
