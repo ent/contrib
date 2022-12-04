@@ -548,7 +548,7 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput
 	if hasOrderBy {
 		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
 			Name:        "orderBy",
-			Type:        ast.NamedType(p.Order, nil),
+			Type:        ast.ListType(ast.NonNullNamedType(p.Order, nil), nil),
 			Description: fmt.Sprintf("Ordering options for %s returned from the connection.", plural(p.Node)),
 		})
 	}
