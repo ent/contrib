@@ -15,13 +15,18 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"log"
+	"os"
 
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 )
+
+//go:embed helpers.txt
+var helpers []byte
 
 func main() {
 	var (
@@ -37,5 +42,22 @@ func main() {
 	}
 	if err := entproto.Generate(graph); err != nil {
 		log.Fatalf("entproto: failed generating protos: %s", err)
+	}
+
+	// open output file
+	fo, err := os.Create("proto/entpb/helpers.go")
+	if err != nil {
+		panic(err)
+	}
+	// close fo on exit and check for its returned error
+	defer func() {
+		if err := fo.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	_, err = fo.Write(helpers)
+	if err != nil {
+		panic(err)
 	}
 }

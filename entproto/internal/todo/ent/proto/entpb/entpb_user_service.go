@@ -106,6 +106,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Exp = exp
 	external_id := int64(e.ExternalID)
 	v.ExternalId = external_id
+	group_ids := toRepeatedInt64(e.GroupIds)
+	v.GroupIds = group_ids
 	height_in_cm := e.HeightInCm
 	v.HeightInCm = height_in_cm
 	id := e.ID
@@ -272,6 +274,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
+	if user.GetGroupIds() != nil {
+		userGroupIds := toRepeatedInt(user.GetGroupIds())
+		m.SetGroupIds(userGroupIds)
+	}
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
 	if user.GetLabels() != nil {
@@ -493,6 +499,10 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
+	if user.GetGroupIds() != nil {
+		userGroupIds := toRepeatedInt(user.GetGroupIds())
+		m.SetGroupIds(userGroupIds)
+	}
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
 	userJoined := runtime.ExtractTime(user.GetJoined())

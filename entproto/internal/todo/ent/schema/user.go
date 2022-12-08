@@ -119,6 +119,11 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(24),
 			),
+		field.Ints("group_ids").
+			Optional().
+			Annotations(
+				entproto.Field(25),
+			),
 		field.Enum("device_type").
 			Values("GLOWY9000", "SPEEDY300").
 			Default("GLOWY9000").

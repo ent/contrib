@@ -1478,6 +1478,20 @@ func LabelsNotNil() predicate.User {
 	})
 }
 
+// GroupIdsIsNil applies the IsNil predicate on the "group_ids" field.
+func GroupIdsIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldGroupIds)))
+	})
+}
+
+// GroupIdsNotNil applies the NotNil predicate on the "group_ids" field.
+func GroupIdsNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldGroupIds)))
+	})
+}
+
 // DeviceTypeEQ applies the EQ predicate on the "device_type" field.
 func DeviceTypeEQ(v DeviceType) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

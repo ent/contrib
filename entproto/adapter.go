@@ -522,6 +522,12 @@ func extractJSONDetails(f *gen.Field) (fieldType, error) {
 			repeated:  true,
 		}, nil
 	}
+	if f.Type.Ident == "[]int" {
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			repeated:  true,
+		}, nil
+	}
 	return fieldType{}, unsupportedTypeError{Type: f.Type}
 }
 

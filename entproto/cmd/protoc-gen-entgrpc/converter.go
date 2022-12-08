@@ -112,6 +112,9 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
 		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
 	case efld.IsJSON() && efld.Type.Ident == "[]string":
+	case efld.IsJSON() && efld.Type.Ident == "[]int":
+		method := fmt.Sprintf("toRepeatedInt")
+		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 	}
@@ -147,6 +150,9 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 			conv.ToProtoValuer = "int64"
 		} else if entField.Type.String() != "int64" {
 			conv.ToProtoConversion = "int64"
+			if md.GetLabel() == dpb.FieldDescriptorProto_LABEL_REPEATED {
+				conv.ToProtoConversion = "toRepeatedInt64"
+			}
 		}
 	case dpb.FieldDescriptorProto_TYPE_UINT32:
 		if entField.Type.String() != "uint32" {

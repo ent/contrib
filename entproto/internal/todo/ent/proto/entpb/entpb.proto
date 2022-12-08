@@ -354,6 +354,8 @@ message User {
 
   repeated string labels = 24;
 
+  repeated int64 group_ids = 25;
+
   DeviceType device_type = 100;
 
   Group group = 7;
