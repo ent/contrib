@@ -12,31 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package schema
 
 import (
-	_ "embed"
-	"flag"
-	"log"
-
 	"entgo.io/contrib/entproto"
-	"entgo.io/ent/entc"
-	"entgo.io/ent/entc/gen"
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/field"
 )
 
-func main() {
-	var (
-		schemaPath = flag.String("path", "", "path to schema directory")
-	)
-	flag.Parse()
-	if *schemaPath == "" {
-		log.Fatal("entproto: must specify schema path. use entproto -path ./ent/schema")
+type MessageWithInts struct {
+	ent.Schema
+}
+
+func (MessageWithInts) Fields() []ent.Field {
+	return []ent.Field{
+		field.Ints("ints").Annotations(entproto.Field(2)),
 	}
-	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
-	if err != nil {
-		log.Fatalf("entproto: failed loading ent graph: %v", err)
-	}
-	if err := entproto.Generate(graph); err != nil {
-		log.Fatalf("entproto: failed generating protos: %s", err)
-	}
+}
+
+func (MessageWithInts) Annotations() []schema.Annotation {
+	return []schema.Annotation{entproto.Message()}
 }

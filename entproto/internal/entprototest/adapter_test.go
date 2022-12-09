@@ -102,6 +102,14 @@ func (suite *AdapterTestSuite) TestMessageWithStrings() {
 	suite.Require().True(field.IsRepeated(), "expected repeated")
 }
 
+func (suite *AdapterTestSuite) TestMessageWithInts() {
+	message, err := suite.adapter.GetMessageDescriptor("MessageWithInts")
+	suite.NoError(err)
+	field := message.FindFieldByName("ints")
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_INT64, field.GetType(), "expected repeated")
+	suite.Require().True(field.IsRepeated(), "expected repeated")
+}
+
 func (suite *AdapterTestSuite) TestExplicitSkippedMessage() {
 	_, err := suite.adapter.GetFileDescriptor("ExplicitSkippedMessage")
 	suite.EqualError(err, entproto.ErrSchemaSkipped.Error())

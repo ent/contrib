@@ -61,6 +61,8 @@ type User struct {
 	Type string `json:"type,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels []string `json:"labels,omitempty"`
+	// GroupIds holds the value of the "group_ids" field.
+	GroupIds []int `json:"group_ids,omitempty"`
 	// DeviceType holds the value of the "device_type" field.
 	DeviceType user.DeviceType `json:"device_type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -152,7 +154,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldLabels:
+		case user.FieldLabels, user.FieldGroupIds:
 			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
@@ -307,6 +309,14 @@ func (u *User) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
 			}
+		case user.FieldGroupIds:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field group_ids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.GroupIds); err != nil {
+					return fmt.Errorf("unmarshal field group_ids: %w", err)
+				}
+			}
 		case user.FieldDeviceType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field device_type", values[i])
@@ -429,6 +439,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", u.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("group_ids=")
+	builder.WriteString(fmt.Sprintf("%v", u.GroupIds))
 	builder.WriteString(", ")
 	builder.WriteString("device_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceType))

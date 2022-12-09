@@ -220,6 +220,12 @@ func (uc *UserCreate) SetLabels(s []string) *UserCreate {
 	return uc
 }
 
+// SetGroupIds sets the "group_ids" field.
+func (uc *UserCreate) SetGroupIds(i []int) *UserCreate {
+	uc.mutation.SetGroupIds(i)
+	return uc
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uc *UserCreate) SetDeviceType(ut user.DeviceType) *UserCreate {
 	uc.mutation.SetDeviceType(ut)
@@ -582,6 +588,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Labels(); ok {
 		_spec.SetField(user.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
+	}
+	if value, ok := uc.mutation.GroupIds(); ok {
+		_spec.SetField(user.FieldGroupIds, field.TypeJSON, value)
+		_node.GroupIds = value
 	}
 	if value, ok := uc.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)

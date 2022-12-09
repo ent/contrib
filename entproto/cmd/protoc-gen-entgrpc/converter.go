@@ -24,6 +24,7 @@ import (
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
 	"github.com/jhump/protoreflect/desc"
+	"github.com/stoewer/go-strcase"
 	"google.golang.org/protobuf/compiler/protogen"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -112,8 +113,18 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
 		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
 	case efld.IsJSON() && efld.Type.Ident == "[]string":
+	case efld.IsJSON() && efld.Type.Ident == "[]int":
+		name := fld.PbFieldDescriptor.GetName()
+		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, strcase.UpperCamelCase(name))
+		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
 	default:
 		return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
+	}
+
+	if pbd.GetType() == dpb.FieldDescriptorProto_TYPE_INT64 && fld.PbFieldDescriptor.GetLabel() == dpb.FieldDescriptorProto_LABEL_REPEATED {
+		name := fld.PbFieldDescriptor.GetName()
+		method := fmt.Sprintf("toProto%s_%s", g.EntType.Name, strcase.UpperCamelCase(name))
+		out.ToProtoConversion = method
 	}
 	return out, nil
 }

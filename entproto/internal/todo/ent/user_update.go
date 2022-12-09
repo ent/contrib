@@ -332,6 +332,24 @@ func (uu *UserUpdate) ClearLabels() *UserUpdate {
 	return uu
 }
 
+// SetGroupIds sets the "group_ids" field.
+func (uu *UserUpdate) SetGroupIds(i []int) *UserUpdate {
+	uu.mutation.SetGroupIds(i)
+	return uu
+}
+
+// AppendGroupIds appends i to the "group_ids" field.
+func (uu *UserUpdate) AppendGroupIds(i []int) *UserUpdate {
+	uu.mutation.AppendGroupIds(i)
+	return uu
+}
+
+// ClearGroupIds clears the value of the "group_ids" field.
+func (uu *UserUpdate) ClearGroupIds() *UserUpdate {
+	uu.mutation.ClearGroupIds()
+	return uu
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uu *UserUpdate) SetDeviceType(ut user.DeviceType) *UserUpdate {
 	uu.mutation.SetDeviceType(ut)
@@ -686,6 +704,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.LabelsCleared() {
 		_spec.ClearField(user.FieldLabels, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.GroupIds(); ok {
+		_spec.SetField(user.FieldGroupIds, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedGroupIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldGroupIds, value)
+		})
+	}
+	if uu.mutation.GroupIdsCleared() {
+		_spec.ClearField(user.FieldGroupIds, field.TypeJSON)
 	}
 	if value, ok := uu.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
@@ -1201,6 +1230,24 @@ func (uuo *UserUpdateOne) ClearLabels() *UserUpdateOne {
 	return uuo
 }
 
+// SetGroupIds sets the "group_ids" field.
+func (uuo *UserUpdateOne) SetGroupIds(i []int) *UserUpdateOne {
+	uuo.mutation.SetGroupIds(i)
+	return uuo
+}
+
+// AppendGroupIds appends i to the "group_ids" field.
+func (uuo *UserUpdateOne) AppendGroupIds(i []int) *UserUpdateOne {
+	uuo.mutation.AppendGroupIds(i)
+	return uuo
+}
+
+// ClearGroupIds clears the value of the "group_ids" field.
+func (uuo *UserUpdateOne) ClearGroupIds() *UserUpdateOne {
+	uuo.mutation.ClearGroupIds()
+	return uuo
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uuo *UserUpdateOne) SetDeviceType(ut user.DeviceType) *UserUpdateOne {
 	uuo.mutation.SetDeviceType(ut)
@@ -1585,6 +1632,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.LabelsCleared() {
 		_spec.ClearField(user.FieldLabels, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.GroupIds(); ok {
+		_spec.SetField(user.FieldGroupIds, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedGroupIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldGroupIds, value)
+		})
+	}
+	if uuo.mutation.GroupIdsCleared() {
+		_spec.ClearField(user.FieldGroupIds, field.TypeJSON)
 	}
 	if value, ok := uuo.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)

@@ -74,6 +74,22 @@ func toEntUser_Status(e User_Status) user.Status {
 	return ""
 }
 
+func toProtoUser_GroupIds(repeatedInt []int) []int64 {
+	rs := make([]int64, len(repeatedInt))
+	for i, v := range repeatedInt {
+		rs[i] = int64(v)
+	}
+	return rs
+}
+
+func toEntUser_GroupIds(repeatedInt64 []int64) []int {
+	rs := make([]int, len(repeatedInt64))
+	for i, v := range repeatedInt64 {
+		rs[i] = int(v)
+	}
+	return rs
+}
+
 // toProtoUser transforms the ent type to the pb type
 func toProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
@@ -106,6 +122,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Exp = exp
 	external_id := int64(e.ExternalID)
 	v.ExternalId = external_id
+	group_ids := toProtoUser_GroupIds(e.GroupIds)
+	v.GroupIds = group_ids
 	height_in_cm := e.HeightInCm
 	v.HeightInCm = height_in_cm
 	id := e.ID
@@ -272,6 +290,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
+	if user.GetGroupIds() != nil {
+		userGroupIds := toEntUser_GroupIds(user.GetGroupIds())
+		m.SetGroupIds(userGroupIds)
+	}
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
 	if user.GetLabels() != nil {
@@ -493,6 +515,10 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m.SetExp(userExp)
 	userExternalID := int(user.GetExternalId())
 	m.SetExternalID(userExternalID)
+	if user.GetGroupIds() != nil {
+		userGroupIds := toEntUser_GroupIds(user.GetGroupIds())
+		m.SetGroupIds(userGroupIds)
+	}
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
 	userJoined := runtime.ExtractTime(user.GetJoined())

@@ -21,6 +21,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"github.com/jhump/protoreflect/desc"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // FieldMap returns a FieldMap containing descriptors of all of the mappings between the ent schema field
@@ -94,6 +95,19 @@ func (m FieldMap) Enums() []*FieldMappingDescriptor {
 	return out
 }
 
+func (m FieldMap) Ints() []*FieldMappingDescriptor {
+	var out []*FieldMappingDescriptor
+	for _, f := range m {
+		if f.IsIntsField {
+			out = append(out, f)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].PbStructField() < out[j].PbStructField()
+	})
+	return out
+}
+
 // FieldMappingDescriptor describes the mapping from a protobuf field descriptor to an ent Schema field
 type FieldMappingDescriptor struct {
 	EntField          *gen.Field
@@ -102,6 +116,7 @@ type FieldMappingDescriptor struct {
 	IsEdgeField       bool
 	IsIDField         bool
 	IsEnumField       bool
+	IsIntsField       bool
 	ReferencedPbType  *desc.MessageDescriptor
 }
 
@@ -130,6 +145,7 @@ func (a *Adapter) mapFields(entType *gen.Type, pbType *desc.MessageDescriptor) (
 			PbFieldDescriptor: fld,
 			IsIDField:         pascal(fld.GetName()) == pascal(entType.ID.Name),
 			IsEnumField:       fld.GetEnumType() != nil,
+			IsIntsField:       fld.IsRepeated() && fld.GetType() == descriptorpb.FieldDescriptorProto_TYPE_INT64,
 		}
 		for _, edg := range entType.Edges {
 			if fld.GetName() == edg.Name {

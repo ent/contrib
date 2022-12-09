@@ -516,13 +516,20 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 }
 
 func extractJSONDetails(f *gen.Field) (fieldType, error) {
-	if f.Type.Ident == "[]string" {
+	switch f.Type.Ident {
+	case "[]string":
 		return fieldType{
 			protoType: descriptorpb.FieldDescriptorProto_TYPE_STRING,
 			repeated:  true,
 		}, nil
+	case "[]int":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			repeated:  true,
+		}, nil
+	default:
+		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	return fieldType{}, unsupportedTypeError{Type: f.Type}
 }
 
 type fieldType struct {

@@ -3067,6 +3067,8 @@ type UserMutation struct {
 	_type              *string
 	labels             *[]string
 	appendlabels       []string
+	group_ids          *[]int
+	appendgroup_ids    []int
 	device_type        *user.DeviceType
 	clearedFields      map[string]struct{}
 	group              *int
@@ -4155,6 +4157,71 @@ func (m *UserMutation) ResetLabels() {
 	delete(m.clearedFields, user.FieldLabels)
 }
 
+// SetGroupIds sets the "group_ids" field.
+func (m *UserMutation) SetGroupIds(i []int) {
+	m.group_ids = &i
+	m.appendgroup_ids = nil
+}
+
+// GroupIds returns the value of the "group_ids" field in the mutation.
+func (m *UserMutation) GroupIds() (r []int, exists bool) {
+	v := m.group_ids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupIds returns the old "group_ids" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldGroupIds(ctx context.Context) (v []int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupIds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupIds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupIds: %w", err)
+	}
+	return oldValue.GroupIds, nil
+}
+
+// AppendGroupIds adds i to the "group_ids" field.
+func (m *UserMutation) AppendGroupIds(i []int) {
+	m.appendgroup_ids = append(m.appendgroup_ids, i...)
+}
+
+// AppendedGroupIds returns the list of values that were appended to the "group_ids" field in this mutation.
+func (m *UserMutation) AppendedGroupIds() ([]int, bool) {
+	if len(m.appendgroup_ids) == 0 {
+		return nil, false
+	}
+	return m.appendgroup_ids, true
+}
+
+// ClearGroupIds clears the value of the "group_ids" field.
+func (m *UserMutation) ClearGroupIds() {
+	m.group_ids = nil
+	m.appendgroup_ids = nil
+	m.clearedFields[user.FieldGroupIds] = struct{}{}
+}
+
+// GroupIdsCleared returns if the "group_ids" field was cleared in this mutation.
+func (m *UserMutation) GroupIdsCleared() bool {
+	_, ok := m.clearedFields[user.FieldGroupIds]
+	return ok
+}
+
+// ResetGroupIds resets all changes to the "group_ids" field.
+func (m *UserMutation) ResetGroupIds() {
+	m.group_ids = nil
+	m.appendgroup_ids = nil
+	delete(m.clearedFields, user.FieldGroupIds)
+}
+
 // SetDeviceType sets the "device_type" field.
 func (m *UserMutation) SetDeviceType(ut user.DeviceType) {
 	m.device_type = &ut
@@ -4420,7 +4487,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4478,6 +4545,9 @@ func (m *UserMutation) Fields() []string {
 	if m.labels != nil {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.group_ids != nil {
+		fields = append(fields, user.FieldGroupIds)
+	}
 	if m.device_type != nil {
 		fields = append(fields, user.FieldDeviceType)
 	}
@@ -4527,6 +4597,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case user.FieldLabels:
 		return m.Labels()
+	case user.FieldGroupIds:
+		return m.GroupIds()
 	case user.FieldDeviceType:
 		return m.DeviceType()
 	}
@@ -4576,6 +4648,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldType(ctx)
 	case user.FieldLabels:
 		return m.OldLabels(ctx)
+	case user.FieldGroupIds:
+		return m.OldGroupIds(ctx)
 	case user.FieldDeviceType:
 		return m.OldDeviceType(ctx)
 	}
@@ -4719,6 +4793,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLabels(v)
+		return nil
+	case user.FieldGroupIds:
+		v, ok := value.([]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupIds(v)
 		return nil
 	case user.FieldDeviceType:
 		v, ok := value.(user.DeviceType)
@@ -4880,6 +4961,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldLabels) {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.FieldCleared(user.FieldGroupIds) {
+		fields = append(fields, user.FieldGroupIds)
+	}
 	return fields
 }
 
@@ -4917,6 +5001,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldLabels:
 		m.ClearLabels()
+		return nil
+	case user.FieldGroupIds:
+		m.ClearGroupIds()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -4982,6 +5069,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case user.FieldGroupIds:
+		m.ResetGroupIds()
 		return nil
 	case user.FieldDeviceType:
 		m.ResetDeviceType()

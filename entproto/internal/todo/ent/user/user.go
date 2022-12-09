@@ -49,6 +49,8 @@ const (
 	FieldType = "type"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldGroupIds holds the string denoting the group_ids field in the database.
+	FieldGroupIds = "group_ids"
 	// FieldDeviceType holds the string denoting the device_type field in the database.
 	FieldDeviceType = "device_type"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -128,6 +130,7 @@ var Columns = []string{
 	FieldUnnecessary,
 	FieldType,
 	FieldLabels,
+	FieldGroupIds,
 	FieldDeviceType,
 }
 

@@ -36,6 +36,7 @@ type hooks struct {
 	MessageWithEnum        []ent.Hook
 	MessageWithFieldOne    []ent.Hook
 	MessageWithID          []ent.Hook
+	MessageWithInts        []ent.Hook
 	MessageWithOptionals   []ent.Hook
 	MessageWithPackageName []ent.Hook
 	MessageWithStrings     []ent.Hook
