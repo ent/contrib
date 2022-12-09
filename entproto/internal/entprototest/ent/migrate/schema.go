@@ -168,6 +168,17 @@ var (
 		Columns:    MessageWithIdsColumns,
 		PrimaryKey: []*schema.Column{MessageWithIdsColumns[0]},
 	}
+	// MessageWithIntsColumns holds the columns for the "message_with_ints" table.
+	MessageWithIntsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ints", Type: field.TypeJSON},
+	}
+	// MessageWithIntsTable holds the schema information for the "message_with_ints" table.
+	MessageWithIntsTable = &schema.Table{
+		Name:       "message_with_ints",
+		Columns:    MessageWithIntsColumns,
+		PrimaryKey: []*schema.Column{MessageWithIntsColumns[0]},
+	}
 	// MessageWithOptionalsColumns holds the columns for the "message_with_optionals" table.
 	MessageWithOptionalsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -354,6 +365,7 @@ var (
 		MessageWithEnumsTable,
 		MessageWithFieldOnesTable,
 		MessageWithIdsTable,
+		MessageWithIntsTable,
 		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
 		MessageWithStringsTable,
