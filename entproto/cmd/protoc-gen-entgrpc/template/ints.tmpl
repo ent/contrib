@@ -1,0 +1,23 @@
+{{ define "ints" }}
+        {{ $root := . }}
+        {{ range .FieldMap.Ints }}
+            {{ $entLcase := camel $root.EntType.Name }}
+            {{ $entIdent := entIdent $entLcase .PbStructField }}
+            {{ $name := print $root.EntType.Name "_" $entIdent.GoName }}
+            func toProto{{ $name }}(repeatedInt []int) []int64 {
+	            rs := make([]int64, len(repeatedInt))
+	            for i, v := range repeatedInt {
+	            	rs[i] = int64(v)
+	            }
+	            return rs
+            }
+  
+            func toEnt{{ $name }}(repeatedInt64 []int64) []int {
+	            rs := make([]int, len(repeatedInt64))
+	            for i, v := range repeatedInt64 {
+	            	rs[i] = int(v)
+	            }
+	            return rs
+            }
+        {{ end }}
+{{ end }}

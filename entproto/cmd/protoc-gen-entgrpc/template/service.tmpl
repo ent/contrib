@@ -18,6 +18,8 @@ func New{{ .Service.GoName }}(client *{{ .EntPackage.Ident "Client" | ident }}) 
 
 {{ template "enums" . }}
 
+{{ template "ints" . }}
+
 {{ template "to_proto_func" . }}
 
 {{ $needToProtoList := false }}
