@@ -447,7 +447,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 	for _, opt := range fld.Enums {
 		dp.Value = append(dp.Value, &descriptorpb.EnumValueDescriptorProto{
 			Number: int32ptr(enumAnnotation.Options[opt.Value]),
-			Name:   strptr(strings.ToUpper(snake(opt.Value))),
+			Name:   strptr(strings.ToUpper(snake(fld.Name)) + "_" + strings.ToUpper(snake(opt.Value))),
 		})
 	}
 

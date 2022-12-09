@@ -50,7 +50,7 @@ func TestUserService_Create(t *testing.T) {
 		Joined:     timestamppb.Now(),
 		Exp:        100,
 		Points:     1000,
-		Status:     User_ACTIVE,
+		Status:     User_STATUS_ACTIVE,
 		ExternalId: 1,
 		Group: &Group{
 			Id: int64(group.ID),
@@ -66,14 +66,14 @@ func TestUserService_Create(t *testing.T) {
 		User: inputUser,
 	})
 	require.NoError(t, err)
-	require.EqualValues(t, created.Status, User_ACTIVE)
+	require.EqualValues(t, created.Status, User_STATUS_ACTIVE)
 
 	fromDB := client.User.GetX(ctx, created.Id)
 	require.EqualValues(t, inputUser.UserName, fromDB.UserName)
 	require.EqualValues(t, inputUser.Joined.AsTime().Unix(), fromDB.Joined.Unix())
 	require.EqualValues(t, inputUser.Exp, fromDB.Exp)
 	require.EqualValues(t, inputUser.Points, fromDB.Points)
-	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper(string(fromDB.Status)))
+	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper("STATUS_"+string(fromDB.Status)))
 	require.EqualValues(t, inputUser.Banned, fromDB.Banned)
 	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
 	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
@@ -191,7 +191,7 @@ func TestUserService_Update(t *testing.T) {
 		Exp:        999,
 		Points:     999,
 		ExternalId: 1,
-		Status:     User_ACTIVE,
+		Status:     User_STATUS_ACTIVE,
 		Group: &Group{
 			Id: int64(group.ID),
 		},
@@ -310,7 +310,7 @@ func TestUserService_BatchCreate(t *testing.T) {
 				CrmId:      crmid,
 				CustomPb:   1,
 				Labels:     nil,
-				Status:     User_ACTIVE,
+				Status:     User_STATUS_ACTIVE,
 			},
 		}
 		requests = append(requests, request)

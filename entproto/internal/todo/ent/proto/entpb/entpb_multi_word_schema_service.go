@@ -30,7 +30,7 @@ func NewMultiWordSchemaService(client *ent.Client) *MultiWordSchemaService {
 }
 
 func toProtoMultiWordSchema_Unit(e multiwordschema.Unit) MultiWordSchema_Unit {
-	if v, ok := MultiWordSchema_Unit_value[strings.ToUpper(string(e))]; ok {
+	if v, ok := MultiWordSchema_Unit_value[strings.ToUpper("UNIT_"+string(e))]; ok {
 		return MultiWordSchema_Unit(v)
 	}
 	return MultiWordSchema_Unit(0)
@@ -39,8 +39,8 @@ func toProtoMultiWordSchema_Unit(e multiwordschema.Unit) MultiWordSchema_Unit {
 func toEntMultiWordSchema_Unit(e MultiWordSchema_Unit) multiwordschema.Unit {
 	if v, ok := MultiWordSchema_Unit_name[int32(e)]; ok {
 		entVal := map[string]string{
-			"M":  "m",
-			"FT": "ft",
+			"UNIT_M":  "m",
+			"UNIT_FT": "ft",
 		}[v]
 		return multiwordschema.Unit(entVal)
 	}

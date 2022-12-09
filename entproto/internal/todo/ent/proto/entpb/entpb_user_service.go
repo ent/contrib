@@ -39,7 +39,7 @@ func NewUserService(client *ent.Client) *UserService {
 }
 
 func toProtoUser_DeviceType(e user.DeviceType) User_DeviceType {
-	if v, ok := User_DeviceType_value[strings.ToUpper(string(e))]; ok {
+	if v, ok := User_DeviceType_value[strings.ToUpper("DEVICE_TYPE_"+string(e))]; ok {
 		return User_DeviceType(v)
 	}
 	return User_DeviceType(0)
@@ -48,8 +48,8 @@ func toProtoUser_DeviceType(e user.DeviceType) User_DeviceType {
 func toEntUser_DeviceType(e User_DeviceType) user.DeviceType {
 	if v, ok := User_DeviceType_name[int32(e)]; ok {
 		entVal := map[string]string{
-			"GLOWY9000": "GLOWY9000",
-			"SPEEDY300": "SPEEDY300",
+			"DEVICE_TYPE_GLOWY9000": "GLOWY9000",
+			"DEVICE_TYPE_SPEEDY300": "SPEEDY300",
 		}[v]
 		return user.DeviceType(entVal)
 	}
@@ -57,7 +57,7 @@ func toEntUser_DeviceType(e User_DeviceType) user.DeviceType {
 }
 
 func toProtoUser_Status(e user.Status) User_Status {
-	if v, ok := User_Status_value[strings.ToUpper(string(e))]; ok {
+	if v, ok := User_Status_value[strings.ToUpper("STATUS_"+string(e))]; ok {
 		return User_Status(v)
 	}
 	return User_Status(0)
@@ -66,8 +66,8 @@ func toProtoUser_Status(e user.Status) User_Status {
 func toEntUser_Status(e User_Status) user.Status {
 	if v, ok := User_Status_name[int32(e)]; ok {
 		entVal := map[string]string{
-			"PENDING": "pending",
-			"ACTIVE":  "active",
+			"STATUS_PENDING": "pending",
+			"STATUS_ACTIVE":  "active",
 		}[v]
 		return user.Status(entVal)
 	}
