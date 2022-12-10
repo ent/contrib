@@ -61,7 +61,7 @@ func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.
 	for i := range todos {
 		ids[i] = todos[i].ID
 	}
-	obj.TodoIDs = ids
+	obj.TodoIDs = append(obj.TodoIDs, ids...)
 	return nil
 }
 
