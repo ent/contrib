@@ -105,6 +105,11 @@ func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
 // User returns UserResolver implementation.
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
 
+// CreateCategoryInput returns CreateCategoryInputResolver implementation.
+func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
+	return &createCategoryInputResolver{r}
+}
+
 // CreateTodoInput returns CreateTodoInputResolver implementation.
 func (r *Resolver) CreateTodoInput() CreateTodoInputResolver { return &createTodoInputResolver{r} }
 
@@ -117,6 +122,7 @@ func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTod
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+type createCategoryInputResolver struct{ *Resolver }
 type createTodoInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
 type updateTodoInputResolver struct{ *Resolver }

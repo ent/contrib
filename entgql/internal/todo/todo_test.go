@@ -1812,3 +1812,65 @@ func TestEdgesFiltering(t *testing.T) {
 		require.Equal(t, "t1.1", n.Edges[0].Node.Text)
 	})
 }
+
+func TestMutation_CreateCategory(t *testing.T) {
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	count := &queryCount{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(count)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	gqlc := client.New(srv)
+
+	// Create a category.
+	var rsp struct {
+		CreateCategory struct {
+			ID     string
+			Text   string
+			Status string
+			Todos  struct {
+				TotalCount int
+				Edges      []struct {
+					Node struct {
+						Text   string
+						Status string
+					}
+				}
+			}
+		}
+	}
+	err = gqlc.Post(`
+	mutation createCategory {
+		createCategory(input: {
+			text: "cate1"
+			status: ENABLED
+			createTodos: [
+				{ status: IN_PROGRESS, text: "c1.t1" },
+				{ status: IN_PROGRESS, text: "c1.t2" }
+			]
+		}) {
+			id
+			text
+			status
+			todos {
+				totalCount
+				edges {
+					node {
+						text
+						status
+					}
+				}
+			}
+		}
+	}
+	`, &rsp)
+	require.NoError(t, err)
+
+	require.Equal(t, 2, rsp.CreateCategory.Todos.TotalCount)
+	n := rsp.CreateCategory.Todos
+	require.Equal(t, "c1.t1", n.Edges[0].Node.Text)
+	require.Equal(t, "c1.t2", n.Edges[1].Node.Text)
+}

@@ -60,8 +60,14 @@ func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// CreateCategoryInput returns CreateCategoryInputResolver implementation.
+func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
+	return &createCategoryInputResolver{r}
+}
+
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
 type queryResolver struct{ *Resolver }
+type createCategoryInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }

@@ -22,10 +22,15 @@ extend type Query {
 }
 
 type Mutation {
+  createCategory(input: CreateCategoryInput!): Category!
   createTodo(input: CreateTodoInput!): Todo!
   clearTodos: Int!
 }
 
 type Custom {
   info: String!
+}
+
+extend input CreateCategoryInput {
+  createTodos: [CreateTodoInput!]
 }
