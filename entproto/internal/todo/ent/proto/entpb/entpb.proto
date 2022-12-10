@@ -356,6 +356,8 @@ message User {
 
   DeviceType device_type = 100;
 
+  OmitPrefix omit_prefix = 103;
+
   Group group = 7;
 
   Attachment attachment = 11;
@@ -376,6 +378,14 @@ message User {
     DEVICE_TYPE_GLOWY9000 = 0;
 
     DEVICE_TYPE_SPEEDY300 = 1;
+  }
+
+  enum OmitPrefix {
+    OMIT_PREFIX_UNSPECIFIED = 0;
+
+    FOO = 1;
+
+    BAR = 2;
   }
 }
 

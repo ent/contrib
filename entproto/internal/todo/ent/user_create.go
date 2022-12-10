@@ -234,6 +234,12 @@ func (uc *UserCreate) SetNillableDeviceType(ut *user.DeviceType) *UserCreate {
 	return uc
 }
 
+// SetOmitPrefix sets the "omit_prefix" field.
+func (uc *UserCreate) SetOmitPrefix(up user.OmitPrefix) *UserCreate {
+	uc.mutation.SetOmitPrefix(up)
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uint32) *UserCreate {
 	uc.mutation.SetID(u)
@@ -474,6 +480,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.OmitPrefix(); !ok {
+		return &ValidationError{Name: "omit_prefix", err: errors.New(`ent: missing required field "User.omit_prefix"`)}
+	}
+	if v, ok := uc.mutation.OmitPrefix(); ok {
+		if err := user.OmitPrefixValidator(v); err != nil {
+			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -586,6 +600,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 		_node.DeviceType = value
+	}
+	if value, ok := uc.mutation.OmitPrefix(); ok {
+		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
+		_node.OmitPrefix = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

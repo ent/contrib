@@ -129,6 +129,18 @@ func (User) Fields() []ent.Field {
 					"SPEEDY300": 1,
 				}),
 			),
+		field.Enum("omit_prefix").
+			Values("foo", "bar").
+			Annotations(
+				entproto.Field(103),
+				entproto.Enum(
+					map[string]int32{
+						"foo": 1,
+						"bar": 2,
+					},
+					entproto.OmitFieldPrefix(),
+				),
+			),
 	}
 }
 

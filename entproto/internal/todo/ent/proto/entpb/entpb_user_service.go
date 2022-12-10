@@ -56,6 +56,24 @@ func toEntUser_DeviceType(e User_DeviceType) user.DeviceType {
 	return ""
 }
 
+func toProtoUser_OmitPrefix(e user.OmitPrefix) User_OmitPrefix {
+	if v, ok := User_OmitPrefix_value[strings.ToUpper(string(e))]; ok {
+		return User_OmitPrefix(v)
+	}
+	return User_OmitPrefix(0)
+}
+
+func toEntUser_OmitPrefix(e User_OmitPrefix) user.OmitPrefix {
+	if v, ok := User_OmitPrefix_name[int32(e)]; ok {
+		entVal := map[string]string{
+			"FOO": "foo",
+			"BAR": "bar",
+		}[v]
+		return user.OmitPrefix(entVal)
+	}
+	return ""
+}
+
 func toProtoUser_Status(e user.Status) User_Status {
 	if v, ok := User_Status_value[strings.ToUpper("STATUS_"+string(e))]; ok {
 		return User_Status(v)
@@ -114,6 +132,8 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Joined = joined
 	labels := e.Labels
 	v.Labels = labels
+	omit_prefix := toProtoUser_OmitPrefix(e.OmitPrefix)
+	v.OmitPrefix = omit_prefix
 	opt_bool := wrapperspb.Bool(e.OptBool)
 	v.OptBool = opt_bool
 	opt_num := wrapperspb.Int64(int64(e.OptNum))
@@ -278,6 +298,8 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		userLabels := user.GetLabels()
 		m.SetLabels(userLabels)
 	}
+	userOmitPrefix := toEntUser_OmitPrefix(user.GetOmitPrefix())
+	m.SetOmitPrefix(userOmitPrefix)
 	if user.GetOptBool() != nil {
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)
@@ -501,6 +523,8 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 		userLabels := user.GetLabels()
 		m.SetLabels(userLabels)
 	}
+	userOmitPrefix := toEntUser_OmitPrefix(user.GetOmitPrefix())
+	m.SetOmitPrefix(userOmitPrefix)
 	if user.GetOptBool() != nil {
 		userOptBool := user.GetOptBool().GetValue()
 		m.SetOptBool(userOptBool)

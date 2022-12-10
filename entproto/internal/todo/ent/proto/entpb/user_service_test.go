@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto"
+	"entgo.io/contrib/entproto/internal/todo/ent/user"
 
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
@@ -61,6 +62,7 @@ func TestUserService_Create(t *testing.T) {
 		HeightInCm:     170.18,
 		AccountBalance: 2000.50,
 		Labels:         []string{"member", "production"},
+		OmitPrefix:     User_BAR,
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -176,6 +178,7 @@ func TestUserService_Update(t *testing.T) {
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
 		SetLabels(nil).
+		SetOmitPrefix(user.OmitPrefixFoo).
 		SaveX(ctx)
 
 	attachmentID, err := attachment.ID.MarshalBinary()
@@ -201,6 +204,7 @@ func TestUserService_Update(t *testing.T) {
 		CrmId:          crmID,
 		HeightInCm:     175.18,
 		AccountBalance: 5000.75,
+		OmitPrefix:     User_FOO,
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,
@@ -210,6 +214,7 @@ func TestUserService_Update(t *testing.T) {
 
 	afterUpd := client.User.GetX(ctx, created.ID)
 	require.EqualValues(t, inputUser.Exp, afterUpd.Exp)
+	require.EqualValues(t, user.OmitPrefixFoo, afterUpd.OmitPrefix)
 }
 
 func TestUserService_List(t *testing.T) {
@@ -311,6 +316,7 @@ func TestUserService_BatchCreate(t *testing.T) {
 				CustomPb:   1,
 				Labels:     nil,
 				Status:     User_STATUS_ACTIVE,
+				OmitPrefix: User_BAR,
 			},
 		}
 		requests = append(requests, request)

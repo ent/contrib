@@ -31,12 +31,31 @@ var (
 	ErrEnumFieldsNotAnnotated = errors.New("entproto: all Enum options must be covered with an entproto.Enum annotation")
 )
 
-func Enum(opts map[string]int32) *enum {
-	return &enum{Options: opts}
+type EnumOption func(*enum)
+
+// Enum configures the mapping between the ent Enum field and a protobuf Enum.
+func Enum(vals map[string]int32, opts ...EnumOption) *enum {
+	// apply options
+	e := &enum{Options: vals}
+	for _, op := range opts {
+		op(e)
+	}
+	return e
+}
+
+// OmitFieldPrefix configures the Enum to omit the field name prefix from
+// the enum labels on the generated protobuf message. Used for backwards
+// compatibility with earlier versions of entproto where the field name
+// wasn't prepended to the enum labels.
+func OmitFieldPrefix() EnumOption {
+	return func(e *enum) {
+		e.OmitFieldPrefix = true
+	}
 }
 
 type enum struct {
-	Options map[string]int32
+	Options         map[string]int32
+	OmitFieldPrefix bool
 }
 
 func (*enum) Name() string {

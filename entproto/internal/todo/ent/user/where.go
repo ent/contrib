@@ -1514,6 +1514,42 @@ func DeviceTypeNotIn(vs ...DeviceType) predicate.User {
 	})
 }
 
+// OmitPrefixEQ applies the EQ predicate on the "omit_prefix" field.
+func OmitPrefixEQ(v OmitPrefix) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOmitPrefix), v))
+	})
+}
+
+// OmitPrefixNEQ applies the NEQ predicate on the "omit_prefix" field.
+func OmitPrefixNEQ(v OmitPrefix) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOmitPrefix), v))
+	})
+}
+
+// OmitPrefixIn applies the In predicate on the "omit_prefix" field.
+func OmitPrefixIn(vs ...OmitPrefix) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOmitPrefix), v...))
+	})
+}
+
+// OmitPrefixNotIn applies the NotIn predicate on the "omit_prefix" field.
+func OmitPrefixNotIn(vs ...OmitPrefix) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOmitPrefix), v...))
+	})
+}
+
 // HasGroup applies the HasEdge predicate on the "group" edge.
 func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

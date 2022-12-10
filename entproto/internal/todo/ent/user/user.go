@@ -51,6 +51,8 @@ const (
 	FieldLabels = "labels"
 	// FieldDeviceType holds the string denoting the device_type field in the database.
 	FieldDeviceType = "device_type"
+	// FieldOmitPrefix holds the string denoting the omit_prefix field in the database.
+	FieldOmitPrefix = "omit_prefix"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -129,6 +131,7 @@ var Columns = []string{
 	FieldType,
 	FieldLabels,
 	FieldDeviceType,
+	FieldOmitPrefix,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -213,5 +216,28 @@ func DeviceTypeValidator(dt DeviceType) error {
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for device_type field: %q", dt)
+	}
+}
+
+// OmitPrefix defines the type for the "omit_prefix" enum field.
+type OmitPrefix string
+
+// OmitPrefix values.
+const (
+	OmitPrefixFoo OmitPrefix = "foo"
+	OmitPrefixBar OmitPrefix = "bar"
+)
+
+func (op OmitPrefix) String() string {
+	return string(op)
+}
+
+// OmitPrefixValidator is a validator for the "omit_prefix" field enum values. It is called by the builders before save.
+func OmitPrefixValidator(op OmitPrefix) error {
+	switch op {
+	case OmitPrefixFoo, OmitPrefixBar:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for omit_prefix field: %q", op)
 	}
 }
