@@ -144,6 +144,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
 		SetCustomPb(1).
+		SetOmitPrefix(user.OmitPrefixBar).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
 		Id: created.ID,
@@ -237,6 +238,7 @@ func TestUserService_List(t *testing.T) {
 			SetCrmID(uuid.New()).
 			SetCustomPb(1).
 			SetLabels(nil).
+			SetOmitPrefix(user.OmitPrefixBar).
 			SaveX(ctx)
 	}
 
