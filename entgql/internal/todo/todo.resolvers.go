@@ -25,6 +25,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 )
 
+func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
+	return ent.FromContext(ctx).Category.Create().SetInput(input).Save(ctx)
+}
+
 func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
 	return ent.FromContext(ctx).Todo.
 		Create().
@@ -41,6 +45,24 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	return "pong", nil
+}
+
+func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
+	e := ent.FromContext(ctx)
+	builders := make([]*ent.TodoCreate, len(data))
+	for i, input := range data {
+		builders[i] = e.Todo.Create().SetInput(*input)
+	}
+	todos, err := e.Todo.CreateBulk(builders...).Save(ctx)
+	if err != nil {
+		return err
+	}
+	ids := make([]int, len(todos))
+	for i := range todos {
+		ids[i] = todos[i].ID
+	}
+	obj.TodoIDs = append(obj.TodoIDs, ids...)
+	return nil
 }
 
 func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error {

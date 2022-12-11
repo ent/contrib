@@ -26,6 +26,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 )
 
+func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
 	return ent.FromContext(ctx).Todo.
 		Create().
@@ -41,6 +45,10 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 }
 
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	panic(fmt.Errorf("not implemented"))
 }
 
