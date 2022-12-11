@@ -107,6 +107,7 @@ func TestUserService_Get(t *testing.T) {
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
 		SetLabels([]string{"on", "off"}).
+		SetOmitPrefix(user.OmitPrefixBar).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: created.ID,
@@ -119,6 +120,7 @@ func TestUserService_Get(t *testing.T) {
 	require.EqualValues(t, created.HeightInCm, get.HeightInCm)
 	require.EqualValues(t, created.AccountBalance, get.AccountBalance)
 	require.EqualValues(t, created.Labels, get.Labels)
+	require.EqualValues(t, User_BAR, get.OmitPrefix)
 	get, err = svc.Get(ctx, &GetUserRequest{
 		Id: 1000,
 	})
