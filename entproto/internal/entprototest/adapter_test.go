@@ -188,10 +188,10 @@ func (suite *AdapterTestSuite) TestEnumMessage() {
 	suite.EqualValues(descriptorpb.FieldDescriptorProto_TYPE_ENUM, enumField.GetType())
 	enumDesc := enumField.GetEnumType()
 	suite.EqualValues("entpb.MessageWithEnum.EnumType", enumDesc.GetFullyQualifiedName())
-	suite.EqualValues(0, enumDesc.FindValueByName("PENDING").GetNumber())
-	suite.EqualValues(1, enumDesc.FindValueByName("ACTIVE").GetNumber())
-	suite.EqualValues(2, enumDesc.FindValueByName("SUSPENDED").GetNumber())
-	suite.EqualValues(3, enumDesc.FindValueByName("DELETED").GetNumber())
+	suite.EqualValues(0, enumDesc.FindValueByName("ENUM_TYPE_PENDING").GetNumber())
+	suite.EqualValues(1, enumDesc.FindValueByName("ENUM_TYPE_ACTIVE").GetNumber())
+	suite.EqualValues(2, enumDesc.FindValueByName("ENUM_TYPE_SUSPENDED").GetNumber())
+	suite.EqualValues(3, enumDesc.FindValueByName("ENUM_TYPE_DELETED").GetNumber())
 
 	// an enum field without defaults
 	enumField = message.FindFieldByName("enum_without_default")
@@ -200,8 +200,8 @@ func (suite *AdapterTestSuite) TestEnumMessage() {
 	enumDesc = enumField.GetEnumType()
 	suite.EqualValues("entpb.MessageWithEnum.EnumWithoutDefault", enumDesc.GetFullyQualifiedName())
 	suite.EqualValues(0, enumDesc.FindValueByName("ENUM_WITHOUT_DEFAULT_UNSPECIFIED").GetNumber())
-	suite.EqualValues(1, enumDesc.FindValueByName("FIRST").GetNumber())
-	suite.EqualValues(2, enumDesc.FindValueByName("SECOND").GetNumber())
+	suite.EqualValues(1, enumDesc.FindValueByName("ENUM_WITHOUT_DEFAULT_FIRST").GetNumber())
+	suite.EqualValues(2, enumDesc.FindValueByName("ENUM_WITHOUT_DEFAULT_SECOND").GetNumber())
 }
 
 func (suite *AdapterTestSuite) TestMessageWithId() {

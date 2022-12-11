@@ -89,9 +89,9 @@ message MultiWordSchema {
   Unit unit = 2;
 
   enum Unit {
-    M = 0;
+    UNIT_M = 0;
 
-    FT = 1;
+    UNIT_FT = 1;
   }
 }
 
@@ -307,11 +307,11 @@ message Todo {
   User user = 4;
 
   enum Status {
-    PENDING = 0;
+    STATUS_PENDING = 0;
 
-    IN_PROGRESS = 1;
+    STATUS_IN_PROGRESS = 1;
 
-    DONE = 2;
+    STATUS_DONE = 2;
   }
 }
 
@@ -356,6 +356,8 @@ message User {
 
   DeviceType device_type = 100;
 
+  OmitPrefix omit_prefix = 103;
+
   Group group = 7;
 
   Attachment attachment = 11;
@@ -367,15 +369,23 @@ message User {
   enum Status {
     STATUS_UNSPECIFIED = 0;
 
-    PENDING = 1;
+    STATUS_PENDING = 1;
 
-    ACTIVE = 2;
+    STATUS_ACTIVE = 2;
   }
 
   enum DeviceType {
-    GLOWY9000 = 0;
+    DEVICE_TYPE_GLOWY9000 = 0;
 
-    SPEEDY300 = 1;
+    DEVICE_TYPE_SPEEDY300 = 1;
+  }
+
+  enum OmitPrefix {
+    OMIT_PREFIX_UNSPECIFIED = 0;
+
+    FOO = 1;
+
+    BAR = 2;
   }
 }
 

@@ -63,6 +63,8 @@ type User struct {
 	Labels []string `json:"labels,omitempty"`
 	// DeviceType holds the value of the "device_type" field.
 	DeviceType user.DeviceType `json:"device_type,omitempty"`
+	// OmitPrefix holds the value of the "omit_prefix" field.
+	OmitPrefix user.OmitPrefix `json:"omit_prefix,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -162,7 +164,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType, user.FieldOmitPrefix:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -313,6 +315,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.DeviceType = user.DeviceType(value.String)
 			}
+		case user.FieldOmitPrefix:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field omit_prefix", values[i])
+			} else if value.Valid {
+				u.OmitPrefix = user.OmitPrefix(value.String)
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -432,6 +440,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("device_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceType))
+	builder.WriteString(", ")
+	builder.WriteString("omit_prefix=")
+	builder.WriteString(fmt.Sprintf("%v", u.OmitPrefix))
 	builder.WriteByte(')')
 	return builder.String()
 }

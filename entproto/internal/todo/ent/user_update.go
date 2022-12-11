@@ -346,6 +346,12 @@ func (uu *UserUpdate) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate {
 	return uu
 }
 
+// SetOmitPrefix sets the "omit_prefix" field.
+func (uu *UserUpdate) SetOmitPrefix(up user.OmitPrefix) *UserUpdate {
+	uu.mutation.SetOmitPrefix(up)
+	return uu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uu *UserUpdate) SetGroupID(id int) *UserUpdate {
 	uu.mutation.SetGroupID(id)
@@ -559,6 +565,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.OmitPrefix(); ok {
+		if err := user.OmitPrefixValidator(v); err != nil {
+			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -689,6 +700,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
+	}
+	if value, ok := uu.mutation.OmitPrefix(); ok {
+		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
 	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1215,6 +1229,12 @@ func (uuo *UserUpdateOne) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate
 	return uuo
 }
 
+// SetOmitPrefix sets the "omit_prefix" field.
+func (uuo *UserUpdateOne) SetOmitPrefix(up user.OmitPrefix) *UserUpdateOne {
+	uuo.mutation.SetOmitPrefix(up)
+	return uuo
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (uuo *UserUpdateOne) SetGroupID(id int) *UserUpdateOne {
 	uuo.mutation.SetGroupID(id)
@@ -1441,6 +1461,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.OmitPrefix(); ok {
+		if err := user.OmitPrefixValidator(v); err != nil {
+			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1588,6 +1613,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
+	}
+	if value, ok := uuo.mutation.OmitPrefix(); ok {
+		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
 	}
 	if uuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
