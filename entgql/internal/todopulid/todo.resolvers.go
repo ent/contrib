@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 )
 
@@ -35,6 +36,10 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoI
 		Create().
 		SetInput(input).
 		Save(ctx)
+}
+
+func (r *mutationResolver) UpdateTodo(ctx context.Context, id pulid.ID, input ent.UpdateTodoInput) (*ent.Todo, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {

@@ -24,6 +24,7 @@ extend type Query {
 type Mutation {
   createCategory(input: CreateCategoryInput!): Category!
   createTodo(input: CreateTodoInput!): Todo!
+  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
   clearTodos: Int!
 }
 

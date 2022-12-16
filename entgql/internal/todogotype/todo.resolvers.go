@@ -32,6 +32,10 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoI
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *mutationResolver) UpdateTodo(ctx context.Context, id string, input ent.UpdateTodoInput) (*ent.Todo, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 	panic(fmt.Errorf("not implemented"))
 }

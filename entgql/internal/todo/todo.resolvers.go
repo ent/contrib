@@ -36,6 +36,13 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoI
 		Save(ctx)
 }
 
+func (r *mutationResolver) UpdateTodo(ctx context.Context, id int, input ent.UpdateTodoInput) (*ent.Todo, error) {
+	return ent.FromContext(ctx).Todo.
+		UpdateOneID(id).
+		SetInput(input).
+		Save(ctx)
+}
+
 func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 	client := ent.FromContext(ctx)
 	return client.Todo.
@@ -69,7 +76,6 @@ func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.Todo
 	if data == nil {
 		return nil
 	}
-
 	startOfDay := time.Now().Truncate(24 * time.Hour)
 	endOfDay := startOfDay.Add(24*time.Hour - 1)
 	if *data {
@@ -77,7 +83,6 @@ func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.Todo
 	} else {
 		obj.AddPredicates(todo.Or(todo.CreatedAtLT(startOfDay), todo.CreatedAtGT(endOfDay)))
 	}
-
 	return nil
 }
 
