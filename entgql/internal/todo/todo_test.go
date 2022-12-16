@@ -1814,11 +1814,8 @@ func TestEdgesFiltering(t *testing.T) {
 }
 
 func TestMutation_CreateCategory(t *testing.T) {
-	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
-	require.NoError(t, err)
-	count := &queryCount{Driver: drv}
-	ec := enttest.NewClient(t,
-		enttest.WithOptions(ent.Driver(count)),
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
 		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
 	)
 	srv := handler.NewDefaultServer(gen.NewSchema(ec))
@@ -1842,7 +1839,7 @@ func TestMutation_CreateCategory(t *testing.T) {
 			}
 		}
 	}
-	err = gqlc.Post(`
+	err := gqlc.Post(`
 	mutation createCategory {
 		createCategory(input: {
 			text: "cate1"
@@ -1873,4 +1870,39 @@ func TestMutation_CreateCategory(t *testing.T) {
 	n := rsp.CreateCategory.Todos
 	require.Equal(t, "c1.t1", n.Edges[0].Node.Text)
 	require.Equal(t, "c1.t2", n.Edges[1].Node.Text)
+}
+
+func TestMutation_ClearChildren(t *testing.T) {
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	gqlc := client.New(srv)
+
+	ctx := context.Background()
+	root := ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusInProgress).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1.1").SetParent(root).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParent(root).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParent(root).SetStatus(todo.StatusCompleted),
+	).ExecX(ctx)
+	require.True(t, root.QueryChildren().ExistX(ctx))
+
+	var rsp struct {
+		UpdateTodo struct {
+			ID string
+		}
+	}
+	err := gqlc.Post(`
+	mutation cleanChildren($id: ID!){
+		updateTodo(id: $id, input: {clearChildren: true}) {
+			id
+		}
+	}
+	`, &rsp, client.Var("id", root.ID))
+	require.NoError(t, err)
+	require.Equal(t, strconv.Itoa(root.ID), rsp.UpdateTodo.ID)
+	require.False(t, root.QueryChildren().ExistX(ctx))
 }

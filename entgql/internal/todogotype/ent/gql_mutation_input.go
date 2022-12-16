@@ -76,6 +76,7 @@ type UpdateCategoryInput struct {
 	ClearStrings  bool
 	Strings       []string
 	AppendStrings []string
+	ClearTodos    bool
 	AddTodoIDs    []string
 	RemoveTodoIDs []string
 }
@@ -114,6 +115,9 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if i.AppendStrings != nil {
 		m.AppendStrings(i.Strings)
+	}
+	if i.ClearTodos {
+		m.ClearTodos()
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
@@ -186,6 +190,7 @@ type UpdateTodoInput struct {
 	Init           map[string]interface{}
 	ClearParent    bool
 	ParentID       *string
+	ClearChildren  bool
 	AddChildIDs    []string
 	RemoveChildIDs []string
 	ClearSecret    bool
@@ -214,6 +219,9 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
+	}
+	if i.ClearChildren {
+		m.ClearChildren()
 	}
 	if v := i.AddChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)

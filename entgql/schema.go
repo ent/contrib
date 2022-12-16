@@ -574,12 +574,6 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
-			if f.ClearOp {
-				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "clear" + f.StructField(),
-					Type: namedType("Boolean", true),
-				})
-			}
 			def.Fields = append(def.Fields, &ast.FieldDefinition{
 				Name:        camel(f.Name),
 				Type:        namedType(scalar, f.Nullable),
@@ -591,35 +585,40 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 					Type: namedType(scalar, true),
 				})
 			}
+			if f.ClearOp {
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: "clear" + f.StructField(),
+					Type: namedType("Boolean", true),
+				})
+			}
 		}
 
 		for _, e := range edges {
-			if e.Unique {
-				if !i.IsCreate {
-					def.Fields = append(def.Fields, &ast.FieldDefinition{
-						Name: camel(snake(e.MutationClear())),
-						Type: namedType("Boolean", true),
-					})
-				}
+			switch {
+			case e.Unique:
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
 					Name: camel(e.Name) + "ID",
 					Type: namedType("ID", !i.IsCreate || e.Optional),
 				})
-			} else {
-				if i.IsCreate {
-					def.Fields = append(def.Fields, &ast.FieldDefinition{
-						Name: camel(singular(e.Name)) + "IDs",
-						Type: namedType("[ID!]", e.Optional),
-					})
-				} else {
-					def.Fields = append(def.Fields, &ast.FieldDefinition{
-						Name: "add" + pascal(singular(e.Name)) + "IDs",
-						Type: namedType("[ID!]", true),
-					}, &ast.FieldDefinition{
-						Name: "remove" + pascal(singular(e.Name)) + "IDs",
-						Type: namedType("[ID!]", true),
-					})
-				}
+			case i.IsCreate:
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: camel(singular(e.Name)) + "IDs",
+					Type: namedType("[ID!]", e.Optional),
+				})
+			default:
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: "add" + pascal(singular(e.Name)) + "IDs",
+					Type: namedType("[ID!]", true),
+				}, &ast.FieldDefinition{
+					Name: "remove" + pascal(singular(e.Name)) + "IDs",
+					Type: namedType("[ID!]", true),
+				})
+			}
+			if !i.IsCreate {
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: camel(snake(e.MutationClear())),
+					Type: namedType("Boolean", true),
+				})
 			}
 		}
 		defs = append(defs, def)

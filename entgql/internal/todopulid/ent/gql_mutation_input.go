@@ -76,6 +76,7 @@ type UpdateCategoryInput struct {
 	ClearStrings  bool
 	Strings       []string
 	AppendStrings []string
+	ClearTodos    bool
 	AddTodoIDs    []pulid.ID
 	RemoveTodoIDs []pulid.ID
 }
@@ -114,6 +115,9 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if i.AppendStrings != nil {
 		m.AppendStrings(i.Strings)
+	}
+	if i.ClearTodos {
+		m.ClearTodos()
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
@@ -186,6 +190,7 @@ type UpdateTodoInput struct {
 	Init           map[string]interface{}
 	ClearParent    bool
 	ParentID       *pulid.ID
+	ClearChildren  bool
 	AddChildIDs    []pulid.ID
 	RemoveChildIDs []pulid.ID
 	ClearSecret    bool
@@ -214,6 +219,9 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
+	}
+	if i.ClearChildren {
+		m.ClearChildren()
 	}
 	if v := i.AddChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)
@@ -276,8 +284,10 @@ type UpdateUserInput struct {
 	Name            *string
 	ClearPassword   bool
 	Password        *string
+	ClearGroups     bool
 	AddGroupIDs     []pulid.ID
 	RemoveGroupIDs  []pulid.ID
+	ClearFriends    bool
 	AddFriendIDs    []pulid.ID
 	RemoveFriendIDs []pulid.ID
 }
@@ -293,11 +303,17 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
 	}
+	if i.ClearGroups {
+		m.ClearGroups()
+	}
 	if v := i.AddGroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
 	}
 	if v := i.RemoveGroupIDs; len(v) > 0 {
 		m.RemoveGroupIDs(v...)
+	}
+	if i.ClearFriends {
+		m.ClearFriends()
 	}
 	if v := i.AddFriendIDs; len(v) > 0 {
 		m.AddFriendIDs(v...)

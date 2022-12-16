@@ -38,10 +38,10 @@ import (
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
+            {{- if not $n.IsCreate }}
+                {{ $e.MutationClear }} bool
+            {{- end }}
             {{- if $e.Unique }}
-                {{- if not $n.IsCreate }}
-                    {{ $e.MutationClear }} bool
-                {{- end }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
                 {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
             {{- else }}
@@ -79,12 +79,12 @@ import (
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
+           {{- if not $n.IsCreate }}
+                if i.{{ $e.MutationClear }} {
+                    m.{{ $e.MutationClear }}()
+                }
+            {{- end }}
             {{- if $e.Unique }}
-                {{- if not $n.IsCreate }}
-                    if i.{{ $e.MutationClear }} {
-                        m.{{ $e.MutationClear }}()
-                    }
-                {{- end }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
                 {{- if or (not $n.IsCreate) $e.Optional }}
                     if v := i.{{ $structField }}; v != nil {

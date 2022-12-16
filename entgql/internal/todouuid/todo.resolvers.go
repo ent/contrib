@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
+	"github.com/google/uuid"
 )
 
 func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
@@ -35,6 +36,10 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoI
 		Create().
 		SetInput(input).
 		Save(ctx)
+}
+
+func (r *mutationResolver) UpdateTodo(ctx context.Context, id uuid.UUID, input ent.UpdateTodoInput) (*ent.Todo, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
