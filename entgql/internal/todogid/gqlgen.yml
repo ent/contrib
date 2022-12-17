@@ -1,0 +1,22 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+schema:
+  - todo.graphql
+
+resolver:
+  layout: follow-schema
+  dir: .
+
+autobind:
+  - entgo.io/contrib/entgql/internal/todogid/ent
+  - entgo.io/contrib/entgql/internal/todogid/ent/todo
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.String
+  Node:
+    model:
+      - entgo.io/contrib/entgql/internal/todogid/ent.Noder

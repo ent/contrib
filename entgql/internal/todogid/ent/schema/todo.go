@@ -15,22 +15,26 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 )
 
-// VerySecret defines the todo type schema.
-type VerySecret struct {
+// Todo defines the todo type schema.
+type Todo struct {
 	ent.Schema
 }
 
-// Mixin returns todo mixed-in schema.
-func (VerySecret) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		// "VR" declared once.
-		pulid.MixinWithPrefix("VR"),
-		// Reuse the fields and edges from base example.
-		schema.VerySecret{},
+func (Todo) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("text"),
+	}
+}
+
+func (Todo) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("owner", User.Type).
+			Required().
+			Unique(),
 	}
 }

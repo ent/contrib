@@ -12,25 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package schema
+package todogid
 
 import (
-	"entgo.io/contrib/entgql/internal/todo/ent/schema"
-	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"entgo.io/ent"
+	"entgo.io/contrib/entgql/internal/todogid/ent"
+	"github.com/99designs/gqlgen/graphql"
 )
 
-// Category holds the schema definition for the Category entity.
-type Category struct {
-	ent.Schema
-}
+// Resolver is the resolver root.
+type Resolver struct{ client *ent.Client }
 
-// Mixin returns category mixed-in schema.
-func (Category) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		// "CR" declared once.
-		pulid.MixinWithPrefix("CR"),
-		// Reuse the fields and edges from base example.
-		schema.Category{},
-	}
+// NewSchema creates a graphql executable schema.
+func NewSchema(client *ent.Client) graphql.ExecutableSchema {
+	return NewExecutableSchema(Config{
+		Resolvers: &Resolver{client},
+	})
 }

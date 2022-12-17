@@ -1,0 +1,239 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "gql_globalid" }}
+
+{{ $pkg := base $.Config.Package }}
+{{ template "header" $ }}
+
+const (
+	{{- range $n := $.Nodes }}
+		type{{ $n.Name }} = "{{ lower $n.Name }}"
+	{{- end }}
+)
+
+{{- range $n := $.Nodes }}
+	// GlobalID returns the global identifier for the given {{ $n.Name }} node.
+	func ({{ $n.Receiver }} *{{ $n.Name }}) GlobalID(context.Context) (string, error) {
+		id := fmt.Sprintf("%s:%{{ if $n.ID.Type.Numeric}}d{{ else }}s{{ end }}", type{{ $n.Name }}, {{ $n.Receiver }}.ID)
+		return base64.StdEncoding.EncodeToString([]byte(id)), nil
+	}
+{{- end }}
+
+type ResolvedGlobal struct { Type, ID string }
+func FromGlobalID(s string) (*ResolvedGlobal, error) {
+	b, err := base64.URLEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	tid := strings.Split(string(b), ":")
+	if len(tid) != 2 {
+		return nil, fmt.Errorf("invalid global identifier format %q", b)
+	}
+	return &ResolvedGlobal{Type: tid[0], ID: tid[1]}, nil
+}
+
+{{ $idTypes := dict }}
+{{ range $n := $.Nodes }}
+	{{ if and (not $n.ID.IsString) (hasKey $idTypes $n.ID.Type.String | not) }}
+		{{ $idTypes = set $idTypes $n.ID.Type.String true }}
+		{{ if $n.ID.Type.Numeric }}
+			func (r *ResolvedGlobal) {{ pascal $n.ID.Type.String }}() ({{ $n.ID.Type }}, error) {
+				{{- if $n.ID.IsInt }}
+					return strconv.Atoi(r.ID)
+				{{- else }}
+					id, err := strconv.ParseInt(r.ID, 10, 64)
+					if err != nil {
+						return 0, err
+					}
+					return {{ if $n.ID.IsInt64 }}id{{ else }}{{ $n.ID.Type }}(id){{ end }}, nil
+				{{- end }}
+			}
+			func {{ pascal $n.ID.Type.String }}FromGlobalID(s string) ({{ $n.ID.Type }}, error) {
+				r, err := FromGlobalID(s)
+				if err != nil {
+					return 0, err
+				}
+				return r.{{ pascal $n.ID.Type.String }}()
+			}
+		{{ else if $n.ID.IsBytes }}
+			func (r *ResolvedGlobal) Bytes() {{ $n.ID.Type }} {
+				return []byte(r.ID)
+			}
+			func BytesFromGlobalID(s string) ({{ $n.ID.Type }}, error) {
+				r, err := FromGlobalID(s)
+				if err != nil {
+					return nil, err
+				}
+				return r.Bytes(), nil
+			}
+		{{ else if $n.ID.IsUUID }}
+			func (r *ResolvedGlobal) UUID() (id {{ $n.ID.Type }}, err error) {
+				err = id.UnmarshalText([]byte(r.ID))
+				return
+			}
+			func UUIDFromGlobalID(s string) (id {{ $n.ID.Type }}, _ error) {
+				r, err := FromGlobalID(s)
+				if err != nil {
+					return id, err
+				}
+				return r.UUID()
+			}
+		{{ end }}
+	{{ end }}
+{{ end }}
+
+func (c *Client) FromGlobalID(ctx context.Context, id string) (_ Noder, err error) {
+	defer func() {
+		if IsNotFound(err) {
+			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
+		}
+	}()
+	r, err := FromGlobalID(id)
+	if err != nil {
+		return nil, err
+	}
+	switch r.Type {
+	{{- range $n := $.Nodes }}
+		case type{{ $n.Name }}:
+			{{- if $n.ID.Type.Numeric }}
+				id, err := r.{{ pascal $n.ID.Type.String }}()
+				if err != nil {
+					return nil, err
+				}
+			{{- else if $n.ID.IsUUID }}
+				id, err := r.UUID()
+				if err != nil {
+					return nil, err
+				}
+			{{- else }}
+				id := r.{{ if $n.ID.IsBytes }}Bytes(){{ else }}ID{{ end}}
+			{{- end }}
+			n, err := c.{{ $n.Name }}.Query().
+				Where({{ $n.Package }}.ID(id)).
+				{{- if hasTemplate "gql_collection" }}
+					CollectFields(ctx, "{{ $n.Name }}").
+				{{- end }}
+				Only(ctx)
+			if err != nil {
+				return nil, err
+			}
+			return n, nil
+	{{- end }}
+	default:
+		return nil, fmt.Errorf("cannot resolve noder of type %q: %w", r.Type, errNodeInvalidID)
+	}
+}
+
+func (c *Client) FromGlobalIDs(ctx context.Context, ids []string) (_ []Noder, err error) {
+	switch len(ids) {
+	case 1:
+		noder, err := c.FromGlobalID(ctx, ids[0])
+		if err != nil {
+			return nil, err
+		}
+		return []Noder{noder}, nil
+	case 0:
+		return []Noder{}, nil
+	}
+	noders := make([]Noder, len(ids))
+	errors := make([]error, len(ids))
+	types := make(map[string][]*ResolvedGlobal)
+	id2idx := make(map[ResolvedGlobal][]int, len(ids))
+	for i, id := range ids {
+		r, err := FromGlobalID(id)
+		if err != nil {
+			errors[i] = err
+			continue
+		}
+		types[r.Type] = append(types[r.Type], r)
+		id2idx[*r] = append(id2idx[*r], i)
+	}
+
+	for typ, ids := range types {
+		nodes, err := c.nodes(ctx, typ, ids)
+		if err != nil {
+			for _, id := range ids {
+				for _, idx := range id2idx[*id] {
+					errors[idx] = err
+				}
+			}
+		} else {
+			for i, id := range ids {
+				for _, idx := range id2idx[*id] {
+					noders[idx] = nodes[i]
+				}
+			}
+		}
+	}
+
+	for i, id := range ids {
+		if errors[i] == nil {
+			if noders[i] != nil {
+				continue
+			}
+			errors[i] = entgql.ErrNodeNotFound(id)
+		} else if IsNotFound(errors[i]) {
+			errors[i] = multierror.Append(errors[i], entgql.ErrNodeNotFound(id))
+		}
+		ctx := graphql.WithPathContext(ctx,
+			graphql.NewPathWithIndex(i),
+		)
+		graphql.AddError(ctx, errors[i])
+	}
+	return noders, nil
+}
+
+func (c *Client) nodes(ctx context.Context, typ string, rs []*ResolvedGlobal) ([]Noder, error) {
+	noders := make([]Noder, len(rs))
+	switch typ {
+	{{- range $n := $.Nodes }}
+		case type{{ $n.Name }}:
+			{{- if $n.ID.Type.Numeric }}
+				ids := make([]{{ $n.ID.Type }}, len(rs))
+				for i := range ids {
+					id, err := rs[i].{{ pascal $n.ID.Type.String }}()
+					if err != nil {
+						return nil, err
+					}
+					ids[i] = id
+				}
+			{{- else if $n.ID.IsUUID }}
+				ids := make([]{{ $n.ID.Type }}, len(rs))
+				for i := range ids {
+					id, err := rs[i].UUID()
+					if err != nil {
+						return nil, err
+					}
+					ids[i] = id
+				}
+			{{- else }}
+				ids := make([]{{ $n.ID.Type }}, len(rs))
+				for i := range ids {
+					ids[i] = rs[i].{{ if $n.ID.IsBytes }}Bytes(){{ else }}ID{{ end}}
+				}
+			{{- end }}
+			idmap := make(map[{{ $n.ID.Type }}][]*Noder, len(ids))
+			for i, id := range ids {
+				idmap[id] = append(idmap[id], &noders[i])
+			}
+			nodes, err := c.{{ $n.Name }}.Query().
+				Where({{ $n.Package }}.IDIn(ids...)).
+				{{- if hasTemplate "gql_collection" }}
+					CollectFields(ctx, "{{ $n.Name }}").
+				{{- end }}
+				All(ctx)
+			if err != nil {
+				return nil, err
+			}
+			for _, node := range nodes {
+				for _, noder := range idmap[node.ID] {
+					*noder = node
+				}
+			}
+	{{- end }}
+	default:
+		return nil, fmt.Errorf("cannot resolve noders from type %q: %w", typ, errNodeInvalidID)
+	}
+	return noders, nil
+}
+{{ end }}
