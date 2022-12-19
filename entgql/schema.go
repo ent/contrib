@@ -574,6 +574,14 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
+			// Keep the order to hint on the order of execution:
+			// Clear -> Set -> Append
+			if f.ClearOp {
+				def.Fields = append(def.Fields, &ast.FieldDefinition{
+					Name: "clear" + f.StructField(),
+					Type: namedType("Boolean", true),
+				})
+			}
 			def.Fields = append(def.Fields, &ast.FieldDefinition{
 				Name:        camel(f.Name),
 				Type:        namedType(scalar, f.Nullable),
@@ -585,15 +593,16 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 					Type: namedType(scalar, true),
 				})
 			}
-			if f.ClearOp {
+		}
+		for _, e := range edges {
+			// Keep the order to hint on the order of execution:
+			// Clear -> Set -> Add / Remove
+			if !i.IsCreate {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "clear" + f.StructField(),
+					Name: camel(snake(e.MutationClear())),
 					Type: namedType("Boolean", true),
 				})
 			}
-		}
-
-		for _, e := range edges {
 			switch {
 			case e.Unique:
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
@@ -612,12 +621,6 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				}, &ast.FieldDefinition{
 					Name: "remove" + pascal(singular(e.Name)) + "IDs",
 					Type: namedType("[ID!]", true),
-				})
-			}
-			if !i.IsCreate {
-				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: camel(snake(e.MutationClear())),
-					Type: namedType("Boolean", true),
 				})
 			}
 		}
