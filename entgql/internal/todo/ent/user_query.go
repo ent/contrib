@@ -43,8 +43,8 @@ type UserQuery struct {
 	withGroups           *GroupQuery
 	withFriends          *UserQuery
 	withFriendships      *FriendshipQuery
-	modifiers            []func(*sql.Selector)
 	loadTotal            []func(context.Context, []*User) error
+	modifiers            []func(*sql.Selector)
 	withNamedGroups      map[string]*GroupQuery
 	withNamedFriends     map[string]*UserQuery
 	withNamedFriendships map[string]*FriendshipQuery
@@ -754,6 +754,9 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if uq.unique != nil && *uq.unique {
 		selector.Distinct()
 	}
+	for _, m := range uq.modifiers {
+		m(selector)
+	}
 	for _, p := range uq.predicates {
 		p(selector)
 	}
@@ -769,6 +772,12 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (uq *UserQuery) Modify(modifiers ...func(s *sql.Selector)) *UserSelect {
+	uq.modifiers = append(uq.modifiers, modifiers...)
+	return uq.Select()
 }
 
 // WithNamedGroups tells the query-builder to eager-load the nodes that are connected to the "groups"
@@ -917,4 +926,10 @@ func (us *UserSelect) sqlScan(ctx context.Context, v any) error {
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (us *UserSelect) Modify(modifiers ...func(s *sql.Selector)) *UserSelect {
+	us.modifiers = append(us.modifiers, modifiers...)
+	return us
 }

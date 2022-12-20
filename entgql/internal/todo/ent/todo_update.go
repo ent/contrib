@@ -34,8 +34,9 @@ import (
 // TodoUpdate is the builder for updating Todo entities.
 type TodoUpdate struct {
 	config
-	hooks    []Hook
-	mutation *TodoMutation
+	hooks     []Hook
+	mutation  *TodoMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the TodoUpdate builder.
@@ -303,6 +304,12 @@ func (tu *TodoUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (tu *TodoUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *TodoUpdate {
+	tu.modifiers = append(tu.modifiers, modifiers...)
+	return tu
+}
+
 func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -491,6 +498,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.Modifiers = tu.modifiers
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{todo.Label}
@@ -505,9 +513,10 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TodoUpdateOne is the builder for updating a single Todo entity.
 type TodoUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *TodoMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *TodoMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetStatus sets the "status" field.
@@ -782,6 +791,12 @@ func (tuo *TodoUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (tuo *TodoUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *TodoUpdateOne {
+	tuo.modifiers = append(tuo.modifiers, modifiers...)
+	return tuo
+}
+
 func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -987,6 +1002,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.Modifiers = tuo.modifiers
 	_node = &Todo{config: tuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

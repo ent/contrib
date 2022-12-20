@@ -40,8 +40,8 @@ type GroupQuery struct {
 	fields         []string
 	predicates     []predicate.Group
 	withUsers      *UserQuery
-	modifiers      []func(*sql.Selector)
 	loadTotal      []func(context.Context, []*Group) error
+	modifiers      []func(*sql.Selector)
 	withNamedUsers map[string]*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -566,6 +566,9 @@ func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if gq.unique != nil && *gq.unique {
 		selector.Distinct()
 	}
+	for _, m := range gq.modifiers {
+		m(selector)
+	}
 	for _, p := range gq.predicates {
 		p(selector)
 	}
@@ -581,6 +584,12 @@ func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gq *GroupQuery) Modify(modifiers ...func(s *sql.Selector)) *GroupSelect {
+	gq.modifiers = append(gq.modifiers, modifiers...)
+	return gq.Select()
 }
 
 // WithNamedUsers tells the query-builder to eager-load the nodes that are connected to the "users"
@@ -701,4 +710,10 @@ func (gs *GroupSelect) sqlScan(ctx context.Context, v any) error {
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gs *GroupSelect) Modify(modifiers ...func(s *sql.Selector)) *GroupSelect {
+	gs.modifiers = append(gs.modifiers, modifiers...)
+	return gs
 }

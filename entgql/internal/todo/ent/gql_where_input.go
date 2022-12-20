@@ -29,6 +29,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
+	"entgo.io/ent/dialect/sql"
 )
 
 // BillProductWhereInput represents a where input for filtering BillProduct queries.
@@ -374,11 +375,18 @@ type CategoryWhereInput struct {
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
+
+	modifiers []func(*sql.Selector)
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
 func (i *CategoryWhereInput) AddPredicates(predicates ...predicate.Category) {
 	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries used during the filtering phase.
+func (i *CategoryWhereInput) Modify(modifiers ...func(s *sql.Selector)) {
+	i.modifiers = append(i.modifiers, modifiers...)
 }
 
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
@@ -393,7 +401,7 @@ func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 		}
 		return nil, err
 	}
-	return q.Where(p), nil
+	return q.Where(p).Modify(i.modifiers...).CategoryQuery, nil
 }
 
 // ErrEmptyCategoryWhereInput is returned in case the CategoryWhereInput is empty.
@@ -687,11 +695,18 @@ type FriendshipWhereInput struct {
 	// "friend" edge predicates.
 	HasFriend     *bool             `json:"hasFriend,omitempty"`
 	HasFriendWith []*UserWhereInput `json:"hasFriendWith,omitempty"`
+
+	modifiers []func(*sql.Selector)
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
 func (i *FriendshipWhereInput) AddPredicates(predicates ...predicate.Friendship) {
 	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries used during the filtering phase.
+func (i *FriendshipWhereInput) Modify(modifiers ...func(s *sql.Selector)) {
+	i.modifiers = append(i.modifiers, modifiers...)
 }
 
 // Filter applies the FriendshipWhereInput filter on the FriendshipQuery builder.
@@ -706,7 +721,7 @@ func (i *FriendshipWhereInput) Filter(q *FriendshipQuery) (*FriendshipQuery, err
 		}
 		return nil, err
 	}
-	return q.Where(p), nil
+	return q.Where(p).Modify(i.modifiers...).FriendshipQuery, nil
 }
 
 // ErrEmptyFriendshipWhereInput is returned in case the FriendshipWhereInput is empty.
@@ -914,11 +929,18 @@ type GroupWhereInput struct {
 	// "users" edge predicates.
 	HasUsers     *bool             `json:"hasUsers,omitempty"`
 	HasUsersWith []*UserWhereInput `json:"hasUsersWith,omitempty"`
+
+	modifiers []func(*sql.Selector)
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
 func (i *GroupWhereInput) AddPredicates(predicates ...predicate.Group) {
 	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries used during the filtering phase.
+func (i *GroupWhereInput) Modify(modifiers ...func(s *sql.Selector)) {
+	i.modifiers = append(i.modifiers, modifiers...)
 }
 
 // Filter applies the GroupWhereInput filter on the GroupQuery builder.
@@ -933,7 +955,7 @@ func (i *GroupWhereInput) Filter(q *GroupQuery) (*GroupQuery, error) {
 		}
 		return nil, err
 	}
-	return q.Where(p), nil
+	return q.Where(p).Modify(i.modifiers...).GroupQuery, nil
 }
 
 // ErrEmptyGroupWhereInput is returned in case the GroupWhereInput is empty.
@@ -1156,11 +1178,18 @@ type TodoWhereInput struct {
 	// "category" edge predicates.
 	HasCategory     *bool                 `json:"hasCategory,omitempty"`
 	HasCategoryWith []*CategoryWhereInput `json:"hasCategoryWith,omitempty"`
+
+	modifiers []func(*sql.Selector)
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
 func (i *TodoWhereInput) AddPredicates(predicates ...predicate.Todo) {
 	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries used during the filtering phase.
+func (i *TodoWhereInput) Modify(modifiers ...func(s *sql.Selector)) {
+	i.modifiers = append(i.modifiers, modifiers...)
 }
 
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
@@ -1175,7 +1204,7 @@ func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 		}
 		return nil, err
 	}
-	return q.Where(p), nil
+	return q.Where(p).Modify(i.modifiers...).TodoQuery, nil
 }
 
 // ErrEmptyTodoWhereInput is returned in case the TodoWhereInput is empty.
@@ -1495,11 +1524,18 @@ type UserWhereInput struct {
 	// "friendships" edge predicates.
 	HasFriendships     *bool                   `json:"hasFriendships,omitempty"`
 	HasFriendshipsWith []*FriendshipWhereInput `json:"hasFriendshipsWith,omitempty"`
+
+	modifiers []func(*sql.Selector)
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
 func (i *UserWhereInput) AddPredicates(predicates ...predicate.User) {
 	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries used during the filtering phase.
+func (i *UserWhereInput) Modify(modifiers ...func(s *sql.Selector)) {
+	i.modifiers = append(i.modifiers, modifiers...)
 }
 
 // Filter applies the UserWhereInput filter on the UserQuery builder.
@@ -1514,7 +1550,7 @@ func (i *UserWhereInput) Filter(q *UserQuery) (*UserQuery, error) {
 		}
 		return nil, err
 	}
-	return q.Where(p), nil
+	return q.Where(p).Modify(i.modifiers...).UserQuery, nil
 }
 
 // ErrEmptyUserWhereInput is returned in case the UserWhereInput is empty.
