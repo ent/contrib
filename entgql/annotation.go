@@ -73,7 +73,8 @@ type (
 
 	// MutationConfig hold config for mutation
 	MutationConfig struct {
-		IsCreate bool `json:"IsCreate,omitempty"`
+		IsCreate    bool   `json:"IsCreate,omitempty"`
+		Description string `json:"Description,omitempty"`
 	}
 )
 
@@ -361,18 +362,46 @@ func (a queryFieldAnnotation) Description(text string) queryFieldAnnotation {
 
 type MutationOption interface {
 	IsCreate() bool
+	GetDescription() string
+
+	// Description allows you to customize the comment of the auto-generated Mutation Input
+	//
+	// For example,
+	//
+	//   entgql.Mutations(
+	//       entgql.MutationCreate().
+	// 		     Description("The fields used in the creation of a TodoItem"),
+	//   ),
+	//
+	// Creates
+	//
+	//  """The fields used in the creation of a TodoItem"""
+	//  input CreateTodoItem {
+	//  	"""fields omitted"""
+	//  }
+	Description(string) MutationOption
 }
 
-type builtinMutation bool
+type builtinMutation struct {
+	description string
+	isCreate    bool
+}
 
-func (v builtinMutation) IsCreate() bool { return bool(v) }
+func (v builtinMutation) IsCreate() bool { return v.isCreate }
+
+func (v builtinMutation) GetDescription() string { return v.description }
+
+func (v builtinMutation) Description(desc string) MutationOption {
+	v.description = desc
+	return v
+}
 
 func MutationCreate() MutationOption {
-	return builtinMutation(true)
+	return builtinMutation{isCreate: true}
 }
 
 func MutationUpdate() MutationOption {
-	return builtinMutation(false)
+	return builtinMutation{isCreate: false}
 }
 
 // Mutations returns an annotation for generate input types for mutation.
@@ -383,7 +412,10 @@ func Mutations(inputs ...MutationOption) Annotation {
 
 	a := []MutationConfig{}
 	for _, f := range inputs {
-		a = append(a, MutationConfig{IsCreate: f.IsCreate()})
+		a = append(a, MutationConfig{
+			IsCreate:    f.IsCreate(),
+			Description: f.GetDescription(),
+		})
 	}
 	return Annotation{MutationInputs: a}
 }
