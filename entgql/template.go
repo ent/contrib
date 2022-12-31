@@ -334,6 +334,9 @@ func filterEdges(edges []*gen.Edge, skip SkipMode) ([]*gen.Edge, error) {
 		if e.Type.HasCompositeID() {
 			continue
 		}
+		if e.Through != nil && e.Through.IsEdgeSchema() {
+			continue
+		}
 		antE, err := annotation(e.Annotations)
 		if err != nil {
 			return nil, err
