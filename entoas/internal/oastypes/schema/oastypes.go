@@ -72,6 +72,14 @@ func (OASTypes) Fields() []ent.Field {
 			SchemaType(map[string]string{dialect.Postgres: "varchar"}).
 			Default(DefaultLink()).
 			Annotations(entoas.Schema(ogen.String())),
+		// Optional and Nillable
+		field.Int("optional").
+			Optional(),
+		field.Int("nillable").
+			Nillable(),
+		field.Int("optional_and_nillable").
+			Optional().
+			Nillable(),
 	}
 }
 

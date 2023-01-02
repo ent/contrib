@@ -73,6 +73,12 @@ type OASTypes struct {
 	JSONObj url.URL `json:"json_obj,omitempty"`
 	// Other holds the value of the "other" field.
 	Other *schema.Link `json:"other,omitempty"`
+	// Optional holds the value of the "optional" field.
+	Optional int `json:"optional,omitempty"`
+	// Nillable holds the value of the "nillable" field.
+	Nillable *int `json:"nillable,omitempty"`
+	// OptionalAndNillable holds the value of the "optional_and_nillable" field.
+	OptionalAndNillable *int `json:"optional_and_nillable,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -88,7 +94,7 @@ func (*OASTypes) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case oastypes.FieldFloat32, oastypes.FieldFloat64:
 			values[i] = new(sql.NullFloat64)
-		case oastypes.FieldID, oastypes.FieldInt, oastypes.FieldInt8, oastypes.FieldInt16, oastypes.FieldInt32, oastypes.FieldInt64, oastypes.FieldUint, oastypes.FieldUint8, oastypes.FieldUint16, oastypes.FieldUint32, oastypes.FieldUint64:
+		case oastypes.FieldID, oastypes.FieldInt, oastypes.FieldInt8, oastypes.FieldInt16, oastypes.FieldInt32, oastypes.FieldInt64, oastypes.FieldUint, oastypes.FieldUint8, oastypes.FieldUint16, oastypes.FieldUint32, oastypes.FieldUint64, oastypes.FieldOptional, oastypes.FieldNillable, oastypes.FieldOptionalAndNillable:
 			values[i] = new(sql.NullInt64)
 		case oastypes.FieldStringField, oastypes.FieldText, oastypes.FieldState:
 			values[i] = new(sql.NullString)
@@ -285,6 +291,26 @@ func (ot *OASTypes) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ot.Other = value
 			}
+		case oastypes.FieldOptional:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field optional", values[i])
+			} else if value.Valid {
+				ot.Optional = int(value.Int64)
+			}
+		case oastypes.FieldNillable:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field nillable", values[i])
+			} else if value.Valid {
+				ot.Nillable = new(int)
+				*ot.Nillable = int(value.Int64)
+			}
+		case oastypes.FieldOptionalAndNillable:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field optional_and_nillable", values[i])
+			} else if value.Valid {
+				ot.OptionalAndNillable = new(int)
+				*ot.OptionalAndNillable = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -390,6 +416,19 @@ func (ot *OASTypes) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("other=")
 	builder.WriteString(fmt.Sprintf("%v", ot.Other))
+	builder.WriteString(", ")
+	builder.WriteString("optional=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Optional))
+	builder.WriteString(", ")
+	if v := ot.Nillable; v != nil {
+		builder.WriteString("nillable=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := ot.OptionalAndNillable; v != nil {
+		builder.WriteString("optional_and_nillable=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }
