@@ -43,6 +43,12 @@ type (
 		// By enabling she SimpleModels configuration the generator simply adds the defined schemas with all fields and edges.
 		// Serialization groups have no effects in this mode.
 		SimpleModels bool
+		// Specify the minimum amount of itemsPerPage allowed in generated pagination.
+		// Defaults to 1.
+		MinItemsPerPage int64
+		// Specify the maximum amount of itemsPerPage allowed in generated pagination.
+		// Defaults to 255.
+		MaxItemsPerPage int64
 	}
 	// Extension implements entc.Extension interface for providing OpenAPI Specification generation.
 	Extension struct {
@@ -60,7 +66,11 @@ type (
 
 // NewExtension returns a new entoas extension with default values.
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
-	ex := &Extension{config: &Config{DefaultPolicy: PolicyExpose}}
+	ex := &Extension{config: &Config{
+		DefaultPolicy:   PolicyExpose,
+		MinItemsPerPage: one,
+		MaxItemsPerPage: maxu8,
+	}}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
 			return nil, err
@@ -83,6 +93,22 @@ func (ex *Extension) Annotations() []entc.Annotation {
 func DefaultPolicy(p Policy) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.config.DefaultPolicy = p
+		return nil
+	}
+}
+
+// MinItemsPerPage sets the minimum value for the 'itemsPerPage' parameter in list pagination.
+func MinItemsPerPage(n int) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.config.MinItemsPerPage = int64(n)
+		return nil
+	}
+}
+
+// MaxItemsPerPage sets the maximum value for the 'itemsPerPage' parameter in list pagination.
+func MaxItemsPerPage(n int) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.config.MaxItemsPerPage = int64(n)
 		return nil
 	}
 }

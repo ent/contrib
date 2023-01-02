@@ -27,6 +27,8 @@ func TestExtension(t *testing.T) {
 	t.Parallel()
 	ex, err := NewExtension(
 		DefaultPolicy(PolicyExpose),
+		MinItemsPerPage(20),
+		MaxItemsPerPage(40),
 		Mutations(func(_ *gen.Graph, spec *ogen.Spec) error {
 			spec.Info.
 				SetTitle("Spec Title").
@@ -39,5 +41,7 @@ func TestExtension(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ex.config.DefaultPolicy, PolicyExpose)
 	require.Len(t, ex.mutations, 1)
-	require.Equal(t, ex.out, os.Stdout)
+	require.Equal(t, os.Stdout, ex.out)
+	require.Equal(t, int64(20), ex.config.MinItemsPerPage)
+	require.Equal(t, int64(40), ex.config.MaxItemsPerPage)
 }
