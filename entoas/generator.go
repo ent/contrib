@@ -137,7 +137,7 @@ func addSchemaFields(s *ogen.Schema, fs []*gen.Field) error {
 		if err != nil {
 			return err
 		}
-		addProperty(s, p, !f.Optional)
+		addProperty(s, p, !(f.Optional || f.Nillable))
 	}
 	return nil
 }

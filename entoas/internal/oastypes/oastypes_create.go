@@ -188,6 +188,40 @@ func (otc *OASTypesCreate) SetOther(s *schema.Link) *OASTypesCreate {
 	return otc
 }
 
+// SetOptional sets the "optional" field.
+func (otc *OASTypesCreate) SetOptional(i int) *OASTypesCreate {
+	otc.mutation.SetOptional(i)
+	return otc
+}
+
+// SetNillableOptional sets the "optional" field if the given value is not nil.
+func (otc *OASTypesCreate) SetNillableOptional(i *int) *OASTypesCreate {
+	if i != nil {
+		otc.SetOptional(*i)
+	}
+	return otc
+}
+
+// SetNillable sets the "nillable" field.
+func (otc *OASTypesCreate) SetNillable(i int) *OASTypesCreate {
+	otc.mutation.SetNillable(i)
+	return otc
+}
+
+// SetOptionalAndNillable sets the "optional_and_nillable" field.
+func (otc *OASTypesCreate) SetOptionalAndNillable(i int) *OASTypesCreate {
+	otc.mutation.SetOptionalAndNillable(i)
+	return otc
+}
+
+// SetNillableOptionalAndNillable sets the "optional_and_nillable" field if the given value is not nil.
+func (otc *OASTypesCreate) SetNillableOptionalAndNillable(i *int) *OASTypesCreate {
+	if i != nil {
+		otc.SetOptionalAndNillable(*i)
+	}
+	return otc
+}
+
 // Mutation returns the OASTypesMutation object of the builder.
 func (otc *OASTypesCreate) Mutation() *OASTypesMutation {
 	return otc.mutation
@@ -360,6 +394,9 @@ func (otc *OASTypesCreate) check() error {
 	if _, ok := otc.mutation.Other(); !ok {
 		return &ValidationError{Name: "other", err: errors.New(`oastypes: missing required field "OASTypes.other"`)}
 	}
+	if _, ok := otc.mutation.Nillable(); !ok {
+		return &ValidationError{Name: "nillable", err: errors.New(`oastypes: missing required field "OASTypes.nillable"`)}
+	}
 	return nil
 }
 
@@ -490,6 +527,18 @@ func (otc *OASTypesCreate) createSpec() (*OASTypes, *sqlgraph.CreateSpec) {
 	if value, ok := otc.mutation.Other(); ok {
 		_spec.SetField(oastypes.FieldOther, field.TypeOther, value)
 		_node.Other = value
+	}
+	if value, ok := otc.mutation.Optional(); ok {
+		_spec.SetField(oastypes.FieldOptional, field.TypeInt, value)
+		_node.Optional = value
+	}
+	if value, ok := otc.mutation.Nillable(); ok {
+		_spec.SetField(oastypes.FieldNillable, field.TypeInt, value)
+		_node.Nillable = &value
+	}
+	if value, ok := otc.mutation.OptionalAndNillable(); ok {
+		_spec.SetField(oastypes.FieldOptionalAndNillable, field.TypeInt, value)
+		_node.OptionalAndNillable = &value
 	}
 	return _node, _spec
 }

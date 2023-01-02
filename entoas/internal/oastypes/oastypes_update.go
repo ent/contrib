@@ -311,6 +311,73 @@ func (otu *OASTypesUpdate) SetOther(s *schema.Link) *OASTypesUpdate {
 	return otu
 }
 
+// SetOptional sets the "optional" field.
+func (otu *OASTypesUpdate) SetOptional(i int) *OASTypesUpdate {
+	otu.mutation.ResetOptional()
+	otu.mutation.SetOptional(i)
+	return otu
+}
+
+// SetNillableOptional sets the "optional" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableOptional(i *int) *OASTypesUpdate {
+	if i != nil {
+		otu.SetOptional(*i)
+	}
+	return otu
+}
+
+// AddOptional adds i to the "optional" field.
+func (otu *OASTypesUpdate) AddOptional(i int) *OASTypesUpdate {
+	otu.mutation.AddOptional(i)
+	return otu
+}
+
+// ClearOptional clears the value of the "optional" field.
+func (otu *OASTypesUpdate) ClearOptional() *OASTypesUpdate {
+	otu.mutation.ClearOptional()
+	return otu
+}
+
+// SetNillable sets the "nillable" field.
+func (otu *OASTypesUpdate) SetNillable(i int) *OASTypesUpdate {
+	otu.mutation.ResetNillable()
+	otu.mutation.SetNillable(i)
+	return otu
+}
+
+// AddNillable adds i to the "nillable" field.
+func (otu *OASTypesUpdate) AddNillable(i int) *OASTypesUpdate {
+	otu.mutation.AddNillable(i)
+	return otu
+}
+
+// SetOptionalAndNillable sets the "optional_and_nillable" field.
+func (otu *OASTypesUpdate) SetOptionalAndNillable(i int) *OASTypesUpdate {
+	otu.mutation.ResetOptionalAndNillable()
+	otu.mutation.SetOptionalAndNillable(i)
+	return otu
+}
+
+// SetNillableOptionalAndNillable sets the "optional_and_nillable" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableOptionalAndNillable(i *int) *OASTypesUpdate {
+	if i != nil {
+		otu.SetOptionalAndNillable(*i)
+	}
+	return otu
+}
+
+// AddOptionalAndNillable adds i to the "optional_and_nillable" field.
+func (otu *OASTypesUpdate) AddOptionalAndNillable(i int) *OASTypesUpdate {
+	otu.mutation.AddOptionalAndNillable(i)
+	return otu
+}
+
+// ClearOptionalAndNillable clears the value of the "optional_and_nillable" field.
+func (otu *OASTypesUpdate) ClearOptionalAndNillable() *OASTypesUpdate {
+	otu.mutation.ClearOptionalAndNillable()
+	return otu
+}
+
 // Mutation returns the OASTypesMutation object of the builder.
 func (otu *OASTypesUpdate) Mutation() *OASTypesMutation {
 	return otu.mutation
@@ -542,6 +609,30 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := otu.mutation.Other(); ok {
 		_spec.SetField(oastypes.FieldOther, field.TypeOther, value)
+	}
+	if value, ok := otu.mutation.Optional(); ok {
+		_spec.SetField(oastypes.FieldOptional, field.TypeInt, value)
+	}
+	if value, ok := otu.mutation.AddedOptional(); ok {
+		_spec.AddField(oastypes.FieldOptional, field.TypeInt, value)
+	}
+	if otu.mutation.OptionalCleared() {
+		_spec.ClearField(oastypes.FieldOptional, field.TypeInt)
+	}
+	if value, ok := otu.mutation.Nillable(); ok {
+		_spec.SetField(oastypes.FieldNillable, field.TypeInt, value)
+	}
+	if value, ok := otu.mutation.AddedNillable(); ok {
+		_spec.AddField(oastypes.FieldNillable, field.TypeInt, value)
+	}
+	if value, ok := otu.mutation.OptionalAndNillable(); ok {
+		_spec.SetField(oastypes.FieldOptionalAndNillable, field.TypeInt, value)
+	}
+	if value, ok := otu.mutation.AddedOptionalAndNillable(); ok {
+		_spec.AddField(oastypes.FieldOptionalAndNillable, field.TypeInt, value)
+	}
+	if otu.mutation.OptionalAndNillableCleared() {
+		_spec.ClearField(oastypes.FieldOptionalAndNillable, field.TypeInt)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, otu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -840,6 +931,73 @@ func (otuo *OASTypesUpdateOne) SetOther(s *schema.Link) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetOptional sets the "optional" field.
+func (otuo *OASTypesUpdateOne) SetOptional(i int) *OASTypesUpdateOne {
+	otuo.mutation.ResetOptional()
+	otuo.mutation.SetOptional(i)
+	return otuo
+}
+
+// SetNillableOptional sets the "optional" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableOptional(i *int) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetOptional(*i)
+	}
+	return otuo
+}
+
+// AddOptional adds i to the "optional" field.
+func (otuo *OASTypesUpdateOne) AddOptional(i int) *OASTypesUpdateOne {
+	otuo.mutation.AddOptional(i)
+	return otuo
+}
+
+// ClearOptional clears the value of the "optional" field.
+func (otuo *OASTypesUpdateOne) ClearOptional() *OASTypesUpdateOne {
+	otuo.mutation.ClearOptional()
+	return otuo
+}
+
+// SetNillable sets the "nillable" field.
+func (otuo *OASTypesUpdateOne) SetNillable(i int) *OASTypesUpdateOne {
+	otuo.mutation.ResetNillable()
+	otuo.mutation.SetNillable(i)
+	return otuo
+}
+
+// AddNillable adds i to the "nillable" field.
+func (otuo *OASTypesUpdateOne) AddNillable(i int) *OASTypesUpdateOne {
+	otuo.mutation.AddNillable(i)
+	return otuo
+}
+
+// SetOptionalAndNillable sets the "optional_and_nillable" field.
+func (otuo *OASTypesUpdateOne) SetOptionalAndNillable(i int) *OASTypesUpdateOne {
+	otuo.mutation.ResetOptionalAndNillable()
+	otuo.mutation.SetOptionalAndNillable(i)
+	return otuo
+}
+
+// SetNillableOptionalAndNillable sets the "optional_and_nillable" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableOptionalAndNillable(i *int) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetOptionalAndNillable(*i)
+	}
+	return otuo
+}
+
+// AddOptionalAndNillable adds i to the "optional_and_nillable" field.
+func (otuo *OASTypesUpdateOne) AddOptionalAndNillable(i int) *OASTypesUpdateOne {
+	otuo.mutation.AddOptionalAndNillable(i)
+	return otuo
+}
+
+// ClearOptionalAndNillable clears the value of the "optional_and_nillable" field.
+func (otuo *OASTypesUpdateOne) ClearOptionalAndNillable() *OASTypesUpdateOne {
+	otuo.mutation.ClearOptionalAndNillable()
+	return otuo
+}
+
 // Mutation returns the OASTypesMutation object of the builder.
 func (otuo *OASTypesUpdateOne) Mutation() *OASTypesMutation {
 	return otuo.mutation
@@ -1101,6 +1259,30 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 	}
 	if value, ok := otuo.mutation.Other(); ok {
 		_spec.SetField(oastypes.FieldOther, field.TypeOther, value)
+	}
+	if value, ok := otuo.mutation.Optional(); ok {
+		_spec.SetField(oastypes.FieldOptional, field.TypeInt, value)
+	}
+	if value, ok := otuo.mutation.AddedOptional(); ok {
+		_spec.AddField(oastypes.FieldOptional, field.TypeInt, value)
+	}
+	if otuo.mutation.OptionalCleared() {
+		_spec.ClearField(oastypes.FieldOptional, field.TypeInt)
+	}
+	if value, ok := otuo.mutation.Nillable(); ok {
+		_spec.SetField(oastypes.FieldNillable, field.TypeInt, value)
+	}
+	if value, ok := otuo.mutation.AddedNillable(); ok {
+		_spec.AddField(oastypes.FieldNillable, field.TypeInt, value)
+	}
+	if value, ok := otuo.mutation.OptionalAndNillable(); ok {
+		_spec.SetField(oastypes.FieldOptionalAndNillable, field.TypeInt, value)
+	}
+	if value, ok := otuo.mutation.AddedOptionalAndNillable(); ok {
+		_spec.AddField(oastypes.FieldOptionalAndNillable, field.TypeInt, value)
+	}
+	if otuo.mutation.OptionalAndNillableCleared() {
+		_spec.ClearField(oastypes.FieldOptionalAndNillable, field.TypeInt)
 	}
 	_node = &OASTypes{config: otuo.config}
 	_spec.Assign = _node.assignValues

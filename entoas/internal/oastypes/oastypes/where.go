@@ -215,6 +215,27 @@ func Other(v *schema.Link) predicate.OASTypes {
 	})
 }
 
+// Optional applies equality check predicate on the "optional" field. It's identical to OptionalEQ.
+func Optional(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptional), v))
+	})
+}
+
+// Nillable applies equality check predicate on the "nillable" field. It's identical to NillableEQ.
+func Nillable(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNillable), v))
+	})
+}
+
+// OptionalAndNillable applies equality check predicate on the "optional_and_nillable" field. It's identical to OptionalAndNillableEQ.
+func OptionalAndNillable(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
 // IntEQ applies the EQ predicate on the "int" field.
 func IntEQ(v int) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
@@ -1484,6 +1505,226 @@ func OtherLT(v *schema.Link) predicate.OASTypes {
 func OtherLTE(v *schema.Link) predicate.OASTypes {
 	return predicate.OASTypes(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldOther), v))
+	})
+}
+
+// OptionalEQ applies the EQ predicate on the "optional" field.
+func OptionalEQ(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptional), v))
+	})
+}
+
+// OptionalNEQ applies the NEQ predicate on the "optional" field.
+func OptionalNEQ(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOptional), v))
+	})
+}
+
+// OptionalIn applies the In predicate on the "optional" field.
+func OptionalIn(vs ...int) predicate.OASTypes {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOptional), v...))
+	})
+}
+
+// OptionalNotIn applies the NotIn predicate on the "optional" field.
+func OptionalNotIn(vs ...int) predicate.OASTypes {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOptional), v...))
+	})
+}
+
+// OptionalGT applies the GT predicate on the "optional" field.
+func OptionalGT(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOptional), v))
+	})
+}
+
+// OptionalGTE applies the GTE predicate on the "optional" field.
+func OptionalGTE(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOptional), v))
+	})
+}
+
+// OptionalLT applies the LT predicate on the "optional" field.
+func OptionalLT(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOptional), v))
+	})
+}
+
+// OptionalLTE applies the LTE predicate on the "optional" field.
+func OptionalLTE(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOptional), v))
+	})
+}
+
+// OptionalIsNil applies the IsNil predicate on the "optional" field.
+func OptionalIsNil() predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOptional)))
+	})
+}
+
+// OptionalNotNil applies the NotNil predicate on the "optional" field.
+func OptionalNotNil() predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOptional)))
+	})
+}
+
+// NillableEQ applies the EQ predicate on the "nillable" field.
+func NillableEQ(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNillable), v))
+	})
+}
+
+// NillableNEQ applies the NEQ predicate on the "nillable" field.
+func NillableNEQ(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldNillable), v))
+	})
+}
+
+// NillableIn applies the In predicate on the "nillable" field.
+func NillableIn(vs ...int) predicate.OASTypes {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldNillable), v...))
+	})
+}
+
+// NillableNotIn applies the NotIn predicate on the "nillable" field.
+func NillableNotIn(vs ...int) predicate.OASTypes {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldNillable), v...))
+	})
+}
+
+// NillableGT applies the GT predicate on the "nillable" field.
+func NillableGT(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldNillable), v))
+	})
+}
+
+// NillableGTE applies the GTE predicate on the "nillable" field.
+func NillableGTE(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldNillable), v))
+	})
+}
+
+// NillableLT applies the LT predicate on the "nillable" field.
+func NillableLT(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldNillable), v))
+	})
+}
+
+// NillableLTE applies the LTE predicate on the "nillable" field.
+func NillableLTE(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldNillable), v))
+	})
+}
+
+// OptionalAndNillableEQ applies the EQ predicate on the "optional_and_nillable" field.
+func OptionalAndNillableEQ(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
+// OptionalAndNillableNEQ applies the NEQ predicate on the "optional_and_nillable" field.
+func OptionalAndNillableNEQ(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
+// OptionalAndNillableIn applies the In predicate on the "optional_and_nillable" field.
+func OptionalAndNillableIn(vs ...int) predicate.OASTypes {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldOptionalAndNillable), v...))
+	})
+}
+
+// OptionalAndNillableNotIn applies the NotIn predicate on the "optional_and_nillable" field.
+func OptionalAndNillableNotIn(vs ...int) predicate.OASTypes {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldOptionalAndNillable), v...))
+	})
+}
+
+// OptionalAndNillableGT applies the GT predicate on the "optional_and_nillable" field.
+func OptionalAndNillableGT(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
+// OptionalAndNillableGTE applies the GTE predicate on the "optional_and_nillable" field.
+func OptionalAndNillableGTE(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
+// OptionalAndNillableLT applies the LT predicate on the "optional_and_nillable" field.
+func OptionalAndNillableLT(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
+// OptionalAndNillableLTE applies the LTE predicate on the "optional_and_nillable" field.
+func OptionalAndNillableLTE(v int) predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldOptionalAndNillable), v))
+	})
+}
+
+// OptionalAndNillableIsNil applies the IsNil predicate on the "optional_and_nillable" field.
+func OptionalAndNillableIsNil() predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldOptionalAndNillable)))
+	})
+}
+
+// OptionalAndNillableNotNil applies the NotNil predicate on the "optional_and_nillable" field.
+func OptionalAndNillableNotNil() predicate.OASTypes {
+	return predicate.OASTypes(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldOptionalAndNillable)))
 	})
 }
 

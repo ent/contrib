@@ -143,10 +143,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -186,10 +186,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -222,10 +222,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "requestBody": {
@@ -307,10 +307,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -371,10 +371,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -435,10 +435,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -499,10 +499,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -563,10 +563,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {

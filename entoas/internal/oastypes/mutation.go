@@ -34,56 +34,62 @@ const (
 // OASTypesMutation represents an operation that mutates the OASTypes nodes in the graph.
 type OASTypesMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	int              *int
-	addint           *int
-	int8             *int8
-	addint8          *int8
-	int16            *int16
-	addint16         *int16
-	int32            *int32
-	addint32         *int32
-	int64            *int64
-	addint64         *int64
-	uint             *uint
-	adduint          *int
-	uint8            *uint8
-	adduint8         *int8
-	uint16           *uint16
-	adduint16        *int16
-	uint32           *uint32
-	adduint32        *int32
-	uint64           *uint64
-	adduint64        *int64
-	float32          *float32
-	addfloat32       *float32
-	float64          *float64
-	addfloat64       *float64
-	string_field     *string
-	bool             *bool
-	uuid             *uuid.UUID
-	time             *time.Time
-	text             *string
-	state            *oastypes.State
-	strings          *[]string
-	appendstrings    []string
-	ints             *[]int
-	appendints       []int
-	floats           *[]float64
-	appendfloats     []float64
-	bytes            *[]byte
-	nicknames        *[]string
-	appendnicknames  []string
-	json_slice       *[]http.Dir
-	appendjson_slice []http.Dir
-	json_obj         *url.URL
-	other            **schema.Link
-	clearedFields    map[string]struct{}
-	done             bool
-	oldValue         func(context.Context) (*OASTypes, error)
-	predicates       []predicate.OASTypes
+	op                       Op
+	typ                      string
+	id                       *int
+	int                      *int
+	addint                   *int
+	int8                     *int8
+	addint8                  *int8
+	int16                    *int16
+	addint16                 *int16
+	int32                    *int32
+	addint32                 *int32
+	int64                    *int64
+	addint64                 *int64
+	uint                     *uint
+	adduint                  *int
+	uint8                    *uint8
+	adduint8                 *int8
+	uint16                   *uint16
+	adduint16                *int16
+	uint32                   *uint32
+	adduint32                *int32
+	uint64                   *uint64
+	adduint64                *int64
+	float32                  *float32
+	addfloat32               *float32
+	float64                  *float64
+	addfloat64               *float64
+	string_field             *string
+	bool                     *bool
+	uuid                     *uuid.UUID
+	time                     *time.Time
+	text                     *string
+	state                    *oastypes.State
+	strings                  *[]string
+	appendstrings            []string
+	ints                     *[]int
+	appendints               []int
+	floats                   *[]float64
+	appendfloats             []float64
+	bytes                    *[]byte
+	nicknames                *[]string
+	appendnicknames          []string
+	json_slice               *[]http.Dir
+	appendjson_slice         []http.Dir
+	json_obj                 *url.URL
+	other                    **schema.Link
+	optional                 *int
+	addoptional              *int
+	nillable                 *int
+	addnillable              *int
+	optional_and_nillable    *int
+	addoptional_and_nillable *int
+	clearedFields            map[string]struct{}
+	done                     bool
+	oldValue                 func(context.Context) (*OASTypes, error)
+	predicates               []predicate.OASTypes
 }
 
 var _ ent.Mutation = (*OASTypesMutation)(nil)
@@ -1435,6 +1441,202 @@ func (m *OASTypesMutation) ResetOther() {
 	m.other = nil
 }
 
+// SetOptional sets the "optional" field.
+func (m *OASTypesMutation) SetOptional(i int) {
+	m.optional = &i
+	m.addoptional = nil
+}
+
+// Optional returns the value of the "optional" field in the mutation.
+func (m *OASTypesMutation) Optional() (r int, exists bool) {
+	v := m.optional
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptional returns the old "optional" field's value of the OASTypes entity.
+// If the OASTypes object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OASTypesMutation) OldOptional(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOptional is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOptional requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptional: %w", err)
+	}
+	return oldValue.Optional, nil
+}
+
+// AddOptional adds i to the "optional" field.
+func (m *OASTypesMutation) AddOptional(i int) {
+	if m.addoptional != nil {
+		*m.addoptional += i
+	} else {
+		m.addoptional = &i
+	}
+}
+
+// AddedOptional returns the value that was added to the "optional" field in this mutation.
+func (m *OASTypesMutation) AddedOptional() (r int, exists bool) {
+	v := m.addoptional
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOptional clears the value of the "optional" field.
+func (m *OASTypesMutation) ClearOptional() {
+	m.optional = nil
+	m.addoptional = nil
+	m.clearedFields[oastypes.FieldOptional] = struct{}{}
+}
+
+// OptionalCleared returns if the "optional" field was cleared in this mutation.
+func (m *OASTypesMutation) OptionalCleared() bool {
+	_, ok := m.clearedFields[oastypes.FieldOptional]
+	return ok
+}
+
+// ResetOptional resets all changes to the "optional" field.
+func (m *OASTypesMutation) ResetOptional() {
+	m.optional = nil
+	m.addoptional = nil
+	delete(m.clearedFields, oastypes.FieldOptional)
+}
+
+// SetNillable sets the "nillable" field.
+func (m *OASTypesMutation) SetNillable(i int) {
+	m.nillable = &i
+	m.addnillable = nil
+}
+
+// Nillable returns the value of the "nillable" field in the mutation.
+func (m *OASTypesMutation) Nillable() (r int, exists bool) {
+	v := m.nillable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNillable returns the old "nillable" field's value of the OASTypes entity.
+// If the OASTypes object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OASTypesMutation) OldNillable(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNillable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNillable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNillable: %w", err)
+	}
+	return oldValue.Nillable, nil
+}
+
+// AddNillable adds i to the "nillable" field.
+func (m *OASTypesMutation) AddNillable(i int) {
+	if m.addnillable != nil {
+		*m.addnillable += i
+	} else {
+		m.addnillable = &i
+	}
+}
+
+// AddedNillable returns the value that was added to the "nillable" field in this mutation.
+func (m *OASTypesMutation) AddedNillable() (r int, exists bool) {
+	v := m.addnillable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNillable resets all changes to the "nillable" field.
+func (m *OASTypesMutation) ResetNillable() {
+	m.nillable = nil
+	m.addnillable = nil
+}
+
+// SetOptionalAndNillable sets the "optional_and_nillable" field.
+func (m *OASTypesMutation) SetOptionalAndNillable(i int) {
+	m.optional_and_nillable = &i
+	m.addoptional_and_nillable = nil
+}
+
+// OptionalAndNillable returns the value of the "optional_and_nillable" field in the mutation.
+func (m *OASTypesMutation) OptionalAndNillable() (r int, exists bool) {
+	v := m.optional_and_nillable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptionalAndNillable returns the old "optional_and_nillable" field's value of the OASTypes entity.
+// If the OASTypes object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OASTypesMutation) OldOptionalAndNillable(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOptionalAndNillable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOptionalAndNillable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptionalAndNillable: %w", err)
+	}
+	return oldValue.OptionalAndNillable, nil
+}
+
+// AddOptionalAndNillable adds i to the "optional_and_nillable" field.
+func (m *OASTypesMutation) AddOptionalAndNillable(i int) {
+	if m.addoptional_and_nillable != nil {
+		*m.addoptional_and_nillable += i
+	} else {
+		m.addoptional_and_nillable = &i
+	}
+}
+
+// AddedOptionalAndNillable returns the value that was added to the "optional_and_nillable" field in this mutation.
+func (m *OASTypesMutation) AddedOptionalAndNillable() (r int, exists bool) {
+	v := m.addoptional_and_nillable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOptionalAndNillable clears the value of the "optional_and_nillable" field.
+func (m *OASTypesMutation) ClearOptionalAndNillable() {
+	m.optional_and_nillable = nil
+	m.addoptional_and_nillable = nil
+	m.clearedFields[oastypes.FieldOptionalAndNillable] = struct{}{}
+}
+
+// OptionalAndNillableCleared returns if the "optional_and_nillable" field was cleared in this mutation.
+func (m *OASTypesMutation) OptionalAndNillableCleared() bool {
+	_, ok := m.clearedFields[oastypes.FieldOptionalAndNillable]
+	return ok
+}
+
+// ResetOptionalAndNillable resets all changes to the "optional_and_nillable" field.
+func (m *OASTypesMutation) ResetOptionalAndNillable() {
+	m.optional_and_nillable = nil
+	m.addoptional_and_nillable = nil
+	delete(m.clearedFields, oastypes.FieldOptionalAndNillable)
+}
+
 // Where appends a list predicates to the OASTypesMutation builder.
 func (m *OASTypesMutation) Where(ps ...predicate.OASTypes) {
 	m.predicates = append(m.predicates, ps...)
@@ -1454,7 +1656,7 @@ func (m *OASTypesMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OASTypesMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 29)
 	if m.int != nil {
 		fields = append(fields, oastypes.FieldInt)
 	}
@@ -1533,6 +1735,15 @@ func (m *OASTypesMutation) Fields() []string {
 	if m.other != nil {
 		fields = append(fields, oastypes.FieldOther)
 	}
+	if m.optional != nil {
+		fields = append(fields, oastypes.FieldOptional)
+	}
+	if m.nillable != nil {
+		fields = append(fields, oastypes.FieldNillable)
+	}
+	if m.optional_and_nillable != nil {
+		fields = append(fields, oastypes.FieldOptionalAndNillable)
+	}
 	return fields
 }
 
@@ -1593,6 +1804,12 @@ func (m *OASTypesMutation) Field(name string) (ent.Value, bool) {
 		return m.JSONObj()
 	case oastypes.FieldOther:
 		return m.Other()
+	case oastypes.FieldOptional:
+		return m.Optional()
+	case oastypes.FieldNillable:
+		return m.Nillable()
+	case oastypes.FieldOptionalAndNillable:
+		return m.OptionalAndNillable()
 	}
 	return nil, false
 }
@@ -1654,6 +1871,12 @@ func (m *OASTypesMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldJSONObj(ctx)
 	case oastypes.FieldOther:
 		return m.OldOther(ctx)
+	case oastypes.FieldOptional:
+		return m.OldOptional(ctx)
+	case oastypes.FieldNillable:
+		return m.OldNillable(ctx)
+	case oastypes.FieldOptionalAndNillable:
+		return m.OldOptionalAndNillable(ctx)
 	}
 	return nil, fmt.Errorf("unknown OASTypes field %s", name)
 }
@@ -1845,6 +2068,27 @@ func (m *OASTypesMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOther(v)
 		return nil
+	case oastypes.FieldOptional:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptional(v)
+		return nil
+	case oastypes.FieldNillable:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNillable(v)
+		return nil
+	case oastypes.FieldOptionalAndNillable:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptionalAndNillable(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OASTypes field %s", name)
 }
@@ -1889,6 +2133,15 @@ func (m *OASTypesMutation) AddedFields() []string {
 	if m.addfloat64 != nil {
 		fields = append(fields, oastypes.FieldFloat64)
 	}
+	if m.addoptional != nil {
+		fields = append(fields, oastypes.FieldOptional)
+	}
+	if m.addnillable != nil {
+		fields = append(fields, oastypes.FieldNillable)
+	}
+	if m.addoptional_and_nillable != nil {
+		fields = append(fields, oastypes.FieldOptionalAndNillable)
+	}
 	return fields
 }
 
@@ -1921,6 +2174,12 @@ func (m *OASTypesMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedFloat32()
 	case oastypes.FieldFloat64:
 		return m.AddedFloat64()
+	case oastypes.FieldOptional:
+		return m.AddedOptional()
+	case oastypes.FieldNillable:
+		return m.AddedNillable()
+	case oastypes.FieldOptionalAndNillable:
+		return m.AddedOptionalAndNillable()
 	}
 	return nil, false
 }
@@ -2014,6 +2273,27 @@ func (m *OASTypesMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddFloat64(v)
 		return nil
+	case oastypes.FieldOptional:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOptional(v)
+		return nil
+	case oastypes.FieldNillable:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNillable(v)
+		return nil
+	case oastypes.FieldOptionalAndNillable:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOptionalAndNillable(v)
+		return nil
 	}
 	return fmt.Errorf("unknown OASTypes numeric field %s", name)
 }
@@ -2021,7 +2301,14 @@ func (m *OASTypesMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *OASTypesMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(oastypes.FieldOptional) {
+		fields = append(fields, oastypes.FieldOptional)
+	}
+	if m.FieldCleared(oastypes.FieldOptionalAndNillable) {
+		fields = append(fields, oastypes.FieldOptionalAndNillable)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2034,6 +2321,14 @@ func (m *OASTypesMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *OASTypesMutation) ClearField(name string) error {
+	switch name {
+	case oastypes.FieldOptional:
+		m.ClearOptional()
+		return nil
+	case oastypes.FieldOptionalAndNillable:
+		m.ClearOptionalAndNillable()
+		return nil
+	}
 	return fmt.Errorf("unknown OASTypes nullable field %s", name)
 }
 
@@ -2118,6 +2413,15 @@ func (m *OASTypesMutation) ResetField(name string) error {
 		return nil
 	case oastypes.FieldOther:
 		m.ResetOther()
+		return nil
+	case oastypes.FieldOptional:
+		m.ResetOptional()
+		return nil
+	case oastypes.FieldNillable:
+		m.ResetNillable()
+		return nil
+	case oastypes.FieldOptionalAndNillable:
+		m.ResetOptionalAndNillable()
 		return nil
 	}
 	return fmt.Errorf("unknown OASTypes field %s", name)
