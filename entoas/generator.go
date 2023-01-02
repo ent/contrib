@@ -420,6 +420,10 @@ func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 
 // listOp returns a spec.OperationConfig for a list operation on the given node.
 func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
+	cfg, err := GetConfig(n.Config)
+	if err != nil {
+		return nil, err
+	}
 	vn, err := ViewName(n, OpList)
 	if err != nil {
 		return nil, err
@@ -434,12 +438,15 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 				InQuery().
 				SetName("page").
 				SetDescription("what page to render").
-				SetSchema(ogen.Int()),
+				SetSchema(ogen.Int().SetMinimum(&one)),
 			ogen.NewParameter().
 				InQuery().
 				SetName("itemsPerPage").
 				SetDescription("item count to render per page").
-				SetSchema(ogen.Int()),
+				SetSchema(ogen.Int().
+					SetMinimum(&cfg.MinItemsPerPage).
+					SetMaximum(&cfg.MaxItemsPerPage),
+				),
 		).
 		AddResponse(
 			strconv.Itoa(http.StatusOK),
@@ -513,6 +520,7 @@ func property(f *gen.Field) (*ogen.Property, error) {
 
 var (
 	zero   int64
+	one    int64 = 1
 	min8   int64 = math.MinInt8
 	max8   int64 = math.MaxInt8
 	maxu8  int64 = math.MaxUint8
