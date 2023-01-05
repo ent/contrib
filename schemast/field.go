@@ -51,7 +51,6 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 				expr = "&" + expr
 			}
 		}
-
 		exp, err := parser.ParseExpr(expr)
 		if err != nil {
 			return nil, fmt.Errorf("schemast: json field %s generation error %w", desc.Name, err)
@@ -168,7 +167,6 @@ func fromComplexType(desc *field.Descriptor, filedType ast.Expr) (*ast.CallExpr,
 			break
 		}
 	}
-
 	// Append the filedType to the args of the initial *ast.CallExpr
 	callExpr.Args = append(callExpr.Args, filedType)
 	return call, nil
