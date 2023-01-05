@@ -57,6 +57,11 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.JSON("json_field", struct{}{})`,
 		},
 		{
+			name:     "json complex",
+			field:    field.JSON("json_complex_field", &entproto.Adapter{}).Optional().Comment("test comment"),
+			expected: `field.JSON("json_complex_field", &entproto.Adapter{}).Optional().Comment("test comment")`,
+		},
+		{
 			name:     "time",
 			field:    field.Time("time").Default(time.Now),
 			expected: `field.Time("time").Default(time.Now)`,

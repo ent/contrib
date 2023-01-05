@@ -44,7 +44,14 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 				},
 			))
 	case t == field.TypeJSON:
-		exp, err := parser.ParseExpr("struct{}{}")
+		expr := "struct{}{}"
+		if desc.Info != nil && desc.Info.RType != nil {
+			expr = desc.Info.RType.Ident + "{}"
+			if desc.Info.RType.Kind == reflect.Pointer {
+				expr = "&" + expr
+			}
+		}
+		exp, err := parser.ParseExpr(expr)
 		if err != nil {
 			return nil, fmt.Errorf("schemast: json field %s generation error %w", desc.Name, err)
 		}
@@ -147,7 +154,21 @@ func fromComplexType(desc *field.Descriptor, filedType ast.Expr) (*ast.CallExpr,
 		return nil, err
 	}
 
-	call.Args = append(call.Args, filedType)
+	var callExpr = call
+	// Loop through calls to find the base and append the filedType there
+	for {
+		if selectExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+			if prevExpr, ok := selectExpr.X.(*ast.CallExpr); ok {
+				callExpr = prevExpr
+			} else {
+				break
+			}
+		} else {
+			break
+		}
+	}
+	// Append the filedType to the args of the initial *ast.CallExpr
+	callExpr.Args = append(callExpr.Args, filedType)
 	return call, nil
 }
 
