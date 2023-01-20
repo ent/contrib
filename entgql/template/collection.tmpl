@@ -50,7 +50,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 						var (
 							alias = field.Alias
 							path  = append(path, alias)
-							query = &{{ $ebuilder }}{config: {{ $receiver }}.config}
+							query = (&{{ $e.Type.ClientName }}{config: {{ $receiver }}.config}).Query()
 						)
 						{{- if isRelayConn $e }}
 							{{- $tnames := nodePaginationNames $e.Type }}
