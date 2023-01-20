@@ -64,7 +64,7 @@ func (mws *MultiWordSchema) assignValues(columns []string, values []any) error {
 // Note that you need to call MultiWordSchema.Unwrap() before calling this method if this MultiWordSchema
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mws *MultiWordSchema) Update() *MultiWordSchemaUpdateOne {
-	return (&MultiWordSchemaClient{config: mws.config}).UpdateOne(mws)
+	return NewMultiWordSchemaClient(mws.config).UpdateOne(mws)
 }
 
 // Unwrap unwraps the MultiWordSchema entity that was returned from a transaction after it was closed,

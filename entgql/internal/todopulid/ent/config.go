@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,18 +34,31 @@ type config struct {
 	log func(...any)
 	// hooks to execute on mutations.
 	hooks *hooks
+	// interceptors to execute on queries.
+	inters *inters
 }
 
-// hooks per client, for fast access.
-type hooks struct {
-	BillProduct []ent.Hook
-	Category    []ent.Hook
-	Friendship  []ent.Hook
-	Group       []ent.Hook
-	Todo        []ent.Hook
-	User        []ent.Hook
-	VerySecret  []ent.Hook
-}
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		BillProduct []ent.Hook
+		Category    []ent.Hook
+		Friendship  []ent.Hook
+		Group       []ent.Hook
+		Todo        []ent.Hook
+		User        []ent.Hook
+		VerySecret  []ent.Hook
+	}
+	inters struct {
+		BillProduct []ent.Interceptor
+		Category    []ent.Interceptor
+		Friendship  []ent.Interceptor
+		Group       []ent.Interceptor
+		Todo        []ent.Interceptor
+		User        []ent.Interceptor
+		VerySecret  []ent.Interceptor
+	}
+)
 
 // Options applies the options on the config object.
 func (c *config) options(opts ...Option) {

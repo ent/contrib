@@ -17,11 +17,9 @@ import (
 // MessageWithIDQuery is the builder for querying MessageWithID entities.
 type MessageWithIDQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.MessageWithID
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (mwiq *MessageWithIDQuery) Where(ps ...predicate.MessageWithID) *MessageWit
 	return mwiq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (mwiq *MessageWithIDQuery) Limit(limit int) *MessageWithIDQuery {
-	mwiq.limit = &limit
+	mwiq.ctx.Limit = &limit
 	return mwiq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (mwiq *MessageWithIDQuery) Offset(offset int) *MessageWithIDQuery {
-	mwiq.offset = &offset
+	mwiq.ctx.Offset = &offset
 	return mwiq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (mwiq *MessageWithIDQuery) Unique(unique bool) *MessageWithIDQuery {
-	mwiq.unique = &unique
+	mwiq.ctx.Unique = &unique
 	return mwiq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (mwiq *MessageWithIDQuery) Order(o ...OrderFunc) *MessageWithIDQuery {
 	mwiq.order = append(mwiq.order, o...)
 	return mwiq
@@ -62,7 +60,7 @@ func (mwiq *MessageWithIDQuery) Order(o ...OrderFunc) *MessageWithIDQuery {
 // First returns the first MessageWithID entity from the query.
 // Returns a *NotFoundError when no MessageWithID was found.
 func (mwiq *MessageWithIDQuery) First(ctx context.Context) (*MessageWithID, error) {
-	nodes, err := mwiq.Limit(1).All(ctx)
+	nodes, err := mwiq.Limit(1).All(setContextOp(ctx, mwiq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (mwiq *MessageWithIDQuery) FirstX(ctx context.Context) *MessageWithID {
 // Returns a *NotFoundError when no MessageWithID ID was found.
 func (mwiq *MessageWithIDQuery) FirstID(ctx context.Context) (id int32, err error) {
 	var ids []int32
-	if ids, err = mwiq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = mwiq.Limit(1).IDs(setContextOp(ctx, mwiq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (mwiq *MessageWithIDQuery) FirstIDX(ctx context.Context) int32 {
 // Returns a *NotSingularError when more than one MessageWithID entity is found.
 // Returns a *NotFoundError when no MessageWithID entities are found.
 func (mwiq *MessageWithIDQuery) Only(ctx context.Context) (*MessageWithID, error) {
-	nodes, err := mwiq.Limit(2).All(ctx)
+	nodes, err := mwiq.Limit(2).All(setContextOp(ctx, mwiq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (mwiq *MessageWithIDQuery) OnlyX(ctx context.Context) *MessageWithID {
 // Returns a *NotFoundError when no entities are found.
 func (mwiq *MessageWithIDQuery) OnlyID(ctx context.Context) (id int32, err error) {
 	var ids []int32
-	if ids, err = mwiq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = mwiq.Limit(2).IDs(setContextOp(ctx, mwiq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (mwiq *MessageWithIDQuery) OnlyIDX(ctx context.Context) int32 {
 
 // All executes the query and returns a list of MessageWithIDs.
 func (mwiq *MessageWithIDQuery) All(ctx context.Context) ([]*MessageWithID, error) {
+	ctx = setContextOp(ctx, mwiq.ctx, "All")
 	if err := mwiq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return mwiq.sqlAll(ctx)
+	qr := querierAll[[]*MessageWithID, *MessageWithIDQuery]()
+	return withInterceptors[[]*MessageWithID](ctx, mwiq, qr, mwiq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (mwiq *MessageWithIDQuery) AllX(ctx context.Context) []*MessageWithID {
 // IDs executes the query and returns a list of MessageWithID IDs.
 func (mwiq *MessageWithIDQuery) IDs(ctx context.Context) ([]int32, error) {
 	var ids []int32
+	ctx = setContextOp(ctx, mwiq.ctx, "IDs")
 	if err := mwiq.Select(messagewithid.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (mwiq *MessageWithIDQuery) IDsX(ctx context.Context) []int32 {
 
 // Count returns the count of the given query.
 func (mwiq *MessageWithIDQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, mwiq.ctx, "Count")
 	if err := mwiq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return mwiq.sqlCount(ctx)
+	return withInterceptors[int](ctx, mwiq, querierCount[*MessageWithIDQuery](), mwiq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (mwiq *MessageWithIDQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwiq *MessageWithIDQuery) Exist(ctx context.Context) (bool, error) {
-	if err := mwiq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, mwiq.ctx, "Exist")
+	switch _, err := mwiq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return mwiq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,41 +243,35 @@ func (mwiq *MessageWithIDQuery) Clone() *MessageWithIDQuery {
 	}
 	return &MessageWithIDQuery{
 		config:     mwiq.config,
-		limit:      mwiq.limit,
-		offset:     mwiq.offset,
+		ctx:        mwiq.ctx.Clone(),
 		order:      append([]OrderFunc{}, mwiq.order...),
+		inters:     append([]Interceptor{}, mwiq.inters...),
 		predicates: append([]predicate.MessageWithID{}, mwiq.predicates...),
 		// clone intermediate query.
-		sql:    mwiq.sql.Clone(),
-		path:   mwiq.path,
-		unique: mwiq.unique,
+		sql:  mwiq.sql.Clone(),
+		path: mwiq.path,
 	}
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (mwiq *MessageWithIDQuery) GroupBy(field string, fields ...string) *MessageWithIDGroupBy {
-	grbuild := &MessageWithIDGroupBy{config: mwiq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := mwiq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return mwiq.sqlQuery(ctx), nil
-	}
+	mwiq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MessageWithIDGroupBy{build: mwiq}
+	grbuild.flds = &mwiq.ctx.Fields
 	grbuild.label = messagewithid.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (mwiq *MessageWithIDQuery) Select(fields ...string) *MessageWithIDSelect {
-	mwiq.fields = append(mwiq.fields, fields...)
-	selbuild := &MessageWithIDSelect{MessageWithIDQuery: mwiq}
-	selbuild.label = messagewithid.Label
-	selbuild.flds, selbuild.scan = &mwiq.fields, selbuild.Scan
-	return selbuild
+	mwiq.ctx.Fields = append(mwiq.ctx.Fields, fields...)
+	sbuild := &MessageWithIDSelect{MessageWithIDQuery: mwiq}
+	sbuild.label = messagewithid.Label
+	sbuild.flds, sbuild.scan = &mwiq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a MessageWithIDSelect configured with the given aggregations.
@@ -279,7 +280,17 @@ func (mwiq *MessageWithIDQuery) Aggregate(fns ...AggregateFunc) *MessageWithIDSe
 }
 
 func (mwiq *MessageWithIDQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range mwiq.fields {
+	for _, inter := range mwiq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, mwiq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range mwiq.ctx.Fields {
 		if !messagewithid.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -321,22 +332,11 @@ func (mwiq *MessageWithIDQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 
 func (mwiq *MessageWithIDQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwiq.querySpec()
-	_spec.Node.Columns = mwiq.fields
-	if len(mwiq.fields) > 0 {
-		_spec.Unique = mwiq.unique != nil && *mwiq.unique
+	_spec.Node.Columns = mwiq.ctx.Fields
+	if len(mwiq.ctx.Fields) > 0 {
+		_spec.Unique = mwiq.ctx.Unique != nil && *mwiq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, mwiq.driver, _spec)
-}
-
-func (mwiq *MessageWithIDQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := mwiq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
@@ -352,10 +352,10 @@ func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwiq.sql,
 		Unique: true,
 	}
-	if unique := mwiq.unique; unique != nil {
+	if unique := mwiq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := mwiq.fields; len(fields) > 0 {
+	if fields := mwiq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithid.FieldID)
 		for i := range fields {
@@ -371,10 +371,10 @@ func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := mwiq.limit; limit != nil {
+	if limit := mwiq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mwiq.offset; offset != nil {
+	if offset := mwiq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := mwiq.order; len(ps) > 0 {
@@ -390,7 +390,7 @@ func (mwiq *MessageWithIDQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwiq.driver.Dialect())
 	t1 := builder.Table(messagewithid.Table)
-	columns := mwiq.fields
+	columns := mwiq.ctx.Fields
 	if len(columns) == 0 {
 		columns = messagewithid.Columns
 	}
@@ -399,7 +399,7 @@ func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = mwiq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mwiq.unique != nil && *mwiq.unique {
+	if mwiq.ctx.Unique != nil && *mwiq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range mwiq.predicates {
@@ -408,12 +408,12 @@ func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range mwiq.order {
 		p(selector)
 	}
-	if offset := mwiq.offset; offset != nil {
+	if offset := mwiq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mwiq.limit; limit != nil {
+	if limit := mwiq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -421,13 +421,8 @@ func (mwiq *MessageWithIDQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // MessageWithIDGroupBy is the group-by builder for MessageWithID entities.
 type MessageWithIDGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *MessageWithIDQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -436,58 +431,46 @@ func (mwigb *MessageWithIDGroupBy) Aggregate(fns ...AggregateFunc) *MessageWithI
 	return mwigb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (mwigb *MessageWithIDGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := mwigb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, mwigb.build.ctx, "GroupBy")
+	if err := mwigb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwigb.sql = query
-	return mwigb.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithIDQuery, *MessageWithIDGroupBy](ctx, mwigb.build, mwigb, mwigb.build.inters, v)
 }
 
-func (mwigb *MessageWithIDGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range mwigb.fields {
-		if !messagewithid.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (mwigb *MessageWithIDGroupBy) sqlScan(ctx context.Context, root *MessageWithIDQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(mwigb.fns))
+	for _, fn := range mwigb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := mwigb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*mwigb.flds)+len(mwigb.fns))
+		for _, f := range *mwigb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*mwigb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mwigb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := mwigb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (mwigb *MessageWithIDGroupBy) sqlQuery() *sql.Selector {
-	selector := mwigb.sql.Select()
-	aggregation := make([]string, 0, len(mwigb.fns))
-	for _, fn := range mwigb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(mwigb.fields)+len(mwigb.fns))
-		for _, f := range mwigb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(mwigb.fields...)...)
-}
-
 // MessageWithIDSelect is the builder for selecting fields of MessageWithID entities.
 type MessageWithIDSelect struct {
 	*MessageWithIDQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -498,26 +481,27 @@ func (mwis *MessageWithIDSelect) Aggregate(fns ...AggregateFunc) *MessageWithIDS
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, mwis.ctx, "Select")
 	if err := mwis.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwis.sql = mwis.MessageWithIDQuery.sqlQuery(ctx)
-	return mwis.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithIDQuery, *MessageWithIDSelect](ctx, mwis.MessageWithIDQuery, mwis, mwis.inters, v)
 }
 
-func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, v any) error {
+func (mwis *MessageWithIDSelect) sqlScan(ctx context.Context, root *MessageWithIDQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(mwis.fns))
 	for _, fn := range mwis.fns {
-		aggregation = append(aggregation, fn(mwis.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*mwis.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		mwis.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		mwis.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := mwis.sql.Query()
+	query, args := selector.Query()
 	if err := mwis.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

@@ -385,40 +385,7 @@ func (otu *OASTypesUpdate) Mutation() *OASTypesMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (otu *OASTypesUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(otu.hooks) == 0 {
-		if err = otu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = otu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OASTypesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = otu.check(); err != nil {
-				return 0, err
-			}
-			otu.mutation = mutation
-			affected, err = otu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(otu.hooks) - 1; i >= 0; i-- {
-			if otu.hooks[i] == nil {
-				return 0, fmt.Errorf("oastypes: uninitialized hook (forgotten import oastypes/runtime?)")
-			}
-			mut = otu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, otu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, OASTypesMutation](ctx, otu.sqlSave, otu.mutation, otu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -454,6 +421,9 @@ func (otu *OASTypesUpdate) check() error {
 }
 
 func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := otu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   oastypes.Table,
@@ -642,6 +612,7 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	otu.mutation.done = true
 	return n, nil
 }
 
@@ -1012,46 +983,7 @@ func (otuo *OASTypesUpdateOne) Select(field string, fields ...string) *OASTypesU
 
 // Save executes the query and returns the updated OASTypes entity.
 func (otuo *OASTypesUpdateOne) Save(ctx context.Context) (*OASTypes, error) {
-	var (
-		err  error
-		node *OASTypes
-	)
-	if len(otuo.hooks) == 0 {
-		if err = otuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = otuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OASTypesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = otuo.check(); err != nil {
-				return nil, err
-			}
-			otuo.mutation = mutation
-			node, err = otuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(otuo.hooks) - 1; i >= 0; i-- {
-			if otuo.hooks[i] == nil {
-				return nil, fmt.Errorf("oastypes: uninitialized hook (forgotten import oastypes/runtime?)")
-			}
-			mut = otuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, otuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*OASTypes)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from OASTypesMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*OASTypes, OASTypesMutation](ctx, otuo.sqlSave, otuo.mutation, otuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1087,6 +1019,9 @@ func (otuo *OASTypesUpdateOne) check() error {
 }
 
 func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, err error) {
+	if err := otuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   oastypes.Table,
@@ -1295,5 +1230,6 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 		}
 		return nil, err
 	}
+	otuo.mutation.done = true
 	return _node, nil
 }

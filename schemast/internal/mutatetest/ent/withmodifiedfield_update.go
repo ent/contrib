@@ -60,34 +60,7 @@ func (wmfu *WithModifiedFieldUpdate) ClearOwner() *WithModifiedFieldUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wmfu *WithModifiedFieldUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(wmfu.hooks) == 0 {
-		affected, err = wmfu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithModifiedFieldMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wmfu.mutation = mutation
-			affected, err = wmfu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(wmfu.hooks) - 1; i >= 0; i-- {
-			if wmfu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wmfu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, wmfu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, WithModifiedFieldMutation](ctx, wmfu.sqlSave, wmfu.mutation, wmfu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -173,6 +146,7 @@ func (wmfu *WithModifiedFieldUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		return 0, err
 	}
+	wmfu.mutation.done = true
 	return n, nil
 }
 
@@ -223,40 +197,7 @@ func (wmfuo *WithModifiedFieldUpdateOne) Select(field string, fields ...string) 
 
 // Save executes the query and returns the updated WithModifiedField entity.
 func (wmfuo *WithModifiedFieldUpdateOne) Save(ctx context.Context) (*WithModifiedField, error) {
-	var (
-		err  error
-		node *WithModifiedField
-	)
-	if len(wmfuo.hooks) == 0 {
-		node, err = wmfuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithModifiedFieldMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wmfuo.mutation = mutation
-			node, err = wmfuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(wmfuo.hooks) - 1; i >= 0; i-- {
-			if wmfuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wmfuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, wmfuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*WithModifiedField)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from WithModifiedFieldMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*WithModifiedField, WithModifiedFieldMutation](ctx, wmfuo.sqlSave, wmfuo.mutation, wmfuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -362,5 +303,6 @@ func (wmfuo *WithModifiedFieldUpdateOne) sqlSave(ctx context.Context) (_node *Wi
 		}
 		return nil, err
 	}
+	wmfuo.mutation.done = true
 	return _node, nil
 }

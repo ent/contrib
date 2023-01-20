@@ -20,33 +20,61 @@ type config struct {
 	log func(...any)
 	// hooks to execute on mutations.
 	hooks *hooks
+	// interceptors to execute on queries.
+	inters *inters
 }
 
-// hooks per client, for fast access.
-type hooks struct {
-	AllMethodsService      []ent.Hook
-	BlogPost               []ent.Hook
-	Category               []ent.Hook
-	DependsOnSkipped       []ent.Hook
-	DuplicateNumberMessage []ent.Hook
-	ExplicitSkippedMessage []ent.Hook
-	Image                  []ent.Hook
-	ImplicitSkippedMessage []ent.Hook
-	InvalidFieldMessage    []ent.Hook
-	MessageWithEnum        []ent.Hook
-	MessageWithFieldOne    []ent.Hook
-	MessageWithID          []ent.Hook
-	MessageWithOptionals   []ent.Hook
-	MessageWithPackageName []ent.Hook
-	MessageWithStrings     []ent.Hook
-	NoBackref              []ent.Hook
-	OneMethodService       []ent.Hook
-	Portal                 []ent.Hook
-	SkipEdgeExample        []ent.Hook
-	TwoMethodService       []ent.Hook
-	User                   []ent.Hook
-	ValidMessage           []ent.Hook
-}
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		AllMethodsService      []ent.Hook
+		BlogPost               []ent.Hook
+		Category               []ent.Hook
+		DependsOnSkipped       []ent.Hook
+		DuplicateNumberMessage []ent.Hook
+		ExplicitSkippedMessage []ent.Hook
+		Image                  []ent.Hook
+		ImplicitSkippedMessage []ent.Hook
+		InvalidFieldMessage    []ent.Hook
+		MessageWithEnum        []ent.Hook
+		MessageWithFieldOne    []ent.Hook
+		MessageWithID          []ent.Hook
+		MessageWithOptionals   []ent.Hook
+		MessageWithPackageName []ent.Hook
+		MessageWithStrings     []ent.Hook
+		NoBackref              []ent.Hook
+		OneMethodService       []ent.Hook
+		Portal                 []ent.Hook
+		SkipEdgeExample        []ent.Hook
+		TwoMethodService       []ent.Hook
+		User                   []ent.Hook
+		ValidMessage           []ent.Hook
+	}
+	inters struct {
+		AllMethodsService      []ent.Interceptor
+		BlogPost               []ent.Interceptor
+		Category               []ent.Interceptor
+		DependsOnSkipped       []ent.Interceptor
+		DuplicateNumberMessage []ent.Interceptor
+		ExplicitSkippedMessage []ent.Interceptor
+		Image                  []ent.Interceptor
+		ImplicitSkippedMessage []ent.Interceptor
+		InvalidFieldMessage    []ent.Interceptor
+		MessageWithEnum        []ent.Interceptor
+		MessageWithFieldOne    []ent.Interceptor
+		MessageWithID          []ent.Interceptor
+		MessageWithOptionals   []ent.Interceptor
+		MessageWithPackageName []ent.Interceptor
+		MessageWithStrings     []ent.Interceptor
+		NoBackref              []ent.Interceptor
+		OneMethodService       []ent.Interceptor
+		Portal                 []ent.Interceptor
+		SkipEdgeExample        []ent.Interceptor
+		TwoMethodService       []ent.Interceptor
+		User                   []ent.Interceptor
+		ValidMessage           []ent.Interceptor
+	}
+)
 
 // Options applies the options on the config object.
 func (c *config) options(opts ...Option) {

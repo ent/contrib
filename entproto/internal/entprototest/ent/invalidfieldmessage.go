@@ -68,7 +68,7 @@ func (ifm *InvalidFieldMessage) assignValues(columns []string, values []any) err
 // Note that you need to call InvalidFieldMessage.Unwrap() before calling this method if this InvalidFieldMessage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ifm *InvalidFieldMessage) Update() *InvalidFieldMessageUpdateOne {
-	return (&InvalidFieldMessageClient{config: ifm.config}).UpdateOne(ifm)
+	return NewInvalidFieldMessageClient(ifm.config).UpdateOne(ifm)
 }
 
 // Unwrap unwraps the InvalidFieldMessage entity that was returned from a transaction after it was closed,

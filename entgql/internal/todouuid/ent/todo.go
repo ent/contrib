@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -248,29 +248,29 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 
 // QueryParent queries the "parent" edge of the Todo entity.
 func (t *Todo) QueryParent() *TodoQuery {
-	return (&TodoClient{config: t.config}).QueryParent(t)
+	return NewTodoClient(t.config).QueryParent(t)
 }
 
 // QueryChildren queries the "children" edge of the Todo entity.
 func (t *Todo) QueryChildren() *TodoQuery {
-	return (&TodoClient{config: t.config}).QueryChildren(t)
+	return NewTodoClient(t.config).QueryChildren(t)
 }
 
 // QueryCategory queries the "category" edge of the Todo entity.
 func (t *Todo) QueryCategory() *CategoryQuery {
-	return (&TodoClient{config: t.config}).QueryCategory(t)
+	return NewTodoClient(t.config).QueryCategory(t)
 }
 
 // QuerySecret queries the "secret" edge of the Todo entity.
 func (t *Todo) QuerySecret() *VerySecretQuery {
-	return (&TodoClient{config: t.config}).QuerySecret(t)
+	return NewTodoClient(t.config).QuerySecret(t)
 }
 
 // Update returns a builder for updating this Todo.
 // Note that you need to call Todo.Unwrap() before calling this method if this Todo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Todo) Update() *TodoUpdateOne {
-	return (&TodoClient{config: t.config}).UpdateOne(t)
+	return NewTodoClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Todo entity that was returned from a transaction after it was closed,

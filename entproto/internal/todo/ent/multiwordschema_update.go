@@ -48,40 +48,7 @@ func (mwsu *MultiWordSchemaUpdate) Mutation() *MultiWordSchemaMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwsu *MultiWordSchemaUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwsu.hooks) == 0 {
-		if err = mwsu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = mwsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MultiWordSchemaMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwsu.check(); err != nil {
-				return 0, err
-			}
-			mwsu.mutation = mutation
-			affected, err = mwsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwsu.hooks) - 1; i >= 0; i-- {
-			if mwsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MultiWordSchemaMutation](ctx, mwsu.sqlSave, mwsu.mutation, mwsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -117,6 +84,9 @@ func (mwsu *MultiWordSchemaUpdate) check() error {
 }
 
 func (mwsu *MultiWordSchemaUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := mwsu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   multiwordschema.Table,
@@ -145,6 +115,7 @@ func (mwsu *MultiWordSchemaUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		return 0, err
 	}
+	mwsu.mutation.done = true
 	return n, nil
 }
 
@@ -184,46 +155,7 @@ func (mwsuo *MultiWordSchemaUpdateOne) Select(field string, fields ...string) *M
 
 // Save executes the query and returns the updated MultiWordSchema entity.
 func (mwsuo *MultiWordSchemaUpdateOne) Save(ctx context.Context) (*MultiWordSchema, error) {
-	var (
-		err  error
-		node *MultiWordSchema
-	)
-	if len(mwsuo.hooks) == 0 {
-		if err = mwsuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MultiWordSchemaMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwsuo.check(); err != nil {
-				return nil, err
-			}
-			mwsuo.mutation = mutation
-			node, err = mwsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwsuo.hooks) - 1; i >= 0; i-- {
-			if mwsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MultiWordSchema)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MultiWordSchemaMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MultiWordSchema, MultiWordSchemaMutation](ctx, mwsuo.sqlSave, mwsuo.mutation, mwsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -259,6 +191,9 @@ func (mwsuo *MultiWordSchemaUpdateOne) check() error {
 }
 
 func (mwsuo *MultiWordSchemaUpdateOne) sqlSave(ctx context.Context) (_node *MultiWordSchema, err error) {
+	if err := mwsuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   multiwordschema.Table,
@@ -307,5 +242,6 @@ func (mwsuo *MultiWordSchemaUpdateOne) sqlSave(ctx context.Context) (_node *Mult
 		}
 		return nil, err
 	}
+	mwsuo.mutation.done = true
 	return _node, nil
 }

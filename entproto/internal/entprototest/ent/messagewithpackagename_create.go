@@ -32,49 +32,7 @@ func (mwpnc *MessageWithPackageNameCreate) Mutation() *MessageWithPackageNameMut
 
 // Save creates the MessageWithPackageName in the database.
 func (mwpnc *MessageWithPackageNameCreate) Save(ctx context.Context) (*MessageWithPackageName, error) {
-	var (
-		err  error
-		node *MessageWithPackageName
-	)
-	if len(mwpnc.hooks) == 0 {
-		if err = mwpnc.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwpnc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithPackageNameMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwpnc.check(); err != nil {
-				return nil, err
-			}
-			mwpnc.mutation = mutation
-			if node, err = mwpnc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwpnc.hooks) - 1; i >= 0; i-- {
-			if mwpnc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwpnc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwpnc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithPackageName)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithPackageNameMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithPackageName, MessageWithPackageNameMutation](ctx, mwpnc.sqlSave, mwpnc.mutation, mwpnc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -108,6 +66,9 @@ func (mwpnc *MessageWithPackageNameCreate) check() error {
 }
 
 func (mwpnc *MessageWithPackageNameCreate) sqlSave(ctx context.Context) (*MessageWithPackageName, error) {
+	if err := mwpnc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwpnc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwpnc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -117,6 +78,8 @@ func (mwpnc *MessageWithPackageNameCreate) sqlSave(ctx context.Context) (*Messag
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mwpnc.mutation.id = &_node.ID
+	mwpnc.mutation.done = true
 	return _node, nil
 }
 

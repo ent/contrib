@@ -17,11 +17,9 @@ import (
 // DuplicateNumberMessageQuery is the builder for querying DuplicateNumberMessage entities.
 type DuplicateNumberMessageQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.DuplicateNumberMessage
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (dnmq *DuplicateNumberMessageQuery) Where(ps ...predicate.DuplicateNumberMe
 	return dnmq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (dnmq *DuplicateNumberMessageQuery) Limit(limit int) *DuplicateNumberMessageQuery {
-	dnmq.limit = &limit
+	dnmq.ctx.Limit = &limit
 	return dnmq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (dnmq *DuplicateNumberMessageQuery) Offset(offset int) *DuplicateNumberMessageQuery {
-	dnmq.offset = &offset
+	dnmq.ctx.Offset = &offset
 	return dnmq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (dnmq *DuplicateNumberMessageQuery) Unique(unique bool) *DuplicateNumberMessageQuery {
-	dnmq.unique = &unique
+	dnmq.ctx.Unique = &unique
 	return dnmq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (dnmq *DuplicateNumberMessageQuery) Order(o ...OrderFunc) *DuplicateNumberMessageQuery {
 	dnmq.order = append(dnmq.order, o...)
 	return dnmq
@@ -62,7 +60,7 @@ func (dnmq *DuplicateNumberMessageQuery) Order(o ...OrderFunc) *DuplicateNumberM
 // First returns the first DuplicateNumberMessage entity from the query.
 // Returns a *NotFoundError when no DuplicateNumberMessage was found.
 func (dnmq *DuplicateNumberMessageQuery) First(ctx context.Context) (*DuplicateNumberMessage, error) {
-	nodes, err := dnmq.Limit(1).All(ctx)
+	nodes, err := dnmq.Limit(1).All(setContextOp(ctx, dnmq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (dnmq *DuplicateNumberMessageQuery) FirstX(ctx context.Context) *DuplicateN
 // Returns a *NotFoundError when no DuplicateNumberMessage ID was found.
 func (dnmq *DuplicateNumberMessageQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dnmq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = dnmq.Limit(1).IDs(setContextOp(ctx, dnmq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (dnmq *DuplicateNumberMessageQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one DuplicateNumberMessage entity is found.
 // Returns a *NotFoundError when no DuplicateNumberMessage entities are found.
 func (dnmq *DuplicateNumberMessageQuery) Only(ctx context.Context) (*DuplicateNumberMessage, error) {
-	nodes, err := dnmq.Limit(2).All(ctx)
+	nodes, err := dnmq.Limit(2).All(setContextOp(ctx, dnmq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (dnmq *DuplicateNumberMessageQuery) OnlyX(ctx context.Context) *DuplicateNu
 // Returns a *NotFoundError when no entities are found.
 func (dnmq *DuplicateNumberMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dnmq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = dnmq.Limit(2).IDs(setContextOp(ctx, dnmq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (dnmq *DuplicateNumberMessageQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of DuplicateNumberMessages.
 func (dnmq *DuplicateNumberMessageQuery) All(ctx context.Context) ([]*DuplicateNumberMessage, error) {
+	ctx = setContextOp(ctx, dnmq.ctx, "All")
 	if err := dnmq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return dnmq.sqlAll(ctx)
+	qr := querierAll[[]*DuplicateNumberMessage, *DuplicateNumberMessageQuery]()
+	return withInterceptors[[]*DuplicateNumberMessage](ctx, dnmq, qr, dnmq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (dnmq *DuplicateNumberMessageQuery) AllX(ctx context.Context) []*DuplicateN
 // IDs executes the query and returns a list of DuplicateNumberMessage IDs.
 func (dnmq *DuplicateNumberMessageQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, dnmq.ctx, "IDs")
 	if err := dnmq.Select(duplicatenumbermessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (dnmq *DuplicateNumberMessageQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (dnmq *DuplicateNumberMessageQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, dnmq.ctx, "Count")
 	if err := dnmq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return dnmq.sqlCount(ctx)
+	return withInterceptors[int](ctx, dnmq, querierCount[*DuplicateNumberMessageQuery](), dnmq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (dnmq *DuplicateNumberMessageQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (dnmq *DuplicateNumberMessageQuery) Exist(ctx context.Context) (bool, error) {
-	if err := dnmq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, dnmq.ctx, "Exist")
+	switch _, err := dnmq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return dnmq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (dnmq *DuplicateNumberMessageQuery) Clone() *DuplicateNumberMessageQuery {
 	}
 	return &DuplicateNumberMessageQuery{
 		config:     dnmq.config,
-		limit:      dnmq.limit,
-		offset:     dnmq.offset,
+		ctx:        dnmq.ctx.Clone(),
 		order:      append([]OrderFunc{}, dnmq.order...),
+		inters:     append([]Interceptor{}, dnmq.inters...),
 		predicates: append([]predicate.DuplicateNumberMessage{}, dnmq.predicates...),
 		// clone intermediate query.
-		sql:    dnmq.sql.Clone(),
-		path:   dnmq.path,
-		unique: dnmq.unique,
+		sql:  dnmq.sql.Clone(),
+		path: dnmq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (dnmq *DuplicateNumberMessageQuery) Clone() *DuplicateNumberMessageQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (dnmq *DuplicateNumberMessageQuery) GroupBy(field string, fields ...string) *DuplicateNumberMessageGroupBy {
-	grbuild := &DuplicateNumberMessageGroupBy{config: dnmq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := dnmq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return dnmq.sqlQuery(ctx), nil
-	}
+	dnmq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &DuplicateNumberMessageGroupBy{build: dnmq}
+	grbuild.flds = &dnmq.ctx.Fields
 	grbuild.label = duplicatenumbermessage.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,11 +289,11 @@ func (dnmq *DuplicateNumberMessageQuery) GroupBy(field string, fields ...string)
 //		Select(duplicatenumbermessage.FieldHello).
 //		Scan(ctx, &v)
 func (dnmq *DuplicateNumberMessageQuery) Select(fields ...string) *DuplicateNumberMessageSelect {
-	dnmq.fields = append(dnmq.fields, fields...)
-	selbuild := &DuplicateNumberMessageSelect{DuplicateNumberMessageQuery: dnmq}
-	selbuild.label = duplicatenumbermessage.Label
-	selbuild.flds, selbuild.scan = &dnmq.fields, selbuild.Scan
-	return selbuild
+	dnmq.ctx.Fields = append(dnmq.ctx.Fields, fields...)
+	sbuild := &DuplicateNumberMessageSelect{DuplicateNumberMessageQuery: dnmq}
+	sbuild.label = duplicatenumbermessage.Label
+	sbuild.flds, sbuild.scan = &dnmq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a DuplicateNumberMessageSelect configured with the given aggregations.
@@ -301,7 +302,17 @@ func (dnmq *DuplicateNumberMessageQuery) Aggregate(fns ...AggregateFunc) *Duplic
 }
 
 func (dnmq *DuplicateNumberMessageQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range dnmq.fields {
+	for _, inter := range dnmq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, dnmq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range dnmq.ctx.Fields {
 		if !duplicatenumbermessage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -343,22 +354,11 @@ func (dnmq *DuplicateNumberMessageQuery) sqlAll(ctx context.Context, hooks ...qu
 
 func (dnmq *DuplicateNumberMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := dnmq.querySpec()
-	_spec.Node.Columns = dnmq.fields
-	if len(dnmq.fields) > 0 {
-		_spec.Unique = dnmq.unique != nil && *dnmq.unique
+	_spec.Node.Columns = dnmq.ctx.Fields
+	if len(dnmq.ctx.Fields) > 0 {
+		_spec.Unique = dnmq.ctx.Unique != nil && *dnmq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, dnmq.driver, _spec)
-}
-
-func (dnmq *DuplicateNumberMessageQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := dnmq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
@@ -374,10 +374,10 @@ func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   dnmq.sql,
 		Unique: true,
 	}
-	if unique := dnmq.unique; unique != nil {
+	if unique := dnmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := dnmq.fields; len(fields) > 0 {
+	if fields := dnmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, duplicatenumbermessage.FieldID)
 		for i := range fields {
@@ -393,10 +393,10 @@ func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := dnmq.limit; limit != nil {
+	if limit := dnmq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := dnmq.offset; offset != nil {
+	if offset := dnmq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := dnmq.order; len(ps) > 0 {
@@ -412,7 +412,7 @@ func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
 func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(dnmq.driver.Dialect())
 	t1 := builder.Table(duplicatenumbermessage.Table)
-	columns := dnmq.fields
+	columns := dnmq.ctx.Fields
 	if len(columns) == 0 {
 		columns = duplicatenumbermessage.Columns
 	}
@@ -421,7 +421,7 @@ func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 		selector = dnmq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if dnmq.unique != nil && *dnmq.unique {
+	if dnmq.ctx.Unique != nil && *dnmq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range dnmq.predicates {
@@ -430,12 +430,12 @@ func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 	for _, p := range dnmq.order {
 		p(selector)
 	}
-	if offset := dnmq.offset; offset != nil {
+	if offset := dnmq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := dnmq.limit; limit != nil {
+	if limit := dnmq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -443,13 +443,8 @@ func (dnmq *DuplicateNumberMessageQuery) sqlQuery(ctx context.Context) *sql.Sele
 
 // DuplicateNumberMessageGroupBy is the group-by builder for DuplicateNumberMessage entities.
 type DuplicateNumberMessageGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *DuplicateNumberMessageQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -458,58 +453,46 @@ func (dnmgb *DuplicateNumberMessageGroupBy) Aggregate(fns ...AggregateFunc) *Dup
 	return dnmgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (dnmgb *DuplicateNumberMessageGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := dnmgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, dnmgb.build.ctx, "GroupBy")
+	if err := dnmgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	dnmgb.sql = query
-	return dnmgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*DuplicateNumberMessageQuery, *DuplicateNumberMessageGroupBy](ctx, dnmgb.build, dnmgb, dnmgb.build.inters, v)
 }
 
-func (dnmgb *DuplicateNumberMessageGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range dnmgb.fields {
-		if !duplicatenumbermessage.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (dnmgb *DuplicateNumberMessageGroupBy) sqlScan(ctx context.Context, root *DuplicateNumberMessageQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(dnmgb.fns))
+	for _, fn := range dnmgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := dnmgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*dnmgb.flds)+len(dnmgb.fns))
+		for _, f := range *dnmgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*dnmgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := dnmgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := dnmgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (dnmgb *DuplicateNumberMessageGroupBy) sqlQuery() *sql.Selector {
-	selector := dnmgb.sql.Select()
-	aggregation := make([]string, 0, len(dnmgb.fns))
-	for _, fn := range dnmgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(dnmgb.fields)+len(dnmgb.fns))
-		for _, f := range dnmgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(dnmgb.fields...)...)
-}
-
 // DuplicateNumberMessageSelect is the builder for selecting fields of DuplicateNumberMessage entities.
 type DuplicateNumberMessageSelect struct {
 	*DuplicateNumberMessageQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -520,26 +503,27 @@ func (dnms *DuplicateNumberMessageSelect) Aggregate(fns ...AggregateFunc) *Dupli
 
 // Scan applies the selector query and scans the result into the given value.
 func (dnms *DuplicateNumberMessageSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, dnms.ctx, "Select")
 	if err := dnms.prepareQuery(ctx); err != nil {
 		return err
 	}
-	dnms.sql = dnms.DuplicateNumberMessageQuery.sqlQuery(ctx)
-	return dnms.sqlScan(ctx, v)
+	return scanWithInterceptors[*DuplicateNumberMessageQuery, *DuplicateNumberMessageSelect](ctx, dnms.DuplicateNumberMessageQuery, dnms, dnms.inters, v)
 }
 
-func (dnms *DuplicateNumberMessageSelect) sqlScan(ctx context.Context, v any) error {
+func (dnms *DuplicateNumberMessageSelect) sqlScan(ctx context.Context, root *DuplicateNumberMessageQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(dnms.fns))
 	for _, fn := range dnms.fns {
-		aggregation = append(aggregation, fn(dnms.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*dnms.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		dnms.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		dnms.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := dnms.sql.Query()
+	query, args := selector.Query()
 	if err := dnms.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

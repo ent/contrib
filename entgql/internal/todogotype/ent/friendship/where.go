@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,356 +26,232 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.Friendship(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.Friendship(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.Friendship(sql.FieldLTE(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldUserID, v))
 }
 
 // FriendID applies equality check predicate on the "friend_id" field. It's identical to FriendIDEQ.
 func FriendID(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldFriendID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.Friendship {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.Friendship(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.Friendship {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.Friendship(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldGT(FieldCreatedAt, v))
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldGTE(FieldCreatedAt, v))
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldLT(FieldCreatedAt, v))
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.Friendship(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
 func UserIDNEQ(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
 func UserIDIn(vs ...string) predicate.Friendship {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUserID), v...))
-	})
+	return predicate.Friendship(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
 func UserIDNotIn(vs ...string) predicate.Friendship {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUserID), v...))
-	})
+	return predicate.Friendship(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // UserIDGT applies the GT predicate on the "user_id" field.
 func UserIDGT(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldGT(FieldUserID, v))
 }
 
 // UserIDGTE applies the GTE predicate on the "user_id" field.
 func UserIDGTE(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldGTE(FieldUserID, v))
 }
 
 // UserIDLT applies the LT predicate on the "user_id" field.
 func UserIDLT(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldLT(FieldUserID, v))
 }
 
 // UserIDLTE applies the LTE predicate on the "user_id" field.
 func UserIDLTE(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldLTE(FieldUserID, v))
 }
 
 // UserIDContains applies the Contains predicate on the "user_id" field.
 func UserIDContains(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldContains(FieldUserID, v))
 }
 
 // UserIDHasPrefix applies the HasPrefix predicate on the "user_id" field.
 func UserIDHasPrefix(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldHasPrefix(FieldUserID, v))
 }
 
 // UserIDHasSuffix applies the HasSuffix predicate on the "user_id" field.
 func UserIDHasSuffix(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldHasSuffix(FieldUserID, v))
 }
 
 // UserIDEqualFold applies the EqualFold predicate on the "user_id" field.
 func UserIDEqualFold(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldEqualFold(FieldUserID, v))
 }
 
 // UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
 func UserIDContainsFold(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldUserID), v))
-	})
+	return predicate.Friendship(sql.FieldContainsFold(FieldUserID, v))
 }
 
 // FriendIDEQ applies the EQ predicate on the "friend_id" field.
 func FriendIDEQ(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldEQ(FieldFriendID, v))
 }
 
 // FriendIDNEQ applies the NEQ predicate on the "friend_id" field.
 func FriendIDNEQ(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldNEQ(FieldFriendID, v))
 }
 
 // FriendIDIn applies the In predicate on the "friend_id" field.
 func FriendIDIn(vs ...string) predicate.Friendship {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldFriendID), v...))
-	})
+	return predicate.Friendship(sql.FieldIn(FieldFriendID, vs...))
 }
 
 // FriendIDNotIn applies the NotIn predicate on the "friend_id" field.
 func FriendIDNotIn(vs ...string) predicate.Friendship {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldFriendID), v...))
-	})
+	return predicate.Friendship(sql.FieldNotIn(FieldFriendID, vs...))
 }
 
 // FriendIDGT applies the GT predicate on the "friend_id" field.
 func FriendIDGT(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldGT(FieldFriendID, v))
 }
 
 // FriendIDGTE applies the GTE predicate on the "friend_id" field.
 func FriendIDGTE(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldGTE(FieldFriendID, v))
 }
 
 // FriendIDLT applies the LT predicate on the "friend_id" field.
 func FriendIDLT(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldLT(FieldFriendID, v))
 }
 
 // FriendIDLTE applies the LTE predicate on the "friend_id" field.
 func FriendIDLTE(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldLTE(FieldFriendID, v))
 }
 
 // FriendIDContains applies the Contains predicate on the "friend_id" field.
 func FriendIDContains(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldContains(FieldFriendID, v))
 }
 
 // FriendIDHasPrefix applies the HasPrefix predicate on the "friend_id" field.
 func FriendIDHasPrefix(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldHasPrefix(FieldFriendID, v))
 }
 
 // FriendIDHasSuffix applies the HasSuffix predicate on the "friend_id" field.
 func FriendIDHasSuffix(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldHasSuffix(FieldFriendID, v))
 }
 
 // FriendIDEqualFold applies the EqualFold predicate on the "friend_id" field.
 func FriendIDEqualFold(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldEqualFold(FieldFriendID, v))
 }
 
 // FriendIDContainsFold applies the ContainsFold predicate on the "friend_id" field.
 func FriendIDContainsFold(v string) predicate.Friendship {
-	return predicate.Friendship(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldFriendID), v))
-	})
+	return predicate.Friendship(sql.FieldContainsFold(FieldFriendID, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.
@@ -383,7 +259,6 @@ func HasUser() predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -411,7 +286,6 @@ func HasFriend() predicate.Friendship {
 	return predicate.Friendship(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(FriendTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, FriendTable, FriendColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)

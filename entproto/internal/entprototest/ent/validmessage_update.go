@@ -94,34 +94,7 @@ func (vmu *ValidMessageUpdate) Mutation() *ValidMessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vmu *ValidMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(vmu.hooks) == 0 {
-		affected, err = vmu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ValidMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vmu.mutation = mutation
-			affected, err = vmu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(vmu.hooks) - 1; i >= 0; i-- {
-			if vmu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vmu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, vmu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ValidMessageMutation](ctx, vmu.sqlSave, vmu.mutation, vmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,6 +169,7 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	vmu.mutation.done = true
 	return n, nil
 }
 
@@ -279,40 +253,7 @@ func (vmuo *ValidMessageUpdateOne) Select(field string, fields ...string) *Valid
 
 // Save executes the query and returns the updated ValidMessage entity.
 func (vmuo *ValidMessageUpdateOne) Save(ctx context.Context) (*ValidMessage, error) {
-	var (
-		err  error
-		node *ValidMessage
-	)
-	if len(vmuo.hooks) == 0 {
-		node, err = vmuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ValidMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vmuo.mutation = mutation
-			node, err = vmuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(vmuo.hooks) - 1; i >= 0; i-- {
-			if vmuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vmuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, vmuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ValidMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ValidMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ValidMessage, ValidMessageMutation](ctx, vmuo.sqlSave, vmuo.mutation, vmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -407,5 +348,6 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 		}
 		return nil, err
 	}
+	vmuo.mutation.done = true
 	return _node, nil
 }

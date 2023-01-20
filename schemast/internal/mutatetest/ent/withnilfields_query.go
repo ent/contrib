@@ -17,11 +17,9 @@ import (
 // WithNilFieldsQuery is the builder for querying WithNilFields entities.
 type WithNilFieldsQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.WithNilFields
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (wnfq *WithNilFieldsQuery) Where(ps ...predicate.WithNilFields) *WithNilFie
 	return wnfq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (wnfq *WithNilFieldsQuery) Limit(limit int) *WithNilFieldsQuery {
-	wnfq.limit = &limit
+	wnfq.ctx.Limit = &limit
 	return wnfq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (wnfq *WithNilFieldsQuery) Offset(offset int) *WithNilFieldsQuery {
-	wnfq.offset = &offset
+	wnfq.ctx.Offset = &offset
 	return wnfq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (wnfq *WithNilFieldsQuery) Unique(unique bool) *WithNilFieldsQuery {
-	wnfq.unique = &unique
+	wnfq.ctx.Unique = &unique
 	return wnfq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (wnfq *WithNilFieldsQuery) Order(o ...OrderFunc) *WithNilFieldsQuery {
 	wnfq.order = append(wnfq.order, o...)
 	return wnfq
@@ -62,7 +60,7 @@ func (wnfq *WithNilFieldsQuery) Order(o ...OrderFunc) *WithNilFieldsQuery {
 // First returns the first WithNilFields entity from the query.
 // Returns a *NotFoundError when no WithNilFields was found.
 func (wnfq *WithNilFieldsQuery) First(ctx context.Context) (*WithNilFields, error) {
-	nodes, err := wnfq.Limit(1).All(ctx)
+	nodes, err := wnfq.Limit(1).All(setContextOp(ctx, wnfq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (wnfq *WithNilFieldsQuery) FirstX(ctx context.Context) *WithNilFields {
 // Returns a *NotFoundError when no WithNilFields ID was found.
 func (wnfq *WithNilFieldsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wnfq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = wnfq.Limit(1).IDs(setContextOp(ctx, wnfq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (wnfq *WithNilFieldsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one WithNilFields entity is found.
 // Returns a *NotFoundError when no WithNilFields entities are found.
 func (wnfq *WithNilFieldsQuery) Only(ctx context.Context) (*WithNilFields, error) {
-	nodes, err := wnfq.Limit(2).All(ctx)
+	nodes, err := wnfq.Limit(2).All(setContextOp(ctx, wnfq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (wnfq *WithNilFieldsQuery) OnlyX(ctx context.Context) *WithNilFields {
 // Returns a *NotFoundError when no entities are found.
 func (wnfq *WithNilFieldsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wnfq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = wnfq.Limit(2).IDs(setContextOp(ctx, wnfq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (wnfq *WithNilFieldsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of WithNilFieldsSlice.
 func (wnfq *WithNilFieldsQuery) All(ctx context.Context) ([]*WithNilFields, error) {
+	ctx = setContextOp(ctx, wnfq.ctx, "All")
 	if err := wnfq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return wnfq.sqlAll(ctx)
+	qr := querierAll[[]*WithNilFields, *WithNilFieldsQuery]()
+	return withInterceptors[[]*WithNilFields](ctx, wnfq, qr, wnfq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (wnfq *WithNilFieldsQuery) AllX(ctx context.Context) []*WithNilFields {
 // IDs executes the query and returns a list of WithNilFields IDs.
 func (wnfq *WithNilFieldsQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, wnfq.ctx, "IDs")
 	if err := wnfq.Select(withnilfields.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (wnfq *WithNilFieldsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wnfq *WithNilFieldsQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, wnfq.ctx, "Count")
 	if err := wnfq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return wnfq.sqlCount(ctx)
+	return withInterceptors[int](ctx, wnfq, querierCount[*WithNilFieldsQuery](), wnfq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (wnfq *WithNilFieldsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wnfq *WithNilFieldsQuery) Exist(ctx context.Context) (bool, error) {
-	if err := wnfq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, wnfq.ctx, "Exist")
+	switch _, err := wnfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return wnfq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,41 +243,35 @@ func (wnfq *WithNilFieldsQuery) Clone() *WithNilFieldsQuery {
 	}
 	return &WithNilFieldsQuery{
 		config:     wnfq.config,
-		limit:      wnfq.limit,
-		offset:     wnfq.offset,
+		ctx:        wnfq.ctx.Clone(),
 		order:      append([]OrderFunc{}, wnfq.order...),
+		inters:     append([]Interceptor{}, wnfq.inters...),
 		predicates: append([]predicate.WithNilFields{}, wnfq.predicates...),
 		// clone intermediate query.
-		sql:    wnfq.sql.Clone(),
-		path:   wnfq.path,
-		unique: wnfq.unique,
+		sql:  wnfq.sql.Clone(),
+		path: wnfq.path,
 	}
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (wnfq *WithNilFieldsQuery) GroupBy(field string, fields ...string) *WithNilFieldsGroupBy {
-	grbuild := &WithNilFieldsGroupBy{config: wnfq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := wnfq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return wnfq.sqlQuery(ctx), nil
-	}
+	wnfq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &WithNilFieldsGroupBy{build: wnfq}
+	grbuild.flds = &wnfq.ctx.Fields
 	grbuild.label = withnilfields.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (wnfq *WithNilFieldsQuery) Select(fields ...string) *WithNilFieldsSelect {
-	wnfq.fields = append(wnfq.fields, fields...)
-	selbuild := &WithNilFieldsSelect{WithNilFieldsQuery: wnfq}
-	selbuild.label = withnilfields.Label
-	selbuild.flds, selbuild.scan = &wnfq.fields, selbuild.Scan
-	return selbuild
+	wnfq.ctx.Fields = append(wnfq.ctx.Fields, fields...)
+	sbuild := &WithNilFieldsSelect{WithNilFieldsQuery: wnfq}
+	sbuild.label = withnilfields.Label
+	sbuild.flds, sbuild.scan = &wnfq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a WithNilFieldsSelect configured with the given aggregations.
@@ -279,7 +280,17 @@ func (wnfq *WithNilFieldsQuery) Aggregate(fns ...AggregateFunc) *WithNilFieldsSe
 }
 
 func (wnfq *WithNilFieldsQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range wnfq.fields {
+	for _, inter := range wnfq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, wnfq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range wnfq.ctx.Fields {
 		if !withnilfields.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -321,22 +332,11 @@ func (wnfq *WithNilFieldsQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 
 func (wnfq *WithNilFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wnfq.querySpec()
-	_spec.Node.Columns = wnfq.fields
-	if len(wnfq.fields) > 0 {
-		_spec.Unique = wnfq.unique != nil && *wnfq.unique
+	_spec.Node.Columns = wnfq.ctx.Fields
+	if len(wnfq.ctx.Fields) > 0 {
+		_spec.Unique = wnfq.ctx.Unique != nil && *wnfq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, wnfq.driver, _spec)
-}
-
-func (wnfq *WithNilFieldsQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := wnfq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -352,10 +352,10 @@ func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wnfq.sql,
 		Unique: true,
 	}
-	if unique := wnfq.unique; unique != nil {
+	if unique := wnfq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := wnfq.fields; len(fields) > 0 {
+	if fields := wnfq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withnilfields.FieldID)
 		for i := range fields {
@@ -371,10 +371,10 @@ func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := wnfq.limit; limit != nil {
+	if limit := wnfq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := wnfq.offset; offset != nil {
+	if offset := wnfq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := wnfq.order; len(ps) > 0 {
@@ -390,7 +390,7 @@ func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 func (wnfq *WithNilFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(wnfq.driver.Dialect())
 	t1 := builder.Table(withnilfields.Table)
-	columns := wnfq.fields
+	columns := wnfq.ctx.Fields
 	if len(columns) == 0 {
 		columns = withnilfields.Columns
 	}
@@ -399,7 +399,7 @@ func (wnfq *WithNilFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = wnfq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if wnfq.unique != nil && *wnfq.unique {
+	if wnfq.ctx.Unique != nil && *wnfq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range wnfq.predicates {
@@ -408,12 +408,12 @@ func (wnfq *WithNilFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range wnfq.order {
 		p(selector)
 	}
-	if offset := wnfq.offset; offset != nil {
+	if offset := wnfq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := wnfq.limit; limit != nil {
+	if limit := wnfq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -421,13 +421,8 @@ func (wnfq *WithNilFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // WithNilFieldsGroupBy is the group-by builder for WithNilFields entities.
 type WithNilFieldsGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *WithNilFieldsQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -436,58 +431,46 @@ func (wnfgb *WithNilFieldsGroupBy) Aggregate(fns ...AggregateFunc) *WithNilField
 	return wnfgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (wnfgb *WithNilFieldsGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := wnfgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, wnfgb.build.ctx, "GroupBy")
+	if err := wnfgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	wnfgb.sql = query
-	return wnfgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*WithNilFieldsQuery, *WithNilFieldsGroupBy](ctx, wnfgb.build, wnfgb, wnfgb.build.inters, v)
 }
 
-func (wnfgb *WithNilFieldsGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range wnfgb.fields {
-		if !withnilfields.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (wnfgb *WithNilFieldsGroupBy) sqlScan(ctx context.Context, root *WithNilFieldsQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(wnfgb.fns))
+	for _, fn := range wnfgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := wnfgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*wnfgb.flds)+len(wnfgb.fns))
+		for _, f := range *wnfgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*wnfgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := wnfgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := wnfgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (wnfgb *WithNilFieldsGroupBy) sqlQuery() *sql.Selector {
-	selector := wnfgb.sql.Select()
-	aggregation := make([]string, 0, len(wnfgb.fns))
-	for _, fn := range wnfgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(wnfgb.fields)+len(wnfgb.fns))
-		for _, f := range wnfgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(wnfgb.fields...)...)
-}
-
 // WithNilFieldsSelect is the builder for selecting fields of WithNilFields entities.
 type WithNilFieldsSelect struct {
 	*WithNilFieldsQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -498,26 +481,27 @@ func (wnfs *WithNilFieldsSelect) Aggregate(fns ...AggregateFunc) *WithNilFieldsS
 
 // Scan applies the selector query and scans the result into the given value.
 func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, wnfs.ctx, "Select")
 	if err := wnfs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	wnfs.sql = wnfs.WithNilFieldsQuery.sqlQuery(ctx)
-	return wnfs.sqlScan(ctx, v)
+	return scanWithInterceptors[*WithNilFieldsQuery, *WithNilFieldsSelect](ctx, wnfs.WithNilFieldsQuery, wnfs, wnfs.inters, v)
 }
 
-func (wnfs *WithNilFieldsSelect) sqlScan(ctx context.Context, v any) error {
+func (wnfs *WithNilFieldsSelect) sqlScan(ctx context.Context, root *WithNilFieldsQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(wnfs.fns))
 	for _, fn := range wnfs.fns {
-		aggregation = append(aggregation, fn(wnfs.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*wnfs.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		wnfs.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		wnfs.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := wnfs.sql.Query()
+	query, args := selector.Query()
 	if err := wnfs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

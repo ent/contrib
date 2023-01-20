@@ -94,14 +94,14 @@ func (i *Image) assignValues(columns []string, values []any) error {
 
 // QueryUserProfilePic queries the "user_profile_pic" edge of the Image entity.
 func (i *Image) QueryUserProfilePic() *UserQuery {
-	return (&ImageClient{config: i.config}).QueryUserProfilePic(i)
+	return NewImageClient(i.config).QueryUserProfilePic(i)
 }
 
 // Update returns a builder for updating this Image.
 // Note that you need to call Image.Unwrap() before calling this method if this Image
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (i *Image) Update() *ImageUpdateOne {
-	return (&ImageClient{config: i.config}).UpdateOne(i)
+	return NewImageClient(i.config).UpdateOne(i)
 }
 
 // Unwrap unwraps the Image entity that was returned from a transaction after it was closed,

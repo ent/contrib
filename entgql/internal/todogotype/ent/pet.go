@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -79,7 +79,7 @@ func (pe *Pet) assignValues(columns []string, values []any) error {
 // Note that you need to call Pet.Unwrap() before calling this method if this Pet
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pe *Pet) Update() *PetUpdateOne {
-	return (&PetClient{config: pe.config}).UpdateOne(pe)
+	return NewPetClient(pe.config).UpdateOne(pe)
 }
 
 // Unwrap unwraps the Pet entity that was returned from a transaction after it was closed,

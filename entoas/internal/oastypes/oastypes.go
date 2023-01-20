@@ -320,7 +320,7 @@ func (ot *OASTypes) assignValues(columns []string, values []any) error {
 // Note that you need to call OASTypes.Unwrap() before calling this method if this OASTypes
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ot *OASTypes) Update() *OASTypesUpdateOne {
-	return (&OASTypesClient{config: ot.config}).UpdateOne(ot)
+	return NewOASTypesClient(ot.config).UpdateOne(ot)
 }
 
 // Unwrap unwraps the OASTypes entity that was returned from a transaction after it was closed,

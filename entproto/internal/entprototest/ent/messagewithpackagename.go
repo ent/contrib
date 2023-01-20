@@ -64,7 +64,7 @@ func (mwpn *MessageWithPackageName) assignValues(columns []string, values []any)
 // Note that you need to call MessageWithPackageName.Unwrap() before calling this method if this MessageWithPackageName
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwpn *MessageWithPackageName) Update() *MessageWithPackageNameUpdateOne {
-	return (&MessageWithPackageNameClient{config: mwpn.config}).UpdateOne(mwpn)
+	return NewMessageWithPackageNameClient(mwpn.config).UpdateOne(mwpn)
 }
 
 // Unwrap unwraps the MessageWithPackageName entity that was returned from a transaction after it was closed,

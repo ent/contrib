@@ -55,49 +55,7 @@ func (ic *ImageCreate) Mutation() *ImageMutation {
 
 // Save creates the Image in the database.
 func (ic *ImageCreate) Save(ctx context.Context) (*Image, error) {
-	var (
-		err  error
-		node *Image
-	)
-	if len(ic.hooks) == 0 {
-		if err = ic.check(); err != nil {
-			return nil, err
-		}
-		node, err = ic.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ic.check(); err != nil {
-				return nil, err
-			}
-			ic.mutation = mutation
-			if node, err = ic.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ic.hooks) - 1; i >= 0; i-- {
-			if ic.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ic.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ic.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Image)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ImageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Image, ImageMutation](ctx, ic.sqlSave, ic.mutation, ic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -131,6 +89,9 @@ func (ic *ImageCreate) check() error {
 }
 
 func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
+	if err := ic.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ic.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ic.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -145,6 +106,8 @@ func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
 			return nil, err
 		}
 	}
+	ic.mutation.id = &_node.ID
+	ic.mutation.done = true
 	return _node, nil
 }
 

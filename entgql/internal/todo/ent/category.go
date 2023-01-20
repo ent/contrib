@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -150,14 +150,14 @@ func (c *Category) assignValues(columns []string, values []any) error {
 
 // QueryTodos queries the "todos" edge of the Category entity.
 func (c *Category) QueryTodos() *TodoQuery {
-	return (&CategoryClient{config: c.config}).QueryTodos(c)
+	return NewCategoryClient(c.config).QueryTodos(c)
 }
 
 // Update returns a builder for updating this Category.
 // Note that you need to call Category.Unwrap() before calling this method if this Category
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Category) Update() *CategoryUpdateOne {
-	return (&CategoryClient{config: c.config}).UpdateOne(c)
+	return NewCategoryClient(c.config).UpdateOne(c)
 }
 
 // Unwrap unwraps the Category entity that was returned from a transaction after it was closed,

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,34 +73,7 @@ func (bpu *BillProductUpdate) Mutation() *BillProductMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bpu *BillProductUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(bpu.hooks) == 0 {
-		affected, err = bpu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BillProductMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			bpu.mutation = mutation
-			affected, err = bpu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(bpu.hooks) - 1; i >= 0; i-- {
-			if bpu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, bpu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, BillProductMutation](ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -163,6 +136,7 @@ func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	bpu.mutation.done = true
 	return n, nil
 }
 
@@ -213,40 +187,7 @@ func (bpuo *BillProductUpdateOne) Select(field string, fields ...string) *BillPr
 
 // Save executes the query and returns the updated BillProduct entity.
 func (bpuo *BillProductUpdateOne) Save(ctx context.Context) (*BillProduct, error) {
-	var (
-		err  error
-		node *BillProduct
-	)
-	if len(bpuo.hooks) == 0 {
-		node, err = bpuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BillProductMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			bpuo.mutation = mutation
-			node, err = bpuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(bpuo.hooks) - 1; i >= 0; i-- {
-			if bpuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, bpuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*BillProduct)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from BillProductMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*BillProduct, BillProductMutation](ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -329,5 +270,6 @@ func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProdu
 		}
 		return nil, err
 	}
+	bpuo.mutation.done = true
 	return _node, nil
 }

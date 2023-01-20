@@ -54,40 +54,7 @@ func (mweu *MessageWithEnumUpdate) Mutation() *MessageWithEnumMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mweu *MessageWithEnumUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mweu.hooks) == 0 {
-		if err = mweu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = mweu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithEnumMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mweu.check(); err != nil {
-				return 0, err
-			}
-			mweu.mutation = mutation
-			affected, err = mweu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mweu.hooks) - 1; i >= 0; i-- {
-			if mweu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mweu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mweu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithEnumMutation](ctx, mweu.sqlSave, mweu.mutation, mweu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -128,6 +95,9 @@ func (mweu *MessageWithEnumUpdate) check() error {
 }
 
 func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := mweu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   messagewithenum.Table,
@@ -159,6 +129,7 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		return 0, err
 	}
+	mweu.mutation.done = true
 	return n, nil
 }
 
@@ -204,46 +175,7 @@ func (mweuo *MessageWithEnumUpdateOne) Select(field string, fields ...string) *M
 
 // Save executes the query and returns the updated MessageWithEnum entity.
 func (mweuo *MessageWithEnumUpdateOne) Save(ctx context.Context) (*MessageWithEnum, error) {
-	var (
-		err  error
-		node *MessageWithEnum
-	)
-	if len(mweuo.hooks) == 0 {
-		if err = mweuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = mweuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithEnumMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mweuo.check(); err != nil {
-				return nil, err
-			}
-			mweuo.mutation = mutation
-			node, err = mweuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mweuo.hooks) - 1; i >= 0; i-- {
-			if mweuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mweuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mweuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithEnum)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithEnumMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithEnum, MessageWithEnumMutation](ctx, mweuo.sqlSave, mweuo.mutation, mweuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -284,6 +216,9 @@ func (mweuo *MessageWithEnumUpdateOne) check() error {
 }
 
 func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithEnum, err error) {
+	if err := mweuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   messagewithenum.Table,
@@ -335,5 +270,6 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 		}
 		return nil, err
 	}
+	mweuo.mutation.done = true
 	return _node, nil
 }

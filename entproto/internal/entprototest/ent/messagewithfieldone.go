@@ -62,7 +62,7 @@ func (mwfo *MessageWithFieldOne) assignValues(columns []string, values []any) er
 // Note that you need to call MessageWithFieldOne.Unwrap() before calling this method if this MessageWithFieldOne
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwfo *MessageWithFieldOne) Update() *MessageWithFieldOneUpdateOne {
-	return (&MessageWithFieldOneClient{config: mwfo.config}).UpdateOne(mwfo)
+	return NewMessageWithFieldOneClient(mwfo.config).UpdateOne(mwfo)
 }
 
 // Unwrap unwraps the MessageWithFieldOne entity that was returned from a transaction after it was closed,

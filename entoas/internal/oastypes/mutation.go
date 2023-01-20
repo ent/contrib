@@ -14,6 +14,7 @@ import (
 	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
 	"entgo.io/contrib/entoas/internal/oastypes/predicate"
 	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	"entgo.io/ent"
@@ -1642,9 +1643,24 @@ func (m *OASTypesMutation) Where(ps ...predicate.OASTypes) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the OASTypesMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OASTypesMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OASTypes, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *OASTypesMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OASTypesMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (OASTypes).

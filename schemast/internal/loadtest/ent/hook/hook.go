@@ -15,11 +15,10 @@ type MessageFunc func(context.Context, *ent.MessageMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f MessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageMutation", m)
+	if mv, ok := m.(*ent.MessageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageMutation", m)
 }
 
 // Condition is a hook condition function.

@@ -229,50 +229,8 @@ func (otc *OASTypesCreate) Mutation() *OASTypesMutation {
 
 // Save creates the OASTypes in the database.
 func (otc *OASTypesCreate) Save(ctx context.Context) (*OASTypes, error) {
-	var (
-		err  error
-		node *OASTypes
-	)
 	otc.defaults()
-	if len(otc.hooks) == 0 {
-		if err = otc.check(); err != nil {
-			return nil, err
-		}
-		node, err = otc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OASTypesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = otc.check(); err != nil {
-				return nil, err
-			}
-			otc.mutation = mutation
-			if node, err = otc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(otc.hooks) - 1; i >= 0; i-- {
-			if otc.hooks[i] == nil {
-				return nil, fmt.Errorf("oastypes: uninitialized hook (forgotten import oastypes/runtime?)")
-			}
-			mut = otc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, otc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*OASTypes)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from OASTypesMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*OASTypes, OASTypesMutation](ctx, otc.sqlSave, otc.mutation, otc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -401,6 +359,9 @@ func (otc *OASTypesCreate) check() error {
 }
 
 func (otc *OASTypesCreate) sqlSave(ctx context.Context) (*OASTypes, error) {
+	if err := otc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := otc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, otc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -410,6 +371,8 @@ func (otc *OASTypesCreate) sqlSave(ctx context.Context) (*OASTypes, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	otc.mutation.id = &_node.ID
+	otc.mutation.done = true
 	return _node, nil
 }
 

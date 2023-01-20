@@ -54,7 +54,7 @@ func (oms *OneMethodService) assignValues(columns []string, values []any) error 
 // Note that you need to call OneMethodService.Unwrap() before calling this method if this OneMethodService
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (oms *OneMethodService) Update() *OneMethodServiceUpdateOne {
-	return (&OneMethodServiceClient{config: oms.config}).UpdateOne(oms)
+	return NewOneMethodServiceClient(oms.config).UpdateOne(oms)
 }
 
 // Unwrap unwraps the OneMethodService entity that was returned from a transaction after it was closed,

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (dosd *DependsOnSkippedDelete) Where(ps ...predicate.DependsOnSkipped) *Dep
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (dosd *DependsOnSkippedDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(dosd.hooks) == 0 {
-		affected, err = dosd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DependsOnSkippedMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			dosd.mutation = mutation
-			affected, err = dosd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(dosd.hooks) - 1; i >= 0; i-- {
-			if dosd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dosd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, dosd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, DependsOnSkippedMutation](ctx, dosd.sqlExec, dosd.mutation, dosd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (dosd *DependsOnSkippedDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	dosd.mutation.done = true
 	return affected, err
 }
 

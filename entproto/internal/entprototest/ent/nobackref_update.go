@@ -72,34 +72,7 @@ func (nbu *NoBackrefUpdate) RemoveImages(i ...*Image) *NoBackrefUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (nbu *NoBackrefUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(nbu.hooks) == 0 {
-		affected, err = nbu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NoBackrefMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			nbu.mutation = mutation
-			affected, err = nbu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(nbu.hooks) - 1; i >= 0; i-- {
-			if nbu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = nbu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, nbu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, NoBackrefMutation](ctx, nbu.sqlSave, nbu.mutation, nbu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -204,6 +177,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	nbu.mutation.done = true
 	return n, nil
 }
 
@@ -265,40 +239,7 @@ func (nbuo *NoBackrefUpdateOne) Select(field string, fields ...string) *NoBackre
 
 // Save executes the query and returns the updated NoBackref entity.
 func (nbuo *NoBackrefUpdateOne) Save(ctx context.Context) (*NoBackref, error) {
-	var (
-		err  error
-		node *NoBackref
-	)
-	if len(nbuo.hooks) == 0 {
-		node, err = nbuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NoBackrefMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			nbuo.mutation = mutation
-			node, err = nbuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(nbuo.hooks) - 1; i >= 0; i-- {
-			if nbuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = nbuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, nbuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*NoBackref)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from NoBackrefMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*NoBackref, NoBackrefMutation](ctx, nbuo.sqlSave, nbuo.mutation, nbuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -423,5 +364,6 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 		}
 		return nil, err
 	}
+	nbuo.mutation.done = true
 	return _node, nil
 }

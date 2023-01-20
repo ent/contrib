@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,34 +54,7 @@ func (vsu *VerySecretUpdate) Mutation() *VerySecretMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vsu *VerySecretUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(vsu.hooks) == 0 {
-		affected, err = vsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*VerySecretMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vsu.mutation = mutation
-			affected, err = vsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(vsu.hooks) - 1; i >= 0; i-- {
-			if vsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, vsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, VerySecretMutation](ctx, vsu.sqlSave, vsu.mutation, vsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -135,6 +108,7 @@ func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	vsu.mutation.done = true
 	return n, nil
 }
 
@@ -166,40 +140,7 @@ func (vsuo *VerySecretUpdateOne) Select(field string, fields ...string) *VerySec
 
 // Save executes the query and returns the updated VerySecret entity.
 func (vsuo *VerySecretUpdateOne) Save(ctx context.Context) (*VerySecret, error) {
-	var (
-		err  error
-		node *VerySecret
-	)
-	if len(vsuo.hooks) == 0 {
-		node, err = vsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*VerySecretMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vsuo.mutation = mutation
-			node, err = vsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(vsuo.hooks) - 1; i >= 0; i-- {
-			if vsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, vsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*VerySecret)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from VerySecretMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*VerySecret, VerySecretMutation](ctx, vsuo.sqlSave, vsuo.mutation, vsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -273,5 +214,6 @@ func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret
 		}
 		return nil, err
 	}
+	vsuo.mutation.done = true
 	return _node, nil
 }

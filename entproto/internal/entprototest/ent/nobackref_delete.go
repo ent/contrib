@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (nbd *NoBackrefDelete) Where(ps ...predicate.NoBackref) *NoBackrefDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (nbd *NoBackrefDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(nbd.hooks) == 0 {
-		affected, err = nbd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NoBackrefMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			nbd.mutation = mutation
-			affected, err = nbd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(nbd.hooks) - 1; i >= 0; i-- {
-			if nbd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = nbd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, nbd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, NoBackrefMutation](ctx, nbd.sqlExec, nbd.mutation, nbd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (nbd *NoBackrefDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	nbd.mutation.done = true
 	return affected, err
 }
 

@@ -54,7 +54,7 @@ func (esm *ExplicitSkippedMessage) assignValues(columns []string, values []any) 
 // Note that you need to call ExplicitSkippedMessage.Unwrap() before calling this method if this ExplicitSkippedMessage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (esm *ExplicitSkippedMessage) Update() *ExplicitSkippedMessageUpdateOne {
-	return (&ExplicitSkippedMessageClient{config: esm.config}).UpdateOne(esm)
+	return NewExplicitSkippedMessageClient(esm.config).UpdateOne(esm)
 }
 
 // Unwrap unwraps the ExplicitSkippedMessage entity that was returned from a transaction after it was closed,

@@ -34,34 +34,7 @@ func (amsu *AllMethodsServiceUpdate) Mutation() *AllMethodsServiceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (amsu *AllMethodsServiceUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(amsu.hooks) == 0 {
-		affected, err = amsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AllMethodsServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			amsu.mutation = mutation
-			affected, err = amsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(amsu.hooks) - 1; i >= 0; i-- {
-			if amsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = amsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, amsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, AllMethodsServiceMutation](ctx, amsu.sqlSave, amsu.mutation, amsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -112,6 +85,7 @@ func (amsu *AllMethodsServiceUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		return 0, err
 	}
+	amsu.mutation.done = true
 	return n, nil
 }
 
@@ -137,40 +111,7 @@ func (amsuo *AllMethodsServiceUpdateOne) Select(field string, fields ...string) 
 
 // Save executes the query and returns the updated AllMethodsService entity.
 func (amsuo *AllMethodsServiceUpdateOne) Save(ctx context.Context) (*AllMethodsService, error) {
-	var (
-		err  error
-		node *AllMethodsService
-	)
-	if len(amsuo.hooks) == 0 {
-		node, err = amsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AllMethodsServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			amsuo.mutation = mutation
-			node, err = amsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(amsuo.hooks) - 1; i >= 0; i-- {
-			if amsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = amsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, amsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*AllMethodsService)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AllMethodsServiceMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*AllMethodsService, AllMethodsServiceMutation](ctx, amsuo.sqlSave, amsuo.mutation, amsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -241,5 +182,6 @@ func (amsuo *AllMethodsServiceUpdateOne) sqlSave(ctx context.Context) (_node *Al
 		}
 		return nil, err
 	}
+	amsuo.mutation.done = true
 	return _node, nil
 }

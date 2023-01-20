@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,49 +58,7 @@ func (bpc *BillProductCreate) Mutation() *BillProductMutation {
 
 // Save creates the BillProduct in the database.
 func (bpc *BillProductCreate) Save(ctx context.Context) (*BillProduct, error) {
-	var (
-		err  error
-		node *BillProduct
-	)
-	if len(bpc.hooks) == 0 {
-		if err = bpc.check(); err != nil {
-			return nil, err
-		}
-		node, err = bpc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BillProductMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = bpc.check(); err != nil {
-				return nil, err
-			}
-			bpc.mutation = mutation
-			if node, err = bpc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(bpc.hooks) - 1; i >= 0; i-- {
-			if bpc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, bpc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*BillProduct)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from BillProductMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*BillProduct, BillProductMutation](ctx, bpc.sqlSave, bpc.mutation, bpc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -140,6 +98,9 @@ func (bpc *BillProductCreate) check() error {
 }
 
 func (bpc *BillProductCreate) sqlSave(ctx context.Context) (*BillProduct, error) {
+	if err := bpc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := bpc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, bpc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -154,6 +115,8 @@ func (bpc *BillProductCreate) sqlSave(ctx context.Context) (*BillProduct, error)
 			return nil, fmt.Errorf("unexpected BillProduct.ID type: %T", _spec.ID.Value)
 		}
 	}
+	bpc.mutation.id = &_node.ID
+	bpc.mutation.done = true
 	return _node, nil
 }
 

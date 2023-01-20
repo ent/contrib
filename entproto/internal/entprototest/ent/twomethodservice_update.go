@@ -34,34 +34,7 @@ func (tmsu *TwoMethodServiceUpdate) Mutation() *TwoMethodServiceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tmsu *TwoMethodServiceUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(tmsu.hooks) == 0 {
-		affected, err = tmsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TwoMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tmsu.mutation = mutation
-			affected, err = tmsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(tmsu.hooks) - 1; i >= 0; i-- {
-			if tmsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tmsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, tmsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, TwoMethodServiceMutation](ctx, tmsu.sqlSave, tmsu.mutation, tmsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -112,6 +85,7 @@ func (tmsu *TwoMethodServiceUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		return 0, err
 	}
+	tmsu.mutation.done = true
 	return n, nil
 }
 
@@ -137,40 +111,7 @@ func (tmsuo *TwoMethodServiceUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated TwoMethodService entity.
 func (tmsuo *TwoMethodServiceUpdateOne) Save(ctx context.Context) (*TwoMethodService, error) {
-	var (
-		err  error
-		node *TwoMethodService
-	)
-	if len(tmsuo.hooks) == 0 {
-		node, err = tmsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TwoMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tmsuo.mutation = mutation
-			node, err = tmsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tmsuo.hooks) - 1; i >= 0; i-- {
-			if tmsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tmsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tmsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*TwoMethodService)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TwoMethodServiceMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*TwoMethodService, TwoMethodServiceMutation](ctx, tmsuo.sqlSave, tmsuo.mutation, tmsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -241,5 +182,6 @@ func (tmsuo *TwoMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *Two
 		}
 		return nil, err
 	}
+	tmsuo.mutation.done = true
 	return _node, nil
 }

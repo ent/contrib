@@ -73,14 +73,14 @@ func (nb *NoBackref) assignValues(columns []string, values []any) error {
 
 // QueryImages queries the "images" edge of the NoBackref entity.
 func (nb *NoBackref) QueryImages() *ImageQuery {
-	return (&NoBackrefClient{config: nb.config}).QueryImages(nb)
+	return NewNoBackrefClient(nb.config).QueryImages(nb)
 }
 
 // Update returns a builder for updating this NoBackref.
 // Note that you need to call NoBackref.Unwrap() before calling this method if this NoBackref
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (nb *NoBackref) Update() *NoBackrefUpdateOne {
-	return (&NoBackrefClient{config: nb.config}).UpdateOne(nb)
+	return NewNoBackrefClient(nb.config).UpdateOne(nb)
 }
 
 // Unwrap unwraps the NoBackref entity that was returned from a transaction after it was closed,

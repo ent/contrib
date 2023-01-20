@@ -40,34 +40,7 @@ func (mwpnu *MessageWithPackageNameUpdate) Mutation() *MessageWithPackageNameMut
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwpnu *MessageWithPackageNameUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwpnu.hooks) == 0 {
-		affected, err = mwpnu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithPackageNameMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwpnu.mutation = mutation
-			affected, err = mwpnu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwpnu.hooks) - 1; i >= 0; i-- {
-			if mwpnu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwpnu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwpnu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithPackageNameMutation](ctx, mwpnu.sqlSave, mwpnu.mutation, mwpnu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -121,6 +94,7 @@ func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, 
 		}
 		return 0, err
 	}
+	mwpnu.mutation.done = true
 	return n, nil
 }
 
@@ -152,40 +126,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Select(field string, fields ...st
 
 // Save executes the query and returns the updated MessageWithPackageName entity.
 func (mwpnuo *MessageWithPackageNameUpdateOne) Save(ctx context.Context) (*MessageWithPackageName, error) {
-	var (
-		err  error
-		node *MessageWithPackageName
-	)
-	if len(mwpnuo.hooks) == 0 {
-		node, err = mwpnuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithPackageNameMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwpnuo.mutation = mutation
-			node, err = mwpnuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwpnuo.hooks) - 1; i >= 0; i-- {
-			if mwpnuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwpnuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwpnuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithPackageName)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithPackageNameMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithPackageName, MessageWithPackageNameMutation](ctx, mwpnuo.sqlSave, mwpnuo.mutation, mwpnuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -259,5 +200,6 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_no
 		}
 		return nil, err
 	}
+	mwpnuo.mutation.done = true
 	return _node, nil
 }

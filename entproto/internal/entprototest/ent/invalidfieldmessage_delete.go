@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (ifmd *InvalidFieldMessageDelete) Where(ps ...predicate.InvalidFieldMessage
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ifmd *InvalidFieldMessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ifmd.hooks) == 0 {
-		affected, err = ifmd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ifmd.mutation = mutation
-			affected, err = ifmd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ifmd.hooks) - 1; i >= 0; i-- {
-			if ifmd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ifmd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, InvalidFieldMessageMutation](ctx, ifmd.sqlExec, ifmd.mutation, ifmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (ifmd *InvalidFieldMessageDelete) sqlExec(ctx context.Context) (int, error)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	ifmd.mutation.done = true
 	return affected, err
 }
 

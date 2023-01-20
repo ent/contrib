@@ -32,49 +32,7 @@ func (mwfoc *MessageWithFieldOneCreate) Mutation() *MessageWithFieldOneMutation 
 
 // Save creates the MessageWithFieldOne in the database.
 func (mwfoc *MessageWithFieldOneCreate) Save(ctx context.Context) (*MessageWithFieldOne, error) {
-	var (
-		err  error
-		node *MessageWithFieldOne
-	)
-	if len(mwfoc.hooks) == 0 {
-		if err = mwfoc.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwfoc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithFieldOneMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwfoc.check(); err != nil {
-				return nil, err
-			}
-			mwfoc.mutation = mutation
-			if node, err = mwfoc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwfoc.hooks) - 1; i >= 0; i-- {
-			if mwfoc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwfoc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwfoc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithFieldOne)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithFieldOneMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithFieldOne, MessageWithFieldOneMutation](ctx, mwfoc.sqlSave, mwfoc.mutation, mwfoc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -108,6 +66,9 @@ func (mwfoc *MessageWithFieldOneCreate) check() error {
 }
 
 func (mwfoc *MessageWithFieldOneCreate) sqlSave(ctx context.Context) (*MessageWithFieldOne, error) {
+	if err := mwfoc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwfoc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwfoc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -117,6 +78,8 @@ func (mwfoc *MessageWithFieldOneCreate) sqlSave(ctx context.Context) (*MessageWi
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mwfoc.mutation.id = &_node.ID
+	mwfoc.mutation.done = true
 	return _node, nil
 }
 

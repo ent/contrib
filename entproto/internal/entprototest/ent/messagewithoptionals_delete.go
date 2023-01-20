@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (mwod *MessageWithOptionalsDelete) Where(ps ...predicate.MessageWithOptiona
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwod *MessageWithOptionalsDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwod.hooks) == 0 {
-		affected, err = mwod.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithOptionalsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwod.mutation = mutation
-			affected, err = mwod.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwod.hooks) - 1; i >= 0; i-- {
-			if mwod.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwod.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwod.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithOptionalsMutation](ctx, mwod.sqlExec, mwod.mutation, mwod.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (mwod *MessageWithOptionalsDelete) sqlExec(ctx context.Context) (int, error
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	mwod.mutation.done = true
 	return affected, err
 }
 

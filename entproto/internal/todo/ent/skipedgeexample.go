@@ -88,14 +88,14 @@ func (see *SkipEdgeExample) assignValues(columns []string, values []any) error {
 
 // QueryUser queries the "user" edge of the SkipEdgeExample entity.
 func (see *SkipEdgeExample) QueryUser() *UserQuery {
-	return (&SkipEdgeExampleClient{config: see.config}).QueryUser(see)
+	return NewSkipEdgeExampleClient(see.config).QueryUser(see)
 }
 
 // Update returns a builder for updating this SkipEdgeExample.
 // Note that you need to call SkipEdgeExample.Unwrap() before calling this method if this SkipEdgeExample
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (see *SkipEdgeExample) Update() *SkipEdgeExampleUpdateOne {
-	return (&SkipEdgeExampleClient{config: see.config}).UpdateOne(see)
+	return NewSkipEdgeExampleClient(see.config).UpdateOne(see)
 }
 
 // Unwrap unwraps the SkipEdgeExample entity that was returned from a transaction after it was closed,
