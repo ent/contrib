@@ -46,50 +46,8 @@ func (mwec *MessageWithEnumCreate) Mutation() *MessageWithEnumMutation {
 
 // Save creates the MessageWithEnum in the database.
 func (mwec *MessageWithEnumCreate) Save(ctx context.Context) (*MessageWithEnum, error) {
-	var (
-		err  error
-		node *MessageWithEnum
-	)
 	mwec.defaults()
-	if len(mwec.hooks) == 0 {
-		if err = mwec.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwec.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithEnumMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwec.check(); err != nil {
-				return nil, err
-			}
-			mwec.mutation = mutation
-			if node, err = mwec.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwec.hooks) - 1; i >= 0; i-- {
-			if mwec.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwec.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwec.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithEnum)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithEnumMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithEnum, MessageWithEnumMutation](ctx, mwec.sqlSave, mwec.mutation, mwec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -144,6 +102,9 @@ func (mwec *MessageWithEnumCreate) check() error {
 }
 
 func (mwec *MessageWithEnumCreate) sqlSave(ctx context.Context) (*MessageWithEnum, error) {
+	if err := mwec.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwec.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwec.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -153,6 +114,8 @@ func (mwec *MessageWithEnumCreate) sqlSave(ctx context.Context) (*MessageWithEnu
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mwec.mutation.id = &_node.ID
+	mwec.mutation.done = true
 	return _node, nil
 }
 

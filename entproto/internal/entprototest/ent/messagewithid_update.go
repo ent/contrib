@@ -34,34 +34,7 @@ func (mwiu *MessageWithIDUpdate) Mutation() *MessageWithIDMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwiu *MessageWithIDUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwiu.hooks) == 0 {
-		affected, err = mwiu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithIDMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwiu.mutation = mutation
-			affected, err = mwiu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwiu.hooks) - 1; i >= 0; i-- {
-			if mwiu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwiu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwiu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithIDMutation](ctx, mwiu.sqlSave, mwiu.mutation, mwiu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -112,6 +85,7 @@ func (mwiu *MessageWithIDUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		return 0, err
 	}
+	mwiu.mutation.done = true
 	return n, nil
 }
 
@@ -137,40 +111,7 @@ func (mwiuo *MessageWithIDUpdateOne) Select(field string, fields ...string) *Mes
 
 // Save executes the query and returns the updated MessageWithID entity.
 func (mwiuo *MessageWithIDUpdateOne) Save(ctx context.Context) (*MessageWithID, error) {
-	var (
-		err  error
-		node *MessageWithID
-	)
-	if len(mwiuo.hooks) == 0 {
-		node, err = mwiuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithIDMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwiuo.mutation = mutation
-			node, err = mwiuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwiuo.hooks) - 1; i >= 0; i-- {
-			if mwiuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwiuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwiuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithID)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithIDMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithID, MessageWithIDMutation](ctx, mwiuo.sqlSave, mwiuo.mutation, mwiuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -241,5 +182,6 @@ func (mwiuo *MessageWithIDUpdateOne) sqlSave(ctx context.Context) (_node *Messag
 		}
 		return nil, err
 	}
+	mwiuo.mutation.done = true
 	return _node, nil
 }

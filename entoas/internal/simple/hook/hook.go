@@ -15,11 +15,10 @@ type CategoryFunc func(context.Context, *simple.CategoryMutation) (simple.Value,
 
 // Mutate calls f(ctx, m).
 func (f CategoryFunc) Mutate(ctx context.Context, m simple.Mutation) (simple.Value, error) {
-	mv, ok := m.(*simple.CategoryMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *simple.CategoryMutation", m)
+	if mv, ok := m.(*simple.CategoryMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *simple.CategoryMutation", m)
 }
 
 // The PetFunc type is an adapter to allow the use of ordinary
@@ -28,11 +27,10 @@ type PetFunc func(context.Context, *simple.PetMutation) (simple.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f PetFunc) Mutate(ctx context.Context, m simple.Mutation) (simple.Value, error) {
-	mv, ok := m.(*simple.PetMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *simple.PetMutation", m)
+	if mv, ok := m.(*simple.PetMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *simple.PetMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -41,11 +39,10 @@ type UserFunc func(context.Context, *simple.UserMutation) (simple.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m simple.Mutation) (simple.Value, error) {
-	mv, ok := m.(*simple.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *simple.UserMutation", m)
+	if mv, ok := m.(*simple.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *simple.UserMutation", m)
 }
 
 // Condition is a hook condition function.

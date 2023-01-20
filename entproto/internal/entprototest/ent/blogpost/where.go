@@ -10,356 +10,232 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.BlogPost(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.BlogPost(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.BlogPost(sql.FieldLTE(FieldID, id))
 }
 
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldTitle, v))
 }
 
 // Body applies equality check predicate on the "body" field. It's identical to BodyEQ.
 func Body(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldBody, v))
 }
 
 // ExternalID applies equality check predicate on the "external_id" field. It's identical to ExternalIDEQ.
 func ExternalID(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldExternalID, v))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldTitle, v))
 }
 
 // TitleNEQ applies the NEQ predicate on the "title" field.
 func TitleNEQ(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldNEQ(FieldTitle, v))
 }
 
 // TitleIn applies the In predicate on the "title" field.
 func TitleIn(vs ...string) predicate.BlogPost {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTitle), v...))
-	})
+	return predicate.BlogPost(sql.FieldIn(FieldTitle, vs...))
 }
 
 // TitleNotIn applies the NotIn predicate on the "title" field.
 func TitleNotIn(vs ...string) predicate.BlogPost {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTitle), v...))
-	})
+	return predicate.BlogPost(sql.FieldNotIn(FieldTitle, vs...))
 }
 
 // TitleGT applies the GT predicate on the "title" field.
 func TitleGT(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldGT(FieldTitle, v))
 }
 
 // TitleGTE applies the GTE predicate on the "title" field.
 func TitleGTE(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldGTE(FieldTitle, v))
 }
 
 // TitleLT applies the LT predicate on the "title" field.
 func TitleLT(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldLT(FieldTitle, v))
 }
 
 // TitleLTE applies the LTE predicate on the "title" field.
 func TitleLTE(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldLTE(FieldTitle, v))
 }
 
 // TitleContains applies the Contains predicate on the "title" field.
 func TitleContains(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldContains(FieldTitle, v))
 }
 
 // TitleHasPrefix applies the HasPrefix predicate on the "title" field.
 func TitleHasPrefix(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldHasPrefix(FieldTitle, v))
 }
 
 // TitleHasSuffix applies the HasSuffix predicate on the "title" field.
 func TitleHasSuffix(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldHasSuffix(FieldTitle, v))
 }
 
 // TitleEqualFold applies the EqualFold predicate on the "title" field.
 func TitleEqualFold(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldEqualFold(FieldTitle, v))
 }
 
 // TitleContainsFold applies the ContainsFold predicate on the "title" field.
 func TitleContainsFold(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldTitle), v))
-	})
+	return predicate.BlogPost(sql.FieldContainsFold(FieldTitle, v))
 }
 
 // BodyEQ applies the EQ predicate on the "body" field.
 func BodyEQ(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldBody, v))
 }
 
 // BodyNEQ applies the NEQ predicate on the "body" field.
 func BodyNEQ(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldNEQ(FieldBody, v))
 }
 
 // BodyIn applies the In predicate on the "body" field.
 func BodyIn(vs ...string) predicate.BlogPost {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldBody), v...))
-	})
+	return predicate.BlogPost(sql.FieldIn(FieldBody, vs...))
 }
 
 // BodyNotIn applies the NotIn predicate on the "body" field.
 func BodyNotIn(vs ...string) predicate.BlogPost {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldBody), v...))
-	})
+	return predicate.BlogPost(sql.FieldNotIn(FieldBody, vs...))
 }
 
 // BodyGT applies the GT predicate on the "body" field.
 func BodyGT(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldGT(FieldBody, v))
 }
 
 // BodyGTE applies the GTE predicate on the "body" field.
 func BodyGTE(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldGTE(FieldBody, v))
 }
 
 // BodyLT applies the LT predicate on the "body" field.
 func BodyLT(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldLT(FieldBody, v))
 }
 
 // BodyLTE applies the LTE predicate on the "body" field.
 func BodyLTE(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldLTE(FieldBody, v))
 }
 
 // BodyContains applies the Contains predicate on the "body" field.
 func BodyContains(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldContains(FieldBody, v))
 }
 
 // BodyHasPrefix applies the HasPrefix predicate on the "body" field.
 func BodyHasPrefix(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldHasPrefix(FieldBody, v))
 }
 
 // BodyHasSuffix applies the HasSuffix predicate on the "body" field.
 func BodyHasSuffix(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldHasSuffix(FieldBody, v))
 }
 
 // BodyEqualFold applies the EqualFold predicate on the "body" field.
 func BodyEqualFold(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldEqualFold(FieldBody, v))
 }
 
 // BodyContainsFold applies the ContainsFold predicate on the "body" field.
 func BodyContainsFold(v string) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldBody), v))
-	})
+	return predicate.BlogPost(sql.FieldContainsFold(FieldBody, v))
 }
 
 // ExternalIDEQ applies the EQ predicate on the "external_id" field.
 func ExternalIDEQ(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldEQ(FieldExternalID, v))
 }
 
 // ExternalIDNEQ applies the NEQ predicate on the "external_id" field.
 func ExternalIDNEQ(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldNEQ(FieldExternalID, v))
 }
 
 // ExternalIDIn applies the In predicate on the "external_id" field.
 func ExternalIDIn(vs ...int) predicate.BlogPost {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldExternalID), v...))
-	})
+	return predicate.BlogPost(sql.FieldIn(FieldExternalID, vs...))
 }
 
 // ExternalIDNotIn applies the NotIn predicate on the "external_id" field.
 func ExternalIDNotIn(vs ...int) predicate.BlogPost {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldExternalID), v...))
-	})
+	return predicate.BlogPost(sql.FieldNotIn(FieldExternalID, vs...))
 }
 
 // ExternalIDGT applies the GT predicate on the "external_id" field.
 func ExternalIDGT(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldGT(FieldExternalID, v))
 }
 
 // ExternalIDGTE applies the GTE predicate on the "external_id" field.
 func ExternalIDGTE(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldGTE(FieldExternalID, v))
 }
 
 // ExternalIDLT applies the LT predicate on the "external_id" field.
 func ExternalIDLT(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldLT(FieldExternalID, v))
 }
 
 // ExternalIDLTE applies the LTE predicate on the "external_id" field.
 func ExternalIDLTE(v int) predicate.BlogPost {
-	return predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldExternalID), v))
-	})
+	return predicate.BlogPost(sql.FieldLTE(FieldExternalID, v))
 }
 
 // HasAuthor applies the HasEdge predicate on the "author" edge.
@@ -367,7 +243,6 @@ func HasAuthor() predicate.BlogPost {
 	return predicate.BlogPost(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AuthorTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -395,7 +270,6 @@ func HasCategories() predicate.BlogPost {
 	return predicate.BlogPost(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CategoriesTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, CategoriesTable, CategoriesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)

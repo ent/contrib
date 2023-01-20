@@ -83,14 +83,14 @@ func (dos *DependsOnSkipped) assignValues(columns []string, values []any) error 
 
 // QuerySkipped queries the "skipped" edge of the DependsOnSkipped entity.
 func (dos *DependsOnSkipped) QuerySkipped() *ImplicitSkippedMessageQuery {
-	return (&DependsOnSkippedClient{config: dos.config}).QuerySkipped(dos)
+	return NewDependsOnSkippedClient(dos.config).QuerySkipped(dos)
 }
 
 // Update returns a builder for updating this DependsOnSkipped.
 // Note that you need to call DependsOnSkipped.Unwrap() before calling this method if this DependsOnSkipped
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (dos *DependsOnSkipped) Update() *DependsOnSkippedUpdateOne {
-	return (&DependsOnSkippedClient{config: dos.config}).UpdateOne(dos)
+	return NewDependsOnSkippedClient(dos.config).UpdateOne(dos)
 }
 
 // Unwrap unwraps the DependsOnSkipped entity that was returned from a transaction after it was closed,

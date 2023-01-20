@@ -75,34 +75,7 @@ func (neu *NilExampleUpdate) Mutation() *NilExampleMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (neu *NilExampleUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(neu.hooks) == 0 {
-		affected, err = neu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NilExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			neu.mutation = mutation
-			affected, err = neu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(neu.hooks) - 1; i >= 0; i-- {
-			if neu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = neu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, neu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, NilExampleMutation](ctx, neu.sqlSave, neu.mutation, neu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -165,6 +138,7 @@ func (neu *NilExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	neu.mutation.done = true
 	return n, nil
 }
 
@@ -230,40 +204,7 @@ func (neuo *NilExampleUpdateOne) Select(field string, fields ...string) *NilExam
 
 // Save executes the query and returns the updated NilExample entity.
 func (neuo *NilExampleUpdateOne) Save(ctx context.Context) (*NilExample, error) {
-	var (
-		err  error
-		node *NilExample
-	)
-	if len(neuo.hooks) == 0 {
-		node, err = neuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NilExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			neuo.mutation = mutation
-			node, err = neuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(neuo.hooks) - 1; i >= 0; i-- {
-			if neuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = neuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, neuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*NilExample)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from NilExampleMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*NilExample, NilExampleMutation](ctx, neuo.sqlSave, neuo.mutation, neuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -346,5 +287,6 @@ func (neuo *NilExampleUpdateOne) sqlSave(ctx context.Context) (_node *NilExample
 		}
 		return nil, err
 	}
+	neuo.mutation.done = true
 	return _node, nil
 }

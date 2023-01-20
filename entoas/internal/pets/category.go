@@ -83,14 +83,14 @@ func (c *Category) assignValues(columns []string, values []any) error {
 
 // QueryPets queries the "pets" edge of the Category entity.
 func (c *Category) QueryPets() *PetQuery {
-	return (&CategoryClient{config: c.config}).QueryPets(c)
+	return NewCategoryClient(c.config).QueryPets(c)
 }
 
 // Update returns a builder for updating this Category.
 // Note that you need to call Category.Unwrap() before calling this method if this Category
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Category) Update() *CategoryUpdateOne {
-	return (&CategoryClient{config: c.config}).UpdateOne(c)
+	return NewCategoryClient(c.config).UpdateOne(c)
 }
 
 // Unwrap unwraps the Category entity that was returned from a transaction after it was closed,

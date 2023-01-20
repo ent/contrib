@@ -19,11 +19,9 @@ import (
 // DependsOnSkippedQuery is the builder for querying DependsOnSkipped entities.
 type DependsOnSkippedQuery struct {
 	config
-	limit       *int
-	offset      *int
-	unique      *bool
+	ctx         *QueryContext
 	order       []OrderFunc
-	fields      []string
+	inters      []Interceptor
 	predicates  []predicate.DependsOnSkipped
 	withSkipped *ImplicitSkippedMessageQuery
 	// intermediate query (i.e. traversal path).
@@ -37,26 +35,26 @@ func (dosq *DependsOnSkippedQuery) Where(ps ...predicate.DependsOnSkipped) *Depe
 	return dosq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (dosq *DependsOnSkippedQuery) Limit(limit int) *DependsOnSkippedQuery {
-	dosq.limit = &limit
+	dosq.ctx.Limit = &limit
 	return dosq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (dosq *DependsOnSkippedQuery) Offset(offset int) *DependsOnSkippedQuery {
-	dosq.offset = &offset
+	dosq.ctx.Offset = &offset
 	return dosq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (dosq *DependsOnSkippedQuery) Unique(unique bool) *DependsOnSkippedQuery {
-	dosq.unique = &unique
+	dosq.ctx.Unique = &unique
 	return dosq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (dosq *DependsOnSkippedQuery) Order(o ...OrderFunc) *DependsOnSkippedQuery {
 	dosq.order = append(dosq.order, o...)
 	return dosq
@@ -64,7 +62,7 @@ func (dosq *DependsOnSkippedQuery) Order(o ...OrderFunc) *DependsOnSkippedQuery 
 
 // QuerySkipped chains the current query on the "skipped" edge.
 func (dosq *DependsOnSkippedQuery) QuerySkipped() *ImplicitSkippedMessageQuery {
-	query := &ImplicitSkippedMessageQuery{config: dosq.config}
+	query := (&ImplicitSkippedMessageClient{config: dosq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := dosq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (dosq *DependsOnSkippedQuery) QuerySkipped() *ImplicitSkippedMessageQuery {
 // First returns the first DependsOnSkipped entity from the query.
 // Returns a *NotFoundError when no DependsOnSkipped was found.
 func (dosq *DependsOnSkippedQuery) First(ctx context.Context) (*DependsOnSkipped, error) {
-	nodes, err := dosq.Limit(1).All(ctx)
+	nodes, err := dosq.Limit(1).All(setContextOp(ctx, dosq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +108,7 @@ func (dosq *DependsOnSkippedQuery) FirstX(ctx context.Context) *DependsOnSkipped
 // Returns a *NotFoundError when no DependsOnSkipped ID was found.
 func (dosq *DependsOnSkippedQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dosq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = dosq.Limit(1).IDs(setContextOp(ctx, dosq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +131,7 @@ func (dosq *DependsOnSkippedQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one DependsOnSkipped entity is found.
 // Returns a *NotFoundError when no DependsOnSkipped entities are found.
 func (dosq *DependsOnSkippedQuery) Only(ctx context.Context) (*DependsOnSkipped, error) {
-	nodes, err := dosq.Limit(2).All(ctx)
+	nodes, err := dosq.Limit(2).All(setContextOp(ctx, dosq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +159,7 @@ func (dosq *DependsOnSkippedQuery) OnlyX(ctx context.Context) *DependsOnSkipped 
 // Returns a *NotFoundError when no entities are found.
 func (dosq *DependsOnSkippedQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dosq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = dosq.Limit(2).IDs(setContextOp(ctx, dosq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,10 +184,12 @@ func (dosq *DependsOnSkippedQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of DependsOnSkippeds.
 func (dosq *DependsOnSkippedQuery) All(ctx context.Context) ([]*DependsOnSkipped, error) {
+	ctx = setContextOp(ctx, dosq.ctx, "All")
 	if err := dosq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return dosq.sqlAll(ctx)
+	qr := querierAll[[]*DependsOnSkipped, *DependsOnSkippedQuery]()
+	return withInterceptors[[]*DependsOnSkipped](ctx, dosq, qr, dosq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -204,6 +204,7 @@ func (dosq *DependsOnSkippedQuery) AllX(ctx context.Context) []*DependsOnSkipped
 // IDs executes the query and returns a list of DependsOnSkipped IDs.
 func (dosq *DependsOnSkippedQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, dosq.ctx, "IDs")
 	if err := dosq.Select(dependsonskipped.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -221,10 +222,11 @@ func (dosq *DependsOnSkippedQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (dosq *DependsOnSkippedQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, dosq.ctx, "Count")
 	if err := dosq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return dosq.sqlCount(ctx)
+	return withInterceptors[int](ctx, dosq, querierCount[*DependsOnSkippedQuery](), dosq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -238,10 +240,15 @@ func (dosq *DependsOnSkippedQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (dosq *DependsOnSkippedQuery) Exist(ctx context.Context) (bool, error) {
-	if err := dosq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, dosq.ctx, "Exist")
+	switch _, err := dosq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return dosq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -261,22 +268,21 @@ func (dosq *DependsOnSkippedQuery) Clone() *DependsOnSkippedQuery {
 	}
 	return &DependsOnSkippedQuery{
 		config:      dosq.config,
-		limit:       dosq.limit,
-		offset:      dosq.offset,
+		ctx:         dosq.ctx.Clone(),
 		order:       append([]OrderFunc{}, dosq.order...),
+		inters:      append([]Interceptor{}, dosq.inters...),
 		predicates:  append([]predicate.DependsOnSkipped{}, dosq.predicates...),
 		withSkipped: dosq.withSkipped.Clone(),
 		// clone intermediate query.
-		sql:    dosq.sql.Clone(),
-		path:   dosq.path,
-		unique: dosq.unique,
+		sql:  dosq.sql.Clone(),
+		path: dosq.path,
 	}
 }
 
 // WithSkipped tells the query-builder to eager-load the nodes that are connected to
 // the "skipped" edge. The optional arguments are used to configure the query builder of the edge.
 func (dosq *DependsOnSkippedQuery) WithSkipped(opts ...func(*ImplicitSkippedMessageQuery)) *DependsOnSkippedQuery {
-	query := &ImplicitSkippedMessageQuery{config: dosq.config}
+	query := (&ImplicitSkippedMessageClient{config: dosq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -299,16 +305,11 @@ func (dosq *DependsOnSkippedQuery) WithSkipped(opts ...func(*ImplicitSkippedMess
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *DependsOnSkippedGroupBy {
-	grbuild := &DependsOnSkippedGroupBy{config: dosq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := dosq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return dosq.sqlQuery(ctx), nil
-	}
+	dosq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &DependsOnSkippedGroupBy{build: dosq}
+	grbuild.flds = &dosq.ctx.Fields
 	grbuild.label = dependsonskipped.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -325,11 +326,11 @@ func (dosq *DependsOnSkippedQuery) GroupBy(field string, fields ...string) *Depe
 //		Select(dependsonskipped.FieldName).
 //		Scan(ctx, &v)
 func (dosq *DependsOnSkippedQuery) Select(fields ...string) *DependsOnSkippedSelect {
-	dosq.fields = append(dosq.fields, fields...)
-	selbuild := &DependsOnSkippedSelect{DependsOnSkippedQuery: dosq}
-	selbuild.label = dependsonskipped.Label
-	selbuild.flds, selbuild.scan = &dosq.fields, selbuild.Scan
-	return selbuild
+	dosq.ctx.Fields = append(dosq.ctx.Fields, fields...)
+	sbuild := &DependsOnSkippedSelect{DependsOnSkippedQuery: dosq}
+	sbuild.label = dependsonskipped.Label
+	sbuild.flds, sbuild.scan = &dosq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a DependsOnSkippedSelect configured with the given aggregations.
@@ -338,7 +339,17 @@ func (dosq *DependsOnSkippedQuery) Aggregate(fns ...AggregateFunc) *DependsOnSki
 }
 
 func (dosq *DependsOnSkippedQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range dosq.fields {
+	for _, inter := range dosq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, dosq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range dosq.ctx.Fields {
 		if !dependsonskipped.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -423,22 +434,11 @@ func (dosq *DependsOnSkippedQuery) loadSkipped(ctx context.Context, query *Impli
 
 func (dosq *DependsOnSkippedQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := dosq.querySpec()
-	_spec.Node.Columns = dosq.fields
-	if len(dosq.fields) > 0 {
-		_spec.Unique = dosq.unique != nil && *dosq.unique
+	_spec.Node.Columns = dosq.ctx.Fields
+	if len(dosq.ctx.Fields) > 0 {
+		_spec.Unique = dosq.ctx.Unique != nil && *dosq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, dosq.driver, _spec)
-}
-
-func (dosq *DependsOnSkippedQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := dosq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
@@ -454,10 +454,10 @@ func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   dosq.sql,
 		Unique: true,
 	}
-	if unique := dosq.unique; unique != nil {
+	if unique := dosq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := dosq.fields; len(fields) > 0 {
+	if fields := dosq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, dependsonskipped.FieldID)
 		for i := range fields {
@@ -473,10 +473,10 @@ func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := dosq.limit; limit != nil {
+	if limit := dosq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := dosq.offset; offset != nil {
+	if offset := dosq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := dosq.order; len(ps) > 0 {
@@ -492,7 +492,7 @@ func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
 func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(dosq.driver.Dialect())
 	t1 := builder.Table(dependsonskipped.Table)
-	columns := dosq.fields
+	columns := dosq.ctx.Fields
 	if len(columns) == 0 {
 		columns = dependsonskipped.Columns
 	}
@@ -501,7 +501,7 @@ func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = dosq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if dosq.unique != nil && *dosq.unique {
+	if dosq.ctx.Unique != nil && *dosq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range dosq.predicates {
@@ -510,12 +510,12 @@ func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range dosq.order {
 		p(selector)
 	}
-	if offset := dosq.offset; offset != nil {
+	if offset := dosq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := dosq.limit; limit != nil {
+	if limit := dosq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -523,13 +523,8 @@ func (dosq *DependsOnSkippedQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // DependsOnSkippedGroupBy is the group-by builder for DependsOnSkipped entities.
 type DependsOnSkippedGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *DependsOnSkippedQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -538,58 +533,46 @@ func (dosgb *DependsOnSkippedGroupBy) Aggregate(fns ...AggregateFunc) *DependsOn
 	return dosgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (dosgb *DependsOnSkippedGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := dosgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, dosgb.build.ctx, "GroupBy")
+	if err := dosgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	dosgb.sql = query
-	return dosgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*DependsOnSkippedQuery, *DependsOnSkippedGroupBy](ctx, dosgb.build, dosgb, dosgb.build.inters, v)
 }
 
-func (dosgb *DependsOnSkippedGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range dosgb.fields {
-		if !dependsonskipped.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (dosgb *DependsOnSkippedGroupBy) sqlScan(ctx context.Context, root *DependsOnSkippedQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(dosgb.fns))
+	for _, fn := range dosgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := dosgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*dosgb.flds)+len(dosgb.fns))
+		for _, f := range *dosgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*dosgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := dosgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := dosgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (dosgb *DependsOnSkippedGroupBy) sqlQuery() *sql.Selector {
-	selector := dosgb.sql.Select()
-	aggregation := make([]string, 0, len(dosgb.fns))
-	for _, fn := range dosgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(dosgb.fields)+len(dosgb.fns))
-		for _, f := range dosgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(dosgb.fields...)...)
-}
-
 // DependsOnSkippedSelect is the builder for selecting fields of DependsOnSkipped entities.
 type DependsOnSkippedSelect struct {
 	*DependsOnSkippedQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -600,26 +583,27 @@ func (doss *DependsOnSkippedSelect) Aggregate(fns ...AggregateFunc) *DependsOnSk
 
 // Scan applies the selector query and scans the result into the given value.
 func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, doss.ctx, "Select")
 	if err := doss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	doss.sql = doss.DependsOnSkippedQuery.sqlQuery(ctx)
-	return doss.sqlScan(ctx, v)
+	return scanWithInterceptors[*DependsOnSkippedQuery, *DependsOnSkippedSelect](ctx, doss.DependsOnSkippedQuery, doss, doss.inters, v)
 }
 
-func (doss *DependsOnSkippedSelect) sqlScan(ctx context.Context, v any) error {
+func (doss *DependsOnSkippedSelect) sqlScan(ctx context.Context, root *DependsOnSkippedQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(doss.fns))
 	for _, fn := range doss.fns {
-		aggregation = append(aggregation, fn(doss.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*doss.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		doss.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		doss.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := doss.sql.Query()
+	query, args := selector.Query()
 	if err := doss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

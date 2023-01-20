@@ -25,49 +25,7 @@ func (esmc *ExplicitSkippedMessageCreate) Mutation() *ExplicitSkippedMessageMuta
 
 // Save creates the ExplicitSkippedMessage in the database.
 func (esmc *ExplicitSkippedMessageCreate) Save(ctx context.Context) (*ExplicitSkippedMessage, error) {
-	var (
-		err  error
-		node *ExplicitSkippedMessage
-	)
-	if len(esmc.hooks) == 0 {
-		if err = esmc.check(); err != nil {
-			return nil, err
-		}
-		node, err = esmc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ExplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = esmc.check(); err != nil {
-				return nil, err
-			}
-			esmc.mutation = mutation
-			if node, err = esmc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(esmc.hooks) - 1; i >= 0; i-- {
-			if esmc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = esmc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, esmc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ExplicitSkippedMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ExplicitSkippedMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ExplicitSkippedMessage, ExplicitSkippedMessageMutation](ctx, esmc.sqlSave, esmc.mutation, esmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (esmc *ExplicitSkippedMessageCreate) check() error {
 }
 
 func (esmc *ExplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*ExplicitSkippedMessage, error) {
+	if err := esmc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := esmc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, esmc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,6 +68,8 @@ func (esmc *ExplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*Explici
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	esmc.mutation.id = &_node.ID
+	esmc.mutation.done = true
 	return _node, nil
 }
 

@@ -19,11 +19,9 @@ import (
 // NoBackrefQuery is the builder for querying NoBackref entities.
 type NoBackrefQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.NoBackref
 	withImages *ImageQuery
 	// intermediate query (i.e. traversal path).
@@ -37,26 +35,26 @@ func (nbq *NoBackrefQuery) Where(ps ...predicate.NoBackref) *NoBackrefQuery {
 	return nbq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (nbq *NoBackrefQuery) Limit(limit int) *NoBackrefQuery {
-	nbq.limit = &limit
+	nbq.ctx.Limit = &limit
 	return nbq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (nbq *NoBackrefQuery) Offset(offset int) *NoBackrefQuery {
-	nbq.offset = &offset
+	nbq.ctx.Offset = &offset
 	return nbq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (nbq *NoBackrefQuery) Unique(unique bool) *NoBackrefQuery {
-	nbq.unique = &unique
+	nbq.ctx.Unique = &unique
 	return nbq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (nbq *NoBackrefQuery) Order(o ...OrderFunc) *NoBackrefQuery {
 	nbq.order = append(nbq.order, o...)
 	return nbq
@@ -64,7 +62,7 @@ func (nbq *NoBackrefQuery) Order(o ...OrderFunc) *NoBackrefQuery {
 
 // QueryImages chains the current query on the "images" edge.
 func (nbq *NoBackrefQuery) QueryImages() *ImageQuery {
-	query := &ImageQuery{config: nbq.config}
+	query := (&ImageClient{config: nbq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := nbq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (nbq *NoBackrefQuery) QueryImages() *ImageQuery {
 // First returns the first NoBackref entity from the query.
 // Returns a *NotFoundError when no NoBackref was found.
 func (nbq *NoBackrefQuery) First(ctx context.Context) (*NoBackref, error) {
-	nodes, err := nbq.Limit(1).All(ctx)
+	nodes, err := nbq.Limit(1).All(setContextOp(ctx, nbq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +108,7 @@ func (nbq *NoBackrefQuery) FirstX(ctx context.Context) *NoBackref {
 // Returns a *NotFoundError when no NoBackref ID was found.
 func (nbq *NoBackrefQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = nbq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = nbq.Limit(1).IDs(setContextOp(ctx, nbq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +131,7 @@ func (nbq *NoBackrefQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one NoBackref entity is found.
 // Returns a *NotFoundError when no NoBackref entities are found.
 func (nbq *NoBackrefQuery) Only(ctx context.Context) (*NoBackref, error) {
-	nodes, err := nbq.Limit(2).All(ctx)
+	nodes, err := nbq.Limit(2).All(setContextOp(ctx, nbq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +159,7 @@ func (nbq *NoBackrefQuery) OnlyX(ctx context.Context) *NoBackref {
 // Returns a *NotFoundError when no entities are found.
 func (nbq *NoBackrefQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = nbq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = nbq.Limit(2).IDs(setContextOp(ctx, nbq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,10 +184,12 @@ func (nbq *NoBackrefQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of NoBackrefs.
 func (nbq *NoBackrefQuery) All(ctx context.Context) ([]*NoBackref, error) {
+	ctx = setContextOp(ctx, nbq.ctx, "All")
 	if err := nbq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return nbq.sqlAll(ctx)
+	qr := querierAll[[]*NoBackref, *NoBackrefQuery]()
+	return withInterceptors[[]*NoBackref](ctx, nbq, qr, nbq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -204,6 +204,7 @@ func (nbq *NoBackrefQuery) AllX(ctx context.Context) []*NoBackref {
 // IDs executes the query and returns a list of NoBackref IDs.
 func (nbq *NoBackrefQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, nbq.ctx, "IDs")
 	if err := nbq.Select(nobackref.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -221,10 +222,11 @@ func (nbq *NoBackrefQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (nbq *NoBackrefQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, nbq.ctx, "Count")
 	if err := nbq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return nbq.sqlCount(ctx)
+	return withInterceptors[int](ctx, nbq, querierCount[*NoBackrefQuery](), nbq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -238,10 +240,15 @@ func (nbq *NoBackrefQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (nbq *NoBackrefQuery) Exist(ctx context.Context) (bool, error) {
-	if err := nbq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, nbq.ctx, "Exist")
+	switch _, err := nbq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return nbq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -261,22 +268,21 @@ func (nbq *NoBackrefQuery) Clone() *NoBackrefQuery {
 	}
 	return &NoBackrefQuery{
 		config:     nbq.config,
-		limit:      nbq.limit,
-		offset:     nbq.offset,
+		ctx:        nbq.ctx.Clone(),
 		order:      append([]OrderFunc{}, nbq.order...),
+		inters:     append([]Interceptor{}, nbq.inters...),
 		predicates: append([]predicate.NoBackref{}, nbq.predicates...),
 		withImages: nbq.withImages.Clone(),
 		// clone intermediate query.
-		sql:    nbq.sql.Clone(),
-		path:   nbq.path,
-		unique: nbq.unique,
+		sql:  nbq.sql.Clone(),
+		path: nbq.path,
 	}
 }
 
 // WithImages tells the query-builder to eager-load the nodes that are connected to
 // the "images" edge. The optional arguments are used to configure the query builder of the edge.
 func (nbq *NoBackrefQuery) WithImages(opts ...func(*ImageQuery)) *NoBackrefQuery {
-	query := &ImageQuery{config: nbq.config}
+	query := (&ImageClient{config: nbq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -287,27 +293,22 @@ func (nbq *NoBackrefQuery) WithImages(opts ...func(*ImageQuery)) *NoBackrefQuery
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (nbq *NoBackrefQuery) GroupBy(field string, fields ...string) *NoBackrefGroupBy {
-	grbuild := &NoBackrefGroupBy{config: nbq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := nbq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return nbq.sqlQuery(ctx), nil
-	}
+	nbq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &NoBackrefGroupBy{build: nbq}
+	grbuild.flds = &nbq.ctx.Fields
 	grbuild.label = nobackref.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (nbq *NoBackrefQuery) Select(fields ...string) *NoBackrefSelect {
-	nbq.fields = append(nbq.fields, fields...)
-	selbuild := &NoBackrefSelect{NoBackrefQuery: nbq}
-	selbuild.label = nobackref.Label
-	selbuild.flds, selbuild.scan = &nbq.fields, selbuild.Scan
-	return selbuild
+	nbq.ctx.Fields = append(nbq.ctx.Fields, fields...)
+	sbuild := &NoBackrefSelect{NoBackrefQuery: nbq}
+	sbuild.label = nobackref.Label
+	sbuild.flds, sbuild.scan = &nbq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a NoBackrefSelect configured with the given aggregations.
@@ -316,7 +317,17 @@ func (nbq *NoBackrefQuery) Aggregate(fns ...AggregateFunc) *NoBackrefSelect {
 }
 
 func (nbq *NoBackrefQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range nbq.fields {
+	for _, inter := range nbq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, nbq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range nbq.ctx.Fields {
 		if !nobackref.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -401,22 +412,11 @@ func (nbq *NoBackrefQuery) loadImages(ctx context.Context, query *ImageQuery, no
 
 func (nbq *NoBackrefQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := nbq.querySpec()
-	_spec.Node.Columns = nbq.fields
-	if len(nbq.fields) > 0 {
-		_spec.Unique = nbq.unique != nil && *nbq.unique
+	_spec.Node.Columns = nbq.ctx.Fields
+	if len(nbq.ctx.Fields) > 0 {
+		_spec.Unique = nbq.ctx.Unique != nil && *nbq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, nbq.driver, _spec)
-}
-
-func (nbq *NoBackrefQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := nbq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
@@ -432,10 +432,10 @@ func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   nbq.sql,
 		Unique: true,
 	}
-	if unique := nbq.unique; unique != nil {
+	if unique := nbq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := nbq.fields; len(fields) > 0 {
+	if fields := nbq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, nobackref.FieldID)
 		for i := range fields {
@@ -451,10 +451,10 @@ func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := nbq.limit; limit != nil {
+	if limit := nbq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := nbq.offset; offset != nil {
+	if offset := nbq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := nbq.order; len(ps) > 0 {
@@ -470,7 +470,7 @@ func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
 func (nbq *NoBackrefQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(nbq.driver.Dialect())
 	t1 := builder.Table(nobackref.Table)
-	columns := nbq.fields
+	columns := nbq.ctx.Fields
 	if len(columns) == 0 {
 		columns = nobackref.Columns
 	}
@@ -479,7 +479,7 @@ func (nbq *NoBackrefQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = nbq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if nbq.unique != nil && *nbq.unique {
+	if nbq.ctx.Unique != nil && *nbq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range nbq.predicates {
@@ -488,12 +488,12 @@ func (nbq *NoBackrefQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range nbq.order {
 		p(selector)
 	}
-	if offset := nbq.offset; offset != nil {
+	if offset := nbq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := nbq.limit; limit != nil {
+	if limit := nbq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -501,13 +501,8 @@ func (nbq *NoBackrefQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // NoBackrefGroupBy is the group-by builder for NoBackref entities.
 type NoBackrefGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *NoBackrefQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -516,58 +511,46 @@ func (nbgb *NoBackrefGroupBy) Aggregate(fns ...AggregateFunc) *NoBackrefGroupBy 
 	return nbgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (nbgb *NoBackrefGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := nbgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, nbgb.build.ctx, "GroupBy")
+	if err := nbgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	nbgb.sql = query
-	return nbgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*NoBackrefQuery, *NoBackrefGroupBy](ctx, nbgb.build, nbgb, nbgb.build.inters, v)
 }
 
-func (nbgb *NoBackrefGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range nbgb.fields {
-		if !nobackref.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (nbgb *NoBackrefGroupBy) sqlScan(ctx context.Context, root *NoBackrefQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(nbgb.fns))
+	for _, fn := range nbgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := nbgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*nbgb.flds)+len(nbgb.fns))
+		for _, f := range *nbgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*nbgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := nbgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := nbgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (nbgb *NoBackrefGroupBy) sqlQuery() *sql.Selector {
-	selector := nbgb.sql.Select()
-	aggregation := make([]string, 0, len(nbgb.fns))
-	for _, fn := range nbgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(nbgb.fields)+len(nbgb.fns))
-		for _, f := range nbgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(nbgb.fields...)...)
-}
-
 // NoBackrefSelect is the builder for selecting fields of NoBackref entities.
 type NoBackrefSelect struct {
 	*NoBackrefQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -578,26 +561,27 @@ func (nbs *NoBackrefSelect) Aggregate(fns ...AggregateFunc) *NoBackrefSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (nbs *NoBackrefSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, nbs.ctx, "Select")
 	if err := nbs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	nbs.sql = nbs.NoBackrefQuery.sqlQuery(ctx)
-	return nbs.sqlScan(ctx, v)
+	return scanWithInterceptors[*NoBackrefQuery, *NoBackrefSelect](ctx, nbs.NoBackrefQuery, nbs, nbs.inters, v)
 }
 
-func (nbs *NoBackrefSelect) sqlScan(ctx context.Context, v any) error {
+func (nbs *NoBackrefSelect) sqlScan(ctx context.Context, root *NoBackrefQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(nbs.fns))
 	for _, fn := range nbs.fns {
-		aggregation = append(aggregation, fn(nbs.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*nbs.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		nbs.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		nbs.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := nbs.sql.Query()
+	query, args := selector.Query()
 	if err := nbs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

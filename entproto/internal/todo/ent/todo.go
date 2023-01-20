@@ -106,14 +106,14 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 
 // QueryUser queries the "user" edge of the Todo entity.
 func (t *Todo) QueryUser() *UserQuery {
-	return (&TodoClient{config: t.config}).QueryUser(t)
+	return NewTodoClient(t.config).QueryUser(t)
 }
 
 // Update returns a builder for updating this Todo.
 // Note that you need to call Todo.Unwrap() before calling this method if this Todo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Todo) Update() *TodoUpdateOne {
-	return (&TodoClient{config: t.config}).UpdateOne(t)
+	return NewTodoClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Todo entity that was returned from a transaction after it was closed,

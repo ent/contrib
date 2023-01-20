@@ -132,7 +132,7 @@ func (mwo *MessageWithOptionals) assignValues(columns []string, values []any) er
 // Note that you need to call MessageWithOptionals.Unwrap() before calling this method if this MessageWithOptionals
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwo *MessageWithOptionals) Update() *MessageWithOptionalsUpdateOne {
-	return (&MessageWithOptionalsClient{config: mwo.config}).UpdateOne(mwo)
+	return NewMessageWithOptionalsClient(mwo.config).UpdateOne(mwo)
 }
 
 // Unwrap unwraps the MessageWithOptionals entity that was returned from a transaction after it was closed,

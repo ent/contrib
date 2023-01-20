@@ -15,11 +15,10 @@ type AllMethodsServiceFunc func(context.Context, *ent.AllMethodsServiceMutation)
 
 // Mutate calls f(ctx, m).
 func (f AllMethodsServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AllMethodsServiceMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AllMethodsServiceMutation", m)
+	if mv, ok := m.(*ent.AllMethodsServiceMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AllMethodsServiceMutation", m)
 }
 
 // The BlogPostFunc type is an adapter to allow the use of ordinary
@@ -28,11 +27,10 @@ type BlogPostFunc func(context.Context, *ent.BlogPostMutation) (ent.Value, error
 
 // Mutate calls f(ctx, m).
 func (f BlogPostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.BlogPostMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BlogPostMutation", m)
+	if mv, ok := m.(*ent.BlogPostMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BlogPostMutation", m)
 }
 
 // The CategoryFunc type is an adapter to allow the use of ordinary
@@ -41,11 +39,10 @@ type CategoryFunc func(context.Context, *ent.CategoryMutation) (ent.Value, error
 
 // Mutate calls f(ctx, m).
 func (f CategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.CategoryMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
+	if mv, ok := m.(*ent.CategoryMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
 }
 
 // The DependsOnSkippedFunc type is an adapter to allow the use of ordinary
@@ -54,11 +51,10 @@ type DependsOnSkippedFunc func(context.Context, *ent.DependsOnSkippedMutation) (
 
 // Mutate calls f(ctx, m).
 func (f DependsOnSkippedFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DependsOnSkippedMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DependsOnSkippedMutation", m)
+	if mv, ok := m.(*ent.DependsOnSkippedMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DependsOnSkippedMutation", m)
 }
 
 // The DuplicateNumberMessageFunc type is an adapter to allow the use of ordinary
@@ -67,11 +63,10 @@ type DuplicateNumberMessageFunc func(context.Context, *ent.DuplicateNumberMessag
 
 // Mutate calls f(ctx, m).
 func (f DuplicateNumberMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DuplicateNumberMessageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DuplicateNumberMessageMutation", m)
+	if mv, ok := m.(*ent.DuplicateNumberMessageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DuplicateNumberMessageMutation", m)
 }
 
 // The ExplicitSkippedMessageFunc type is an adapter to allow the use of ordinary
@@ -80,11 +75,10 @@ type ExplicitSkippedMessageFunc func(context.Context, *ent.ExplicitSkippedMessag
 
 // Mutate calls f(ctx, m).
 func (f ExplicitSkippedMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.ExplicitSkippedMessageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExplicitSkippedMessageMutation", m)
+	if mv, ok := m.(*ent.ExplicitSkippedMessageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExplicitSkippedMessageMutation", m)
 }
 
 // The ImageFunc type is an adapter to allow the use of ordinary
@@ -93,11 +87,10 @@ type ImageFunc func(context.Context, *ent.ImageMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f ImageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.ImageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImageMutation", m)
+	if mv, ok := m.(*ent.ImageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImageMutation", m)
 }
 
 // The ImplicitSkippedMessageFunc type is an adapter to allow the use of ordinary
@@ -106,11 +99,10 @@ type ImplicitSkippedMessageFunc func(context.Context, *ent.ImplicitSkippedMessag
 
 // Mutate calls f(ctx, m).
 func (f ImplicitSkippedMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.ImplicitSkippedMessageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImplicitSkippedMessageMutation", m)
+	if mv, ok := m.(*ent.ImplicitSkippedMessageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ImplicitSkippedMessageMutation", m)
 }
 
 // The InvalidFieldMessageFunc type is an adapter to allow the use of ordinary
@@ -119,11 +111,10 @@ type InvalidFieldMessageFunc func(context.Context, *ent.InvalidFieldMessageMutat
 
 // Mutate calls f(ctx, m).
 func (f InvalidFieldMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.InvalidFieldMessageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InvalidFieldMessageMutation", m)
+	if mv, ok := m.(*ent.InvalidFieldMessageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InvalidFieldMessageMutation", m)
 }
 
 // The MessageWithEnumFunc type is an adapter to allow the use of ordinary
@@ -132,11 +123,10 @@ type MessageWithEnumFunc func(context.Context, *ent.MessageWithEnumMutation) (en
 
 // Mutate calls f(ctx, m).
 func (f MessageWithEnumFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageWithEnumMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithEnumMutation", m)
+	if mv, ok := m.(*ent.MessageWithEnumMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithEnumMutation", m)
 }
 
 // The MessageWithFieldOneFunc type is an adapter to allow the use of ordinary
@@ -145,11 +135,10 @@ type MessageWithFieldOneFunc func(context.Context, *ent.MessageWithFieldOneMutat
 
 // Mutate calls f(ctx, m).
 func (f MessageWithFieldOneFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageWithFieldOneMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithFieldOneMutation", m)
+	if mv, ok := m.(*ent.MessageWithFieldOneMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithFieldOneMutation", m)
 }
 
 // The MessageWithIDFunc type is an adapter to allow the use of ordinary
@@ -158,11 +147,10 @@ type MessageWithIDFunc func(context.Context, *ent.MessageWithIDMutation) (ent.Va
 
 // Mutate calls f(ctx, m).
 func (f MessageWithIDFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageWithIDMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithIDMutation", m)
+	if mv, ok := m.(*ent.MessageWithIDMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithIDMutation", m)
 }
 
 // The MessageWithOptionalsFunc type is an adapter to allow the use of ordinary
@@ -171,11 +159,10 @@ type MessageWithOptionalsFunc func(context.Context, *ent.MessageWithOptionalsMut
 
 // Mutate calls f(ctx, m).
 func (f MessageWithOptionalsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageWithOptionalsMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithOptionalsMutation", m)
+	if mv, ok := m.(*ent.MessageWithOptionalsMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithOptionalsMutation", m)
 }
 
 // The MessageWithPackageNameFunc type is an adapter to allow the use of ordinary
@@ -184,11 +171,10 @@ type MessageWithPackageNameFunc func(context.Context, *ent.MessageWithPackageNam
 
 // Mutate calls f(ctx, m).
 func (f MessageWithPackageNameFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageWithPackageNameMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithPackageNameMutation", m)
+	if mv, ok := m.(*ent.MessageWithPackageNameMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithPackageNameMutation", m)
 }
 
 // The MessageWithStringsFunc type is an adapter to allow the use of ordinary
@@ -197,11 +183,10 @@ type MessageWithStringsFunc func(context.Context, *ent.MessageWithStringsMutatio
 
 // Mutate calls f(ctx, m).
 func (f MessageWithStringsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MessageWithStringsMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithStringsMutation", m)
+	if mv, ok := m.(*ent.MessageWithStringsMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithStringsMutation", m)
 }
 
 // The NoBackrefFunc type is an adapter to allow the use of ordinary
@@ -210,11 +195,10 @@ type NoBackrefFunc func(context.Context, *ent.NoBackrefMutation) (ent.Value, err
 
 // Mutate calls f(ctx, m).
 func (f NoBackrefFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.NoBackrefMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NoBackrefMutation", m)
+	if mv, ok := m.(*ent.NoBackrefMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NoBackrefMutation", m)
 }
 
 // The OneMethodServiceFunc type is an adapter to allow the use of ordinary
@@ -223,11 +207,10 @@ type OneMethodServiceFunc func(context.Context, *ent.OneMethodServiceMutation) (
 
 // Mutate calls f(ctx, m).
 func (f OneMethodServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.OneMethodServiceMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OneMethodServiceMutation", m)
+	if mv, ok := m.(*ent.OneMethodServiceMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OneMethodServiceMutation", m)
 }
 
 // The PortalFunc type is an adapter to allow the use of ordinary
@@ -236,11 +219,10 @@ type PortalFunc func(context.Context, *ent.PortalMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f PortalFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PortalMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PortalMutation", m)
+	if mv, ok := m.(*ent.PortalMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PortalMutation", m)
 }
 
 // The SkipEdgeExampleFunc type is an adapter to allow the use of ordinary
@@ -249,11 +231,10 @@ type SkipEdgeExampleFunc func(context.Context, *ent.SkipEdgeExampleMutation) (en
 
 // Mutate calls f(ctx, m).
 func (f SkipEdgeExampleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.SkipEdgeExampleMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SkipEdgeExampleMutation", m)
+	if mv, ok := m.(*ent.SkipEdgeExampleMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SkipEdgeExampleMutation", m)
 }
 
 // The TwoMethodServiceFunc type is an adapter to allow the use of ordinary
@@ -262,11 +243,10 @@ type TwoMethodServiceFunc func(context.Context, *ent.TwoMethodServiceMutation) (
 
 // Mutate calls f(ctx, m).
 func (f TwoMethodServiceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TwoMethodServiceMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TwoMethodServiceMutation", m)
+	if mv, ok := m.(*ent.TwoMethodServiceMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TwoMethodServiceMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -275,11 +255,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // The ValidMessageFunc type is an adapter to allow the use of ordinary
@@ -288,11 +267,10 @@ type ValidMessageFunc func(context.Context, *ent.ValidMessageMutation) (ent.Valu
 
 // Mutate calls f(ctx, m).
 func (f ValidMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.ValidMessageMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ValidMessageMutation", m)
+	if mv, ok := m.(*ent.ValidMessageMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ValidMessageMutation", m)
 }
 
 // Condition is a hook condition function.

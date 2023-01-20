@@ -106,14 +106,14 @@ func (po *Portal) assignValues(columns []string, values []any) error {
 
 // QueryCategory queries the "category" edge of the Portal entity.
 func (po *Portal) QueryCategory() *CategoryQuery {
-	return (&PortalClient{config: po.config}).QueryCategory(po)
+	return NewPortalClient(po.config).QueryCategory(po)
 }
 
 // Update returns a builder for updating this Portal.
 // Note that you need to call Portal.Unwrap() before calling this method if this Portal
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (po *Portal) Update() *PortalUpdateOne {
-	return (&PortalClient{config: po.config}).UpdateOne(po)
+	return NewPortalClient(po.config).UpdateOne(po)
 }
 
 // Unwrap unwraps the Portal entity that was returned from a transaction after it was closed,

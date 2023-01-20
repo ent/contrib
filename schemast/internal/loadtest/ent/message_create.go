@@ -25,49 +25,7 @@ func (mc *MessageCreate) Mutation() *MessageMutation {
 
 // Save creates the Message in the database.
 func (mc *MessageCreate) Save(ctx context.Context) (*Message, error) {
-	var (
-		err  error
-		node *Message
-	)
-	if len(mc.hooks) == 0 {
-		if err = mc.check(); err != nil {
-			return nil, err
-		}
-		node, err = mc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mc.check(); err != nil {
-				return nil, err
-			}
-			mc.mutation = mutation
-			if node, err = mc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mc.hooks) - 1; i >= 0; i-- {
-			if mc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Message)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Message, MessageMutation](ctx, mc.sqlSave, mc.mutation, mc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (mc *MessageCreate) check() error {
 }
 
 func (mc *MessageCreate) sqlSave(ctx context.Context) (*Message, error) {
+	if err := mc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,6 +68,8 @@ func (mc *MessageCreate) sqlSave(ctx context.Context) (*Message, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mc.mutation.id = &_node.ID
+	mc.mutation.done = true
 	return _node, nil
 }
 

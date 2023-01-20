@@ -41,34 +41,7 @@ func (ifmu *InvalidFieldMessageUpdate) Mutation() *InvalidFieldMessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ifmu *InvalidFieldMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ifmu.hooks) == 0 {
-		affected, err = ifmu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ifmu.mutation = mutation
-			affected, err = ifmu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ifmu.hooks) - 1; i >= 0; i-- {
-			if ifmu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ifmu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, InvalidFieldMessageMutation](ctx, ifmu.sqlSave, ifmu.mutation, ifmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -122,6 +95,7 @@ func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err 
 		}
 		return 0, err
 	}
+	ifmu.mutation.done = true
 	return n, nil
 }
 
@@ -153,40 +127,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Select(field string, fields ...string
 
 // Save executes the query and returns the updated InvalidFieldMessage entity.
 func (ifmuo *InvalidFieldMessageUpdateOne) Save(ctx context.Context) (*InvalidFieldMessage, error) {
-	var (
-		err  error
-		node *InvalidFieldMessage
-	)
-	if len(ifmuo.hooks) == 0 {
-		node, err = ifmuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ifmuo.mutation = mutation
-			node, err = ifmuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ifmuo.hooks) - 1; i >= 0; i-- {
-			if ifmuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ifmuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*InvalidFieldMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from InvalidFieldMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*InvalidFieldMessage, InvalidFieldMessageMutation](ctx, ifmuo.sqlSave, ifmuo.mutation, ifmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -260,5 +201,6 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 		}
 		return nil, err
 	}
+	ifmuo.mutation.done = true
 	return _node, nil
 }

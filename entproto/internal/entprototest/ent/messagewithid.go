@@ -54,7 +54,7 @@ func (mwi *MessageWithID) assignValues(columns []string, values []any) error {
 // Note that you need to call MessageWithID.Unwrap() before calling this method if this MessageWithID
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwi *MessageWithID) Update() *MessageWithIDUpdateOne {
-	return (&MessageWithIDClient{config: mwi.config}).UpdateOne(mwi)
+	return NewMessageWithIDClient(mwi.config).UpdateOne(mwi)
 }
 
 // Unwrap unwraps the MessageWithID entity that was returned from a transaction after it was closed,

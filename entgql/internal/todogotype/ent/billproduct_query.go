@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,11 +31,9 @@ import (
 // BillProductQuery is the builder for querying BillProduct entities.
 type BillProductQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.BillProduct
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*BillProduct) error
@@ -50,26 +48,26 @@ func (bpq *BillProductQuery) Where(ps ...predicate.BillProduct) *BillProductQuer
 	return bpq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (bpq *BillProductQuery) Limit(limit int) *BillProductQuery {
-	bpq.limit = &limit
+	bpq.ctx.Limit = &limit
 	return bpq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (bpq *BillProductQuery) Offset(offset int) *BillProductQuery {
-	bpq.offset = &offset
+	bpq.ctx.Offset = &offset
 	return bpq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (bpq *BillProductQuery) Unique(unique bool) *BillProductQuery {
-	bpq.unique = &unique
+	bpq.ctx.Unique = &unique
 	return bpq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (bpq *BillProductQuery) Order(o ...OrderFunc) *BillProductQuery {
 	bpq.order = append(bpq.order, o...)
 	return bpq
@@ -78,7 +76,7 @@ func (bpq *BillProductQuery) Order(o ...OrderFunc) *BillProductQuery {
 // First returns the first BillProduct entity from the query.
 // Returns a *NotFoundError when no BillProduct was found.
 func (bpq *BillProductQuery) First(ctx context.Context) (*BillProduct, error) {
-	nodes, err := bpq.Limit(1).All(ctx)
+	nodes, err := bpq.Limit(1).All(setContextOp(ctx, bpq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +99,7 @@ func (bpq *BillProductQuery) FirstX(ctx context.Context) *BillProduct {
 // Returns a *NotFoundError when no BillProduct ID was found.
 func (bpq *BillProductQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = bpq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = bpq.Limit(1).IDs(setContextOp(ctx, bpq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -124,7 +122,7 @@ func (bpq *BillProductQuery) FirstIDX(ctx context.Context) string {
 // Returns a *NotSingularError when more than one BillProduct entity is found.
 // Returns a *NotFoundError when no BillProduct entities are found.
 func (bpq *BillProductQuery) Only(ctx context.Context) (*BillProduct, error) {
-	nodes, err := bpq.Limit(2).All(ctx)
+	nodes, err := bpq.Limit(2).All(setContextOp(ctx, bpq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +150,7 @@ func (bpq *BillProductQuery) OnlyX(ctx context.Context) *BillProduct {
 // Returns a *NotFoundError when no entities are found.
 func (bpq *BillProductQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = bpq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = bpq.Limit(2).IDs(setContextOp(ctx, bpq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -177,10 +175,12 @@ func (bpq *BillProductQuery) OnlyIDX(ctx context.Context) string {
 
 // All executes the query and returns a list of BillProducts.
 func (bpq *BillProductQuery) All(ctx context.Context) ([]*BillProduct, error) {
+	ctx = setContextOp(ctx, bpq.ctx, "All")
 	if err := bpq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return bpq.sqlAll(ctx)
+	qr := querierAll[[]*BillProduct, *BillProductQuery]()
+	return withInterceptors[[]*BillProduct](ctx, bpq, qr, bpq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -195,6 +195,7 @@ func (bpq *BillProductQuery) AllX(ctx context.Context) []*BillProduct {
 // IDs executes the query and returns a list of BillProduct IDs.
 func (bpq *BillProductQuery) IDs(ctx context.Context) ([]string, error) {
 	var ids []string
+	ctx = setContextOp(ctx, bpq.ctx, "IDs")
 	if err := bpq.Select(billproduct.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -212,10 +213,11 @@ func (bpq *BillProductQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (bpq *BillProductQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, bpq.ctx, "Count")
 	if err := bpq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return bpq.sqlCount(ctx)
+	return withInterceptors[int](ctx, bpq, querierCount[*BillProductQuery](), bpq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -229,10 +231,15 @@ func (bpq *BillProductQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (bpq *BillProductQuery) Exist(ctx context.Context) (bool, error) {
-	if err := bpq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, bpq.ctx, "Exist")
+	switch _, err := bpq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return bpq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -252,14 +259,13 @@ func (bpq *BillProductQuery) Clone() *BillProductQuery {
 	}
 	return &BillProductQuery{
 		config:     bpq.config,
-		limit:      bpq.limit,
-		offset:     bpq.offset,
+		ctx:        bpq.ctx.Clone(),
 		order:      append([]OrderFunc{}, bpq.order...),
+		inters:     append([]Interceptor{}, bpq.inters...),
 		predicates: append([]predicate.BillProduct{}, bpq.predicates...),
 		// clone intermediate query.
-		sql:    bpq.sql.Clone(),
-		path:   bpq.path,
-		unique: bpq.unique,
+		sql:  bpq.sql.Clone(),
+		path: bpq.path,
 	}
 }
 
@@ -278,16 +284,11 @@ func (bpq *BillProductQuery) Clone() *BillProductQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (bpq *BillProductQuery) GroupBy(field string, fields ...string) *BillProductGroupBy {
-	grbuild := &BillProductGroupBy{config: bpq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := bpq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return bpq.sqlQuery(ctx), nil
-	}
+	bpq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &BillProductGroupBy{build: bpq}
+	grbuild.flds = &bpq.ctx.Fields
 	grbuild.label = billproduct.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -304,11 +305,11 @@ func (bpq *BillProductQuery) GroupBy(field string, fields ...string) *BillProduc
 //		Select(billproduct.FieldName).
 //		Scan(ctx, &v)
 func (bpq *BillProductQuery) Select(fields ...string) *BillProductSelect {
-	bpq.fields = append(bpq.fields, fields...)
-	selbuild := &BillProductSelect{BillProductQuery: bpq}
-	selbuild.label = billproduct.Label
-	selbuild.flds, selbuild.scan = &bpq.fields, selbuild.Scan
-	return selbuild
+	bpq.ctx.Fields = append(bpq.ctx.Fields, fields...)
+	sbuild := &BillProductSelect{BillProductQuery: bpq}
+	sbuild.label = billproduct.Label
+	sbuild.flds, sbuild.scan = &bpq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a BillProductSelect configured with the given aggregations.
@@ -317,7 +318,17 @@ func (bpq *BillProductQuery) Aggregate(fns ...AggregateFunc) *BillProductSelect 
 }
 
 func (bpq *BillProductQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range bpq.fields {
+	for _, inter := range bpq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, bpq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range bpq.ctx.Fields {
 		if !billproduct.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -370,22 +381,11 @@ func (bpq *BillProductQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(bpq.modifiers) > 0 {
 		_spec.Modifiers = bpq.modifiers
 	}
-	_spec.Node.Columns = bpq.fields
-	if len(bpq.fields) > 0 {
-		_spec.Unique = bpq.unique != nil && *bpq.unique
+	_spec.Node.Columns = bpq.ctx.Fields
+	if len(bpq.ctx.Fields) > 0 {
+		_spec.Unique = bpq.ctx.Unique != nil && *bpq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, bpq.driver, _spec)
-}
-
-func (bpq *BillProductQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := bpq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (bpq *BillProductQuery) querySpec() *sqlgraph.QuerySpec {
@@ -401,10 +401,10 @@ func (bpq *BillProductQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   bpq.sql,
 		Unique: true,
 	}
-	if unique := bpq.unique; unique != nil {
+	if unique := bpq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := bpq.fields; len(fields) > 0 {
+	if fields := bpq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, billproduct.FieldID)
 		for i := range fields {
@@ -420,10 +420,10 @@ func (bpq *BillProductQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := bpq.limit; limit != nil {
+	if limit := bpq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := bpq.offset; offset != nil {
+	if offset := bpq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := bpq.order; len(ps) > 0 {
@@ -439,7 +439,7 @@ func (bpq *BillProductQuery) querySpec() *sqlgraph.QuerySpec {
 func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(bpq.driver.Dialect())
 	t1 := builder.Table(billproduct.Table)
-	columns := bpq.fields
+	columns := bpq.ctx.Fields
 	if len(columns) == 0 {
 		columns = billproduct.Columns
 	}
@@ -448,7 +448,7 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = bpq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if bpq.unique != nil && *bpq.unique {
+	if bpq.ctx.Unique != nil && *bpq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range bpq.predicates {
@@ -457,12 +457,12 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range bpq.order {
 		p(selector)
 	}
-	if offset := bpq.offset; offset != nil {
+	if offset := bpq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := bpq.limit; limit != nil {
+	if limit := bpq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -470,13 +470,8 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // BillProductGroupBy is the group-by builder for BillProduct entities.
 type BillProductGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *BillProductQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -485,58 +480,46 @@ func (bpgb *BillProductGroupBy) Aggregate(fns ...AggregateFunc) *BillProductGrou
 	return bpgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (bpgb *BillProductGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := bpgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, bpgb.build.ctx, "GroupBy")
+	if err := bpgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	bpgb.sql = query
-	return bpgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*BillProductQuery, *BillProductGroupBy](ctx, bpgb.build, bpgb, bpgb.build.inters, v)
 }
 
-func (bpgb *BillProductGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range bpgb.fields {
-		if !billproduct.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (bpgb *BillProductGroupBy) sqlScan(ctx context.Context, root *BillProductQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(bpgb.fns))
+	for _, fn := range bpgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := bpgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*bpgb.flds)+len(bpgb.fns))
+		for _, f := range *bpgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*bpgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := bpgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := bpgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (bpgb *BillProductGroupBy) sqlQuery() *sql.Selector {
-	selector := bpgb.sql.Select()
-	aggregation := make([]string, 0, len(bpgb.fns))
-	for _, fn := range bpgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(bpgb.fields)+len(bpgb.fns))
-		for _, f := range bpgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(bpgb.fields...)...)
-}
-
 // BillProductSelect is the builder for selecting fields of BillProduct entities.
 type BillProductSelect struct {
 	*BillProductQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -547,26 +530,27 @@ func (bps *BillProductSelect) Aggregate(fns ...AggregateFunc) *BillProductSelect
 
 // Scan applies the selector query and scans the result into the given value.
 func (bps *BillProductSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, bps.ctx, "Select")
 	if err := bps.prepareQuery(ctx); err != nil {
 		return err
 	}
-	bps.sql = bps.BillProductQuery.sqlQuery(ctx)
-	return bps.sqlScan(ctx, v)
+	return scanWithInterceptors[*BillProductQuery, *BillProductSelect](ctx, bps.BillProductQuery, bps, bps.inters, v)
 }
 
-func (bps *BillProductSelect) sqlScan(ctx context.Context, v any) error {
+func (bps *BillProductSelect) sqlScan(ctx context.Context, root *BillProductQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(bps.fns))
 	for _, fn := range bps.fns {
-		aggregation = append(aggregation, fn(bps.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*bps.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		bps.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		bps.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := bps.sql.Query()
+	query, args := selector.Query()
 	if err := bps.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

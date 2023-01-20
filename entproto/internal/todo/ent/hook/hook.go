@@ -15,11 +15,10 @@ type AttachmentFunc func(context.Context, *ent.AttachmentMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f AttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AttachmentMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachmentMutation", m)
+	if mv, ok := m.(*ent.AttachmentMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachmentMutation", m)
 }
 
 // The GroupFunc type is an adapter to allow the use of ordinary
@@ -28,11 +27,10 @@ type GroupFunc func(context.Context, *ent.GroupMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.GroupMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
+	if mv, ok := m.(*ent.GroupMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
 }
 
 // The MultiWordSchemaFunc type is an adapter to allow the use of ordinary
@@ -41,11 +39,10 @@ type MultiWordSchemaFunc func(context.Context, *ent.MultiWordSchemaMutation) (en
 
 // Mutate calls f(ctx, m).
 func (f MultiWordSchemaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.MultiWordSchemaMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MultiWordSchemaMutation", m)
+	if mv, ok := m.(*ent.MultiWordSchemaMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MultiWordSchemaMutation", m)
 }
 
 // The NilExampleFunc type is an adapter to allow the use of ordinary
@@ -54,11 +51,10 @@ type NilExampleFunc func(context.Context, *ent.NilExampleMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f NilExampleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.NilExampleMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NilExampleMutation", m)
+	if mv, ok := m.(*ent.NilExampleMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NilExampleMutation", m)
 }
 
 // The PetFunc type is an adapter to allow the use of ordinary
@@ -67,11 +63,10 @@ type PetFunc func(context.Context, *ent.PetMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f PetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PetMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PetMutation", m)
+	if mv, ok := m.(*ent.PetMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PetMutation", m)
 }
 
 // The PonyFunc type is an adapter to allow the use of ordinary
@@ -80,11 +75,10 @@ type PonyFunc func(context.Context, *ent.PonyMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f PonyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PonyMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PonyMutation", m)
+	if mv, ok := m.(*ent.PonyMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PonyMutation", m)
 }
 
 // The SkipEdgeExampleFunc type is an adapter to allow the use of ordinary
@@ -93,11 +87,10 @@ type SkipEdgeExampleFunc func(context.Context, *ent.SkipEdgeExampleMutation) (en
 
 // Mutate calls f(ctx, m).
 func (f SkipEdgeExampleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.SkipEdgeExampleMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SkipEdgeExampleMutation", m)
+	if mv, ok := m.(*ent.SkipEdgeExampleMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SkipEdgeExampleMutation", m)
 }
 
 // The TodoFunc type is an adapter to allow the use of ordinary
@@ -106,11 +99,10 @@ type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f TodoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TodoMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
+	if mv, ok := m.(*ent.TodoMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -119,11 +111,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // Condition is a hook condition function.

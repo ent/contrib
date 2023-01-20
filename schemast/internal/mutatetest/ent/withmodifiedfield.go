@@ -98,14 +98,14 @@ func (wmf *WithModifiedField) assignValues(columns []string, values []any) error
 
 // QueryOwner queries the "owner" edge of the WithModifiedField entity.
 func (wmf *WithModifiedField) QueryOwner() *UserQuery {
-	return (&WithModifiedFieldClient{config: wmf.config}).QueryOwner(wmf)
+	return NewWithModifiedFieldClient(wmf.config).QueryOwner(wmf)
 }
 
 // Update returns a builder for updating this WithModifiedField.
 // Note that you need to call WithModifiedField.Unwrap() before calling this method if this WithModifiedField
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wmf *WithModifiedField) Update() *WithModifiedFieldUpdateOne {
-	return (&WithModifiedFieldClient{config: wmf.config}).UpdateOne(wmf)
+	return NewWithModifiedFieldClient(wmf.config).UpdateOne(wmf)
 }
 
 // Unwrap unwraps the WithModifiedField entity that was returned from a transaction after it was closed,

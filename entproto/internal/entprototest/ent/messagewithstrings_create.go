@@ -32,49 +32,7 @@ func (mwsc *MessageWithStringsCreate) Mutation() *MessageWithStringsMutation {
 
 // Save creates the MessageWithStrings in the database.
 func (mwsc *MessageWithStringsCreate) Save(ctx context.Context) (*MessageWithStrings, error) {
-	var (
-		err  error
-		node *MessageWithStrings
-	)
-	if len(mwsc.hooks) == 0 {
-		if err = mwsc.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithStringsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwsc.check(); err != nil {
-				return nil, err
-			}
-			mwsc.mutation = mutation
-			if node, err = mwsc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwsc.hooks) - 1; i >= 0; i-- {
-			if mwsc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwsc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithStrings)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithStringsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithStrings, MessageWithStringsMutation](ctx, mwsc.sqlSave, mwsc.mutation, mwsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -108,6 +66,9 @@ func (mwsc *MessageWithStringsCreate) check() error {
 }
 
 func (mwsc *MessageWithStringsCreate) sqlSave(ctx context.Context) (*MessageWithStrings, error) {
+	if err := mwsc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwsc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -117,6 +78,8 @@ func (mwsc *MessageWithStringsCreate) sqlSave(ctx context.Context) (*MessageWith
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mwsc.mutation.id = &_node.ID
+	mwsc.mutation.done = true
 	return _node, nil
 }
 

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/predicate"
@@ -42,34 +41,7 @@ func (bpd *BillProductDelete) Where(ps ...predicate.BillProduct) *BillProductDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (bpd *BillProductDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(bpd.hooks) == 0 {
-		affected, err = bpd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BillProductMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			bpd.mutation = mutation
-			affected, err = bpd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(bpd.hooks) - 1; i >= 0; i-- {
-			if bpd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, bpd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, BillProductMutation](ctx, bpd.sqlExec, bpd.mutation, bpd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -102,6 +74,7 @@ func (bpd *BillProductDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	bpd.mutation.done = true
 	return affected, err
 }
 

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,7 +78,7 @@ func (vs *VerySecret) assignValues(columns []string, values []any) error {
 // Note that you need to call VerySecret.Unwrap() before calling this method if this VerySecret
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (vs *VerySecret) Update() *VerySecretUpdateOne {
-	return (&VerySecretClient{config: vs.config}).UpdateOne(vs)
+	return NewVerySecretClient(vs.config).UpdateOne(vs)
 }
 
 // Unwrap unwraps the VerySecret entity that was returned from a transaction after it was closed,

@@ -125,19 +125,19 @@ func (bp *BlogPost) assignValues(columns []string, values []any) error {
 
 // QueryAuthor queries the "author" edge of the BlogPost entity.
 func (bp *BlogPost) QueryAuthor() *UserQuery {
-	return (&BlogPostClient{config: bp.config}).QueryAuthor(bp)
+	return NewBlogPostClient(bp.config).QueryAuthor(bp)
 }
 
 // QueryCategories queries the "categories" edge of the BlogPost entity.
 func (bp *BlogPost) QueryCategories() *CategoryQuery {
-	return (&BlogPostClient{config: bp.config}).QueryCategories(bp)
+	return NewBlogPostClient(bp.config).QueryCategories(bp)
 }
 
 // Update returns a builder for updating this BlogPost.
 // Note that you need to call BlogPost.Unwrap() before calling this method if this BlogPost
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (bp *BlogPost) Update() *BlogPostUpdateOne {
-	return (&BlogPostClient{config: bp.config}).UpdateOne(bp)
+	return NewBlogPostClient(bp.config).UpdateOne(bp)
 }
 
 // Unwrap unwraps the BlogPost entity that was returned from a transaction after it was closed,

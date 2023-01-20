@@ -62,7 +62,7 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 // Note that you need to call Attachment.Unwrap() before calling this method if this Attachment
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (a *Attachment) Update() *AttachmentUpdateOne {
-	return (&AttachmentClient{config: a.config}).UpdateOne(a)
+	return NewAttachmentClient(a.config).UpdateOne(a)
 }
 
 // Unwrap unwraps the Attachment entity that was returned from a transaction after it was closed,

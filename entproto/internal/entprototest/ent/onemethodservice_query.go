@@ -17,11 +17,9 @@ import (
 // OneMethodServiceQuery is the builder for querying OneMethodService entities.
 type OneMethodServiceQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.OneMethodService
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (omsq *OneMethodServiceQuery) Where(ps ...predicate.OneMethodService) *OneM
 	return omsq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (omsq *OneMethodServiceQuery) Limit(limit int) *OneMethodServiceQuery {
-	omsq.limit = &limit
+	omsq.ctx.Limit = &limit
 	return omsq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (omsq *OneMethodServiceQuery) Offset(offset int) *OneMethodServiceQuery {
-	omsq.offset = &offset
+	omsq.ctx.Offset = &offset
 	return omsq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (omsq *OneMethodServiceQuery) Unique(unique bool) *OneMethodServiceQuery {
-	omsq.unique = &unique
+	omsq.ctx.Unique = &unique
 	return omsq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (omsq *OneMethodServiceQuery) Order(o ...OrderFunc) *OneMethodServiceQuery {
 	omsq.order = append(omsq.order, o...)
 	return omsq
@@ -62,7 +60,7 @@ func (omsq *OneMethodServiceQuery) Order(o ...OrderFunc) *OneMethodServiceQuery 
 // First returns the first OneMethodService entity from the query.
 // Returns a *NotFoundError when no OneMethodService was found.
 func (omsq *OneMethodServiceQuery) First(ctx context.Context) (*OneMethodService, error) {
-	nodes, err := omsq.Limit(1).All(ctx)
+	nodes, err := omsq.Limit(1).All(setContextOp(ctx, omsq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (omsq *OneMethodServiceQuery) FirstX(ctx context.Context) *OneMethodService
 // Returns a *NotFoundError when no OneMethodService ID was found.
 func (omsq *OneMethodServiceQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = omsq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = omsq.Limit(1).IDs(setContextOp(ctx, omsq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (omsq *OneMethodServiceQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one OneMethodService entity is found.
 // Returns a *NotFoundError when no OneMethodService entities are found.
 func (omsq *OneMethodServiceQuery) Only(ctx context.Context) (*OneMethodService, error) {
-	nodes, err := omsq.Limit(2).All(ctx)
+	nodes, err := omsq.Limit(2).All(setContextOp(ctx, omsq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (omsq *OneMethodServiceQuery) OnlyX(ctx context.Context) *OneMethodService 
 // Returns a *NotFoundError when no entities are found.
 func (omsq *OneMethodServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = omsq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = omsq.Limit(2).IDs(setContextOp(ctx, omsq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (omsq *OneMethodServiceQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of OneMethodServices.
 func (omsq *OneMethodServiceQuery) All(ctx context.Context) ([]*OneMethodService, error) {
+	ctx = setContextOp(ctx, omsq.ctx, "All")
 	if err := omsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return omsq.sqlAll(ctx)
+	qr := querierAll[[]*OneMethodService, *OneMethodServiceQuery]()
+	return withInterceptors[[]*OneMethodService](ctx, omsq, qr, omsq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (omsq *OneMethodServiceQuery) AllX(ctx context.Context) []*OneMethodService
 // IDs executes the query and returns a list of OneMethodService IDs.
 func (omsq *OneMethodServiceQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, omsq.ctx, "IDs")
 	if err := omsq.Select(onemethodservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (omsq *OneMethodServiceQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (omsq *OneMethodServiceQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, omsq.ctx, "Count")
 	if err := omsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return omsq.sqlCount(ctx)
+	return withInterceptors[int](ctx, omsq, querierCount[*OneMethodServiceQuery](), omsq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (omsq *OneMethodServiceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (omsq *OneMethodServiceQuery) Exist(ctx context.Context) (bool, error) {
-	if err := omsq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, omsq.ctx, "Exist")
+	switch _, err := omsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return omsq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,41 +243,35 @@ func (omsq *OneMethodServiceQuery) Clone() *OneMethodServiceQuery {
 	}
 	return &OneMethodServiceQuery{
 		config:     omsq.config,
-		limit:      omsq.limit,
-		offset:     omsq.offset,
+		ctx:        omsq.ctx.Clone(),
 		order:      append([]OrderFunc{}, omsq.order...),
+		inters:     append([]Interceptor{}, omsq.inters...),
 		predicates: append([]predicate.OneMethodService{}, omsq.predicates...),
 		// clone intermediate query.
-		sql:    omsq.sql.Clone(),
-		path:   omsq.path,
-		unique: omsq.unique,
+		sql:  omsq.sql.Clone(),
+		path: omsq.path,
 	}
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (omsq *OneMethodServiceQuery) GroupBy(field string, fields ...string) *OneMethodServiceGroupBy {
-	grbuild := &OneMethodServiceGroupBy{config: omsq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := omsq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return omsq.sqlQuery(ctx), nil
-	}
+	omsq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &OneMethodServiceGroupBy{build: omsq}
+	grbuild.flds = &omsq.ctx.Fields
 	grbuild.label = onemethodservice.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (omsq *OneMethodServiceQuery) Select(fields ...string) *OneMethodServiceSelect {
-	omsq.fields = append(omsq.fields, fields...)
-	selbuild := &OneMethodServiceSelect{OneMethodServiceQuery: omsq}
-	selbuild.label = onemethodservice.Label
-	selbuild.flds, selbuild.scan = &omsq.fields, selbuild.Scan
-	return selbuild
+	omsq.ctx.Fields = append(omsq.ctx.Fields, fields...)
+	sbuild := &OneMethodServiceSelect{OneMethodServiceQuery: omsq}
+	sbuild.label = onemethodservice.Label
+	sbuild.flds, sbuild.scan = &omsq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a OneMethodServiceSelect configured with the given aggregations.
@@ -279,7 +280,17 @@ func (omsq *OneMethodServiceQuery) Aggregate(fns ...AggregateFunc) *OneMethodSer
 }
 
 func (omsq *OneMethodServiceQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range omsq.fields {
+	for _, inter := range omsq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, omsq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range omsq.ctx.Fields {
 		if !onemethodservice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -321,22 +332,11 @@ func (omsq *OneMethodServiceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 
 func (omsq *OneMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := omsq.querySpec()
-	_spec.Node.Columns = omsq.fields
-	if len(omsq.fields) > 0 {
-		_spec.Unique = omsq.unique != nil && *omsq.unique
+	_spec.Node.Columns = omsq.ctx.Fields
+	if len(omsq.ctx.Fields) > 0 {
+		_spec.Unique = omsq.ctx.Unique != nil && *omsq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, omsq.driver, _spec)
-}
-
-func (omsq *OneMethodServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := omsq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
@@ -352,10 +352,10 @@ func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   omsq.sql,
 		Unique: true,
 	}
-	if unique := omsq.unique; unique != nil {
+	if unique := omsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := omsq.fields; len(fields) > 0 {
+	if fields := omsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, onemethodservice.FieldID)
 		for i := range fields {
@@ -371,10 +371,10 @@ func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := omsq.limit; limit != nil {
+	if limit := omsq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := omsq.offset; offset != nil {
+	if offset := omsq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := omsq.order; len(ps) > 0 {
@@ -390,7 +390,7 @@ func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
 func (omsq *OneMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(omsq.driver.Dialect())
 	t1 := builder.Table(onemethodservice.Table)
-	columns := omsq.fields
+	columns := omsq.ctx.Fields
 	if len(columns) == 0 {
 		columns = onemethodservice.Columns
 	}
@@ -399,7 +399,7 @@ func (omsq *OneMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = omsq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if omsq.unique != nil && *omsq.unique {
+	if omsq.ctx.Unique != nil && *omsq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range omsq.predicates {
@@ -408,12 +408,12 @@ func (omsq *OneMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range omsq.order {
 		p(selector)
 	}
-	if offset := omsq.offset; offset != nil {
+	if offset := omsq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := omsq.limit; limit != nil {
+	if limit := omsq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -421,13 +421,8 @@ func (omsq *OneMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // OneMethodServiceGroupBy is the group-by builder for OneMethodService entities.
 type OneMethodServiceGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *OneMethodServiceQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -436,58 +431,46 @@ func (omsgb *OneMethodServiceGroupBy) Aggregate(fns ...AggregateFunc) *OneMethod
 	return omsgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (omsgb *OneMethodServiceGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := omsgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, omsgb.build.ctx, "GroupBy")
+	if err := omsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	omsgb.sql = query
-	return omsgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*OneMethodServiceQuery, *OneMethodServiceGroupBy](ctx, omsgb.build, omsgb, omsgb.build.inters, v)
 }
 
-func (omsgb *OneMethodServiceGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range omsgb.fields {
-		if !onemethodservice.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (omsgb *OneMethodServiceGroupBy) sqlScan(ctx context.Context, root *OneMethodServiceQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(omsgb.fns))
+	for _, fn := range omsgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := omsgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*omsgb.flds)+len(omsgb.fns))
+		for _, f := range *omsgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*omsgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := omsgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := omsgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (omsgb *OneMethodServiceGroupBy) sqlQuery() *sql.Selector {
-	selector := omsgb.sql.Select()
-	aggregation := make([]string, 0, len(omsgb.fns))
-	for _, fn := range omsgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(omsgb.fields)+len(omsgb.fns))
-		for _, f := range omsgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(omsgb.fields...)...)
-}
-
 // OneMethodServiceSelect is the builder for selecting fields of OneMethodService entities.
 type OneMethodServiceSelect struct {
 	*OneMethodServiceQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -498,26 +481,27 @@ func (omss *OneMethodServiceSelect) Aggregate(fns ...AggregateFunc) *OneMethodSe
 
 // Scan applies the selector query and scans the result into the given value.
 func (omss *OneMethodServiceSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, omss.ctx, "Select")
 	if err := omss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	omss.sql = omss.OneMethodServiceQuery.sqlQuery(ctx)
-	return omss.sqlScan(ctx, v)
+	return scanWithInterceptors[*OneMethodServiceQuery, *OneMethodServiceSelect](ctx, omss.OneMethodServiceQuery, omss, omss.inters, v)
 }
 
-func (omss *OneMethodServiceSelect) sqlScan(ctx context.Context, v any) error {
+func (omss *OneMethodServiceSelect) sqlScan(ctx context.Context, root *OneMethodServiceQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(omss.fns))
 	for _, fn := range omss.fns {
-		aggregation = append(aggregation, fn(omss.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*omss.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		omss.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		omss.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := omss.sql.Query()
+	query, args := selector.Query()
 	if err := omss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
