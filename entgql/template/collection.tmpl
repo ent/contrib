@@ -46,7 +46,6 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 				{{- range $i, $fc := $collects }}
 					{{- $e := $fc.Edge }}
 					case {{ range $i, $value := $fc.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
-						{{- $ebuilder := $e.Type.QueryName }}
 						var (
 							alias = field.Alias
 							path  = append(path, alias)
