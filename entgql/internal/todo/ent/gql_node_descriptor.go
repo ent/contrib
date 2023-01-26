@@ -352,7 +352,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
 		Type:   "User",
-		Fields: make([]*Field, 2),
+		Fields: make([]*Field, 3),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -364,10 +364,18 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Password); err != nil {
+	if buf, err = json.Marshal(u.Username); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
+		Type:  "uuid.UUID",
+		Name:  "username",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Password); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
 		Type:  "string",
 		Name:  "password",
 		Value: string(buf),

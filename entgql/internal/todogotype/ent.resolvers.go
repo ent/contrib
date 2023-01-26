@@ -53,6 +53,10 @@ func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, 
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -85,6 +89,38 @@ func (r *updateTodoInputResolver) Status(ctx context.Context, obj *ent.UpdateTod
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *userWhereInputResolver) Username(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameNotIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameGt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameGte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameLt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameLte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -108,6 +144,9 @@ func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereIn
 // UpdateTodoInput returns UpdateTodoInputResolver implementation.
 func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTodoInputResolver{r} }
 
+// UserWhereInput returns UserWhereInputResolver implementation.
+func (r *Resolver) UserWhereInput() UserWhereInputResolver { return &userWhereInputResolver{r} }
+
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
@@ -115,3 +154,4 @@ type createCategoryInputResolver struct{ *Resolver }
 type createTodoInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
 type updateTodoInputResolver struct{ *Resolver }
+type userWhereInputResolver struct{ *Resolver }

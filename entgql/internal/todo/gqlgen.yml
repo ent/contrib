@@ -41,3 +41,6 @@ models:
   CategoryConfigInput:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  UUID:
+    model:
+      - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID
