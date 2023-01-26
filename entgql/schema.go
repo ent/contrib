@@ -734,7 +734,7 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 			// will generate an enum named "TodoStatus".
 			scalar = gqlType + scalar
 		}
-		if f.Type.RType != nil {
+		if f.Type.RType != nil && f.Type.RType.Name == "" {
 			switch f.Type.RType.Kind {
 			case reflect.Slice, reflect.Array:
 				if strings.HasPrefix(f.Type.RType.Ident, "[]*") {

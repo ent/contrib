@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"github.com/google/uuid"
 )
 
 // CreateCategoryInput represents a mutation input for creating categories.
@@ -251,6 +252,7 @@ func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
 	Name      *string
+	Username  *uuid.UUID
 	Password  *string
 	GroupIDs  []int
 	FriendIDs []int
@@ -260,6 +262,9 @@ type CreateUserInput struct {
 func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
@@ -281,6 +286,7 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
 	Name            *string
+	Username        *uuid.UUID
 	ClearPassword   bool
 	Password        *string
 	ClearGroups     bool
@@ -295,6 +301,9 @@ type UpdateUserInput struct {
 func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
 	}
 	if i.ClearPassword {
 		m.ClearPassword()

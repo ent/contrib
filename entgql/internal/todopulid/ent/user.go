@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
@@ -32,6 +33,8 @@ type User struct {
 	ID pulid.ID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Username holds the value of the "username" field.
+	Username uuid.UUID `json:"username,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -94,6 +97,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(pulid.ID)
 		case user.FieldName, user.FieldPassword:
 			values[i] = new(sql.NullString)
+		case user.FieldUsername:
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -120,6 +125,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				u.Name = value.String
+			}
+		case user.FieldUsername:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value != nil {
+				u.Username = *value
 			}
 		case user.FieldPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -172,6 +183,9 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
 	builder.WriteString("name=")
 	builder.WriteString(u.Name)
+	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(fmt.Sprintf("%v", u.Username))
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
 	builder.WriteByte(')')

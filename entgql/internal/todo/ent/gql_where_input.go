@@ -29,6 +29,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
+	"github.com/google/uuid"
 )
 
 // BillProductWhereInput represents a where input for filtering BillProduct queries.
@@ -1467,6 +1468,16 @@ type UserWhereInput struct {
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
 
+	// "username" field predicates.
+	Username      *uuid.UUID  `json:"username,omitempty"`
+	UsernameNEQ   *uuid.UUID  `json:"usernameNEQ,omitempty"`
+	UsernameIn    []uuid.UUID `json:"usernameIn,omitempty"`
+	UsernameNotIn []uuid.UUID `json:"usernameNotIn,omitempty"`
+	UsernameGT    *uuid.UUID  `json:"usernameGT,omitempty"`
+	UsernameGTE   *uuid.UUID  `json:"usernameGTE,omitempty"`
+	UsernameLT    *uuid.UUID  `json:"usernameLT,omitempty"`
+	UsernameLTE   *uuid.UUID  `json:"usernameLTE,omitempty"`
+
 	// "password" field predicates.
 	Password             *string  `json:"password,omitempty"`
 	PasswordNEQ          *string  `json:"passwordNEQ,omitempty"`
@@ -1630,6 +1641,30 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if i.NameContainsFold != nil {
 		predicates = append(predicates, user.NameContainsFold(*i.NameContainsFold))
+	}
+	if i.Username != nil {
+		predicates = append(predicates, user.UsernameEQ(*i.Username))
+	}
+	if i.UsernameNEQ != nil {
+		predicates = append(predicates, user.UsernameNEQ(*i.UsernameNEQ))
+	}
+	if len(i.UsernameIn) > 0 {
+		predicates = append(predicates, user.UsernameIn(i.UsernameIn...))
+	}
+	if len(i.UsernameNotIn) > 0 {
+		predicates = append(predicates, user.UsernameNotIn(i.UsernameNotIn...))
+	}
+	if i.UsernameGT != nil {
+		predicates = append(predicates, user.UsernameGT(*i.UsernameGT))
+	}
+	if i.UsernameGTE != nil {
+		predicates = append(predicates, user.UsernameGTE(*i.UsernameGTE))
+	}
+	if i.UsernameLT != nil {
+		predicates = append(predicates, user.UsernameLT(*i.UsernameLT))
+	}
+	if i.UsernameLTE != nil {
+		predicates = append(predicates, user.UsernameLTE(*i.UsernameLTE))
 	}
 	if i.Password != nil {
 		predicates = append(predicates, user.PasswordEQ(*i.Password))

@@ -9,6 +9,7 @@ input CategoryConfigInput {
 }
 
 scalar Duration
+scalar UUID
 
 extend input TodoWhereInput {
   createdToday: Boolean

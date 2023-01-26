@@ -18,6 +18,7 @@ package user
 
 import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"github.com/google/uuid"
 )
 
 const (
@@ -27,6 +28,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
@@ -57,6 +60,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldUsername,
 	FieldPassword,
 }
 
@@ -82,6 +86,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
+	// DefaultUsername holds the default value on creation for the "username" field.
+	DefaultUsername func() uuid.UUID
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() pulid.ID
 )
