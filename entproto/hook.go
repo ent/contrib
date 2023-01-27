@@ -42,6 +42,13 @@ type (
 	}
 )
 
+// WithOptions returns a HookOption that sets the Options.
+func WithOptions(opts Options) HookOption {
+	return func(o *Options) {
+		*o = opts
+	}
+}
+
 // Hook returns a gen.Hook that invokes Generate.
 // To use it programatically:
 //
