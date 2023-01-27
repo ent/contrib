@@ -149,7 +149,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 	)
 	switch m {
 	case MethodGet:
-		methodName = "Get"
+		methodName = "Get" + genType.Name
 		input.Name = strptr(fmt.Sprintf("Get%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{
 			idField,
@@ -171,19 +171,19 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		outputName = genType.Name
 		messages = append(messages, input)
 	case MethodCreate:
-		methodName = "Create"
+		methodName = "Create" + genType.Name
 		input.Name = strptr(fmt.Sprintf("Create%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		outputName = genType.Name
 		messages = append(messages, input)
 	case MethodUpdate:
-		methodName = "Update"
+		methodName = "Update" + genType.Name
 		input.Name = strptr(fmt.Sprintf("Update%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
 		outputName = genType.Name
 		messages = append(messages, input)
 	case MethodDelete:
-		methodName = "Delete"
+		methodName = "Delete" + genType.Name
 		input.Name = strptr(fmt.Sprintf("Delete%sRequest", genType.Name))
 		input.Field = []*descriptorpb.FieldDescriptorProto{idField}
 		outputName = "google.protobuf.Empty"
@@ -194,7 +194,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 				genType.Name, genType.ID.Type.String())
 		}
 
-		methodName = "List"
+		methodName = "List" + genType.Name
 		int32FieldType := descriptorpb.FieldDescriptorProto_TYPE_INT32
 		stringFieldType := descriptorpb.FieldDescriptorProto_TYPE_STRING
 		input.Name = strptr(fmt.Sprintf("List%sRequest", genType.Name))
@@ -244,7 +244,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		}
 		messages = append(messages, input, output)
 	case MethodBatchCreate:
-		methodName = "BatchCreate"
+		methodName = "BatchCreate" + genType.Name
 		createRequest := &descriptorpb.DescriptorProto{}
 		createRequest.Name = strptr(fmt.Sprintf("Create%sRequest", genType.Name))
 		createRequest.Field = []*descriptorpb.FieldDescriptorProto{singleMessageField}
