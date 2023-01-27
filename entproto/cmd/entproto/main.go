@@ -35,7 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}
-	if err := entproto.Generate(graph); err != nil {
+	if err := entproto.Generate(graph, &entproto.Options{UseProtocGenerateFile: true}); err != nil {
 		log.Fatalf("entproto: failed generating protos: %s", err)
 	}
 }
