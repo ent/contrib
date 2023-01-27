@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
+	"github.com/go-openapi/inflect"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -55,14 +56,30 @@ var (
 	}
 )
 
+type (
+	AdapterOption func(*Adapter)
+)
+
+// WithMethodNameSuffix sets the adapter to use the suffix "ent" for all generated methods
+func WithMethodNameSuffix() AdapterOption {
+	return func(a *Adapter) {
+		a.useMethodNameSuffix = true
+	}
+}
+
 // LoadAdapter takes a *gen.Graph and parses it into protobuf file descriptors
-func LoadAdapter(graph *gen.Graph) (*Adapter, error) {
+func LoadAdapter(graph *gen.Graph, opts ...AdapterOption) (*Adapter, error) {
 	a := &Adapter{
 		graph:            graph,
 		descriptors:      make(map[string]*desc.FileDescriptor),
 		schemaProtoFiles: make(map[string]string),
 		errors:           make(map[string]error),
 	}
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
 	if err := a.parse(); err != nil {
 		return nil, err
 	}
@@ -71,10 +88,11 @@ func LoadAdapter(graph *gen.Graph) (*Adapter, error) {
 
 // Adapter facilitates the transformation of ent gen.Type to desc.FileDescriptors
 type Adapter struct {
-	graph            *gen.Graph
-	descriptors      map[string]*desc.FileDescriptor
-	schemaProtoFiles map[string]string
-	errors           map[string]error
+	graph               *gen.Graph
+	descriptors         map[string]*desc.FileDescriptor
+	schemaProtoFiles    map[string]string
+	errors              map[string]error
+	useMethodNameSuffix bool
 }
 
 // AllFileDescriptors returns a file descriptor per proto package for each package that contains
@@ -207,6 +225,38 @@ func (a *Adapter) goPackageName(protoPkgName string) string {
 	entBase := a.graph.Config.Package
 	slashed := strings.ReplaceAll(protoPkgName, ".", "/")
 	return path.Join(entBase, "proto", slashed)
+}
+
+func (a *Adapter) getMethodName(genType *gen.Type, m Method) string {
+	methodName := ""
+	needsPlural := false
+	switch m {
+	case MethodCreate:
+		methodName = "Create"
+	case MethodUpdate:
+		methodName = "Update"
+	case MethodDelete:
+		methodName = "Delete"
+	case MethodGet:
+		methodName = "Get"
+	case MethodList:
+		methodName = "List"
+		needsPlural = true
+	case MethodBatchCreate:
+		methodName = "BatchCreate"
+		needsPlural = true
+	}
+
+	if !a.useMethodNameSuffix {
+		return methodName
+	}
+
+	serviceName := genType.Name
+	if needsPlural {
+		serviceName = inflect.Pluralize(genType.Name)
+	}
+
+	return fmt.Sprintf("%s%s", methodName, serviceName)
 }
 
 // GetFileDescriptor returns the proto file descriptor containing the transformed proto message descriptor for
