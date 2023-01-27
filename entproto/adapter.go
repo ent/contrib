@@ -56,19 +56,8 @@ var (
 	}
 )
 
-type (
-	AdapterOption func(*Adapter)
-)
-
-// WithMethodNameSuffix sets the adapter to use the suffix "ent" for all generated methods
-func WithMethodNameSuffix() AdapterOption {
-	return func(a *Adapter) {
-		a.useMethodNameSuffix = true
-	}
-}
-
 // LoadAdapter takes a *gen.Graph and parses it into protobuf file descriptors
-func LoadAdapter(graph *gen.Graph, opts ...AdapterOption) (*Adapter, error) {
+func LoadAdapter(graph *gen.Graph, opts *Options) (*Adapter, error) {
 	a := &Adapter{
 		graph:            graph,
 		descriptors:      make(map[string]*desc.FileDescriptor),
@@ -76,8 +65,10 @@ func LoadAdapter(graph *gen.Graph, opts ...AdapterOption) (*Adapter, error) {
 		errors:           make(map[string]error),
 	}
 
-	for _, opt := range opts {
-		opt(a)
+	if opts != nil {
+		if opts.UseMethodNameSuffix {
+			a.useMethodNameSuffix = true
+		}
 	}
 
 	if err := a.parse(); err != nil {
