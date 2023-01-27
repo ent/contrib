@@ -1,4 +1,4 @@
-module entgo.io/contrib
+module github.com/ensigniasec/ent-contrib
 
 go 1.18
 
