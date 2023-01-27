@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package entgql_test
+package runtime
 
 import (
-	"testing"
-
-	"entgo.io/contrib/entgql"
-	"github.com/stretchr/testify/require"
+	"github.com/99designs/gqlgen/graphql/errcode"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-func TestErrNodeNotFound(t *testing.T) {
-	t.Parallel()
-	err := entgql.ErrNodeNotFound(42)
-	require.EqualError(t, err, "input: Could not resolve to a node with the global id of '42'")
-	require.Equal(t, "NOT_FOUND", err.Extensions["code"])
+// ErrNodeNotFound creates a node not found graphql error.
+func ErrNodeNotFound(id interface{}) *gqlerror.Error {
+	err := gqlerror.Errorf("Could not resolve to a node with the global id of '%v'", id)
+	errcode.Set(err, "NOT_FOUND")
+	return err
 }

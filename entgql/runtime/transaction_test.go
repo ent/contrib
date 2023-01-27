@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package entgql_test
+package runtime_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/mocks"
+	"entgo.io/contrib/entgql/runtime"
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler/testserver"
@@ -30,10 +30,10 @@ import (
 )
 
 func TestTransaction(t *testing.T) {
-	newServer := func(opener entgql.TxOpener) *testserver.TestServer {
+	newServer := func(opener runtime.TxOpener) *testserver.TestServer {
 		srv := testserver.New()
 		srv.AddTransport(transport.POST{})
-		srv.Use(entgql.Transactioner{TxOpener: opener})
+		srv.Use(runtime.Transactioner{TxOpener: opener})
 		return srv
 	}
 	fwdCtx := func(ctx context.Context) context.Context {
