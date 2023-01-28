@@ -136,9 +136,13 @@ type response struct {
 				ID            string
 				CreatedAt     string
 				PriorityOrder int
-				Status        todo.Status
-				Text          string
-				Parent        struct {
+				CategoryID    string `json:"categoryID"`
+				Category_ID   string `json:"category_id"`
+				CategoryX     string `json:"categoryX"`
+
+				Status todo.Status
+				Text   string
+				Parent struct {
 					ID string
 				}
 			}
@@ -520,6 +524,160 @@ func (s *todoTestSuite) TestPaginationOrder() {
 	})
 }
 
+func (s *todoTestSuite) TestPaginationOrderSelectionSet() {
+	const (
+		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $direction: OrderDirection!, $field: TodoOrderField!) {
+			todos(after: $after, first: $first, before: $before, last: $last, orderBy: { direction: $direction, field: $field }) {
+				totalCount
+				edges {
+					node {
+						id
+						text
+					}
+					cursor
+				}
+				pageInfo {
+					hasNextPage
+					hasPreviousPage
+					startCursor
+					endCursor
+				}
+			}
+		}`
+		step  = 5
+		steps = maxTodos/step + 1
+	)
+	s.Run("ForwardAscending", func() {
+		var (
+			rsp     response
+			endText string
+		)
+		for i := 0; i < steps; i++ {
+			err := s.Post(query, &rsp,
+				client.Var("after", rsp.Todos.PageInfo.EndCursor),
+				client.Var("first", step),
+				client.Var("direction", "ASC"),
+				client.Var("field", "TEXT"),
+			)
+			s.Require().NoError(err)
+			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
+			if i < steps-1 {
+				s.Require().Len(rsp.Todos.Edges, step)
+				s.Require().True(rsp.Todos.PageInfo.HasNextPage)
+			} else {
+				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
+				s.Require().False(rsp.Todos.PageInfo.HasNextPage)
+			}
+			s.Require().True(sort.SliceIsSorted(rsp.Todos.Edges, func(i, j int) bool {
+				return rsp.Todos.Edges[i].Node.Text < rsp.Todos.Edges[j].Node.Text
+			}))
+			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
+			s.Require().Equal(*rsp.Todos.PageInfo.StartCursor, rsp.Todos.Edges[0].Cursor)
+			s.Require().NotNil(rsp.Todos.PageInfo.EndCursor)
+			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
+			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
+			if i > 0 {
+				s.Require().Less(endText, rsp.Todos.Edges[0].Node.Text)
+			}
+			endText = end.Node.Text
+		}
+	})
+	s.Run("ForwardDescending", func() {
+		var (
+			rsp   response
+			endID int
+		)
+		for i := 0; i < steps; i++ {
+			err := s.Post(query, &rsp,
+				client.Var("after", rsp.Todos.PageInfo.EndCursor),
+				client.Var("first", step),
+				client.Var("direction", "DESC"),
+				client.Var("field", "CREATED_AT"),
+			)
+			s.Require().NoError(err)
+			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
+			if i < steps-1 {
+				s.Require().Len(rsp.Todos.Edges, step)
+				s.Require().True(rsp.Todos.PageInfo.HasNextPage)
+			} else {
+				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
+				s.Require().False(rsp.Todos.PageInfo.HasNextPage)
+			}
+			s.Require().True(sort.SliceIsSorted(rsp.Todos.Edges, func(i, j int) bool {
+				left, _ := strconv.Atoi(rsp.Todos.Edges[i].Node.ID)
+				right, _ := strconv.Atoi(rsp.Todos.Edges[j].Node.ID)
+				return left > right
+			}))
+			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
+			s.Require().Equal(*rsp.Todos.PageInfo.StartCursor, rsp.Todos.Edges[0].Cursor)
+			s.Require().NotNil(rsp.Todos.PageInfo.EndCursor)
+			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
+			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
+			if i > 0 {
+				id, _ := strconv.Atoi(rsp.Todos.Edges[0].Node.ID)
+				s.Require().Greater(endID, id)
+			}
+			endID, _ = strconv.Atoi(end.Node.ID)
+		}
+	})
+	s.Run("BackwardAscending", func() {
+		var (
+			rsp response
+		)
+		for i := 0; i < steps; i++ {
+			err := s.Post(query, &rsp,
+				client.Var("before", rsp.Todos.PageInfo.StartCursor),
+				client.Var("last", step),
+				client.Var("direction", "ASC"),
+				client.Var("field", "PRIORITY_ORDER"),
+			)
+			s.Require().NoError(err)
+			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
+			if i < steps-1 {
+				s.Require().Len(rsp.Todos.Edges, step)
+				s.Require().True(rsp.Todos.PageInfo.HasPreviousPage)
+			} else {
+				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
+				s.Require().False(rsp.Todos.PageInfo.HasPreviousPage)
+			}
+			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
+			start := rsp.Todos.Edges[0]
+			s.Require().Equal(*rsp.Todos.PageInfo.StartCursor, start.Cursor)
+			s.Require().NotNil(rsp.Todos.PageInfo.EndCursor)
+			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
+			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
+		}
+	})
+	s.Run("BackwardDescending", func() {
+		var (
+			rsp response
+		)
+		for i := 0; i < steps; i++ {
+			err := s.Post(query, &rsp,
+				client.Var("before", rsp.Todos.PageInfo.StartCursor),
+				client.Var("last", step),
+				client.Var("direction", "DESC"),
+				client.Var("field", "CREATED_AT"),
+			)
+			s.Require().NoError(err)
+			s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
+			if i < steps-1 {
+				s.Require().Len(rsp.Todos.Edges, step)
+				s.Require().True(rsp.Todos.PageInfo.HasPreviousPage)
+			} else {
+				s.Require().Len(rsp.Todos.Edges, maxTodos%step)
+				s.Require().False(rsp.Todos.PageInfo.HasPreviousPage)
+			}
+			s.Require().NotNil(rsp.Todos.PageInfo.StartCursor)
+			start := rsp.Todos.Edges[0]
+			s.Require().Equal(*rsp.Todos.PageInfo.StartCursor, start.Cursor)
+			s.Require().NotNil(rsp.Todos.PageInfo.EndCursor)
+			end := rsp.Todos.Edges[len(rsp.Todos.Edges)-1]
+			s.Require().Equal(*rsp.Todos.PageInfo.EndCursor, end.Cursor)
+		}
+	})
+}
+
 func (s *todoTestSuite) TestPaginationFiltering() {
 	const (
 		query = `query($after: Cursor, $first: Int, $before: Cursor, $last: Int, $status: TodoStatus, $hasParent: Boolean, $hasCategory: Boolean) {
@@ -665,6 +823,45 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		err := s.Post(query, &rsp)
 		s.NoError(err)
 		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+}
+
+func (s *todoTestSuite) TestMultipleSameField() {
+	const (
+		query = `query {
+			todos(first: 5) {
+				totalCount
+				edges {
+					node {
+						id
+						categoryID
+						category_id
+						categoryX
+						parent {
+							id
+						}
+					}
+					cursor
+				}
+				pageInfo {
+					hasNextPage
+					hasPreviousPage
+					startCursor
+					endCursor
+				}
+			}
+		}`
+		step  = 5
+		steps = maxTodos/step + 1
+	)
+	s.Run("can get all categoryid fields", func() {
+		var rsp response
+		err := s.Post(query, &rsp)
+		s.NoError(err)
+		s.NotZero(rsp.Todos.TotalCount)
+		s.NotZero(rsp.Todos.Edges[0].Node.CategoryID)
+		s.NotZero(rsp.Todos.Edges[0].Node.CategoryX)
+		s.NotZero(rsp.Todos.Edges[0].Node.Category_ID)
 	})
 }
 
