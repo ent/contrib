@@ -229,9 +229,7 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		c = fnCall(
 			selectorLit("entgql", "Skip"), arg,
 		)
-	}
-
-	if m.QueryField != nil {
+	} else {
 		c = fnCall(selectorLit("entgql", "QueryField"))
 	}
 
