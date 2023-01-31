@@ -134,18 +134,14 @@ func protoEnum(annot schema.Annotation) (ast.Expr, bool, error) {
 		},
 	}
 	for k, v := range m.Options {
-		opts.Elts = append(
-			opts.Elts, &ast.KeyValueExpr{
-				Key:   strLit(k),
-				Value: intLit(int(v)),
-			},
-		)
+		opts.Elts = append(opts.Elts, &ast.KeyValueExpr{
+			Key:   strLit(k),
+			Value: intLit(int(v)),
+		})
 	}
-	sort.Slice(
-		opts.Elts, func(i, j int) bool {
-			return opts.Elts[i].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value < opts.Elts[j].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value
-		},
-	)
+	sort.Slice(opts.Elts, func(i, j int) bool {
+		return opts.Elts[i].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value < opts.Elts[j].(*ast.KeyValueExpr).Value.(*ast.BasicLit).Value
+	})
 	return fnCall(selectorLit("entproto", "Enum"), opts), true, nil
 }
 
@@ -210,8 +206,29 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		c = fnCall(
 			selectorLit("entgql", "Mutations"), args...,
 		)
-	} else {
-		c = fnCall(selectorLit("entgql", "QueryField"))
+	}
+	if m.Skip != 0 {
+		var arg ast.Expr
+		switch m.Skip {
+		case entgql.SkipType:
+			arg = selectorLit("entgql", "SkipType")
+		case entgql.SkipEnumField:
+			arg = selectorLit("entgql", "SkipEnumField")
+		case entgql.SkipOrderField:
+			arg = selectorLit("entgql", "SkipOrderField")
+		case entgql.SkipWhereInput:
+			arg = selectorLit("entgql", "SkipWhereInput")
+		case entgql.SkipMutationCreateInput:
+			arg = selectorLit("entgql", "SkipMutationCreateInput")
+		case entgql.SkipMutationUpdateInput:
+			arg = selectorLit("entgql", "SkipMutationUpdateInput")
+		case entgql.SkipAll:
+			arg = selectorLit("entgql", "SkipAll")
+		}
+
+		c = fnCall(
+			selectorLit("entgql", "Skip"), arg,
+		)
 	}
 
 	return c, true, nil
