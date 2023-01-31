@@ -17,11 +17,9 @@ import (
 // MessageWithStringsQuery is the builder for querying MessageWithStrings entities.
 type MessageWithStringsQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.MessageWithStrings
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (mwsq *MessageWithStringsQuery) Where(ps ...predicate.MessageWithStrings) *
 	return mwsq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (mwsq *MessageWithStringsQuery) Limit(limit int) *MessageWithStringsQuery {
-	mwsq.limit = &limit
+	mwsq.ctx.Limit = &limit
 	return mwsq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (mwsq *MessageWithStringsQuery) Offset(offset int) *MessageWithStringsQuery {
-	mwsq.offset = &offset
+	mwsq.ctx.Offset = &offset
 	return mwsq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (mwsq *MessageWithStringsQuery) Unique(unique bool) *MessageWithStringsQuery {
-	mwsq.unique = &unique
+	mwsq.ctx.Unique = &unique
 	return mwsq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (mwsq *MessageWithStringsQuery) Order(o ...OrderFunc) *MessageWithStringsQuery {
 	mwsq.order = append(mwsq.order, o...)
 	return mwsq
@@ -62,7 +60,7 @@ func (mwsq *MessageWithStringsQuery) Order(o ...OrderFunc) *MessageWithStringsQu
 // First returns the first MessageWithStrings entity from the query.
 // Returns a *NotFoundError when no MessageWithStrings was found.
 func (mwsq *MessageWithStringsQuery) First(ctx context.Context) (*MessageWithStrings, error) {
-	nodes, err := mwsq.Limit(1).All(ctx)
+	nodes, err := mwsq.Limit(1).All(setContextOp(ctx, mwsq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (mwsq *MessageWithStringsQuery) FirstX(ctx context.Context) *MessageWithStr
 // Returns a *NotFoundError when no MessageWithStrings ID was found.
 func (mwsq *MessageWithStringsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = mwsq.Limit(1).IDs(setContextOp(ctx, mwsq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (mwsq *MessageWithStringsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MessageWithStrings entity is found.
 // Returns a *NotFoundError when no MessageWithStrings entities are found.
 func (mwsq *MessageWithStringsQuery) Only(ctx context.Context) (*MessageWithStrings, error) {
-	nodes, err := mwsq.Limit(2).All(ctx)
+	nodes, err := mwsq.Limit(2).All(setContextOp(ctx, mwsq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (mwsq *MessageWithStringsQuery) OnlyX(ctx context.Context) *MessageWithStri
 // Returns a *NotFoundError when no entities are found.
 func (mwsq *MessageWithStringsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = mwsq.Limit(2).IDs(setContextOp(ctx, mwsq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (mwsq *MessageWithStringsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MessageWithStringsSlice.
 func (mwsq *MessageWithStringsQuery) All(ctx context.Context) ([]*MessageWithStrings, error) {
+	ctx = setContextOp(ctx, mwsq.ctx, "All")
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return mwsq.sqlAll(ctx)
+	qr := querierAll[[]*MessageWithStrings, *MessageWithStringsQuery]()
+	return withInterceptors[[]*MessageWithStrings](ctx, mwsq, qr, mwsq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (mwsq *MessageWithStringsQuery) AllX(ctx context.Context) []*MessageWithStr
 // IDs executes the query and returns a list of MessageWithStrings IDs.
 func (mwsq *MessageWithStringsQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
 	if err := mwsq.Select(messagewithstrings.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (mwsq *MessageWithStringsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwsq *MessageWithStringsQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, mwsq.ctx, "Count")
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return mwsq.sqlCount(ctx)
+	return withInterceptors[int](ctx, mwsq, querierCount[*MessageWithStringsQuery](), mwsq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (mwsq *MessageWithStringsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwsq *MessageWithStringsQuery) Exist(ctx context.Context) (bool, error) {
-	if err := mwsq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, mwsq.ctx, "Exist")
+	switch _, err := mwsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return mwsq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (mwsq *MessageWithStringsQuery) Clone() *MessageWithStringsQuery {
 	}
 	return &MessageWithStringsQuery{
 		config:     mwsq.config,
-		limit:      mwsq.limit,
-		offset:     mwsq.offset,
+		ctx:        mwsq.ctx.Clone(),
 		order:      append([]OrderFunc{}, mwsq.order...),
+		inters:     append([]Interceptor{}, mwsq.inters...),
 		predicates: append([]predicate.MessageWithStrings{}, mwsq.predicates...),
 		// clone intermediate query.
-		sql:    mwsq.sql.Clone(),
-		path:   mwsq.path,
-		unique: mwsq.unique,
+		sql:  mwsq.sql.Clone(),
+		path: mwsq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (mwsq *MessageWithStringsQuery) Clone() *MessageWithStringsQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mwsq *MessageWithStringsQuery) GroupBy(field string, fields ...string) *MessageWithStringsGroupBy {
-	grbuild := &MessageWithStringsGroupBy{config: mwsq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := mwsq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return mwsq.sqlQuery(ctx), nil
-	}
+	mwsq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MessageWithStringsGroupBy{build: mwsq}
+	grbuild.flds = &mwsq.ctx.Fields
 	grbuild.label = messagewithstrings.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (mwsq *MessageWithStringsQuery) GroupBy(field string, fields ...string) *Me
 //		Select(messagewithstrings.FieldStrings).
 //		Scan(ctx, &v)
 func (mwsq *MessageWithStringsQuery) Select(fields ...string) *MessageWithStringsSelect {
-	mwsq.fields = append(mwsq.fields, fields...)
-	selbuild := &MessageWithStringsSelect{MessageWithStringsQuery: mwsq}
-	selbuild.label = messagewithstrings.Label
-	selbuild.flds, selbuild.scan = &mwsq.fields, selbuild.Scan
-	return selbuild
+	mwsq.ctx.Fields = append(mwsq.ctx.Fields, fields...)
+	sbuild := &MessageWithStringsSelect{MessageWithStringsQuery: mwsq}
+	sbuild.label = messagewithstrings.Label
+	sbuild.flds, sbuild.scan = &mwsq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a MessageWithStringsSelect configured with the given aggregations.
+func (mwsq *MessageWithStringsQuery) Aggregate(fns ...AggregateFunc) *MessageWithStringsSelect {
+	return mwsq.Select().Aggregate(fns...)
 }
 
 func (mwsq *MessageWithStringsQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range mwsq.fields {
+	for _, inter := range mwsq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, mwsq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range mwsq.ctx.Fields {
 		if !messagewithstrings.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (mwsq *MessageWithStringsQuery) sqlAll(ctx context.Context, hooks ...queryH
 
 func (mwsq *MessageWithStringsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwsq.querySpec()
-	_spec.Node.Columns = mwsq.fields
-	if len(mwsq.fields) > 0 {
-		_spec.Unique = mwsq.unique != nil && *mwsq.unique
+	_spec.Node.Columns = mwsq.ctx.Fields
+	if len(mwsq.ctx.Fields) > 0 {
+		_spec.Unique = mwsq.ctx.Unique != nil && *mwsq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, mwsq.driver, _spec)
-}
-
-func (mwsq *MessageWithStringsQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := mwsq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (mwsq *MessageWithStringsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (mwsq *MessageWithStringsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwsq.sql,
 		Unique: true,
 	}
-	if unique := mwsq.unique; unique != nil {
+	if unique := mwsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := mwsq.fields; len(fields) > 0 {
+	if fields := mwsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithstrings.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (mwsq *MessageWithStringsQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := mwsq.limit; limit != nil {
+	if limit := mwsq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mwsq.offset; offset != nil {
+	if offset := mwsq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := mwsq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (mwsq *MessageWithStringsQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwsq *MessageWithStringsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwsq.driver.Dialect())
 	t1 := builder.Table(messagewithstrings.Table)
-	columns := mwsq.fields
+	columns := mwsq.ctx.Fields
 	if len(columns) == 0 {
 		columns = messagewithstrings.Columns
 	}
@@ -416,7 +421,7 @@ func (mwsq *MessageWithStringsQuery) sqlQuery(ctx context.Context) *sql.Selector
 		selector = mwsq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mwsq.unique != nil && *mwsq.unique {
+	if mwsq.ctx.Unique != nil && *mwsq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range mwsq.predicates {
@@ -425,12 +430,12 @@ func (mwsq *MessageWithStringsQuery) sqlQuery(ctx context.Context) *sql.Selector
 	for _, p := range mwsq.order {
 		p(selector)
 	}
-	if offset := mwsq.offset; offset != nil {
+	if offset := mwsq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mwsq.limit; limit != nil {
+	if limit := mwsq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (mwsq *MessageWithStringsQuery) sqlQuery(ctx context.Context) *sql.Selector
 
 // MessageWithStringsGroupBy is the group-by builder for MessageWithStrings entities.
 type MessageWithStringsGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *MessageWithStringsQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (mwsgb *MessageWithStringsGroupBy) Aggregate(fns ...AggregateFunc) *Message
 	return mwsgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (mwsgb *MessageWithStringsGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := mwsgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, mwsgb.build.ctx, "GroupBy")
+	if err := mwsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwsgb.sql = query
-	return mwsgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithStringsQuery, *MessageWithStringsGroupBy](ctx, mwsgb.build, mwsgb, mwsgb.build.inters, v)
 }
 
-func (mwsgb *MessageWithStringsGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range mwsgb.fields {
-		if !messagewithstrings.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (mwsgb *MessageWithStringsGroupBy) sqlScan(ctx context.Context, root *MessageWithStringsQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(mwsgb.fns))
+	for _, fn := range mwsgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := mwsgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*mwsgb.flds)+len(mwsgb.fns))
+		for _, f := range *mwsgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*mwsgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mwsgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := mwsgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (mwsgb *MessageWithStringsGroupBy) sqlQuery() *sql.Selector {
-	selector := mwsgb.sql.Select()
-	aggregation := make([]string, 0, len(mwsgb.fns))
-	for _, fn := range mwsgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(mwsgb.fields)+len(mwsgb.fns))
-		for _, f := range mwsgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(mwsgb.fields...)...)
-}
-
 // MessageWithStringsSelect is the builder for selecting fields of MessageWithStrings entities.
 type MessageWithStringsSelect struct {
 	*MessageWithStringsQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwss *MessageWithStringsSelect) Aggregate(fns ...AggregateFunc) *MessageWithStringsSelect {
+	mwss.fns = append(mwss.fns, fns...)
+	return mwss
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, mwss.ctx, "Select")
 	if err := mwss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwss.sql = mwss.MessageWithStringsQuery.sqlQuery(ctx)
-	return mwss.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithStringsQuery, *MessageWithStringsSelect](ctx, mwss.MessageWithStringsQuery, mwss, mwss.inters, v)
 }
 
-func (mwss *MessageWithStringsSelect) sqlScan(ctx context.Context, v any) error {
+func (mwss *MessageWithStringsSelect) sqlScan(ctx context.Context, root *MessageWithStringsQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(mwss.fns))
+	for _, fn := range mwss.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*mwss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := mwss.sql.Query()
+	query, args := selector.Query()
 	if err := mwss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

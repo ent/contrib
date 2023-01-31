@@ -18,11 +18,9 @@ import (
 // WithModifiedFieldQuery is the builder for querying WithModifiedField entities.
 type WithModifiedFieldQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.WithModifiedField
 	withOwner  *UserQuery
 	withFKs    bool
@@ -37,26 +35,26 @@ func (wmfq *WithModifiedFieldQuery) Where(ps ...predicate.WithModifiedField) *Wi
 	return wmfq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (wmfq *WithModifiedFieldQuery) Limit(limit int) *WithModifiedFieldQuery {
-	wmfq.limit = &limit
+	wmfq.ctx.Limit = &limit
 	return wmfq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (wmfq *WithModifiedFieldQuery) Offset(offset int) *WithModifiedFieldQuery {
-	wmfq.offset = &offset
+	wmfq.ctx.Offset = &offset
 	return wmfq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (wmfq *WithModifiedFieldQuery) Unique(unique bool) *WithModifiedFieldQuery {
-	wmfq.unique = &unique
+	wmfq.ctx.Unique = &unique
 	return wmfq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (wmfq *WithModifiedFieldQuery) Order(o ...OrderFunc) *WithModifiedFieldQuery {
 	wmfq.order = append(wmfq.order, o...)
 	return wmfq
@@ -64,7 +62,7 @@ func (wmfq *WithModifiedFieldQuery) Order(o ...OrderFunc) *WithModifiedFieldQuer
 
 // QueryOwner chains the current query on the "owner" edge.
 func (wmfq *WithModifiedFieldQuery) QueryOwner() *UserQuery {
-	query := &UserQuery{config: wmfq.config}
+	query := (&UserClient{config: wmfq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := wmfq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (wmfq *WithModifiedFieldQuery) QueryOwner() *UserQuery {
 // First returns the first WithModifiedField entity from the query.
 // Returns a *NotFoundError when no WithModifiedField was found.
 func (wmfq *WithModifiedFieldQuery) First(ctx context.Context) (*WithModifiedField, error) {
-	nodes, err := wmfq.Limit(1).All(ctx)
+	nodes, err := wmfq.Limit(1).All(setContextOp(ctx, wmfq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +108,7 @@ func (wmfq *WithModifiedFieldQuery) FirstX(ctx context.Context) *WithModifiedFie
 // Returns a *NotFoundError when no WithModifiedField ID was found.
 func (wmfq *WithModifiedFieldQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wmfq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = wmfq.Limit(1).IDs(setContextOp(ctx, wmfq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +131,7 @@ func (wmfq *WithModifiedFieldQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one WithModifiedField entity is found.
 // Returns a *NotFoundError when no WithModifiedField entities are found.
 func (wmfq *WithModifiedFieldQuery) Only(ctx context.Context) (*WithModifiedField, error) {
-	nodes, err := wmfq.Limit(2).All(ctx)
+	nodes, err := wmfq.Limit(2).All(setContextOp(ctx, wmfq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +159,7 @@ func (wmfq *WithModifiedFieldQuery) OnlyX(ctx context.Context) *WithModifiedFiel
 // Returns a *NotFoundError when no entities are found.
 func (wmfq *WithModifiedFieldQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wmfq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = wmfq.Limit(2).IDs(setContextOp(ctx, wmfq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,10 +184,12 @@ func (wmfq *WithModifiedFieldQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of WithModifiedFields.
 func (wmfq *WithModifiedFieldQuery) All(ctx context.Context) ([]*WithModifiedField, error) {
+	ctx = setContextOp(ctx, wmfq.ctx, "All")
 	if err := wmfq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return wmfq.sqlAll(ctx)
+	qr := querierAll[[]*WithModifiedField, *WithModifiedFieldQuery]()
+	return withInterceptors[[]*WithModifiedField](ctx, wmfq, qr, wmfq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -204,6 +204,7 @@ func (wmfq *WithModifiedFieldQuery) AllX(ctx context.Context) []*WithModifiedFie
 // IDs executes the query and returns a list of WithModifiedField IDs.
 func (wmfq *WithModifiedFieldQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, wmfq.ctx, "IDs")
 	if err := wmfq.Select(withmodifiedfield.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -221,10 +222,11 @@ func (wmfq *WithModifiedFieldQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wmfq *WithModifiedFieldQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, wmfq.ctx, "Count")
 	if err := wmfq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return wmfq.sqlCount(ctx)
+	return withInterceptors[int](ctx, wmfq, querierCount[*WithModifiedFieldQuery](), wmfq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -238,10 +240,15 @@ func (wmfq *WithModifiedFieldQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wmfq *WithModifiedFieldQuery) Exist(ctx context.Context) (bool, error) {
-	if err := wmfq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, wmfq.ctx, "Exist")
+	switch _, err := wmfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return wmfq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -261,22 +268,21 @@ func (wmfq *WithModifiedFieldQuery) Clone() *WithModifiedFieldQuery {
 	}
 	return &WithModifiedFieldQuery{
 		config:     wmfq.config,
-		limit:      wmfq.limit,
-		offset:     wmfq.offset,
+		ctx:        wmfq.ctx.Clone(),
 		order:      append([]OrderFunc{}, wmfq.order...),
+		inters:     append([]Interceptor{}, wmfq.inters...),
 		predicates: append([]predicate.WithModifiedField{}, wmfq.predicates...),
 		withOwner:  wmfq.withOwner.Clone(),
 		// clone intermediate query.
-		sql:    wmfq.sql.Clone(),
-		path:   wmfq.path,
-		unique: wmfq.unique,
+		sql:  wmfq.sql.Clone(),
+		path: wmfq.path,
 	}
 }
 
 // WithOwner tells the query-builder to eager-load the nodes that are connected to
 // the "owner" edge. The optional arguments are used to configure the query builder of the edge.
 func (wmfq *WithModifiedFieldQuery) WithOwner(opts ...func(*UserQuery)) *WithModifiedFieldQuery {
-	query := &UserQuery{config: wmfq.config}
+	query := (&UserClient{config: wmfq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -299,16 +305,11 @@ func (wmfq *WithModifiedFieldQuery) WithOwner(opts ...func(*UserQuery)) *WithMod
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *WithModifiedFieldGroupBy {
-	grbuild := &WithModifiedFieldGroupBy{config: wmfq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := wmfq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return wmfq.sqlQuery(ctx), nil
-	}
+	wmfq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &WithModifiedFieldGroupBy{build: wmfq}
+	grbuild.flds = &wmfq.ctx.Fields
 	grbuild.label = withmodifiedfield.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -325,15 +326,30 @@ func (wmfq *WithModifiedFieldQuery) GroupBy(field string, fields ...string) *Wit
 //		Select(withmodifiedfield.FieldName).
 //		Scan(ctx, &v)
 func (wmfq *WithModifiedFieldQuery) Select(fields ...string) *WithModifiedFieldSelect {
-	wmfq.fields = append(wmfq.fields, fields...)
-	selbuild := &WithModifiedFieldSelect{WithModifiedFieldQuery: wmfq}
-	selbuild.label = withmodifiedfield.Label
-	selbuild.flds, selbuild.scan = &wmfq.fields, selbuild.Scan
-	return selbuild
+	wmfq.ctx.Fields = append(wmfq.ctx.Fields, fields...)
+	sbuild := &WithModifiedFieldSelect{WithModifiedFieldQuery: wmfq}
+	sbuild.label = withmodifiedfield.Label
+	sbuild.flds, sbuild.scan = &wmfq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a WithModifiedFieldSelect configured with the given aggregations.
+func (wmfq *WithModifiedFieldQuery) Aggregate(fns ...AggregateFunc) *WithModifiedFieldSelect {
+	return wmfq.Select().Aggregate(fns...)
 }
 
 func (wmfq *WithModifiedFieldQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range wmfq.fields {
+	for _, inter := range wmfq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, wmfq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range wmfq.ctx.Fields {
 		if !withmodifiedfield.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -403,6 +419,9 @@ func (wmfq *WithModifiedFieldQuery) loadOwner(ctx context.Context, query *UserQu
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -422,22 +441,11 @@ func (wmfq *WithModifiedFieldQuery) loadOwner(ctx context.Context, query *UserQu
 
 func (wmfq *WithModifiedFieldQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wmfq.querySpec()
-	_spec.Node.Columns = wmfq.fields
-	if len(wmfq.fields) > 0 {
-		_spec.Unique = wmfq.unique != nil && *wmfq.unique
+	_spec.Node.Columns = wmfq.ctx.Fields
+	if len(wmfq.ctx.Fields) > 0 {
+		_spec.Unique = wmfq.ctx.Unique != nil && *wmfq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, wmfq.driver, _spec)
-}
-
-func (wmfq *WithModifiedFieldQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := wmfq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
@@ -453,10 +461,10 @@ func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wmfq.sql,
 		Unique: true,
 	}
-	if unique := wmfq.unique; unique != nil {
+	if unique := wmfq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := wmfq.fields; len(fields) > 0 {
+	if fields := wmfq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withmodifiedfield.FieldID)
 		for i := range fields {
@@ -472,10 +480,10 @@ func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := wmfq.limit; limit != nil {
+	if limit := wmfq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := wmfq.offset; offset != nil {
+	if offset := wmfq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := wmfq.order; len(ps) > 0 {
@@ -491,7 +499,7 @@ func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
 func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(wmfq.driver.Dialect())
 	t1 := builder.Table(withmodifiedfield.Table)
-	columns := wmfq.fields
+	columns := wmfq.ctx.Fields
 	if len(columns) == 0 {
 		columns = withmodifiedfield.Columns
 	}
@@ -500,7 +508,7 @@ func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector 
 		selector = wmfq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if wmfq.unique != nil && *wmfq.unique {
+	if wmfq.ctx.Unique != nil && *wmfq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range wmfq.predicates {
@@ -509,12 +517,12 @@ func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector 
 	for _, p := range wmfq.order {
 		p(selector)
 	}
-	if offset := wmfq.offset; offset != nil {
+	if offset := wmfq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := wmfq.limit; limit != nil {
+	if limit := wmfq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -522,13 +530,8 @@ func (wmfq *WithModifiedFieldQuery) sqlQuery(ctx context.Context) *sql.Selector 
 
 // WithModifiedFieldGroupBy is the group-by builder for WithModifiedField entities.
 type WithModifiedFieldGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *WithModifiedFieldQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -537,74 +540,77 @@ func (wmfgb *WithModifiedFieldGroupBy) Aggregate(fns ...AggregateFunc) *WithModi
 	return wmfgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (wmfgb *WithModifiedFieldGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := wmfgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, wmfgb.build.ctx, "GroupBy")
+	if err := wmfgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	wmfgb.sql = query
-	return wmfgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*WithModifiedFieldQuery, *WithModifiedFieldGroupBy](ctx, wmfgb.build, wmfgb, wmfgb.build.inters, v)
 }
 
-func (wmfgb *WithModifiedFieldGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range wmfgb.fields {
-		if !withmodifiedfield.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (wmfgb *WithModifiedFieldGroupBy) sqlScan(ctx context.Context, root *WithModifiedFieldQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(wmfgb.fns))
+	for _, fn := range wmfgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := wmfgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*wmfgb.flds)+len(wmfgb.fns))
+		for _, f := range *wmfgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*wmfgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := wmfgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := wmfgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (wmfgb *WithModifiedFieldGroupBy) sqlQuery() *sql.Selector {
-	selector := wmfgb.sql.Select()
-	aggregation := make([]string, 0, len(wmfgb.fns))
-	for _, fn := range wmfgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(wmfgb.fields)+len(wmfgb.fns))
-		for _, f := range wmfgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(wmfgb.fields...)...)
-}
-
 // WithModifiedFieldSelect is the builder for selecting fields of WithModifiedField entities.
 type WithModifiedFieldSelect struct {
 	*WithModifiedFieldQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (wmfs *WithModifiedFieldSelect) Aggregate(fns ...AggregateFunc) *WithModifiedFieldSelect {
+	wmfs.fns = append(wmfs.fns, fns...)
+	return wmfs
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, wmfs.ctx, "Select")
 	if err := wmfs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	wmfs.sql = wmfs.WithModifiedFieldQuery.sqlQuery(ctx)
-	return wmfs.sqlScan(ctx, v)
+	return scanWithInterceptors[*WithModifiedFieldQuery, *WithModifiedFieldSelect](ctx, wmfs.WithModifiedFieldQuery, wmfs, wmfs.inters, v)
 }
 
-func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, v any) error {
+func (wmfs *WithModifiedFieldSelect) sqlScan(ctx context.Context, root *WithModifiedFieldQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(wmfs.fns))
+	for _, fn := range wmfs.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*wmfs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := wmfs.sql.Query()
+	query, args := selector.Query()
 	if err := wmfs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

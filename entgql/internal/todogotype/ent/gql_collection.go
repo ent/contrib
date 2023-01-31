@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,6 +31,52 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (bp *BillProductQuery) CollectFields(ctx context.Context, satisfies ...string) (*BillProductQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return bp, nil
+	}
+	if err := bp.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return bp, nil
+}
+
+func (bp *BillProductQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type billproductPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []BillProductPaginateOption
+}
+
+func newBillProductPaginateArgs(rv map[string]interface{}) *billproductPaginateArgs {
+	args := &billproductPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*BillProductWhereInput); ok {
+		args.opts = append(args.opts, WithBillProductFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -50,7 +96,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: c.config}
+				query = (&TodoClient{config: c.config}).Query()
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -205,7 +251,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &UserQuery{config: f.config}
+				query = (&UserClient{config: f.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -215,7 +261,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &UserQuery{config: f.config}
+				query = (&UserClient{config: f.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -275,7 +321,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &UserQuery{config: gr.config}
+				query = (&UserClient{config: gr.config}).Query()
 			)
 			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -458,7 +504,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: t.config}
+				query = (&TodoClient{config: t.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -468,7 +514,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: t.config}
+				query = (&TodoClient{config: t.config}).Query()
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -551,7 +597,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &CategoryQuery{config: t.config}
+				query = (&CategoryClient{config: t.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -633,7 +679,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &GroupQuery{config: u.config}
+				query = (&GroupClient{config: u.config}).Query()
 			)
 			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -720,7 +766,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &UserQuery{config: u.config}
+				query = (&UserClient{config: u.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -732,7 +778,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &FriendshipQuery{config: u.config}
+				query = (&FriendshipClient{config: u.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err

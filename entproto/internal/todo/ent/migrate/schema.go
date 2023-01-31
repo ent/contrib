@@ -12,7 +12,7 @@ var (
 	AttachmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "pet_attachment", Type: field.TypeInt, Nullable: true},
-		{Name: "user_attachment", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "user_attachment", Type: field.TypeUint32, Unique: true, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
 	AttachmentsTable = &schema.Table{
@@ -71,7 +71,7 @@ var (
 	// PetsColumns holds the columns for the "pets" table.
 	PetsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_pet", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "user_pet", Type: field.TypeUint32, Unique: true, Nullable: true},
 	}
 	// PetsTable holds the schema information for the "pets" table.
 	PetsTable = &schema.Table{
@@ -101,7 +101,7 @@ var (
 	// SkipEdgeExamplesColumns holds the columns for the "skip_edge_examples" table.
 	SkipEdgeExamplesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_skip_edge", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "user_skip_edge", Type: field.TypeUint32, Unique: true, Nullable: true},
 	}
 	// SkipEdgeExamplesTable holds the schema information for the "skip_edge_examples" table.
 	SkipEdgeExamplesTable = &schema.Table{
@@ -122,7 +122,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "task", Type: field.TypeString},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "in_progress", "done"}, Default: "pending"},
-		{Name: "todo_user", Type: field.TypeInt, Nullable: true},
+		{Name: "todo_user", Type: field.TypeUint32, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{
@@ -140,7 +140,7 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_id", Type: field.TypeUint32, Increment: true},
 		{Name: "user_name", Type: field.TypeString, Unique: true},
 		{Name: "joined", Type: field.TypeTime},
 		{Name: "points", Type: field.TypeUint},
@@ -161,6 +161,7 @@ var (
 		{Name: "type", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "device_type", Type: field.TypeEnum, Enums: []string{"GLOWY9000", "SPEEDY300"}, Default: "GLOWY9000"},
+		{Name: "omit_prefix", Type: field.TypeEnum, Enums: []string{"foo", "bar"}},
 		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -171,7 +172,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[21]},
+				Columns:    []*schema.Column{UsersColumns[22]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -180,7 +181,7 @@ var (
 	// AttachmentRecipientsColumns holds the columns for the "attachment_recipients" table.
 	AttachmentRecipientsColumns = []*schema.Column{
 		{Name: "attachment_id", Type: field.TypeUUID},
-		{Name: "user_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeUint32},
 	}
 	// AttachmentRecipientsTable holds the schema information for the "attachment_recipients" table.
 	AttachmentRecipientsTable = &schema.Table{

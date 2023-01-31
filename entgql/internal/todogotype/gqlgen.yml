@@ -15,6 +15,7 @@ autobind:
   - entgo.io/contrib/entgql/internal/todogotype/ent
   # Auto-bind the generated `Status` enum to GraphQL.
   - entgo.io/contrib/entgql/internal/todogotype/ent/todo
+  - entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct
 
 models:
   ID:

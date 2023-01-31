@@ -54,7 +54,7 @@ func (ams *AllMethodsService) assignValues(columns []string, values []any) error
 // Note that you need to call AllMethodsService.Unwrap() before calling this method if this AllMethodsService
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ams *AllMethodsService) Update() *AllMethodsServiceUpdateOne {
-	return (&AllMethodsServiceClient{config: ams.config}).UpdateOne(ams)
+	return NewAllMethodsServiceClient(ams.config).UpdateOne(ams)
 }
 
 // Unwrap unwraps the AllMethodsService entity that was returned from a transaction after it was closed,

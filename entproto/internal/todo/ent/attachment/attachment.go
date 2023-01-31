@@ -15,6 +15,8 @@ const (
 	EdgeUser = "user"
 	// EdgeRecipients holds the string denoting the recipients edge name in mutations.
 	EdgeRecipients = "recipients"
+	// UserFieldID holds the string denoting the ID field of the User.
+	UserFieldID = "user_id"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
 	// UserTable is the table that holds the user relation/edge.

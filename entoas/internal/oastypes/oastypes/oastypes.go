@@ -66,6 +66,12 @@ const (
 	FieldJSONObj = "json_obj"
 	// FieldOther holds the string denoting the other field in the database.
 	FieldOther = "other"
+	// FieldOptional holds the string denoting the optional field in the database.
+	FieldOptional = "optional"
+	// FieldNillable holds the string denoting the nillable field in the database.
+	FieldNillable = "nillable"
+	// FieldOptionalAndNillable holds the string denoting the optional_and_nillable field in the database.
+	FieldOptionalAndNillable = "optional_and_nillable"
 	// Table holds the table name of the oastypes in the database.
 	Table = "oas_types"
 )
@@ -99,6 +105,9 @@ var Columns = []string{
 	FieldJSONSlice,
 	FieldJSONObj,
 	FieldOther,
+	FieldOptional,
+	FieldNillable,
+	FieldOptionalAndNillable,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

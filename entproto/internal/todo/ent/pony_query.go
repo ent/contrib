@@ -17,11 +17,9 @@ import (
 // PonyQuery is the builder for querying Pony entities.
 type PonyQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.Pony
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (pq *PonyQuery) Where(ps ...predicate.Pony) *PonyQuery {
 	return pq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (pq *PonyQuery) Limit(limit int) *PonyQuery {
-	pq.limit = &limit
+	pq.ctx.Limit = &limit
 	return pq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (pq *PonyQuery) Offset(offset int) *PonyQuery {
-	pq.offset = &offset
+	pq.ctx.Offset = &offset
 	return pq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (pq *PonyQuery) Unique(unique bool) *PonyQuery {
-	pq.unique = &unique
+	pq.ctx.Unique = &unique
 	return pq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (pq *PonyQuery) Order(o ...OrderFunc) *PonyQuery {
 	pq.order = append(pq.order, o...)
 	return pq
@@ -62,7 +60,7 @@ func (pq *PonyQuery) Order(o ...OrderFunc) *PonyQuery {
 // First returns the first Pony entity from the query.
 // Returns a *NotFoundError when no Pony was found.
 func (pq *PonyQuery) First(ctx context.Context) (*Pony, error) {
-	nodes, err := pq.Limit(1).All(ctx)
+	nodes, err := pq.Limit(1).All(setContextOp(ctx, pq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (pq *PonyQuery) FirstX(ctx context.Context) *Pony {
 // Returns a *NotFoundError when no Pony ID was found.
 func (pq *PonyQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (pq *PonyQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one Pony entity is found.
 // Returns a *NotFoundError when no Pony entities are found.
 func (pq *PonyQuery) Only(ctx context.Context) (*Pony, error) {
-	nodes, err := pq.Limit(2).All(ctx)
+	nodes, err := pq.Limit(2).All(setContextOp(ctx, pq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (pq *PonyQuery) OnlyX(ctx context.Context) *Pony {
 // Returns a *NotFoundError when no entities are found.
 func (pq *PonyQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (pq *PonyQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of Ponies.
 func (pq *PonyQuery) All(ctx context.Context) ([]*Pony, error) {
+	ctx = setContextOp(ctx, pq.ctx, "All")
 	if err := pq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return pq.sqlAll(ctx)
+	qr := querierAll[[]*Pony, *PonyQuery]()
+	return withInterceptors[[]*Pony](ctx, pq, qr, pq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (pq *PonyQuery) AllX(ctx context.Context) []*Pony {
 // IDs executes the query and returns a list of Pony IDs.
 func (pq *PonyQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, pq.ctx, "IDs")
 	if err := pq.Select(pony.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (pq *PonyQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (pq *PonyQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, pq.ctx, "Count")
 	if err := pq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return pq.sqlCount(ctx)
+	return withInterceptors[int](ctx, pq, querierCount[*PonyQuery](), pq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (pq *PonyQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pq *PonyQuery) Exist(ctx context.Context) (bool, error) {
-	if err := pq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, pq.ctx, "Exist")
+	switch _, err := pq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return pq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (pq *PonyQuery) Clone() *PonyQuery {
 	}
 	return &PonyQuery{
 		config:     pq.config,
-		limit:      pq.limit,
-		offset:     pq.offset,
+		ctx:        pq.ctx.Clone(),
 		order:      append([]OrderFunc{}, pq.order...),
+		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Pony{}, pq.predicates...),
 		// clone intermediate query.
-		sql:    pq.sql.Clone(),
-		path:   pq.path,
-		unique: pq.unique,
+		sql:  pq.sql.Clone(),
+		path: pq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (pq *PonyQuery) Clone() *PonyQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (pq *PonyQuery) GroupBy(field string, fields ...string) *PonyGroupBy {
-	grbuild := &PonyGroupBy{config: pq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := pq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return pq.sqlQuery(ctx), nil
-	}
+	pq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &PonyGroupBy{build: pq}
+	grbuild.flds = &pq.ctx.Fields
 	grbuild.label = pony.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (pq *PonyQuery) GroupBy(field string, fields ...string) *PonyGroupBy {
 //		Select(pony.FieldName).
 //		Scan(ctx, &v)
 func (pq *PonyQuery) Select(fields ...string) *PonySelect {
-	pq.fields = append(pq.fields, fields...)
-	selbuild := &PonySelect{PonyQuery: pq}
-	selbuild.label = pony.Label
-	selbuild.flds, selbuild.scan = &pq.fields, selbuild.Scan
-	return selbuild
+	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
+	sbuild := &PonySelect{PonyQuery: pq}
+	sbuild.label = pony.Label
+	sbuild.flds, sbuild.scan = &pq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a PonySelect configured with the given aggregations.
+func (pq *PonyQuery) Aggregate(fns ...AggregateFunc) *PonySelect {
+	return pq.Select().Aggregate(fns...)
 }
 
 func (pq *PonyQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range pq.fields {
+	for _, inter := range pq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, pq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range pq.ctx.Fields {
 		if !pony.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (pq *PonyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pony, e
 
 func (pq *PonyQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pq.querySpec()
-	_spec.Node.Columns = pq.fields
-	if len(pq.fields) > 0 {
-		_spec.Unique = pq.unique != nil && *pq.unique
+	_spec.Node.Columns = pq.ctx.Fields
+	if len(pq.ctx.Fields) > 0 {
+		_spec.Unique = pq.ctx.Unique != nil && *pq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
-}
-
-func (pq *PonyQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := pq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (pq *PonyQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (pq *PonyQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   pq.sql,
 		Unique: true,
 	}
-	if unique := pq.unique; unique != nil {
+	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := pq.fields; len(fields) > 0 {
+	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, pony.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (pq *PonyQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := pq.limit; limit != nil {
+	if limit := pq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := pq.offset; offset != nil {
+	if offset := pq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := pq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (pq *PonyQuery) querySpec() *sqlgraph.QuerySpec {
 func (pq *PonyQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(pq.driver.Dialect())
 	t1 := builder.Table(pony.Table)
-	columns := pq.fields
+	columns := pq.ctx.Fields
 	if len(columns) == 0 {
 		columns = pony.Columns
 	}
@@ -416,7 +421,7 @@ func (pq *PonyQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = pq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if pq.unique != nil && *pq.unique {
+	if pq.ctx.Unique != nil && *pq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range pq.predicates {
@@ -425,12 +430,12 @@ func (pq *PonyQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range pq.order {
 		p(selector)
 	}
-	if offset := pq.offset; offset != nil {
+	if offset := pq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := pq.limit; limit != nil {
+	if limit := pq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (pq *PonyQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // PonyGroupBy is the group-by builder for Pony entities.
 type PonyGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *PonyQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (pgb *PonyGroupBy) Aggregate(fns ...AggregateFunc) *PonyGroupBy {
 	return pgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (pgb *PonyGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := pgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, pgb.build.ctx, "GroupBy")
+	if err := pgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pgb.sql = query
-	return pgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*PonyQuery, *PonyGroupBy](ctx, pgb.build, pgb, pgb.build.inters, v)
 }
 
-func (pgb *PonyGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range pgb.fields {
-		if !pony.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (pgb *PonyGroupBy) sqlScan(ctx context.Context, root *PonyQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(pgb.fns))
+	for _, fn := range pgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := pgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*pgb.flds)+len(pgb.fns))
+		for _, f := range *pgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*pgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := pgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := pgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (pgb *PonyGroupBy) sqlQuery() *sql.Selector {
-	selector := pgb.sql.Select()
-	aggregation := make([]string, 0, len(pgb.fns))
-	for _, fn := range pgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
-		for _, f := range pgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(pgb.fields...)...)
-}
-
 // PonySelect is the builder for selecting fields of Pony entities.
 type PonySelect struct {
 	*PonyQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (ps *PonySelect) Aggregate(fns ...AggregateFunc) *PonySelect {
+	ps.fns = append(ps.fns, fns...)
+	return ps
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (ps *PonySelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ps.ctx, "Select")
 	if err := ps.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ps.sql = ps.PonyQuery.sqlQuery(ctx)
-	return ps.sqlScan(ctx, v)
+	return scanWithInterceptors[*PonyQuery, *PonySelect](ctx, ps.PonyQuery, ps, ps.inters, v)
 }
 
-func (ps *PonySelect) sqlScan(ctx context.Context, v any) error {
+func (ps *PonySelect) sqlScan(ctx context.Context, root *PonyQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(ps.fns))
+	for _, fn := range ps.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*ps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := ps.sql.Query()
+	query, args := selector.Query()
 	if err := ps.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

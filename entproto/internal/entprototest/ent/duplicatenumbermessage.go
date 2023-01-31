@@ -72,7 +72,7 @@ func (dnm *DuplicateNumberMessage) assignValues(columns []string, values []any) 
 // Note that you need to call DuplicateNumberMessage.Unwrap() before calling this method if this DuplicateNumberMessage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (dnm *DuplicateNumberMessage) Update() *DuplicateNumberMessageUpdateOne {
-	return (&DuplicateNumberMessageClient{config: dnm.config}).UpdateOne(dnm)
+	return NewDuplicateNumberMessageClient(dnm.config).UpdateOne(dnm)
 }
 
 // Unwrap unwraps the DuplicateNumberMessage entity that was returned from a transaction after it was closed,

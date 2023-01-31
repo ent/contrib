@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,6 +42,10 @@ const (
 	FieldBlob = "blob"
 	// FieldInit holds the string denoting the init field in the database.
 	FieldInit = "init"
+	// FieldCustom holds the string denoting the custom field in the database.
+	FieldCustom = "custom"
+	// FieldCustomp holds the string denoting the customp field in the database.
+	FieldCustomp = "customp"
 	// FieldCategoryID holds the string denoting the category_id field in the database.
 	FieldCategoryID = "category_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -87,6 +91,8 @@ var Columns = []string{
 	FieldText,
 	FieldBlob,
 	FieldInit,
+	FieldCustom,
+	FieldCustomp,
 	FieldCategoryID,
 }
 

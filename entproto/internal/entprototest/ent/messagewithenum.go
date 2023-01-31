@@ -72,7 +72,7 @@ func (mwe *MessageWithEnum) assignValues(columns []string, values []any) error {
 // Note that you need to call MessageWithEnum.Unwrap() before calling this method if this MessageWithEnum
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwe *MessageWithEnum) Update() *MessageWithEnumUpdateOne {
-	return (&MessageWithEnumClient{config: mwe.config}).UpdateOne(mwe)
+	return NewMessageWithEnumClient(mwe.config).UpdateOne(mwe)
 }
 
 // Unwrap unwraps the MessageWithEnum entity that was returned from a transaction after it was closed,

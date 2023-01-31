@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
@@ -28,34 +27,7 @@ func (ned *NilExampleDelete) Where(ps ...predicate.NilExample) *NilExampleDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ned *NilExampleDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ned.hooks) == 0 {
-		affected, err = ned.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NilExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ned.mutation = mutation
-			affected, err = ned.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ned.hooks) - 1; i >= 0; i-- {
-			if ned.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ned.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ned.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, NilExampleMutation](ctx, ned.sqlExec, ned.mutation, ned.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (ned *NilExampleDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	ned.mutation.done = true
 	return affected, err
 }
 

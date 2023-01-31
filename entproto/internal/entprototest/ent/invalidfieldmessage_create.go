@@ -33,49 +33,7 @@ func (ifmc *InvalidFieldMessageCreate) Mutation() *InvalidFieldMessageMutation {
 
 // Save creates the InvalidFieldMessage in the database.
 func (ifmc *InvalidFieldMessageCreate) Save(ctx context.Context) (*InvalidFieldMessage, error) {
-	var (
-		err  error
-		node *InvalidFieldMessage
-	)
-	if len(ifmc.hooks) == 0 {
-		if err = ifmc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ifmc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ifmc.check(); err != nil {
-				return nil, err
-			}
-			ifmc.mutation = mutation
-			if node, err = ifmc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ifmc.hooks) - 1; i >= 0; i-- {
-			if ifmc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ifmc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*InvalidFieldMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from InvalidFieldMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*InvalidFieldMessage, InvalidFieldMessageMutation](ctx, ifmc.sqlSave, ifmc.mutation, ifmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -109,6 +67,9 @@ func (ifmc *InvalidFieldMessageCreate) check() error {
 }
 
 func (ifmc *InvalidFieldMessageCreate) sqlSave(ctx context.Context) (*InvalidFieldMessage, error) {
+	if err := ifmc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ifmc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ifmc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -118,6 +79,8 @@ func (ifmc *InvalidFieldMessageCreate) sqlSave(ctx context.Context) (*InvalidFie
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ifmc.mutation.id = &_node.ID
+	ifmc.mutation.done = true
 	return _node, nil
 }
 
@@ -133,11 +96,7 @@ func (ifmc *InvalidFieldMessageCreate) createSpec() (*InvalidFieldMessage, *sqlg
 		}
 	)
 	if value, ok := ifmc.mutation.JSON(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: invalidfieldmessage.FieldJSON,
-		})
+		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
 		_node.JSON = value
 	}
 	return _node, _spec

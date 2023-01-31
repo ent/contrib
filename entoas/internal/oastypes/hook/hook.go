@@ -15,11 +15,10 @@ type OASTypesFunc func(context.Context, *oastypes.OASTypesMutation) (oastypes.Va
 
 // Mutate calls f(ctx, m).
 func (f OASTypesFunc) Mutate(ctx context.Context, m oastypes.Mutation) (oastypes.Value, error) {
-	mv, ok := m.(*oastypes.OASTypesMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *oastypes.OASTypesMutation", m)
+	if mv, ok := m.(*oastypes.OASTypesMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *oastypes.OASTypesMutation", m)
 }
 
 // Condition is a hook condition function.

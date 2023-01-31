@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,6 +41,9 @@ var (
 
 	// NodeTemplate implements the Relay Node interface for all types.
 	NodeTemplate = parseT("template/node.tmpl")
+
+	// NodeDescriptorTemplate implements the Node descriptor API for all types.
+	NodeDescriptorTemplate = parseT("template/node_descriptor.tmpl")
 
 	// PaginationTemplate adds pagination support according to the GraphQL Cursor Connections Spec.
 	// More info can be found in the following link: https://relay.dev/graphql/connections.htm.
@@ -395,22 +398,27 @@ func hasWhereInput(n *gen.Edge) (v bool, err error) {
 }
 
 // skipModeFromString returns SkipFlag from a string
-func skipModeFromString(s string) (SkipMode, error) {
-	switch s {
-	case "type":
-		return SkipType, nil
-	case "enum_field":
-		return SkipEnumField, nil
-	case "order_field":
-		return SkipOrderField, nil
-	case "where_input":
-		return SkipWhereInput, nil
-	case "mutation_create_input":
-		return SkipMutationCreateInput, nil
-	case "mutation_update_input":
-		return SkipMutationUpdateInput, nil
+func skipModeFromString(modes ...string) (SkipMode, error) {
+	var m SkipMode
+	for _, s := range modes {
+		switch s {
+		case "type":
+			m |= SkipType
+		case "enum_field":
+			m |= SkipEnumField
+		case "order_field":
+			m |= SkipOrderField
+		case "where_input":
+			m |= SkipWhereInput
+		case "mutation_create_input":
+			m |= SkipMutationCreateInput
+		case "mutation_update_input":
+			m |= SkipMutationUpdateInput
+		default:
+			return 0, fmt.Errorf("invalid skip mode: %s", s)
+		}
 	}
-	return 0, fmt.Errorf("invalid skip mode: %s", s)
+	return m, nil
 }
 
 func isSkipMode(antSkip interface{}, m string) (bool, error) {

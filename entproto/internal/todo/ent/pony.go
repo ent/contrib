@@ -64,7 +64,7 @@ func (po *Pony) assignValues(columns []string, values []any) error {
 // Note that you need to call Pony.Unwrap() before calling this method if this Pony
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (po *Pony) Update() *PonyUpdateOne {
-	return (&PonyClient{config: po.config}).UpdateOne(po)
+	return NewPonyClient(po.config).UpdateOne(po)
 }
 
 // Unwrap unwraps the Pony entity that was returned from a transaction after it was closed,

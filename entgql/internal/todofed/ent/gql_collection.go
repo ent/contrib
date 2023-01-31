@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: c.config}
+				query = (&TodoClient{config: c.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -124,7 +124,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: t.config}
+				query = (&TodoClient{config: t.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -134,7 +134,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: t.config}
+				query = (&TodoClient{config: t.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
@@ -146,7 +146,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &CategoryQuery{config: t.config}
+				query = (&CategoryClient{config: t.config}).Query()
 			)
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err

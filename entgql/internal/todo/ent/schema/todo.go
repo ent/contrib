@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
@@ -72,6 +73,18 @@ func (Todo) Fields() []ent.Field {
 		field.JSON("init", map[string]any{}).
 			Optional().
 			Annotations(entgql.Type("Map")),
+		field.JSON("custom", []customstruct.Custom{}).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput),
+				entgql.Skip(entgql.SkipMutationUpdateInput),
+			).
+			Optional(),
+		field.JSON("customp", []*customstruct.Custom{}).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput),
+				entgql.Skip(entgql.SkipMutationUpdateInput),
+			).
+			Optional(),
 	}
 }
 

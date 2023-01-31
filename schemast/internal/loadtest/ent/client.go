@@ -27,7 +27,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -122,6 +122,22 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Message.Use(hooks...)
 }
 
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Message.Intercept(interceptors...)
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *MessageMutation:
+		return c.Message.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
 // MessageClient is a client for the Message schema.
 type MessageClient struct {
 	config
@@ -136,6 +152,12 @@ func NewMessageClient(c config) *MessageClient {
 // A call to `Use(f, g, h)` equals to `message.Hooks(f(g(h())))`.
 func (c *MessageClient) Use(hooks ...Hook) {
 	c.hooks.Message = append(c.hooks.Message, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `message.Intercept(f(g(h())))`.
+func (c *MessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Message = append(c.inters.Message, interceptors...)
 }
 
 // Create returns a builder for creating a Message entity.
@@ -178,7 +200,7 @@ func (c *MessageClient) DeleteOne(m *Message) *MessageDeleteOne {
 	return c.DeleteOneID(m.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageClient) DeleteOneID(id int) *MessageDeleteOne {
 	builder := c.Delete().Where(message.ID(id))
 	builder.mutation.id = &id
@@ -190,6 +212,8 @@ func (c *MessageClient) DeleteOneID(id int) *MessageDeleteOne {
 func (c *MessageClient) Query() *MessageQuery {
 	return &MessageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -210,4 +234,24 @@ func (c *MessageClient) GetX(ctx context.Context, id int) *Message {
 // Hooks returns the client hooks.
 func (c *MessageClient) Hooks() []Hook {
 	return c.hooks.Message
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageClient) Interceptors() []Interceptor {
+	return c.inters.Message
+}
+
+func (c *MessageClient) mutate(ctx context.Context, m *MessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Message mutation op: %q", m.Op())
+	}
 }

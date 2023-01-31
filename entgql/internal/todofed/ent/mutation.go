@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
+	"entgo.io/ent/dialect/sql"
 
 	"entgo.io/ent"
 )
@@ -553,9 +554,24 @@ func (m *CategoryMutation) Where(ps ...predicate.Category) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the CategoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CategoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Category, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *CategoryMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CategoryMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Category).
@@ -1401,9 +1417,24 @@ func (m *TodoMutation) Where(ps ...predicate.Todo) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TodoMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TodoMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Todo, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TodoMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TodoMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Todo).
@@ -1894,9 +1925,24 @@ func (m *VerySecretMutation) Where(ps ...predicate.VerySecret) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the VerySecretMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VerySecretMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.VerySecret, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *VerySecretMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VerySecretMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (VerySecret).

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,40 +98,7 @@ func (fu *FriendshipUpdate) ClearFriend() *FriendshipUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FriendshipUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(fu.hooks) == 0 {
-		if err = fu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = fu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FriendshipMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = fu.check(); err != nil {
-				return 0, err
-			}
-			fu.mutation = mutation
-			affected, err = fu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(fu.hooks) - 1; i >= 0; i-- {
-			if fu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = fu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, fu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, FriendshipMutation](ctx, fu.sqlSave, fu.mutation, fu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -168,6 +135,9 @@ func (fu *FriendshipUpdate) check() error {
 }
 
 func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := fu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   friendship.Table,
@@ -186,11 +156,7 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := fu.mutation.CreatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: friendship.FieldCreatedAt,
-		})
+		_spec.SetField(friendship.FieldCreatedAt, field.TypeTime, value)
 	}
 	if fu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -270,6 +236,7 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	fu.mutation.done = true
 	return n, nil
 }
 
@@ -343,46 +310,7 @@ func (fuo *FriendshipUpdateOne) Select(field string, fields ...string) *Friendsh
 
 // Save executes the query and returns the updated Friendship entity.
 func (fuo *FriendshipUpdateOne) Save(ctx context.Context) (*Friendship, error) {
-	var (
-		err  error
-		node *Friendship
-	)
-	if len(fuo.hooks) == 0 {
-		if err = fuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = fuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FriendshipMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = fuo.check(); err != nil {
-				return nil, err
-			}
-			fuo.mutation = mutation
-			node, err = fuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(fuo.hooks) - 1; i >= 0; i-- {
-			if fuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = fuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, fuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Friendship)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from FriendshipMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Friendship, FriendshipMutation](ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -419,6 +347,9 @@ func (fuo *FriendshipUpdateOne) check() error {
 }
 
 func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship, err error) {
+	if err := fuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   friendship.Table,
@@ -454,11 +385,7 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 		}
 	}
 	if value, ok := fuo.mutation.CreatedAt(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: friendship.FieldCreatedAt,
-		})
+		_spec.SetField(friendship.FieldCreatedAt, field.TypeTime, value)
 	}
 	if fuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -541,5 +468,6 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 		}
 		return nil, err
 	}
+	fuo.mutation.done = true
 	return _node, nil
 }

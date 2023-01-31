@@ -47,34 +47,7 @@ func (mwsu *MessageWithStringsUpdate) Mutation() *MessageWithStringsMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwsu *MessageWithStringsUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwsu.hooks) == 0 {
-		affected, err = mwsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithStringsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwsu.mutation = mutation
-			affected, err = mwsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwsu.hooks) - 1; i >= 0; i-- {
-			if mwsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithStringsMutation](ctx, mwsu.sqlSave, mwsu.mutation, mwsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -118,11 +91,7 @@ func (mwsu *MessageWithStringsUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 	}
 	if value, ok := mwsu.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
-		})
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := mwsu.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -137,6 +106,7 @@ func (mwsu *MessageWithStringsUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		return 0, err
 	}
+	mwsu.mutation.done = true
 	return n, nil
 }
 
@@ -174,40 +144,7 @@ func (mwsuo *MessageWithStringsUpdateOne) Select(field string, fields ...string)
 
 // Save executes the query and returns the updated MessageWithStrings entity.
 func (mwsuo *MessageWithStringsUpdateOne) Save(ctx context.Context) (*MessageWithStrings, error) {
-	var (
-		err  error
-		node *MessageWithStrings
-	)
-	if len(mwsuo.hooks) == 0 {
-		node, err = mwsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithStringsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwsuo.mutation = mutation
-			node, err = mwsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwsuo.hooks) - 1; i >= 0; i-- {
-			if mwsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithStrings)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithStringsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithStrings, MessageWithStringsMutation](ctx, mwsuo.sqlSave, mwsuo.mutation, mwsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -268,11 +205,7 @@ func (mwsuo *MessageWithStringsUpdateOne) sqlSave(ctx context.Context) (_node *M
 		}
 	}
 	if value, ok := mwsuo.mutation.Strings(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: messagewithstrings.FieldStrings,
-		})
+		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
 	}
 	if value, ok := mwsuo.mutation.AppendedStrings(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
@@ -290,5 +223,6 @@ func (mwsuo *MessageWithStringsUpdateOne) sqlSave(ctx context.Context) (_node *M
 		}
 		return nil, err
 	}
+	mwsuo.mutation.done = true
 	return _node, nil
 }

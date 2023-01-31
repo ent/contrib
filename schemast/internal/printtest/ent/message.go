@@ -54,7 +54,7 @@ func (m *Message) assignValues(columns []string, values []any) error {
 // Note that you need to call Message.Unwrap() before calling this method if this Message
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (m *Message) Update() *MessageUpdateOne {
-	return (&MessageClient{config: m.config}).UpdateOne(m)
+	return NewMessageClient(m.config).UpdateOne(m)
 }
 
 // Unwrap unwraps the Message entity that was returned from a transaction after it was closed,

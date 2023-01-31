@@ -27,7 +27,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -122,6 +122,22 @@ func (c *Client) Use(hooks ...Hook) {
 	c.OASTypes.Use(hooks...)
 }
 
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.OASTypes.Intercept(interceptors...)
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *OASTypesMutation:
+		return c.OASTypes.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("oastypes: unknown mutation type %T", m)
+	}
+}
+
 // OASTypesClient is a client for the OASTypes schema.
 type OASTypesClient struct {
 	config
@@ -136,6 +152,12 @@ func NewOASTypesClient(c config) *OASTypesClient {
 // A call to `Use(f, g, h)` equals to `oastypes.Hooks(f(g(h())))`.
 func (c *OASTypesClient) Use(hooks ...Hook) {
 	c.hooks.OASTypes = append(c.hooks.OASTypes, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oastypes.Intercept(f(g(h())))`.
+func (c *OASTypesClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OASTypes = append(c.inters.OASTypes, interceptors...)
 }
 
 // Create returns a builder for creating a OASTypes entity.
@@ -178,7 +200,7 @@ func (c *OASTypesClient) DeleteOne(ot *OASTypes) *OASTypesDeleteOne {
 	return c.DeleteOneID(ot.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *OASTypesClient) DeleteOneID(id int) *OASTypesDeleteOne {
 	builder := c.Delete().Where(oastypes.ID(id))
 	builder.mutation.id = &id
@@ -190,6 +212,8 @@ func (c *OASTypesClient) DeleteOneID(id int) *OASTypesDeleteOne {
 func (c *OASTypesClient) Query() *OASTypesQuery {
 	return &OASTypesQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeOASTypes},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -210,4 +234,24 @@ func (c *OASTypesClient) GetX(ctx context.Context, id int) *OASTypes {
 // Hooks returns the client hooks.
 func (c *OASTypesClient) Hooks() []Hook {
 	return c.hooks.OASTypes
+}
+
+// Interceptors returns the client interceptors.
+func (c *OASTypesClient) Interceptors() []Interceptor {
+	return c.inters.OASTypes
+}
+
+func (c *OASTypesClient) mutate(ctx context.Context, m *OASTypesMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OASTypesCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OASTypesUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OASTypesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OASTypesDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("oastypes: unknown OASTypes mutation op: %q", m.Op())
+	}
 }

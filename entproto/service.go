@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -189,7 +189,7 @@ func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources,
 		outputName = "google.protobuf.Empty"
 		messages = append(messages, input)
 	case MethodList:
-		if !(genType.ID.IsInt() || genType.ID.IsInt64() || genType.ID.IsUUID() || genType.ID.IsString()) {
+		if !(genType.ID.Type.Type.Integer() || genType.ID.IsUUID() || genType.ID.IsString()) {
 			return methodResources{}, fmt.Errorf("entproto: list method does not support schema %q id type %q",
 				genType.Name, genType.ID.Type.String())
 		}

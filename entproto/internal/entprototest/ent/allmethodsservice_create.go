@@ -25,49 +25,7 @@ func (amsc *AllMethodsServiceCreate) Mutation() *AllMethodsServiceMutation {
 
 // Save creates the AllMethodsService in the database.
 func (amsc *AllMethodsServiceCreate) Save(ctx context.Context) (*AllMethodsService, error) {
-	var (
-		err  error
-		node *AllMethodsService
-	)
-	if len(amsc.hooks) == 0 {
-		if err = amsc.check(); err != nil {
-			return nil, err
-		}
-		node, err = amsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AllMethodsServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = amsc.check(); err != nil {
-				return nil, err
-			}
-			amsc.mutation = mutation
-			if node, err = amsc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(amsc.hooks) - 1; i >= 0; i-- {
-			if amsc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = amsc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, amsc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*AllMethodsService)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AllMethodsServiceMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*AllMethodsService, AllMethodsServiceMutation](ctx, amsc.sqlSave, amsc.mutation, amsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (amsc *AllMethodsServiceCreate) check() error {
 }
 
 func (amsc *AllMethodsServiceCreate) sqlSave(ctx context.Context) (*AllMethodsService, error) {
+	if err := amsc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := amsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, amsc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,6 +68,8 @@ func (amsc *AllMethodsServiceCreate) sqlSave(ctx context.Context) (*AllMethodsSe
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	amsc.mutation.id = &_node.ID
+	amsc.mutation.done = true
 	return _node, nil
 }
 

@@ -29,13 +29,13 @@ func (au *AttachmentUpdate) Where(ps ...predicate.Attachment) *AttachmentUpdate 
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (au *AttachmentUpdate) SetUserID(id int) *AttachmentUpdate {
+func (au *AttachmentUpdate) SetUserID(id uint32) *AttachmentUpdate {
 	au.mutation.SetUserID(id)
 	return au
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (au *AttachmentUpdate) SetNillableUserID(id *int) *AttachmentUpdate {
+func (au *AttachmentUpdate) SetNillableUserID(id *uint32) *AttachmentUpdate {
 	if id != nil {
 		au = au.SetUserID(*id)
 	}
@@ -48,14 +48,14 @@ func (au *AttachmentUpdate) SetUser(u *User) *AttachmentUpdate {
 }
 
 // AddRecipientIDs adds the "recipients" edge to the User entity by IDs.
-func (au *AttachmentUpdate) AddRecipientIDs(ids ...int) *AttachmentUpdate {
+func (au *AttachmentUpdate) AddRecipientIDs(ids ...uint32) *AttachmentUpdate {
 	au.mutation.AddRecipientIDs(ids...)
 	return au
 }
 
 // AddRecipients adds the "recipients" edges to the User entity.
 func (au *AttachmentUpdate) AddRecipients(u ...*User) *AttachmentUpdate {
-	ids := make([]int, len(u))
+	ids := make([]uint32, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -80,14 +80,14 @@ func (au *AttachmentUpdate) ClearRecipients() *AttachmentUpdate {
 }
 
 // RemoveRecipientIDs removes the "recipients" edge to User entities by IDs.
-func (au *AttachmentUpdate) RemoveRecipientIDs(ids ...int) *AttachmentUpdate {
+func (au *AttachmentUpdate) RemoveRecipientIDs(ids ...uint32) *AttachmentUpdate {
 	au.mutation.RemoveRecipientIDs(ids...)
 	return au
 }
 
 // RemoveRecipients removes "recipients" edges to User entities.
 func (au *AttachmentUpdate) RemoveRecipients(u ...*User) *AttachmentUpdate {
-	ids := make([]int, len(u))
+	ids := make([]uint32, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -96,34 +96,7 @@ func (au *AttachmentUpdate) RemoveRecipients(u ...*User) *AttachmentUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (au *AttachmentUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(au.hooks) == 0 {
-		affected, err = au.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AttachmentMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			au.mutation = mutation
-			affected, err = au.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(au.hooks) - 1; i >= 0; i-- {
-			if au.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = au.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, au.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, AttachmentMutation](ctx, au.sqlSave, au.mutation, au.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -175,7 +148,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -191,7 +164,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -210,7 +183,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -226,7 +199,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -245,7 +218,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -263,6 +236,7 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	au.mutation.done = true
 	return n, nil
 }
 
@@ -275,13 +249,13 @@ type AttachmentUpdateOne struct {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (auo *AttachmentUpdateOne) SetUserID(id int) *AttachmentUpdateOne {
+func (auo *AttachmentUpdateOne) SetUserID(id uint32) *AttachmentUpdateOne {
 	auo.mutation.SetUserID(id)
 	return auo
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (auo *AttachmentUpdateOne) SetNillableUserID(id *int) *AttachmentUpdateOne {
+func (auo *AttachmentUpdateOne) SetNillableUserID(id *uint32) *AttachmentUpdateOne {
 	if id != nil {
 		auo = auo.SetUserID(*id)
 	}
@@ -294,14 +268,14 @@ func (auo *AttachmentUpdateOne) SetUser(u *User) *AttachmentUpdateOne {
 }
 
 // AddRecipientIDs adds the "recipients" edge to the User entity by IDs.
-func (auo *AttachmentUpdateOne) AddRecipientIDs(ids ...int) *AttachmentUpdateOne {
+func (auo *AttachmentUpdateOne) AddRecipientIDs(ids ...uint32) *AttachmentUpdateOne {
 	auo.mutation.AddRecipientIDs(ids...)
 	return auo
 }
 
 // AddRecipients adds the "recipients" edges to the User entity.
 func (auo *AttachmentUpdateOne) AddRecipients(u ...*User) *AttachmentUpdateOne {
-	ids := make([]int, len(u))
+	ids := make([]uint32, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -326,14 +300,14 @@ func (auo *AttachmentUpdateOne) ClearRecipients() *AttachmentUpdateOne {
 }
 
 // RemoveRecipientIDs removes the "recipients" edge to User entities by IDs.
-func (auo *AttachmentUpdateOne) RemoveRecipientIDs(ids ...int) *AttachmentUpdateOne {
+func (auo *AttachmentUpdateOne) RemoveRecipientIDs(ids ...uint32) *AttachmentUpdateOne {
 	auo.mutation.RemoveRecipientIDs(ids...)
 	return auo
 }
 
 // RemoveRecipients removes "recipients" edges to User entities.
 func (auo *AttachmentUpdateOne) RemoveRecipients(u ...*User) *AttachmentUpdateOne {
-	ids := make([]int, len(u))
+	ids := make([]uint32, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -349,40 +323,7 @@ func (auo *AttachmentUpdateOne) Select(field string, fields ...string) *Attachme
 
 // Save executes the query and returns the updated Attachment entity.
 func (auo *AttachmentUpdateOne) Save(ctx context.Context) (*Attachment, error) {
-	var (
-		err  error
-		node *Attachment
-	)
-	if len(auo.hooks) == 0 {
-		node, err = auo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AttachmentMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			auo.mutation = mutation
-			node, err = auo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(auo.hooks) - 1; i >= 0; i-- {
-			if auo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = auo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, auo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Attachment)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AttachmentMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Attachment, AttachmentMutation](ctx, auo.sqlSave, auo.mutation, auo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -451,7 +392,7 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -467,7 +408,7 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -486,7 +427,7 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -502,7 +443,7 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -521,7 +462,7 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -542,5 +483,6 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 		}
 		return nil, err
 	}
+	auo.mutation.done = true
 	return _node, nil
 }

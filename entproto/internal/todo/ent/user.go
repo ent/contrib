@@ -22,7 +22,7 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uint32 `json:"id,omitempty"`
 	// UserName holds the value of the "user_name" field.
 	UserName string `json:"user_name,omitempty"`
 	// Joined holds the value of the "joined" field.
@@ -63,6 +63,8 @@ type User struct {
 	Labels []string `json:"labels,omitempty"`
 	// DeviceType holds the value of the "device_type" field.
 	DeviceType user.DeviceType `json:"device_type,omitempty"`
+	// OmitPrefix holds the value of the "omit_prefix" field.
+	OmitPrefix user.OmitPrefix `json:"omit_prefix,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges      UserEdges `json:"edges"`
@@ -162,7 +164,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType, user.FieldOmitPrefix:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -190,7 +192,7 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int(value.Int64)
+			u.ID = uint32(value.Int64)
 		case user.FieldUserName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_name", values[i])
@@ -313,6 +315,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.DeviceType = user.DeviceType(value.String)
 			}
+		case user.FieldOmitPrefix:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field omit_prefix", values[i])
+			} else if value.Valid {
+				u.OmitPrefix = user.OmitPrefix(value.String)
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_group", value)
@@ -327,34 +335,34 @@ func (u *User) assignValues(columns []string, values []any) error {
 
 // QueryGroup queries the "group" edge of the User entity.
 func (u *User) QueryGroup() *GroupQuery {
-	return (&UserClient{config: u.config}).QueryGroup(u)
+	return NewUserClient(u.config).QueryGroup(u)
 }
 
 // QueryAttachment queries the "attachment" edge of the User entity.
 func (u *User) QueryAttachment() *AttachmentQuery {
-	return (&UserClient{config: u.config}).QueryAttachment(u)
+	return NewUserClient(u.config).QueryAttachment(u)
 }
 
 // QueryReceived1 queries the "received_1" edge of the User entity.
 func (u *User) QueryReceived1() *AttachmentQuery {
-	return (&UserClient{config: u.config}).QueryReceived1(u)
+	return NewUserClient(u.config).QueryReceived1(u)
 }
 
 // QueryPet queries the "pet" edge of the User entity.
 func (u *User) QueryPet() *PetQuery {
-	return (&UserClient{config: u.config}).QueryPet(u)
+	return NewUserClient(u.config).QueryPet(u)
 }
 
 // QuerySkipEdge queries the "skip_edge" edge of the User entity.
 func (u *User) QuerySkipEdge() *SkipEdgeExampleQuery {
-	return (&UserClient{config: u.config}).QuerySkipEdge(u)
+	return NewUserClient(u.config).QuerySkipEdge(u)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{config: u.config}).UpdateOne(u)
+	return NewUserClient(u.config).UpdateOne(u)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,
@@ -432,6 +440,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("device_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceType))
+	builder.WriteString(", ")
+	builder.WriteString("omit_prefix=")
+	builder.WriteString(fmt.Sprintf("%v", u.OmitPrefix))
 	builder.WriteByte(')')
 	return builder.String()
 }

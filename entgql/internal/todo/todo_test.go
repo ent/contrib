@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 3 << 32
+	idOffset = 4 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1094,15 +1094,15 @@ func (s *todoTestSuite) TestMutationFieldCollection() {
 			}
 		}
 	}
-	err := s.Post(`mutation {
-		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: 12884901889 }) {
+	err := s.Post(`mutation ($parentID: ID!) {
+		createTodo(input: { status: IN_PROGRESS, priority: 0, text: "OKE", parentID: $parentID }) {
 			parent {
 				id
 				text
 			}
 			text
 		}
-	}`, &rsp, client.Var("text", s.T().Name()))
+	}`, &rsp, client.Var("parentID", strconv.Itoa(idOffset+1)))
 	s.Require().NoError(err)
 	s.Require().Equal("OKE", rsp.CreateTodo.Text)
 	s.Require().Equal(strconv.Itoa(idOffset+1), rsp.CreateTodo.Parent.ID)
@@ -1327,7 +1327,11 @@ func TestNestedConnection(t *testing.T) {
 								totalCount
 							}
 							friends {
-								name
+								edges {
+									node {
+										name
+									}
+								}
 							}
 						}
 					}
@@ -1342,8 +1346,12 @@ func TestNestedConnection(t *testing.T) {
 							Groups struct {
 								TotalCount int
 							}
-							Friends []struct {
-								Name string
+							Friends struct {
+								Edges []struct {
+									Node struct {
+										Name string
+									}
+								}
 							}
 						}
 					}
@@ -1357,7 +1365,7 @@ func TestNestedConnection(t *testing.T) {
 		// The totalCount of the root query can be inferred from the length of the user edges.
 		require.EqualValues(t, 3, count.value())
 		require.Equal(t, 10, rsp.Users.TotalCount)
-		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends))
+		require.Equal(t, 9, len(rsp.Users.Edges[0].Node.Friends.Edges))
 
 		for n := 1; n <= 10; n++ {
 			count.reset()
@@ -1597,11 +1605,11 @@ func TestNestedConnection(t *testing.T) {
 		// One query to trigger the loading of the ent_types content.
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAQAAAAK"),
+			client.Var("cursor", "gaFp0wAAAAUAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAQAAAAJ", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAUAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -1803,4 +1811,98 @@ func TestEdgesFiltering(t *testing.T) {
 		n = rsp2.Todos.Edges[0].Node.InProgress
 		require.Equal(t, "t1.1", n.Edges[0].Node.Text)
 	})
+}
+
+func TestMutation_CreateCategory(t *testing.T) {
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	gqlc := client.New(srv)
+
+	// Create a category.
+	var rsp struct {
+		CreateCategory struct {
+			ID     string
+			Text   string
+			Status string
+			Todos  struct {
+				TotalCount int
+				Edges      []struct {
+					Node struct {
+						Text   string
+						Status string
+					}
+				}
+			}
+		}
+	}
+	err := gqlc.Post(`
+	mutation createCategory {
+		createCategory(input: {
+			text: "cate1"
+			status: ENABLED
+			createTodos: [
+				{ status: IN_PROGRESS, text: "c1.t1" },
+				{ status: IN_PROGRESS, text: "c1.t2" }
+			]
+		}) {
+			id
+			text
+			status
+			todos {
+				totalCount
+				edges {
+					node {
+						text
+						status
+					}
+				}
+			}
+		}
+	}
+	`, &rsp)
+	require.NoError(t, err)
+
+	require.Equal(t, 2, rsp.CreateCategory.Todos.TotalCount)
+	n := rsp.CreateCategory.Todos
+	require.Equal(t, "c1.t1", n.Edges[0].Node.Text)
+	require.Equal(t, "c1.t2", n.Edges[1].Node.Text)
+}
+
+func TestMutation_ClearChildren(t *testing.T) {
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	gqlc := client.New(srv)
+
+	ctx := context.Background()
+	root := ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusInProgress).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1.1").SetParent(root).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParent(root).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParent(root).SetStatus(todo.StatusCompleted),
+	).ExecX(ctx)
+	require.True(t, root.QueryChildren().ExistX(ctx))
+
+	var rsp struct {
+		UpdateTodo struct {
+			ID string
+		}
+	}
+	err := gqlc.Post(`
+	mutation cleanChildren($id: ID!){
+		updateTodo(id: $id, input: {clearChildren: true}) {
+			id
+		}
+	}
+	`, &rsp, client.Var("id", root.ID))
+	require.NoError(t, err)
+	require.Equal(t, strconv.Itoa(root.ID), rsp.UpdateTodo.ID)
+	require.False(t, root.QueryChildren().ExistX(ctx))
 }

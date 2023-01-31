@@ -17,11 +17,9 @@ import (
 // FileQuery is the builder for querying File entities.
 type FileQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.File
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (fq *FileQuery) Where(ps ...predicate.File) *FileQuery {
 	return fq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (fq *FileQuery) Limit(limit int) *FileQuery {
-	fq.limit = &limit
+	fq.ctx.Limit = &limit
 	return fq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (fq *FileQuery) Offset(offset int) *FileQuery {
-	fq.offset = &offset
+	fq.ctx.Offset = &offset
 	return fq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (fq *FileQuery) Unique(unique bool) *FileQuery {
-	fq.unique = &unique
+	fq.ctx.Unique = &unique
 	return fq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (fq *FileQuery) Order(o ...OrderFunc) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
@@ -62,7 +60,7 @@ func (fq *FileQuery) Order(o ...OrderFunc) *FileQuery {
 // First returns the first File entity from the query.
 // Returns a *NotFoundError when no File was found.
 func (fq *FileQuery) First(ctx context.Context) (*File, error) {
-	nodes, err := fq.Limit(1).All(ctx)
+	nodes, err := fq.Limit(1).All(setContextOp(ctx, fq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (fq *FileQuery) FirstX(ctx context.Context) *File {
 // Returns a *NotFoundError when no File ID was found.
 func (fq *FileQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = fq.Limit(1).IDs(setContextOp(ctx, fq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (fq *FileQuery) FirstIDX(ctx context.Context) string {
 // Returns a *NotSingularError when more than one File entity is found.
 // Returns a *NotFoundError when no File entities are found.
 func (fq *FileQuery) Only(ctx context.Context) (*File, error) {
-	nodes, err := fq.Limit(2).All(ctx)
+	nodes, err := fq.Limit(2).All(setContextOp(ctx, fq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (fq *FileQuery) OnlyX(ctx context.Context) *File {
 // Returns a *NotFoundError when no entities are found.
 func (fq *FileQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = fq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = fq.Limit(2).IDs(setContextOp(ctx, fq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (fq *FileQuery) OnlyIDX(ctx context.Context) string {
 
 // All executes the query and returns a list of Files.
 func (fq *FileQuery) All(ctx context.Context) ([]*File, error) {
+	ctx = setContextOp(ctx, fq.ctx, "All")
 	if err := fq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return fq.sqlAll(ctx)
+	qr := querierAll[[]*File, *FileQuery]()
+	return withInterceptors[[]*File](ctx, fq, qr, fq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (fq *FileQuery) AllX(ctx context.Context) []*File {
 // IDs executes the query and returns a list of File IDs.
 func (fq *FileQuery) IDs(ctx context.Context) ([]string, error) {
 	var ids []string
+	ctx = setContextOp(ctx, fq.ctx, "IDs")
 	if err := fq.Select(file.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (fq *FileQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (fq *FileQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, fq.ctx, "Count")
 	if err := fq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return fq.sqlCount(ctx)
+	return withInterceptors[int](ctx, fq, querierCount[*FileQuery](), fq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (fq *FileQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fq *FileQuery) Exist(ctx context.Context) (bool, error) {
-	if err := fq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, fq.ctx, "Exist")
+	switch _, err := fq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return fq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (fq *FileQuery) Clone() *FileQuery {
 	}
 	return &FileQuery{
 		config:     fq.config,
-		limit:      fq.limit,
-		offset:     fq.offset,
+		ctx:        fq.ctx.Clone(),
 		order:      append([]OrderFunc{}, fq.order...),
+		inters:     append([]Interceptor{}, fq.inters...),
 		predicates: append([]predicate.File{}, fq.predicates...),
 		// clone intermediate query.
-		sql:    fq.sql.Clone(),
-		path:   fq.path,
-		unique: fq.unique,
+		sql:  fq.sql.Clone(),
+		path: fq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (fq *FileQuery) Clone() *FileQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
-	grbuild := &FileGroupBy{config: fq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := fq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return fq.sqlQuery(ctx), nil
-	}
+	fq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &FileGroupBy{build: fq}
+	grbuild.flds = &fq.ctx.Fields
 	grbuild.label = file.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 //		Select(file.FieldContents).
 //		Scan(ctx, &v)
 func (fq *FileQuery) Select(fields ...string) *FileSelect {
-	fq.fields = append(fq.fields, fields...)
-	selbuild := &FileSelect{FileQuery: fq}
-	selbuild.label = file.Label
-	selbuild.flds, selbuild.scan = &fq.fields, selbuild.Scan
-	return selbuild
+	fq.ctx.Fields = append(fq.ctx.Fields, fields...)
+	sbuild := &FileSelect{FileQuery: fq}
+	sbuild.label = file.Label
+	sbuild.flds, sbuild.scan = &fq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a FileSelect configured with the given aggregations.
+func (fq *FileQuery) Aggregate(fns ...AggregateFunc) *FileSelect {
+	return fq.Select().Aggregate(fns...)
 }
 
 func (fq *FileQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range fq.fields {
+	for _, inter := range fq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, fq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range fq.ctx.Fields {
 		if !file.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fq.querySpec()
-	_spec.Node.Columns = fq.fields
-	if len(fq.fields) > 0 {
-		_spec.Unique = fq.unique != nil && *fq.unique
+	_spec.Node.Columns = fq.ctx.Fields
+	if len(fq.ctx.Fields) > 0 {
+		_spec.Unique = fq.ctx.Unique != nil && *fq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, fq.driver, _spec)
-}
-
-func (fq *FileQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := fq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   fq.sql,
 		Unique: true,
 	}
-	if unique := fq.unique; unique != nil {
+	if unique := fq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := fq.fields; len(fields) > 0 {
+	if fields := fq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, file.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := fq.limit; limit != nil {
+	if limit := fq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := fq.offset; offset != nil {
+	if offset := fq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := fq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 func (fq *FileQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(fq.driver.Dialect())
 	t1 := builder.Table(file.Table)
-	columns := fq.fields
+	columns := fq.ctx.Fields
 	if len(columns) == 0 {
 		columns = file.Columns
 	}
@@ -416,7 +421,7 @@ func (fq *FileQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = fq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if fq.unique != nil && *fq.unique {
+	if fq.ctx.Unique != nil && *fq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range fq.predicates {
@@ -425,12 +430,12 @@ func (fq *FileQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range fq.order {
 		p(selector)
 	}
-	if offset := fq.offset; offset != nil {
+	if offset := fq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := fq.limit; limit != nil {
+	if limit := fq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (fq *FileQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // FileGroupBy is the group-by builder for File entities.
 type FileGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *FileQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (fgb *FileGroupBy) Aggregate(fns ...AggregateFunc) *FileGroupBy {
 	return fgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (fgb *FileGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := fgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, fgb.build.ctx, "GroupBy")
+	if err := fgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	fgb.sql = query
-	return fgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*FileQuery, *FileGroupBy](ctx, fgb.build, fgb, fgb.build.inters, v)
 }
 
-func (fgb *FileGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range fgb.fields {
-		if !file.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (fgb *FileGroupBy) sqlScan(ctx context.Context, root *FileQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(fgb.fns))
+	for _, fn := range fgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := fgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*fgb.flds)+len(fgb.fns))
+		for _, f := range *fgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*fgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := fgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := fgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (fgb *FileGroupBy) sqlQuery() *sql.Selector {
-	selector := fgb.sql.Select()
-	aggregation := make([]string, 0, len(fgb.fns))
-	for _, fn := range fgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(fgb.fields)+len(fgb.fns))
-		for _, f := range fgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(fgb.fields...)...)
-}
-
 // FileSelect is the builder for selecting fields of File entities.
 type FileSelect struct {
 	*FileQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (fs *FileSelect) Aggregate(fns ...AggregateFunc) *FileSelect {
+	fs.fns = append(fs.fns, fns...)
+	return fs
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (fs *FileSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, fs.ctx, "Select")
 	if err := fs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	fs.sql = fs.FileQuery.sqlQuery(ctx)
-	return fs.sqlScan(ctx, v)
+	return scanWithInterceptors[*FileQuery, *FileSelect](ctx, fs.FileQuery, fs, fs.inters, v)
 }
 
-func (fs *FileSelect) sqlScan(ctx context.Context, v any) error {
+func (fs *FileSelect) sqlScan(ctx context.Context, root *FileQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(fs.fns))
+	for _, fn := range fs.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*fs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := fs.sql.Query()
+	query, args := selector.Query()
 	if err := fs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

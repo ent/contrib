@@ -40,50 +40,8 @@ func (mwsc *MultiWordSchemaCreate) Mutation() *MultiWordSchemaMutation {
 
 // Save creates the MultiWordSchema in the database.
 func (mwsc *MultiWordSchemaCreate) Save(ctx context.Context) (*MultiWordSchema, error) {
-	var (
-		err  error
-		node *MultiWordSchema
-	)
 	mwsc.defaults()
-	if len(mwsc.hooks) == 0 {
-		if err = mwsc.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MultiWordSchemaMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwsc.check(); err != nil {
-				return nil, err
-			}
-			mwsc.mutation = mutation
-			if node, err = mwsc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwsc.hooks) - 1; i >= 0; i-- {
-			if mwsc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwsc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MultiWordSchema)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MultiWordSchemaMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MultiWordSchema, MultiWordSchemaMutation](ctx, mwsc.sqlSave, mwsc.mutation, mwsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -130,6 +88,9 @@ func (mwsc *MultiWordSchemaCreate) check() error {
 }
 
 func (mwsc *MultiWordSchemaCreate) sqlSave(ctx context.Context) (*MultiWordSchema, error) {
+	if err := mwsc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwsc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -139,6 +100,8 @@ func (mwsc *MultiWordSchemaCreate) sqlSave(ctx context.Context) (*MultiWordSchem
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mwsc.mutation.id = &_node.ID
+	mwsc.mutation.done = true
 	return _node, nil
 }
 
@@ -154,11 +117,7 @@ func (mwsc *MultiWordSchemaCreate) createSpec() (*MultiWordSchema, *sqlgraph.Cre
 		}
 	)
 	if value, ok := mwsc.mutation.Unit(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: multiwordschema.FieldUnit,
-		})
+		_spec.SetField(multiwordschema.FieldUnit, field.TypeEnum, value)
 		_node.Unit = value
 	}
 	return _node, _spec

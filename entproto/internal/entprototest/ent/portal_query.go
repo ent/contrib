@@ -18,11 +18,9 @@ import (
 // PortalQuery is the builder for querying Portal entities.
 type PortalQuery struct {
 	config
-	limit        *int
-	offset       *int
-	unique       *bool
+	ctx          *QueryContext
 	order        []OrderFunc
-	fields       []string
+	inters       []Interceptor
 	predicates   []predicate.Portal
 	withCategory *CategoryQuery
 	withFKs      bool
@@ -37,26 +35,26 @@ func (pq *PortalQuery) Where(ps ...predicate.Portal) *PortalQuery {
 	return pq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (pq *PortalQuery) Limit(limit int) *PortalQuery {
-	pq.limit = &limit
+	pq.ctx.Limit = &limit
 	return pq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (pq *PortalQuery) Offset(offset int) *PortalQuery {
-	pq.offset = &offset
+	pq.ctx.Offset = &offset
 	return pq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (pq *PortalQuery) Unique(unique bool) *PortalQuery {
-	pq.unique = &unique
+	pq.ctx.Unique = &unique
 	return pq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (pq *PortalQuery) Order(o ...OrderFunc) *PortalQuery {
 	pq.order = append(pq.order, o...)
 	return pq
@@ -64,7 +62,7 @@ func (pq *PortalQuery) Order(o ...OrderFunc) *PortalQuery {
 
 // QueryCategory chains the current query on the "category" edge.
 func (pq *PortalQuery) QueryCategory() *CategoryQuery {
-	query := &CategoryQuery{config: pq.config}
+	query := (&CategoryClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (pq *PortalQuery) QueryCategory() *CategoryQuery {
 // First returns the first Portal entity from the query.
 // Returns a *NotFoundError when no Portal was found.
 func (pq *PortalQuery) First(ctx context.Context) (*Portal, error) {
-	nodes, err := pq.Limit(1).All(ctx)
+	nodes, err := pq.Limit(1).All(setContextOp(ctx, pq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +108,7 @@ func (pq *PortalQuery) FirstX(ctx context.Context) *Portal {
 // Returns a *NotFoundError when no Portal ID was found.
 func (pq *PortalQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = pq.Limit(1).IDs(setContextOp(ctx, pq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +131,7 @@ func (pq *PortalQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one Portal entity is found.
 // Returns a *NotFoundError when no Portal entities are found.
 func (pq *PortalQuery) Only(ctx context.Context) (*Portal, error) {
-	nodes, err := pq.Limit(2).All(ctx)
+	nodes, err := pq.Limit(2).All(setContextOp(ctx, pq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +159,7 @@ func (pq *PortalQuery) OnlyX(ctx context.Context) *Portal {
 // Returns a *NotFoundError when no entities are found.
 func (pq *PortalQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = pq.Limit(2).IDs(setContextOp(ctx, pq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,10 +184,12 @@ func (pq *PortalQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of Portals.
 func (pq *PortalQuery) All(ctx context.Context) ([]*Portal, error) {
+	ctx = setContextOp(ctx, pq.ctx, "All")
 	if err := pq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return pq.sqlAll(ctx)
+	qr := querierAll[[]*Portal, *PortalQuery]()
+	return withInterceptors[[]*Portal](ctx, pq, qr, pq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -204,6 +204,7 @@ func (pq *PortalQuery) AllX(ctx context.Context) []*Portal {
 // IDs executes the query and returns a list of Portal IDs.
 func (pq *PortalQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, pq.ctx, "IDs")
 	if err := pq.Select(portal.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -221,10 +222,11 @@ func (pq *PortalQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (pq *PortalQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, pq.ctx, "Count")
 	if err := pq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return pq.sqlCount(ctx)
+	return withInterceptors[int](ctx, pq, querierCount[*PortalQuery](), pq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -238,10 +240,15 @@ func (pq *PortalQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pq *PortalQuery) Exist(ctx context.Context) (bool, error) {
-	if err := pq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, pq.ctx, "Exist")
+	switch _, err := pq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return pq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -261,22 +268,21 @@ func (pq *PortalQuery) Clone() *PortalQuery {
 	}
 	return &PortalQuery{
 		config:       pq.config,
-		limit:        pq.limit,
-		offset:       pq.offset,
+		ctx:          pq.ctx.Clone(),
 		order:        append([]OrderFunc{}, pq.order...),
+		inters:       append([]Interceptor{}, pq.inters...),
 		predicates:   append([]predicate.Portal{}, pq.predicates...),
 		withCategory: pq.withCategory.Clone(),
 		// clone intermediate query.
-		sql:    pq.sql.Clone(),
-		path:   pq.path,
-		unique: pq.unique,
+		sql:  pq.sql.Clone(),
+		path: pq.path,
 	}
 }
 
 // WithCategory tells the query-builder to eager-load the nodes that are connected to
 // the "category" edge. The optional arguments are used to configure the query builder of the edge.
 func (pq *PortalQuery) WithCategory(opts ...func(*CategoryQuery)) *PortalQuery {
-	query := &CategoryQuery{config: pq.config}
+	query := (&CategoryClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -299,16 +305,11 @@ func (pq *PortalQuery) WithCategory(opts ...func(*CategoryQuery)) *PortalQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
-	grbuild := &PortalGroupBy{config: pq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := pq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return pq.sqlQuery(ctx), nil
-	}
+	pq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &PortalGroupBy{build: pq}
+	grbuild.flds = &pq.ctx.Fields
 	grbuild.label = portal.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -325,15 +326,30 @@ func (pq *PortalQuery) GroupBy(field string, fields ...string) *PortalGroupBy {
 //		Select(portal.FieldName).
 //		Scan(ctx, &v)
 func (pq *PortalQuery) Select(fields ...string) *PortalSelect {
-	pq.fields = append(pq.fields, fields...)
-	selbuild := &PortalSelect{PortalQuery: pq}
-	selbuild.label = portal.Label
-	selbuild.flds, selbuild.scan = &pq.fields, selbuild.Scan
-	return selbuild
+	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
+	sbuild := &PortalSelect{PortalQuery: pq}
+	sbuild.label = portal.Label
+	sbuild.flds, sbuild.scan = &pq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a PortalSelect configured with the given aggregations.
+func (pq *PortalQuery) Aggregate(fns ...AggregateFunc) *PortalSelect {
+	return pq.Select().Aggregate(fns...)
 }
 
 func (pq *PortalQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range pq.fields {
+	for _, inter := range pq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, pq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range pq.ctx.Fields {
 		if !portal.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -403,6 +419,9 @@ func (pq *PortalQuery) loadCategory(ctx context.Context, query *CategoryQuery, n
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(category.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -422,22 +441,11 @@ func (pq *PortalQuery) loadCategory(ctx context.Context, query *CategoryQuery, n
 
 func (pq *PortalQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pq.querySpec()
-	_spec.Node.Columns = pq.fields
-	if len(pq.fields) > 0 {
-		_spec.Unique = pq.unique != nil && *pq.unique
+	_spec.Node.Columns = pq.ctx.Fields
+	if len(pq.ctx.Fields) > 0 {
+		_spec.Unique = pq.ctx.Unique != nil && *pq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
-}
-
-func (pq *PortalQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := pq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (pq *PortalQuery) querySpec() *sqlgraph.QuerySpec {
@@ -453,10 +461,10 @@ func (pq *PortalQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   pq.sql,
 		Unique: true,
 	}
-	if unique := pq.unique; unique != nil {
+	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := pq.fields; len(fields) > 0 {
+	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, portal.FieldID)
 		for i := range fields {
@@ -472,10 +480,10 @@ func (pq *PortalQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := pq.limit; limit != nil {
+	if limit := pq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := pq.offset; offset != nil {
+	if offset := pq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := pq.order; len(ps) > 0 {
@@ -491,7 +499,7 @@ func (pq *PortalQuery) querySpec() *sqlgraph.QuerySpec {
 func (pq *PortalQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(pq.driver.Dialect())
 	t1 := builder.Table(portal.Table)
-	columns := pq.fields
+	columns := pq.ctx.Fields
 	if len(columns) == 0 {
 		columns = portal.Columns
 	}
@@ -500,7 +508,7 @@ func (pq *PortalQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = pq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if pq.unique != nil && *pq.unique {
+	if pq.ctx.Unique != nil && *pq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range pq.predicates {
@@ -509,12 +517,12 @@ func (pq *PortalQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range pq.order {
 		p(selector)
 	}
-	if offset := pq.offset; offset != nil {
+	if offset := pq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := pq.limit; limit != nil {
+	if limit := pq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -522,13 +530,8 @@ func (pq *PortalQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // PortalGroupBy is the group-by builder for Portal entities.
 type PortalGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *PortalQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -537,74 +540,77 @@ func (pgb *PortalGroupBy) Aggregate(fns ...AggregateFunc) *PortalGroupBy {
 	return pgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (pgb *PortalGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := pgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, pgb.build.ctx, "GroupBy")
+	if err := pgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pgb.sql = query
-	return pgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*PortalQuery, *PortalGroupBy](ctx, pgb.build, pgb, pgb.build.inters, v)
 }
 
-func (pgb *PortalGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range pgb.fields {
-		if !portal.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (pgb *PortalGroupBy) sqlScan(ctx context.Context, root *PortalQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(pgb.fns))
+	for _, fn := range pgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := pgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*pgb.flds)+len(pgb.fns))
+		for _, f := range *pgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*pgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := pgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := pgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (pgb *PortalGroupBy) sqlQuery() *sql.Selector {
-	selector := pgb.sql.Select()
-	aggregation := make([]string, 0, len(pgb.fns))
-	for _, fn := range pgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
-		for _, f := range pgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(pgb.fields...)...)
-}
-
 // PortalSelect is the builder for selecting fields of Portal entities.
 type PortalSelect struct {
 	*PortalQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (ps *PortalSelect) Aggregate(fns ...AggregateFunc) *PortalSelect {
+	ps.fns = append(ps.fns, fns...)
+	return ps
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (ps *PortalSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ps.ctx, "Select")
 	if err := ps.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ps.sql = ps.PortalQuery.sqlQuery(ctx)
-	return ps.sqlScan(ctx, v)
+	return scanWithInterceptors[*PortalQuery, *PortalSelect](ctx, ps.PortalQuery, ps, ps.inters, v)
 }
 
-func (ps *PortalSelect) sqlScan(ctx context.Context, v any) error {
+func (ps *PortalSelect) sqlScan(ctx context.Context, root *PortalQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(ps.fns))
+	for _, fn := range ps.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*ps.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := ps.sql.Query()
+	query, args := selector.Query()
 	if err := ps.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

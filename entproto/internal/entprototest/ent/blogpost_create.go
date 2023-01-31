@@ -80,49 +80,7 @@ func (bpc *BlogPostCreate) Mutation() *BlogPostMutation {
 
 // Save creates the BlogPost in the database.
 func (bpc *BlogPostCreate) Save(ctx context.Context) (*BlogPost, error) {
-	var (
-		err  error
-		node *BlogPost
-	)
-	if len(bpc.hooks) == 0 {
-		if err = bpc.check(); err != nil {
-			return nil, err
-		}
-		node, err = bpc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BlogPostMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = bpc.check(); err != nil {
-				return nil, err
-			}
-			bpc.mutation = mutation
-			if node, err = bpc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(bpc.hooks) - 1; i >= 0; i-- {
-			if bpc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, bpc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*BlogPost)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from BlogPostMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*BlogPost, BlogPostMutation](ctx, bpc.sqlSave, bpc.mutation, bpc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -162,6 +120,9 @@ func (bpc *BlogPostCreate) check() error {
 }
 
 func (bpc *BlogPostCreate) sqlSave(ctx context.Context) (*BlogPost, error) {
+	if err := bpc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := bpc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, bpc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -171,6 +132,8 @@ func (bpc *BlogPostCreate) sqlSave(ctx context.Context) (*BlogPost, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	bpc.mutation.id = &_node.ID
+	bpc.mutation.done = true
 	return _node, nil
 }
 
@@ -186,27 +149,15 @@ func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := bpc.mutation.Title(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldTitle,
-		})
+		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
 	if value, ok := bpc.mutation.Body(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldBody,
-		})
+		_spec.SetField(blogpost.FieldBody, field.TypeString, value)
 		_node.Body = value
 	}
 	if value, ok := bpc.mutation.ExternalID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.SetField(blogpost.FieldExternalID, field.TypeInt, value)
 		_node.ExternalID = value
 	}
 	if nodes := bpc.mutation.AuthorIDs(); len(nodes) > 0 {

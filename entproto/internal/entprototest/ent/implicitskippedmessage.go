@@ -64,7 +64,7 @@ func (ism *ImplicitSkippedMessage) assignValues(columns []string, values []any) 
 // Note that you need to call ImplicitSkippedMessage.Unwrap() before calling this method if this ImplicitSkippedMessage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ism *ImplicitSkippedMessage) Update() *ImplicitSkippedMessageUpdateOne {
-	return (&ImplicitSkippedMessageClient{config: ism.config}).UpdateOne(ism)
+	return NewImplicitSkippedMessageClient(ism.config).UpdateOne(ism)
 }
 
 // Unwrap unwraps the ImplicitSkippedMessage entity that was returned from a transaction after it was closed,

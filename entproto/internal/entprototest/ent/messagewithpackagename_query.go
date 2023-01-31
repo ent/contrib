@@ -17,11 +17,9 @@ import (
 // MessageWithPackageNameQuery is the builder for querying MessageWithPackageName entities.
 type MessageWithPackageNameQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.MessageWithPackageName
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (mwpnq *MessageWithPackageNameQuery) Where(ps ...predicate.MessageWithPacka
 	return mwpnq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (mwpnq *MessageWithPackageNameQuery) Limit(limit int) *MessageWithPackageNameQuery {
-	mwpnq.limit = &limit
+	mwpnq.ctx.Limit = &limit
 	return mwpnq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (mwpnq *MessageWithPackageNameQuery) Offset(offset int) *MessageWithPackageNameQuery {
-	mwpnq.offset = &offset
+	mwpnq.ctx.Offset = &offset
 	return mwpnq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (mwpnq *MessageWithPackageNameQuery) Unique(unique bool) *MessageWithPackageNameQuery {
-	mwpnq.unique = &unique
+	mwpnq.ctx.Unique = &unique
 	return mwpnq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (mwpnq *MessageWithPackageNameQuery) Order(o ...OrderFunc) *MessageWithPackageNameQuery {
 	mwpnq.order = append(mwpnq.order, o...)
 	return mwpnq
@@ -62,7 +60,7 @@ func (mwpnq *MessageWithPackageNameQuery) Order(o ...OrderFunc) *MessageWithPack
 // First returns the first MessageWithPackageName entity from the query.
 // Returns a *NotFoundError when no MessageWithPackageName was found.
 func (mwpnq *MessageWithPackageNameQuery) First(ctx context.Context) (*MessageWithPackageName, error) {
-	nodes, err := mwpnq.Limit(1).All(ctx)
+	nodes, err := mwpnq.Limit(1).All(setContextOp(ctx, mwpnq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (mwpnq *MessageWithPackageNameQuery) FirstX(ctx context.Context) *MessageWi
 // Returns a *NotFoundError when no MessageWithPackageName ID was found.
 func (mwpnq *MessageWithPackageNameQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwpnq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = mwpnq.Limit(1).IDs(setContextOp(ctx, mwpnq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (mwpnq *MessageWithPackageNameQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MessageWithPackageName entity is found.
 // Returns a *NotFoundError when no MessageWithPackageName entities are found.
 func (mwpnq *MessageWithPackageNameQuery) Only(ctx context.Context) (*MessageWithPackageName, error) {
-	nodes, err := mwpnq.Limit(2).All(ctx)
+	nodes, err := mwpnq.Limit(2).All(setContextOp(ctx, mwpnq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (mwpnq *MessageWithPackageNameQuery) OnlyX(ctx context.Context) *MessageWit
 // Returns a *NotFoundError when no entities are found.
 func (mwpnq *MessageWithPackageNameQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwpnq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = mwpnq.Limit(2).IDs(setContextOp(ctx, mwpnq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (mwpnq *MessageWithPackageNameQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MessageWithPackageNames.
 func (mwpnq *MessageWithPackageNameQuery) All(ctx context.Context) ([]*MessageWithPackageName, error) {
+	ctx = setContextOp(ctx, mwpnq.ctx, "All")
 	if err := mwpnq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return mwpnq.sqlAll(ctx)
+	qr := querierAll[[]*MessageWithPackageName, *MessageWithPackageNameQuery]()
+	return withInterceptors[[]*MessageWithPackageName](ctx, mwpnq, qr, mwpnq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (mwpnq *MessageWithPackageNameQuery) AllX(ctx context.Context) []*MessageWi
 // IDs executes the query and returns a list of MessageWithPackageName IDs.
 func (mwpnq *MessageWithPackageNameQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, mwpnq.ctx, "IDs")
 	if err := mwpnq.Select(messagewithpackagename.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (mwpnq *MessageWithPackageNameQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwpnq *MessageWithPackageNameQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, mwpnq.ctx, "Count")
 	if err := mwpnq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return mwpnq.sqlCount(ctx)
+	return withInterceptors[int](ctx, mwpnq, querierCount[*MessageWithPackageNameQuery](), mwpnq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (mwpnq *MessageWithPackageNameQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwpnq *MessageWithPackageNameQuery) Exist(ctx context.Context) (bool, error) {
-	if err := mwpnq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, mwpnq.ctx, "Exist")
+	switch _, err := mwpnq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return mwpnq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 	}
 	return &MessageWithPackageNameQuery{
 		config:     mwpnq.config,
-		limit:      mwpnq.limit,
-		offset:     mwpnq.offset,
+		ctx:        mwpnq.ctx.Clone(),
 		order:      append([]OrderFunc{}, mwpnq.order...),
+		inters:     append([]Interceptor{}, mwpnq.inters...),
 		predicates: append([]predicate.MessageWithPackageName{}, mwpnq.predicates...),
 		// clone intermediate query.
-		sql:    mwpnq.sql.Clone(),
-		path:   mwpnq.path,
-		unique: mwpnq.unique,
+		sql:  mwpnq.sql.Clone(),
+		path: mwpnq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string) *MessageWithPackageNameGroupBy {
-	grbuild := &MessageWithPackageNameGroupBy{config: mwpnq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := mwpnq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return mwpnq.sqlQuery(ctx), nil
-	}
+	mwpnq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MessageWithPackageNameGroupBy{build: mwpnq}
+	grbuild.flds = &mwpnq.ctx.Fields
 	grbuild.label = messagewithpackagename.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (mwpnq *MessageWithPackageNameQuery) GroupBy(field string, fields ...string
 //		Select(messagewithpackagename.FieldName).
 //		Scan(ctx, &v)
 func (mwpnq *MessageWithPackageNameQuery) Select(fields ...string) *MessageWithPackageNameSelect {
-	mwpnq.fields = append(mwpnq.fields, fields...)
-	selbuild := &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}
-	selbuild.label = messagewithpackagename.Label
-	selbuild.flds, selbuild.scan = &mwpnq.fields, selbuild.Scan
-	return selbuild
+	mwpnq.ctx.Fields = append(mwpnq.ctx.Fields, fields...)
+	sbuild := &MessageWithPackageNameSelect{MessageWithPackageNameQuery: mwpnq}
+	sbuild.label = messagewithpackagename.Label
+	sbuild.flds, sbuild.scan = &mwpnq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a MessageWithPackageNameSelect configured with the given aggregations.
+func (mwpnq *MessageWithPackageNameQuery) Aggregate(fns ...AggregateFunc) *MessageWithPackageNameSelect {
+	return mwpnq.Select().Aggregate(fns...)
 }
 
 func (mwpnq *MessageWithPackageNameQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range mwpnq.fields {
+	for _, inter := range mwpnq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, mwpnq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range mwpnq.ctx.Fields {
 		if !messagewithpackagename.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (mwpnq *MessageWithPackageNameQuery) sqlAll(ctx context.Context, hooks ...q
 
 func (mwpnq *MessageWithPackageNameQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwpnq.querySpec()
-	_spec.Node.Columns = mwpnq.fields
-	if len(mwpnq.fields) > 0 {
-		_spec.Unique = mwpnq.unique != nil && *mwpnq.unique
+	_spec.Node.Columns = mwpnq.ctx.Fields
+	if len(mwpnq.ctx.Fields) > 0 {
+		_spec.Unique = mwpnq.ctx.Unique != nil && *mwpnq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, mwpnq.driver, _spec)
-}
-
-func (mwpnq *MessageWithPackageNameQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := mwpnq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwpnq.sql,
 		Unique: true,
 	}
-	if unique := mwpnq.unique; unique != nil {
+	if unique := mwpnq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := mwpnq.fields; len(fields) > 0 {
+	if fields := mwpnq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithpackagename.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := mwpnq.limit; limit != nil {
+	if limit := mwpnq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mwpnq.offset; offset != nil {
+	if offset := mwpnq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := mwpnq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwpnq.driver.Dialect())
 	t1 := builder.Table(messagewithpackagename.Table)
-	columns := mwpnq.fields
+	columns := mwpnq.ctx.Fields
 	if len(columns) == 0 {
 		columns = messagewithpackagename.Columns
 	}
@@ -416,7 +421,7 @@ func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Sel
 		selector = mwpnq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mwpnq.unique != nil && *mwpnq.unique {
+	if mwpnq.ctx.Unique != nil && *mwpnq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range mwpnq.predicates {
@@ -425,12 +430,12 @@ func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Sel
 	for _, p := range mwpnq.order {
 		p(selector)
 	}
-	if offset := mwpnq.offset; offset != nil {
+	if offset := mwpnq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mwpnq.limit; limit != nil {
+	if limit := mwpnq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (mwpnq *MessageWithPackageNameQuery) sqlQuery(ctx context.Context) *sql.Sel
 
 // MessageWithPackageNameGroupBy is the group-by builder for MessageWithPackageName entities.
 type MessageWithPackageNameGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *MessageWithPackageNameQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (mwpngb *MessageWithPackageNameGroupBy) Aggregate(fns ...AggregateFunc) *Me
 	return mwpngb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (mwpngb *MessageWithPackageNameGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := mwpngb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, mwpngb.build.ctx, "GroupBy")
+	if err := mwpngb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwpngb.sql = query
-	return mwpngb.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithPackageNameQuery, *MessageWithPackageNameGroupBy](ctx, mwpngb.build, mwpngb, mwpngb.build.inters, v)
 }
 
-func (mwpngb *MessageWithPackageNameGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range mwpngb.fields {
-		if !messagewithpackagename.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (mwpngb *MessageWithPackageNameGroupBy) sqlScan(ctx context.Context, root *MessageWithPackageNameQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(mwpngb.fns))
+	for _, fn := range mwpngb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := mwpngb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*mwpngb.flds)+len(mwpngb.fns))
+		for _, f := range *mwpngb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*mwpngb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mwpngb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := mwpngb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (mwpngb *MessageWithPackageNameGroupBy) sqlQuery() *sql.Selector {
-	selector := mwpngb.sql.Select()
-	aggregation := make([]string, 0, len(mwpngb.fns))
-	for _, fn := range mwpngb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(mwpngb.fields)+len(mwpngb.fns))
-		for _, f := range mwpngb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(mwpngb.fields...)...)
-}
-
 // MessageWithPackageNameSelect is the builder for selecting fields of MessageWithPackageName entities.
 type MessageWithPackageNameSelect struct {
 	*MessageWithPackageNameQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwpns *MessageWithPackageNameSelect) Aggregate(fns ...AggregateFunc) *MessageWithPackageNameSelect {
+	mwpns.fns = append(mwpns.fns, fns...)
+	return mwpns
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, mwpns.ctx, "Select")
 	if err := mwpns.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwpns.sql = mwpns.MessageWithPackageNameQuery.sqlQuery(ctx)
-	return mwpns.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithPackageNameQuery, *MessageWithPackageNameSelect](ctx, mwpns.MessageWithPackageNameQuery, mwpns, mwpns.inters, v)
 }
 
-func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, v any) error {
+func (mwpns *MessageWithPackageNameSelect) sqlScan(ctx context.Context, root *MessageWithPackageNameQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(mwpns.fns))
+	for _, fn := range mwpns.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*mwpns.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := mwpns.sql.Query()
+	query, args := selector.Query()
 	if err := mwpns.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

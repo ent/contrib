@@ -20,6 +20,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	"entgo.io/ent"
@@ -52,10 +53,10 @@ type AttachmentMutation struct {
 	typ               string
 	id                *uuid.UUID
 	clearedFields     map[string]struct{}
-	user              *int
+	user              *uint32
 	cleareduser       bool
-	recipients        map[int]struct{}
-	removedrecipients map[int]struct{}
+	recipients        map[uint32]struct{}
+	removedrecipients map[uint32]struct{}
 	clearedrecipients bool
 	done              bool
 	oldValue          func(context.Context) (*Attachment, error)
@@ -167,7 +168,7 @@ func (m *AttachmentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *AttachmentMutation) SetUserID(id int) {
+func (m *AttachmentMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -182,7 +183,7 @@ func (m *AttachmentMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *AttachmentMutation) UserID() (id int, exists bool) {
+func (m *AttachmentMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -192,7 +193,7 @@ func (m *AttachmentMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) UserIDs() (ids []int) {
+func (m *AttachmentMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -206,9 +207,9 @@ func (m *AttachmentMutation) ResetUser() {
 }
 
 // AddRecipientIDs adds the "recipients" edge to the User entity by ids.
-func (m *AttachmentMutation) AddRecipientIDs(ids ...int) {
+func (m *AttachmentMutation) AddRecipientIDs(ids ...uint32) {
 	if m.recipients == nil {
-		m.recipients = make(map[int]struct{})
+		m.recipients = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		m.recipients[ids[i]] = struct{}{}
@@ -226,9 +227,9 @@ func (m *AttachmentMutation) RecipientsCleared() bool {
 }
 
 // RemoveRecipientIDs removes the "recipients" edge to the User entity by IDs.
-func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
+func (m *AttachmentMutation) RemoveRecipientIDs(ids ...uint32) {
 	if m.removedrecipients == nil {
-		m.removedrecipients = make(map[int]struct{})
+		m.removedrecipients = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		delete(m.recipients, ids[i])
@@ -237,7 +238,7 @@ func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
 }
 
 // RemovedRecipients returns the removed IDs of the "recipients" edge to the User entity.
-func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
+func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []uint32) {
 	for id := range m.removedrecipients {
 		ids = append(ids, id)
 	}
@@ -245,7 +246,7 @@ func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
 }
 
 // RecipientsIDs returns the "recipients" edge IDs in the mutation.
-func (m *AttachmentMutation) RecipientsIDs() (ids []int) {
+func (m *AttachmentMutation) RecipientsIDs() (ids []uint32) {
 	for id := range m.recipients {
 		ids = append(ids, id)
 	}
@@ -264,9 +265,24 @@ func (m *AttachmentMutation) Where(ps ...predicate.Attachment) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the AttachmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AttachmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Attachment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *AttachmentMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AttachmentMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Attachment).
@@ -460,8 +476,8 @@ type GroupMutation struct {
 	id            *int
 	name          *string
 	clearedFields map[string]struct{}
-	users         map[int]struct{}
-	removedusers  map[int]struct{}
+	users         map[uint32]struct{}
+	removedusers  map[uint32]struct{}
 	clearedusers  bool
 	done          bool
 	oldValue      func(context.Context) (*Group, error)
@@ -603,9 +619,9 @@ func (m *GroupMutation) ResetName() {
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
-func (m *GroupMutation) AddUserIDs(ids ...int) {
+func (m *GroupMutation) AddUserIDs(ids ...uint32) {
 	if m.users == nil {
-		m.users = make(map[int]struct{})
+		m.users = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		m.users[ids[i]] = struct{}{}
@@ -623,9 +639,9 @@ func (m *GroupMutation) UsersCleared() bool {
 }
 
 // RemoveUserIDs removes the "users" edge to the User entity by IDs.
-func (m *GroupMutation) RemoveUserIDs(ids ...int) {
+func (m *GroupMutation) RemoveUserIDs(ids ...uint32) {
 	if m.removedusers == nil {
-		m.removedusers = make(map[int]struct{})
+		m.removedusers = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		delete(m.users, ids[i])
@@ -634,7 +650,7 @@ func (m *GroupMutation) RemoveUserIDs(ids ...int) {
 }
 
 // RemovedUsers returns the removed IDs of the "users" edge to the User entity.
-func (m *GroupMutation) RemovedUsersIDs() (ids []int) {
+func (m *GroupMutation) RemovedUsersIDs() (ids []uint32) {
 	for id := range m.removedusers {
 		ids = append(ids, id)
 	}
@@ -642,7 +658,7 @@ func (m *GroupMutation) RemovedUsersIDs() (ids []int) {
 }
 
 // UsersIDs returns the "users" edge IDs in the mutation.
-func (m *GroupMutation) UsersIDs() (ids []int) {
+func (m *GroupMutation) UsersIDs() (ids []uint32) {
 	for id := range m.users {
 		ids = append(ids, id)
 	}
@@ -661,9 +677,24 @@ func (m *GroupMutation) Where(ps ...predicate.Group) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the GroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Group, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *GroupMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GroupMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Group).
@@ -1008,9 +1039,24 @@ func (m *MultiWordSchemaMutation) Where(ps ...predicate.MultiWordSchema) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MultiWordSchemaMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MultiWordSchemaMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MultiWordSchema, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MultiWordSchemaMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MultiWordSchemaMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MultiWordSchema).
@@ -1382,9 +1428,24 @@ func (m *NilExampleMutation) Where(ps ...predicate.NilExample) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the NilExampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NilExampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NilExample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *NilExampleMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NilExampleMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (NilExample).
@@ -1580,7 +1641,7 @@ type PetMutation struct {
 	typ               string
 	id                *int
 	clearedFields     map[string]struct{}
-	owner             *int
+	owner             *uint32
 	clearedowner      bool
 	attachment        map[uuid.UUID]struct{}
 	removedattachment map[uuid.UUID]struct{}
@@ -1689,7 +1750,7 @@ func (m *PetMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by id.
-func (m *PetMutation) SetOwnerID(id int) {
+func (m *PetMutation) SetOwnerID(id uint32) {
 	m.owner = &id
 }
 
@@ -1704,7 +1765,7 @@ func (m *PetMutation) OwnerCleared() bool {
 }
 
 // OwnerID returns the "owner" edge ID in the mutation.
-func (m *PetMutation) OwnerID() (id int, exists bool) {
+func (m *PetMutation) OwnerID() (id uint32, exists bool) {
 	if m.owner != nil {
 		return *m.owner, true
 	}
@@ -1714,7 +1775,7 @@ func (m *PetMutation) OwnerID() (id int, exists bool) {
 // OwnerIDs returns the "owner" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // OwnerID instead. It exists only for internal usage by the builders.
-func (m *PetMutation) OwnerIDs() (ids []int) {
+func (m *PetMutation) OwnerIDs() (ids []uint32) {
 	if id := m.owner; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1786,9 +1847,24 @@ func (m *PetMutation) Where(ps ...predicate.Pet) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Pet, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PetMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PetMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Pet).
@@ -2126,9 +2202,24 @@ func (m *PonyMutation) Where(ps ...predicate.Pony) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PonyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PonyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Pony, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PonyMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PonyMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Pony).
@@ -2292,7 +2383,7 @@ type SkipEdgeExampleMutation struct {
 	typ           string
 	id            *int
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint32
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*SkipEdgeExample, error)
@@ -2398,7 +2489,7 @@ func (m *SkipEdgeExampleMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *SkipEdgeExampleMutation) SetUserID(id int) {
+func (m *SkipEdgeExampleMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -2413,7 +2504,7 @@ func (m *SkipEdgeExampleMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
+func (m *SkipEdgeExampleMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -2423,7 +2514,7 @@ func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *SkipEdgeExampleMutation) UserIDs() (ids []int) {
+func (m *SkipEdgeExampleMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2441,9 +2532,24 @@ func (m *SkipEdgeExampleMutation) Where(ps ...predicate.SkipEdgeExample) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the SkipEdgeExampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SkipEdgeExampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SkipEdgeExample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *SkipEdgeExampleMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SkipEdgeExampleMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (SkipEdgeExample).
@@ -2610,7 +2716,7 @@ type TodoMutation struct {
 	task          *string
 	status        *todo.Status
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint32
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*Todo, error)
@@ -2788,7 +2894,7 @@ func (m *TodoMutation) ResetStatus() {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *TodoMutation) SetUserID(id int) {
+func (m *TodoMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -2803,7 +2909,7 @@ func (m *TodoMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *TodoMutation) UserID() (id int, exists bool) {
+func (m *TodoMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -2813,7 +2919,7 @@ func (m *TodoMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *TodoMutation) UserIDs() (ids []int) {
+func (m *TodoMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2831,9 +2937,24 @@ func (m *TodoMutation) Where(ps ...predicate.Todo) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TodoMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TodoMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Todo, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TodoMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TodoMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Todo).
@@ -3038,7 +3159,7 @@ type UserMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
+	id                 *uint32
 	user_name          *string
 	joined             *time.Time
 	points             *uint
@@ -3068,6 +3189,7 @@ type UserMutation struct {
 	labels             *[]string
 	appendlabels       []string
 	device_type        *user.DeviceType
+	omit_prefix        *user.OmitPrefix
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -3105,7 +3227,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uint32) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -3155,9 +3277,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id uint32) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uint32, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3168,12 +3296,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]uint32, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uint32{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4185,6 +4313,42 @@ func (m *UserMutation) ResetDeviceType() {
 	m.device_type = nil
 }
 
+// SetOmitPrefix sets the "omit_prefix" field.
+func (m *UserMutation) SetOmitPrefix(up user.OmitPrefix) {
+	m.omit_prefix = &up
+}
+
+// OmitPrefix returns the value of the "omit_prefix" field in the mutation.
+func (m *UserMutation) OmitPrefix() (r user.OmitPrefix, exists bool) {
+	v := m.omit_prefix
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOmitPrefix returns the old "omit_prefix" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldOmitPrefix(ctx context.Context) (v user.OmitPrefix, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOmitPrefix is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOmitPrefix requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOmitPrefix: %w", err)
+	}
+	return oldValue.OmitPrefix, nil
+}
+
+// ResetOmitPrefix resets all changes to the "omit_prefix" field.
+func (m *UserMutation) ResetOmitPrefix() {
+	m.omit_prefix = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -4400,9 +4564,24 @@ func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (User).
@@ -4414,7 +4593,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4475,6 +4654,9 @@ func (m *UserMutation) Fields() []string {
 	if m.device_type != nil {
 		fields = append(fields, user.FieldDeviceType)
 	}
+	if m.omit_prefix != nil {
+		fields = append(fields, user.FieldOmitPrefix)
+	}
 	return fields
 }
 
@@ -4523,6 +4705,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Labels()
 	case user.FieldDeviceType:
 		return m.DeviceType()
+	case user.FieldOmitPrefix:
+		return m.OmitPrefix()
 	}
 	return nil, false
 }
@@ -4572,6 +4756,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLabels(ctx)
 	case user.FieldDeviceType:
 		return m.OldDeviceType(ctx)
+	case user.FieldOmitPrefix:
+		return m.OldOmitPrefix(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4720,6 +4906,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeviceType(v)
+		return nil
+	case user.FieldOmitPrefix:
+		v, ok := value.(user.OmitPrefix)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOmitPrefix(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -4979,6 +5172,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldDeviceType:
 		m.ResetDeviceType()
+		return nil
+	case user.FieldOmitPrefix:
+		m.ResetOmitPrefix()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

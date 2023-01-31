@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/explicitskippedmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (esmd *ExplicitSkippedMessageDelete) Where(ps ...predicate.ExplicitSkippedM
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (esmd *ExplicitSkippedMessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(esmd.hooks) == 0 {
-		affected, err = esmd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ExplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			esmd.mutation = mutation
-			affected, err = esmd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(esmd.hooks) - 1; i >= 0; i-- {
-			if esmd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = esmd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, esmd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ExplicitSkippedMessageMutation](ctx, esmd.sqlExec, esmd.mutation, esmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (esmd *ExplicitSkippedMessageDelete) sqlExec(ctx context.Context) (int, err
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	esmd.mutation.done = true
 	return affected, err
 }
 

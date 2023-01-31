@@ -17,11 +17,9 @@ import (
 // MessageWithFieldOneQuery is the builder for querying MessageWithFieldOne entities.
 type MessageWithFieldOneQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.MessageWithFieldOne
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (mwfoq *MessageWithFieldOneQuery) Where(ps ...predicate.MessageWithFieldOne
 	return mwfoq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (mwfoq *MessageWithFieldOneQuery) Limit(limit int) *MessageWithFieldOneQuery {
-	mwfoq.limit = &limit
+	mwfoq.ctx.Limit = &limit
 	return mwfoq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (mwfoq *MessageWithFieldOneQuery) Offset(offset int) *MessageWithFieldOneQuery {
-	mwfoq.offset = &offset
+	mwfoq.ctx.Offset = &offset
 	return mwfoq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (mwfoq *MessageWithFieldOneQuery) Unique(unique bool) *MessageWithFieldOneQuery {
-	mwfoq.unique = &unique
+	mwfoq.ctx.Unique = &unique
 	return mwfoq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (mwfoq *MessageWithFieldOneQuery) Order(o ...OrderFunc) *MessageWithFieldOneQuery {
 	mwfoq.order = append(mwfoq.order, o...)
 	return mwfoq
@@ -62,7 +60,7 @@ func (mwfoq *MessageWithFieldOneQuery) Order(o ...OrderFunc) *MessageWithFieldOn
 // First returns the first MessageWithFieldOne entity from the query.
 // Returns a *NotFoundError when no MessageWithFieldOne was found.
 func (mwfoq *MessageWithFieldOneQuery) First(ctx context.Context) (*MessageWithFieldOne, error) {
-	nodes, err := mwfoq.Limit(1).All(ctx)
+	nodes, err := mwfoq.Limit(1).All(setContextOp(ctx, mwfoq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (mwfoq *MessageWithFieldOneQuery) FirstX(ctx context.Context) *MessageWithF
 // Returns a *NotFoundError when no MessageWithFieldOne ID was found.
 func (mwfoq *MessageWithFieldOneQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwfoq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = mwfoq.Limit(1).IDs(setContextOp(ctx, mwfoq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (mwfoq *MessageWithFieldOneQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MessageWithFieldOne entity is found.
 // Returns a *NotFoundError when no MessageWithFieldOne entities are found.
 func (mwfoq *MessageWithFieldOneQuery) Only(ctx context.Context) (*MessageWithFieldOne, error) {
-	nodes, err := mwfoq.Limit(2).All(ctx)
+	nodes, err := mwfoq.Limit(2).All(setContextOp(ctx, mwfoq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (mwfoq *MessageWithFieldOneQuery) OnlyX(ctx context.Context) *MessageWithFi
 // Returns a *NotFoundError when no entities are found.
 func (mwfoq *MessageWithFieldOneQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwfoq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = mwfoq.Limit(2).IDs(setContextOp(ctx, mwfoq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (mwfoq *MessageWithFieldOneQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MessageWithFieldOnes.
 func (mwfoq *MessageWithFieldOneQuery) All(ctx context.Context) ([]*MessageWithFieldOne, error) {
+	ctx = setContextOp(ctx, mwfoq.ctx, "All")
 	if err := mwfoq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return mwfoq.sqlAll(ctx)
+	qr := querierAll[[]*MessageWithFieldOne, *MessageWithFieldOneQuery]()
+	return withInterceptors[[]*MessageWithFieldOne](ctx, mwfoq, qr, mwfoq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (mwfoq *MessageWithFieldOneQuery) AllX(ctx context.Context) []*MessageWithF
 // IDs executes the query and returns a list of MessageWithFieldOne IDs.
 func (mwfoq *MessageWithFieldOneQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, mwfoq.ctx, "IDs")
 	if err := mwfoq.Select(messagewithfieldone.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (mwfoq *MessageWithFieldOneQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwfoq *MessageWithFieldOneQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, mwfoq.ctx, "Count")
 	if err := mwfoq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return mwfoq.sqlCount(ctx)
+	return withInterceptors[int](ctx, mwfoq, querierCount[*MessageWithFieldOneQuery](), mwfoq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (mwfoq *MessageWithFieldOneQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwfoq *MessageWithFieldOneQuery) Exist(ctx context.Context) (bool, error) {
-	if err := mwfoq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, mwfoq.ctx, "Exist")
+	switch _, err := mwfoq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return mwfoq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 	}
 	return &MessageWithFieldOneQuery{
 		config:     mwfoq.config,
-		limit:      mwfoq.limit,
-		offset:     mwfoq.offset,
+		ctx:        mwfoq.ctx.Clone(),
 		order:      append([]OrderFunc{}, mwfoq.order...),
+		inters:     append([]Interceptor{}, mwfoq.inters...),
 		predicates: append([]predicate.MessageWithFieldOne{}, mwfoq.predicates...),
 		// clone intermediate query.
-		sql:    mwfoq.sql.Clone(),
-		path:   mwfoq.path,
-		unique: mwfoq.unique,
+		sql:  mwfoq.sql.Clone(),
+		path: mwfoq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *MessageWithFieldOneGroupBy {
-	grbuild := &MessageWithFieldOneGroupBy{config: mwfoq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := mwfoq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return mwfoq.sqlQuery(ctx), nil
-	}
+	mwfoq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MessageWithFieldOneGroupBy{build: mwfoq}
+	grbuild.flds = &mwfoq.ctx.Fields
 	grbuild.label = messagewithfieldone.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (mwfoq *MessageWithFieldOneQuery) GroupBy(field string, fields ...string) *
 //		Select(messagewithfieldone.FieldFieldOne).
 //		Scan(ctx, &v)
 func (mwfoq *MessageWithFieldOneQuery) Select(fields ...string) *MessageWithFieldOneSelect {
-	mwfoq.fields = append(mwfoq.fields, fields...)
-	selbuild := &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}
-	selbuild.label = messagewithfieldone.Label
-	selbuild.flds, selbuild.scan = &mwfoq.fields, selbuild.Scan
-	return selbuild
+	mwfoq.ctx.Fields = append(mwfoq.ctx.Fields, fields...)
+	sbuild := &MessageWithFieldOneSelect{MessageWithFieldOneQuery: mwfoq}
+	sbuild.label = messagewithfieldone.Label
+	sbuild.flds, sbuild.scan = &mwfoq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a MessageWithFieldOneSelect configured with the given aggregations.
+func (mwfoq *MessageWithFieldOneQuery) Aggregate(fns ...AggregateFunc) *MessageWithFieldOneSelect {
+	return mwfoq.Select().Aggregate(fns...)
 }
 
 func (mwfoq *MessageWithFieldOneQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range mwfoq.fields {
+	for _, inter := range mwfoq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, mwfoq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range mwfoq.ctx.Fields {
 		if !messagewithfieldone.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (mwfoq *MessageWithFieldOneQuery) sqlAll(ctx context.Context, hooks ...quer
 
 func (mwfoq *MessageWithFieldOneQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwfoq.querySpec()
-	_spec.Node.Columns = mwfoq.fields
-	if len(mwfoq.fields) > 0 {
-		_spec.Unique = mwfoq.unique != nil && *mwfoq.unique
+	_spec.Node.Columns = mwfoq.ctx.Fields
+	if len(mwfoq.ctx.Fields) > 0 {
+		_spec.Unique = mwfoq.ctx.Unique != nil && *mwfoq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, mwfoq.driver, _spec)
-}
-
-func (mwfoq *MessageWithFieldOneQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := mwfoq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (mwfoq *MessageWithFieldOneQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (mwfoq *MessageWithFieldOneQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mwfoq.sql,
 		Unique: true,
 	}
-	if unique := mwfoq.unique; unique != nil {
+	if unique := mwfoq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := mwfoq.fields; len(fields) > 0 {
+	if fields := mwfoq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithfieldone.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (mwfoq *MessageWithFieldOneQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := mwfoq.limit; limit != nil {
+	if limit := mwfoq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mwfoq.offset; offset != nil {
+	if offset := mwfoq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := mwfoq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (mwfoq *MessageWithFieldOneQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwfoq.driver.Dialect())
 	t1 := builder.Table(messagewithfieldone.Table)
-	columns := mwfoq.fields
+	columns := mwfoq.ctx.Fields
 	if len(columns) == 0 {
 		columns = messagewithfieldone.Columns
 	}
@@ -416,7 +421,7 @@ func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Select
 		selector = mwfoq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mwfoq.unique != nil && *mwfoq.unique {
+	if mwfoq.ctx.Unique != nil && *mwfoq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range mwfoq.predicates {
@@ -425,12 +430,12 @@ func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Select
 	for _, p := range mwfoq.order {
 		p(selector)
 	}
-	if offset := mwfoq.offset; offset != nil {
+	if offset := mwfoq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mwfoq.limit; limit != nil {
+	if limit := mwfoq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (mwfoq *MessageWithFieldOneQuery) sqlQuery(ctx context.Context) *sql.Select
 
 // MessageWithFieldOneGroupBy is the group-by builder for MessageWithFieldOne entities.
 type MessageWithFieldOneGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *MessageWithFieldOneQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (mwfogb *MessageWithFieldOneGroupBy) Aggregate(fns ...AggregateFunc) *Messa
 	return mwfogb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (mwfogb *MessageWithFieldOneGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := mwfogb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, mwfogb.build.ctx, "GroupBy")
+	if err := mwfogb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwfogb.sql = query
-	return mwfogb.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithFieldOneQuery, *MessageWithFieldOneGroupBy](ctx, mwfogb.build, mwfogb, mwfogb.build.inters, v)
 }
 
-func (mwfogb *MessageWithFieldOneGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range mwfogb.fields {
-		if !messagewithfieldone.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (mwfogb *MessageWithFieldOneGroupBy) sqlScan(ctx context.Context, root *MessageWithFieldOneQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(mwfogb.fns))
+	for _, fn := range mwfogb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := mwfogb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*mwfogb.flds)+len(mwfogb.fns))
+		for _, f := range *mwfogb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*mwfogb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mwfogb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := mwfogb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (mwfogb *MessageWithFieldOneGroupBy) sqlQuery() *sql.Selector {
-	selector := mwfogb.sql.Select()
-	aggregation := make([]string, 0, len(mwfogb.fns))
-	for _, fn := range mwfogb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(mwfogb.fields)+len(mwfogb.fns))
-		for _, f := range mwfogb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(mwfogb.fields...)...)
-}
-
 // MessageWithFieldOneSelect is the builder for selecting fields of MessageWithFieldOne entities.
 type MessageWithFieldOneSelect struct {
 	*MessageWithFieldOneQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwfos *MessageWithFieldOneSelect) Aggregate(fns ...AggregateFunc) *MessageWithFieldOneSelect {
+	mwfos.fns = append(mwfos.fns, fns...)
+	return mwfos
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwfos *MessageWithFieldOneSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, mwfos.ctx, "Select")
 	if err := mwfos.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwfos.sql = mwfos.MessageWithFieldOneQuery.sqlQuery(ctx)
-	return mwfos.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithFieldOneQuery, *MessageWithFieldOneSelect](ctx, mwfos.MessageWithFieldOneQuery, mwfos, mwfos.inters, v)
 }
 
-func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, v any) error {
+func (mwfos *MessageWithFieldOneSelect) sqlScan(ctx context.Context, root *MessageWithFieldOneQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(mwfos.fns))
+	for _, fn := range mwfos.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*mwfos.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := mwfos.sql.Query()
+	query, args := selector.Query()
 	if err := mwfos.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

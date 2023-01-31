@@ -41,13 +41,13 @@ func (tc *TodoCreate) SetNillableStatus(t *todo.Status) *TodoCreate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (tc *TodoCreate) SetUserID(id int) *TodoCreate {
+func (tc *TodoCreate) SetUserID(id uint32) *TodoCreate {
 	tc.mutation.SetUserID(id)
 	return tc
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (tc *TodoCreate) SetNillableUserID(id *int) *TodoCreate {
+func (tc *TodoCreate) SetNillableUserID(id *uint32) *TodoCreate {
 	if id != nil {
 		tc = tc.SetUserID(*id)
 	}
@@ -66,50 +66,8 @@ func (tc *TodoCreate) Mutation() *TodoMutation {
 
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
-	var (
-		err  error
-		node *Todo
-	)
 	tc.defaults()
-	if len(tc.hooks) == 0 {
-		if err = tc.check(); err != nil {
-			return nil, err
-		}
-		node, err = tc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TodoMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tc.check(); err != nil {
-				return nil, err
-			}
-			tc.mutation = mutation
-			if node, err = tc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tc.hooks) - 1; i >= 0; i-- {
-			if tc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Todo)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TodoMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Todo, TodoMutation](ctx, tc.sqlSave, tc.mutation, tc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -159,6 +117,9 @@ func (tc *TodoCreate) check() error {
 }
 
 func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
+	if err := tc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := tc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -168,6 +129,8 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	tc.mutation.id = &_node.ID
+	tc.mutation.done = true
 	return _node, nil
 }
 
@@ -183,19 +146,11 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := tc.mutation.Task(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldTask,
-		})
+		_spec.SetField(todo.FieldTask, field.TypeString, value)
 		_node.Task = value
 	}
 	if value, ok := tc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if nodes := tc.mutation.UserIDs(); len(nodes) > 0 {
@@ -207,7 +162,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

@@ -54,7 +54,7 @@ func (wf *WithoutFields) assignValues(columns []string, values []any) error {
 // Note that you need to call WithoutFields.Unwrap() before calling this method if this WithoutFields
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wf *WithoutFields) Update() *WithoutFieldsUpdateOne {
-	return (&WithoutFieldsClient{config: wf.config}).UpdateOne(wf)
+	return NewWithoutFieldsClient(wf.config).UpdateOne(wf)
 }
 
 // Unwrap unwraps the WithoutFields entity that was returned from a transaction after it was closed,

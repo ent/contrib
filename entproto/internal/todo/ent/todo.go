@@ -23,7 +23,7 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges     TodoEdges `json:"edges"`
-	todo_user *int
+	todo_user *uint32
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -96,8 +96,8 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field todo_user", value)
 			} else if value.Valid {
-				t.todo_user = new(int)
-				*t.todo_user = int(value.Int64)
+				t.todo_user = new(uint32)
+				*t.todo_user = uint32(value.Int64)
 			}
 		}
 	}
@@ -106,14 +106,14 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 
 // QueryUser queries the "user" edge of the Todo entity.
 func (t *Todo) QueryUser() *UserQuery {
-	return (&TodoClient{config: t.config}).QueryUser(t)
+	return NewTodoClient(t.config).QueryUser(t)
 }
 
 // Update returns a builder for updating this Todo.
 // Note that you need to call Todo.Unwrap() before calling this method if this Todo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Todo) Update() *TodoUpdateOne {
-	return (&TodoClient{config: t.config}).UpdateOne(t)
+	return NewTodoClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Todo entity that was returned from a transaction after it was closed,

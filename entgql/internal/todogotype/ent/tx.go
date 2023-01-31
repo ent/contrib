@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// BillProduct is the client for interacting with the BillProduct builders.
+	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -171,6 +173,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.BillProduct = NewBillProductClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
@@ -187,7 +190,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Category.QueryXXX(), the query will be executed
+// applies a query, for example: BillProduct.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

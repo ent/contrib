@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,6 +29,10 @@ func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
 
 func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
 	return r.client.Noders(ctx, ids)
+}
+
+func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
+	return r.client.BillProduct.Query().All(ctx)
 }
 
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
@@ -56,8 +60,14 @@ func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// CreateCategoryInput returns CreateCategoryInputResolver implementation.
+func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
+	return &createCategoryInputResolver{r}
+}
+
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
 type queryResolver struct{ *Resolver }
+type createCategoryInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }

@@ -17,11 +17,9 @@ import (
 // ValidMessageQuery is the builder for querying ValidMessage entities.
 type ValidMessageQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.ValidMessage
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (vmq *ValidMessageQuery) Where(ps ...predicate.ValidMessage) *ValidMessageQ
 	return vmq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (vmq *ValidMessageQuery) Limit(limit int) *ValidMessageQuery {
-	vmq.limit = &limit
+	vmq.ctx.Limit = &limit
 	return vmq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (vmq *ValidMessageQuery) Offset(offset int) *ValidMessageQuery {
-	vmq.offset = &offset
+	vmq.ctx.Offset = &offset
 	return vmq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (vmq *ValidMessageQuery) Unique(unique bool) *ValidMessageQuery {
-	vmq.unique = &unique
+	vmq.ctx.Unique = &unique
 	return vmq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (vmq *ValidMessageQuery) Order(o ...OrderFunc) *ValidMessageQuery {
 	vmq.order = append(vmq.order, o...)
 	return vmq
@@ -62,7 +60,7 @@ func (vmq *ValidMessageQuery) Order(o ...OrderFunc) *ValidMessageQuery {
 // First returns the first ValidMessage entity from the query.
 // Returns a *NotFoundError when no ValidMessage was found.
 func (vmq *ValidMessageQuery) First(ctx context.Context) (*ValidMessage, error) {
-	nodes, err := vmq.Limit(1).All(ctx)
+	nodes, err := vmq.Limit(1).All(setContextOp(ctx, vmq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (vmq *ValidMessageQuery) FirstX(ctx context.Context) *ValidMessage {
 // Returns a *NotFoundError when no ValidMessage ID was found.
 func (vmq *ValidMessageQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vmq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = vmq.Limit(1).IDs(setContextOp(ctx, vmq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (vmq *ValidMessageQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one ValidMessage entity is found.
 // Returns a *NotFoundError when no ValidMessage entities are found.
 func (vmq *ValidMessageQuery) Only(ctx context.Context) (*ValidMessage, error) {
-	nodes, err := vmq.Limit(2).All(ctx)
+	nodes, err := vmq.Limit(2).All(setContextOp(ctx, vmq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (vmq *ValidMessageQuery) OnlyX(ctx context.Context) *ValidMessage {
 // Returns a *NotFoundError when no entities are found.
 func (vmq *ValidMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vmq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = vmq.Limit(2).IDs(setContextOp(ctx, vmq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (vmq *ValidMessageQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of ValidMessages.
 func (vmq *ValidMessageQuery) All(ctx context.Context) ([]*ValidMessage, error) {
+	ctx = setContextOp(ctx, vmq.ctx, "All")
 	if err := vmq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return vmq.sqlAll(ctx)
+	qr := querierAll[[]*ValidMessage, *ValidMessageQuery]()
+	return withInterceptors[[]*ValidMessage](ctx, vmq, qr, vmq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (vmq *ValidMessageQuery) AllX(ctx context.Context) []*ValidMessage {
 // IDs executes the query and returns a list of ValidMessage IDs.
 func (vmq *ValidMessageQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, vmq.ctx, "IDs")
 	if err := vmq.Select(validmessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (vmq *ValidMessageQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (vmq *ValidMessageQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, vmq.ctx, "Count")
 	if err := vmq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return vmq.sqlCount(ctx)
+	return withInterceptors[int](ctx, vmq, querierCount[*ValidMessageQuery](), vmq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (vmq *ValidMessageQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (vmq *ValidMessageQuery) Exist(ctx context.Context) (bool, error) {
-	if err := vmq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, vmq.ctx, "Exist")
+	switch _, err := vmq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return vmq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 	}
 	return &ValidMessageQuery{
 		config:     vmq.config,
-		limit:      vmq.limit,
-		offset:     vmq.offset,
+		ctx:        vmq.ctx.Clone(),
 		order:      append([]OrderFunc{}, vmq.order...),
+		inters:     append([]Interceptor{}, vmq.inters...),
 		predicates: append([]predicate.ValidMessage{}, vmq.predicates...),
 		// clone intermediate query.
-		sql:    vmq.sql.Clone(),
-		path:   vmq.path,
-		unique: vmq.unique,
+		sql:  vmq.sql.Clone(),
+		path: vmq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMessageGroupBy {
-	grbuild := &ValidMessageGroupBy{config: vmq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := vmq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return vmq.sqlQuery(ctx), nil
-	}
+	vmq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ValidMessageGroupBy{build: vmq}
+	grbuild.flds = &vmq.ctx.Fields
 	grbuild.label = validmessage.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (vmq *ValidMessageQuery) GroupBy(field string, fields ...string) *ValidMess
 //		Select(validmessage.FieldName).
 //		Scan(ctx, &v)
 func (vmq *ValidMessageQuery) Select(fields ...string) *ValidMessageSelect {
-	vmq.fields = append(vmq.fields, fields...)
-	selbuild := &ValidMessageSelect{ValidMessageQuery: vmq}
-	selbuild.label = validmessage.Label
-	selbuild.flds, selbuild.scan = &vmq.fields, selbuild.Scan
-	return selbuild
+	vmq.ctx.Fields = append(vmq.ctx.Fields, fields...)
+	sbuild := &ValidMessageSelect{ValidMessageQuery: vmq}
+	sbuild.label = validmessage.Label
+	sbuild.flds, sbuild.scan = &vmq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a ValidMessageSelect configured with the given aggregations.
+func (vmq *ValidMessageQuery) Aggregate(fns ...AggregateFunc) *ValidMessageSelect {
+	return vmq.Select().Aggregate(fns...)
 }
 
 func (vmq *ValidMessageQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range vmq.fields {
+	for _, inter := range vmq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, vmq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range vmq.ctx.Fields {
 		if !validmessage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (vmq *ValidMessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 
 func (vmq *ValidMessageQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := vmq.querySpec()
-	_spec.Node.Columns = vmq.fields
-	if len(vmq.fields) > 0 {
-		_spec.Unique = vmq.unique != nil && *vmq.unique
+	_spec.Node.Columns = vmq.ctx.Fields
+	if len(vmq.ctx.Fields) > 0 {
+		_spec.Unique = vmq.ctx.Unique != nil && *vmq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, vmq.driver, _spec)
-}
-
-func (vmq *ValidMessageQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := vmq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   vmq.sql,
 		Unique: true,
 	}
-	if unique := vmq.unique; unique != nil {
+	if unique := vmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := vmq.fields; len(fields) > 0 {
+	if fields := vmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, validmessage.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := vmq.limit; limit != nil {
+	if limit := vmq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := vmq.offset; offset != nil {
+	if offset := vmq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := vmq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
 func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(vmq.driver.Dialect())
 	t1 := builder.Table(validmessage.Table)
-	columns := vmq.fields
+	columns := vmq.ctx.Fields
 	if len(columns) == 0 {
 		columns = validmessage.Columns
 	}
@@ -416,7 +421,7 @@ func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = vmq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if vmq.unique != nil && *vmq.unique {
+	if vmq.ctx.Unique != nil && *vmq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range vmq.predicates {
@@ -425,12 +430,12 @@ func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range vmq.order {
 		p(selector)
 	}
-	if offset := vmq.offset; offset != nil {
+	if offset := vmq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := vmq.limit; limit != nil {
+	if limit := vmq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (vmq *ValidMessageQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // ValidMessageGroupBy is the group-by builder for ValidMessage entities.
 type ValidMessageGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *ValidMessageQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (vmgb *ValidMessageGroupBy) Aggregate(fns ...AggregateFunc) *ValidMessageGr
 	return vmgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (vmgb *ValidMessageGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := vmgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, vmgb.build.ctx, "GroupBy")
+	if err := vmgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	vmgb.sql = query
-	return vmgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*ValidMessageQuery, *ValidMessageGroupBy](ctx, vmgb.build, vmgb, vmgb.build.inters, v)
 }
 
-func (vmgb *ValidMessageGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range vmgb.fields {
-		if !validmessage.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (vmgb *ValidMessageGroupBy) sqlScan(ctx context.Context, root *ValidMessageQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(vmgb.fns))
+	for _, fn := range vmgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := vmgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*vmgb.flds)+len(vmgb.fns))
+		for _, f := range *vmgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*vmgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := vmgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := vmgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (vmgb *ValidMessageGroupBy) sqlQuery() *sql.Selector {
-	selector := vmgb.sql.Select()
-	aggregation := make([]string, 0, len(vmgb.fns))
-	for _, fn := range vmgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(vmgb.fields)+len(vmgb.fns))
-		for _, f := range vmgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(vmgb.fields...)...)
-}
-
 // ValidMessageSelect is the builder for selecting fields of ValidMessage entities.
 type ValidMessageSelect struct {
 	*ValidMessageQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (vms *ValidMessageSelect) Aggregate(fns ...AggregateFunc) *ValidMessageSelect {
+	vms.fns = append(vms.fns, fns...)
+	return vms
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (vms *ValidMessageSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, vms.ctx, "Select")
 	if err := vms.prepareQuery(ctx); err != nil {
 		return err
 	}
-	vms.sql = vms.ValidMessageQuery.sqlQuery(ctx)
-	return vms.sqlScan(ctx, v)
+	return scanWithInterceptors[*ValidMessageQuery, *ValidMessageSelect](ctx, vms.ValidMessageQuery, vms, vms.inters, v)
 }
 
-func (vms *ValidMessageSelect) sqlScan(ctx context.Context, v any) error {
+func (vms *ValidMessageSelect) sqlScan(ctx context.Context, root *ValidMessageQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(vms.fns))
+	for _, fn := range vms.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*vms.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := vms.sql.Query()
+	query, args := selector.Query()
 	if err := vms.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

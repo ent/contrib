@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,17 +70,18 @@ func TestAttachmentService_MultiEdge(t *testing.T) {
 			SetCrmID(uuid.New()).
 			SetCustomPb(1).
 			SetLabels(nil).
+			SetOmitPrefix(user.OmitPrefixFoo).
 			SaveX(ctx))
 	}
 	att, err := svc.Create(ctx, &CreateAttachmentRequest{Attachment: &Attachment{
 		User: &User{
-			Id: int64(users[0].ID),
+			Id: users[0].ID,
 		},
 		Recipients: []*User{
-			{Id: int64(users[1].ID)},
-			{Id: int64(users[2].ID)},
-			{Id: int64(users[3].ID)},
-			{Id: int64(users[4].ID)},
+			{Id: users[1].ID},
+			{Id: users[2].ID},
+			{Id: users[3].ID},
+			{Id: users[4].ID},
 		},
 	}})
 	all := client.Attachment.Query().WithRecipients(func(query *ent.UserQuery) {

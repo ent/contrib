@@ -17,11 +17,9 @@ import (
 // NilExampleQuery is the builder for querying NilExample entities.
 type NilExampleQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.NilExample
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (neq *NilExampleQuery) Where(ps ...predicate.NilExample) *NilExampleQuery {
 	return neq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (neq *NilExampleQuery) Limit(limit int) *NilExampleQuery {
-	neq.limit = &limit
+	neq.ctx.Limit = &limit
 	return neq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (neq *NilExampleQuery) Offset(offset int) *NilExampleQuery {
-	neq.offset = &offset
+	neq.ctx.Offset = &offset
 	return neq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (neq *NilExampleQuery) Unique(unique bool) *NilExampleQuery {
-	neq.unique = &unique
+	neq.ctx.Unique = &unique
 	return neq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (neq *NilExampleQuery) Order(o ...OrderFunc) *NilExampleQuery {
 	neq.order = append(neq.order, o...)
 	return neq
@@ -62,7 +60,7 @@ func (neq *NilExampleQuery) Order(o ...OrderFunc) *NilExampleQuery {
 // First returns the first NilExample entity from the query.
 // Returns a *NotFoundError when no NilExample was found.
 func (neq *NilExampleQuery) First(ctx context.Context) (*NilExample, error) {
-	nodes, err := neq.Limit(1).All(ctx)
+	nodes, err := neq.Limit(1).All(setContextOp(ctx, neq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (neq *NilExampleQuery) FirstX(ctx context.Context) *NilExample {
 // Returns a *NotFoundError when no NilExample ID was found.
 func (neq *NilExampleQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = neq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = neq.Limit(1).IDs(setContextOp(ctx, neq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (neq *NilExampleQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one NilExample entity is found.
 // Returns a *NotFoundError when no NilExample entities are found.
 func (neq *NilExampleQuery) Only(ctx context.Context) (*NilExample, error) {
-	nodes, err := neq.Limit(2).All(ctx)
+	nodes, err := neq.Limit(2).All(setContextOp(ctx, neq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (neq *NilExampleQuery) OnlyX(ctx context.Context) *NilExample {
 // Returns a *NotFoundError when no entities are found.
 func (neq *NilExampleQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = neq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = neq.Limit(2).IDs(setContextOp(ctx, neq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (neq *NilExampleQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of NilExamples.
 func (neq *NilExampleQuery) All(ctx context.Context) ([]*NilExample, error) {
+	ctx = setContextOp(ctx, neq.ctx, "All")
 	if err := neq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return neq.sqlAll(ctx)
+	qr := querierAll[[]*NilExample, *NilExampleQuery]()
+	return withInterceptors[[]*NilExample](ctx, neq, qr, neq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (neq *NilExampleQuery) AllX(ctx context.Context) []*NilExample {
 // IDs executes the query and returns a list of NilExample IDs.
 func (neq *NilExampleQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, neq.ctx, "IDs")
 	if err := neq.Select(nilexample.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (neq *NilExampleQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (neq *NilExampleQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, neq.ctx, "Count")
 	if err := neq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return neq.sqlCount(ctx)
+	return withInterceptors[int](ctx, neq, querierCount[*NilExampleQuery](), neq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (neq *NilExampleQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (neq *NilExampleQuery) Exist(ctx context.Context) (bool, error) {
-	if err := neq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, neq.ctx, "Exist")
+	switch _, err := neq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return neq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 	}
 	return &NilExampleQuery{
 		config:     neq.config,
-		limit:      neq.limit,
-		offset:     neq.offset,
+		ctx:        neq.ctx.Clone(),
 		order:      append([]OrderFunc{}, neq.order...),
+		inters:     append([]Interceptor{}, neq.inters...),
 		predicates: append([]predicate.NilExample{}, neq.predicates...),
 		// clone intermediate query.
-		sql:    neq.sql.Clone(),
-		path:   neq.path,
-		unique: neq.unique,
+		sql:  neq.sql.Clone(),
+		path: neq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleGroupBy {
-	grbuild := &NilExampleGroupBy{config: neq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := neq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return neq.sqlQuery(ctx), nil
-	}
+	neq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &NilExampleGroupBy{build: neq}
+	grbuild.flds = &neq.ctx.Fields
 	grbuild.label = nilexample.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (neq *NilExampleQuery) GroupBy(field string, fields ...string) *NilExampleG
 //		Select(nilexample.FieldStrNil).
 //		Scan(ctx, &v)
 func (neq *NilExampleQuery) Select(fields ...string) *NilExampleSelect {
-	neq.fields = append(neq.fields, fields...)
-	selbuild := &NilExampleSelect{NilExampleQuery: neq}
-	selbuild.label = nilexample.Label
-	selbuild.flds, selbuild.scan = &neq.fields, selbuild.Scan
-	return selbuild
+	neq.ctx.Fields = append(neq.ctx.Fields, fields...)
+	sbuild := &NilExampleSelect{NilExampleQuery: neq}
+	sbuild.label = nilexample.Label
+	sbuild.flds, sbuild.scan = &neq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a NilExampleSelect configured with the given aggregations.
+func (neq *NilExampleQuery) Aggregate(fns ...AggregateFunc) *NilExampleSelect {
+	return neq.Select().Aggregate(fns...)
 }
 
 func (neq *NilExampleQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range neq.fields {
+	for _, inter := range neq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, neq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range neq.ctx.Fields {
 		if !nilexample.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (neq *NilExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 
 func (neq *NilExampleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := neq.querySpec()
-	_spec.Node.Columns = neq.fields
-	if len(neq.fields) > 0 {
-		_spec.Unique = neq.unique != nil && *neq.unique
+	_spec.Node.Columns = neq.ctx.Fields
+	if len(neq.ctx.Fields) > 0 {
+		_spec.Unique = neq.ctx.Unique != nil && *neq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, neq.driver, _spec)
-}
-
-func (neq *NilExampleQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := neq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (neq *NilExampleQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (neq *NilExampleQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   neq.sql,
 		Unique: true,
 	}
-	if unique := neq.unique; unique != nil {
+	if unique := neq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := neq.fields; len(fields) > 0 {
+	if fields := neq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, nilexample.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (neq *NilExampleQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := neq.limit; limit != nil {
+	if limit := neq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := neq.offset; offset != nil {
+	if offset := neq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := neq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (neq *NilExampleQuery) querySpec() *sqlgraph.QuerySpec {
 func (neq *NilExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(neq.driver.Dialect())
 	t1 := builder.Table(nilexample.Table)
-	columns := neq.fields
+	columns := neq.ctx.Fields
 	if len(columns) == 0 {
 		columns = nilexample.Columns
 	}
@@ -416,7 +421,7 @@ func (neq *NilExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = neq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if neq.unique != nil && *neq.unique {
+	if neq.ctx.Unique != nil && *neq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range neq.predicates {
@@ -425,12 +430,12 @@ func (neq *NilExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range neq.order {
 		p(selector)
 	}
-	if offset := neq.offset; offset != nil {
+	if offset := neq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := neq.limit; limit != nil {
+	if limit := neq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (neq *NilExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // NilExampleGroupBy is the group-by builder for NilExample entities.
 type NilExampleGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *NilExampleQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (negb *NilExampleGroupBy) Aggregate(fns ...AggregateFunc) *NilExampleGroupB
 	return negb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (negb *NilExampleGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := negb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, negb.build.ctx, "GroupBy")
+	if err := negb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	negb.sql = query
-	return negb.sqlScan(ctx, v)
+	return scanWithInterceptors[*NilExampleQuery, *NilExampleGroupBy](ctx, negb.build, negb, negb.build.inters, v)
 }
 
-func (negb *NilExampleGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range negb.fields {
-		if !nilexample.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (negb *NilExampleGroupBy) sqlScan(ctx context.Context, root *NilExampleQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(negb.fns))
+	for _, fn := range negb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := negb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*negb.flds)+len(negb.fns))
+		for _, f := range *negb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*negb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := negb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := negb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (negb *NilExampleGroupBy) sqlQuery() *sql.Selector {
-	selector := negb.sql.Select()
-	aggregation := make([]string, 0, len(negb.fns))
-	for _, fn := range negb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(negb.fields)+len(negb.fns))
-		for _, f := range negb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(negb.fields...)...)
-}
-
 // NilExampleSelect is the builder for selecting fields of NilExample entities.
 type NilExampleSelect struct {
 	*NilExampleQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (nes *NilExampleSelect) Aggregate(fns ...AggregateFunc) *NilExampleSelect {
+	nes.fns = append(nes.fns, fns...)
+	return nes
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (nes *NilExampleSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, nes.ctx, "Select")
 	if err := nes.prepareQuery(ctx); err != nil {
 		return err
 	}
-	nes.sql = nes.NilExampleQuery.sqlQuery(ctx)
-	return nes.sqlScan(ctx, v)
+	return scanWithInterceptors[*NilExampleQuery, *NilExampleSelect](ctx, nes.NilExampleQuery, nes, nes.inters, v)
 }
 
-func (nes *NilExampleSelect) sqlScan(ctx context.Context, v any) error {
+func (nes *NilExampleSelect) sqlScan(ctx context.Context, root *NilExampleQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(nes.fns))
+	for _, fn := range nes.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*nes.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := nes.sql.Query()
+	query, args := selector.Query()
 	if err := nes.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"github.com/google/uuid"
 )
 
 // CreateCategoryInput represents a mutation input for creating categories.
@@ -76,6 +77,7 @@ type UpdateCategoryInput struct {
 	ClearStrings  bool
 	Strings       []string
 	AppendStrings []string
+	ClearTodos    bool
 	AddTodoIDs    []pulid.ID
 	RemoveTodoIDs []pulid.ID
 }
@@ -114,6 +116,9 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if i.AppendStrings != nil {
 		m.AppendStrings(i.Strings)
+	}
+	if i.ClearTodos {
+		m.ClearTodos()
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
@@ -186,6 +191,7 @@ type UpdateTodoInput struct {
 	Init           map[string]interface{}
 	ClearParent    bool
 	ParentID       *pulid.ID
+	ClearChildren  bool
 	AddChildIDs    []pulid.ID
 	RemoveChildIDs []pulid.ID
 	ClearSecret    bool
@@ -214,6 +220,9 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
+	}
+	if i.ClearChildren {
+		m.ClearChildren()
 	}
 	if v := i.AddChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)
@@ -244,6 +253,7 @@ func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
 	Name      *string
+	Username  *uuid.UUID
 	Password  *string
 	GroupIDs  []pulid.ID
 	FriendIDs []pulid.ID
@@ -253,6 +263,9 @@ type CreateUserInput struct {
 func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
@@ -274,10 +287,13 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
 	Name            *string
+	Username        *uuid.UUID
 	ClearPassword   bool
 	Password        *string
+	ClearGroups     bool
 	AddGroupIDs     []pulid.ID
 	RemoveGroupIDs  []pulid.ID
+	ClearFriends    bool
 	AddFriendIDs    []pulid.ID
 	RemoveFriendIDs []pulid.ID
 }
@@ -287,17 +303,26 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
+	}
 	if i.ClearPassword {
 		m.ClearPassword()
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
 	}
+	if i.ClearGroups {
+		m.ClearGroups()
+	}
 	if v := i.AddGroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
 	}
 	if v := i.RemoveGroupIDs; len(v) > 0 {
 		m.RemoveGroupIDs(v...)
+	}
+	if i.ClearFriends {
+		m.ClearFriends()
 	}
 	if v := i.AddFriendIDs; len(v) > 0 {
 		m.AddFriendIDs(v...)

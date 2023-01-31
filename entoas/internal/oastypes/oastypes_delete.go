@@ -4,7 +4,6 @@ package oastypes
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
 	"entgo.io/contrib/entoas/internal/oastypes/predicate"
@@ -28,34 +27,7 @@ func (otd *OASTypesDelete) Where(ps ...predicate.OASTypes) *OASTypesDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (otd *OASTypesDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(otd.hooks) == 0 {
-		affected, err = otd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OASTypesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			otd.mutation = mutation
-			affected, err = otd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(otd.hooks) - 1; i >= 0; i-- {
-			if otd.hooks[i] == nil {
-				return 0, fmt.Errorf("oastypes: uninitialized hook (forgotten import oastypes/runtime?)")
-			}
-			mut = otd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, otd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, OASTypesMutation](ctx, otd.sqlExec, otd.mutation, otd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (otd *OASTypesDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	otd.mutation.done = true
 	return affected, err
 }
 

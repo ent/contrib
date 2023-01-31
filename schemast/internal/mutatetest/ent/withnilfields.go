@@ -54,7 +54,7 @@ func (wnf *WithNilFields) assignValues(columns []string, values []any) error {
 // Note that you need to call WithNilFields.Unwrap() before calling this method if this WithNilFields
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wnf *WithNilFields) Update() *WithNilFieldsUpdateOne {
-	return (&WithNilFieldsClient{config: wnf.config}).UpdateOne(wnf)
+	return NewWithNilFieldsClient(wnf.config).UpdateOne(wnf)
 }
 
 // Unwrap unwraps the WithNilFields entity that was returned from a transaction after it was closed,

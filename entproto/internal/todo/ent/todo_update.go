@@ -49,13 +49,13 @@ func (tu *TodoUpdate) SetNillableStatus(t *todo.Status) *TodoUpdate {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (tu *TodoUpdate) SetUserID(id int) *TodoUpdate {
+func (tu *TodoUpdate) SetUserID(id uint32) *TodoUpdate {
 	tu.mutation.SetUserID(id)
 	return tu
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (tu *TodoUpdate) SetNillableUserID(id *int) *TodoUpdate {
+func (tu *TodoUpdate) SetNillableUserID(id *uint32) *TodoUpdate {
 	if id != nil {
 		tu = tu.SetUserID(*id)
 	}
@@ -80,40 +80,7 @@ func (tu *TodoUpdate) ClearUser() *TodoUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(tu.hooks) == 0 {
-		if err = tu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = tu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TodoMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tu.check(); err != nil {
-				return 0, err
-			}
-			tu.mutation = mutation
-			affected, err = tu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(tu.hooks) - 1; i >= 0; i-- {
-			if tu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, TodoMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -149,6 +116,9 @@ func (tu *TodoUpdate) check() error {
 }
 
 func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := tu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   todo.Table,
@@ -167,18 +137,10 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := tu.mutation.Task(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldTask,
-		})
+		_spec.SetField(todo.FieldTask, field.TypeString, value)
 	}
 	if value, ok := tu.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 	}
 	if tu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -189,7 +151,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -205,7 +167,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -223,6 +185,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	tu.mutation.done = true
 	return n, nil
 }
 
@@ -255,13 +218,13 @@ func (tuo *TodoUpdateOne) SetNillableStatus(t *todo.Status) *TodoUpdateOne {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (tuo *TodoUpdateOne) SetUserID(id int) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) SetUserID(id uint32) *TodoUpdateOne {
 	tuo.mutation.SetUserID(id)
 	return tuo
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (tuo *TodoUpdateOne) SetNillableUserID(id *int) *TodoUpdateOne {
+func (tuo *TodoUpdateOne) SetNillableUserID(id *uint32) *TodoUpdateOne {
 	if id != nil {
 		tuo = tuo.SetUserID(*id)
 	}
@@ -293,46 +256,7 @@ func (tuo *TodoUpdateOne) Select(field string, fields ...string) *TodoUpdateOne 
 
 // Save executes the query and returns the updated Todo entity.
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
-	var (
-		err  error
-		node *Todo
-	)
-	if len(tuo.hooks) == 0 {
-		if err = tuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = tuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TodoMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tuo.check(); err != nil {
-				return nil, err
-			}
-			tuo.mutation = mutation
-			node, err = tuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tuo.hooks) - 1; i >= 0; i-- {
-			if tuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Todo)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TodoMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Todo, TodoMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -368,6 +292,9 @@ func (tuo *TodoUpdateOne) check() error {
 }
 
 func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) {
+	if err := tuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   todo.Table,
@@ -403,18 +330,10 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		}
 	}
 	if value, ok := tuo.mutation.Task(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: todo.FieldTask,
-		})
+		_spec.SetField(todo.FieldTask, field.TypeString, value)
 	}
 	if value, ok := tuo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: todo.FieldStatus,
-		})
+		_spec.SetField(todo.FieldStatus, field.TypeEnum, value)
 	}
 	if tuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -425,7 +344,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -441,7 +360,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},
@@ -462,5 +381,6 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 		}
 		return nil, err
 	}
+	tuo.mutation.done = true
 	return _node, nil
 }

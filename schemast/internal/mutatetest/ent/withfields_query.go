@@ -17,11 +17,9 @@ import (
 // WithFieldsQuery is the builder for querying WithFields entities.
 type WithFieldsQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.WithFields
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (wfq *WithFieldsQuery) Where(ps ...predicate.WithFields) *WithFieldsQuery {
 	return wfq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (wfq *WithFieldsQuery) Limit(limit int) *WithFieldsQuery {
-	wfq.limit = &limit
+	wfq.ctx.Limit = &limit
 	return wfq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (wfq *WithFieldsQuery) Offset(offset int) *WithFieldsQuery {
-	wfq.offset = &offset
+	wfq.ctx.Offset = &offset
 	return wfq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (wfq *WithFieldsQuery) Unique(unique bool) *WithFieldsQuery {
-	wfq.unique = &unique
+	wfq.ctx.Unique = &unique
 	return wfq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (wfq *WithFieldsQuery) Order(o ...OrderFunc) *WithFieldsQuery {
 	wfq.order = append(wfq.order, o...)
 	return wfq
@@ -62,7 +60,7 @@ func (wfq *WithFieldsQuery) Order(o ...OrderFunc) *WithFieldsQuery {
 // First returns the first WithFields entity from the query.
 // Returns a *NotFoundError when no WithFields was found.
 func (wfq *WithFieldsQuery) First(ctx context.Context) (*WithFields, error) {
-	nodes, err := wfq.Limit(1).All(ctx)
+	nodes, err := wfq.Limit(1).All(setContextOp(ctx, wfq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (wfq *WithFieldsQuery) FirstX(ctx context.Context) *WithFields {
 // Returns a *NotFoundError when no WithFields ID was found.
 func (wfq *WithFieldsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wfq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = wfq.Limit(1).IDs(setContextOp(ctx, wfq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (wfq *WithFieldsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one WithFields entity is found.
 // Returns a *NotFoundError when no WithFields entities are found.
 func (wfq *WithFieldsQuery) Only(ctx context.Context) (*WithFields, error) {
-	nodes, err := wfq.Limit(2).All(ctx)
+	nodes, err := wfq.Limit(2).All(setContextOp(ctx, wfq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (wfq *WithFieldsQuery) OnlyX(ctx context.Context) *WithFields {
 // Returns a *NotFoundError when no entities are found.
 func (wfq *WithFieldsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wfq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = wfq.Limit(2).IDs(setContextOp(ctx, wfq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (wfq *WithFieldsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of WithFieldsSlice.
 func (wfq *WithFieldsQuery) All(ctx context.Context) ([]*WithFields, error) {
+	ctx = setContextOp(ctx, wfq.ctx, "All")
 	if err := wfq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return wfq.sqlAll(ctx)
+	qr := querierAll[[]*WithFields, *WithFieldsQuery]()
+	return withInterceptors[[]*WithFields](ctx, wfq, qr, wfq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (wfq *WithFieldsQuery) AllX(ctx context.Context) []*WithFields {
 // IDs executes the query and returns a list of WithFields IDs.
 func (wfq *WithFieldsQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, wfq.ctx, "IDs")
 	if err := wfq.Select(withfields.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (wfq *WithFieldsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wfq *WithFieldsQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, wfq.ctx, "Count")
 	if err := wfq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return wfq.sqlCount(ctx)
+	return withInterceptors[int](ctx, wfq, querierCount[*WithFieldsQuery](), wfq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (wfq *WithFieldsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wfq *WithFieldsQuery) Exist(ctx context.Context) (bool, error) {
-	if err := wfq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, wfq.ctx, "Exist")
+	switch _, err := wfq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return wfq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 	}
 	return &WithFieldsQuery{
 		config:     wfq.config,
-		limit:      wfq.limit,
-		offset:     wfq.offset,
+		ctx:        wfq.ctx.Clone(),
 		order:      append([]OrderFunc{}, wfq.order...),
+		inters:     append([]Interceptor{}, wfq.inters...),
 		predicates: append([]predicate.WithFields{}, wfq.predicates...),
 		// clone intermediate query.
-		sql:    wfq.sql.Clone(),
-		path:   wfq.path,
-		unique: wfq.unique,
+		sql:  wfq.sql.Clone(),
+		path: wfq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsGroupBy {
-	grbuild := &WithFieldsGroupBy{config: wfq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := wfq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return wfq.sqlQuery(ctx), nil
-	}
+	wfq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &WithFieldsGroupBy{build: wfq}
+	grbuild.flds = &wfq.ctx.Fields
 	grbuild.label = withfields.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (wfq *WithFieldsQuery) GroupBy(field string, fields ...string) *WithFieldsG
 //		Select(withfields.FieldExisting).
 //		Scan(ctx, &v)
 func (wfq *WithFieldsQuery) Select(fields ...string) *WithFieldsSelect {
-	wfq.fields = append(wfq.fields, fields...)
-	selbuild := &WithFieldsSelect{WithFieldsQuery: wfq}
-	selbuild.label = withfields.Label
-	selbuild.flds, selbuild.scan = &wfq.fields, selbuild.Scan
-	return selbuild
+	wfq.ctx.Fields = append(wfq.ctx.Fields, fields...)
+	sbuild := &WithFieldsSelect{WithFieldsQuery: wfq}
+	sbuild.label = withfields.Label
+	sbuild.flds, sbuild.scan = &wfq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a WithFieldsSelect configured with the given aggregations.
+func (wfq *WithFieldsQuery) Aggregate(fns ...AggregateFunc) *WithFieldsSelect {
+	return wfq.Select().Aggregate(fns...)
 }
 
 func (wfq *WithFieldsQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range wfq.fields {
+	for _, inter := range wfq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, wfq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range wfq.ctx.Fields {
 		if !withfields.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (wfq *WithFieldsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 
 func (wfq *WithFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := wfq.querySpec()
-	_spec.Node.Columns = wfq.fields
-	if len(wfq.fields) > 0 {
-		_spec.Unique = wfq.unique != nil && *wfq.unique
+	_spec.Node.Columns = wfq.ctx.Fields
+	if len(wfq.ctx.Fields) > 0 {
+		_spec.Unique = wfq.ctx.Unique != nil && *wfq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, wfq.driver, _spec)
-}
-
-func (wfq *WithFieldsQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := wfq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   wfq.sql,
 		Unique: true,
 	}
-	if unique := wfq.unique; unique != nil {
+	if unique := wfq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := wfq.fields; len(fields) > 0 {
+	if fields := wfq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, withfields.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := wfq.limit; limit != nil {
+	if limit := wfq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := wfq.offset; offset != nil {
+	if offset := wfq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := wfq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
 func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(wfq.driver.Dialect())
 	t1 := builder.Table(withfields.Table)
-	columns := wfq.fields
+	columns := wfq.ctx.Fields
 	if len(columns) == 0 {
 		columns = withfields.Columns
 	}
@@ -416,7 +421,7 @@ func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = wfq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if wfq.unique != nil && *wfq.unique {
+	if wfq.ctx.Unique != nil && *wfq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range wfq.predicates {
@@ -425,12 +430,12 @@ func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range wfq.order {
 		p(selector)
 	}
-	if offset := wfq.offset; offset != nil {
+	if offset := wfq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := wfq.limit; limit != nil {
+	if limit := wfq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (wfq *WithFieldsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // WithFieldsGroupBy is the group-by builder for WithFields entities.
 type WithFieldsGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *WithFieldsQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (wfgb *WithFieldsGroupBy) Aggregate(fns ...AggregateFunc) *WithFieldsGroupB
 	return wfgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (wfgb *WithFieldsGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := wfgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, wfgb.build.ctx, "GroupBy")
+	if err := wfgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	wfgb.sql = query
-	return wfgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*WithFieldsQuery, *WithFieldsGroupBy](ctx, wfgb.build, wfgb, wfgb.build.inters, v)
 }
 
-func (wfgb *WithFieldsGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range wfgb.fields {
-		if !withfields.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (wfgb *WithFieldsGroupBy) sqlScan(ctx context.Context, root *WithFieldsQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(wfgb.fns))
+	for _, fn := range wfgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := wfgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*wfgb.flds)+len(wfgb.fns))
+		for _, f := range *wfgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*wfgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := wfgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := wfgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (wfgb *WithFieldsGroupBy) sqlQuery() *sql.Selector {
-	selector := wfgb.sql.Select()
-	aggregation := make([]string, 0, len(wfgb.fns))
-	for _, fn := range wfgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(wfgb.fields)+len(wfgb.fns))
-		for _, f := range wfgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(wfgb.fields...)...)
-}
-
 // WithFieldsSelect is the builder for selecting fields of WithFields entities.
 type WithFieldsSelect struct {
 	*WithFieldsQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (wfs *WithFieldsSelect) Aggregate(fns ...AggregateFunc) *WithFieldsSelect {
+	wfs.fns = append(wfs.fns, fns...)
+	return wfs
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (wfs *WithFieldsSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, wfs.ctx, "Select")
 	if err := wfs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	wfs.sql = wfs.WithFieldsQuery.sqlQuery(ctx)
-	return wfs.sqlScan(ctx, v)
+	return scanWithInterceptors[*WithFieldsQuery, *WithFieldsSelect](ctx, wfs.WithFieldsQuery, wfs, wfs.inters, v)
 }
 
-func (wfs *WithFieldsSelect) sqlScan(ctx context.Context, v any) error {
+func (wfs *WithFieldsSelect) sqlScan(ctx context.Context, root *WithFieldsQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(wfs.fns))
+	for _, fn := range wfs.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*wfs.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := wfs.sql.Query()
+	query, args := selector.Query()
 	if err := wfs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

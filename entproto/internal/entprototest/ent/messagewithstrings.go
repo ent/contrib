@@ -67,7 +67,7 @@ func (mws *MessageWithStrings) assignValues(columns []string, values []any) erro
 // Note that you need to call MessageWithStrings.Unwrap() before calling this method if this MessageWithStrings
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mws *MessageWithStrings) Update() *MessageWithStringsUpdateOne {
-	return (&MessageWithStringsClient{config: mws.config}).UpdateOne(mws)
+	return NewMessageWithStringsClient(mws.config).UpdateOne(mws)
 }
 
 // Unwrap unwraps the MessageWithStrings entity that was returned from a transaction after it was closed,

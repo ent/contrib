@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,11 +31,9 @@ import (
 // VerySecretQuery is the builder for querying VerySecret entities.
 type VerySecretQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.VerySecret
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*VerySecret) error
@@ -50,26 +48,26 @@ func (vsq *VerySecretQuery) Where(ps ...predicate.VerySecret) *VerySecretQuery {
 	return vsq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (vsq *VerySecretQuery) Limit(limit int) *VerySecretQuery {
-	vsq.limit = &limit
+	vsq.ctx.Limit = &limit
 	return vsq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (vsq *VerySecretQuery) Offset(offset int) *VerySecretQuery {
-	vsq.offset = &offset
+	vsq.ctx.Offset = &offset
 	return vsq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (vsq *VerySecretQuery) Unique(unique bool) *VerySecretQuery {
-	vsq.unique = &unique
+	vsq.ctx.Unique = &unique
 	return vsq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (vsq *VerySecretQuery) Order(o ...OrderFunc) *VerySecretQuery {
 	vsq.order = append(vsq.order, o...)
 	return vsq
@@ -78,7 +76,7 @@ func (vsq *VerySecretQuery) Order(o ...OrderFunc) *VerySecretQuery {
 // First returns the first VerySecret entity from the query.
 // Returns a *NotFoundError when no VerySecret was found.
 func (vsq *VerySecretQuery) First(ctx context.Context) (*VerySecret, error) {
-	nodes, err := vsq.Limit(1).All(ctx)
+	nodes, err := vsq.Limit(1).All(setContextOp(ctx, vsq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +99,7 @@ func (vsq *VerySecretQuery) FirstX(ctx context.Context) *VerySecret {
 // Returns a *NotFoundError when no VerySecret ID was found.
 func (vsq *VerySecretQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vsq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = vsq.Limit(1).IDs(setContextOp(ctx, vsq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -124,7 +122,7 @@ func (vsq *VerySecretQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one VerySecret entity is found.
 // Returns a *NotFoundError when no VerySecret entities are found.
 func (vsq *VerySecretQuery) Only(ctx context.Context) (*VerySecret, error) {
-	nodes, err := vsq.Limit(2).All(ctx)
+	nodes, err := vsq.Limit(2).All(setContextOp(ctx, vsq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +150,7 @@ func (vsq *VerySecretQuery) OnlyX(ctx context.Context) *VerySecret {
 // Returns a *NotFoundError when no entities are found.
 func (vsq *VerySecretQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vsq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = vsq.Limit(2).IDs(setContextOp(ctx, vsq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -177,10 +175,12 @@ func (vsq *VerySecretQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of VerySecrets.
 func (vsq *VerySecretQuery) All(ctx context.Context) ([]*VerySecret, error) {
+	ctx = setContextOp(ctx, vsq.ctx, "All")
 	if err := vsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return vsq.sqlAll(ctx)
+	qr := querierAll[[]*VerySecret, *VerySecretQuery]()
+	return withInterceptors[[]*VerySecret](ctx, vsq, qr, vsq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -195,6 +195,7 @@ func (vsq *VerySecretQuery) AllX(ctx context.Context) []*VerySecret {
 // IDs executes the query and returns a list of VerySecret IDs.
 func (vsq *VerySecretQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, vsq.ctx, "IDs")
 	if err := vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -212,10 +213,11 @@ func (vsq *VerySecretQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (vsq *VerySecretQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, vsq.ctx, "Count")
 	if err := vsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return vsq.sqlCount(ctx)
+	return withInterceptors[int](ctx, vsq, querierCount[*VerySecretQuery](), vsq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -229,10 +231,15 @@ func (vsq *VerySecretQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (vsq *VerySecretQuery) Exist(ctx context.Context) (bool, error) {
-	if err := vsq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, vsq.ctx, "Exist")
+	switch _, err := vsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return vsq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -252,14 +259,13 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 	}
 	return &VerySecretQuery{
 		config:     vsq.config,
-		limit:      vsq.limit,
-		offset:     vsq.offset,
+		ctx:        vsq.ctx.Clone(),
 		order:      append([]OrderFunc{}, vsq.order...),
+		inters:     append([]Interceptor{}, vsq.inters...),
 		predicates: append([]predicate.VerySecret{}, vsq.predicates...),
 		// clone intermediate query.
-		sql:    vsq.sql.Clone(),
-		path:   vsq.path,
-		unique: vsq.unique,
+		sql:  vsq.sql.Clone(),
+		path: vsq.path,
 	}
 }
 
@@ -278,16 +284,11 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretGroupBy {
-	grbuild := &VerySecretGroupBy{config: vsq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := vsq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return vsq.sqlQuery(ctx), nil
-	}
+	vsq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &VerySecretGroupBy{build: vsq}
+	grbuild.flds = &vsq.ctx.Fields
 	grbuild.label = verysecret.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -304,15 +305,30 @@ func (vsq *VerySecretQuery) GroupBy(field string, fields ...string) *VerySecretG
 //		Select(verysecret.FieldPassword).
 //		Scan(ctx, &v)
 func (vsq *VerySecretQuery) Select(fields ...string) *VerySecretSelect {
-	vsq.fields = append(vsq.fields, fields...)
-	selbuild := &VerySecretSelect{VerySecretQuery: vsq}
-	selbuild.label = verysecret.Label
-	selbuild.flds, selbuild.scan = &vsq.fields, selbuild.Scan
-	return selbuild
+	vsq.ctx.Fields = append(vsq.ctx.Fields, fields...)
+	sbuild := &VerySecretSelect{VerySecretQuery: vsq}
+	sbuild.label = verysecret.Label
+	sbuild.flds, sbuild.scan = &vsq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a VerySecretSelect configured with the given aggregations.
+func (vsq *VerySecretQuery) Aggregate(fns ...AggregateFunc) *VerySecretSelect {
+	return vsq.Select().Aggregate(fns...)
 }
 
 func (vsq *VerySecretQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range vsq.fields {
+	for _, inter := range vsq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, vsq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range vsq.ctx.Fields {
 		if !verysecret.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -365,22 +381,11 @@ func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(vsq.modifiers) > 0 {
 		_spec.Modifiers = vsq.modifiers
 	}
-	_spec.Node.Columns = vsq.fields
-	if len(vsq.fields) > 0 {
-		_spec.Unique = vsq.unique != nil && *vsq.unique
+	_spec.Node.Columns = vsq.ctx.Fields
+	if len(vsq.ctx.Fields) > 0 {
+		_spec.Unique = vsq.ctx.Unique != nil && *vsq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, vsq.driver, _spec)
-}
-
-func (vsq *VerySecretQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := vsq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
@@ -396,10 +401,10 @@ func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   vsq.sql,
 		Unique: true,
 	}
-	if unique := vsq.unique; unique != nil {
+	if unique := vsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := vsq.fields; len(fields) > 0 {
+	if fields := vsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, verysecret.FieldID)
 		for i := range fields {
@@ -415,10 +420,10 @@ func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := vsq.limit; limit != nil {
+	if limit := vsq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := vsq.offset; offset != nil {
+	if offset := vsq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := vsq.order; len(ps) > 0 {
@@ -434,7 +439,7 @@ func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
 func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(vsq.driver.Dialect())
 	t1 := builder.Table(verysecret.Table)
-	columns := vsq.fields
+	columns := vsq.ctx.Fields
 	if len(columns) == 0 {
 		columns = verysecret.Columns
 	}
@@ -443,7 +448,7 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = vsq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if vsq.unique != nil && *vsq.unique {
+	if vsq.ctx.Unique != nil && *vsq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range vsq.predicates {
@@ -452,12 +457,12 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range vsq.order {
 		p(selector)
 	}
-	if offset := vsq.offset; offset != nil {
+	if offset := vsq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := vsq.limit; limit != nil {
+	if limit := vsq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -465,13 +470,8 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // VerySecretGroupBy is the group-by builder for VerySecret entities.
 type VerySecretGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *VerySecretQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -480,74 +480,77 @@ func (vsgb *VerySecretGroupBy) Aggregate(fns ...AggregateFunc) *VerySecretGroupB
 	return vsgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (vsgb *VerySecretGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := vsgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, vsgb.build.ctx, "GroupBy")
+	if err := vsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	vsgb.sql = query
-	return vsgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*VerySecretQuery, *VerySecretGroupBy](ctx, vsgb.build, vsgb, vsgb.build.inters, v)
 }
 
-func (vsgb *VerySecretGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range vsgb.fields {
-		if !verysecret.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (vsgb *VerySecretGroupBy) sqlScan(ctx context.Context, root *VerySecretQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(vsgb.fns))
+	for _, fn := range vsgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := vsgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*vsgb.flds)+len(vsgb.fns))
+		for _, f := range *vsgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*vsgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := vsgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := vsgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (vsgb *VerySecretGroupBy) sqlQuery() *sql.Selector {
-	selector := vsgb.sql.Select()
-	aggregation := make([]string, 0, len(vsgb.fns))
-	for _, fn := range vsgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(vsgb.fields)+len(vsgb.fns))
-		for _, f := range vsgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(vsgb.fields...)...)
-}
-
 // VerySecretSelect is the builder for selecting fields of VerySecret entities.
 type VerySecretSelect struct {
 	*VerySecretQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (vss *VerySecretSelect) Aggregate(fns ...AggregateFunc) *VerySecretSelect {
+	vss.fns = append(vss.fns, fns...)
+	return vss
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (vss *VerySecretSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, vss.ctx, "Select")
 	if err := vss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	vss.sql = vss.VerySecretQuery.sqlQuery(ctx)
-	return vss.sqlScan(ctx, v)
+	return scanWithInterceptors[*VerySecretQuery, *VerySecretSelect](ctx, vss.VerySecretQuery, vss, vss.inters, v)
 }
 
-func (vss *VerySecretSelect) sqlScan(ctx context.Context, v any) error {
+func (vss *VerySecretSelect) sqlScan(ctx context.Context, root *VerySecretQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(vss.fns))
+	for _, fn := range vss.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*vss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := vss.sql.Query()
+	query, args := selector.Query()
 	if err := vss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

@@ -20,13 +20,13 @@ type SkipEdgeExampleCreate struct {
 }
 
 // SetUserID sets the "user" edge to the User entity by ID.
-func (seec *SkipEdgeExampleCreate) SetUserID(id int) *SkipEdgeExampleCreate {
+func (seec *SkipEdgeExampleCreate) SetUserID(id uint32) *SkipEdgeExampleCreate {
 	seec.mutation.SetUserID(id)
 	return seec
 }
 
 // SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (seec *SkipEdgeExampleCreate) SetNillableUserID(id *int) *SkipEdgeExampleCreate {
+func (seec *SkipEdgeExampleCreate) SetNillableUserID(id *uint32) *SkipEdgeExampleCreate {
 	if id != nil {
 		seec = seec.SetUserID(*id)
 	}
@@ -45,49 +45,7 @@ func (seec *SkipEdgeExampleCreate) Mutation() *SkipEdgeExampleMutation {
 
 // Save creates the SkipEdgeExample in the database.
 func (seec *SkipEdgeExampleCreate) Save(ctx context.Context) (*SkipEdgeExample, error) {
-	var (
-		err  error
-		node *SkipEdgeExample
-	)
-	if len(seec.hooks) == 0 {
-		if err = seec.check(); err != nil {
-			return nil, err
-		}
-		node, err = seec.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SkipEdgeExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = seec.check(); err != nil {
-				return nil, err
-			}
-			seec.mutation = mutation
-			if node, err = seec.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(seec.hooks) - 1; i >= 0; i-- {
-			if seec.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = seec.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, seec.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*SkipEdgeExample)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from SkipEdgeExampleMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*SkipEdgeExample, SkipEdgeExampleMutation](ctx, seec.sqlSave, seec.mutation, seec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -118,6 +76,9 @@ func (seec *SkipEdgeExampleCreate) check() error {
 }
 
 func (seec *SkipEdgeExampleCreate) sqlSave(ctx context.Context) (*SkipEdgeExample, error) {
+	if err := seec.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := seec.createSpec()
 	if err := sqlgraph.CreateNode(ctx, seec.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -127,6 +88,8 @@ func (seec *SkipEdgeExampleCreate) sqlSave(ctx context.Context) (*SkipEdgeExampl
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	seec.mutation.id = &_node.ID
+	seec.mutation.done = true
 	return _node, nil
 }
 
@@ -150,7 +113,7 @@ func (seec *SkipEdgeExampleCreate) createSpec() (*SkipEdgeExample, *sqlgraph.Cre
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeUint32,
 					Column: user.FieldID,
 				},
 			},

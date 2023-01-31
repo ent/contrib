@@ -34,34 +34,7 @@ func (ismu *ImplicitSkippedMessageUpdate) Mutation() *ImplicitSkippedMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ismu *ImplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ismu.hooks) == 0 {
-		affected, err = ismu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ismu.mutation = mutation
-			affected, err = ismu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ismu.hooks) - 1; i >= 0; i-- {
-			if ismu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ismu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ismu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ImplicitSkippedMessageMutation](ctx, ismu.sqlSave, ismu.mutation, ismu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -112,6 +85,7 @@ func (ismu *ImplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 		return 0, err
 	}
+	ismu.mutation.done = true
 	return n, nil
 }
 
@@ -137,40 +111,7 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated ImplicitSkippedMessage entity.
 func (ismuo *ImplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*ImplicitSkippedMessage, error) {
-	var (
-		err  error
-		node *ImplicitSkippedMessage
-	)
-	if len(ismuo.hooks) == 0 {
-		node, err = ismuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ismuo.mutation = mutation
-			node, err = ismuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ismuo.hooks) - 1; i >= 0; i-- {
-			if ismuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ismuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ismuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ImplicitSkippedMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ImplicitSkippedMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ImplicitSkippedMessage, ImplicitSkippedMessageMutation](ctx, ismuo.sqlSave, ismuo.mutation, ismuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -241,5 +182,6 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		}
 		return nil, err
 	}
+	ismuo.mutation.done = true
 	return _node, nil
 }

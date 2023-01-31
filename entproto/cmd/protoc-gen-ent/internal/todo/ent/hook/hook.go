@@ -15,11 +15,10 @@ type AttachmentFunc func(context.Context, *ent.AttachmentMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f AttachmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AttachmentMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachmentMutation", m)
+	if mv, ok := m.(*ent.AttachmentMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachmentMutation", m)
 }
 
 // The FileFunc type is an adapter to allow the use of ordinary
@@ -28,11 +27,10 @@ type FileFunc func(context.Context, *ent.FileMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.FileMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
+	if mv, ok := m.(*ent.FileMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileMutation", m)
 }
 
 // The TaskFunc type is an adapter to allow the use of ordinary
@@ -41,11 +39,10 @@ type TaskFunc func(context.Context, *ent.TaskMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f TaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TaskMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TaskMutation", m)
+	if mv, ok := m.(*ent.TaskMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TaskMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -54,11 +51,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // Condition is a hook condition function.

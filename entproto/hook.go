@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,11 +30,12 @@ import (
 
 // Hook returns a gen.Hook that invokes Generate.
 // To use it programatically:
-//   entc.Generate("./ent/schema", &gen.Config{
-//     Hooks: []gen.Hook{
-//       entproto.Hook(),
-//     },
-//   })
+//
+//	entc.Generate("./ent/schema", &gen.Config{
+//	  Hooks: []gen.Hook{
+//	    entproto.Hook(),
+//	  },
+//	})
 func Hook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
 		return gen.GenerateFunc(func(g *gen.Graph) error {

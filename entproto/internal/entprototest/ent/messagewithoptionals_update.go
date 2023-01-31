@@ -209,34 +209,7 @@ func (mwou *MessageWithOptionalsUpdate) Mutation() *MessageWithOptionalsMutation
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwou *MessageWithOptionalsUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwou.hooks) == 0 {
-		affected, err = mwou.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithOptionalsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwou.mutation = mutation
-			affected, err = mwou.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwou.hooks) - 1; i >= 0; i-- {
-			if mwou.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwou.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwou.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithOptionalsMutation](ctx, mwou.sqlSave, mwou.mutation, mwou.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -280,129 +253,61 @@ func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 	}
 	if value, ok := mwou.mutation.StrOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithoptionals.FieldStrOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldStrOptional, field.TypeString, value)
 	}
 	if mwou.mutation.StrOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: messagewithoptionals.FieldStrOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldStrOptional, field.TypeString)
 	}
 	if value, ok := mwou.mutation.IntOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldIntOptional, field.TypeInt8, value)
 	}
 	if value, ok := mwou.mutation.AddedIntOptional(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.AddField(messagewithoptionals.FieldIntOptional, field.TypeInt8, value)
 	}
 	if mwou.mutation.IntOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldIntOptional, field.TypeInt8)
 	}
 	if value, ok := mwou.mutation.UintOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldUintOptional, field.TypeUint8, value)
 	}
 	if value, ok := mwou.mutation.AddedUintOptional(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.AddField(messagewithoptionals.FieldUintOptional, field.TypeUint8, value)
 	}
 	if mwou.mutation.UintOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldUintOptional, field.TypeUint8)
 	}
 	if value, ok := mwou.mutation.FloatOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32, value)
 	}
 	if value, ok := mwou.mutation.AddedFloatOptional(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.AddField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32, value)
 	}
 	if mwou.mutation.FloatOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32)
 	}
 	if value, ok := mwou.mutation.BoolOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: messagewithoptionals.FieldBoolOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldBoolOptional, field.TypeBool, value)
 	}
 	if mwou.mutation.BoolOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Column: messagewithoptionals.FieldBoolOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldBoolOptional, field.TypeBool)
 	}
 	if value, ok := mwou.mutation.BytesOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: messagewithoptionals.FieldBytesOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldBytesOptional, field.TypeBytes, value)
 	}
 	if mwou.mutation.BytesOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Column: messagewithoptionals.FieldBytesOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldBytesOptional, field.TypeBytes)
 	}
 	if value, ok := mwou.mutation.UUIDOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: messagewithoptionals.FieldUUIDOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldUUIDOptional, field.TypeUUID, value)
 	}
 	if mwou.mutation.UUIDOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Column: messagewithoptionals.FieldUUIDOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldUUIDOptional, field.TypeUUID)
 	}
 	if value, ok := mwou.mutation.TimeOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: messagewithoptionals.FieldTimeOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldTimeOptional, field.TypeTime, value)
 	}
 	if mwou.mutation.TimeOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Column: messagewithoptionals.FieldTimeOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldTimeOptional, field.TypeTime)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -412,6 +317,7 @@ func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		return 0, err
 	}
+	mwou.mutation.done = true
 	return n, nil
 }
 
@@ -610,40 +516,7 @@ func (mwouo *MessageWithOptionalsUpdateOne) Select(field string, fields ...strin
 
 // Save executes the query and returns the updated MessageWithOptionals entity.
 func (mwouo *MessageWithOptionalsUpdateOne) Save(ctx context.Context) (*MessageWithOptionals, error) {
-	var (
-		err  error
-		node *MessageWithOptionals
-	)
-	if len(mwouo.hooks) == 0 {
-		node, err = mwouo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithOptionalsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwouo.mutation = mutation
-			node, err = mwouo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwouo.hooks) - 1; i >= 0; i-- {
-			if mwouo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwouo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwouo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithOptionals)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithOptionalsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithOptionals, MessageWithOptionalsMutation](ctx, mwouo.sqlSave, mwouo.mutation, mwouo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -704,129 +577,61 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 	}
 	if value, ok := mwouo.mutation.StrOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithoptionals.FieldStrOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldStrOptional, field.TypeString, value)
 	}
 	if mwouo.mutation.StrOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: messagewithoptionals.FieldStrOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldStrOptional, field.TypeString)
 	}
 	if value, ok := mwouo.mutation.IntOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldIntOptional, field.TypeInt8, value)
 	}
 	if value, ok := mwouo.mutation.AddedIntOptional(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.AddField(messagewithoptionals.FieldIntOptional, field.TypeInt8, value)
 	}
 	if mwouo.mutation.IntOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Column: messagewithoptionals.FieldIntOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldIntOptional, field.TypeInt8)
 	}
 	if value, ok := mwouo.mutation.UintOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldUintOptional, field.TypeUint8, value)
 	}
 	if value, ok := mwouo.mutation.AddedUintOptional(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.AddField(messagewithoptionals.FieldUintOptional, field.TypeUint8, value)
 	}
 	if mwouo.mutation.UintOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Column: messagewithoptionals.FieldUintOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldUintOptional, field.TypeUint8)
 	}
 	if value, ok := mwouo.mutation.FloatOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32, value)
 	}
 	if value, ok := mwouo.mutation.AddedFloatOptional(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.AddField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32, value)
 	}
 	if mwouo.mutation.FloatOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Column: messagewithoptionals.FieldFloatOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldFloatOptional, field.TypeFloat32)
 	}
 	if value, ok := mwouo.mutation.BoolOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: messagewithoptionals.FieldBoolOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldBoolOptional, field.TypeBool, value)
 	}
 	if mwouo.mutation.BoolOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Column: messagewithoptionals.FieldBoolOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldBoolOptional, field.TypeBool)
 	}
 	if value, ok := mwouo.mutation.BytesOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Value:  value,
-			Column: messagewithoptionals.FieldBytesOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldBytesOptional, field.TypeBytes, value)
 	}
 	if mwouo.mutation.BytesOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeBytes,
-			Column: messagewithoptionals.FieldBytesOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldBytesOptional, field.TypeBytes)
 	}
 	if value, ok := mwouo.mutation.UUIDOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: messagewithoptionals.FieldUUIDOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldUUIDOptional, field.TypeUUID, value)
 	}
 	if mwouo.mutation.UUIDOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Column: messagewithoptionals.FieldUUIDOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldUUIDOptional, field.TypeUUID)
 	}
 	if value, ok := mwouo.mutation.TimeOptional(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: messagewithoptionals.FieldTimeOptional,
-		})
+		_spec.SetField(messagewithoptionals.FieldTimeOptional, field.TypeTime, value)
 	}
 	if mwouo.mutation.TimeOptionalCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Column: messagewithoptionals.FieldTimeOptional,
-		})
+		_spec.ClearField(messagewithoptionals.FieldTimeOptional, field.TypeTime)
 	}
 	_node = &MessageWithOptionals{config: mwouo.config}
 	_spec.Assign = _node.assignValues
@@ -839,5 +644,6 @@ func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		return nil, err
 	}
+	mwouo.mutation.done = true
 	return _node, nil
 }

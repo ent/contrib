@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,10 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []pulid.ID) ([]ent.Noder,
 	return r.client.Noders(ctx, ids, ent.WithNodeType(ent.IDToType))
 }
 
+func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
+	return r.client.BillProduct.Query().All(ctx)
+}
+
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,
@@ -60,7 +64,23 @@ func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, 
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *createTodoInputResolver) Status(ctx context.Context, obj *ent.CreateTodoInput, data todo.Status) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *createUserInputResolver) Username(ctx context.Context, obj *ent.CreateUserInput, data *string) error {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -84,14 +104,61 @@ func (r *updateTodoInputResolver) Status(ctx context.Context, obj *ent.UpdateTod
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *updateUserInputResolver) Username(ctx context.Context, obj *ent.UpdateUserInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) Username(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameNotIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameGt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameGte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameLt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *userWhereInputResolver) UsernameLte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 // Todo returns TodoResolver implementation.
 func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
 
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
+// CreateCategoryInput returns CreateCategoryInputResolver implementation.
+func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
+	return &createCategoryInputResolver{r}
+}
+
 // CreateTodoInput returns CreateTodoInputResolver implementation.
 func (r *Resolver) CreateTodoInput() CreateTodoInputResolver { return &createTodoInputResolver{r} }
+
+// CreateUserInput returns CreateUserInputResolver implementation.
+func (r *Resolver) CreateUserInput() CreateUserInputResolver { return &createUserInputResolver{r} }
 
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
@@ -99,8 +166,19 @@ func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereIn
 // UpdateTodoInput returns UpdateTodoInputResolver implementation.
 func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTodoInputResolver{r} }
 
+// UpdateUserInput returns UpdateUserInputResolver implementation.
+func (r *Resolver) UpdateUserInput() UpdateUserInputResolver { return &updateUserInputResolver{r} }
+
+// UserWhereInput returns UserWhereInputResolver implementation.
+func (r *Resolver) UserWhereInput() UserWhereInputResolver { return &userWhereInputResolver{r} }
+
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
+type createCategoryInputResolver struct{ *Resolver }
 type createTodoInputResolver struct{ *Resolver }
+type createUserInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
 type updateTodoInputResolver struct{ *Resolver }
+type updateUserInputResolver struct{ *Resolver }
+type userWhereInputResolver struct{ *Resolver }

@@ -142,24 +142,24 @@ func (u *User) assignValues(columns []string, values []any) error {
 
 // QueryBlogPosts queries the "blog_posts" edge of the User entity.
 func (u *User) QueryBlogPosts() *BlogPostQuery {
-	return (&UserClient{config: u.config}).QueryBlogPosts(u)
+	return NewUserClient(u.config).QueryBlogPosts(u)
 }
 
 // QueryProfilePic queries the "profile_pic" edge of the User entity.
 func (u *User) QueryProfilePic() *ImageQuery {
-	return (&UserClient{config: u.config}).QueryProfilePic(u)
+	return NewUserClient(u.config).QueryProfilePic(u)
 }
 
 // QuerySkipEdge queries the "skip_edge" edge of the User entity.
 func (u *User) QuerySkipEdge() *SkipEdgeExampleQuery {
-	return (&UserClient{config: u.config}).QuerySkipEdge(u)
+	return NewUserClient(u.config).QuerySkipEdge(u)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{config: u.config}).UpdateOne(u)
+	return NewUserClient(u.config).UpdateOne(u)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,

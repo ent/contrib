@@ -17,11 +17,9 @@ import (
 // TwoMethodServiceQuery is the builder for querying TwoMethodService entities.
 type TwoMethodServiceQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.TwoMethodService
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (tmsq *TwoMethodServiceQuery) Where(ps ...predicate.TwoMethodService) *TwoM
 	return tmsq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (tmsq *TwoMethodServiceQuery) Limit(limit int) *TwoMethodServiceQuery {
-	tmsq.limit = &limit
+	tmsq.ctx.Limit = &limit
 	return tmsq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (tmsq *TwoMethodServiceQuery) Offset(offset int) *TwoMethodServiceQuery {
-	tmsq.offset = &offset
+	tmsq.ctx.Offset = &offset
 	return tmsq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (tmsq *TwoMethodServiceQuery) Unique(unique bool) *TwoMethodServiceQuery {
-	tmsq.unique = &unique
+	tmsq.ctx.Unique = &unique
 	return tmsq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (tmsq *TwoMethodServiceQuery) Order(o ...OrderFunc) *TwoMethodServiceQuery {
 	tmsq.order = append(tmsq.order, o...)
 	return tmsq
@@ -62,7 +60,7 @@ func (tmsq *TwoMethodServiceQuery) Order(o ...OrderFunc) *TwoMethodServiceQuery 
 // First returns the first TwoMethodService entity from the query.
 // Returns a *NotFoundError when no TwoMethodService was found.
 func (tmsq *TwoMethodServiceQuery) First(ctx context.Context) (*TwoMethodService, error) {
-	nodes, err := tmsq.Limit(1).All(ctx)
+	nodes, err := tmsq.Limit(1).All(setContextOp(ctx, tmsq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (tmsq *TwoMethodServiceQuery) FirstX(ctx context.Context) *TwoMethodService
 // Returns a *NotFoundError when no TwoMethodService ID was found.
 func (tmsq *TwoMethodServiceQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = tmsq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = tmsq.Limit(1).IDs(setContextOp(ctx, tmsq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (tmsq *TwoMethodServiceQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one TwoMethodService entity is found.
 // Returns a *NotFoundError when no TwoMethodService entities are found.
 func (tmsq *TwoMethodServiceQuery) Only(ctx context.Context) (*TwoMethodService, error) {
-	nodes, err := tmsq.Limit(2).All(ctx)
+	nodes, err := tmsq.Limit(2).All(setContextOp(ctx, tmsq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (tmsq *TwoMethodServiceQuery) OnlyX(ctx context.Context) *TwoMethodService 
 // Returns a *NotFoundError when no entities are found.
 func (tmsq *TwoMethodServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = tmsq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = tmsq.Limit(2).IDs(setContextOp(ctx, tmsq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (tmsq *TwoMethodServiceQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of TwoMethodServices.
 func (tmsq *TwoMethodServiceQuery) All(ctx context.Context) ([]*TwoMethodService, error) {
+	ctx = setContextOp(ctx, tmsq.ctx, "All")
 	if err := tmsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return tmsq.sqlAll(ctx)
+	qr := querierAll[[]*TwoMethodService, *TwoMethodServiceQuery]()
+	return withInterceptors[[]*TwoMethodService](ctx, tmsq, qr, tmsq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (tmsq *TwoMethodServiceQuery) AllX(ctx context.Context) []*TwoMethodService
 // IDs executes the query and returns a list of TwoMethodService IDs.
 func (tmsq *TwoMethodServiceQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, tmsq.ctx, "IDs")
 	if err := tmsq.Select(twomethodservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (tmsq *TwoMethodServiceQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (tmsq *TwoMethodServiceQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, tmsq.ctx, "Count")
 	if err := tmsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return tmsq.sqlCount(ctx)
+	return withInterceptors[int](ctx, tmsq, querierCount[*TwoMethodServiceQuery](), tmsq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (tmsq *TwoMethodServiceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tmsq *TwoMethodServiceQuery) Exist(ctx context.Context) (bool, error) {
-	if err := tmsq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, tmsq.ctx, "Exist")
+	switch _, err := tmsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return tmsq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,45 +243,54 @@ func (tmsq *TwoMethodServiceQuery) Clone() *TwoMethodServiceQuery {
 	}
 	return &TwoMethodServiceQuery{
 		config:     tmsq.config,
-		limit:      tmsq.limit,
-		offset:     tmsq.offset,
+		ctx:        tmsq.ctx.Clone(),
 		order:      append([]OrderFunc{}, tmsq.order...),
+		inters:     append([]Interceptor{}, tmsq.inters...),
 		predicates: append([]predicate.TwoMethodService{}, tmsq.predicates...),
 		// clone intermediate query.
-		sql:    tmsq.sql.Clone(),
-		path:   tmsq.path,
-		unique: tmsq.unique,
+		sql:  tmsq.sql.Clone(),
+		path: tmsq.path,
 	}
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (tmsq *TwoMethodServiceQuery) GroupBy(field string, fields ...string) *TwoMethodServiceGroupBy {
-	grbuild := &TwoMethodServiceGroupBy{config: tmsq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := tmsq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return tmsq.sqlQuery(ctx), nil
-	}
+	tmsq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &TwoMethodServiceGroupBy{build: tmsq}
+	grbuild.flds = &tmsq.ctx.Fields
 	grbuild.label = twomethodservice.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (tmsq *TwoMethodServiceQuery) Select(fields ...string) *TwoMethodServiceSelect {
-	tmsq.fields = append(tmsq.fields, fields...)
-	selbuild := &TwoMethodServiceSelect{TwoMethodServiceQuery: tmsq}
-	selbuild.label = twomethodservice.Label
-	selbuild.flds, selbuild.scan = &tmsq.fields, selbuild.Scan
-	return selbuild
+	tmsq.ctx.Fields = append(tmsq.ctx.Fields, fields...)
+	sbuild := &TwoMethodServiceSelect{TwoMethodServiceQuery: tmsq}
+	sbuild.label = twomethodservice.Label
+	sbuild.flds, sbuild.scan = &tmsq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a TwoMethodServiceSelect configured with the given aggregations.
+func (tmsq *TwoMethodServiceQuery) Aggregate(fns ...AggregateFunc) *TwoMethodServiceSelect {
+	return tmsq.Select().Aggregate(fns...)
 }
 
 func (tmsq *TwoMethodServiceQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range tmsq.fields {
+	for _, inter := range tmsq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, tmsq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range tmsq.ctx.Fields {
 		if !twomethodservice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -316,22 +332,11 @@ func (tmsq *TwoMethodServiceQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 
 func (tmsq *TwoMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := tmsq.querySpec()
-	_spec.Node.Columns = tmsq.fields
-	if len(tmsq.fields) > 0 {
-		_spec.Unique = tmsq.unique != nil && *tmsq.unique
+	_spec.Node.Columns = tmsq.ctx.Fields
+	if len(tmsq.ctx.Fields) > 0 {
+		_spec.Unique = tmsq.ctx.Unique != nil && *tmsq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, tmsq.driver, _spec)
-}
-
-func (tmsq *TwoMethodServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := tmsq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
@@ -347,10 +352,10 @@ func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   tmsq.sql,
 		Unique: true,
 	}
-	if unique := tmsq.unique; unique != nil {
+	if unique := tmsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := tmsq.fields; len(fields) > 0 {
+	if fields := tmsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, twomethodservice.FieldID)
 		for i := range fields {
@@ -366,10 +371,10 @@ func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := tmsq.limit; limit != nil {
+	if limit := tmsq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := tmsq.offset; offset != nil {
+	if offset := tmsq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := tmsq.order; len(ps) > 0 {
@@ -385,7 +390,7 @@ func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
 func (tmsq *TwoMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(tmsq.driver.Dialect())
 	t1 := builder.Table(twomethodservice.Table)
-	columns := tmsq.fields
+	columns := tmsq.ctx.Fields
 	if len(columns) == 0 {
 		columns = twomethodservice.Columns
 	}
@@ -394,7 +399,7 @@ func (tmsq *TwoMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = tmsq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if tmsq.unique != nil && *tmsq.unique {
+	if tmsq.ctx.Unique != nil && *tmsq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range tmsq.predicates {
@@ -403,12 +408,12 @@ func (tmsq *TwoMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range tmsq.order {
 		p(selector)
 	}
-	if offset := tmsq.offset; offset != nil {
+	if offset := tmsq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := tmsq.limit; limit != nil {
+	if limit := tmsq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -416,13 +421,8 @@ func (tmsq *TwoMethodServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // TwoMethodServiceGroupBy is the group-by builder for TwoMethodService entities.
 type TwoMethodServiceGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *TwoMethodServiceQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -431,74 +431,77 @@ func (tmsgb *TwoMethodServiceGroupBy) Aggregate(fns ...AggregateFunc) *TwoMethod
 	return tmsgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (tmsgb *TwoMethodServiceGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := tmsgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, tmsgb.build.ctx, "GroupBy")
+	if err := tmsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	tmsgb.sql = query
-	return tmsgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*TwoMethodServiceQuery, *TwoMethodServiceGroupBy](ctx, tmsgb.build, tmsgb, tmsgb.build.inters, v)
 }
 
-func (tmsgb *TwoMethodServiceGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range tmsgb.fields {
-		if !twomethodservice.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (tmsgb *TwoMethodServiceGroupBy) sqlScan(ctx context.Context, root *TwoMethodServiceQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(tmsgb.fns))
+	for _, fn := range tmsgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := tmsgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*tmsgb.flds)+len(tmsgb.fns))
+		for _, f := range *tmsgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*tmsgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := tmsgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := tmsgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (tmsgb *TwoMethodServiceGroupBy) sqlQuery() *sql.Selector {
-	selector := tmsgb.sql.Select()
-	aggregation := make([]string, 0, len(tmsgb.fns))
-	for _, fn := range tmsgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(tmsgb.fields)+len(tmsgb.fns))
-		for _, f := range tmsgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(tmsgb.fields...)...)
-}
-
 // TwoMethodServiceSelect is the builder for selecting fields of TwoMethodService entities.
 type TwoMethodServiceSelect struct {
 	*TwoMethodServiceQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (tmss *TwoMethodServiceSelect) Aggregate(fns ...AggregateFunc) *TwoMethodServiceSelect {
+	tmss.fns = append(tmss.fns, fns...)
+	return tmss
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, tmss.ctx, "Select")
 	if err := tmss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	tmss.sql = tmss.TwoMethodServiceQuery.sqlQuery(ctx)
-	return tmss.sqlScan(ctx, v)
+	return scanWithInterceptors[*TwoMethodServiceQuery, *TwoMethodServiceSelect](ctx, tmss.TwoMethodServiceQuery, tmss, tmss.inters, v)
 }
 
-func (tmss *TwoMethodServiceSelect) sqlScan(ctx context.Context, v any) error {
+func (tmss *TwoMethodServiceSelect) sqlScan(ctx context.Context, root *TwoMethodServiceQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(tmss.fns))
+	for _, fn := range tmss.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*tmss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := tmss.sql.Query()
+	query, args := selector.Query()
 	if err := tmss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

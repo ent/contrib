@@ -77,7 +77,7 @@ func (ne *NilExample) assignValues(columns []string, values []any) error {
 // Note that you need to call NilExample.Unwrap() before calling this method if this NilExample
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ne *NilExample) Update() *NilExampleUpdateOne {
-	return (&NilExampleClient{config: ne.config}).UpdateOne(ne)
+	return NewNilExampleClient(ne.config).UpdateOne(ne)
 }
 
 // Unwrap unwraps the NilExample entity that was returned from a transaction after it was closed,

@@ -9,6 +9,8 @@ const (
 	FieldID = "id"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// UserFieldID holds the string denoting the ID field of the User.
+	UserFieldID = "user_id"
 	// Table holds the table name of the skipedgeexample in the database.
 	Table = "skip_edge_examples"
 	// UserTable is the table that holds the user relation/edge.

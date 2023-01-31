@@ -46,34 +46,7 @@ func (dnmu *DuplicateNumberMessageUpdate) Mutation() *DuplicateNumberMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (dnmu *DuplicateNumberMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(dnmu.hooks) == 0 {
-		affected, err = dnmu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DuplicateNumberMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			dnmu.mutation = mutation
-			affected, err = dnmu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(dnmu.hooks) - 1; i >= 0; i-- {
-			if dnmu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dnmu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, dnmu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, DuplicateNumberMessageMutation](ctx, dnmu.sqlSave, dnmu.mutation, dnmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -117,18 +90,10 @@ func (dnmu *DuplicateNumberMessageUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 	}
 	if value, ok := dnmu.mutation.Hello(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldHello,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
 	}
 	if value, ok := dnmu.mutation.World(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldWorld,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldWorld, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, dnmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -138,6 +103,7 @@ func (dnmu *DuplicateNumberMessageUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 		return 0, err
 	}
+	dnmu.mutation.done = true
 	return n, nil
 }
 
@@ -175,40 +141,7 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated DuplicateNumberMessage entity.
 func (dnmuo *DuplicateNumberMessageUpdateOne) Save(ctx context.Context) (*DuplicateNumberMessage, error) {
-	var (
-		err  error
-		node *DuplicateNumberMessage
-	)
-	if len(dnmuo.hooks) == 0 {
-		node, err = dnmuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DuplicateNumberMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			dnmuo.mutation = mutation
-			node, err = dnmuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(dnmuo.hooks) - 1; i >= 0; i-- {
-			if dnmuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dnmuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, dnmuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*DuplicateNumberMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from DuplicateNumberMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*DuplicateNumberMessage, DuplicateNumberMessageMutation](ctx, dnmuo.sqlSave, dnmuo.mutation, dnmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -269,18 +202,10 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		}
 	}
 	if value, ok := dnmuo.mutation.Hello(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldHello,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
 	}
 	if value, ok := dnmuo.mutation.World(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldWorld,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldWorld, field.TypeString, value)
 	}
 	_node = &DuplicateNumberMessage{config: dnmuo.config}
 	_spec.Assign = _node.assignValues
@@ -293,5 +218,6 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		}
 		return nil, err
 	}
+	dnmuo.mutation.done = true
 	return _node, nil
 }

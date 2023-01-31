@@ -58,49 +58,7 @@ func (pc *PortalCreate) Mutation() *PortalMutation {
 
 // Save creates the Portal in the database.
 func (pc *PortalCreate) Save(ctx context.Context) (*Portal, error) {
-	var (
-		err  error
-		node *Portal
-	)
-	if len(pc.hooks) == 0 {
-		if err = pc.check(); err != nil {
-			return nil, err
-		}
-		node, err = pc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PortalMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = pc.check(); err != nil {
-				return nil, err
-			}
-			pc.mutation = mutation
-			if node, err = pc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(pc.hooks) - 1; i >= 0; i-- {
-			if pc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = pc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, pc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Portal)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from PortalMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Portal, PortalMutation](ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -137,6 +95,9 @@ func (pc *PortalCreate) check() error {
 }
 
 func (pc *PortalCreate) sqlSave(ctx context.Context) (*Portal, error) {
+	if err := pc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := pc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, pc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -146,6 +107,8 @@ func (pc *PortalCreate) sqlSave(ctx context.Context) (*Portal, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	pc.mutation.id = &_node.ID
+	pc.mutation.done = true
 	return _node, nil
 }
 
@@ -161,19 +124,11 @@ func (pc *PortalCreate) createSpec() (*Portal, *sqlgraph.CreateSpec) {
 		}
 	)
 	if value, ok := pc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldName,
-		})
+		_spec.SetField(portal.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := pc.mutation.Description(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: portal.FieldDescription,
-		})
+		_spec.SetField(portal.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
 	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {

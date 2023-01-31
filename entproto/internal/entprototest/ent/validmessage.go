@@ -103,7 +103,7 @@ func (vm *ValidMessage) assignValues(columns []string, values []any) error {
 // Note that you need to call ValidMessage.Unwrap() before calling this method if this ValidMessage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (vm *ValidMessage) Update() *ValidMessageUpdateOne {
-	return (&ValidMessageClient{config: vm.config}).UpdateOne(vm)
+	return NewValidMessageClient(vm.config).UpdateOne(vm)
 }
 
 // Unwrap unwraps the ValidMessage entity that was returned from a transaction after it was closed,

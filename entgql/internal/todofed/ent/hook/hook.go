@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,11 +29,10 @@ type CategoryFunc func(context.Context, *ent.CategoryMutation) (ent.Value, error
 
 // Mutate calls f(ctx, m).
 func (f CategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.CategoryMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
+	if mv, ok := m.(*ent.CategoryMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
 }
 
 // The TodoFunc type is an adapter to allow the use of ordinary
@@ -42,11 +41,10 @@ type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f TodoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TodoMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
+	if mv, ok := m.(*ent.TodoMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
 }
 
 // The VerySecretFunc type is an adapter to allow the use of ordinary
@@ -55,11 +53,10 @@ type VerySecretFunc func(context.Context, *ent.VerySecretMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f VerySecretFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.VerySecretMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VerySecretMutation", m)
+	if mv, ok := m.(*ent.VerySecretMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VerySecretMutation", m)
 }
 
 // Condition is a hook condition function.

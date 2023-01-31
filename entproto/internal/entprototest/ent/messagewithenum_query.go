@@ -17,11 +17,9 @@ import (
 // MessageWithEnumQuery is the builder for querying MessageWithEnum entities.
 type MessageWithEnumQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
+	ctx        *QueryContext
 	order      []OrderFunc
-	fields     []string
+	inters     []Interceptor
 	predicates []predicate.MessageWithEnum
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,26 +32,26 @@ func (mweq *MessageWithEnumQuery) Where(ps ...predicate.MessageWithEnum) *Messag
 	return mweq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (mweq *MessageWithEnumQuery) Limit(limit int) *MessageWithEnumQuery {
-	mweq.limit = &limit
+	mweq.ctx.Limit = &limit
 	return mweq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (mweq *MessageWithEnumQuery) Offset(offset int) *MessageWithEnumQuery {
-	mweq.offset = &offset
+	mweq.ctx.Offset = &offset
 	return mweq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (mweq *MessageWithEnumQuery) Unique(unique bool) *MessageWithEnumQuery {
-	mweq.unique = &unique
+	mweq.ctx.Unique = &unique
 	return mweq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (mweq *MessageWithEnumQuery) Order(o ...OrderFunc) *MessageWithEnumQuery {
 	mweq.order = append(mweq.order, o...)
 	return mweq
@@ -62,7 +60,7 @@ func (mweq *MessageWithEnumQuery) Order(o ...OrderFunc) *MessageWithEnumQuery {
 // First returns the first MessageWithEnum entity from the query.
 // Returns a *NotFoundError when no MessageWithEnum was found.
 func (mweq *MessageWithEnumQuery) First(ctx context.Context) (*MessageWithEnum, error) {
-	nodes, err := mweq.Limit(1).All(ctx)
+	nodes, err := mweq.Limit(1).All(setContextOp(ctx, mweq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (mweq *MessageWithEnumQuery) FirstX(ctx context.Context) *MessageWithEnum {
 // Returns a *NotFoundError when no MessageWithEnum ID was found.
 func (mweq *MessageWithEnumQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mweq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = mweq.Limit(1).IDs(setContextOp(ctx, mweq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (mweq *MessageWithEnumQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MessageWithEnum entity is found.
 // Returns a *NotFoundError when no MessageWithEnum entities are found.
 func (mweq *MessageWithEnumQuery) Only(ctx context.Context) (*MessageWithEnum, error) {
-	nodes, err := mweq.Limit(2).All(ctx)
+	nodes, err := mweq.Limit(2).All(setContextOp(ctx, mweq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (mweq *MessageWithEnumQuery) OnlyX(ctx context.Context) *MessageWithEnum {
 // Returns a *NotFoundError when no entities are found.
 func (mweq *MessageWithEnumQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mweq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = mweq.Limit(2).IDs(setContextOp(ctx, mweq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (mweq *MessageWithEnumQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MessageWithEnums.
 func (mweq *MessageWithEnumQuery) All(ctx context.Context) ([]*MessageWithEnum, error) {
+	ctx = setContextOp(ctx, mweq.ctx, "All")
 	if err := mweq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return mweq.sqlAll(ctx)
+	qr := querierAll[[]*MessageWithEnum, *MessageWithEnumQuery]()
+	return withInterceptors[[]*MessageWithEnum](ctx, mweq, qr, mweq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -179,6 +179,7 @@ func (mweq *MessageWithEnumQuery) AllX(ctx context.Context) []*MessageWithEnum {
 // IDs executes the query and returns a list of MessageWithEnum IDs.
 func (mweq *MessageWithEnumQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, mweq.ctx, "IDs")
 	if err := mweq.Select(messagewithenum.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -196,10 +197,11 @@ func (mweq *MessageWithEnumQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mweq *MessageWithEnumQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, mweq.ctx, "Count")
 	if err := mweq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return mweq.sqlCount(ctx)
+	return withInterceptors[int](ctx, mweq, querierCount[*MessageWithEnumQuery](), mweq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +215,15 @@ func (mweq *MessageWithEnumQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mweq *MessageWithEnumQuery) Exist(ctx context.Context) (bool, error) {
-	if err := mweq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, mweq.ctx, "Exist")
+	switch _, err := mweq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return mweq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +243,13 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 	}
 	return &MessageWithEnumQuery{
 		config:     mweq.config,
-		limit:      mweq.limit,
-		offset:     mweq.offset,
+		ctx:        mweq.ctx.Clone(),
 		order:      append([]OrderFunc{}, mweq.order...),
+		inters:     append([]Interceptor{}, mweq.inters...),
 		predicates: append([]predicate.MessageWithEnum{}, mweq.predicates...),
 		// clone intermediate query.
-		sql:    mweq.sql.Clone(),
-		path:   mweq.path,
-		unique: mweq.unique,
+		sql:  mweq.sql.Clone(),
+		path: mweq.path,
 	}
 }
 
@@ -262,16 +268,11 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *MessageWithEnumGroupBy {
-	grbuild := &MessageWithEnumGroupBy{config: mweq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := mweq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return mweq.sqlQuery(ctx), nil
-	}
+	mweq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MessageWithEnumGroupBy{build: mweq}
+	grbuild.flds = &mweq.ctx.Fields
 	grbuild.label = messagewithenum.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +289,30 @@ func (mweq *MessageWithEnumQuery) GroupBy(field string, fields ...string) *Messa
 //		Select(messagewithenum.FieldEnumType).
 //		Scan(ctx, &v)
 func (mweq *MessageWithEnumQuery) Select(fields ...string) *MessageWithEnumSelect {
-	mweq.fields = append(mweq.fields, fields...)
-	selbuild := &MessageWithEnumSelect{MessageWithEnumQuery: mweq}
-	selbuild.label = messagewithenum.Label
-	selbuild.flds, selbuild.scan = &mweq.fields, selbuild.Scan
-	return selbuild
+	mweq.ctx.Fields = append(mweq.ctx.Fields, fields...)
+	sbuild := &MessageWithEnumSelect{MessageWithEnumQuery: mweq}
+	sbuild.label = messagewithenum.Label
+	sbuild.flds, sbuild.scan = &mweq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a MessageWithEnumSelect configured with the given aggregations.
+func (mweq *MessageWithEnumQuery) Aggregate(fns ...AggregateFunc) *MessageWithEnumSelect {
+	return mweq.Select().Aggregate(fns...)
 }
 
 func (mweq *MessageWithEnumQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range mweq.fields {
+	for _, inter := range mweq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, mweq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range mweq.ctx.Fields {
 		if !messagewithenum.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,22 +354,11 @@ func (mweq *MessageWithEnumQuery) sqlAll(ctx context.Context, hooks ...queryHook
 
 func (mweq *MessageWithEnumQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mweq.querySpec()
-	_spec.Node.Columns = mweq.fields
-	if len(mweq.fields) > 0 {
-		_spec.Unique = mweq.unique != nil && *mweq.unique
+	_spec.Node.Columns = mweq.ctx.Fields
+	if len(mweq.ctx.Fields) > 0 {
+		_spec.Unique = mweq.ctx.Unique != nil && *mweq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, mweq.driver, _spec)
-}
-
-func (mweq *MessageWithEnumQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := mweq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
@@ -369,10 +374,10 @@ func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   mweq.sql,
 		Unique: true,
 	}
-	if unique := mweq.unique; unique != nil {
+	if unique := mweq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := mweq.fields; len(fields) > 0 {
+	if fields := mweq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, messagewithenum.FieldID)
 		for i := range fields {
@@ -388,10 +393,10 @@ func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := mweq.limit; limit != nil {
+	if limit := mweq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mweq.offset; offset != nil {
+	if offset := mweq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := mweq.order; len(ps) > 0 {
@@ -407,7 +412,7 @@ func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
 func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mweq.driver.Dialect())
 	t1 := builder.Table(messagewithenum.Table)
-	columns := mweq.fields
+	columns := mweq.ctx.Fields
 	if len(columns) == 0 {
 		columns = messagewithenum.Columns
 	}
@@ -416,7 +421,7 @@ func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = mweq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mweq.unique != nil && *mweq.unique {
+	if mweq.ctx.Unique != nil && *mweq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range mweq.predicates {
@@ -425,12 +430,12 @@ func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range mweq.order {
 		p(selector)
 	}
-	if offset := mweq.offset; offset != nil {
+	if offset := mweq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mweq.limit; limit != nil {
+	if limit := mweq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +443,8 @@ func (mweq *MessageWithEnumQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // MessageWithEnumGroupBy is the group-by builder for MessageWithEnum entities.
 type MessageWithEnumGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *MessageWithEnumQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +453,77 @@ func (mwegb *MessageWithEnumGroupBy) Aggregate(fns ...AggregateFunc) *MessageWit
 	return mwegb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (mwegb *MessageWithEnumGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := mwegb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, mwegb.build.ctx, "GroupBy")
+	if err := mwegb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwegb.sql = query
-	return mwegb.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithEnumQuery, *MessageWithEnumGroupBy](ctx, mwegb.build, mwegb, mwegb.build.inters, v)
 }
 
-func (mwegb *MessageWithEnumGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range mwegb.fields {
-		if !messagewithenum.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (mwegb *MessageWithEnumGroupBy) sqlScan(ctx context.Context, root *MessageWithEnumQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(mwegb.fns))
+	for _, fn := range mwegb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := mwegb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*mwegb.flds)+len(mwegb.fns))
+		for _, f := range *mwegb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*mwegb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mwegb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := mwegb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (mwegb *MessageWithEnumGroupBy) sqlQuery() *sql.Selector {
-	selector := mwegb.sql.Select()
-	aggregation := make([]string, 0, len(mwegb.fns))
-	for _, fn := range mwegb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(mwegb.fields)+len(mwegb.fns))
-		for _, f := range mwegb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(mwegb.fields...)...)
-}
-
 // MessageWithEnumSelect is the builder for selecting fields of MessageWithEnum entities.
 type MessageWithEnumSelect struct {
 	*MessageWithEnumQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwes *MessageWithEnumSelect) Aggregate(fns ...AggregateFunc) *MessageWithEnumSelect {
+	mwes.fns = append(mwes.fns, fns...)
+	return mwes
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwes *MessageWithEnumSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, mwes.ctx, "Select")
 	if err := mwes.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwes.sql = mwes.MessageWithEnumQuery.sqlQuery(ctx)
-	return mwes.sqlScan(ctx, v)
+	return scanWithInterceptors[*MessageWithEnumQuery, *MessageWithEnumSelect](ctx, mwes.MessageWithEnumQuery, mwes, mwes.inters, v)
 }
 
-func (mwes *MessageWithEnumSelect) sqlScan(ctx context.Context, v any) error {
+func (mwes *MessageWithEnumSelect) sqlScan(ctx context.Context, root *MessageWithEnumQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(mwes.fns))
+	for _, fn := range mwes.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*mwes.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := mwes.sql.Query()
+	query, args := selector.Query()
 	if err := mwes.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

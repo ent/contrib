@@ -9,179 +9,117 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.WithFields(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.WithFields(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.WithFields(sql.FieldLTE(FieldID, id))
 }
 
 // Existing applies equality check predicate on the "existing" field. It's identical to ExistingEQ.
 func Existing(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldEQ(FieldExisting, v))
 }
 
 // ExistingEQ applies the EQ predicate on the "existing" field.
 func ExistingEQ(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldEQ(FieldExisting, v))
 }
 
 // ExistingNEQ applies the NEQ predicate on the "existing" field.
 func ExistingNEQ(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldNEQ(FieldExisting, v))
 }
 
 // ExistingIn applies the In predicate on the "existing" field.
 func ExistingIn(vs ...string) predicate.WithFields {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldExisting), v...))
-	})
+	return predicate.WithFields(sql.FieldIn(FieldExisting, vs...))
 }
 
 // ExistingNotIn applies the NotIn predicate on the "existing" field.
 func ExistingNotIn(vs ...string) predicate.WithFields {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldExisting), v...))
-	})
+	return predicate.WithFields(sql.FieldNotIn(FieldExisting, vs...))
 }
 
 // ExistingGT applies the GT predicate on the "existing" field.
 func ExistingGT(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldGT(FieldExisting, v))
 }
 
 // ExistingGTE applies the GTE predicate on the "existing" field.
 func ExistingGTE(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldGTE(FieldExisting, v))
 }
 
 // ExistingLT applies the LT predicate on the "existing" field.
 func ExistingLT(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldLT(FieldExisting, v))
 }
 
 // ExistingLTE applies the LTE predicate on the "existing" field.
 func ExistingLTE(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldLTE(FieldExisting, v))
 }
 
 // ExistingContains applies the Contains predicate on the "existing" field.
 func ExistingContains(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldContains(FieldExisting, v))
 }
 
 // ExistingHasPrefix applies the HasPrefix predicate on the "existing" field.
 func ExistingHasPrefix(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldHasPrefix(FieldExisting, v))
 }
 
 // ExistingHasSuffix applies the HasSuffix predicate on the "existing" field.
 func ExistingHasSuffix(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldHasSuffix(FieldExisting, v))
 }
 
 // ExistingEqualFold applies the EqualFold predicate on the "existing" field.
 func ExistingEqualFold(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldEqualFold(FieldExisting, v))
 }
 
 // ExistingContainsFold applies the ContainsFold predicate on the "existing" field.
 func ExistingContainsFold(v string) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldExisting), v))
-	})
+	return predicate.WithFields(sql.FieldContainsFold(FieldExisting, v))
 }
 
 // And groups predicates with the AND operator between them.

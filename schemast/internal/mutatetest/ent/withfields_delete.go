@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
@@ -28,34 +27,7 @@ func (wfd *WithFieldsDelete) Where(ps ...predicate.WithFields) *WithFieldsDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wfd *WithFieldsDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(wfd.hooks) == 0 {
-		affected, err = wfd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithFieldsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wfd.mutation = mutation
-			affected, err = wfd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(wfd.hooks) - 1; i >= 0; i-- {
-			if wfd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wfd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, wfd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, WithFieldsMutation](ctx, wfd.sqlExec, wfd.mutation, wfd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,6 +60,7 @@ func (wfd *WithFieldsDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	wfd.mutation.done = true
 	return affected, err
 }
 

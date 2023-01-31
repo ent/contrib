@@ -6,8 +6,10 @@
         {{ $pbEnumIdent := $root.File.GoImportPath.Ident $enumName   }}
         {{ $entLcase := camel $root.EntType.Name }}
         {{ $entEnumIdent := entIdent $entLcase .PbStructField }}
+        {{ $enumFieldPrefix := snake $enumType.GetName | upper | printf "%s_" }}
+        {{ $omitPrefix := .EntField.Annotations.ProtoEnum.OmitFieldPrefix }}
         func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
-            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}(string(e))]; ok {
+            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}({{ if not $omitPrefix }}"{{ $enumFieldPrefix }}" +{{ end }} string(e))]; ok {
                 return {{ $pbEnumIdent | ident }}(v)
             }
             return {{ $pbEnumIdent | ident }}(0)
@@ -17,7 +19,7 @@
             if v, ok := {{ $pbEnumIdent.GoName }}_name[int32(e)]; ok {
                 entVal := map[string]string{
                 {{- range .EntField.Enums }}
-                    "{{ upper .Value }}": "{{ .Value }}",
+                    "{{ if not $omitPrefix }}{{ $enumFieldPrefix }}{{ end }}{{ upper .Value }}": "{{ .Value }}",
                 {{- end }}
                 }[v]
                 return {{ ident $entEnumIdent }}(entVal)
