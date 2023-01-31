@@ -231,6 +231,10 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		)
 	}
 
+	if m.QueryField != nil {
+		c = fnCall(selectorLit("entgql", "QueryField"))
+	}
+
 	return c, true, nil
 }
 
