@@ -46,7 +46,7 @@ type (
 		// Directives to add on the field/type.
 		Directives []Directive `json:"Directives,omitempty"`
 		// QueryField exposes the generated type with the given string under the Query object.
-		QueryField *FieldConfig `json:"QueryField,omitempty"`
+		QueryField *FieldConfig `json:"QueryField,omitempty" mapstructure:"QueryField"`
 		// MutationInputs defines the input types for the mutation.
 		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
 	}

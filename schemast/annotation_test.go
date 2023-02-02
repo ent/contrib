@@ -145,7 +145,7 @@ func TestAnnotation(t *testing.T) {
 		},
 		{
 			name:       "entgql annotation QueryField",
-			annot:      entgql.QueryField(),
+			annot:      entgql.QueryField().Annotation,
 			expectedOk: true,
 			expected:   `entgql.QueryField()`,
 		},

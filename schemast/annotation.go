@@ -206,6 +206,7 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		c = fnCall(
 			selectorLit("entgql", "Mutations"), args...,
 		)
+		return c, true, nil
 	}
 	if m.Skip != 0 {
 		var arg ast.Expr
@@ -229,11 +230,13 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		c = fnCall(
 			selectorLit("entgql", "Skip"), arg,
 		)
-	} else {
-		c = fnCall(selectorLit("entgql", "QueryField"))
+		return c, true, nil
 	}
-
-	return c, true, nil
+	if m.QueryField != nil {
+		c = fnCall(selectorLit("entgql", "QueryField"))
+		return c, true, nil
+	}
+	return nil, false, fmt.Errorf("schemast: unknown entgql annotation")
 }
 
 func toAnnotASTs(annots []schema.Annotation) ([]ast.Expr, error) {
