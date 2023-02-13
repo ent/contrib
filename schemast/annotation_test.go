@@ -210,6 +210,12 @@ func TestAnnotation(t *testing.T) {
 			expected:   `entgql.Skip(entgql.SkipAll)`,
 		},
 		{
+			name:       "entgql annotation Type",
+			annot:      entgql.Type("Name"),
+			expectedOk: true,
+			expected:   `entgql.Type("Name")`,
+		},
+		{
 			name:           "unsupported annotation",
 			annot:          annotation("unsupported"),
 			expectedErrMsg: `schemast: no Annotator configured for annotation "unsupported"`,
