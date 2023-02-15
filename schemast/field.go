@@ -20,6 +20,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"math"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -233,6 +234,9 @@ func fieldConstructor(dsc *field.Descriptor) string {
 	cn := dsc.Info.ConstName()
 	if dsc.Info.Type == field.TypeFloat64 {
 		cn = strings.TrimSuffix(cn, "64")
+	}
+	if dsc.Info.Type == field.TypeString && dsc.Size == math.MaxInt32 {
+		cn = "Text"
 	}
 	return strings.TrimPrefix(cn, "Type")
 }

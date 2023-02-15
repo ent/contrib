@@ -112,6 +112,11 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.String("x").Default("x")`,
 		},
 		{
+			name:     "Text",
+			field:    field.Text("x"),
+			expected: `field.Text("x")`,
+		},
+		{
 			name:     "default:int",
 			field:    field.Int("x").Default(1),
 			expected: `field.Int("x").Default(1)`,
