@@ -62,11 +62,14 @@ func (u *ID) Scan(src interface{}) error {
 	if src == nil {
 		return fmt.Errorf("pulid: expected a value")
 	}
-	s, ok := src.(string)
-	if !ok {
-		return fmt.Errorf("pulid: expected a string")
+	switch src := src.(type) {
+	case string:
+		*u = ID(src)
+	case ID:
+		*u = src
+	default:
+		return fmt.Errorf("pulid: unexpected type, %T", src)
 	}
-	*u = ID(s)
 	return nil
 }
 
