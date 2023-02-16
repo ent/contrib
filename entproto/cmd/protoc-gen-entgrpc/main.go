@@ -86,7 +86,7 @@ func processFile(gen *protogen.Plugin, file *protogen.File, graph *gen.Graph) er
 func containsSvc(adapter *entproto.Adapter, svc string) bool {
 	for _, d := range adapter.AllFileDescriptors() {
 		for _, s := range d.GetServices() {
-			if s.GetName() == string(svc) {
+			if s.GetName() == svc {
 				return true
 			}
 		}
