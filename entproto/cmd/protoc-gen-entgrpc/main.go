@@ -16,6 +16,7 @@ package main
 
 import (
 	"embed"
+	"errors"
 	"flag"
 	"fmt"
 	"path"
@@ -34,6 +35,7 @@ var (
 	snake         = gen.Funcs["snake"].(func(string) string)
 	status        = protogen.GoImportPath("google.golang.org/grpc/status")
 	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
+	skipErr       = errors.New("skip service")
 )
 
 func main() {
@@ -63,8 +65,15 @@ func processFile(gen *protogen.Plugin, file *protogen.File, graph *gen.Graph) er
 	if len(file.Services) == 0 {
 		return nil
 	}
+	adapter, err := entproto.LoadAdapter(graph)
+	if err != nil {
+		return err
+	}
 	for _, s := range file.Services {
-		sg, err := newServiceGenerator(gen, file, graph, s)
+		if name := string(s.Desc.Name()); !containsSvc(adapter, name) {
+			continue
+		}
+		sg, err := newServiceGenerator(gen, file, graph, adapter, s)
 		if err != nil {
 			return err
 		}
@@ -75,11 +84,19 @@ func processFile(gen *protogen.Plugin, file *protogen.File, graph *gen.Graph) er
 	return nil
 }
 
-func newServiceGenerator(plugin *protogen.Plugin, file *protogen.File, graph *gen.Graph, service *protogen.Service) (*serviceGenerator, error) {
-	adapter, err := entproto.LoadAdapter(graph)
-	if err != nil {
-		return nil, err
+// containsSvc reports if the service definition for svc is created by the adapter.
+func containsSvc(adapter *entproto.Adapter, svc string) bool {
+	for _, d := range adapter.AllFileDescriptors() {
+		for _, s := range d.GetServices() {
+			if s.GetName() == string(svc) {
+				return true
+			}
+		}
 	}
+	return false
+}
+
+func newServiceGenerator(plugin *protogen.Plugin, file *protogen.File, graph *gen.Graph, adapter *entproto.Adapter, service *protogen.Service) (*serviceGenerator, error) {
 	typ, err := extractEntTypeName(service, graph)
 	if err != nil {
 		return nil, err
