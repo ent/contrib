@@ -16,7 +16,6 @@ package main
 
 import (
 	"embed"
-	"errors"
 	"flag"
 	"fmt"
 	"path"
@@ -35,7 +34,6 @@ var (
 	snake         = gen.Funcs["snake"].(func(string) string)
 	status        = protogen.GoImportPath("google.golang.org/grpc/status")
 	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
-	skipErr       = errors.New("skip service")
 )
 
 func main() {
