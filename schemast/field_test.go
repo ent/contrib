@@ -67,6 +67,11 @@ func TestFromFieldDescriptor(t *testing.T) {
 			expected: `field.Time("time").Default(time.Now)`,
 		},
 		{
+			name:     "time updateDefault",
+			field:    field.Time("time").UpdateDefault(time.Now),
+			expected: `field.Time("time").UpdateDefault(time.Now)`,
+		},
+		{
 			name: "time anonymous",
 			field: field.Time("time").Default(func() time.Time {
 				return time.Time{}

@@ -216,13 +216,17 @@ func fromSimpleType(desc *field.Descriptor) (*ast.CallExpr, error) {
 		}
 		builder.method("Default", expr)
 	}
+	if desc.UpdateDefault != nil {
+		expr, err := defaultExpr(desc.UpdateDefault)
+		if err != nil {
+			return nil, err
+		}
+		builder.method("UpdateDefault", expr)
+	}
 	// Unsupported features
 	var unsupported error
 	if len(desc.Validators) != 0 {
 		unsupported = combineUnsupported(unsupported, "Descriptor.Validators")
-	}
-	if desc.UpdateDefault != nil {
-		unsupported = combineUnsupported(unsupported, "Descriptor.UpdateDefault")
 	}
 	if unsupported != nil {
 		return nil, unsupported
