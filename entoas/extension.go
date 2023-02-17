@@ -162,13 +162,18 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			return err
 		}
 		// Spec stub to fill.
-		spec := ogen.NewSpec().
-			SetOpenAPI("3.0.3").
-			SetInfo(ogen.NewInfo().
-				SetTitle("Ent Schema API").
-				SetDescription("This is an auto generated API description made out of an Ent schema definition").
-				SetVersion("0.1.0"),
-			)
+		spec := ex.spec
+		// If a spec is given put the generated one into it.
+		if spec == nil {
+			spec = ogen.NewSpec().
+				SetOpenAPI("3.0.3").
+				SetInfo(ogen.NewInfo().
+					SetTitle("Ent Schema API").
+					SetDescription("This is an auto generated API description made out of an Ent schema definition").
+					SetVersion("0.1.0"),
+				)
+			*ex.spec = *spec
+		}
 		// Run the generator.
 		if err := generate(g, spec); err != nil {
 			return err
@@ -178,10 +183,6 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			if err := m(g, spec); err != nil {
 				return err
 			}
-		}
-		// If a spec is given put the generated one into it.
-		if ex.spec != nil {
-			*ex.spec = *spec
 		}
 		// Dump the spec.
 		b, err := json.MarshalIndent(spec, "", "  ")
