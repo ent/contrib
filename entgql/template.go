@@ -366,8 +366,14 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 
 // orderFields returns the fields of the given node with the `OrderField` annotation.
 func orderFields(n *gen.Type) ([]*gen.Field, error) {
-	var ordered []*gen.Field
-	for _, f := range n.Fields {
+	var (
+		ordered []*gen.Field
+		fields  = n.Fields
+	)
+	if n.HasOneFieldID() {
+		fields = append([]*gen.Field{n.ID}, fields...)
+	}
+	for _, f := range fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
