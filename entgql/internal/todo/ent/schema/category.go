@@ -35,6 +35,12 @@ type Category struct {
 // Fields of the Category.
 func (Category) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("id").
+			Annotations(
+				// Setting the OrderField explicitly on the "ID"
+				// field, adds it to the generated GraphQL schema.
+				entgql.OrderField("ID"),
+			),
 		field.Text("text").
 			NotEmpty().
 			Annotations(
@@ -81,6 +87,8 @@ func (Category) Edges() []ent.Edge {
 // Annotations returns Todo annotations.
 func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.RelayConnection(),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

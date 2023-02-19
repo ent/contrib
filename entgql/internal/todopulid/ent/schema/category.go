@@ -15,9 +15,10 @@
 package schema
 
 import (
+	"entgo.io/ent"
+
 	"entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
-	"entgo.io/ent"
 )
 
 // Category holds the schema definition for the Category entity.
@@ -28,9 +29,9 @@ type Category struct {
 // Mixin returns category mixed-in schema.
 func (Category) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		// "CR" declared once.
-		pulid.MixinWithPrefix("CR"),
 		// Reuse the fields and edges from base example.
 		schema.Category{},
+		// "CR" declared once.
+		pulid.MixinWithPrefix("CR"),
 	}
 }

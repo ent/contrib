@@ -64,6 +64,7 @@ input CategoryOrder {
 }
 """Properties by which Category connections can be ordered."""
 enum CategoryOrderField {
+  ID
   TEXT
   DURATION
 }
@@ -127,6 +128,7 @@ type Group @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
 scalar Map
 type Query {
   billProducts: [BillProduct!]!
+  categories: [Category!]!
   groups: [Group!]!
   """This is the todo item"""
   todos: [Todo!]!
@@ -339,6 +341,22 @@ type Category implements Node {
     where: TodoWhereInput
   ): TodoConnection!
 }
+"""A connection to a list of items."""
+type CategoryConnection {
+  """A list of edges."""
+  edges: [CategoryEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type CategoryEdge {
+  """The item at the end of the edge."""
+  node: Category
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
 """Ordering options for Category connections"""
 input CategoryOrder {
   """The ordering direction."""
@@ -348,6 +366,7 @@ input CategoryOrder {
 }
 """Properties by which Category connections can be ordered."""
 enum CategoryOrderField {
+  ID
   TEXT
   DURATION
 }
@@ -603,6 +622,25 @@ type Query {
     ids: [ID!]!
   ): [Node]!
   billProducts: [BillProduct!]!
+  categories(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Categories returned from the connection."""
+    orderBy: CategoryOrder
+
+    """Filtering options for Categories returned from the connection."""
+    where: CategoryWhereInput
+  ): CategoryConnection!
   groups(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor

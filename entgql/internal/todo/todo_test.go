@@ -1906,3 +1906,59 @@ func TestMutation_ClearChildren(t *testing.T) {
 	require.Equal(t, strconv.Itoa(root.ID), rsp.UpdateTodo.ID)
 	require.False(t, root.QueryChildren().ExistX(ctx))
 }
+
+func TestDescendingIDs(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	ec.Category.CreateBulk(
+		ec.Category.Create().SetID(1).SetText("c1").SetStatus(category.StatusEnabled),
+		ec.Category.Create().SetID(2).SetText("c2").SetStatus(category.StatusEnabled),
+		ec.Category.Create().SetID(3).SetText("c3").SetStatus(category.StatusEnabled),
+	).SaveX(ctx)
+
+	var (
+		gqlc = client.New(srv)
+		// language=GraphQL
+		query = `query ($after: Cursor){
+		  categories(orderBy: {direction: DESC, field: ID}, first: 2, after: $after) {
+		    edges {
+		      node {
+		        id
+		      }
+		      cursor
+		    }
+		  }
+		}`
+		rsp struct {
+			Categories struct {
+				Edges []struct {
+					Node struct {
+						ID string
+					}
+					Cursor string
+				}
+			}
+		}
+		after any
+	)
+	err := gqlc.Post(query, &rsp, client.Var("after", after))
+	require.NoError(t, err)
+	require.Equal(t, "3", rsp.Categories.Edges[0].Node.ID)
+	require.Equal(t, "2", rsp.Categories.Edges[1].Node.ID)
+	after = rsp.Categories.Edges[1].Cursor
+
+	err = gqlc.Post(query, &rsp, client.Var("after", after))
+	require.NoError(t, err)
+	require.Len(t, rsp.Categories.Edges, 1)
+	require.Equal(t, "1", rsp.Categories.Edges[0].Node.ID)
+	after = rsp.Categories.Edges[0].Cursor
+
+	err = gqlc.Post(query, &rsp, client.Var("after", after))
+	require.NoError(t, err)
+	require.Empty(t, rsp.Categories.Edges)
+}

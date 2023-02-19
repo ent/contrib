@@ -689,6 +689,16 @@ func (c *CategoryQuery) Paginate(
 }
 
 var (
+	// CategoryOrderFieldID orders Category by id.
+	CategoryOrderFieldID = &CategoryOrderField{
+		field: category.FieldID,
+		toCursor: func(c *Category) Cursor {
+			return Cursor{
+				ID:    c.ID,
+				Value: c.ID,
+			}
+		},
+	}
 	// CategoryOrderFieldText orders Category by text.
 	CategoryOrderFieldText = &CategoryOrderField{
 		field: category.FieldText,
@@ -715,6 +725,8 @@ var (
 func (f CategoryOrderField) String() string {
 	var str string
 	switch f.field {
+	case category.FieldID:
+		str = "ID"
 	case category.FieldText:
 		str = "TEXT"
 	case category.FieldDuration:
@@ -735,6 +747,8 @@ func (f *CategoryOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("CategoryOrderField %T must be a string", v)
 	}
 	switch str {
+	case "ID":
+		*f = *CategoryOrderFieldID
 	case "TEXT":
 		*f = *CategoryOrderFieldText
 	case "DURATION":

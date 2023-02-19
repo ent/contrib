@@ -37,6 +37,10 @@ func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, e
 	return r.client.BillProduct.Query().All(ctx)
 }
 
+func (r *queryResolver) Categories(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }

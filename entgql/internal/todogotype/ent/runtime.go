@@ -40,7 +40,7 @@ func init() {
 	categoryFields := schema.Category{}.Fields()
 	_ = categoryFields
 	// categoryDescText is the schema descriptor for text field.
-	categoryDescText := categoryMixinFields0[0].Descriptor()
+	categoryDescText := categoryMixinFields0[1].Descriptor()
 	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
 	// categoryDescID is the schema descriptor for id field.

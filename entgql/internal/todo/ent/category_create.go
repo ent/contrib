@@ -88,6 +88,12 @@ func (cc *CategoryCreate) SetStrings(s []string) *CategoryCreate {
 	return cc
 }
 
+// SetID sets the "id" field.
+func (cc *CategoryCreate) SetID(i int) *CategoryCreate {
+	cc.mutation.SetID(i)
+	return cc
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cc *CategoryCreate) AddTodoIDs(ids ...int) *CategoryCreate {
 	cc.mutation.AddTodoIDs(ids...)
@@ -167,8 +173,10 @@ func (cc *CategoryCreate) sqlSave(ctx context.Context) (*Category, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int(id)
+	}
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -185,6 +193,10 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.Text(); ok {
 		_spec.SetField(category.FieldText, field.TypeString, value)
 		_node.Text = value
@@ -271,7 +283,7 @@ func (ccb *CategoryCreateBulk) Save(ctx context.Context) ([]*Category, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

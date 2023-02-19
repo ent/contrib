@@ -369,8 +369,12 @@ func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveL
 }
 
 func (e *schemaGenerator) enumOrderByValues(t *gen.Type, gqlType string) (*ast.Definition, error) {
-	var enumValues ast.EnumValueList
-	for _, f := range t.Fields {
+	fields, err := orderFields(t)
+	if err != nil {
+		return nil, err
+	}
+	enumValues := make(ast.EnumValueList, 0, len(fields))
+	for _, f := range fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
@@ -378,7 +382,6 @@ func (e *schemaGenerator) enumOrderByValues(t *gen.Type, gqlType string) (*ast.D
 		if ant.Skip.Is(SkipOrderField) || ant.OrderField == "" {
 			continue
 		}
-
 		enumValues = append(enumValues, &ast.EnumValueDefinition{
 			Name: ant.OrderField,
 		})
@@ -386,7 +389,6 @@ func (e *schemaGenerator) enumOrderByValues(t *gen.Type, gqlType string) (*ast.D
 	if len(enumValues) == 0 {
 		return nil, nil
 	}
-
 	return &ast.Definition{
 		Name:       gqlType,
 		Kind:       ast.Enum,
