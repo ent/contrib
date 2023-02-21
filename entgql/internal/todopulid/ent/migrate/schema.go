@@ -161,6 +161,31 @@ var (
 		Columns:    VerySecretsColumns,
 		PrimaryKey: []*schema.Column{VerySecretsColumns[0]},
 	}
+	// CategorySubCategoriesColumns holds the columns for the "category_sub_categories" table.
+	CategorySubCategoriesColumns = []*schema.Column{
+		{Name: "category_id", Type: field.TypeString},
+		{Name: "sub_category_id", Type: field.TypeString},
+	}
+	// CategorySubCategoriesTable holds the schema information for the "category_sub_categories" table.
+	CategorySubCategoriesTable = &schema.Table{
+		Name:       "category_sub_categories",
+		Columns:    CategorySubCategoriesColumns,
+		PrimaryKey: []*schema.Column{CategorySubCategoriesColumns[0], CategorySubCategoriesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "category_sub_categories_category_id",
+				Columns:    []*schema.Column{CategorySubCategoriesColumns[0]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "category_sub_categories_sub_category_id",
+				Columns:    []*schema.Column{CategorySubCategoriesColumns[1]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// UserGroupsColumns holds the columns for the "user_groups" table.
 	UserGroupsColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeString},
@@ -195,6 +220,7 @@ var (
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,
+		CategorySubCategoriesTable,
 		UserGroupsTable,
 	}
 )
@@ -205,6 +231,8 @@ func init() {
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = TodosTable
 	TodosTable.ForeignKeys[2].RefTable = VerySecretsTable
+	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
+	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
 	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
 }

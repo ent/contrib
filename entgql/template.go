@@ -508,7 +508,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 		Fields: ast.FieldList{
 			{
 				Name: "direction",
-				Type: ast.NonNullNamedType(OrderDirection, nil),
+				Type: ast.NonNullNamedType(OrderDirectionEnum, nil),
 				DefaultValue: &ast.Value{
 					Raw:  "ASC",
 					Kind: ast.EnumValue,
@@ -524,7 +524,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 	}
 }
 
-func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput bool) *ast.FieldDefinition {
+func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, hasWhereInput bool) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: name,
 		Type: ast.NonNullNamedType(p.Connection, nil),
@@ -552,9 +552,13 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput
 		},
 	}
 	if hasOrderBy {
+		orderT := ast.NamedType(p.Order, nil)
+		if multiOrder {
+			orderT = ast.ListType(ast.NonNullNamedType(p.Order, nil), nil)
+		}
 		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
 			Name:        "orderBy",
-			Type:        ast.NamedType(p.Order, nil),
+			Type:        orderT,
 			Description: fmt.Sprintf("Ordering options for %s returned from the connection.", plural(p.Node)),
 		})
 	}

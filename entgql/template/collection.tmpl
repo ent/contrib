@@ -60,7 +60,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 								return fmt.Errorf("validate first and last in path %q: %w", path, err)
 							}
 							{{- $newPager := print "new" $tname "Pager" }}
-							pager, err := {{ $newPager }}(args.opts)
+							pager, err := {{ $newPager }}(args.opts, args.last != nil)
 							if err != nil {
 								return fmt.Errorf("create new pager in path %q: %w", path, err)
 							}
@@ -94,17 +94,19 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 								continue
 							}
 
-							query = pager.applyCursors(query, args.after, args.before)
+							if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+								return err
+							}
 							if limit := paginateLimit(args.first, args.last); limit > 0 {
 								{{- $fk := print $node.Package "." $fc.Edge.ColumnConstant }}
 								{{- if $e.M2M }}
 									{{- $i := 0 }}{{ if $e.IsInverse }}{{ $i = 1 }}{{ end }}
 									{{- $fk = print $node.Package "." $e.PKConstant "[" $i "]" }}
 								{{- end }}
-								modify := limitRows({{ $fk }}, limit, pager.orderExpr(args.last != nil))
+								modify := limitRows({{ $fk }}, limit, pager.orderExpr())
 								query.modifiers = append(query.modifiers, modify)
 							} else {
-								query = pager.applyOrder(query, args.last != nil)
+								query = pager.applyOrder(query)
 							}
 							path = append(path, edgesField, nodeField)
 							if field := collectedField(ctx, path...); field != nil {
@@ -132,6 +134,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 }
 
 {{ $order := $names.Order }}
+{{ $multiOrder := $node.Annotations.EntGQL.MultiOrder }}
 {{ $orderField := $names.OrderField }}
 {{ $filter := print "With" $name "Filter" }}
 {{ $paginateArg := print (camel $name) "PaginateArgs" }}
@@ -163,24 +166,51 @@ func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
 	{{- with orderFields $node }}
 		if v, ok := rv[orderByField]; ok {
 			switch v := v.(type) {
-			case map[string]interface{}:
-				var (
-					err1, err2 error
-					order = &{{ $order }}{Field: &{{ $orderField }}{}}
-				)
-				if d, ok := v[directionField]; ok {
-					err1 = order.Direction.UnmarshalGQL(d)
-				}
-				if f, ok := v[fieldField]; ok {
-					err2 = order.Field.UnmarshalGQL(f)
-				}
-				if err1 == nil && err2 == nil {
-					args.opts = append(args.opts, {{ print "With" $order }}(order))
-				}
-			case *{{ $order }}:
-				if v != nil {
+			{{- if $multiOrder }}
+				case []*{{ $order }}:
 					args.opts = append(args.opts, {{ print "With" $order }}(v))
-				}
+				case []interface{}:
+					var orders []*{{ $order }}
+					for i := range v {
+						mv, ok := v[i].(map[string]interface{})
+						if !ok {
+							continue
+						}
+						var (
+							err1, err2 error
+							order = &{{ $order }}{Field: &{{ $orderField }}{}, Direction: entgql.OrderDirectionAsc}
+						)
+						if d, ok := mv[directionField]; ok {
+							err1 = order.Direction.UnmarshalGQL(d)
+						}
+						if f, ok := mv[fieldField]; ok {
+							err2 = order.Field.UnmarshalGQL(f)
+						}
+						if err1 == nil && err2 == nil {
+							orders = append(orders, order)
+						}
+					}
+					args.opts = append(args.opts, {{ print "With" $order }}(orders))
+			{{- else }}
+				case map[string]interface{}:
+					var (
+						err1, err2 error
+						order = &{{ $order }}{Field: &{{ $orderField }}{}, Direction: entgql.OrderDirectionAsc}
+					)
+					if d, ok := v[directionField]; ok {
+						err1 = order.Direction.UnmarshalGQL(d)
+					}
+					if f, ok := v[fieldField]; ok {
+						err2 = order.Field.UnmarshalGQL(f)
+					}
+					if err1 == nil && err2 == nil {
+						args.opts = append(args.opts, {{ print "With" $order }}(order))
+					}
+				case *{{ $order }}:
+					if v != nil {
+						args.opts = append(args.opts, {{ print "With" $order }}(v))
+					}
+			{{- end }}
 			}
 		}
 	{{- end }}

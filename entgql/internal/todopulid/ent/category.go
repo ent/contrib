@@ -54,13 +54,16 @@ type Category struct {
 type CategoryEdges struct {
 	// Todos holds the value of the todos edge.
 	Todos []*Todo `json:"todos,omitempty"`
+	// SubCategories holds the value of the sub_categories edge.
+	SubCategories []*Category `json:"sub_categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
-	namedTodos map[string][]*Todo
+	namedTodos         map[string][]*Todo
+	namedSubCategories map[string][]*Category
 }
 
 // TodosOrErr returns the Todos value or an error if the edge
@@ -70,6 +73,15 @@ func (e CategoryEdges) TodosOrErr() ([]*Todo, error) {
 		return e.Todos, nil
 	}
 	return nil, &NotLoadedError{edge: "todos"}
+}
+
+// SubCategoriesOrErr returns the SubCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e CategoryEdges) SubCategoriesOrErr() ([]*Category, error) {
+	if e.loadedTypes[1] {
+		return e.SubCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "sub_categories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,6 +168,11 @@ func (c *Category) QueryTodos() *TodoQuery {
 	return NewCategoryClient(c.config).QueryTodos(c)
 }
 
+// QuerySubCategories queries the "sub_categories" edge of the Category entity.
+func (c *Category) QuerySubCategories() *CategoryQuery {
+	return NewCategoryClient(c.config).QuerySubCategories(c)
+}
+
 // Update returns a builder for updating this Category.
 // Note that you need to call Category.Unwrap() before calling this method if this Category
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -221,6 +238,30 @@ func (c *Category) appendNamedTodos(name string, edges ...*Todo) {
 		c.Edges.namedTodos[name] = []*Todo{}
 	} else {
 		c.Edges.namedTodos[name] = append(c.Edges.namedTodos[name], edges...)
+	}
+}
+
+// NamedSubCategories returns the SubCategories named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Category) NamedSubCategories(name string) ([]*Category, error) {
+	if c.Edges.namedSubCategories == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedSubCategories[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Category) appendNamedSubCategories(name string, edges ...*Category) {
+	if c.Edges.namedSubCategories == nil {
+		c.Edges.namedSubCategories = make(map[string][]*Category)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedSubCategories[name] = []*Category{}
+	} else {
+		c.Edges.namedSubCategories[name] = append(c.Edges.namedSubCategories[name], edges...)
 	}
 }
 

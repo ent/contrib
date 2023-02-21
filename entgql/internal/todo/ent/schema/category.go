@@ -69,6 +69,7 @@ func (Category) Fields() []ent.Field {
 		field.Uint64("count").
 			Optional().
 			Annotations(
+				entgql.OrderField("COUNT"),
 				entgql.Type("Uint64"),
 			),
 		field.Strings("strings").
@@ -81,6 +82,8 @@ func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("todos", Todo.Type).
 			Annotations(entgql.RelayConnection()),
+		edge.To("sub_categories", Category.Type).
+			Annotations(entgql.RelayConnection()),
 	}
 }
 
@@ -90,5 +93,6 @@ func (Category) Annotations() []schema.Annotation {
 		entgql.QueryField(),
 		entgql.RelayConnection(),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+		entgql.MultiOrder(),
 	}
 }

@@ -32,8 +32,8 @@ import (
 const (
 	// QueryType is the name of the root Query object.
 	QueryType = "Query"
-	// OrderDirection is the name of enum OrderDirection
-	OrderDirection = "OrderDirection"
+	// OrderDirectionEnum is the name of enum OrderDirection
+	OrderDirectionEnum = "OrderDirection"
 	// RelayCursor is the name of the cursor type
 	RelayCursor = "Cursor"
 	// RelayNode is the name of the interface that all nodes implement
@@ -212,7 +212,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					_, hasOrderBy := s.Types[names.Order]
 					hasWhereInput := e.genWhereInput && !ant.Skip.Is(SkipWhereInput)
 
-					def := names.ConnectionField(name, hasOrderBy, hasWhereInput)
+					def := names.ConnectionField(name, hasOrderBy, ant.MultiOrder, hasWhereInput)
 					def.Description = ant.QueryField.Description
 					def.Directives = e.buildDirectives(ant.QueryField.Directives)
 					queryFields = append(queryFields, def)
@@ -452,7 +452,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 			}
 
 			fieldDef = paginationNames(gqlType).
-				ConnectionField(name, len(orderFields) > 0,
+				ConnectionField(name, len(orderFields) > 0, ant.MultiOrder,
 					e.genWhereInput && !edgeAnt.Skip.Is(SkipWhereInput) && !ant.Skip.Is(SkipWhereInput),
 				)
 		default:
@@ -833,7 +833,7 @@ func entGoType(name, pkg string) string {
 func builtinTypes() []*ast.Definition {
 	return []*ast.Definition{
 		{
-			Name:        OrderDirection,
+			Name:        OrderDirectionEnum,
 			Kind:        ast.Enum,
 			Description: "Possible directions in which to order a list of items when provided an `orderBy` argument.",
 			EnumValues: []*ast.EnumValueDefinition{

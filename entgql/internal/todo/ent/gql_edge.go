@@ -32,7 +32,7 @@ func (c *Category) Todos(
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := c.Edges.totalCount[0][alias]
 	if nodes, err := c.NamedTodos(alias); err == nil || hasTotalCount {
-		pager, err := newTodoPager(opts)
+		pager, err := newTodoPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -41,6 +41,27 @@ func (c *Category) Todos(
 		return conn, nil
 	}
 	return c.QueryTodos().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (c *Category) SubCategories(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*CategoryOrder, where *CategoryWhereInput,
+) (*CategoryConnection, error) {
+	opts := []CategoryPaginateOption{
+		WithCategoryOrder(orderBy),
+		WithCategoryFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := c.Edges.totalCount[1][alias]
+	if nodes, err := c.NamedSubCategories(alias); err == nil || hasTotalCount {
+		pager, err := newCategoryPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &CategoryConnection{Edges: []*CategoryEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return c.QuerySubCategories().Paginate(ctx, after, first, before, last, opts...)
 }
 
 func (f *Friendship) User(ctx context.Context) (*User, error) {
@@ -68,7 +89,7 @@ func (gr *Group) Users(
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
 	if nodes, err := gr.NamedUsers(alias); err == nil || hasTotalCount {
-		pager, err := newUserPager(opts)
+		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +118,7 @@ func (t *Todo) Children(
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := t.Edges.totalCount[1][alias]
 	if nodes, err := t.NamedChildren(alias); err == nil || hasTotalCount {
-		pager, err := newTodoPager(opts)
+		pager, err := newTodoPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +146,7 @@ func (u *User) Groups(
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := u.Edges.totalCount[0][alias]
 	if nodes, err := u.NamedGroups(alias); err == nil || hasTotalCount {
-		pager, err := newGroupPager(opts)
+		pager, err := newGroupPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +166,7 @@ func (u *User) Friends(
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := u.Edges.totalCount[1][alias]
 	if nodes, err := u.NamedFriends(alias); err == nil || hasTotalCount {
-		pager, err := newUserPager(opts)
+		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -165,7 +186,7 @@ func (u *User) Friendships(
 	alias := graphql.GetFieldContext(ctx).Field.Alias
 	totalCount, hasTotalCount := u.Edges.totalCount[2][alias]
 	if nodes, err := u.NamedFriendships(alias); err == nil || hasTotalCount {
-		pager, err := newFriendshipPager(opts)
+		pager, err := newFriendshipPager(opts, last != nil)
 		if err != nil {
 			return nil, err
 		}
