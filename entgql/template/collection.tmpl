@@ -38,10 +38,10 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 	return {{ $receiver }}, nil
 }
 
-func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
-		for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 			switch field.Name {
 				{{- range $i, $fc := $collects }}
 					{{- $e := $fc.Edge }}
@@ -110,12 +110,12 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, op *graph
 							}
 							path = append(path, edgesField, nodeField)
 							if field := collectedField(ctx, path...); field != nil {
-								if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+								if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 									return err
 								}
 							}
 						{{- else }}
-							if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+							if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 								return err
 							}
 						{{- end }}

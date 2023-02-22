@@ -43,7 +43,7 @@ func (bp *BillProductQuery) CollectFields(ctx context.Context, satisfies ...stri
 	return bp, nil
 }
 
-func (bp *BillProductQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (bp *BillProductQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	return nil
 }
@@ -89,9 +89,9 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 	return c, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "todos":
 			var (
@@ -171,7 +171,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
 			}
@@ -341,9 +341,9 @@ func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string
 	return f, nil
 }
 
-func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "user":
 			var (
@@ -351,7 +351,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 				path  = append(path, alias)
 				query = (&UserClient{config: f.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			f.withUser = query
@@ -361,7 +361,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, op *graphql.Operatio
 				path  = append(path, alias)
 				query = (&UserClient{config: f.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			f.withFriend = query
@@ -411,9 +411,9 @@ func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*
 	return gr, nil
 }
 
-func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "users":
 			var (
@@ -497,7 +497,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, op *graphql.OperationCon
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
 			}
@@ -550,7 +550,7 @@ func (pe *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*Pe
 	return pe, nil
 }
 
-func (pe *PetQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (pe *PetQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	return nil
 }
@@ -596,9 +596,9 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 	return t, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "parent":
 			var (
@@ -606,7 +606,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			t.withParent = query
@@ -688,7 +688,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
 			}
@@ -701,7 +701,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&CategoryClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			t.withCategory = query
@@ -773,9 +773,9 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 	return u, nil
 }
 
-func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "groups":
 			var (
@@ -859,7 +859,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, op, *field, path, satisfies...); err != nil {
+				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
 			}
@@ -872,7 +872,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&UserClient{config: u.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			u.WithNamedFriends(alias, func(wq *UserQuery) {
@@ -884,7 +884,7 @@ func (u *UserQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&FriendshipClient{config: u.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			u.WithNamedFriendships(alias, func(wq *FriendshipQuery) {

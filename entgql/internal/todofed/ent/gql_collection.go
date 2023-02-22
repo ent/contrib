@@ -36,9 +36,9 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 	return c, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "todos":
 			var (
@@ -46,7 +46,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationC
 				path  = append(path, alias)
 				query = (&TodoClient{config: c.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			c.WithNamedTodos(alias, func(wq *TodoQuery) {
@@ -117,9 +117,9 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 	return t, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "parent":
 			var (
@@ -127,7 +127,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			t.withParent = query
@@ -137,7 +137,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			t.WithNamedChildren(alias, func(wq *TodoQuery) {
@@ -149,7 +149,7 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				path  = append(path, alias)
 				query = (&CategoryClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
 				return err
 			}
 			t.withCategory = query
