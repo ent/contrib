@@ -43,6 +43,8 @@ const (
 	FieldStrings = "strings"
 	// EdgeTodos holds the string denoting the todos edge name in mutations.
 	EdgeTodos = "todos"
+	// EdgeSubCategories holds the string denoting the sub_categories edge name in mutations.
+	EdgeSubCategories = "sub_categories"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
 	// TodosTable is the table that holds the todos relation/edge.
@@ -52,6 +54,8 @@ const (
 	TodosInverseTable = "todos"
 	// TodosColumn is the table column denoting the todos relation/edge.
 	TodosColumn = "category_id"
+	// SubCategoriesTable is the table that holds the sub_categories relation/edge. The primary key declared below.
+	SubCategoriesTable = "category_sub_categories"
 )
 
 // Columns holds all SQL columns for category fields.
@@ -64,6 +68,12 @@ var Columns = []string{
 	FieldCount,
 	FieldStrings,
 }
+
+var (
+	// SubCategoriesPrimaryKey and SubCategoriesColumn2 are the table columns denoting the
+	// primary key for the sub_categories relation (M2M).
+	SubCategoriesPrimaryKey = []string{"category_id", "sub_category_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

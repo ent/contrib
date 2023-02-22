@@ -27,6 +27,8 @@ type (
 	Annotation struct {
 		// OrderField is the ordering field as defined in graphql schema.
 		OrderField string `json:"OrderField,omitempty"`
+		// MultiOrder indicates that orderBy should accept a list of OrderField terms.
+		MultiOrder bool `json:"MultiOrder,omitempty"`
 		// Unbind implies the edge field name in GraphQL schema is not equivalent
 		// to the name used in ent schema. That means, by default, edges with this
 		// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
@@ -133,6 +135,11 @@ func (Annotation) Name() string {
 //		)
 func OrderField(name string) Annotation {
 	return Annotation{OrderField: name}
+}
+
+// MultiOrder indicates that orderBy should accept a list of OrderField terms.
+func MultiOrder() Annotation {
+	return Annotation{MultiOrder: true}
 }
 
 // Bind returns a binding annotation.
@@ -441,6 +448,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.OrderField != "" {
 		a.OrderField = ant.OrderField
+	}
+	if ant.MultiOrder {
+		a.MultiOrder = true
 	}
 	if ant.Unbind {
 		a.Unbind = true

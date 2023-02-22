@@ -19,6 +19,7 @@ package ent
 import (
 	"context"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -84,7 +85,7 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 		case map[string]interface{}:
 			var (
 				err1, err2 error
-				order      = &CategoryOrder{Field: &CategoryOrderField{}}
+				order      = &CategoryOrder{Field: &CategoryOrderField{}, Direction: entgql.OrderDirectionAsc}
 			)
 			if d, ok := v[directionField]; ok {
 				err1 = order.Direction.UnmarshalGQL(d)
@@ -185,7 +186,7 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 		case map[string]interface{}:
 			var (
 				err1, err2 error
-				order      = &TodoOrder{Field: &TodoOrderField{}}
+				order      = &TodoOrder{Field: &TodoOrderField{}, Direction: entgql.OrderDirectionAsc}
 			)
 			if d, ok := v[directionField]; ok {
 				err1 = order.Direction.UnmarshalGQL(d)

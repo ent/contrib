@@ -54,6 +54,7 @@ type Category {
   count: Uint64
   strings: [String!]
   todos: [Todo!]
+  subCategories: [Category!]
 }
 """Ordering options for Category connections"""
 input CategoryOrder {
@@ -67,6 +68,7 @@ enum CategoryOrderField {
   ID
   TEXT
   DURATION
+  COUNT
 }
 """CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
@@ -85,6 +87,7 @@ input CreateCategoryInput {
   count: Uint64
   strings: [String!]
   todoIDs: [ID!]
+  subCategoryIDs: [ID!]
 }
 """
 CreateTodoInput is used for create Todo object.
@@ -192,6 +195,9 @@ input UpdateCategoryInput {
   addTodoIDs: [ID!]
   removeTodoIDs: [ID!]
   clearTodos: Boolean
+  addSubCategoryIDs: [ID!]
+  removeSubCategoryIDs: [ID!]
+  clearSubCategories: Boolean
 }
 """
 UpdateTodoInput is used for update Todo object.
@@ -340,6 +346,25 @@ type Category implements Node {
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
   ): TodoConnection!
+  subCategories(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Categories returned from the connection."""
+    orderBy: [CategoryOrder!]
+
+    """Filtering options for Categories returned from the connection."""
+    where: CategoryWhereInput
+  ): CategoryConnection!
 }
 """A connection to a list of items."""
 type CategoryConnection {
@@ -369,6 +394,7 @@ enum CategoryOrderField {
   ID
   TEXT
   DURATION
+  COUNT
 }
 """CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
@@ -447,6 +473,9 @@ input CategoryWhereInput {
   """todos edge predicates"""
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
+  """sub_categories edge predicates"""
+  hasSubCategories: Boolean
+  hasSubCategoriesWith: [CategoryWhereInput!]
 }
 """
 CreateCategoryInput is used for create Category object.
@@ -460,6 +489,7 @@ input CreateCategoryInput {
   count: Uint64
   strings: [String!]
   todoIDs: [ID!]
+  subCategoryIDs: [ID!]
 }
 """
 CreateTodoInput is used for create Todo object.
@@ -636,7 +666,7 @@ type Query {
     last: Int
 
     """Ordering options for Categories returned from the connection."""
-    orderBy: CategoryOrder
+    orderBy: [CategoryOrder!]
 
     """Filtering options for Categories returned from the connection."""
     where: CategoryWhereInput
@@ -857,6 +887,9 @@ input UpdateCategoryInput {
   addTodoIDs: [ID!]
   removeTodoIDs: [ID!]
   clearTodos: Boolean
+  addSubCategoryIDs: [ID!]
+  removeSubCategoryIDs: [ID!]
+  clearSubCategories: Boolean
 }
 """
 UpdateTodoInput is used for update Todo object.

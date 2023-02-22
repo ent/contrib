@@ -91,7 +91,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Category",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.Text); err != nil {
@@ -149,6 +149,16 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	err = c.QueryTodos().
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Category",
+		Name: "sub_categories",
+	}
+	err = c.QuerySubCategories().
+		Select(category.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}

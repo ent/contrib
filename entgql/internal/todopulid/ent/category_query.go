@@ -34,14 +34,16 @@ import (
 // CategoryQuery is the builder for querying Category entities.
 type CategoryQuery struct {
 	config
-	ctx            *QueryContext
-	order          []OrderFunc
-	inters         []Interceptor
-	predicates     []predicate.Category
-	withTodos      *TodoQuery
-	modifiers      []func(*sql.Selector)
-	loadTotal      []func(context.Context, []*Category) error
-	withNamedTodos map[string]*TodoQuery
+	ctx                    *QueryContext
+	order                  []OrderFunc
+	inters                 []Interceptor
+	predicates             []predicate.Category
+	withTodos              *TodoQuery
+	withSubCategories      *CategoryQuery
+	modifiers              []func(*sql.Selector)
+	loadTotal              []func(context.Context, []*Category) error
+	withNamedTodos         map[string]*TodoQuery
+	withNamedSubCategories map[string]*CategoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -93,6 +95,28 @@ func (cq *CategoryQuery) QueryTodos() *TodoQuery {
 			sqlgraph.From(category.Table, category.FieldID, selector),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, category.TodosTable, category.TodosColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubCategories chains the current query on the "sub_categories" edge.
+func (cq *CategoryQuery) QuerySubCategories() *CategoryQuery {
+	query := (&CategoryClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, selector),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, category.SubCategoriesTable, category.SubCategoriesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -285,12 +309,13 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 		return nil
 	}
 	return &CategoryQuery{
-		config:     cq.config,
-		ctx:        cq.ctx.Clone(),
-		order:      append([]OrderFunc{}, cq.order...),
-		inters:     append([]Interceptor{}, cq.inters...),
-		predicates: append([]predicate.Category{}, cq.predicates...),
-		withTodos:  cq.withTodos.Clone(),
+		config:            cq.config,
+		ctx:               cq.ctx.Clone(),
+		order:             append([]OrderFunc{}, cq.order...),
+		inters:            append([]Interceptor{}, cq.inters...),
+		predicates:        append([]predicate.Category{}, cq.predicates...),
+		withTodos:         cq.withTodos.Clone(),
+		withSubCategories: cq.withSubCategories.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -305,6 +330,17 @@ func (cq *CategoryQuery) WithTodos(opts ...func(*TodoQuery)) *CategoryQuery {
 		opt(query)
 	}
 	cq.withTodos = query
+	return cq
+}
+
+// WithSubCategories tells the query-builder to eager-load the nodes that are connected to
+// the "sub_categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CategoryQuery) WithSubCategories(opts ...func(*CategoryQuery)) *CategoryQuery {
+	query := (&CategoryClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withSubCategories = query
 	return cq
 }
 
@@ -386,8 +422,9 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 	var (
 		nodes       = []*Category{}
 		_spec       = cq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			cq.withTodos != nil,
+			cq.withSubCategories != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -418,10 +455,24 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 			return nil, err
 		}
 	}
+	if query := cq.withSubCategories; query != nil {
+		if err := cq.loadSubCategories(ctx, query, nodes,
+			func(n *Category) { n.Edges.SubCategories = []*Category{} },
+			func(n *Category, e *Category) { n.Edges.SubCategories = append(n.Edges.SubCategories, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range cq.withNamedTodos {
 		if err := cq.loadTodos(ctx, query, nodes,
 			func(n *Category) { n.appendNamedTodos(name) },
 			func(n *Category, e *Todo) { n.appendNamedTodos(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedSubCategories {
+		if err := cq.loadSubCategories(ctx, query, nodes,
+			func(n *Category) { n.appendNamedSubCategories(name) },
+			func(n *Category, e *Category) { n.appendNamedSubCategories(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -458,6 +509,64 @@ func (cq *CategoryQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes 
 			return fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (cq *CategoryQuery) loadSubCategories(ctx context.Context, query *CategoryQuery, nodes []*Category, init func(*Category), assign func(*Category, *Category)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[pulid.ID]*Category)
+	nids := make(map[pulid.ID]map[*Category]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(category.SubCategoriesTable)
+		s.Join(joinT).On(s.C(category.FieldID), joinT.C(category.SubCategoriesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(category.SubCategoriesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(category.SubCategoriesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+		assign := spec.Assign
+		values := spec.ScanValues
+		spec.ScanValues = func(columns []string) ([]any, error) {
+			values, err := values(columns[1:])
+			if err != nil {
+				return nil, err
+			}
+			return append([]any{new(pulid.ID)}, values...), nil
+		}
+		spec.Assign = func(columns []string, values []any) error {
+			outValue := *values[0].(*pulid.ID)
+			inValue := *values[1].(*pulid.ID)
+			if nids[inValue] == nil {
+				nids[inValue] = map[*Category]struct{}{byID[outValue]: {}}
+				return assign(columns[1:], values[1:])
+			}
+			nids[inValue][byID[outValue]] = struct{}{}
+			return nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "sub_categories" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
@@ -565,6 +674,20 @@ func (cq *CategoryQuery) WithNamedTodos(name string, opts ...func(*TodoQuery)) *
 		cq.withNamedTodos = make(map[string]*TodoQuery)
 	}
 	cq.withNamedTodos[name] = query
+	return cq
+}
+
+// WithNamedSubCategories tells the query-builder to eager-load the nodes that are connected to the "sub_categories"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CategoryQuery) WithNamedSubCategories(name string, opts ...func(*CategoryQuery)) *CategoryQuery {
+	query := (&CategoryClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedSubCategories == nil {
+		cq.withNamedSubCategories = make(map[string]*CategoryQuery)
+	}
+	cq.withNamedSubCategories[name] = query
 	return cq
 }
 

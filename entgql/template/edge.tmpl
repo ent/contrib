@@ -55,6 +55,7 @@ import (
 	{{ $i := $.Scope.Index }}
 	{{ $names := nodePaginationNames $e.Type }}
 	{{ $order := $names.Order }}
+	{{ $multiOrder := $e.Type.Annotations.EntGQL.MultiOrder }}
 	{{ $whereInput := $names.WhereInput }}
 	{{- $edge := $names.Edge }}
 	{{ $conn := $names.Connection }}
@@ -64,7 +65,7 @@ import (
 
 	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
 		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
-		{{- if orderFields $e.Type }}orderBy *{{ $order }},{{ end }}
+		{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
 	) (*{{ $conn }}, error) {
 		opts := []{{ $opt }}{
@@ -80,7 +81,7 @@ import (
 		totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
 		if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
-			pager, err := {{ $newPager }}(opts)
+			pager, err := {{ $newPager }}(opts, last != nil)
 			if err != nil {
 				return nil, err
 			}
