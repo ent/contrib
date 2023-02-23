@@ -995,19 +995,14 @@ func (c *GroupConnection) build(nodes []*Group, pager *groupPager, after *Cursor
 type GroupPaginateOption func(*groupPager) error
 
 // WithGroupOrder configures pagination ordering.
-func WithGroupOrder(order *GroupOrder) GroupPaginateOption {
-	if order == nil {
-		order = DefaultGroupOrder
-	}
-	o := *order
+func WithGroupOrder(order []*GroupOrder) GroupPaginateOption {
 	return func(pager *groupPager) error {
-		if err := o.Direction.Validate(); err != nil {
-			return err
+		for _, o := range order {
+			if err := o.Direction.Validate(); err != nil {
+				return err
+			}
 		}
-		if o.Field == nil {
-			o.Field = DefaultGroupOrder.Field
-		}
-		pager.order = &o
+		pager.order = append(pager.order, order...)
 		return nil
 	}
 }
@@ -1025,7 +1020,7 @@ func WithGroupFilter(filter func(*GroupQuery) (*GroupQuery, error)) GroupPaginat
 
 type groupPager struct {
 	reverse bool
-	order   *GroupOrder
+	order   []*GroupOrder
 	filter  func(*GroupQuery) (*GroupQuery, error)
 }
 
@@ -1036,8 +1031,10 @@ func newGroupPager(opts []GroupPaginateOption, reverse bool) (*groupPager, error
 			return nil, err
 		}
 	}
-	if pager.order == nil {
-		pager.order = DefaultGroupOrder
+	for i, o := range pager.order {
+		if i > 0 && o.Field == pager.order[i-1].Field {
+			return nil, fmt.Errorf("duplicate order direction %q", o.Direction)
+		}
 	}
 	return pager, nil
 }
@@ -1050,42 +1047,79 @@ func (p *groupPager) applyFilter(query *GroupQuery) (*GroupQuery, error) {
 }
 
 func (p *groupPager) toCursor(gr *Group) Cursor {
-	return p.order.Field.toCursor(gr)
+	cs := make([]any, 0, len(p.order))
+	for _, o := range p.order {
+		cs = append(cs, o.Field.toCursor(gr).Value)
+	}
+	return Cursor{ID: gr.ID, Value: cs}
 }
 
 func (p *groupPager) applyCursors(query *GroupQuery, after, before *Cursor) (*GroupQuery, error) {
-	direction := p.order.Direction
+	idDirection := entgql.OrderDirectionAsc
 	if p.reverse {
-		direction = direction.Reverse()
+		idDirection = entgql.OrderDirectionDesc
 	}
-	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultGroupOrder.Field.field, p.order.Field.field, direction) {
+	fields, directions := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order))
+	for _, o := range p.order {
+		fields = append(fields, o.Field.field)
+		direction := o.Direction
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		directions = append(directions, direction)
+	}
+	predicates, err := entgql.MultiCursorsPredicate(after, before, &entgql.MultiCursorsOptions{
+		FieldID:     DefaultGroupOrder.Field.field,
+		DirectionID: idDirection,
+		Fields:      fields,
+		Directions:  directions,
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, predicate := range predicates {
 		query = query.Where(predicate)
 	}
 	return query, nil
 }
 
 func (p *groupPager) applyOrder(query *GroupQuery) *GroupQuery {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
+	var defaultOrdered bool
+	for _, o := range p.order {
+		direction := o.Direction
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		query = query.Order(orderFunc(direction, o.Field.field))
+		if o.Field.field == DefaultGroupOrder.Field.field {
+			defaultOrdered = true
+		}
 	}
-	query = query.Order(orderFunc(direction, p.order.Field.field))
-	if p.order.Field != DefaultGroupOrder.Field {
+	if !defaultOrdered {
+		direction := entgql.OrderDirectionAsc
+		if p.reverse {
+			direction = direction.Reverse()
+		}
 		query = query.Order(orderFunc(direction, DefaultGroupOrder.Field.field))
 	}
 	return query
 }
 
 func (p *groupPager) orderExpr() sql.Querier {
-	direction := p.order.Direction
-	if p.reverse {
-		direction = direction.Reverse()
-	}
 	return sql.ExprFunc(func(b *sql.Builder) {
-		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
-		if p.order.Field != DefaultGroupOrder.Field {
-			b.Comma().Ident(DefaultGroupOrder.Field.field).Pad().WriteString(string(direction))
+		for _, o := range p.order {
+			direction := o.Direction
+			if p.reverse {
+				direction = direction.Reverse()
+			}
+			b.Ident(o.Field.field).Pad().WriteString(string(direction))
+			b.Comma()
 		}
+		direction := entgql.OrderDirectionAsc
+		if p.reverse {
+			direction = direction.Reverse()
+		}
+		b.Ident(DefaultGroupOrder.Field.field).Pad().WriteString(string(direction))
 	})
 }
 
