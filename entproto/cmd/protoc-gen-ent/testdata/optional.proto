@@ -9,5 +9,8 @@ option go_package = "ent/testdata";
 message Optional {
   option (ent.schema).gen = true;
   string name = 1;
-  optional string email = 2;
+  optional string optional_implicit = 2;
+  optional string optional_explicit = 3 [(ent.field) = {optional: true, nillable: true }];
+  optional string optional_not_nillable = 4 [(ent.field) = {optional: true, nillable: false }];
+  optional string optional_not_optional = 5 [(ent.field) = {optional: false, nillable: true }];
 }

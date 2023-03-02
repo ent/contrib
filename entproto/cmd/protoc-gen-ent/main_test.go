@@ -48,7 +48,10 @@ func TestOptional(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, contents, "type Optional struct")
 	require.Contains(t, contents, `field.String("name")`)
-	require.Contains(t, contents, `field.String("email").Optional()`)
+	require.Contains(t, contents, `field.String("optional_implicit").Nillable().Optional()`)
+	require.Contains(t, contents, `field.String("optional_explicit").Nillable().Optional()`)
+	require.Contains(t, contents, `field.String("optional_not_nillable").Optional()`)
+	require.Contains(t, contents, `field.String("optional_not_optional").Nillable()`)
 	require.True(t, strings.HasPrefix(contents, "// File updated by protoc-gen-ent."))
 }
 

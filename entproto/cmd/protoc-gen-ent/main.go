@@ -208,8 +208,8 @@ func toField(f *protogen.Field) (ent.Field, error) {
 
 func applyFieldOpts(fld ent.Field, opts *entopts.Field, protoOptional bool) {
 	d := fld.Descriptor()
-	d.Nillable = opts.GetNillable()
-	d.Optional = opts.GetOptional() || protoOptional
+	d.Nillable = opts.GetNillable() || ((opts == nil || opts.Nillable == nil) && protoOptional)
+	d.Optional = opts.GetOptional() || ((opts == nil || opts.Optional == nil) && protoOptional)
 	d.Unique = opts.GetUnique()
 	d.Sensitive = opts.GetSensitive()
 	d.Immutable = opts.GetImmutable()
