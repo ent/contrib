@@ -18,8 +18,6 @@ import (
 	"flag"
 	"fmt"
 
-	entopts "entgo.io/contrib/entproto/cmd/protoc-gen-ent/options/ent"
-	"entgo.io/contrib/schemast"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -27,6 +25,10 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/pluginpb"
+
+	entopts "entgo.io/contrib/entproto/cmd/protoc-gen-ent/options/ent"
+	"entgo.io/contrib/schemast"
 )
 
 var schemaDir *string
@@ -37,6 +39,7 @@ func main() {
 	protogen.Options{
 		ParamFunc: flags.Set,
 	}.Run(func(gen *protogen.Plugin) error {
+		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		return printSchemas(*schemaDir, gen)
 	})
 }
@@ -198,15 +201,15 @@ func toField(f *protogen.Field) (ent.Field, error) {
 		return nil, fmt.Errorf("protoc-gen-ent: unsupported kind %q", f.Desc.Kind())
 	}
 	if opts, ok := fieldOpts(f); ok {
-		applyFieldOpts(fld, opts)
+		applyFieldOpts(fld, opts, f.Oneof != nil && f.Oneof.Desc.IsSynthetic())
 	}
 	return fld, nil
 }
 
-func applyFieldOpts(fld ent.Field, opts *entopts.Field) {
+func applyFieldOpts(fld ent.Field, opts *entopts.Field, protoOptional bool) {
 	d := fld.Descriptor()
 	d.Nillable = opts.GetNillable()
-	d.Optional = opts.GetOptional()
+	d.Optional = opts.GetOptional() || protoOptional
 	d.Unique = opts.GetUnique()
 	d.Sensitive = opts.GetSensitive()
 	d.Immutable = opts.GetImmutable()
