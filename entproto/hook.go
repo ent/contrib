@@ -51,10 +51,23 @@ func Hook() gen.Hook {
 	}
 }
 
-// Generate takes a *gen.Graph and creates .proto files. Next to each .proto file, Generate creates a generate.go
-// file containing a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
-// If generate.go already exists next to the .proto file, this step is skipped.
-func Generate(g *gen.Graph) error {
+// GenerateWithEntPackage specify ent package that entc use a not default Target.
+// To use it programatically:
+//
+//	func main() {
+//		 graph, err := entc.LoadGraph("./graph/entgen/schema",
+//		 	&gen.Config{
+//				Target:  "./api",
+//				Package: "github.com/example/test/api",
+//			})
+//		  if err != nil {
+//			log.Fatalf("entproto: failed loading ent graph: %v", err)
+//		  }
+//		  if err := entproto.GenerateWithEntPackage(graph, "github.com/example/test/ent"); err != nil {
+//			log.Fatalf("entproto: failed generating protos: %s", err)
+//		  }
+//	 }
+func GenerateWithEntPackage(g *gen.Graph, entPackage string) error {
 	entProtoDir := path.Join(g.Config.Target, "proto")
 	adapter, err := LoadAdapter(g)
 	if err != nil {
@@ -88,13 +101,20 @@ func Generate(g *gen.Graph) error {
 		dir := filepath.Dir(protoFilePath)
 		genGoPath := filepath.Join(dir, "generate.go")
 		if !fileExists(genGoPath) {
-			contents := protocGenerateGo(fd)
+			contents := protocGenerateGo(fd, g, entPackage)
 			if err := os.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
 				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 			}
 		}
 	}
 	return nil
+}
+
+// Generate takes a *gen.Graph and creates .proto files. Next to each .proto file, Generate creates a generate.go
+// file containing a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
+// If generate.go already exists next to the .proto file, this step is skipped.
+func Generate(g *gen.Graph) error {
+	return GenerateWithEntPackage(g, g.Package)
 }
 
 func fileExists(fpath string) bool {
@@ -106,13 +126,20 @@ func fileExists(fpath string) bool {
 	return true
 }
 
-func protocGenerateGo(fd *desc.FileDescriptor) string {
+func protocGenerateGo(fd *desc.FileDescriptor, g *gen.Graph, entPackage string) string {
 	levelsUp := len(strings.Split(fd.GetPackage(), "."))
 	toProtoBase := ""
 	for i := 0; i < levelsUp; i++ {
 		toProtoBase = filepath.Join("..", toProtoBase)
 	}
-	schemaDir := filepath.Join("..", toProtoBase, "schema")
+	schemaDir, _ := filepath.Rel(*fd.GetFileOptions().GoPackage, g.Schema)
+	if schemaDir == "" {
+		schemaDir = filepath.Join("..", toProtoBase, "schema")
+	}
+
+	if entPackage != g.Package {
+		entPackage = ",ent_package=" + entPackage
+	}
 	protocCmd := []string{
 		"protoc",
 		"-I=" + toProtoBase,
@@ -121,7 +148,7 @@ func protocGenerateGo(fd *desc.FileDescriptor) string {
 		"--go_opt=paths=source_relative",
 		"--go-grpc_opt=paths=source_relative",
 		"--entgrpc_out=" + toProtoBase,
-		"--entgrpc_opt=paths=source_relative,schema_path=" + schemaDir,
+		"--entgrpc_opt=paths=source_relative,schema_path=" + schemaDir + entPackage,
 		fd.GetName(),
 	}
 	goGen := fmt.Sprintf("//go:generate %s", strings.Join(protocCmd, " "))

@@ -31,6 +31,7 @@ import (
 
 var (
 	entSchemaPath *string
+	entPackage    *string
 	snake         = gen.Funcs["snake"].(func(string) string)
 	status        = protogen.GoImportPath("google.golang.org/grpc/status")
 	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
@@ -39,10 +40,13 @@ var (
 func main() {
 	var flags flag.FlagSet
 	entSchemaPath = flags.String("schema_path", "", "ent schema path")
+	entPackage = flags.String("ent_package", "", "ent directory path")
 	protogen.Options{
 		ParamFunc: flags.Set,
 	}.Run(func(plg *protogen.Plugin) error {
-		g, err := entc.LoadGraph(*entSchemaPath, &gen.Config{})
+		g, err := entc.LoadGraph(*entSchemaPath, &gen.Config{
+			Package: *entPackage,
+		})
 		if err != nil {
 			return err
 		}
