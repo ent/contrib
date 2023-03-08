@@ -20,7 +20,6 @@ in the LICENSE file in the root directory of this source tree.
 import (
     "{{ $.Config.Package }}/predicate"
 	{{- range $n := $gqlNodes }}
-        {{ template "import/types" $n }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
 )
