@@ -366,8 +366,14 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 
 // orderFields returns the fields of the given node with the `OrderField` annotation.
 func orderFields(n *gen.Type) ([]*gen.Field, error) {
-	var ordered []*gen.Field
-	for _, f := range n.Fields {
+	var (
+		ordered []*gen.Field
+		fields  = n.Fields
+	)
+	if n.HasOneFieldID() {
+		fields = append([]*gen.Field{n.ID}, fields...)
+	}
+	for _, f := range fields {
 		ant, err := annotation(f.Annotations)
 		if err != nil {
 			return nil, err
@@ -502,7 +508,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 		Fields: ast.FieldList{
 			{
 				Name: "direction",
-				Type: ast.NonNullNamedType(OrderDirection, nil),
+				Type: ast.NonNullNamedType(OrderDirectionEnum, nil),
 				DefaultValue: &ast.Value{
 					Raw:  "ASC",
 					Kind: ast.EnumValue,
@@ -518,7 +524,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 	}
 }
 
-func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput bool) *ast.FieldDefinition {
+func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, hasWhereInput bool) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: name,
 		Type: ast.NonNullNamedType(p.Connection, nil),
@@ -546,9 +552,13 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput
 		},
 	}
 	if hasOrderBy {
+		orderT := ast.NamedType(p.Order, nil)
+		if multiOrder {
+			orderT = ast.ListType(ast.NonNullNamedType(p.Order, nil), nil)
+		}
 		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
 			Name:        "orderBy",
-			Type:        ast.NamedType(p.Order, nil),
+			Type:        orderT,
 			Description: fmt.Sprintf("Ordering options for %s returned from the connection.", plural(p.Node)),
 		})
 	}

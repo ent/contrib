@@ -88,6 +88,12 @@ func (cc *CategoryCreate) SetStrings(s []string) *CategoryCreate {
 	return cc
 }
 
+// SetID sets the "id" field.
+func (cc *CategoryCreate) SetID(i int) *CategoryCreate {
+	cc.mutation.SetID(i)
+	return cc
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (cc *CategoryCreate) AddTodoIDs(ids ...int) *CategoryCreate {
 	cc.mutation.AddTodoIDs(ids...)
@@ -101,6 +107,21 @@ func (cc *CategoryCreate) AddTodos(t ...*Todo) *CategoryCreate {
 		ids[i] = t[i].ID
 	}
 	return cc.AddTodoIDs(ids...)
+}
+
+// AddSubCategoryIDs adds the "sub_categories" edge to the Category entity by IDs.
+func (cc *CategoryCreate) AddSubCategoryIDs(ids ...int) *CategoryCreate {
+	cc.mutation.AddSubCategoryIDs(ids...)
+	return cc
+}
+
+// AddSubCategories adds the "sub_categories" edges to the Category entity.
+func (cc *CategoryCreate) AddSubCategories(c ...*Category) *CategoryCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddSubCategoryIDs(ids...)
 }
 
 // Mutation returns the CategoryMutation object of the builder.
@@ -167,8 +188,10 @@ func (cc *CategoryCreate) sqlSave(ctx context.Context) (*Category, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int(id)
+	}
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -185,6 +208,10 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.Text(); ok {
 		_spec.SetField(category.FieldText, field.TypeString, value)
 		_node.Text = value
@@ -220,6 +247,25 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: todo.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.SubCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
 				},
 			},
 		}
@@ -271,7 +317,7 @@ func (ccb *CategoryCreateBulk) Save(ctx context.Context) ([]*Category, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

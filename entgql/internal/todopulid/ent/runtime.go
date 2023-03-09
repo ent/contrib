@@ -52,11 +52,11 @@ func init() {
 	categoryFields := schema.Category{}.Fields()
 	_ = categoryFields
 	// categoryDescText is the schema descriptor for text field.
-	categoryDescText := categoryMixinFields1[0].Descriptor()
+	categoryDescText := categoryMixinFields0[1].Descriptor()
 	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
 	// categoryDescID is the schema descriptor for id field.
-	categoryDescID := categoryMixinFields0[0].Descriptor()
+	categoryDescID := categoryMixinFields1[0].Descriptor()
 	// category.DefaultID holds the default value on creation for the id field.
 	category.DefaultID = categoryDescID.Default.(func() pulid.ID)
 	friendshipMixin := schema.Friendship{}.Mixin()

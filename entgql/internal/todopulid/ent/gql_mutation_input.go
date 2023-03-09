@@ -28,13 +28,14 @@ import (
 
 // CreateCategoryInput represents a mutation input for creating categories.
 type CreateCategoryInput struct {
-	Text     string
-	Status   category.Status
-	Config   *schematype.CategoryConfig
-	Duration *time.Duration
-	Count    *uint64
-	Strings  []string
-	TodoIDs  []pulid.ID
+	Text           string
+	Status         category.Status
+	Config         *schematype.CategoryConfig
+	Duration       *time.Duration
+	Count          *uint64
+	Strings        []string
+	TodoIDs        []pulid.ID
+	SubCategoryIDs []pulid.ID
 }
 
 // Mutate applies the CreateCategoryInput on the CategoryMutation builder.
@@ -56,6 +57,9 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	if v := i.TodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
 	}
+	if v := i.SubCategoryIDs; len(v) > 0 {
+		m.AddSubCategoryIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateCategoryInput on the CategoryCreate builder.
@@ -66,20 +70,23 @@ func (c *CategoryCreate) SetInput(i CreateCategoryInput) *CategoryCreate {
 
 // UpdateCategoryInput represents a mutation input for updating categories.
 type UpdateCategoryInput struct {
-	Text          *string
-	Status        *category.Status
-	ClearConfig   bool
-	Config        *schematype.CategoryConfig
-	ClearDuration bool
-	Duration      *time.Duration
-	ClearCount    bool
-	Count         *uint64
-	ClearStrings  bool
-	Strings       []string
-	AppendStrings []string
-	ClearTodos    bool
-	AddTodoIDs    []pulid.ID
-	RemoveTodoIDs []pulid.ID
+	Text                 *string
+	Status               *category.Status
+	ClearConfig          bool
+	Config               *schematype.CategoryConfig
+	ClearDuration        bool
+	Duration             *time.Duration
+	ClearCount           bool
+	Count                *uint64
+	ClearStrings         bool
+	Strings              []string
+	AppendStrings        []string
+	ClearTodos           bool
+	AddTodoIDs           []pulid.ID
+	RemoveTodoIDs        []pulid.ID
+	ClearSubCategories   bool
+	AddSubCategoryIDs    []pulid.ID
+	RemoveSubCategoryIDs []pulid.ID
 }
 
 // Mutate applies the UpdateCategoryInput on the CategoryMutation builder.
@@ -125,6 +132,15 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.RemoveTodoIDs; len(v) > 0 {
 		m.RemoveTodoIDs(v...)
+	}
+	if i.ClearSubCategories {
+		m.ClearSubCategories()
+	}
+	if v := i.AddSubCategoryIDs; len(v) > 0 {
+		m.AddSubCategoryIDs(v...)
+	}
+	if v := i.RemoveSubCategoryIDs; len(v) > 0 {
+		m.RemoveSubCategoryIDs(v...)
 	}
 }
 
