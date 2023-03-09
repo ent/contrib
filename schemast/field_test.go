@@ -30,6 +30,9 @@ import (
 )
 
 func TestFromFieldDescriptor(t *testing.T) {
+	enumCustomGoType := field.Enum("x")
+	enumCustomGoType.Descriptor().Info.Ident = "CustomType"
+
 	tests := []struct {
 		name           string
 		field          ent.Field
@@ -93,6 +96,16 @@ func TestFromFieldDescriptor(t *testing.T) {
 			name:     "enums:named values",
 			field:    field.Enum("x").NamedValues("a", "b"),
 			expected: `field.Enum("x").NamedValues("a", "b")`,
+		},
+		{
+			name:     "enums:named values",
+			field:    field.Enum("x").NamedValues("a", "b"),
+			expected: `field.Enum("x").NamedValues("a", "b")`,
+		},
+		{
+			name:     "enums GoType",
+			field:    enumCustomGoType,
+			expected: `field.Enum("x").GoType(CustomType(""))`,
 		},
 		{
 			name:     "storage key",
@@ -185,6 +198,25 @@ func TestFromFieldDescriptor(t *testing.T) {
 			require.EqualValues(t, tt.expected, buf.String())
 		})
 	}
+}
+
+type CustomType string
+
+const (
+	TypeOne   CustomType = "type_one"
+	TypeTwo   CustomType = "type_two"
+	TypeThree CustomType = "type_three"
+)
+
+func (g CustomType) Values() (s []string) {
+	for _, e := range []CustomType{
+		TypeOne,
+		TypeTwo,
+		TypeThree,
+	} {
+		s = append(s, string(e))
+	}
+	return
 }
 
 type annotation string

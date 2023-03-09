@@ -127,8 +127,17 @@ func newFieldCall(desc *field.Descriptor) *builderCall {
 
 func fromEnumType(desc *field.Descriptor) (*ast.CallExpr, error) {
 	call, err := fromSimpleType(desc)
+	builder := &builderCall{curr: call}
+
 	if err != nil {
 		return nil, err
+	}
+	if desc.Info.Ident != "" {
+		builder.method("GoType", &ast.CallExpr{
+			Fun:  ast.NewIdent(desc.Info.Ident),
+			Args: []ast.Expr{strLit("")},
+		})
+		return builder.curr, nil
 	}
 	modifier := "Values"
 	for _, pair := range desc.Enums {
@@ -144,7 +153,6 @@ func fromEnumType(desc *field.Descriptor) (*ast.CallExpr, error) {
 			args = append(args, strLit(pair.V))
 		}
 	}
-	builder := &builderCall{curr: call}
 	builder.method(modifier, args...)
 	return builder.curr, nil
 }
