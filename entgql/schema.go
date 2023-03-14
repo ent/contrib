@@ -712,7 +712,7 @@ func (e *schemaGenerator) typeFromField(gqlType string, f *gen.Field, ant *Annot
 
 	switch t := f.Type.Type; {
 	case t == field.TypeJSON:
-		return nil, fmt.Errorf("entgql: json type not implemented")
+		return nil, fmt.Errorf("entgql: json type not implemented without setting an entgql.Type() annotation")
 	case t == field.TypeOther:
 		return nil, fmt.Errorf("entgql: other type must have typed defined")
 	default:
@@ -772,6 +772,13 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 					scalar = "[Int!]"
 				case "[]string":
 					scalar = "[String!]"
+				}
+			case reflect.Map:
+				if f.Type.RType.Ident == "map[string]interface {}" {
+					scalar = "Map"
+					if !f.Optional {
+						scalar += "!"
+					}
 				}
 			}
 		}
