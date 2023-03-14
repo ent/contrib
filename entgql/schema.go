@@ -433,7 +433,10 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 		mappings = edgeAnt.Mapping
 	}
 	for _, name := range mappings {
-		fieldDef := &ast.FieldDefinition{Name: name}
+		fieldDef := &ast.FieldDefinition{
+			Name:        name,
+			Description: edge.Comment(),
+		}
 		switch {
 		case edge.Unique:
 			fieldDef.Type = namedType(gqlType, edge.Optional)
