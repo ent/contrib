@@ -1,7 +1,7 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.serviceGenerator*/ -}}
 {{ define "to_proto_func" }}
-    // toProto{{ .EntType.Name }} transforms the ent type to the pb type
-    func toProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
+    // ToProto{{ .EntType.Name }} transforms the ent type to the pb type
+    func ToProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
         v := &{{ .EntType.Name }}{}
         {{- range .FieldMap.Fields }}
             {{- $varName := .EntField.BuilderField -}}
@@ -41,11 +41,11 @@
 {{ end }}
 
 {{ define "to_proto_list_func" }}
-    // toProto{{ .EntType.Name }}List transforms a list of ent type to a list of pb type
-    func toProto{{ .EntType.Name }}List(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ .EntType.Name }}, error) {
+    // ToProto{{ .EntType.Name }}List transforms a list of ent type to a list of pb type
+    func ToProto{{ .EntType.Name }}List(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ .EntType.Name }}, error) {
         var pbList []*{{ .EntType.Name }}
         for _, entEntity := range e {
-            pbEntity, err := toProto{{ .EntType.Name }}(entEntity)
+            pbEntity, err := ToProto{{ .EntType.Name }}(entEntity)
             if err != nil {
                 return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
             }

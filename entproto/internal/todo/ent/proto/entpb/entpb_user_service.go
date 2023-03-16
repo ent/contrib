@@ -38,7 +38,7 @@ func NewUserService(client *ent.Client) *UserService {
 	}
 }
 
-func toProtoUser_DeviceType(e user.DeviceType) User_DeviceType {
+func ToProtoUser_DeviceType(e user.DeviceType) User_DeviceType {
 	if v, ok := User_DeviceType_value[strings.ToUpper("DEVICE_TYPE_"+string(e))]; ok {
 		return User_DeviceType(v)
 	}
@@ -56,7 +56,7 @@ func toEntUser_DeviceType(e User_DeviceType) user.DeviceType {
 	return ""
 }
 
-func toProtoUser_OmitPrefix(e user.OmitPrefix) User_OmitPrefix {
+func ToProtoUser_OmitPrefix(e user.OmitPrefix) User_OmitPrefix {
 	if v, ok := User_OmitPrefix_value[strings.ToUpper(string(e))]; ok {
 		return User_OmitPrefix(v)
 	}
@@ -74,7 +74,7 @@ func toEntUser_OmitPrefix(e User_OmitPrefix) user.OmitPrefix {
 	return ""
 }
 
-func toProtoUser_Status(e user.Status) User_Status {
+func ToProtoUser_Status(e user.Status) User_Status {
 	if v, ok := User_Status_value[strings.ToUpper("STATUS_"+string(e))]; ok {
 		return User_Status(v)
 	}
@@ -92,8 +92,8 @@ func toEntUser_Status(e User_Status) user.Status {
 	return ""
 }
 
-// toProtoUser transforms the ent type to the pb type
-func toProtoUser(e *ent.User) (*User, error) {
+// ToProtoUser transforms the ent type to the pb type
+func ToProtoUser(e *ent.User) (*User, error) {
 	v := &User{}
 	account_balance := e.AccountBalance
 	v.AccountBalance = account_balance
@@ -118,7 +118,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.CrmId = crm_id
 	custom_pb := uint64(e.CustomPb)
 	v.CustomPb = custom_pb
-	device_type := toProtoUser_DeviceType(e.DeviceType)
+	device_type := ToProtoUser_DeviceType(e.DeviceType)
 	v.DeviceType = device_type
 	exp := e.Exp
 	v.Exp = exp
@@ -132,7 +132,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Joined = joined
 	labels := e.Labels
 	v.Labels = labels
-	omit_prefix := toProtoUser_OmitPrefix(e.OmitPrefix)
+	omit_prefix := ToProtoUser_OmitPrefix(e.OmitPrefix)
 	v.OmitPrefix = omit_prefix
 	opt_bool := wrapperspb.Bool(e.OptBool)
 	v.OptBool = opt_bool
@@ -142,7 +142,7 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.OptStr = opt_str
 	points := uint32(e.Points)
 	v.Points = points
-	status := toProtoUser_Status(e.Status)
+	status := ToProtoUser_Status(e.Status)
 	v.Status = status
 	_type := wrapperspb.String(e.Type)
 	v.Type = _type
@@ -181,11 +181,11 @@ func toProtoUser(e *ent.User) (*User, error) {
 	return v, nil
 }
 
-// toProtoUserList transforms a list of ent type to a list of pb type
-func toProtoUserList(e []*ent.User) ([]*User, error) {
+// ToProtoUserList transforms a list of ent type to a list of pb type
+func ToProtoUserList(e []*ent.User) ([]*User, error) {
 	var pbList []*User
 	for _, entEntity := range e {
-		pbEntity, err := toProtoUser(entEntity)
+		pbEntity, err := ToProtoUser(entEntity)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -204,7 +204,7 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoUser(res)
+		proto, err := ToProtoUser(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -250,7 +250,7 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	}
 	switch {
 	case err == nil:
-		return toProtoUser(get)
+		return ToProtoUser(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -348,7 +348,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoUser(res)
+		proto, err := ToProtoUser(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -436,7 +436,7 @@ func (svc *UserService) List(ctx context.Context, req *ListUserRequest) (*ListUs
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtoUserList(entList)
+		protoList, err := ToProtoUserList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -468,7 +468,7 @@ func (svc *UserService) BatchCreate(ctx context.Context, req *BatchCreateUsersRe
 	res, err := svc.client.User.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtoUserList(res)
+		protoList, err := ToProtoUserList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

@@ -20,7 +20,7 @@
     res, err := svc.client.{{ .G.EntType.Name }}.CreateBulk(bulk...).Save(ctx)
     switch {
         case err == nil:
-            protoList, err := toProto{{ .G.EntType.Name }}List(res)
+            protoList, err := ToProto{{ .G.EntType.Name }}List(res)
             if err != nil {
                 return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
             }

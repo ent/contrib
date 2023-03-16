@@ -31,8 +31,8 @@ func NewPetService(client *ent.Client) *PetService {
 	}
 }
 
-// toProtoPet transforms the ent type to the pb type
-func toProtoPet(e *ent.Pet) (*Pet, error) {
+// ToProtoPet transforms the ent type to the pb type
+func ToProtoPet(e *ent.Pet) (*Pet, error) {
 	v := &Pet{}
 	id := int64(e.ID)
 	v.Id = id
@@ -54,11 +54,11 @@ func toProtoPet(e *ent.Pet) (*Pet, error) {
 	return v, nil
 }
 
-// toProtoPetList transforms a list of ent type to a list of pb type
-func toProtoPetList(e []*ent.Pet) ([]*Pet, error) {
+// ToProtoPetList transforms a list of ent type to a list of pb type
+func ToProtoPetList(e []*ent.Pet) ([]*Pet, error) {
 	var pbList []*Pet
 	for _, entEntity := range e {
-		pbEntity, err := toProtoPet(entEntity)
+		pbEntity, err := ToProtoPet(entEntity)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -77,7 +77,7 @@ func (svc *PetService) Create(ctx context.Context, req *CreatePetRequest) (*Pet,
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoPet(res)
+		proto, err := ToProtoPet(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -117,7 +117,7 @@ func (svc *PetService) Get(ctx context.Context, req *GetPetRequest) (*Pet, error
 	}
 	switch {
 	case err == nil:
-		return toProtoPet(get)
+		return ToProtoPet(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -146,7 +146,7 @@ func (svc *PetService) Update(ctx context.Context, req *UpdatePetRequest) (*Pet,
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoPet(res)
+		proto, err := ToProtoPet(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -228,7 +228,7 @@ func (svc *PetService) List(ctx context.Context, req *ListPetRequest) (*ListPetR
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtoPetList(entList)
+		protoList, err := ToProtoPetList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -260,7 +260,7 @@ func (svc *PetService) BatchCreate(ctx context.Context, req *BatchCreatePetsRequ
 	res, err := svc.client.Pet.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtoPetList(res)
+		protoList, err := ToProtoPetList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
