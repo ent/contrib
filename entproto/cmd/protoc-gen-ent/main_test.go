@@ -56,6 +56,7 @@ func TestFieldModifier(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, contents, "type Pet struct")
 	require.Contains(t, contents, `field.String("name").Optional().StorageKey("shem")`)
+	require.Contains(t, contents, `field.Time("created_at").Optional().StorageKey("created_at")`)
 }
 
 func TestEdges_O2M(t *testing.T) {
@@ -106,7 +107,7 @@ func newGenTest(t *testing.T, files ...string) (*genTest, error) {
 	})
 	var parser protoparse.Parser
 	var descs []*descriptorpb.FileDescriptorProto
-	tgts := []string{"google/protobuf/descriptor.proto", "options/ent/opts.proto"}
+	tgts := []string{"google/protobuf/descriptor.proto", "google/protobuf/timestamp.proto", "options/ent/opts.proto"}
 	tgts = append(tgts, files...)
 	parsed, err := parser.ParseFiles(tgts...)
 	require.NoError(t, err)
