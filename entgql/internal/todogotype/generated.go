@@ -191,6 +191,7 @@ type ComplexityRoot struct {
 		Friendships func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.FriendshipWhereInput) int
 		Groups      func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.GroupWhereInput) int
 		ID          func(childComplexity int) int
+		Metadata    func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Username    func(childComplexity int) int
 	}
@@ -228,6 +229,7 @@ type TodoResolver interface {
 }
 type UserResolver interface {
 	Username(ctx context.Context, obj *ent.User) (string, error)
+	Metadata(ctx context.Context, obj *ent.User) (map[string]interface{}, error)
 
 	Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.UserWhereInput) (*ent.UserConnection, error)
 	Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error)
@@ -888,6 +890,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.metadata":
+		if e.complexity.User.Metadata == nil {
+			break
+		}
+
+		return e.complexity.User.Metadata(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -1315,6 +1324,7 @@ input CreateUserInput {
   name: String
   username: UUID
   password: String
+  metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
 }
@@ -1754,6 +1764,8 @@ input UpdateUserInput {
   username: UUID
   password: String
   clearPassword: Boolean
+  metadata: Map
+  clearMetadata: Boolean
   addGroupIDs: [ID!]
   removeGroupIDs: [ID!]
   clearGroups: Boolean
@@ -1765,6 +1777,7 @@ type User implements Node {
   id: ID!
   name: String!
   username: UUID!
+  metadata: Map
   groups(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -3804,6 +3817,8 @@ func (ec *executionContext) fieldContext_Friendship_user(ctx context.Context, fi
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "metadata":
+				return ec.fieldContext_User_metadata(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "friends":
@@ -3862,6 +3877,8 @@ func (ec *executionContext) fieldContext_Friendship_friend(ctx context.Context, 
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "metadata":
+				return ec.fieldContext_User_metadata(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "friends":
@@ -6638,6 +6655,47 @@ func (ec *executionContext) fieldContext_User_username(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _User_metadata(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Metadata(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_groups(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_groups(ctx, field)
 	if err != nil {
@@ -7014,6 +7072,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "metadata":
+				return ec.fieldContext_User_metadata(ctx, field)
 			case "groups":
 				return ec.fieldContext_User_groups(ctx, field)
 			case "friends":
@@ -9993,6 +10053,14 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "metadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			it.Metadata, err = ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "groupIDs":
 			var err error
 
@@ -11229,6 +11297,22 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearPassword"))
 			it.ClearPassword, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "metadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			it.Metadata, err = ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "clearMetadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearMetadata"))
+			it.ClearMetadata, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12820,6 +12904,23 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "metadata":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_metadata(ctx, field, obj)
 				return res
 			}
 
