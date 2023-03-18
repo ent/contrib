@@ -29,16 +29,16 @@ import (
 	"go.uber.org/multierr"
 )
 
-// ExtensionOpt is an option for the entproto extension.
-type ExtensionOpt func(*Extension)
+// ExtensionOption is an option for the entproto extension.
+type ExtensionOption func(*Extension)
 
-// New returns a new Extension configured by opts.
-func New(opts ...ExtensionOpt) *Extension {
+// NewExtension returns a new Extension configured by opts.
+func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 	e := &Extension{}
 	for _, opt := range opts {
 		opt(e)
 	}
-	return e
+	return e, nil
 }
 
 // Extension is an entc.Extension that generates .proto files from an ent schema.
@@ -48,7 +48,7 @@ func New(opts ...ExtensionOpt) *Extension {
 //		if err := entc.Generate("./schema",
 //			&gen.Config{},
 //			entc.Extensions(
-//				entproto.New(),
+//				entproto.NewExtension(),
 //			),
 //		); err != nil {
 //			log.Fatal("running ent codegen:", err)
@@ -60,7 +60,7 @@ type Extension struct {
 }
 
 // WithProtoDir sets the directory where the generated .proto files will be written.
-func WithProtoDir(dir string) ExtensionOpt {
+func WithProtoDir(dir string) ExtensionOption {
 	return func(e *Extension) {
 		e.protoDir = dir
 	}
@@ -97,15 +97,8 @@ func (e *Extension) hook() gen.Hook {
 //
 // Deprecated: use Extension instead.
 func Hook() gen.Hook {
-	return func(next gen.Generator) gen.Generator {
-		return gen.GenerateFunc(func(g *gen.Graph) error {
-			err := next.Generate(g)
-			if err != nil {
-				return err
-			}
-			return Generate(g)
-		})
-	}
+	x := &Extension{}
+	return x.hook()
 }
 
 // Generate takes a *gen.Graph and creates .proto files. Next to each .proto file, Generate creates a generate.go

@@ -29,7 +29,7 @@ func main() {
 	if err := entc.Generate("./schema",
 		&gen.Config{},
 		entc.Extensions(
-			entproto.New(
+			entproto.NewExtension(
 				entproto.WithProtoDir("./v1/api"),
 			),
 		),
