@@ -26,12 +26,16 @@ import (
 )
 
 func main() {
+	extension, err := entproto.NewExtension(
+		entproto.WithProtoDir("./v1/api"),
+	)
+	if err != nil {
+		panic(err)
+	}
 	if err := entc.Generate("./schema",
 		&gen.Config{},
 		entc.Extensions(
-			entproto.NewExtension(
-				entproto.WithProtoDir("./v1/api"),
-			),
+			extension,
 		),
 	); err != nil {
 		log.Fatal("running ent codegen:", err)
