@@ -376,6 +376,10 @@ type CategoryWhereInput struct {
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
+
+	// "sub_categories" edge predicates.
+	HasSubCategories     *bool                 `json:"hasSubCategories,omitempty"`
+	HasSubCategoriesWith []*CategoryWhereInput `json:"hasSubCategoriesWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -632,6 +636,24 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, category.HasTodosWith(with...))
+	}
+	if i.HasSubCategories != nil {
+		p := category.HasSubCategories()
+		if !*i.HasSubCategories {
+			p = category.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasSubCategoriesWith) > 0 {
+		with := make([]predicate.Category, 0, len(i.HasSubCategoriesWith))
+		for _, w := range i.HasSubCategoriesWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasSubCategoriesWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, category.HasSubCategoriesWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

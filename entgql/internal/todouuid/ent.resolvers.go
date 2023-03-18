@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"github.com/google/uuid"
@@ -38,14 +39,18 @@ func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, e
 	return r.client.BillProduct.Query().All(ctx)
 }
 
-func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
+func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithGroupFilter(where.Filter),
 		)
 }
 
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithTodoOrder(orderBy),
@@ -53,7 +58,7 @@ func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int
 		)
 }
 
-func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	return r.client.User.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithUserFilter(where.Filter),
@@ -68,11 +73,11 @@ func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, err
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
+func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

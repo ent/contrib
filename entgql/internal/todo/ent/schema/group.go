@@ -53,5 +53,6 @@ func (Group) Annotations() []schema.Annotation {
 		entgql.Directives(
 			annotation.HasPermissions([]string{"ADMIN", "MODERATOR"}),
 		),
+		entgql.MultiOrder(),
 	}
 }

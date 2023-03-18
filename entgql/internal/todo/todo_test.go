@@ -1270,7 +1270,7 @@ func TestPageInfo(t *testing.T) {
 	require.True(t, rsp.Todos.PageInfo.HasNextPage)
 	require.True(t, rsp.Todos.PageInfo.HasPreviousPage)
 
-	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("before", rsp.Todos.PageInfo.StartCursor))...)
+	err = gqlc.Post(query, &rsp, append(descOrder, client.Var("last", 2), client.Var("before", rsp.Todos.PageInfo.StartCursor))...)
 	require.NoError(t, err)
 	require.Equal(t, []string{"5", "4"}, texts())
 	require.Equal(t, 5, rsp.Todos.TotalCount)
@@ -1905,4 +1905,222 @@ func TestMutation_ClearChildren(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, strconv.Itoa(root.ID), rsp.UpdateTodo.ID)
 	require.False(t, root.QueryChildren().ExistX(ctx))
+}
+
+func TestDescendingIDs(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	ec.Category.CreateBulk(
+		ec.Category.Create().SetID(1).SetText("c1").SetStatus(category.StatusEnabled),
+		ec.Category.Create().SetID(2).SetText("c2").SetStatus(category.StatusEnabled),
+		ec.Category.Create().SetID(3).SetText("c3").SetStatus(category.StatusEnabled),
+	).SaveX(ctx)
+
+	var (
+		gqlc = client.New(srv)
+		// language=GraphQL
+		query = `query ($after: Cursor){
+		  categories(orderBy: [{direction: DESC, field: ID}], first: 2, after: $after) {
+		    edges {
+		      node {
+		        id
+		      }
+		      cursor
+		    }
+		  }
+		}`
+		rsp struct {
+			Categories struct {
+				Edges []struct {
+					Node struct {
+						ID string
+					}
+					Cursor string
+				}
+			}
+		}
+		after any
+	)
+	err := gqlc.Post(query, &rsp, client.Var("after", after))
+	require.NoError(t, err)
+	require.Equal(t, "3", rsp.Categories.Edges[0].Node.ID)
+	require.Equal(t, "2", rsp.Categories.Edges[1].Node.ID)
+	after = rsp.Categories.Edges[1].Cursor
+
+	err = gqlc.Post(query, &rsp, client.Var("after", after))
+	require.NoError(t, err)
+	require.Len(t, rsp.Categories.Edges, 1)
+	require.Equal(t, "1", rsp.Categories.Edges[0].Node.ID)
+	after = rsp.Categories.Edges[0].Cursor
+
+	err = gqlc.Post(query, &rsp, client.Var("after", after))
+	require.NoError(t, err)
+	require.Empty(t, rsp.Categories.Edges)
+}
+
+func TestMultiFieldsOrder(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	cats := ec.Category.CreateBulk(
+		ec.Category.Create().SetID(1).SetText("category-1").SetCount(2).SetStatus(category.StatusDisabled),
+		ec.Category.Create().SetID(2).SetText("category-1").SetCount(1).SetStatus(category.StatusDisabled),
+		ec.Category.Create().SetID(3).SetText("category-2").SetCount(2).SetStatus(category.StatusDisabled),
+		ec.Category.Create().SetID(4).SetText("category-2").SetCount(1).SetStatus(category.StatusDisabled),
+		ec.Category.Create().SetID(5).SetText("category-3").SetCount(2).SetStatus(category.StatusDisabled),
+		ec.Category.Create().SetID(6).SetText("category-3").SetCount(1).SetStatus(category.StatusDisabled),
+	).SaveX(ctx)
+	require.Len(t, cats, 6)
+
+	var (
+		gqlc = client.New(srv)
+		// language=GraphQL
+		query = `query ($after: Cursor, $before: Cursor, $first: Int, $last: Int, $textDirection: OrderDirection = ASC, $countDirection: OrderDirection = ASC){
+		  categories(
+			after: $after,
+			before: $before,
+			first: $first,
+			last: $last,
+		  	orderBy: [{field: TEXT, direction: $textDirection}, {field: COUNT, direction: $countDirection}],
+		  ) {
+		    edges {
+		      node {
+		        id
+		      }
+		      cursor
+		    }
+		    pageInfo {
+		      hasNextPage
+		      hasPreviousPage
+		      startCursor
+		      endCursor				
+		    }
+		  }
+		}`
+		rsp struct {
+			Categories struct {
+				Edges []struct {
+					Node struct {
+						ID string
+					}
+					Cursor string
+				}
+				PageInfo struct {
+					HasNextPage     bool
+					HasPreviousPage bool
+					StartCursor     *string
+					EndCursor       *string
+				}
+			}
+		}
+		ids = func() (s []string) {
+			for _, n := range rsp.Categories.Edges {
+				s = append(s, n.Node.ID)
+			}
+			return
+		}
+		after, before any
+	)
+	t.Run("CountAsc", func(t *testing.T) {
+		err := gqlc.Post(query, &rsp, client.Var("after", after), client.Var("before", before), client.Var("first", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[1], cats[0], cats[3].
+		require.Equal(t, []string{"2", "1", "4"}, ids())
+		require.True(t, rsp.Categories.PageInfo.HasNextPage)
+
+		after = rsp.Categories.PageInfo.EndCursor
+		err = gqlc.Post(query, &rsp, client.Var("after", after), client.Var("first", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[2], cats[5], cats[4].
+		require.Equal(t, []string{"3", "6", "5"}, ids())
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+
+		after = rsp.Categories.PageInfo.EndCursor
+		err = gqlc.Post(query, &rsp, client.Var("after", after))
+		require.NoError(t, err)
+		require.Empty(t, rsp.Categories.Edges)
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+	})
+
+	t.Run("CountDesc", func(t *testing.T) {
+		err := gqlc.Post(query, &rsp, client.Var("countDirection", "DESC"), client.Var("first", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[0], cats[1], cats[2].
+		require.Equal(t, []string{"1", "2", "3"}, ids())
+		require.True(t, rsp.Categories.PageInfo.HasNextPage)
+
+		after = rsp.Categories.PageInfo.EndCursor
+		err = gqlc.Post(query, &rsp, client.Var("after", after), client.Var("countDirection", "DESC"), client.Var("first", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[3], cats[4], cats[5].
+		require.Equal(t, []string{"4", "5", "6"}, ids())
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+
+		after = rsp.Categories.PageInfo.EndCursor
+		err = gqlc.Post(query, &rsp, client.Var("after", after), client.Var("countDirection", "DESC"))
+		require.NoError(t, err)
+		require.Empty(t, rsp.Categories.Edges)
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+	})
+
+	t.Run("TextCountDesc", func(t *testing.T) {
+		// Page forward.
+		err := gqlc.Post(query, &rsp, client.Var("textDirection", "DESC"), client.Var("countDirection", "DESC"), client.Var("first", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[4], cats[5], cats[2].
+		require.Equal(t, []string{"5", "6", "3"}, ids())
+		require.True(t, rsp.Categories.PageInfo.HasNextPage)
+
+		after = rsp.Categories.PageInfo.EndCursor
+		err = gqlc.Post(query, &rsp, client.Var("after", after), client.Var("textDirection", "DESC"), client.Var("countDirection", "DESC"), client.Var("first", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[3], cats[0], cats[1].
+		require.Equal(t, []string{"4", "1", "2"}, ids())
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+
+		after = rsp.Categories.PageInfo.EndCursor
+		err = gqlc.Post(query, &rsp, client.Var("after", after), client.Var("textDirection", "DESC"), client.Var("countDirection", "DESC"))
+		require.NoError(t, err)
+		require.Empty(t, rsp.Categories.Edges)
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+
+		// All categories.
+		err = gqlc.Post(query, &rsp, client.Var("textDirection", "DESC"), client.Var("countDirection", "DESC"))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 6)
+		// cats[4], cats[5], cats[2], cats[3], cats[0], cats[1].
+		require.Equal(t, []string{"5", "6", "3", "4", "1", "2"}, ids())
+		require.False(t, rsp.Categories.PageInfo.HasNextPage)
+
+		// Page backward.
+		err = gqlc.Post(query, &rsp, client.Var("textDirection", "DESC"), client.Var("countDirection", "DESC"), client.Var("last", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[3], cats[0], cats[1].
+		require.Equal(t, []string{"4", "1", "2"}, ids())
+		require.True(t, rsp.Categories.PageInfo.HasPreviousPage)
+
+		before = rsp.Categories.PageInfo.StartCursor
+		err = gqlc.Post(query, &rsp, client.Var("before", before), client.Var("textDirection", "DESC"), client.Var("countDirection", "DESC"), client.Var("last", 3))
+		require.NoError(t, err)
+		require.Len(t, rsp.Categories.Edges, 3)
+		// cats[4], cats[5], cats[2].
+		require.Equal(t, []string{"5", "6", "3"}, ids())
+		require.False(t, rsp.Categories.PageInfo.HasPreviousPage)
+	})
 }

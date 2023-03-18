@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -156,6 +157,21 @@ func (cu *CategoryUpdate) AddTodos(t ...*Todo) *CategoryUpdate {
 	return cu.AddTodoIDs(ids...)
 }
 
+// AddSubCategoryIDs adds the "sub_categories" edge to the Category entity by IDs.
+func (cu *CategoryUpdate) AddSubCategoryIDs(ids ...bigintgql.BigInt) *CategoryUpdate {
+	cu.mutation.AddSubCategoryIDs(ids...)
+	return cu
+}
+
+// AddSubCategories adds the "sub_categories" edges to the Category entity.
+func (cu *CategoryUpdate) AddSubCategories(c ...*Category) *CategoryUpdate {
+	ids := make([]bigintgql.BigInt, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddSubCategoryIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (cu *CategoryUpdate) Mutation() *CategoryMutation {
 	return cu.mutation
@@ -180,6 +196,27 @@ func (cu *CategoryUpdate) RemoveTodos(t ...*Todo) *CategoryUpdate {
 		ids[i] = t[i].ID
 	}
 	return cu.RemoveTodoIDs(ids...)
+}
+
+// ClearSubCategories clears all "sub_categories" edges to the Category entity.
+func (cu *CategoryUpdate) ClearSubCategories() *CategoryUpdate {
+	cu.mutation.ClearSubCategories()
+	return cu
+}
+
+// RemoveSubCategoryIDs removes the "sub_categories" edge to Category entities by IDs.
+func (cu *CategoryUpdate) RemoveSubCategoryIDs(ids ...bigintgql.BigInt) *CategoryUpdate {
+	cu.mutation.RemoveSubCategoryIDs(ids...)
+	return cu
+}
+
+// RemoveSubCategories removes "sub_categories" edges to Category entities.
+func (cu *CategoryUpdate) RemoveSubCategories(c ...*Category) *CategoryUpdate {
+	ids := make([]bigintgql.BigInt, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveSubCategoryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -340,6 +377,60 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.SubCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedSubCategoriesIDs(); len(nodes) > 0 && !cu.mutation.SubCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.SubCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{category.Label}
@@ -471,6 +562,21 @@ func (cuo *CategoryUpdateOne) AddTodos(t ...*Todo) *CategoryUpdateOne {
 	return cuo.AddTodoIDs(ids...)
 }
 
+// AddSubCategoryIDs adds the "sub_categories" edge to the Category entity by IDs.
+func (cuo *CategoryUpdateOne) AddSubCategoryIDs(ids ...bigintgql.BigInt) *CategoryUpdateOne {
+	cuo.mutation.AddSubCategoryIDs(ids...)
+	return cuo
+}
+
+// AddSubCategories adds the "sub_categories" edges to the Category entity.
+func (cuo *CategoryUpdateOne) AddSubCategories(c ...*Category) *CategoryUpdateOne {
+	ids := make([]bigintgql.BigInt, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddSubCategoryIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (cuo *CategoryUpdateOne) Mutation() *CategoryMutation {
 	return cuo.mutation
@@ -495,6 +601,27 @@ func (cuo *CategoryUpdateOne) RemoveTodos(t ...*Todo) *CategoryUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return cuo.RemoveTodoIDs(ids...)
+}
+
+// ClearSubCategories clears all "sub_categories" edges to the Category entity.
+func (cuo *CategoryUpdateOne) ClearSubCategories() *CategoryUpdateOne {
+	cuo.mutation.ClearSubCategories()
+	return cuo
+}
+
+// RemoveSubCategoryIDs removes the "sub_categories" edge to Category entities by IDs.
+func (cuo *CategoryUpdateOne) RemoveSubCategoryIDs(ids ...bigintgql.BigInt) *CategoryUpdateOne {
+	cuo.mutation.RemoveSubCategoryIDs(ids...)
+	return cuo
+}
+
+// RemoveSubCategories removes "sub_categories" edges to Category entities.
+func (cuo *CategoryUpdateOne) RemoveSubCategories(c ...*Category) *CategoryUpdateOne {
+	ids := make([]bigintgql.BigInt, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveSubCategoryIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -671,6 +798,60 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: todo.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.SubCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedSubCategoriesIDs(); len(nodes) > 0 && !cuo.mutation.SubCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.SubCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
 				},
 			},
 		}
