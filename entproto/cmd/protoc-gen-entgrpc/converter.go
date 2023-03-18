@@ -171,7 +171,7 @@ func basicTypeConversion(md *desc.FieldDescriptor, entField *gen.Field, conv *co
 func convertPbMessageType(md *desc.MessageDescriptor, entField *gen.Field, conv *converter) error {
 	switch {
 	case md.GetFullyQualifiedName() == "google.protobuf.Timestamp":
-		conv.ToProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("NewExtension")
+		conv.ToProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
 	case isWrapperType(md):
 		fqn := md.GetFullyQualifiedName()
 		typ := strings.Split(fqn, ".")[2]
