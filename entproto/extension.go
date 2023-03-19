@@ -111,10 +111,15 @@ func Generate(g *gen.Graph) error {
 
 func (e *Extension) generate(g *gen.Graph) error {
 	entProtoDir := path.Join(g.Config.Target, "proto")
+	var loadopts []AdapterOption
 	if e.protoDir != "" {
 		entProtoDir = e.protoDir
+		sl := filepath.SplitList(g.Config.Target)
+		pl := strings.Split(g.Config.Package, "/")
+		basePkg := strings.Join(pl[:(len(pl)-len(sl))], "/")
+		loadopts = append(loadopts, WithProtoPkgPath(path.Join(basePkg, entProtoDir)))
 	}
-	adapter, err := LoadAdapter(g)
+	adapter, err := LoadAdapter(g, loadopts...)
 	if err != nil {
 		return fmt.Errorf("entproto: failed parsing ent graph: %w", err)
 	}
@@ -144,16 +149,11 @@ func (e *Extension) generate(g *gen.Graph) error {
 		dir := filepath.Dir(protoFilePath)
 		genGoPath := filepath.Join(dir, "generate.go")
 		if !fileExists(genGoPath) {
-			abs, err := filepath.Abs(dir)
+			toSchema, err := filepath.Rel(*fd.GetFileOptions().GoPackage, g.Schema)
 			if err != nil {
 				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 			}
-			toBase, err := filepath.Rel(abs, g.Config.Target)
-			if err != nil {
-				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
-			}
-			toSchema := filepath.Join(toBase, "schema")
-			contents := protocGenerateGo(fd, toSchema)
+			contents := protocGenerateGo(fd, g, toSchema)
 			if err := os.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
 				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 			}
@@ -171,11 +171,15 @@ func fileExists(fpath string) bool {
 	return true
 }
 
-func protocGenerateGo(fd *desc.FileDescriptor, toSchemaDir string) string {
+func protocGenerateGo(fd *desc.FileDescriptor, g *gen.Graph, toSchemaDir string) string {
 	levelsUp := len(strings.Split(fd.GetPackage(), "."))
 	toProtoBase := ""
 	for i := 0; i < levelsUp; i++ {
 		toProtoBase = filepath.Join("..", toProtoBase)
+	}
+	genPackage := ""
+	if g.Package != "" {
+		genPackage = ",ent_package=" + g.Package
 	}
 	protocCmd := []string{
 		"protoc",
@@ -185,7 +189,7 @@ func protocGenerateGo(fd *desc.FileDescriptor, toSchemaDir string) string {
 		"--go_opt=paths=source_relative",
 		"--go-grpc_opt=paths=source_relative",
 		"--entgrpc_out=" + toProtoBase,
-		"--entgrpc_opt=paths=source_relative,schema_path=" + toSchemaDir,
+		"--entgrpc_opt=paths=source_relative,schema_path=" + toSchemaDir + genPackage,
 		fd.GetName(),
 	}
 	goGen := fmt.Sprintf("//go:generate %s", strings.Join(protocCmd, " "))

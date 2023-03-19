@@ -56,17 +56,29 @@ var (
 )
 
 // LoadAdapter takes a *gen.Graph and parses it into protobuf file descriptors
-func LoadAdapter(graph *gen.Graph) (*Adapter, error) {
+func LoadAdapter(graph *gen.Graph, opts ...AdapterOption) (*Adapter, error) {
 	a := &Adapter{
 		graph:            graph,
 		descriptors:      make(map[string]*desc.FileDescriptor),
 		schemaProtoFiles: make(map[string]string),
 		errors:           make(map[string]error),
 	}
+	for _, opt := range opts {
+		opt(a)
+	}
 	if err := a.parse(); err != nil {
 		return nil, err
 	}
 	return a, nil
+}
+
+// AdapterOption is an option for Adapter.
+type AdapterOption func(*Adapter)
+
+func WithProtoPkgPath(p string) AdapterOption {
+	return func(a *Adapter) {
+		a.protoPkgPath = p
+	}
 }
 
 // Adapter facilitates the transformation of ent gen.Type to desc.FileDescriptors
@@ -75,6 +87,7 @@ type Adapter struct {
 	descriptors      map[string]*desc.FileDescriptor
 	schemaProtoFiles map[string]string
 	errors           map[string]error
+	protoPkgPath     string
 }
 
 // AllFileDescriptors returns a file descriptor per proto package for each package that contains
@@ -204,9 +217,12 @@ func (a *Adapter) parse() error {
 
 func (a *Adapter) goPackageName(protoPkgName string) string {
 	// TODO(rotemtam): make this configurable from an annotation
-	entBase := a.graph.Config.Package
+	base := path.Join(a.graph.Config.Package, "proto")
+	if a.protoPkgPath != "" {
+		base = a.protoPkgPath
+	}
 	slashed := strings.ReplaceAll(protoPkgName, ".", "/")
-	return path.Join(entBase, "proto", slashed)
+	return path.Join(base, slashed)
 }
 
 // GetFileDescriptor returns the proto file descriptor containing the transformed proto message descriptor for
