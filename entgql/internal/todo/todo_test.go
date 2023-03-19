@@ -2196,11 +2196,50 @@ func TestFieldSelection(t *testing.T) {
 	)
 	rec.reset()
 	gqlc.MustPost(query, &rsp)
-	require.NoError(t, err)
 	require.Equal(t, []string{
 		// No fields were selected besides the "id" field.
 		"SELECT DISTINCT `todos`.`id` FROM `todos` ORDER BY `todos`.`id` ASC",
 		// The "id" and the "text" fields were selected + all foreign keys (see, `withFKs` query field).
 		"SELECT DISTINCT `todos`.`id`, `todos`.`text`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todo_children` IN (?, ?, ?, ?, ?, ?) ORDER BY `todos`.`id` ASC",
+	}, rec.queries)
+
+	ec.Category.CreateBulk(
+		ec.Category.Create().AddTodos(root[0]).SetText("c0").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodos(root[1]).SetText("c1").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodos(root[2]).SetText("c2").SetStatus(category.StatusEnabled),
+	).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query2 = `query {
+			todos {
+				edges {
+					node {
+						category {
+							text
+						}
+					}
+				}
+			}
+		}`
+		rsp2 struct {
+			Todos struct {
+				Edges []struct {
+					Node struct {
+						Category struct {
+							Text string
+						}
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	client.New(handler.NewDefaultServer(gen.NewSchema(ec))).
+		MustPost(query2, &rsp2)
+	require.Equal(t, []string{
+		// Also query the "category_id" field for the "category" selection.
+		"SELECT DISTINCT `todos`.`id`, `todos`.`category_id`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` ORDER BY `todos`.`id` ASC",
+		// Select the "text" field for the "category" selection.
+		"SELECT DISTINCT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?, ?, ?, ?)",
 	}, rec.queries)
 }

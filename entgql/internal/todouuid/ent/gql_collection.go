@@ -431,6 +431,10 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				return err
 			}
 			f.withUser = query
+			if _, ok := fieldSeen[friendship.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, friendship.FieldUserID)
+				fieldSeen[friendship.FieldUserID] = struct{}{}
+			}
 		case "friend":
 			var (
 				alias = field.Alias
@@ -441,6 +445,10 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				return err
 			}
 			f.withFriend = query
+			if _, ok := fieldSeen[friendship.FieldFriendID]; !ok {
+				selectedFields = append(selectedFields, friendship.FieldFriendID)
+				fieldSeen[friendship.FieldFriendID] = struct{}{}
+			}
 		case "createdAt":
 			if _, ok := fieldSeen[friendship.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, friendship.FieldCreatedAt)
@@ -775,6 +783,10 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				return err
 			}
 			t.withCategory = query
+			if _, ok := fieldSeen[todo.FieldCategoryID]; !ok {
+				selectedFields = append(selectedFields, todo.FieldCategoryID)
+				fieldSeen[todo.FieldCategoryID] = struct{}{}
+			}
 		case "createdAt":
 			if _, ok := fieldSeen[todo.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, todo.FieldCreatedAt)

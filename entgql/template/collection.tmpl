@@ -138,6 +138,12 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 								*wq = *query
 							})
 						{{- end }}
+						{{- with $e.Field }}
+						if _, ok := fieldSeen[{{ $node.Package }}.{{ .Constant }}]; !ok {
+							selectedFields = append(selectedFields, {{ $node.Package }}.{{ .Constant }})
+							fieldSeen[{{ $node.Package }}.{{ .Constant }}] = struct{}{}
+						}
+						{{- end }}
 				{{- end }}
 				{{- range $f := $fields }}
 					{{- with fieldMapping $f }}
