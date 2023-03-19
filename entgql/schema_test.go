@@ -237,6 +237,7 @@ type User {
   id: ID!
   name: String!
   username: UUID!
+  """The groups of the user"""
   groups: [Group!]
   friends: [User!]
   friendships: [Friendship!]
