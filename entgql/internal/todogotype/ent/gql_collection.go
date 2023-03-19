@@ -22,11 +22,8 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/internal/todogotype/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
-	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
-	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
@@ -46,37 +43,8 @@ func (bp *BillProductQuery) CollectFields(ctx context.Context, satisfies ...stri
 	return bp, nil
 }
 
-func (bp *BillProductQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (bp *BillProductQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(billproduct.Columns))
-		selectedFields = []string{billproduct.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
-		switch field.Name {
-		case "name":
-			if _, ok := fieldSeen[billproduct.FieldName]; !ok {
-				selectedFields = append(selectedFields, billproduct.FieldName)
-				fieldSeen[billproduct.FieldName] = struct{}{}
-			}
-		case "sku":
-			if _, ok := fieldSeen[billproduct.FieldSku]; !ok {
-				selectedFields = append(selectedFields, billproduct.FieldSku)
-				fieldSeen[billproduct.FieldSku] = struct{}{}
-			}
-		case "quantity":
-			if _, ok := fieldSeen[billproduct.FieldQuantity]; !ok {
-				selectedFields = append(selectedFields, billproduct.FieldQuantity)
-				fieldSeen[billproduct.FieldQuantity] = struct{}{}
-			}
-		default:
-			unknownSeen = true
-		}
-	}
-	if !unknownSeen {
-		bp.Select(selectedFields...)
-	}
 	return nil
 }
 
@@ -121,14 +89,9 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 	return c, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(category.Columns))
-		selectedFields = []string{category.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "todos":
 			var (
@@ -304,42 +267,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			c.WithNamedSubCategories(alias, func(wq *CategoryQuery) {
 				*wq = *query
 			})
-		case "text":
-			if _, ok := fieldSeen[category.FieldText]; !ok {
-				selectedFields = append(selectedFields, category.FieldText)
-				fieldSeen[category.FieldText] = struct{}{}
-			}
-		case "status":
-			if _, ok := fieldSeen[category.FieldStatus]; !ok {
-				selectedFields = append(selectedFields, category.FieldStatus)
-				fieldSeen[category.FieldStatus] = struct{}{}
-			}
-		case "config":
-			if _, ok := fieldSeen[category.FieldConfig]; !ok {
-				selectedFields = append(selectedFields, category.FieldConfig)
-				fieldSeen[category.FieldConfig] = struct{}{}
-			}
-		case "duration":
-			if _, ok := fieldSeen[category.FieldDuration]; !ok {
-				selectedFields = append(selectedFields, category.FieldDuration)
-				fieldSeen[category.FieldDuration] = struct{}{}
-			}
-		case "count":
-			if _, ok := fieldSeen[category.FieldCount]; !ok {
-				selectedFields = append(selectedFields, category.FieldCount)
-				fieldSeen[category.FieldCount] = struct{}{}
-			}
-		case "strings":
-			if _, ok := fieldSeen[category.FieldStrings]; !ok {
-				selectedFields = append(selectedFields, category.FieldStrings)
-				fieldSeen[category.FieldStrings] = struct{}{}
-			}
-		default:
-			unknownSeen = true
 		}
-	}
-	if !unknownSeen {
-		c.Select(selectedFields...)
 	}
 	return nil
 }
@@ -413,14 +341,9 @@ func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string
 	return f, nil
 }
 
-func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(friendship.Columns))
-		selectedFields = []string{friendship.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "user":
 			var (
@@ -442,27 +365,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				return err
 			}
 			f.withFriend = query
-		case "createdAt":
-			if _, ok := fieldSeen[friendship.FieldCreatedAt]; !ok {
-				selectedFields = append(selectedFields, friendship.FieldCreatedAt)
-				fieldSeen[friendship.FieldCreatedAt] = struct{}{}
-			}
-		case "userID":
-			if _, ok := fieldSeen[friendship.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, friendship.FieldUserID)
-				fieldSeen[friendship.FieldUserID] = struct{}{}
-			}
-		case "friendID":
-			if _, ok := fieldSeen[friendship.FieldFriendID]; !ok {
-				selectedFields = append(selectedFields, friendship.FieldFriendID)
-				fieldSeen[friendship.FieldFriendID] = struct{}{}
-			}
-		default:
-			unknownSeen = true
 		}
-	}
-	if !unknownSeen {
-		f.Select(selectedFields...)
 	}
 	return nil
 }
@@ -508,14 +411,9 @@ func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*
 	return gr, nil
 }
 
-func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(group.Columns))
-		selectedFields = []string{group.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "users":
 			var (
@@ -606,17 +504,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 			gr.WithNamedUsers(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
-		case "name":
-			if _, ok := fieldSeen[group.FieldName]; !ok {
-				selectedFields = append(selectedFields, group.FieldName)
-				fieldSeen[group.FieldName] = struct{}{}
-			}
-		default:
-			unknownSeen = true
 		}
-	}
-	if !unknownSeen {
-		gr.Select(selectedFields...)
 	}
 	return nil
 }
@@ -662,27 +550,8 @@ func (pe *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*Pe
 	return pe, nil
 }
 
-func (pe *PetQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (pe *PetQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(pet.Columns))
-		selectedFields = []string{pet.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
-		switch field.Name {
-		case "name":
-			if _, ok := fieldSeen[pet.FieldName]; !ok {
-				selectedFields = append(selectedFields, pet.FieldName)
-				fieldSeen[pet.FieldName] = struct{}{}
-			}
-		default:
-			unknownSeen = true
-		}
-	}
-	if !unknownSeen {
-		pe.Select(selectedFields...)
-	}
 	return nil
 }
 
@@ -727,14 +596,9 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 	return t, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(todo.Columns))
-		selectedFields = []string{todo.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "parent":
 			var (
@@ -841,52 +705,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				return err
 			}
 			t.withCategory = query
-		case "createdAt":
-			if _, ok := fieldSeen[todo.FieldCreatedAt]; !ok {
-				selectedFields = append(selectedFields, todo.FieldCreatedAt)
-				fieldSeen[todo.FieldCreatedAt] = struct{}{}
-			}
-		case "status":
-			if _, ok := fieldSeen[todo.FieldStatus]; !ok {
-				selectedFields = append(selectedFields, todo.FieldStatus)
-				fieldSeen[todo.FieldStatus] = struct{}{}
-			}
-		case "priorityOrder":
-			if _, ok := fieldSeen[todo.FieldPriority]; !ok {
-				selectedFields = append(selectedFields, todo.FieldPriority)
-				fieldSeen[todo.FieldPriority] = struct{}{}
-			}
-		case "text":
-			if _, ok := fieldSeen[todo.FieldText]; !ok {
-				selectedFields = append(selectedFields, todo.FieldText)
-				fieldSeen[todo.FieldText] = struct{}{}
-			}
-		case "init":
-			if _, ok := fieldSeen[todo.FieldInit]; !ok {
-				selectedFields = append(selectedFields, todo.FieldInit)
-				fieldSeen[todo.FieldInit] = struct{}{}
-			}
-		case "custom":
-			if _, ok := fieldSeen[todo.FieldCustom]; !ok {
-				selectedFields = append(selectedFields, todo.FieldCustom)
-				fieldSeen[todo.FieldCustom] = struct{}{}
-			}
-		case "customp":
-			if _, ok := fieldSeen[todo.FieldCustomp]; !ok {
-				selectedFields = append(selectedFields, todo.FieldCustomp)
-				fieldSeen[todo.FieldCustomp] = struct{}{}
-			}
-		case "categoryID":
-			if _, ok := fieldSeen[todo.FieldCategoryID]; !ok {
-				selectedFields = append(selectedFields, todo.FieldCategoryID)
-				fieldSeen[todo.FieldCategoryID] = struct{}{}
-			}
-		default:
-			unknownSeen = true
 		}
-	}
-	if !unknownSeen {
-		t.Select(selectedFields...)
 	}
 	return nil
 }
@@ -954,14 +773,9 @@ func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*Us
 	return u, nil
 }
 
-func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	var (
-		unknownSeen    bool
-		fieldSeen      = make(map[string]struct{}, len(user.Columns))
-		selectedFields = []string{user.FieldID}
-	)
-	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+	for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 		switch field.Name {
 		case "groups":
 			var (
@@ -1076,17 +890,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			u.WithNamedFriendships(alias, func(wq *FriendshipQuery) {
 				*wq = *query
 			})
-		case "name":
-			if _, ok := fieldSeen[user.FieldName]; !ok {
-				selectedFields = append(selectedFields, user.FieldName)
-				fieldSeen[user.FieldName] = struct{}{}
-			}
-		default:
-			unknownSeen = true
 		}
-	}
-	if !unknownSeen {
-		u.Select(selectedFields...)
 	}
 	return nil
 }

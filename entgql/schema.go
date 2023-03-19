@@ -641,17 +641,18 @@ func (e *schemaGenerator) fieldDefinitions(gqlType string, f *gen.Field, ant *An
 	if err != nil {
 		return nil, fmt.Errorf("field(%s): %w", f.Name, err)
 	}
+
 	var (
-		fields      []*ast.FieldDefinition
+		fields      = []*ast.FieldDefinition{}
+		mappings    = []string{camel(f.Name)}
 		goFieldName = templates.ToGo(f.Name)
 		structField = f.StructField()
 	)
-	mapping, err := fieldMapping(f)
-	if err != nil {
-		return nil, err
+	if len(ant.Mapping) > 0 {
+		mappings = ant.Mapping
 	}
-	for _, name := range mapping {
-		def := &ast.FieldDefinition{
+	for _, name := range mappings {
+		field := &ast.FieldDefinition{
 			Name:        name,
 			Type:        ft,
 			Description: f.Comment(),
@@ -660,23 +661,11 @@ func (e *schemaGenerator) fieldDefinitions(gqlType string, f *gen.Field, ant *An
 		// We check the field name with gqlgen's naming convention.
 		// To avoid unnecessary @goField directives
 		if goFieldName != templates.ToGo(name) {
-			def.Directives = append(def.Directives, goField(structField))
+			field.Directives = append(field.Directives, goField(structField))
 		}
-		fields = append(fields, def)
+		fields = append(fields, field)
 	}
 	return fields, nil
-}
-
-// fieldMapping returns the GraphQL names mapping of a field.
-func fieldMapping(f *gen.Field) ([]string, error) {
-	ant, err := annotation(f.Annotations)
-	if err != nil || ant.Skip.Is(SkipType) || f.Sensitive() {
-		return nil, err
-	}
-	if len(ant.Mapping) > 0 {
-		return ant.Mapping, nil
-	}
-	return []string{camel(f.Name)}, nil
 }
 
 func (e *schemaGenerator) fieldDefinitionOp(gqlType string, f *gen.Field, ant *Annotation, op gen.Op) *ast.FieldDefinition {

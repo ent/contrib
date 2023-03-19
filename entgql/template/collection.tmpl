@@ -38,22 +38,10 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 	return {{ $receiver }}, nil
 }
 
-func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	{{- $fields := filterFields $node.Fields (skipMode "type") }}
-	{{- $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
-	{{- if or $collects $fields }}
-		var (
-			unknownSeen bool
-			fieldSeen = make(map[string]struct{}, len({{ $node.Package }}.Columns))
-			selectedFields =
-			{{- if $node.HasOneFieldID -}}
-				[]string{ {{ $node.Package }}.{{ $node.ID.Constant }} }
-			{{- else -}}
-				make([]string, 0, len({{ $node.Package }}.Columns))
-			{{- end }}
-		)
-		for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+	{{- if $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
+		for _, field := range graphql.CollectFields(opCtx, field.Selections, satisfies) {
 			switch field.Name {
 				{{- range $i, $fc := $collects }}
 					{{- $e := $fc.Edge }}
@@ -139,25 +127,8 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 							})
 						{{- end }}
 				{{- end }}
-				{{- range $f := $fields }}
-					{{- with fieldMapping $f }}
-						case {{ range $i, $m := . }}{{ if $i }},{{ end }}"{{ . }}"{{ end }}:
-							if _, ok := fieldSeen[{{ $node.Package }}.{{ $f.Constant }}]; !ok {
-								selectedFields = append(selectedFields, {{ $node.Package }}.{{ $f.Constant }})
-								fieldSeen[{{ $node.Package }}.{{ $f.Constant }}] = struct{}{}
-							}
-					{{- end }}
-				{{- end }}
-				default:
-					unknownSeen = true
 			}
 		}
-		{{- if $fields }}
-			{{- /* In case the schema was extended, a non-selected field might be used by a custom resolver. */}}
-			if !unknownSeen {
-				{{ $receiver }}.Select(selectedFields...)
-			}
-		{{- end }}
 	{{- end }}
 	return nil
 }
