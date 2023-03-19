@@ -155,34 +155,6 @@ func main() {
 }
 ```
 
-If your project organization directory is more complex, such as the Ent Schema directory and the target directory and proto directory are separate, then procedural generation is more suitable.
-
-```go
-package main
-
-import (
-	"log"
-
-	"entgo.io/contrib/entproto"
-	"entgo.io/ent/entc"
-	"entgo.io/ent/entc/gen"
-)
-
-func main() {
-	graph, err := entc.LoadGraph("./graph/schema",
-		&gen.Config{
-			Target:  "./api",
-			Package: "github.com/example/test/api",
-		})
-	if err != nil {
-		log.Fatalf("entproto: failed loading ent graph: %v", err)
-	}
-	if err := entproto.GenerateWithEntPackage(graph, "github.com/example/test/ent"); err != nil {
-		log.Fatalf("entproto: failed generating protos: %s", err)
-	}
-}
-```
-
 ## Message Annotations
 
 ### ent.Message
