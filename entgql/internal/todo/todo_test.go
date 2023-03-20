@@ -2124,3 +2124,122 @@ func TestMultiFieldsOrder(t *testing.T) {
 		require.False(t, rsp.Categories.PageInfo.HasPreviousPage)
 	})
 }
+
+type queryRecorder struct {
+	queries []string
+	dialect.Driver
+}
+
+func (r *queryRecorder) reset() {
+	r.queries = nil
+}
+
+func (r *queryRecorder) Query(ctx context.Context, query string, args, v interface{}) error {
+	r.queries = append(r.queries, query)
+	return r.Driver.Query(ctx, query, args, v)
+}
+
+func TestFieldSelection(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	root := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t0.2").SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted),
+	).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1.1").SetParent(root[0]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParent(root[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParent(root[0]).SetStatus(todo.StatusCompleted),
+	).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query {
+			todos {
+				edges {
+					node {
+						children {
+							totalCount
+							edges {
+								node {
+									text
+								}
+							}
+						}
+					}
+				}
+			}
+		}`
+		rsp struct {
+			Todos struct {
+				Edges []struct {
+					Node struct {
+						Children struct {
+							TotalCount int
+							Edges      []struct {
+								Node struct {
+									Text string
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		gqlc = client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	)
+	rec.reset()
+	gqlc.MustPost(query, &rsp)
+	require.Equal(t, []string{
+		// No fields were selected besides the "id" field.
+		"SELECT DISTINCT `todos`.`id` FROM `todos` ORDER BY `todos`.`id` ASC",
+		// The "id" and the "text" fields were selected + all foreign keys (see, `withFKs` query field).
+		"SELECT DISTINCT `todos`.`id`, `todos`.`text`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todo_children` IN (?, ?, ?, ?, ?, ?) ORDER BY `todos`.`id` ASC",
+	}, rec.queries)
+
+	ec.Category.CreateBulk(
+		ec.Category.Create().AddTodos(root[0]).SetText("c0").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodos(root[1]).SetText("c1").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodos(root[2]).SetText("c2").SetStatus(category.StatusEnabled),
+	).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query2 = `query {
+			todos {
+				edges {
+					node {
+						category {
+							text
+						}
+					}
+				}
+			}
+		}`
+		rsp2 struct {
+			Todos struct {
+				Edges []struct {
+					Node struct {
+						Category struct {
+							Text string
+						}
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	client.New(handler.NewDefaultServer(gen.NewSchema(ec))).
+		MustPost(query2, &rsp2)
+	require.Equal(t, []string{
+		// Also query the "category_id" field for the "category" selection.
+		"SELECT DISTINCT `todos`.`id`, `todos`.`category_id`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` ORDER BY `todos`.`id` ASC",
+		// Select the "text" field for the "category" selection.
+		"SELECT DISTINCT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?, ?, ?, ?)",
+	}, rec.queries)
+}
