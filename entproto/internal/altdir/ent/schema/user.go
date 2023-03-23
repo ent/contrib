@@ -15,12 +15,10 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -32,35 +30,20 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			Default("Anonymous"),
-		field.UUID("username", uuid.UUID{}).
-			Default(uuid.New),
-		field.String("password").
-			Sensitive().
-			Optional(),
+			Annotations(
+				entproto.Field(2),
+			),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.To("groups", Group.Type).
-			Comment("The groups of the user").
-			Annotations(entgql.RelayConnection()),
-		edge.To("friends", User.Type).
-			Through("friendships", Friendship.Type).
-			Annotations(entgql.RelayConnection()),
-	}
+	return nil
 }
 
-// Annotations returns User annotations.
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entgql.RelayConnection(),
-		entgql.QueryField(),
-		entgql.Mutations(
-			entgql.MutationCreate(),
-			entgql.MutationUpdate(),
-		),
+		entproto.Message(),
+		entproto.Service(),
 	}
 }

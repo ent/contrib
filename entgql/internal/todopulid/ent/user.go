@@ -44,7 +44,7 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Groups holds the value of the groups edge.
+	// The groups of the user
 	Groups []*Group `json:"groups,omitempty"`
 	// Friends holds the value of the friends edge.
 	Friends []*User `json:"friends,omitempty"`
