@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.18
 
 require (
-	entgo.io/ent v0.11.6
+	entgo.io/ent v0.11.10
 	github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.7.0
@@ -16,7 +16,7 @@ require (
 	github.com/ogen-go/ogen v0.56.1
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/stoewer/go-strcase v1.2.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/vektah/gqlparser/v2 v2.4.3-0.20220508162109-d3d9eb001575
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.9
 	go.uber.org/multierr v1.9.0
@@ -29,7 +29,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.9.1-0.20230119123307-a3ab6808892b // indirect
+	ariga.io/atlas v0.9.2-0.20230303073438-03a4779a6338 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
