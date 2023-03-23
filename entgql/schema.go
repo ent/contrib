@@ -413,7 +413,9 @@ func (e *schemaGenerator) buildFieldEnum(f *gen.Field, gqlType, goType string) (
 }
 
 func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Annotation) ([]*ast.FieldDefinition, error) {
-	if edge.Type.HasCompositeID() {
+	// If the edge has a CompositeID (is likely an EdgeSchema) and the edge we're about to build has a relation through another edge,
+	// skip building
+	if edge.Type.HasCompositeID() || edge.Through != nil && edge.Through.IsEdgeSchema() {
 		return nil, nil
 	}
 	gqlType, ant, err := gqlTypeFromNode(edge.Type)
@@ -514,9 +516,6 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 		}
 	}
 
-	if t.IsEdgeSchema() {
-		return def, nil
-	}
 	edges, err := filterEdges(t.Edges, SkipWhereInput)
 	if err != nil {
 		return nil, err

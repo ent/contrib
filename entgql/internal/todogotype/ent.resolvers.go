@@ -62,10 +62,6 @@ func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, err
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
