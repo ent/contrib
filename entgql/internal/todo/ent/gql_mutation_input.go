@@ -270,6 +270,7 @@ type CreateUserInput struct {
 	Name      *string
 	Username  *uuid.UUID
 	Password  *string
+	Metadata  map[string]interface{}
 	GroupIDs  []int
 	FriendIDs []int
 }
@@ -284,6 +285,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if v := i.Metadata; v != nil {
+		m.SetMetadata(v)
 	}
 	if v := i.GroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
@@ -305,6 +309,8 @@ type UpdateUserInput struct {
 	Username        *uuid.UUID
 	ClearPassword   bool
 	Password        *string
+	ClearMetadata   bool
+	Metadata        map[string]interface{}
 	ClearGroups     bool
 	AddGroupIDs     []int
 	RemoveGroupIDs  []int
@@ -326,6 +332,12 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if i.ClearMetadata {
+		m.ClearMetadata()
+	}
+	if v := i.Metadata; v != nil {
+		m.SetMetadata(v)
 	}
 	if i.ClearGroups {
 		m.ClearGroups()

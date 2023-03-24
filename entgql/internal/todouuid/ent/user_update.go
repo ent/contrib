@@ -92,6 +92,18 @@ func (uu *UserUpdate) ClearPassword() *UserUpdate {
 	return uu
 }
 
+// SetMetadata sets the "metadata" field.
+func (uu *UserUpdate) SetMetadata(m map[string]interface{}) *UserUpdate {
+	uu.mutation.SetMetadata(m)
+	return uu
+}
+
+// ClearMetadata clears the value of the "metadata" field.
+func (uu *UserUpdate) ClearMetadata() *UserUpdate {
+	uu.mutation.ClearMetadata()
+	return uu
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (uu *UserUpdate) AddGroupIDs(ids ...uuid.UUID) *UserUpdate {
 	uu.mutation.AddGroupIDs(ids...)
@@ -261,6 +273,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := uu.mutation.Metadata(); ok {
+		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)
+	}
+	if uu.mutation.MetadataCleared() {
+		_spec.ClearField(user.FieldMetadata, field.TypeJSON)
 	}
 	if uu.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -513,6 +531,18 @@ func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
 	return uuo
 }
 
+// SetMetadata sets the "metadata" field.
+func (uuo *UserUpdateOne) SetMetadata(m map[string]interface{}) *UserUpdateOne {
+	uuo.mutation.SetMetadata(m)
+	return uuo
+}
+
+// ClearMetadata clears the value of the "metadata" field.
+func (uuo *UserUpdateOne) ClearMetadata() *UserUpdateOne {
+	uuo.mutation.ClearMetadata()
+	return uuo
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by IDs.
 func (uuo *UserUpdateOne) AddGroupIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddGroupIDs(ids...)
@@ -706,6 +736,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := uuo.mutation.Metadata(); ok {
+		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)
+	}
+	if uuo.mutation.MetadataCleared() {
+		_spec.ClearField(user.FieldMetadata, field.TypeJSON)
 	}
 	if uuo.mutation.GroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
