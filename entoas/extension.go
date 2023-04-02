@@ -157,18 +157,25 @@ func Spec(spec *ogen.Spec) ExtensionOption {
 // generator returns a gen.Hook that creates a Spec for the given gen.Graph.
 func (ex *Extension) generate(next gen.Generator) gen.Generator {
 	return gen.GenerateFunc(func(g *gen.Graph) error {
+		var spec *ogen.Spec
 		// Let ent create all the files.
 		if err := next.Generate(g); err != nil {
 			return err
 		}
-		// Spec stub to fill.
-		spec := ogen.NewSpec().
-			SetOpenAPI("3.0.3").
-			SetInfo(ogen.NewInfo().
-				SetTitle("Ent Schema API").
-				SetDescription("This is an auto generated API description made out of an Ent schema definition").
-				SetVersion("0.1.0"),
-			)
+
+		if ex.spec != nil && len(ex.spec.OpenAPI) > 0 && len(ex.spec.Info.Title) > 0 && len(ex.spec.Info.Version) > 0 {
+			spec = ex.spec
+		} else {
+			// Spec stub to fill.
+			spec = ogen.NewSpec().
+				SetOpenAPI("3.0.3").
+				SetInfo(ogen.NewInfo().
+					SetTitle("Ent Schema API").
+					SetDescription("This is an auto generated API description made out of an Ent schema definition").
+					SetVersion("0.1.0"),
+				)
+		}
+
 		// Run the generator.
 		if err := generate(g, spec); err != nil {
 			return err
