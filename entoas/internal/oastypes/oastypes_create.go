@@ -379,13 +379,7 @@ func (otc *OASTypesCreate) sqlSave(ctx context.Context) (*OASTypes, error) {
 func (otc *OASTypesCreate) createSpec() (*OASTypes, *sqlgraph.CreateSpec) {
 	var (
 		_node = &OASTypes{config: otc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: oastypes.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: oastypes.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(oastypes.Table, sqlgraph.NewFieldSpec(oastypes.FieldID, field.TypeInt))
 	)
 	if value, ok := otc.mutation.Int(); ok {
 		_spec.SetField(oastypes.FieldInt, field.TypeInt, value)
@@ -530,8 +524,8 @@ func (otcb *OASTypesCreateBulk) Save(ctx context.Context) ([]*OASTypes, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, otcb.builders[i+1].mutation)
 				} else {

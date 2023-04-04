@@ -6,6 +6,10 @@ in the LICENSE file in the root directory of this source tree.
 
 {{/* gotype: entgo.io/ent/entc/gen.Type */}}
 
+{{ define "import/additional/graphql-enum" }}
+	"github.com/99designs/gqlgen/graphql"
+{{ end }}
+
 {{ define "meta/additional/graphql-enum" }}
 
 {{ range $f := $.EnumFields }}

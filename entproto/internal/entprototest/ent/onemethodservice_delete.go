@@ -40,15 +40,7 @@ func (omsd *OneMethodServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (omsd *OneMethodServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: onemethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(onemethodservice.Table, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	if ps := omsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type OneMethodServiceDeleteOne struct {
 	omsd *OneMethodServiceDelete
 }
 
+// Where appends a list predicates to the OneMethodServiceDelete builder.
+func (omsdo *OneMethodServiceDeleteOne) Where(ps ...predicate.OneMethodService) *OneMethodServiceDeleteOne {
+	omsdo.omsd.mutation.Where(ps...)
+	return omsdo
+}
+
 // Exec executes the deletion query.
 func (omsdo *OneMethodServiceDeleteOne) Exec(ctx context.Context) error {
 	n, err := omsdo.omsd.Exec(ctx)
@@ -84,5 +82,7 @@ func (omsdo *OneMethodServiceDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (omsdo *OneMethodServiceDeleteOne) ExecX(ctx context.Context) {
-	omsdo.omsd.ExecX(ctx)
+	if err := omsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

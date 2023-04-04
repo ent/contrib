@@ -10,9 +10,8 @@ import (
 
 	"entgo.io/contrib/entoas/internal/cycle/predicate"
 	"entgo.io/contrib/entoas/internal/cycle/user"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (

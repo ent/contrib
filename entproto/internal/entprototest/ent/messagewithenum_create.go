@@ -122,13 +122,7 @@ func (mwec *MessageWithEnumCreate) sqlSave(ctx context.Context) (*MessageWithEnu
 func (mwec *MessageWithEnumCreate) createSpec() (*MessageWithEnum, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithEnum{config: mwec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithenum.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithenum.Table, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	)
 	if value, ok := mwec.mutation.EnumType(); ok {
 		_spec.SetField(messagewithenum.FieldEnumType, field.TypeEnum, value)
@@ -165,8 +159,8 @@ func (mwecb *MessageWithEnumCreateBulk) Save(ctx context.Context) ([]*MessageWit
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwecb.builders[i+1].mutation)
 				} else {

@@ -202,10 +202,12 @@ func (nbq *NoBackrefQuery) AllX(ctx context.Context) []*NoBackref {
 }
 
 // IDs executes the query and returns a list of NoBackref IDs.
-func (nbq *NoBackrefQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (nbq *NoBackrefQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if nbq.ctx.Unique == nil && nbq.path != nil {
+		nbq.Unique(true)
+	}
 	ctx = setContextOp(ctx, nbq.ctx, "IDs")
-	if err := nbq.Select(nobackref.FieldID).Scan(ctx, &ids); err != nil {
+	if err = nbq.Select(nobackref.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -420,20 +422,12 @@ func (nbq *NoBackrefQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nobackref.Table,
-			Columns: nobackref.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-		From:   nbq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(nobackref.Table, nobackref.Columns, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
+	_spec.From = nbq.sql
 	if unique := nbq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if nbq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := nbq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

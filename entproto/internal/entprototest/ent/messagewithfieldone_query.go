@@ -177,10 +177,12 @@ func (mwfoq *MessageWithFieldOneQuery) AllX(ctx context.Context) []*MessageWithF
 }
 
 // IDs executes the query and returns a list of MessageWithFieldOne IDs.
-func (mwfoq *MessageWithFieldOneQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mwfoq *MessageWithFieldOneQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwfoq.ctx.Unique == nil && mwfoq.path != nil {
+		mwfoq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mwfoq.ctx, "IDs")
-	if err := mwfoq.Select(messagewithfieldone.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mwfoq.Select(messagewithfieldone.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (mwfoq *MessageWithFieldOneQuery) sqlCount(ctx context.Context) (int, error
 }
 
 func (mwfoq *MessageWithFieldOneQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithfieldone.Table,
-			Columns: messagewithfieldone.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithfieldone.FieldID,
-			},
-		},
-		From:   mwfoq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(messagewithfieldone.Table, messagewithfieldone.Columns, sqlgraph.NewFieldSpec(messagewithfieldone.FieldID, field.TypeInt))
+	_spec.From = mwfoq.sql
 	if unique := mwfoq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwfoq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mwfoq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

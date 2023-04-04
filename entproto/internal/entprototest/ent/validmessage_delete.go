@@ -40,15 +40,7 @@ func (vmd *ValidMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (vmd *ValidMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: validmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(validmessage.Table, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	if ps := vmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ValidMessageDeleteOne struct {
 	vmd *ValidMessageDelete
 }
 
+// Where appends a list predicates to the ValidMessageDelete builder.
+func (vmdo *ValidMessageDeleteOne) Where(ps ...predicate.ValidMessage) *ValidMessageDeleteOne {
+	vmdo.vmd.mutation.Where(ps...)
+	return vmdo
+}
+
 // Exec executes the deletion query.
 func (vmdo *ValidMessageDeleteOne) Exec(ctx context.Context) error {
 	n, err := vmdo.vmd.Exec(ctx)
@@ -84,5 +82,7 @@ func (vmdo *ValidMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (vmdo *ValidMessageDeleteOne) ExecX(ctx context.Context) {
-	vmdo.vmd.ExecX(ctx)
+	if err := vmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

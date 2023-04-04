@@ -40,15 +40,7 @@ func (pd *PonyDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *PonyDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: pony.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(pony.Table, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	if ps := pd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type PonyDeleteOne struct {
 	pd *PonyDelete
 }
 
+// Where appends a list predicates to the PonyDelete builder.
+func (pdo *PonyDeleteOne) Where(ps ...predicate.Pony) *PonyDeleteOne {
+	pdo.pd.mutation.Where(ps...)
+	return pdo
+}
+
 // Exec executes the deletion query.
 func (pdo *PonyDeleteOne) Exec(ctx context.Context) error {
 	n, err := pdo.pd.Exec(ctx)
@@ -84,5 +82,7 @@ func (pdo *PonyDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (pdo *PonyDeleteOne) ExecX(ctx context.Context) {
-	pdo.pd.ExecX(ctx)
+	if err := pdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

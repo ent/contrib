@@ -40,15 +40,7 @@ func (seed *SkipEdgeExampleDelete) ExecX(ctx context.Context) int {
 }
 
 func (seed *SkipEdgeExampleDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: skipedgeexample.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(skipedgeexample.Table, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
 	if ps := seed.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type SkipEdgeExampleDeleteOne struct {
 	seed *SkipEdgeExampleDelete
 }
 
+// Where appends a list predicates to the SkipEdgeExampleDelete builder.
+func (seedo *SkipEdgeExampleDeleteOne) Where(ps ...predicate.SkipEdgeExample) *SkipEdgeExampleDeleteOne {
+	seedo.seed.mutation.Where(ps...)
+	return seedo
+}
+
 // Exec executes the deletion query.
 func (seedo *SkipEdgeExampleDeleteOne) Exec(ctx context.Context) error {
 	n, err := seedo.seed.Exec(ctx)
@@ -84,5 +82,7 @@ func (seedo *SkipEdgeExampleDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (seedo *SkipEdgeExampleDeleteOne) ExecX(ctx context.Context) {
-	seedo.seed.ExecX(ctx)
+	if err := seedo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

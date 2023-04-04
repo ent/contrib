@@ -69,6 +69,16 @@ func IDLTE(id string) predicate.Friendship {
 	return predicate.Friendship(sql.FieldLTE(FieldID, id))
 }
 
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Friendship {
+	return predicate.Friendship(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Friendship {
+	return predicate.Friendship(sql.FieldContainsFold(FieldID, id))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Friendship {
 	return predicate.Friendship(sql.FieldEQ(FieldCreatedAt, v))

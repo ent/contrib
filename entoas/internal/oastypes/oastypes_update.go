@@ -424,16 +424,7 @@ func (otu *OASTypesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := otu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   oastypes.Table,
-			Columns: oastypes.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: oastypes.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(oastypes.Table, oastypes.Columns, sqlgraph.NewFieldSpec(oastypes.FieldID, field.TypeInt))
 	if ps := otu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -974,6 +965,12 @@ func (otuo *OASTypesUpdateOne) Mutation() *OASTypesMutation {
 	return otuo.mutation
 }
 
+// Where appends a list predicates to the OASTypesUpdate builder.
+func (otuo *OASTypesUpdateOne) Where(ps ...predicate.OASTypes) *OASTypesUpdateOne {
+	otuo.mutation.Where(ps...)
+	return otuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (otuo *OASTypesUpdateOne) Select(field string, fields ...string) *OASTypesUpdateOne {
@@ -1022,16 +1019,7 @@ func (otuo *OASTypesUpdateOne) sqlSave(ctx context.Context) (_node *OASTypes, er
 	if err := otuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   oastypes.Table,
-			Columns: oastypes.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: oastypes.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(oastypes.Table, oastypes.Columns, sqlgraph.NewFieldSpec(oastypes.FieldID, field.TypeInt))
 	id, ok := otuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`oastypes: missing "OASTypes.id" for update`)}

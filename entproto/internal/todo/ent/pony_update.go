@@ -66,16 +66,7 @@ func (pu *PonyUpdate) ExecX(ctx context.Context) {
 }
 
 func (pu *PonyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pony.Table,
-			Columns: pony.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(pony.Table, pony.Columns, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -117,6 +108,12 @@ func (puo *PonyUpdateOne) Mutation() *PonyMutation {
 	return puo.mutation
 }
 
+// Where appends a list predicates to the PonyUpdate builder.
+func (puo *PonyUpdateOne) Where(ps ...predicate.Pony) *PonyUpdateOne {
+	puo.mutation.Where(ps...)
+	return puo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (puo *PonyUpdateOne) Select(field string, fields ...string) *PonyUpdateOne {
@@ -152,16 +149,7 @@ func (puo *PonyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (puo *PonyUpdateOne) sqlSave(ctx context.Context) (_node *Pony, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pony.Table,
-			Columns: pony.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(pony.Table, pony.Columns, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Pony.id" for update`)}

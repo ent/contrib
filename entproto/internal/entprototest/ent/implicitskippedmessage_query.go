@@ -178,10 +178,12 @@ func (ismq *ImplicitSkippedMessageQuery) AllX(ctx context.Context) []*ImplicitSk
 }
 
 // IDs executes the query and returns a list of ImplicitSkippedMessage IDs.
-func (ismq *ImplicitSkippedMessageQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (ismq *ImplicitSkippedMessageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ismq.ctx.Unique == nil && ismq.path != nil {
+		ismq.Unique(true)
+	}
 	ctx = setContextOp(ctx, ismq.ctx, "IDs")
-	if err := ismq.Select(implicitskippedmessage.FieldID).Scan(ctx, &ids); err != nil {
+	if err = ismq.Select(implicitskippedmessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -345,20 +347,12 @@ func (ismq *ImplicitSkippedMessageQuery) sqlCount(ctx context.Context) (int, err
 }
 
 func (ismq *ImplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   implicitskippedmessage.Table,
-			Columns: implicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		},
-		From:   ismq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(implicitskippedmessage.Table, implicitskippedmessage.Columns, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
+	_spec.From = ismq.sql
 	if unique := ismq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ismq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := ismq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

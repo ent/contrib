@@ -202,10 +202,12 @@ func (seeq *SkipEdgeExampleQuery) AllX(ctx context.Context) []*SkipEdgeExample {
 }
 
 // IDs executes the query and returns a list of SkipEdgeExample IDs.
-func (seeq *SkipEdgeExampleQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (seeq *SkipEdgeExampleQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if seeq.ctx.Unique == nil && seeq.path != nil {
+		seeq.Unique(true)
+	}
 	ctx = setContextOp(ctx, seeq.ctx, "IDs")
-	if err := seeq.Select(skipedgeexample.FieldID).Scan(ctx, &ids); err != nil {
+	if err = seeq.Select(skipedgeexample.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -427,20 +429,12 @@ func (seeq *SkipEdgeExampleQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (seeq *SkipEdgeExampleQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   skipedgeexample.Table,
-			Columns: skipedgeexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		},
-		From:   seeq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(skipedgeexample.Table, skipedgeexample.Columns, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
+	_spec.From = seeq.sql
 	if unique := seeq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if seeq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := seeq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

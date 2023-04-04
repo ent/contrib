@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -48,6 +49,7 @@ type Todo struct {
 	category_todos *int
 	todo_children  *int
 	todo_secret    *int
+	selectValues   sql.SelectValues
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -137,7 +139,7 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 		case todo.ForeignKeys[2]: // todo_secret
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -208,9 +210,17 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 				t.todo_secret = new(int)
 				*t.todo_secret = int(value.Int64)
 			}
+		default:
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Todo.
+// This includes values selected through modifiers, order, etc.
+func (t *Todo) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
 }
 
 // QueryParent queries the "parent" edge of the Todo entity.
@@ -303,9 +313,3 @@ func (t *Todo) appendNamedChildren(name string, edges ...*Todo) {
 
 // Todos is a parsable slice of Todo.
 type Todos []*Todo
-
-func (t Todos) config(cfg config) {
-	for _i := range t {
-		t[_i].config = cfg
-	}
-}

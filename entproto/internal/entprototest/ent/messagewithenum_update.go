@@ -98,16 +98,7 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := mweu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithenum.Table,
-			Columns: messagewithenum.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithenum.Table, messagewithenum.Columns, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	if ps := mweu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -166,6 +157,12 @@ func (mweuo *MessageWithEnumUpdateOne) Mutation() *MessageWithEnumMutation {
 	return mweuo.mutation
 }
 
+// Where appends a list predicates to the MessageWithEnumUpdate builder.
+func (mweuo *MessageWithEnumUpdateOne) Where(ps ...predicate.MessageWithEnum) *MessageWithEnumUpdateOne {
+	mweuo.mutation.Where(ps...)
+	return mweuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mweuo *MessageWithEnumUpdateOne) Select(field string, fields ...string) *MessageWithEnumUpdateOne {
@@ -219,16 +216,7 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 	if err := mweuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithenum.Table,
-			Columns: messagewithenum.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithenum.Table, messagewithenum.Columns, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	id, ok := mweuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithEnum.id" for update`)}

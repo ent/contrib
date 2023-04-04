@@ -66,16 +66,7 @@ func (wfu *WithFieldsUpdate) ExecX(ctx context.Context) {
 }
 
 func (wfu *WithFieldsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withfields.Table,
-			Columns: withfields.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withfields.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(withfields.Table, withfields.Columns, sqlgraph.NewFieldSpec(withfields.FieldID, field.TypeInt))
 	if ps := wfu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -117,6 +108,12 @@ func (wfuo *WithFieldsUpdateOne) Mutation() *WithFieldsMutation {
 	return wfuo.mutation
 }
 
+// Where appends a list predicates to the WithFieldsUpdate builder.
+func (wfuo *WithFieldsUpdateOne) Where(ps ...predicate.WithFields) *WithFieldsUpdateOne {
+	wfuo.mutation.Where(ps...)
+	return wfuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (wfuo *WithFieldsUpdateOne) Select(field string, fields ...string) *WithFieldsUpdateOne {
@@ -152,16 +149,7 @@ func (wfuo *WithFieldsUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (wfuo *WithFieldsUpdateOne) sqlSave(ctx context.Context) (_node *WithFields, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withfields.Table,
-			Columns: withfields.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withfields.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(withfields.Table, withfields.Columns, sqlgraph.NewFieldSpec(withfields.FieldID, field.TypeInt))
 	id, ok := wfuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "WithFields.id" for update`)}

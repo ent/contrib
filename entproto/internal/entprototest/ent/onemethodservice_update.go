@@ -60,16 +60,7 @@ func (omsu *OneMethodServiceUpdate) ExecX(ctx context.Context) {
 }
 
 func (omsu *OneMethodServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   onemethodservice.Table,
-			Columns: onemethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(onemethodservice.Table, onemethodservice.Columns, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	if ps := omsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -100,6 +91,12 @@ type OneMethodServiceUpdateOne struct {
 // Mutation returns the OneMethodServiceMutation object of the builder.
 func (omsuo *OneMethodServiceUpdateOne) Mutation() *OneMethodServiceMutation {
 	return omsuo.mutation
+}
+
+// Where appends a list predicates to the OneMethodServiceUpdate builder.
+func (omsuo *OneMethodServiceUpdateOne) Where(ps ...predicate.OneMethodService) *OneMethodServiceUpdateOne {
+	omsuo.mutation.Where(ps...)
+	return omsuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -137,16 +134,7 @@ func (omsuo *OneMethodServiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (omsuo *OneMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *OneMethodService, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   onemethodservice.Table,
-			Columns: onemethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(onemethodservice.Table, onemethodservice.Columns, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	id, ok := omsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "OneMethodService.id" for update`)}

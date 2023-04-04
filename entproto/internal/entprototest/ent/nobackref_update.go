@@ -98,16 +98,7 @@ func (nbu *NoBackrefUpdate) ExecX(ctx context.Context) {
 }
 
 func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nobackref.Table,
-			Columns: nobackref.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nobackref.Table, nobackref.Columns, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
 	if ps := nbu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -123,10 +114,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -139,10 +127,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -158,10 +143,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -230,6 +212,12 @@ func (nbuo *NoBackrefUpdateOne) RemoveImages(i ...*Image) *NoBackrefUpdateOne {
 	return nbuo.RemoveImageIDs(ids...)
 }
 
+// Where appends a list predicates to the NoBackrefUpdate builder.
+func (nbuo *NoBackrefUpdateOne) Where(ps ...predicate.NoBackref) *NoBackrefUpdateOne {
+	nbuo.mutation.Where(ps...)
+	return nbuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (nbuo *NoBackrefUpdateOne) Select(field string, fields ...string) *NoBackrefUpdateOne {
@@ -265,16 +253,7 @@ func (nbuo *NoBackrefUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nobackref.Table,
-			Columns: nobackref.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nobackref.Table, nobackref.Columns, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
 	id, ok := nbuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "NoBackref.id" for update`)}
@@ -307,10 +286,7 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -323,10 +299,7 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -342,10 +315,7 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

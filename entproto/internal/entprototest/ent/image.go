@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -22,6 +23,7 @@ type Image struct {
 	// The values are being populated by the ImageQuery when eager-loading is set.
 	Edges             ImageEdges `json:"edges"`
 	no_backref_images *int
+	selectValues      sql.SelectValues
 }
 
 // ImageEdges holds the relations/edges for other nodes in the graph.
@@ -54,7 +56,7 @@ func (*Image) scanValues(columns []string) ([]any, error) {
 		case image.ForeignKeys[0]: // no_backref_images
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Image", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -87,9 +89,17 @@ func (i *Image) assignValues(columns []string, values []any) error {
 				i.no_backref_images = new(int)
 				*i.no_backref_images = int(value.Int64)
 			}
+		default:
+			i.selectValues.Set(columns[j], values[j])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Image.
+// This includes values selected through modifiers, order, etc.
+func (i *Image) Value(name string) (ent.Value, error) {
+	return i.selectValues.Get(name)
 }
 
 // QueryUserProfilePic queries the "user_profile_pic" edge of the Image entity.
@@ -128,9 +138,3 @@ func (i *Image) String() string {
 
 // Images is a parsable slice of Image.
 type Images []*Image
-
-func (i Images) config(cfg config) {
-	for _i := range i {
-		i[_i].config = cfg
-	}
-}

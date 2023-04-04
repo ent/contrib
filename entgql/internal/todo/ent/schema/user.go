@@ -38,6 +38,8 @@ func (User) Fields() []ent.Field {
 		field.String("password").
 			Sensitive().
 			Optional(),
+		field.JSON("metadata", map[string]interface{}{}).
+			Optional(),
 	}
 }
 
@@ -45,6 +47,7 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("groups", Group.Type).
+			Comment("The groups of the user").
 			Annotations(entgql.RelayConnection()),
 		edge.To("friends", User.Type).
 			Through("friendships", Friendship.Type).

@@ -66,6 +66,16 @@ func IDLTE(id string) predicate.VerySecret {
 	return predicate.VerySecret(sql.FieldLTE(FieldID, id))
 }
 
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.VerySecret {
+	return predicate.VerySecret(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.VerySecret {
+	return predicate.VerySecret(sql.FieldContainsFold(FieldID, id))
+}
+
 // Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
 func Password(v string) predicate.VerySecret {
 	return predicate.VerySecret(sql.FieldEQ(FieldPassword, v))

@@ -54,15 +54,7 @@ func (vsd *VerySecretDelete) ExecX(ctx context.Context) int {
 }
 
 func (vsd *VerySecretDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: verysecret.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: verysecret.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(verysecret.Table, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeUUID))
 	if ps := vsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -83,6 +75,12 @@ type VerySecretDeleteOne struct {
 	vsd *VerySecretDelete
 }
 
+// Where appends a list predicates to the VerySecretDelete builder.
+func (vsdo *VerySecretDeleteOne) Where(ps ...predicate.VerySecret) *VerySecretDeleteOne {
+	vsdo.vsd.mutation.Where(ps...)
+	return vsdo
+}
+
 // Exec executes the deletion query.
 func (vsdo *VerySecretDeleteOne) Exec(ctx context.Context) error {
 	n, err := vsdo.vsd.Exec(ctx)
@@ -98,5 +96,7 @@ func (vsdo *VerySecretDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (vsdo *VerySecretDeleteOne) ExecX(ctx context.Context) {
-	vsdo.vsd.ExecX(ctx)
+	if err := vsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -13,9 +13,8 @@ import (
 	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/task"
 	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/user"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
