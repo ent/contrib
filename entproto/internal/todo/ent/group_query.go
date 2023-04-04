@@ -20,7 +20,7 @@ import (
 type GroupQuery struct {
 	config
 	ctx        *QueryContext
-	order      []group.Order
+	order      []group.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Group
 	withUsers  *UserQuery
@@ -55,7 +55,7 @@ func (gq *GroupQuery) Unique(unique bool) *GroupQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (gq *GroupQuery) Order(o ...group.Order) *GroupQuery {
+func (gq *GroupQuery) Order(o ...group.OrderOption) *GroupQuery {
 	gq.order = append(gq.order, o...)
 	return gq
 }
@@ -271,7 +271,7 @@ func (gq *GroupQuery) Clone() *GroupQuery {
 	return &GroupQuery{
 		config:     gq.config,
 		ctx:        gq.ctx.Clone(),
-		order:      append([]group.Order{}, gq.order...),
+		order:      append([]group.OrderOption{}, gq.order...),
 		inters:     append([]Interceptor{}, gq.inters...),
 		predicates: append([]predicate.Group{}, gq.predicates...),
 		withUsers:  gq.withUsers.Clone(),
@@ -414,7 +414,7 @@ func (gq *GroupQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*
 	}
 	query.withFKs = true
 	query.Where(predicate.User(func(s *sql.Selector) {
-		s.Where(sql.InValues(group.UsersColumn, fks...))
+		s.Where(sql.InValues(s.C(group.UsersColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

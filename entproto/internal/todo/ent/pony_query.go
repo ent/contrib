@@ -18,7 +18,7 @@ import (
 type PonyQuery struct {
 	config
 	ctx        *QueryContext
-	order      []pony.Order
+	order      []pony.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Pony
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (pq *PonyQuery) Unique(unique bool) *PonyQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PonyQuery) Order(o ...pony.Order) *PonyQuery {
+func (pq *PonyQuery) Order(o ...pony.OrderOption) *PonyQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -246,7 +246,7 @@ func (pq *PonyQuery) Clone() *PonyQuery {
 	return &PonyQuery{
 		config:     pq.config,
 		ctx:        pq.ctx.Clone(),
-		order:      append([]pony.Order{}, pq.order...),
+		order:      append([]pony.OrderOption{}, pq.order...),
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Pony{}, pq.predicates...),
 		// clone intermediate query.

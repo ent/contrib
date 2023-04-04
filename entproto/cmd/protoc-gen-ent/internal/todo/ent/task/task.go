@@ -42,30 +42,30 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the Task queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the Task queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.
-func ByTitle(opts ...sql.OrderTermOption) Order {
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.
-func ByDescription(opts ...sql.OrderTermOption) Order {
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
 // ByComplete orders the results by the complete field.
-func ByComplete(opts ...sql.OrderTermOption) Order {
+func ByComplete(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldComplete, opts...).ToFunc()
 }
 
 // BySignature orders the results by the signature field.
-func BySignature(opts ...sql.OrderTermOption) Order {
+func BySignature(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSignature, opts...).ToFunc()
 }

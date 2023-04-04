@@ -33,7 +33,7 @@ import (
 type BillProductQuery struct {
 	config
 	ctx        *QueryContext
-	order      []billproduct.Order
+	order      []billproduct.OrderOption
 	inters     []Interceptor
 	predicates []predicate.BillProduct
 	modifiers  []func(*sql.Selector)
@@ -69,7 +69,7 @@ func (bpq *BillProductQuery) Unique(unique bool) *BillProductQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (bpq *BillProductQuery) Order(o ...billproduct.Order) *BillProductQuery {
+func (bpq *BillProductQuery) Order(o ...billproduct.OrderOption) *BillProductQuery {
 	bpq.order = append(bpq.order, o...)
 	return bpq
 }
@@ -263,7 +263,7 @@ func (bpq *BillProductQuery) Clone() *BillProductQuery {
 	return &BillProductQuery{
 		config:     bpq.config,
 		ctx:        bpq.ctx.Clone(),
-		order:      append([]billproduct.Order{}, bpq.order...),
+		order:      append([]billproduct.OrderOption{}, bpq.order...),
 		inters:     append([]Interceptor{}, bpq.inters...),
 		predicates: append([]predicate.BillProduct{}, bpq.predicates...),
 		// clone intermediate query.

@@ -20,7 +20,7 @@ import (
 type NoBackrefQuery struct {
 	config
 	ctx        *QueryContext
-	order      []nobackref.Order
+	order      []nobackref.OrderOption
 	inters     []Interceptor
 	predicates []predicate.NoBackref
 	withImages *ImageQuery
@@ -55,7 +55,7 @@ func (nbq *NoBackrefQuery) Unique(unique bool) *NoBackrefQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (nbq *NoBackrefQuery) Order(o ...nobackref.Order) *NoBackrefQuery {
+func (nbq *NoBackrefQuery) Order(o ...nobackref.OrderOption) *NoBackrefQuery {
 	nbq.order = append(nbq.order, o...)
 	return nbq
 }
@@ -271,7 +271,7 @@ func (nbq *NoBackrefQuery) Clone() *NoBackrefQuery {
 	return &NoBackrefQuery{
 		config:     nbq.config,
 		ctx:        nbq.ctx.Clone(),
-		order:      append([]nobackref.Order{}, nbq.order...),
+		order:      append([]nobackref.OrderOption{}, nbq.order...),
 		inters:     append([]Interceptor{}, nbq.inters...),
 		predicates: append([]predicate.NoBackref{}, nbq.predicates...),
 		withImages: nbq.withImages.Clone(),
@@ -392,7 +392,7 @@ func (nbq *NoBackrefQuery) loadImages(ctx context.Context, query *ImageQuery, no
 	}
 	query.withFKs = true
 	query.Where(predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.InValues(nobackref.ImagesColumn, fks...))
+		s.Where(sql.InValues(s.C(nobackref.ImagesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

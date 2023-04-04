@@ -18,7 +18,7 @@ import (
 type MessageWithIDQuery struct {
 	config
 	ctx        *QueryContext
-	order      []messagewithid.Order
+	order      []messagewithid.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithID
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwiq *MessageWithIDQuery) Unique(unique bool) *MessageWithIDQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mwiq *MessageWithIDQuery) Order(o ...messagewithid.Order) *MessageWithIDQuery {
+func (mwiq *MessageWithIDQuery) Order(o ...messagewithid.OrderOption) *MessageWithIDQuery {
 	mwiq.order = append(mwiq.order, o...)
 	return mwiq
 }
@@ -246,7 +246,7 @@ func (mwiq *MessageWithIDQuery) Clone() *MessageWithIDQuery {
 	return &MessageWithIDQuery{
 		config:     mwiq.config,
 		ctx:        mwiq.ctx.Clone(),
-		order:      append([]messagewithid.Order{}, mwiq.order...),
+		order:      append([]messagewithid.OrderOption{}, mwiq.order...),
 		inters:     append([]Interceptor{}, mwiq.inters...),
 		predicates: append([]predicate.MessageWithID{}, mwiq.predicates...),
 		// clone intermediate query.

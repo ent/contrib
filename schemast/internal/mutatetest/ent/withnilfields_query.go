@@ -18,7 +18,7 @@ import (
 type WithNilFieldsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []withnilfields.Order
+	order      []withnilfields.OrderOption
 	inters     []Interceptor
 	predicates []predicate.WithNilFields
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (wnfq *WithNilFieldsQuery) Unique(unique bool) *WithNilFieldsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (wnfq *WithNilFieldsQuery) Order(o ...withnilfields.Order) *WithNilFieldsQuery {
+func (wnfq *WithNilFieldsQuery) Order(o ...withnilfields.OrderOption) *WithNilFieldsQuery {
 	wnfq.order = append(wnfq.order, o...)
 	return wnfq
 }
@@ -246,7 +246,7 @@ func (wnfq *WithNilFieldsQuery) Clone() *WithNilFieldsQuery {
 	return &WithNilFieldsQuery{
 		config:     wnfq.config,
 		ctx:        wnfq.ctx.Clone(),
-		order:      append([]withnilfields.Order{}, wnfq.order...),
+		order:      append([]withnilfields.OrderOption{}, wnfq.order...),
 		inters:     append([]Interceptor{}, wnfq.inters...),
 		predicates: append([]predicate.WithNilFields{}, wnfq.predicates...),
 		// clone intermediate query.

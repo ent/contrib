@@ -34,7 +34,7 @@ import (
 type CategoryQuery struct {
 	config
 	ctx            *QueryContext
-	order          []category.Order
+	order          []category.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Category
 	withTodos      *TodoQuery
@@ -72,7 +72,7 @@ func (cq *CategoryQuery) Unique(unique bool) *CategoryQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (cq *CategoryQuery) Order(o ...category.Order) *CategoryQuery {
+func (cq *CategoryQuery) Order(o ...category.OrderOption) *CategoryQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -288,7 +288,7 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 	return &CategoryQuery{
 		config:     cq.config,
 		ctx:        cq.ctx.Clone(),
-		order:      append([]category.Order{}, cq.order...),
+		order:      append([]category.OrderOption{}, cq.order...),
 		inters:     append([]Interceptor{}, cq.inters...),
 		predicates: append([]predicate.Category{}, cq.predicates...),
 		withTodos:  cq.withTodos.Clone(),
@@ -446,7 +446,7 @@ func (cq *CategoryQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes 
 	}
 	query.withFKs = true
 	query.Where(predicate.Todo(func(s *sql.Selector) {
-		s.Where(sql.InValues(category.TodosColumn, fks...))
+		s.Where(sql.InValues(s.C(category.TodosColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

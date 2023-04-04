@@ -27,6 +27,10 @@ import (
 	"github.com/google/uuid"
 )
 
+func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
 	panic(fmt.Errorf("not implemented"))
 }

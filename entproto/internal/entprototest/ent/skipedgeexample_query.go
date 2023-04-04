@@ -19,7 +19,7 @@ import (
 type SkipEdgeExampleQuery struct {
 	config
 	ctx        *QueryContext
-	order      []skipedgeexample.Order
+	order      []skipedgeexample.OrderOption
 	inters     []Interceptor
 	predicates []predicate.SkipEdgeExample
 	withUser   *UserQuery
@@ -55,7 +55,7 @@ func (seeq *SkipEdgeExampleQuery) Unique(unique bool) *SkipEdgeExampleQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (seeq *SkipEdgeExampleQuery) Order(o ...skipedgeexample.Order) *SkipEdgeExampleQuery {
+func (seeq *SkipEdgeExampleQuery) Order(o ...skipedgeexample.OrderOption) *SkipEdgeExampleQuery {
 	seeq.order = append(seeq.order, o...)
 	return seeq
 }
@@ -271,7 +271,7 @@ func (seeq *SkipEdgeExampleQuery) Clone() *SkipEdgeExampleQuery {
 	return &SkipEdgeExampleQuery{
 		config:     seeq.config,
 		ctx:        seeq.ctx.Clone(),
-		order:      append([]skipedgeexample.Order{}, seeq.order...),
+		order:      append([]skipedgeexample.OrderOption{}, seeq.order...),
 		inters:     append([]Interceptor{}, seeq.inters...),
 		predicates: append([]predicate.SkipEdgeExample{}, seeq.predicates...),
 		withUser:   seeq.withUser.Clone(),

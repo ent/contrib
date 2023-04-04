@@ -18,7 +18,7 @@ import (
 type WithFieldsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []withfields.Order
+	order      []withfields.OrderOption
 	inters     []Interceptor
 	predicates []predicate.WithFields
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (wfq *WithFieldsQuery) Unique(unique bool) *WithFieldsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (wfq *WithFieldsQuery) Order(o ...withfields.Order) *WithFieldsQuery {
+func (wfq *WithFieldsQuery) Order(o ...withfields.OrderOption) *WithFieldsQuery {
 	wfq.order = append(wfq.order, o...)
 	return wfq
 }
@@ -246,7 +246,7 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 	return &WithFieldsQuery{
 		config:     wfq.config,
 		ctx:        wfq.ctx.Clone(),
-		order:      append([]withfields.Order{}, wfq.order...),
+		order:      append([]withfields.OrderOption{}, wfq.order...),
 		inters:     append([]Interceptor{}, wfq.inters...),
 		predicates: append([]predicate.WithFields{}, wfq.predicates...),
 		// clone intermediate query.

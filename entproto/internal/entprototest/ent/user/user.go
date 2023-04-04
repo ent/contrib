@@ -103,52 +103,52 @@ func StatusValidator(s Status) error {
 	}
 }
 
-// Order defines the ordering method for the User queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the User queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByUserName orders the results by the user_name field.
-func ByUserName(opts ...sql.OrderTermOption) Order {
+func ByUserName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserName, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) Order {
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByUnnecessary orders the results by the unnecessary field.
-func ByUnnecessary(opts ...sql.OrderTermOption) Order {
+func ByUnnecessary(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUnnecessary, opts...).ToFunc()
 }
 
 // ByBlogPostsCount orders the results by blog_posts count.
-func ByBlogPostsCount(opts ...sql.OrderTermOption) Order {
+func ByBlogPostsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborsCount(s, newBlogPostsStep(), opts...)
 	}
 }
 
 // ByBlogPosts orders the results by blog_posts terms.
-func ByBlogPosts(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+func ByBlogPosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newBlogPostsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
 // ByProfilePicField orders the results by profile_pic field.
-func ByProfilePicField(field string, opts ...sql.OrderTermOption) Order {
+func ByProfilePicField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newProfilePicStep(), sql.OrderByField(field, opts...))
 	}
 }
 
 // BySkipEdgeField orders the results by skip_edge field.
-func BySkipEdgeField(field string, opts ...sql.OrderTermOption) Order {
+func BySkipEdgeField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSkipEdgeStep(), sql.OrderByField(field, opts...))
 	}

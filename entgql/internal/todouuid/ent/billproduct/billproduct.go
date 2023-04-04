@@ -59,25 +59,25 @@ var (
 	DefaultID func() uuid.UUID
 )
 
-// Order defines the ordering method for the BillProduct queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the BillProduct queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) Order {
+func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // BySku orders the results by the sku field.
-func BySku(opts ...sql.OrderTermOption) Order {
+func BySku(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSku, opts...).ToFunc()
 }
 
 // ByQuantity orders the results by the quantity field.
-func ByQuantity(opts ...sql.OrderTermOption) Order {
+func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
 }

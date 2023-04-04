@@ -89,20 +89,20 @@ func EnumWithoutDefaultValidator(ewd EnumWithoutDefault) error {
 	}
 }
 
-// Order defines the ordering method for the MessageWithEnum queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the MessageWithEnum queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByEnumType orders the results by the enum_type field.
-func ByEnumType(opts ...sql.OrderTermOption) Order {
+func ByEnumType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnumType, opts...).ToFunc()
 }
 
 // ByEnumWithoutDefault orders the results by the enum_without_default field.
-func ByEnumWithoutDefault(opts ...sql.OrderTermOption) Order {
+func ByEnumWithoutDefault(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnumWithoutDefault, opts...).ToFunc()
 }

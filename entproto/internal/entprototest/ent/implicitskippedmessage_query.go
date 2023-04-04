@@ -18,7 +18,7 @@ import (
 type ImplicitSkippedMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []implicitskippedmessage.Order
+	order      []implicitskippedmessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ImplicitSkippedMessage
 	withFKs    bool
@@ -53,7 +53,7 @@ func (ismq *ImplicitSkippedMessageQuery) Unique(unique bool) *ImplicitSkippedMes
 }
 
 // Order specifies how the records should be ordered.
-func (ismq *ImplicitSkippedMessageQuery) Order(o ...implicitskippedmessage.Order) *ImplicitSkippedMessageQuery {
+func (ismq *ImplicitSkippedMessageQuery) Order(o ...implicitskippedmessage.OrderOption) *ImplicitSkippedMessageQuery {
 	ismq.order = append(ismq.order, o...)
 	return ismq
 }
@@ -247,7 +247,7 @@ func (ismq *ImplicitSkippedMessageQuery) Clone() *ImplicitSkippedMessageQuery {
 	return &ImplicitSkippedMessageQuery{
 		config:     ismq.config,
 		ctx:        ismq.ctx.Clone(),
-		order:      append([]implicitskippedmessage.Order{}, ismq.order...),
+		order:      append([]implicitskippedmessage.OrderOption{}, ismq.order...),
 		inters:     append([]Interceptor{}, ismq.inters...),
 		predicates: append([]predicate.ImplicitSkippedMessage{}, ismq.predicates...),
 		// clone intermediate query.
