@@ -86,16 +86,7 @@ func (seeu *SkipEdgeExampleUpdate) ExecX(ctx context.Context) {
 }
 
 func (seeu *SkipEdgeExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   skipedgeexample.Table,
-			Columns: skipedgeexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(skipedgeexample.Table, skipedgeexample.Columns, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
 	if ps := seeu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -111,10 +102,7 @@ func (seeu *SkipEdgeExampleUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{skipedgeexample.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -127,10 +115,7 @@ func (seeu *SkipEdgeExampleUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Columns: []string{skipedgeexample.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -188,6 +173,12 @@ func (seeuo *SkipEdgeExampleUpdateOne) ClearUser() *SkipEdgeExampleUpdateOne {
 	return seeuo
 }
 
+// Where appends a list predicates to the SkipEdgeExampleUpdate builder.
+func (seeuo *SkipEdgeExampleUpdateOne) Where(ps ...predicate.SkipEdgeExample) *SkipEdgeExampleUpdateOne {
+	seeuo.mutation.Where(ps...)
+	return seeuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (seeuo *SkipEdgeExampleUpdateOne) Select(field string, fields ...string) *SkipEdgeExampleUpdateOne {
@@ -223,16 +214,7 @@ func (seeuo *SkipEdgeExampleUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (seeuo *SkipEdgeExampleUpdateOne) sqlSave(ctx context.Context) (_node *SkipEdgeExample, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   skipedgeexample.Table,
-			Columns: skipedgeexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(skipedgeexample.Table, skipedgeexample.Columns, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
 	id, ok := seeuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "SkipEdgeExample.id" for update`)}
@@ -265,10 +247,7 @@ func (seeuo *SkipEdgeExampleUpdateOne) sqlSave(ctx context.Context) (_node *Skip
 			Columns: []string{skipedgeexample.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -281,10 +260,7 @@ func (seeuo *SkipEdgeExampleUpdateOne) sqlSave(ctx context.Context) (_node *Skip
 			Columns: []string{skipedgeexample.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

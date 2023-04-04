@@ -177,10 +177,12 @@ func (tmsq *TwoMethodServiceQuery) AllX(ctx context.Context) []*TwoMethodService
 }
 
 // IDs executes the query and returns a list of TwoMethodService IDs.
-func (tmsq *TwoMethodServiceQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (tmsq *TwoMethodServiceQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if tmsq.ctx.Unique == nil && tmsq.path != nil {
+		tmsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, tmsq.ctx, "IDs")
-	if err := tmsq.Select(twomethodservice.FieldID).Scan(ctx, &ids); err != nil {
+	if err = tmsq.Select(twomethodservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -340,20 +342,12 @@ func (tmsq *TwoMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tmsq *TwoMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   twomethodservice.Table,
-			Columns: twomethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		},
-		From:   tmsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(twomethodservice.Table, twomethodservice.Columns, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
+	_spec.From = tmsq.sql
 	if unique := tmsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if tmsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := tmsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

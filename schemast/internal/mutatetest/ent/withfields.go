@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,7 +17,8 @@ type WithFields struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Existing holds the value of the "existing" field.
-	Existing string `json:"existing,omitempty"`
+	Existing     string `json:"existing,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -29,7 +31,7 @@ func (*WithFields) scanValues(columns []string) ([]any, error) {
 		case withfields.FieldExisting:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type WithFields", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -55,9 +57,17 @@ func (wf *WithFields) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				wf.Existing = value.String
 			}
+		default:
+			wf.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the WithFields.
+// This includes values selected through modifiers, order, etc.
+func (wf *WithFields) Value(name string) (ent.Value, error) {
+	return wf.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this WithFields.
@@ -91,9 +101,3 @@ func (wf *WithFields) String() string {
 
 // WithFieldsSlice is a parsable slice of WithFields.
 type WithFieldsSlice []*WithFields
-
-func (wf WithFieldsSlice) config(cfg config) {
-	for _i := range wf {
-		wf[_i].config = cfg
-	}
-}

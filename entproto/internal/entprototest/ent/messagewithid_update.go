@@ -60,16 +60,7 @@ func (mwiu *MessageWithIDUpdate) ExecX(ctx context.Context) {
 }
 
 func (mwiu *MessageWithIDUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithid.Table,
-			Columns: messagewithid.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt32,
-				Column: messagewithid.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithid.Table, messagewithid.Columns, sqlgraph.NewFieldSpec(messagewithid.FieldID, field.TypeInt32))
 	if ps := mwiu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -100,6 +91,12 @@ type MessageWithIDUpdateOne struct {
 // Mutation returns the MessageWithIDMutation object of the builder.
 func (mwiuo *MessageWithIDUpdateOne) Mutation() *MessageWithIDMutation {
 	return mwiuo.mutation
+}
+
+// Where appends a list predicates to the MessageWithIDUpdate builder.
+func (mwiuo *MessageWithIDUpdateOne) Where(ps ...predicate.MessageWithID) *MessageWithIDUpdateOne {
+	mwiuo.mutation.Where(ps...)
+	return mwiuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -137,16 +134,7 @@ func (mwiuo *MessageWithIDUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mwiuo *MessageWithIDUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithID, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithid.Table,
-			Columns: messagewithid.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt32,
-				Column: messagewithid.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithid.Table, messagewithid.Columns, sqlgraph.NewFieldSpec(messagewithid.FieldID, field.TypeInt32))
 	id, ok := mwiuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithID.id" for update`)}

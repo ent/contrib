@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -30,7 +31,8 @@ type VerySecret struct {
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
 	// Password holds the value of the "password" field.
-	Password string `json:"password,omitempty"`
+	Password     string `json:"password,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,7 +43,7 @@ func (*VerySecret) scanValues(columns []string) ([]any, error) {
 		case verysecret.FieldID, verysecret.FieldPassword:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type VerySecret", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -67,9 +69,17 @@ func (vs *VerySecret) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				vs.Password = value.String
 			}
+		default:
+			vs.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the VerySecret.
+// This includes values selected through modifiers, order, etc.
+func (vs *VerySecret) Value(name string) (ent.Value, error) {
+	return vs.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this VerySecret.
@@ -103,9 +113,3 @@ func (vs *VerySecret) String() string {
 
 // VerySecrets is a parsable slice of VerySecret.
 type VerySecrets []*VerySecret
-
-func (vs VerySecrets) config(cfg config) {
-	for _i := range vs {
-		vs[_i].config = cfg
-	}
-}

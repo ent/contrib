@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type AllMethodsService struct {
 	config
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID           int `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*AllMethodsService) scanValues(columns []string) ([]any, error) {
 		case allmethodsservice.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type AllMethodsService", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,9 +47,17 @@ func (ams *AllMethodsService) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			ams.ID = int(value.Int64)
+		default:
+			ams.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the AllMethodsService.
+// This includes values selected through modifiers, order, etc.
+func (ams *AllMethodsService) Value(name string) (ent.Value, error) {
+	return ams.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this AllMethodsService.
@@ -79,9 +89,3 @@ func (ams *AllMethodsService) String() string {
 
 // AllMethodsServices is a parsable slice of AllMethodsService.
 type AllMethodsServices []*AllMethodsService
-
-func (ams AllMethodsServices) config(cfg config) {
-	for _i := range ams {
-		ams[_i].config = cfg
-	}
-}

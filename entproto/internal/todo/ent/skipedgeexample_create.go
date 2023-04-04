@@ -96,13 +96,7 @@ func (seec *SkipEdgeExampleCreate) sqlSave(ctx context.Context) (*SkipEdgeExampl
 func (seec *SkipEdgeExampleCreate) createSpec() (*SkipEdgeExample, *sqlgraph.CreateSpec) {
 	var (
 		_node = &SkipEdgeExample{config: seec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: skipedgeexample.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(skipedgeexample.Table, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
 	)
 	if nodes := seec.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -112,10 +106,7 @@ func (seec *SkipEdgeExampleCreate) createSpec() (*SkipEdgeExample, *sqlgraph.Cre
 			Columns: []string{skipedgeexample.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint32,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint32),
 			},
 		}
 		for _, k := range nodes {
@@ -150,8 +141,8 @@ func (seecb *SkipEdgeExampleCreateBulk) Save(ctx context.Context) ([]*SkipEdgeEx
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, seecb.builders[i+1].mutation)
 				} else {

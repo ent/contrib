@@ -235,16 +235,7 @@ func (mwou *MessageWithOptionalsUpdate) ExecX(ctx context.Context) {
 }
 
 func (mwou *MessageWithOptionalsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithoptionals.Table,
-			Columns: messagewithoptionals.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithoptionals.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithoptionals.Table, messagewithoptionals.Columns, sqlgraph.NewFieldSpec(messagewithoptionals.FieldID, field.TypeInt))
 	if ps := mwou.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -507,6 +498,12 @@ func (mwouo *MessageWithOptionalsUpdateOne) Mutation() *MessageWithOptionalsMuta
 	return mwouo.mutation
 }
 
+// Where appends a list predicates to the MessageWithOptionalsUpdate builder.
+func (mwouo *MessageWithOptionalsUpdateOne) Where(ps ...predicate.MessageWithOptionals) *MessageWithOptionalsUpdateOne {
+	mwouo.mutation.Where(ps...)
+	return mwouo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mwouo *MessageWithOptionalsUpdateOne) Select(field string, fields ...string) *MessageWithOptionalsUpdateOne {
@@ -542,16 +539,7 @@ func (mwouo *MessageWithOptionalsUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mwouo *MessageWithOptionalsUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithOptionals, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithoptionals.Table,
-			Columns: messagewithoptionals.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithoptionals.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithoptionals.Table, messagewithoptionals.Columns, sqlgraph.NewFieldSpec(messagewithoptionals.FieldID, field.TypeInt))
 	id, ok := mwouo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithOptionals.id" for update`)}

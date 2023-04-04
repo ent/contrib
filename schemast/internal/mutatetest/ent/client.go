@@ -9,13 +9,13 @@ import (
 	"log"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/migrate"
+	"entgo.io/ent"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/user"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withnilfields"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withoutfields"
-
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -54,6 +54,55 @@ func (c *Client) init() {
 	c.WithModifiedField = NewWithModifiedFieldClient(c.config)
 	c.WithNilFields = NewWithNilFieldsClient(c.config)
 	c.WithoutFields = NewWithoutFieldsClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -195,7 +244,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
 func (c *UserClient) Intercept(interceptors ...Interceptor) {
 	c.inters.User = append(c.inters.User, interceptors...)
@@ -313,7 +362,7 @@ func (c *WithFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithFields = append(c.hooks.WithFields, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `withfields.Intercept(f(g(h())))`.
 func (c *WithFieldsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.WithFields = append(c.inters.WithFields, interceptors...)
@@ -431,7 +480,7 @@ func (c *WithModifiedFieldClient) Use(hooks ...Hook) {
 	c.hooks.WithModifiedField = append(c.hooks.WithModifiedField, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `withmodifiedfield.Intercept(f(g(h())))`.
 func (c *WithModifiedFieldClient) Intercept(interceptors ...Interceptor) {
 	c.inters.WithModifiedField = append(c.inters.WithModifiedField, interceptors...)
@@ -565,7 +614,7 @@ func (c *WithNilFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithNilFields = append(c.hooks.WithNilFields, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `withnilfields.Intercept(f(g(h())))`.
 func (c *WithNilFieldsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.WithNilFields = append(c.inters.WithNilFields, interceptors...)
@@ -683,7 +732,7 @@ func (c *WithoutFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithoutFields = append(c.hooks.WithoutFields, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `withoutfields.Intercept(f(g(h())))`.
 func (c *WithoutFieldsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.WithoutFields = append(c.inters.WithoutFields, interceptors...)
@@ -784,3 +833,14 @@ func (c *WithoutFieldsClient) mutate(ctx context.Context, m *WithoutFieldsMutati
 		return nil, fmt.Errorf("ent: unknown WithoutFields mutation op: %q", m.Op())
 	}
 }
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		User, WithFields, WithModifiedField, WithNilFields, WithoutFields []ent.Hook
+	}
+	inters struct {
+		User, WithFields, WithModifiedField, WithNilFields,
+		WithoutFields []ent.Interceptor
+	}
+)

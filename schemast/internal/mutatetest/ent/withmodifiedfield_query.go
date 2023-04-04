@@ -202,10 +202,12 @@ func (wmfq *WithModifiedFieldQuery) AllX(ctx context.Context) []*WithModifiedFie
 }
 
 // IDs executes the query and returns a list of WithModifiedField IDs.
-func (wmfq *WithModifiedFieldQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (wmfq *WithModifiedFieldQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if wmfq.ctx.Unique == nil && wmfq.path != nil {
+		wmfq.Unique(true)
+	}
 	ctx = setContextOp(ctx, wmfq.ctx, "IDs")
-	if err := wmfq.Select(withmodifiedfield.FieldID).Scan(ctx, &ids); err != nil {
+	if err = wmfq.Select(withmodifiedfield.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -449,20 +451,12 @@ func (wmfq *WithModifiedFieldQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wmfq *WithModifiedFieldQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withmodifiedfield.Table,
-			Columns: withmodifiedfield.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withmodifiedfield.FieldID,
-			},
-		},
-		From:   wmfq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(withmodifiedfield.Table, withmodifiedfield.Columns, sqlgraph.NewFieldSpec(withmodifiedfield.FieldID, field.TypeInt))
+	_spec.From = wmfq.sql
 	if unique := wmfq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if wmfq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := wmfq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

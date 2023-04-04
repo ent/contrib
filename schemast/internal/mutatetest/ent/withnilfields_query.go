@@ -177,10 +177,12 @@ func (wnfq *WithNilFieldsQuery) AllX(ctx context.Context) []*WithNilFields {
 }
 
 // IDs executes the query and returns a list of WithNilFields IDs.
-func (wnfq *WithNilFieldsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (wnfq *WithNilFieldsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if wnfq.ctx.Unique == nil && wnfq.path != nil {
+		wnfq.Unique(true)
+	}
 	ctx = setContextOp(ctx, wnfq.ctx, "IDs")
-	if err := wnfq.Select(withnilfields.FieldID).Scan(ctx, &ids); err != nil {
+	if err = wnfq.Select(withnilfields.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -340,20 +342,12 @@ func (wnfq *WithNilFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wnfq *WithNilFieldsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withnilfields.Table,
-			Columns: withnilfields.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withnilfields.FieldID,
-			},
-		},
-		From:   wnfq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(withnilfields.Table, withnilfields.Columns, sqlgraph.NewFieldSpec(withnilfields.FieldID, field.TypeInt))
+	_spec.From = wnfq.sql
 	if unique := wnfq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if wnfq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := wnfq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

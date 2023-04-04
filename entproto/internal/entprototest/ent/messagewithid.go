@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type MessageWithID struct {
 	config
 	// ID of the ent.
-	ID int32 `json:"id,omitempty"`
+	ID           int32 `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*MessageWithID) scanValues(columns []string) ([]any, error) {
 		case messagewithid.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type MessageWithID", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,9 +47,17 @@ func (mwi *MessageWithID) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			mwi.ID = int32(value.Int64)
+		default:
+			mwi.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the MessageWithID.
+// This includes values selected through modifiers, order, etc.
+func (mwi *MessageWithID) Value(name string) (ent.Value, error) {
+	return mwi.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MessageWithID.
@@ -79,9 +89,3 @@ func (mwi *MessageWithID) String() string {
 
 // MessageWithIDs is a parsable slice of MessageWithID.
 type MessageWithIDs []*MessageWithID
-
-func (mwi MessageWithIDs) config(cfg config) {
-	for _i := range mwi {
-		mwi[_i].config = cfg
-	}
-}

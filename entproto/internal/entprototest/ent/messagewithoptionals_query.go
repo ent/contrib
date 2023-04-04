@@ -177,10 +177,12 @@ func (mwoq *MessageWithOptionalsQuery) AllX(ctx context.Context) []*MessageWithO
 }
 
 // IDs executes the query and returns a list of MessageWithOptionals IDs.
-func (mwoq *MessageWithOptionalsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mwoq *MessageWithOptionalsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwoq.ctx.Unique == nil && mwoq.path != nil {
+		mwoq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mwoq.ctx, "IDs")
-	if err := mwoq.Select(messagewithoptionals.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mwoq.Select(messagewithoptionals.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (mwoq *MessageWithOptionalsQuery) sqlCount(ctx context.Context) (int, error
 }
 
 func (mwoq *MessageWithOptionalsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithoptionals.Table,
-			Columns: messagewithoptionals.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithoptionals.FieldID,
-			},
-		},
-		From:   mwoq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(messagewithoptionals.Table, messagewithoptionals.Columns, sqlgraph.NewFieldSpec(messagewithoptionals.FieldID, field.TypeInt))
+	_spec.From = mwoq.sql
 	if unique := mwoq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwoq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mwoq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

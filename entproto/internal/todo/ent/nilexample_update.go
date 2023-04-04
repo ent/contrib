@@ -101,16 +101,7 @@ func (neu *NilExampleUpdate) ExecX(ctx context.Context) {
 }
 
 func (neu *NilExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nilexample.Table,
-			Columns: nilexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nilexample.Table, nilexample.Columns, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
 	if ps := neu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -195,6 +186,12 @@ func (neuo *NilExampleUpdateOne) Mutation() *NilExampleMutation {
 	return neuo.mutation
 }
 
+// Where appends a list predicates to the NilExampleUpdate builder.
+func (neuo *NilExampleUpdateOne) Where(ps ...predicate.NilExample) *NilExampleUpdateOne {
+	neuo.mutation.Where(ps...)
+	return neuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (neuo *NilExampleUpdateOne) Select(field string, fields ...string) *NilExampleUpdateOne {
@@ -230,16 +227,7 @@ func (neuo *NilExampleUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (neuo *NilExampleUpdateOne) sqlSave(ctx context.Context) (_node *NilExample, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nilexample.Table,
-			Columns: nilexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nilexample.Table, nilexample.Columns, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
 	id, ok := neuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "NilExample.id" for update`)}

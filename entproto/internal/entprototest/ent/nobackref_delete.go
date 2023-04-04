@@ -40,15 +40,7 @@ func (nbd *NoBackrefDelete) ExecX(ctx context.Context) int {
 }
 
 func (nbd *NoBackrefDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: nobackref.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(nobackref.Table, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
 	if ps := nbd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type NoBackrefDeleteOne struct {
 	nbd *NoBackrefDelete
 }
 
+// Where appends a list predicates to the NoBackrefDelete builder.
+func (nbdo *NoBackrefDeleteOne) Where(ps ...predicate.NoBackref) *NoBackrefDeleteOne {
+	nbdo.nbd.mutation.Where(ps...)
+	return nbdo
+}
+
 // Exec executes the deletion query.
 func (nbdo *NoBackrefDeleteOne) Exec(ctx context.Context) error {
 	n, err := nbdo.nbd.Exec(ctx)
@@ -84,5 +82,7 @@ func (nbdo *NoBackrefDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (nbdo *NoBackrefDeleteOne) ExecX(ctx context.Context) {
-	nbdo.nbd.ExecX(ctx)
+	if err := nbdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

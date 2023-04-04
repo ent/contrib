@@ -67,16 +67,7 @@ func (ifmu *InvalidFieldMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   invalidfieldmessage.Table,
-			Columns: invalidfieldmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(invalidfieldmessage.Table, invalidfieldmessage.Columns, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	if ps := ifmu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -118,6 +109,12 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Mutation() *InvalidFieldMessageMutati
 	return ifmuo.mutation
 }
 
+// Where appends a list predicates to the InvalidFieldMessageUpdate builder.
+func (ifmuo *InvalidFieldMessageUpdateOne) Where(ps ...predicate.InvalidFieldMessage) *InvalidFieldMessageUpdateOne {
+	ifmuo.mutation.Where(ps...)
+	return ifmuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ifmuo *InvalidFieldMessageUpdateOne) Select(field string, fields ...string) *InvalidFieldMessageUpdateOne {
@@ -153,16 +150,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *InvalidFieldMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   invalidfieldmessage.Table,
-			Columns: invalidfieldmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(invalidfieldmessage.Table, invalidfieldmessage.Columns, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	id, ok := ifmuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "InvalidFieldMessage.id" for update`)}

@@ -193,10 +193,12 @@ func (vsq *VerySecretQuery) AllX(ctx context.Context) []*VerySecret {
 }
 
 // IDs executes the query and returns a list of VerySecret IDs.
-func (vsq *VerySecretQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (vsq *VerySecretQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if vsq.ctx.Unique == nil && vsq.path != nil {
+		vsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, vsq.ctx, "IDs")
-	if err := vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
+	if err = vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -389,20 +391,12 @@ func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: verysecret.FieldID,
-			},
-		},
-		From:   vsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeInt))
+	_spec.From = vsq.sql
 	if unique := vsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := vsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

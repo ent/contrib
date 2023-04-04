@@ -87,16 +87,7 @@ func (mwsu *MultiWordSchemaUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := mwsu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   multiwordschema.Table,
-			Columns: multiwordschema.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(multiwordschema.Table, multiwordschema.Columns, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
 	if ps := mwsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -144,6 +135,12 @@ func (mwsuo *MultiWordSchemaUpdateOne) SetNillableUnit(m *multiwordschema.Unit) 
 // Mutation returns the MultiWordSchemaMutation object of the builder.
 func (mwsuo *MultiWordSchemaUpdateOne) Mutation() *MultiWordSchemaMutation {
 	return mwsuo.mutation
+}
+
+// Where appends a list predicates to the MultiWordSchemaUpdate builder.
+func (mwsuo *MultiWordSchemaUpdateOne) Where(ps ...predicate.MultiWordSchema) *MultiWordSchemaUpdateOne {
+	mwsuo.mutation.Where(ps...)
+	return mwsuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -194,16 +191,7 @@ func (mwsuo *MultiWordSchemaUpdateOne) sqlSave(ctx context.Context) (_node *Mult
 	if err := mwsuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   multiwordschema.Table,
-			Columns: multiwordschema.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(multiwordschema.Table, multiwordschema.Columns, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
 	id, ok := mwsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MultiWordSchema.id" for update`)}

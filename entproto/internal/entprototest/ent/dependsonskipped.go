@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -19,7 +20,8 @@ type DependsOnSkipped struct {
 	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DependsOnSkippedQuery when eager-loading is set.
-	Edges DependsOnSkippedEdges `json:"edges"`
+	Edges        DependsOnSkippedEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // DependsOnSkippedEdges holds the relations/edges for other nodes in the graph.
@@ -50,7 +52,7 @@ func (*DependsOnSkipped) scanValues(columns []string) ([]any, error) {
 		case dependsonskipped.FieldName:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DependsOnSkipped", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -76,9 +78,17 @@ func (dos *DependsOnSkipped) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				dos.Name = value.String
 			}
+		default:
+			dos.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DependsOnSkipped.
+// This includes values selected through modifiers, order, etc.
+func (dos *DependsOnSkipped) Value(name string) (ent.Value, error) {
+	return dos.selectValues.Get(name)
 }
 
 // QuerySkipped queries the "skipped" edge of the DependsOnSkipped entity.
@@ -117,9 +127,3 @@ func (dos *DependsOnSkipped) String() string {
 
 // DependsOnSkippeds is a parsable slice of DependsOnSkipped.
 type DependsOnSkippeds []*DependsOnSkipped
-
-func (dos DependsOnSkippeds) config(cfg config) {
-	for _i := range dos {
-		dos[_i].config = cfg
-	}
-}

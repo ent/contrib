@@ -10,9 +10,8 @@ import (
 
 	"entgo.io/contrib/entproto/internal/altdir/ent/predicate"
 	"entgo.io/contrib/entproto/internal/altdir/ent/user"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (

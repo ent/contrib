@@ -177,10 +177,12 @@ func (dnmq *DuplicateNumberMessageQuery) AllX(ctx context.Context) []*DuplicateN
 }
 
 // IDs executes the query and returns a list of DuplicateNumberMessage IDs.
-func (dnmq *DuplicateNumberMessageQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (dnmq *DuplicateNumberMessageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if dnmq.ctx.Unique == nil && dnmq.path != nil {
+		dnmq.Unique(true)
+	}
 	ctx = setContextOp(ctx, dnmq.ctx, "IDs")
-	if err := dnmq.Select(duplicatenumbermessage.FieldID).Scan(ctx, &ids); err != nil {
+	if err = dnmq.Select(duplicatenumbermessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (dnmq *DuplicateNumberMessageQuery) sqlCount(ctx context.Context) (int, err
 }
 
 func (dnmq *DuplicateNumberMessageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   duplicatenumbermessage.Table,
-			Columns: duplicatenumbermessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: duplicatenumbermessage.FieldID,
-			},
-		},
-		From:   dnmq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(duplicatenumbermessage.Table, duplicatenumbermessage.Columns, sqlgraph.NewFieldSpec(duplicatenumbermessage.FieldID, field.TypeInt))
+	_spec.From = dnmq.sql
 	if unique := dnmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if dnmq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := dnmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

@@ -194,10 +194,12 @@ func (bpq *BillProductQuery) AllX(ctx context.Context) []*BillProduct {
 }
 
 // IDs executes the query and returns a list of BillProduct IDs.
-func (bpq *BillProductQuery) IDs(ctx context.Context) ([]pulid.ID, error) {
-	var ids []pulid.ID
+func (bpq *BillProductQuery) IDs(ctx context.Context) (ids []pulid.ID, err error) {
+	if bpq.ctx.Unique == nil && bpq.path != nil {
+		bpq.Unique(true)
+	}
 	ctx = setContextOp(ctx, bpq.ctx, "IDs")
-	if err := bpq.Select(billproduct.FieldID).Scan(ctx, &ids); err != nil {
+	if err = bpq.Select(billproduct.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -390,20 +392,12 @@ func (bpq *BillProductQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (bpq *BillProductQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   billproduct.Table,
-			Columns: billproduct.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: billproduct.FieldID,
-			},
-		},
-		From:   bpq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeString))
+	_spec.From = bpq.sql
 	if unique := bpq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if bpq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := bpq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
