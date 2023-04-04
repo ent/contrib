@@ -108,13 +108,7 @@ func (mwsc *MultiWordSchemaCreate) sqlSave(ctx context.Context) (*MultiWordSchem
 func (mwsc *MultiWordSchemaCreate) createSpec() (*MultiWordSchema, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MultiWordSchema{config: mwsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: multiwordschema.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(multiwordschema.Table, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
 	)
 	if value, ok := mwsc.mutation.Unit(); ok {
 		_spec.SetField(multiwordschema.FieldUnit, field.TypeEnum, value)
@@ -147,8 +141,8 @@ func (mwscb *MultiWordSchemaCreateBulk) Save(ctx context.Context) ([]*MultiWordS
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwscb.builders[i+1].mutation)
 				} else {

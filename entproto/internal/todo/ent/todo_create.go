@@ -137,13 +137,7 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Todo{config: tc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: todo.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: todo.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(todo.Table, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt))
 	)
 	if value, ok := tc.mutation.Task(); ok {
 		_spec.SetField(todo.FieldTask, field.TypeString, value)
@@ -161,10 +155,7 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 			Columns: []string{todo.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUint32,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint32),
 			},
 		}
 		for _, k := range nodes {
@@ -200,8 +191,8 @@ func (tcb *TodoCreateBulk) Save(ctx context.Context) ([]*Todo, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tcb.builders[i+1].mutation)
 				} else {

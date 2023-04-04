@@ -40,15 +40,7 @@ func (tmsd *TwoMethodServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (tmsd *TwoMethodServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: twomethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(twomethodservice.Table, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
 	if ps := tmsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type TwoMethodServiceDeleteOne struct {
 	tmsd *TwoMethodServiceDelete
 }
 
+// Where appends a list predicates to the TwoMethodServiceDelete builder.
+func (tmsdo *TwoMethodServiceDeleteOne) Where(ps ...predicate.TwoMethodService) *TwoMethodServiceDeleteOne {
+	tmsdo.tmsd.mutation.Where(ps...)
+	return tmsdo
+}
+
 // Exec executes the deletion query.
 func (tmsdo *TwoMethodServiceDeleteOne) Exec(ctx context.Context) error {
 	n, err := tmsdo.tmsd.Exec(ctx)
@@ -84,5 +82,7 @@ func (tmsdo *TwoMethodServiceDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (tmsdo *TwoMethodServiceDeleteOne) ExecX(ctx context.Context) {
-	tmsdo.tmsd.ExecX(ctx)
+	if err := tmsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

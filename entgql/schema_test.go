@@ -111,6 +111,7 @@ input CreateUserInput {
   name: String
   username: UUID
   password: String
+  metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
 }
@@ -226,6 +227,8 @@ input UpdateUserInput {
   username: UUID
   password: String
   clearPassword: Boolean
+  metadata: Map
+  clearMetadata: Boolean
   addGroupIDs: [ID!]
   removeGroupIDs: [ID!]
   clearGroups: Boolean
@@ -237,6 +240,8 @@ type User {
   id: ID!
   name: String!
   username: UUID!
+  metadata: Map
+  """The groups of the user"""
   groups: [Group!]
   friends: [User!]
   friendships: [Friendship!]
@@ -513,6 +518,7 @@ input CreateUserInput {
   name: String
   username: UUID
   password: String
+  metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
 }
@@ -918,6 +924,8 @@ input UpdateUserInput {
   username: UUID
   password: String
   clearPassword: Boolean
+  metadata: Map
+  clearMetadata: Boolean
   addGroupIDs: [ID!]
   removeGroupIDs: [ID!]
   clearGroups: Boolean
@@ -929,6 +937,7 @@ type User implements Node {
   id: ID!
   name: String!
   username: UUID!
+  metadata: Map
   groups(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor

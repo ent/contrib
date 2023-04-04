@@ -73,16 +73,7 @@ func (mwfou *MessageWithFieldOneUpdate) ExecX(ctx context.Context) {
 }
 
 func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithfieldone.Table,
-			Columns: messagewithfieldone.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithfieldone.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithfieldone.Table, messagewithfieldone.Columns, sqlgraph.NewFieldSpec(messagewithfieldone.FieldID, field.TypeInt))
 	if ps := mwfou.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -134,6 +125,12 @@ func (mwfouo *MessageWithFieldOneUpdateOne) Mutation() *MessageWithFieldOneMutat
 	return mwfouo.mutation
 }
 
+// Where appends a list predicates to the MessageWithFieldOneUpdate builder.
+func (mwfouo *MessageWithFieldOneUpdateOne) Where(ps ...predicate.MessageWithFieldOne) *MessageWithFieldOneUpdateOne {
+	mwfouo.mutation.Where(ps...)
+	return mwfouo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mwfouo *MessageWithFieldOneUpdateOne) Select(field string, fields ...string) *MessageWithFieldOneUpdateOne {
@@ -169,16 +166,7 @@ func (mwfouo *MessageWithFieldOneUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithFieldOne, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithfieldone.Table,
-			Columns: messagewithfieldone.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithfieldone.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithfieldone.Table, messagewithfieldone.Columns, sqlgraph.NewFieldSpec(messagewithfieldone.FieldID, field.TypeInt))
 	id, ok := mwfouo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithFieldOne.id" for update`)}

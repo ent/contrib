@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entoas/internal/simple/category"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -23,7 +24,8 @@ type Category struct {
 	SkipInSpec string `json:"skip_in_spec,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
-	Edges CategoryEdges `json:"edges"`
+	Edges        CategoryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
@@ -54,7 +56,7 @@ func (*Category) scanValues(columns []string) ([]any, error) {
 		case category.FieldName, category.FieldReadonly, category.FieldSkipInSpec:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -92,9 +94,17 @@ func (c *Category) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.SkipInSpec = value.String
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Category.
+// This includes values selected through modifiers, order, etc.
+func (c *Category) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // QueryPets queries the "pets" edge of the Category entity.
@@ -139,9 +149,3 @@ func (c *Category) String() string {
 
 // Categories is a parsable slice of Category.
 type Categories []*Category
-
-func (c Categories) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

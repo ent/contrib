@@ -40,15 +40,7 @@ func (id *ImageDelete) ExecX(ctx context.Context) int {
 }
 
 func (id *ImageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: image.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: image.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(image.Table, sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID))
 	if ps := id.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ImageDeleteOne struct {
 	id *ImageDelete
 }
 
+// Where appends a list predicates to the ImageDelete builder.
+func (ido *ImageDeleteOne) Where(ps ...predicate.Image) *ImageDeleteOne {
+	ido.id.mutation.Where(ps...)
+	return ido
+}
+
 // Exec executes the deletion query.
 func (ido *ImageDeleteOne) Exec(ctx context.Context) error {
 	n, err := ido.id.Exec(ctx)
@@ -84,5 +82,7 @@ func (ido *ImageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ido *ImageDeleteOne) ExecX(ctx context.Context) {
-	ido.id.ExecX(ctx)
+	if err := ido.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

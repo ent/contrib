@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/migrate"
+	"entgo.io/ent"
 	"github.com/google/uuid"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
@@ -33,7 +34,6 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
-
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -123,6 +123,55 @@ func (c *Client) init() {
 	c.TwoMethodService = NewTwoMethodServiceClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.ValidMessage = NewValidMessageClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -247,55 +296,33 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.AllMethodsService.Use(hooks...)
-	c.BlogPost.Use(hooks...)
-	c.Category.Use(hooks...)
-	c.DependsOnSkipped.Use(hooks...)
-	c.DuplicateNumberMessage.Use(hooks...)
-	c.ExplicitSkippedMessage.Use(hooks...)
-	c.Image.Use(hooks...)
-	c.ImplicitSkippedMessage.Use(hooks...)
-	c.InvalidFieldMessage.Use(hooks...)
-	c.MessageWithEnum.Use(hooks...)
-	c.MessageWithFieldOne.Use(hooks...)
-	c.MessageWithID.Use(hooks...)
-	c.MessageWithOptionals.Use(hooks...)
-	c.MessageWithPackageName.Use(hooks...)
-	c.MessageWithStrings.Use(hooks...)
-	c.NoBackref.Use(hooks...)
-	c.OneMethodService.Use(hooks...)
-	c.Portal.Use(hooks...)
-	c.SkipEdgeExample.Use(hooks...)
-	c.TwoMethodService.Use(hooks...)
-	c.User.Use(hooks...)
-	c.ValidMessage.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.AllMethodsService, c.BlogPost, c.Category, c.DependsOnSkipped,
+		c.DuplicateNumberMessage, c.ExplicitSkippedMessage, c.Image,
+		c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
+		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithOptionals,
+		c.MessageWithPackageName, c.MessageWithStrings, c.NoBackref,
+		c.OneMethodService, c.Portal, c.SkipEdgeExample, c.TwoMethodService, c.User,
+		c.ValidMessage,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.AllMethodsService.Intercept(interceptors...)
-	c.BlogPost.Intercept(interceptors...)
-	c.Category.Intercept(interceptors...)
-	c.DependsOnSkipped.Intercept(interceptors...)
-	c.DuplicateNumberMessage.Intercept(interceptors...)
-	c.ExplicitSkippedMessage.Intercept(interceptors...)
-	c.Image.Intercept(interceptors...)
-	c.ImplicitSkippedMessage.Intercept(interceptors...)
-	c.InvalidFieldMessage.Intercept(interceptors...)
-	c.MessageWithEnum.Intercept(interceptors...)
-	c.MessageWithFieldOne.Intercept(interceptors...)
-	c.MessageWithID.Intercept(interceptors...)
-	c.MessageWithOptionals.Intercept(interceptors...)
-	c.MessageWithPackageName.Intercept(interceptors...)
-	c.MessageWithStrings.Intercept(interceptors...)
-	c.NoBackref.Intercept(interceptors...)
-	c.OneMethodService.Intercept(interceptors...)
-	c.Portal.Intercept(interceptors...)
-	c.SkipEdgeExample.Intercept(interceptors...)
-	c.TwoMethodService.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
-	c.ValidMessage.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.AllMethodsService, c.BlogPost, c.Category, c.DependsOnSkipped,
+		c.DuplicateNumberMessage, c.ExplicitSkippedMessage, c.Image,
+		c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
+		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithOptionals,
+		c.MessageWithPackageName, c.MessageWithStrings, c.NoBackref,
+		c.OneMethodService, c.Portal, c.SkipEdgeExample, c.TwoMethodService, c.User,
+		c.ValidMessage,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -366,7 +393,7 @@ func (c *AllMethodsServiceClient) Use(hooks ...Hook) {
 	c.hooks.AllMethodsService = append(c.hooks.AllMethodsService, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `allmethodsservice.Intercept(f(g(h())))`.
 func (c *AllMethodsServiceClient) Intercept(interceptors ...Interceptor) {
 	c.inters.AllMethodsService = append(c.inters.AllMethodsService, interceptors...)
@@ -484,7 +511,7 @@ func (c *BlogPostClient) Use(hooks ...Hook) {
 	c.hooks.BlogPost = append(c.hooks.BlogPost, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `blogpost.Intercept(f(g(h())))`.
 func (c *BlogPostClient) Intercept(interceptors ...Interceptor) {
 	c.inters.BlogPost = append(c.inters.BlogPost, interceptors...)
@@ -634,7 +661,7 @@ func (c *CategoryClient) Use(hooks ...Hook) {
 	c.hooks.Category = append(c.hooks.Category, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `category.Intercept(f(g(h())))`.
 func (c *CategoryClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Category = append(c.inters.Category, interceptors...)
@@ -768,7 +795,7 @@ func (c *DependsOnSkippedClient) Use(hooks ...Hook) {
 	c.hooks.DependsOnSkipped = append(c.hooks.DependsOnSkipped, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `dependsonskipped.Intercept(f(g(h())))`.
 func (c *DependsOnSkippedClient) Intercept(interceptors ...Interceptor) {
 	c.inters.DependsOnSkipped = append(c.inters.DependsOnSkipped, interceptors...)
@@ -902,7 +929,7 @@ func (c *DuplicateNumberMessageClient) Use(hooks ...Hook) {
 	c.hooks.DuplicateNumberMessage = append(c.hooks.DuplicateNumberMessage, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `duplicatenumbermessage.Intercept(f(g(h())))`.
 func (c *DuplicateNumberMessageClient) Intercept(interceptors ...Interceptor) {
 	c.inters.DuplicateNumberMessage = append(c.inters.DuplicateNumberMessage, interceptors...)
@@ -1020,7 +1047,7 @@ func (c *ExplicitSkippedMessageClient) Use(hooks ...Hook) {
 	c.hooks.ExplicitSkippedMessage = append(c.hooks.ExplicitSkippedMessage, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `explicitskippedmessage.Intercept(f(g(h())))`.
 func (c *ExplicitSkippedMessageClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ExplicitSkippedMessage = append(c.inters.ExplicitSkippedMessage, interceptors...)
@@ -1138,7 +1165,7 @@ func (c *ImageClient) Use(hooks ...Hook) {
 	c.hooks.Image = append(c.hooks.Image, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `image.Intercept(f(g(h())))`.
 func (c *ImageClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Image = append(c.inters.Image, interceptors...)
@@ -1272,7 +1299,7 @@ func (c *ImplicitSkippedMessageClient) Use(hooks ...Hook) {
 	c.hooks.ImplicitSkippedMessage = append(c.hooks.ImplicitSkippedMessage, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `implicitskippedmessage.Intercept(f(g(h())))`.
 func (c *ImplicitSkippedMessageClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ImplicitSkippedMessage = append(c.inters.ImplicitSkippedMessage, interceptors...)
@@ -1390,7 +1417,7 @@ func (c *InvalidFieldMessageClient) Use(hooks ...Hook) {
 	c.hooks.InvalidFieldMessage = append(c.hooks.InvalidFieldMessage, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `invalidfieldmessage.Intercept(f(g(h())))`.
 func (c *InvalidFieldMessageClient) Intercept(interceptors ...Interceptor) {
 	c.inters.InvalidFieldMessage = append(c.inters.InvalidFieldMessage, interceptors...)
@@ -1508,7 +1535,7 @@ func (c *MessageWithEnumClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithEnum = append(c.hooks.MessageWithEnum, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `messagewithenum.Intercept(f(g(h())))`.
 func (c *MessageWithEnumClient) Intercept(interceptors ...Interceptor) {
 	c.inters.MessageWithEnum = append(c.inters.MessageWithEnum, interceptors...)
@@ -1626,7 +1653,7 @@ func (c *MessageWithFieldOneClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithFieldOne = append(c.hooks.MessageWithFieldOne, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `messagewithfieldone.Intercept(f(g(h())))`.
 func (c *MessageWithFieldOneClient) Intercept(interceptors ...Interceptor) {
 	c.inters.MessageWithFieldOne = append(c.inters.MessageWithFieldOne, interceptors...)
@@ -1744,7 +1771,7 @@ func (c *MessageWithIDClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithID = append(c.hooks.MessageWithID, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `messagewithid.Intercept(f(g(h())))`.
 func (c *MessageWithIDClient) Intercept(interceptors ...Interceptor) {
 	c.inters.MessageWithID = append(c.inters.MessageWithID, interceptors...)
@@ -1862,7 +1889,7 @@ func (c *MessageWithOptionalsClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithOptionals = append(c.hooks.MessageWithOptionals, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `messagewithoptionals.Intercept(f(g(h())))`.
 func (c *MessageWithOptionalsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.MessageWithOptionals = append(c.inters.MessageWithOptionals, interceptors...)
@@ -1980,7 +2007,7 @@ func (c *MessageWithPackageNameClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithPackageName = append(c.hooks.MessageWithPackageName, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `messagewithpackagename.Intercept(f(g(h())))`.
 func (c *MessageWithPackageNameClient) Intercept(interceptors ...Interceptor) {
 	c.inters.MessageWithPackageName = append(c.inters.MessageWithPackageName, interceptors...)
@@ -2098,7 +2125,7 @@ func (c *MessageWithStringsClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithStrings = append(c.hooks.MessageWithStrings, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `messagewithstrings.Intercept(f(g(h())))`.
 func (c *MessageWithStringsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.MessageWithStrings = append(c.inters.MessageWithStrings, interceptors...)
@@ -2216,7 +2243,7 @@ func (c *NoBackrefClient) Use(hooks ...Hook) {
 	c.hooks.NoBackref = append(c.hooks.NoBackref, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `nobackref.Intercept(f(g(h())))`.
 func (c *NoBackrefClient) Intercept(interceptors ...Interceptor) {
 	c.inters.NoBackref = append(c.inters.NoBackref, interceptors...)
@@ -2350,7 +2377,7 @@ func (c *OneMethodServiceClient) Use(hooks ...Hook) {
 	c.hooks.OneMethodService = append(c.hooks.OneMethodService, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `onemethodservice.Intercept(f(g(h())))`.
 func (c *OneMethodServiceClient) Intercept(interceptors ...Interceptor) {
 	c.inters.OneMethodService = append(c.inters.OneMethodService, interceptors...)
@@ -2468,7 +2495,7 @@ func (c *PortalClient) Use(hooks ...Hook) {
 	c.hooks.Portal = append(c.hooks.Portal, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `portal.Intercept(f(g(h())))`.
 func (c *PortalClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Portal = append(c.inters.Portal, interceptors...)
@@ -2602,7 +2629,7 @@ func (c *SkipEdgeExampleClient) Use(hooks ...Hook) {
 	c.hooks.SkipEdgeExample = append(c.hooks.SkipEdgeExample, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `skipedgeexample.Intercept(f(g(h())))`.
 func (c *SkipEdgeExampleClient) Intercept(interceptors ...Interceptor) {
 	c.inters.SkipEdgeExample = append(c.inters.SkipEdgeExample, interceptors...)
@@ -2736,7 +2763,7 @@ func (c *TwoMethodServiceClient) Use(hooks ...Hook) {
 	c.hooks.TwoMethodService = append(c.hooks.TwoMethodService, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `twomethodservice.Intercept(f(g(h())))`.
 func (c *TwoMethodServiceClient) Intercept(interceptors ...Interceptor) {
 	c.inters.TwoMethodService = append(c.inters.TwoMethodService, interceptors...)
@@ -2854,7 +2881,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
 func (c *UserClient) Intercept(interceptors ...Interceptor) {
 	c.inters.User = append(c.inters.User, interceptors...)
@@ -3020,7 +3047,7 @@ func (c *ValidMessageClient) Use(hooks ...Hook) {
 	c.hooks.ValidMessage = append(c.hooks.ValidMessage, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `validmessage.Intercept(f(g(h())))`.
 func (c *ValidMessageClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ValidMessage = append(c.inters.ValidMessage, interceptors...)
@@ -3121,3 +3148,21 @@ func (c *ValidMessageClient) mutate(ctx context.Context, m *ValidMessageMutation
 		return nil, fmt.Errorf("ent: unknown ValidMessage mutation op: %q", m.Op())
 	}
 }
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
+		ExplicitSkippedMessage, Image, ImplicitSkippedMessage, InvalidFieldMessage,
+		MessageWithEnum, MessageWithFieldOne, MessageWithID, MessageWithOptionals,
+		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
+		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Hook
+	}
+	inters struct {
+		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
+		ExplicitSkippedMessage, Image, ImplicitSkippedMessage, InvalidFieldMessage,
+		MessageWithEnum, MessageWithFieldOne, MessageWithID, MessageWithOptionals,
+		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
+		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Interceptor
+	}
+)

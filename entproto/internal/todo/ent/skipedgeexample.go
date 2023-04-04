@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -20,6 +21,7 @@ type SkipEdgeExample struct {
 	// The values are being populated by the SkipEdgeExampleQuery when eager-loading is set.
 	Edges          SkipEdgeExampleEdges `json:"edges"`
 	user_skip_edge *uint32
+	selectValues   sql.SelectValues
 }
 
 // SkipEdgeExampleEdges holds the relations/edges for other nodes in the graph.
@@ -54,7 +56,7 @@ func (*SkipEdgeExample) scanValues(columns []string) ([]any, error) {
 		case skipedgeexample.ForeignKeys[0]: // user_skip_edge
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type SkipEdgeExample", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -81,9 +83,17 @@ func (see *SkipEdgeExample) assignValues(columns []string, values []any) error {
 				see.user_skip_edge = new(uint32)
 				*see.user_skip_edge = uint32(value.Int64)
 			}
+		default:
+			see.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the SkipEdgeExample.
+// This includes values selected through modifiers, order, etc.
+func (see *SkipEdgeExample) Value(name string) (ent.Value, error) {
+	return see.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the SkipEdgeExample entity.
@@ -120,9 +130,3 @@ func (see *SkipEdgeExample) String() string {
 
 // SkipEdgeExamples is a parsable slice of SkipEdgeExample.
 type SkipEdgeExamples []*SkipEdgeExample
-
-func (see SkipEdgeExamples) config(cfg config) {
-	for _i := range see {
-		see[_i].config = cfg
-	}
-}

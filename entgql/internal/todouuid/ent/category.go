@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -47,7 +48,8 @@ type Category struct {
 	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
-	Edges CategoryEdges `json:"edges"`
+	Edges        CategoryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
@@ -100,7 +102,7 @@ func (*Category) scanValues(columns []string) ([]any, error) {
 		case category.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -158,9 +160,17 @@ func (c *Category) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field strings: %w", err)
 				}
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Category.
+// This includes values selected through modifiers, order, etc.
+func (c *Category) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // QueryTodos queries the "todos" edge of the Category entity.
@@ -267,9 +277,3 @@ func (c *Category) appendNamedSubCategories(name string, edges ...*Category) {
 
 // Categories is a parsable slice of Category.
 type Categories []*Category
-
-func (c Categories) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

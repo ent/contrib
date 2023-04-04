@@ -204,10 +204,12 @@ func (iq *ImageQuery) AllX(ctx context.Context) []*Image {
 }
 
 // IDs executes the query and returns a list of Image IDs.
-func (iq *ImageQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (iq *ImageQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if iq.ctx.Unique == nil && iq.path != nil {
+		iq.Unique(true)
+	}
 	ctx = setContextOp(ctx, iq.ctx, "IDs")
-	if err := iq.Select(image.FieldID).Scan(ctx, &ids); err != nil {
+	if err = iq.Select(image.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -448,20 +450,12 @@ func (iq *ImageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (iq *ImageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   image.Table,
-			Columns: image.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: image.FieldID,
-			},
-		},
-		From:   iq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(image.Table, image.Columns, sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID))
+	_spec.From = iq.sql
 	if unique := iq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if iq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := iq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

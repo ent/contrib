@@ -103,16 +103,7 @@ func (dosu *DependsOnSkippedUpdate) ExecX(ctx context.Context) {
 }
 
 func (dosu *DependsOnSkippedUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   dependsonskipped.Table,
-			Columns: dependsonskipped.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dependsonskipped.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(dependsonskipped.Table, dependsonskipped.Columns, sqlgraph.NewFieldSpec(dependsonskipped.FieldID, field.TypeInt))
 	if ps := dosu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -131,10 +122,7 @@ func (dosu *DependsOnSkippedUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -147,10 +135,7 @@ func (dosu *DependsOnSkippedUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -166,10 +151,7 @@ func (dosu *DependsOnSkippedUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -244,6 +226,12 @@ func (dosuo *DependsOnSkippedUpdateOne) RemoveSkipped(i ...*ImplicitSkippedMessa
 	return dosuo.RemoveSkippedIDs(ids...)
 }
 
+// Where appends a list predicates to the DependsOnSkippedUpdate builder.
+func (dosuo *DependsOnSkippedUpdateOne) Where(ps ...predicate.DependsOnSkipped) *DependsOnSkippedUpdateOne {
+	dosuo.mutation.Where(ps...)
+	return dosuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (dosuo *DependsOnSkippedUpdateOne) Select(field string, fields ...string) *DependsOnSkippedUpdateOne {
@@ -279,16 +267,7 @@ func (dosuo *DependsOnSkippedUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (dosuo *DependsOnSkippedUpdateOne) sqlSave(ctx context.Context) (_node *DependsOnSkipped, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   dependsonskipped.Table,
-			Columns: dependsonskipped.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dependsonskipped.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(dependsonskipped.Table, dependsonskipped.Columns, sqlgraph.NewFieldSpec(dependsonskipped.FieldID, field.TypeInt))
 	id, ok := dosuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DependsOnSkipped.id" for update`)}
@@ -324,10 +303,7 @@ func (dosuo *DependsOnSkippedUpdateOne) sqlSave(ctx context.Context) (_node *Dep
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -340,10 +316,7 @@ func (dosuo *DependsOnSkippedUpdateOne) sqlSave(ctx context.Context) (_node *Dep
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -359,10 +332,7 @@ func (dosuo *DependsOnSkippedUpdateOne) sqlSave(ctx context.Context) (_node *Dep
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

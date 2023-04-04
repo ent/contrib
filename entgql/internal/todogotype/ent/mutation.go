@@ -36,9 +36,8 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (

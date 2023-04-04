@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/migrate"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/uintgql"
+	"entgo.io/ent"
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
@@ -34,7 +35,6 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
-
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -82,6 +82,55 @@ func (c *Client) init() {
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.VerySecret = NewVerySecretClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -178,27 +227,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.BillProduct.Use(hooks...)
-	c.Category.Use(hooks...)
-	c.Friendship.Use(hooks...)
-	c.Group.Use(hooks...)
-	c.Pet.Use(hooks...)
-	c.Todo.Use(hooks...)
-	c.User.Use(hooks...)
-	c.VerySecret.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.BillProduct, c.Category, c.Friendship, c.Group, c.Pet, c.Todo, c.User,
+		c.VerySecret,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.BillProduct.Intercept(interceptors...)
-	c.Category.Intercept(interceptors...)
-	c.Friendship.Intercept(interceptors...)
-	c.Group.Intercept(interceptors...)
-	c.Pet.Intercept(interceptors...)
-	c.Todo.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
-	c.VerySecret.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.BillProduct, c.Category, c.Friendship, c.Group, c.Pet, c.Todo, c.User,
+		c.VerySecret,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -241,7 +286,7 @@ func (c *BillProductClient) Use(hooks ...Hook) {
 	c.hooks.BillProduct = append(c.hooks.BillProduct, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `billproduct.Intercept(f(g(h())))`.
 func (c *BillProductClient) Intercept(interceptors ...Interceptor) {
 	c.inters.BillProduct = append(c.inters.BillProduct, interceptors...)
@@ -359,7 +404,7 @@ func (c *CategoryClient) Use(hooks ...Hook) {
 	c.hooks.Category = append(c.hooks.Category, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `category.Intercept(f(g(h())))`.
 func (c *CategoryClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Category = append(c.inters.Category, interceptors...)
@@ -509,7 +554,7 @@ func (c *FriendshipClient) Use(hooks ...Hook) {
 	c.hooks.Friendship = append(c.hooks.Friendship, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `friendship.Intercept(f(g(h())))`.
 func (c *FriendshipClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Friendship = append(c.inters.Friendship, interceptors...)
@@ -659,7 +704,7 @@ func (c *GroupClient) Use(hooks ...Hook) {
 	c.hooks.Group = append(c.hooks.Group, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `group.Intercept(f(g(h())))`.
 func (c *GroupClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Group = append(c.inters.Group, interceptors...)
@@ -793,7 +838,7 @@ func (c *PetClient) Use(hooks ...Hook) {
 	c.hooks.Pet = append(c.hooks.Pet, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `pet.Intercept(f(g(h())))`.
 func (c *PetClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Pet = append(c.inters.Pet, interceptors...)
@@ -911,7 +956,7 @@ func (c *TodoClient) Use(hooks ...Hook) {
 	c.hooks.Todo = append(c.hooks.Todo, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `todo.Intercept(f(g(h())))`.
 func (c *TodoClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Todo = append(c.inters.Todo, interceptors...)
@@ -1093,7 +1138,7 @@ func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
 func (c *UserClient) Intercept(interceptors ...Interceptor) {
 	c.inters.User = append(c.inters.User, interceptors...)
@@ -1259,7 +1304,7 @@ func (c *VerySecretClient) Use(hooks ...Hook) {
 	c.hooks.VerySecret = append(c.hooks.VerySecret, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `verysecret.Intercept(f(g(h())))`.
 func (c *VerySecretClient) Intercept(interceptors ...Interceptor) {
 	c.inters.VerySecret = append(c.inters.VerySecret, interceptors...)
@@ -1360,3 +1405,14 @@ func (c *VerySecretClient) mutate(ctx context.Context, m *VerySecretMutation) (V
 		return nil, fmt.Errorf("ent: unknown VerySecret mutation op: %q", m.Op())
 	}
 }
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		BillProduct, Category, Friendship, Group, Pet, Todo, User, VerySecret []ent.Hook
+	}
+	inters struct {
+		BillProduct, Category, Friendship, Group, Pet, Todo, User,
+		VerySecret []ent.Interceptor
+	}
+)

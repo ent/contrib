@@ -129,13 +129,7 @@ func (vmc *ValidMessageCreate) sqlSave(ctx context.Context) (*ValidMessage, erro
 func (vmc *ValidMessageCreate) createSpec() (*ValidMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ValidMessage{config: vmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: validmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(validmessage.Table, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	)
 	if value, ok := vmc.mutation.Name(); ok {
 		_spec.SetField(validmessage.FieldName, field.TypeString, value)
@@ -183,8 +177,8 @@ func (vmcb *ValidMessageCreateBulk) Save(ctx context.Context) ([]*ValidMessage, 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vmcb.builders[i+1].mutation)
 				} else {

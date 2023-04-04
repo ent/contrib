@@ -86,13 +86,7 @@ func (mwpnc *MessageWithPackageNameCreate) sqlSave(ctx context.Context) (*Messag
 func (mwpnc *MessageWithPackageNameCreate) createSpec() (*MessageWithPackageName, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithPackageName{config: mwpnc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithpackagename.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithpackagename.Table, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
 	)
 	if value, ok := mwpnc.mutation.Name(); ok {
 		_spec.SetField(messagewithpackagename.FieldName, field.TypeString, value)
@@ -124,8 +118,8 @@ func (mwpncb *MessageWithPackageNameCreateBulk) Save(ctx context.Context) ([]*Me
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwpncb.builders[i+1].mutation)
 				} else {

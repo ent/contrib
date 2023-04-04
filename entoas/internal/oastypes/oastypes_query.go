@@ -177,10 +177,12 @@ func (otq *OASTypesQuery) AllX(ctx context.Context) []*OASTypes {
 }
 
 // IDs executes the query and returns a list of OASTypes IDs.
-func (otq *OASTypesQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (otq *OASTypesQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if otq.ctx.Unique == nil && otq.path != nil {
+		otq.Unique(true)
+	}
 	ctx = setContextOp(ctx, otq.ctx, "IDs")
-	if err := otq.Select(oastypes.FieldID).Scan(ctx, &ids); err != nil {
+	if err = otq.Select(oastypes.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (otq *OASTypesQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (otq *OASTypesQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   oastypes.Table,
-			Columns: oastypes.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: oastypes.FieldID,
-			},
-		},
-		From:   otq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(oastypes.Table, oastypes.Columns, sqlgraph.NewFieldSpec(oastypes.FieldID, field.TypeInt))
+	_spec.From = otq.sql
 	if unique := otq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if otq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := otq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

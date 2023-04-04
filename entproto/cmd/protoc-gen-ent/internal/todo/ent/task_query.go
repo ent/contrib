@@ -177,10 +177,12 @@ func (tq *TaskQuery) AllX(ctx context.Context) []*Task {
 }
 
 // IDs executes the query and returns a list of Task IDs.
-func (tq *TaskQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (tq *TaskQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if tq.ctx.Unique == nil && tq.path != nil {
+		tq.Unique(true)
+	}
 	ctx = setContextOp(ctx, tq.ctx, "IDs")
-	if err := tq.Select(task.FieldID).Scan(ctx, &ids); err != nil {
+	if err = tq.Select(task.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (tq *TaskQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tq *TaskQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   task.Table,
-			Columns: task.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: task.FieldID,
-			},
-		},
-		From:   tq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(task.Table, task.Columns, sqlgraph.NewFieldSpec(task.FieldID, field.TypeInt))
+	_spec.From = tq.sql
 	if unique := tq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if tq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := tq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

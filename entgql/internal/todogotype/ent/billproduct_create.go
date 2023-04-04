@@ -123,13 +123,7 @@ func (bpc *BillProductCreate) sqlSave(ctx context.Context) (*BillProduct, error)
 func (bpc *BillProductCreate) createSpec() (*BillProduct, *sqlgraph.CreateSpec) {
 	var (
 		_node = &BillProduct{config: bpc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: billproduct.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: billproduct.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(billproduct.Table, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeString))
 	)
 	if value, ok := bpc.mutation.Name(); ok {
 		_spec.SetField(billproduct.FieldName, field.TypeString, value)
@@ -169,8 +163,8 @@ func (bpcb *BillProductCreateBulk) Save(ctx context.Context) ([]*BillProduct, er
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, bpcb.builders[i+1].mutation)
 				} else {

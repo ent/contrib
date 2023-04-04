@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -19,7 +20,8 @@ type NilExample struct {
 	// StrNil holds the value of the "str_nil" field.
 	StrNil *string `json:"str_nil,omitempty"`
 	// TimeNil holds the value of the "time_nil" field.
-	TimeNil *time.Time `json:"time_nil,omitempty"`
+	TimeNil      *time.Time `json:"time_nil,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -34,7 +36,7 @@ func (*NilExample) scanValues(columns []string) ([]any, error) {
 		case nilexample.FieldTimeNil:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type NilExample", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -68,9 +70,17 @@ func (ne *NilExample) assignValues(columns []string, values []any) error {
 				ne.TimeNil = new(time.Time)
 				*ne.TimeNil = value.Time
 			}
+		default:
+			ne.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the NilExample.
+// This includes values selected through modifiers, order, etc.
+func (ne *NilExample) Value(name string) (ent.Value, error) {
+	return ne.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this NilExample.
@@ -111,9 +121,3 @@ func (ne *NilExample) String() string {
 
 // NilExamples is a parsable slice of NilExample.
 type NilExamples []*NilExample
-
-func (ne NilExamples) config(cfg config) {
-	for _i := range ne {
-		ne[_i].config = cfg
-	}
-}

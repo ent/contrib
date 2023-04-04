@@ -76,13 +76,7 @@ func (wfc *WithoutFieldsCreate) sqlSave(ctx context.Context) (*WithoutFields, er
 func (wfc *WithoutFieldsCreate) createSpec() (*WithoutFields, *sqlgraph.CreateSpec) {
 	var (
 		_node = &WithoutFields{config: wfc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: withoutfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withoutfields.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(withoutfields.Table, sqlgraph.NewFieldSpec(withoutfields.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -110,8 +104,8 @@ func (wfcb *WithoutFieldsCreateBulk) Save(ctx context.Context) ([]*WithoutFields
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wfcb.builders[i+1].mutation)
 				} else {

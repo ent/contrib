@@ -12,9 +12,8 @@ import (
 	"entgo.io/contrib/entoas/internal/pets/pet"
 	"entgo.io/contrib/entoas/internal/pets/predicate"
 	"entgo.io/contrib/entoas/internal/pets/user"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (

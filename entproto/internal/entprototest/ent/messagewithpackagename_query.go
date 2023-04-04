@@ -177,10 +177,12 @@ func (mwpnq *MessageWithPackageNameQuery) AllX(ctx context.Context) []*MessageWi
 }
 
 // IDs executes the query and returns a list of MessageWithPackageName IDs.
-func (mwpnq *MessageWithPackageNameQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mwpnq *MessageWithPackageNameQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwpnq.ctx.Unique == nil && mwpnq.path != nil {
+		mwpnq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mwpnq.ctx, "IDs")
-	if err := mwpnq.Select(messagewithpackagename.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mwpnq.Select(messagewithpackagename.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (mwpnq *MessageWithPackageNameQuery) sqlCount(ctx context.Context) (int, er
 }
 
 func (mwpnq *MessageWithPackageNameQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithpackagename.Table,
-			Columns: messagewithpackagename.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		},
-		From:   mwpnq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(messagewithpackagename.Table, messagewithpackagename.Columns, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
+	_spec.From = mwpnq.sql
 	if unique := mwpnq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwpnq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mwpnq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

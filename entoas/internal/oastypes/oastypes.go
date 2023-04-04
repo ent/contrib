@@ -12,6 +12,7 @@ import (
 
 	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
 	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -79,6 +80,7 @@ type OASTypes struct {
 	Nillable *int `json:"nillable,omitempty"`
 	// OptionalAndNillable holds the value of the "optional_and_nillable" field.
 	OptionalAndNillable *int `json:"optional_and_nillable,omitempty"`
+	selectValues        sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,7 +105,7 @@ func (*OASTypes) scanValues(columns []string) ([]any, error) {
 		case oastypes.FieldUUID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type OASTypes", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -311,9 +313,17 @@ func (ot *OASTypes) assignValues(columns []string, values []any) error {
 				ot.OptionalAndNillable = new(int)
 				*ot.OptionalAndNillable = int(value.Int64)
 			}
+		default:
+			ot.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the OASTypes.
+// This includes values selected through modifiers, order, etc.
+func (ot *OASTypes) Value(name string) (ent.Value, error) {
+	return ot.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this OASTypes.
@@ -435,9 +445,3 @@ func (ot *OASTypes) String() string {
 
 // OASTypesSlice is a parsable slice of OASTypes.
 type OASTypesSlice []*OASTypes
-
-func (ot OASTypesSlice) config(cfg config) {
-	for _i := range ot {
-		ot[_i].config = cfg
-	}
-}
