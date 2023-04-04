@@ -16,10 +16,12 @@ package schemast
 
 import (
 	"bytes"
+	"go/ast"
 	"go/printer"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sync"
 
 	"golang.org/x/tools/imports"
 )
@@ -34,26 +36,33 @@ func (c *Context) Print(path string, opts ...PrintOption) error {
 	for _, apply := range opts {
 		apply(options)
 	}
+	var wg sync.WaitGroup
 	for _, file := range c.syntax() {
-		base := filepath.Base(c.SchemaPackage.Fset.File(file.Pos()).Name())
-		var buf bytes.Buffer
-		if err := printer.Fprint(&buf, c.SchemaPackage.Fset, file); err != nil {
-			return err
-		}
-		fn := filepath.Join(path, base)
-		process, err := imports.Process(base, buf.Bytes(), nil)
-		if err != nil {
-			return err
-		}
-		if options.headerComment != "" {
-			if s := string(process); s != "" && options.commentRegexp.FindString(s) == "" {
-				process = []byte(options.headerComment + "\n\n" + s)
+		wg.Add(1)
+		go func(file *ast.File) error {
+			defer wg.Done()
+			base := filepath.Base(c.SchemaPackage.Fset.File(file.Pos()).Name())
+			var buf bytes.Buffer
+			if err := printer.Fprint(&buf, c.SchemaPackage.Fset, file); err != nil {
+				return err
 			}
-		}
-		if err := os.WriteFile(fn, process, 0600); err != nil {
-			return err
-		}
+			fn := filepath.Join(path, base)
+			process, err := imports.Process(base, buf.Bytes(), nil)
+			if err != nil {
+				return err
+			}
+			if options.headerComment != "" {
+				if s := string(process); s != "" && options.commentRegexp.FindString(s) == "" {
+					process = []byte(options.headerComment + "\n\n" + s)
+				}
+			}
+			if err := os.WriteFile(fn, process, 0600); err != nil {
+				return err
+			}
+			return nil
+		}(file)
 	}
+	wg.Wait()
 	return nil
 }
 
