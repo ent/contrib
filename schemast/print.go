@@ -17,15 +17,22 @@ package schemast
 import (
 	"bytes"
 	"go/printer"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 
 	"golang.org/x/tools/imports"
 )
 
 // PrintOption modifies the behavior of Print.
 type PrintOption func(opt *printOpts)
+
+func TimeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
+}
 
 // Print writes the updated .go files from Context into path, the directory for the "schema" package in an
 // ent project.  Print receives functional options of type PrintOption that modify its behavior.
@@ -41,7 +48,9 @@ func (c *Context) Print(path string, opts ...PrintOption) error {
 			return err
 		}
 		fn := filepath.Join(path, base)
+		t1 := time.Now()
 		process, err := imports.Process(base, buf.Bytes(), nil)
+		TimeTrack(t1, "imports.Process")
 		if err != nil {
 			return err
 		}
@@ -50,9 +59,11 @@ func (c *Context) Print(path string, opts ...PrintOption) error {
 				process = []byte(options.headerComment + "\n\n" + s)
 			}
 		}
+		t2 := time.Now()
 		if err := os.WriteFile(fn, process, 0600); err != nil {
 			return err
 		}
+		TimeTrack(t2, "os.WriteFile")
 	}
 	return nil
 }
