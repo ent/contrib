@@ -182,13 +182,7 @@ func (mwoc *MessageWithOptionalsCreate) sqlSave(ctx context.Context) (*MessageWi
 func (mwoc *MessageWithOptionalsCreate) createSpec() (*MessageWithOptionals, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithOptionals{config: mwoc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithoptionals.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithoptionals.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithoptionals.Table, sqlgraph.NewFieldSpec(messagewithoptionals.FieldID, field.TypeInt))
 	)
 	if value, ok := mwoc.mutation.StrOptional(); ok {
 		_spec.SetField(messagewithoptionals.FieldStrOptional, field.TypeString, value)
@@ -248,8 +242,8 @@ func (mwocb *MessageWithOptionalsCreateBulk) Save(ctx context.Context) ([]*Messa
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwocb.builders[i+1].mutation)
 				} else {

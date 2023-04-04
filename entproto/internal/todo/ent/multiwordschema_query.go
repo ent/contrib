@@ -177,10 +177,12 @@ func (mwsq *MultiWordSchemaQuery) AllX(ctx context.Context) []*MultiWordSchema {
 }
 
 // IDs executes the query and returns a list of MultiWordSchema IDs.
-func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwsq.ctx.Unique == nil && mwsq.path != nil {
+		mwsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
-	if err := mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -362,20 +364,12 @@ func (mwsq *MultiWordSchemaQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mwsq *MultiWordSchemaQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   multiwordschema.Table,
-			Columns: multiwordschema.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-		From:   mwsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(multiwordschema.Table, multiwordschema.Columns, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
+	_spec.From = mwsq.sql
 	if unique := mwsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mwsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

@@ -76,13 +76,7 @@ func (esmc *ExplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*Explici
 func (esmc *ExplicitSkippedMessageCreate) createSpec() (*ExplicitSkippedMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ExplicitSkippedMessage{config: esmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: explicitskippedmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: explicitskippedmessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(explicitskippedmessage.Table, sqlgraph.NewFieldSpec(explicitskippedmessage.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -110,8 +104,8 @@ func (esmcb *ExplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Exp
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, esmcb.builders[i+1].mutation)
 				} else {

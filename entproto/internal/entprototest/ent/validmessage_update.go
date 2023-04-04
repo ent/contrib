@@ -120,16 +120,7 @@ func (vmu *ValidMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   validmessage.Table,
-			Columns: validmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(validmessage.Table, validmessage.Columns, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	if ps := vmu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -244,6 +235,12 @@ func (vmuo *ValidMessageUpdateOne) Mutation() *ValidMessageMutation {
 	return vmuo.mutation
 }
 
+// Where appends a list predicates to the ValidMessageUpdate builder.
+func (vmuo *ValidMessageUpdateOne) Where(ps ...predicate.ValidMessage) *ValidMessageUpdateOne {
+	vmuo.mutation.Where(ps...)
+	return vmuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (vmuo *ValidMessageUpdateOne) Select(field string, fields ...string) *ValidMessageUpdateOne {
@@ -279,16 +276,7 @@ func (vmuo *ValidMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   validmessage.Table,
-			Columns: validmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(validmessage.Table, validmessage.Columns, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	id, ok := vmuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ValidMessage.id" for update`)}

@@ -40,15 +40,7 @@ func (mwpnd *MessageWithPackageNameDelete) ExecX(ctx context.Context) int {
 }
 
 func (mwpnd *MessageWithPackageNameDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: messagewithpackagename.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(messagewithpackagename.Table, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
 	if ps := mwpnd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type MessageWithPackageNameDeleteOne struct {
 	mwpnd *MessageWithPackageNameDelete
 }
 
+// Where appends a list predicates to the MessageWithPackageNameDelete builder.
+func (mwpndo *MessageWithPackageNameDeleteOne) Where(ps ...predicate.MessageWithPackageName) *MessageWithPackageNameDeleteOne {
+	mwpndo.mwpnd.mutation.Where(ps...)
+	return mwpndo
+}
+
 // Exec executes the deletion query.
 func (mwpndo *MessageWithPackageNameDeleteOne) Exec(ctx context.Context) error {
 	n, err := mwpndo.mwpnd.Exec(ctx)
@@ -84,5 +82,7 @@ func (mwpndo *MessageWithPackageNameDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mwpndo *MessageWithPackageNameDeleteOne) ExecX(ctx context.Context) {
-	mwpndo.mwpnd.ExecX(ctx)
+	if err := mwpndo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

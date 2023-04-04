@@ -40,15 +40,7 @@ func (ismd *ImplicitSkippedMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (ismd *ImplicitSkippedMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: implicitskippedmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(implicitskippedmessage.Table, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	if ps := ismd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ImplicitSkippedMessageDeleteOne struct {
 	ismd *ImplicitSkippedMessageDelete
 }
 
+// Where appends a list predicates to the ImplicitSkippedMessageDelete builder.
+func (ismdo *ImplicitSkippedMessageDeleteOne) Where(ps ...predicate.ImplicitSkippedMessage) *ImplicitSkippedMessageDeleteOne {
+	ismdo.ismd.mutation.Where(ps...)
+	return ismdo
+}
+
 // Exec executes the deletion query.
 func (ismdo *ImplicitSkippedMessageDeleteOne) Exec(ctx context.Context) error {
 	n, err := ismdo.ismd.Exec(ctx)
@@ -84,5 +82,7 @@ func (ismdo *ImplicitSkippedMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ismdo *ImplicitSkippedMessageDeleteOne) ExecX(ctx context.Context) {
-	ismdo.ismd.ExecX(ctx)
+	if err := ismdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

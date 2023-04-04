@@ -60,16 +60,7 @@ func (tmsu *TwoMethodServiceUpdate) ExecX(ctx context.Context) {
 }
 
 func (tmsu *TwoMethodServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   twomethodservice.Table,
-			Columns: twomethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(twomethodservice.Table, twomethodservice.Columns, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
 	if ps := tmsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -100,6 +91,12 @@ type TwoMethodServiceUpdateOne struct {
 // Mutation returns the TwoMethodServiceMutation object of the builder.
 func (tmsuo *TwoMethodServiceUpdateOne) Mutation() *TwoMethodServiceMutation {
 	return tmsuo.mutation
+}
+
+// Where appends a list predicates to the TwoMethodServiceUpdate builder.
+func (tmsuo *TwoMethodServiceUpdateOne) Where(ps ...predicate.TwoMethodService) *TwoMethodServiceUpdateOne {
+	tmsuo.mutation.Where(ps...)
+	return tmsuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -137,16 +134,7 @@ func (tmsuo *TwoMethodServiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tmsuo *TwoMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *TwoMethodService, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   twomethodservice.Table,
-			Columns: twomethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(twomethodservice.Table, twomethodservice.Columns, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
 	id, ok := tmsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TwoMethodService.id" for update`)}

@@ -40,15 +40,7 @@ func (otd *OASTypesDelete) ExecX(ctx context.Context) int {
 }
 
 func (otd *OASTypesDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: oastypes.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: oastypes.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(oastypes.Table, sqlgraph.NewFieldSpec(oastypes.FieldID, field.TypeInt))
 	if ps := otd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type OASTypesDeleteOne struct {
 	otd *OASTypesDelete
 }
 
+// Where appends a list predicates to the OASTypesDelete builder.
+func (otdo *OASTypesDeleteOne) Where(ps ...predicate.OASTypes) *OASTypesDeleteOne {
+	otdo.otd.mutation.Where(ps...)
+	return otdo
+}
+
 // Exec executes the deletion query.
 func (otdo *OASTypesDeleteOne) Exec(ctx context.Context) error {
 	n, err := otdo.otd.Exec(ctx)
@@ -84,5 +82,7 @@ func (otdo *OASTypesDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (otdo *OASTypesDeleteOne) ExecX(ctx context.Context) {
-	otdo.otd.ExecX(ctx)
+	if err := otdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

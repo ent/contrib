@@ -86,13 +86,7 @@ func (wfc *WithFieldsCreate) sqlSave(ctx context.Context) (*WithFields, error) {
 func (wfc *WithFieldsCreate) createSpec() (*WithFields, *sqlgraph.CreateSpec) {
 	var (
 		_node = &WithFields{config: wfc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: withfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withfields.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(withfields.Table, sqlgraph.NewFieldSpec(withfields.FieldID, field.TypeInt))
 	)
 	if value, ok := wfc.mutation.Existing(); ok {
 		_spec.SetField(withfields.FieldExisting, field.TypeString, value)
@@ -124,8 +118,8 @@ func (wfcb *WithFieldsCreateBulk) Save(ctx context.Context) ([]*WithFields, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wfcb.builders[i+1].mutation)
 				} else {

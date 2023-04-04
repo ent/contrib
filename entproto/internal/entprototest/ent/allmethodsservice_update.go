@@ -60,16 +60,7 @@ func (amsu *AllMethodsServiceUpdate) ExecX(ctx context.Context) {
 }
 
 func (amsu *AllMethodsServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allmethodsservice.Table,
-			Columns: allmethodsservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allmethodsservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(allmethodsservice.Table, allmethodsservice.Columns, sqlgraph.NewFieldSpec(allmethodsservice.FieldID, field.TypeInt))
 	if ps := amsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -100,6 +91,12 @@ type AllMethodsServiceUpdateOne struct {
 // Mutation returns the AllMethodsServiceMutation object of the builder.
 func (amsuo *AllMethodsServiceUpdateOne) Mutation() *AllMethodsServiceMutation {
 	return amsuo.mutation
+}
+
+// Where appends a list predicates to the AllMethodsServiceUpdate builder.
+func (amsuo *AllMethodsServiceUpdateOne) Where(ps ...predicate.AllMethodsService) *AllMethodsServiceUpdateOne {
+	amsuo.mutation.Where(ps...)
+	return amsuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -137,16 +134,7 @@ func (amsuo *AllMethodsServiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (amsuo *AllMethodsServiceUpdateOne) sqlSave(ctx context.Context) (_node *AllMethodsService, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allmethodsservice.Table,
-			Columns: allmethodsservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allmethodsservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(allmethodsservice.Table, allmethodsservice.Columns, sqlgraph.NewFieldSpec(allmethodsservice.FieldID, field.TypeInt))
 	id, ok := amsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "AllMethodsService.id" for update`)}

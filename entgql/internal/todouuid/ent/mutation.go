@@ -33,10 +33,9 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-
-	"entgo.io/ent"
 )
 
 const (

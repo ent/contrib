@@ -76,13 +76,7 @@ func (tmsc *TwoMethodServiceCreate) sqlSave(ctx context.Context) (*TwoMethodServ
 func (tmsc *TwoMethodServiceCreate) createSpec() (*TwoMethodService, *sqlgraph.CreateSpec) {
 	var (
 		_node = &TwoMethodService{config: tmsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: twomethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(twomethodservice.Table, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -110,8 +104,8 @@ func (tmscb *TwoMethodServiceCreateBulk) Save(ctx context.Context) ([]*TwoMethod
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tmscb.builders[i+1].mutation)
 				} else {

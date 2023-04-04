@@ -70,6 +70,16 @@ func IDLTE(id string) predicate.Todo {
 	return predicate.Todo(sql.FieldLTE(FieldID, id))
 }
 
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Todo {
+	return predicate.Todo(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Todo {
+	return predicate.Todo(sql.FieldContainsFold(FieldID, id))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Todo {
 	return predicate.Todo(sql.FieldEQ(FieldCreatedAt, v))

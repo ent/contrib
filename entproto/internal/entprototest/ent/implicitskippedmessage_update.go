@@ -60,16 +60,7 @@ func (ismu *ImplicitSkippedMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (ismu *ImplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   implicitskippedmessage.Table,
-			Columns: implicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(implicitskippedmessage.Table, implicitskippedmessage.Columns, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	if ps := ismu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -100,6 +91,12 @@ type ImplicitSkippedMessageUpdateOne struct {
 // Mutation returns the ImplicitSkippedMessageMutation object of the builder.
 func (ismuo *ImplicitSkippedMessageUpdateOne) Mutation() *ImplicitSkippedMessageMutation {
 	return ismuo.mutation
+}
+
+// Where appends a list predicates to the ImplicitSkippedMessageUpdate builder.
+func (ismuo *ImplicitSkippedMessageUpdateOne) Where(ps ...predicate.ImplicitSkippedMessage) *ImplicitSkippedMessageUpdateOne {
+	ismuo.mutation.Where(ps...)
+	return ismuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -137,16 +134,7 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ismuo *ImplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_node *ImplicitSkippedMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   implicitskippedmessage.Table,
-			Columns: implicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(implicitskippedmessage.Table, implicitskippedmessage.Columns, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	id, ok := ismuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ImplicitSkippedMessage.id" for update`)}

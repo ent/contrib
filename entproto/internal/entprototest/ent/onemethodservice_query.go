@@ -177,10 +177,12 @@ func (omsq *OneMethodServiceQuery) AllX(ctx context.Context) []*OneMethodService
 }
 
 // IDs executes the query and returns a list of OneMethodService IDs.
-func (omsq *OneMethodServiceQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (omsq *OneMethodServiceQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if omsq.ctx.Unique == nil && omsq.path != nil {
+		omsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, omsq.ctx, "IDs")
-	if err := omsq.Select(onemethodservice.FieldID).Scan(ctx, &ids); err != nil {
+	if err = omsq.Select(onemethodservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -340,20 +342,12 @@ func (omsq *OneMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   onemethodservice.Table,
-			Columns: onemethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-		From:   omsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(onemethodservice.Table, onemethodservice.Columns, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
+	_spec.From = omsq.sql
 	if unique := omsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if omsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := omsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

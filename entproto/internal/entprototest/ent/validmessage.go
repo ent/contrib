@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -26,7 +27,8 @@ type ValidMessage struct {
 	// U8 holds the value of the "u8" field.
 	U8 uint8 `json:"u8,omitempty"`
 	// Opti8 holds the value of the "opti8" field.
-	Opti8 *int8 `json:"opti8,omitempty"`
+	Opti8        *int8 `json:"opti8,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,7 +45,7 @@ func (*ValidMessage) scanValues(columns []string) ([]any, error) {
 		case validmessage.FieldUUID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ValidMessage", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -94,9 +96,17 @@ func (vm *ValidMessage) assignValues(columns []string, values []any) error {
 				vm.Opti8 = new(int8)
 				*vm.Opti8 = int8(value.Int64)
 			}
+		default:
+			vm.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ValidMessage.
+// This includes values selected through modifiers, order, etc.
+func (vm *ValidMessage) Value(name string) (ent.Value, error) {
+	return vm.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this ValidMessage.
@@ -144,9 +154,3 @@ func (vm *ValidMessage) String() string {
 
 // ValidMessages is a parsable slice of ValidMessage.
 type ValidMessages []*ValidMessage
-
-func (vm ValidMessages) config(cfg config) {
-	for _i := range vm {
-		vm[_i].config = cfg
-	}
-}

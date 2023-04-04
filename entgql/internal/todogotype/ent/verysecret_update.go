@@ -80,16 +80,7 @@ func (vsu *VerySecretUpdate) ExecX(ctx context.Context) {
 }
 
 func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: verysecret.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeString))
 	if ps := vsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -131,6 +122,12 @@ func (vsuo *VerySecretUpdateOne) Mutation() *VerySecretMutation {
 	return vsuo.mutation
 }
 
+// Where appends a list predicates to the VerySecretUpdate builder.
+func (vsuo *VerySecretUpdateOne) Where(ps ...predicate.VerySecret) *VerySecretUpdateOne {
+	vsuo.mutation.Where(ps...)
+	return vsuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (vsuo *VerySecretUpdateOne) Select(field string, fields ...string) *VerySecretUpdateOne {
@@ -166,16 +163,7 @@ func (vsuo *VerySecretUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: verysecret.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeString))
 	id, ok := vsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "VerySecret.id" for update`)}
