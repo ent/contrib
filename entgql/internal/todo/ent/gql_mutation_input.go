@@ -155,6 +155,38 @@ func (c *CategoryUpdateOne) SetInput(i UpdateCategoryInput) *CategoryUpdateOne {
 	return c
 }
 
+// UpdateFriendshipInput represents a mutation input for updating friendships.
+type UpdateFriendshipInput struct {
+	CreatedAt *time.Time
+	UserID    *int
+	FriendID  *int
+}
+
+// Mutate applies the UpdateFriendshipInput on the FriendshipMutation builder.
+func (i *UpdateFriendshipInput) Mutate(m *FriendshipMutation) {
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.FriendID; v != nil {
+		m.SetFriendID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateFriendshipInput on the FriendshipUpdate builder.
+func (c *FriendshipUpdate) SetInput(i UpdateFriendshipInput) *FriendshipUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateFriendshipInput on the FriendshipUpdateOne builder.
+func (c *FriendshipUpdateOne) SetInput(i UpdateFriendshipInput) *FriendshipUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateTodoInput represents a mutation input for creating todos.
 type CreateTodoInput struct {
 	Status     todo.Status

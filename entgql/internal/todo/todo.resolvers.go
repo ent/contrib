@@ -50,6 +50,13 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
+func (r *mutationResolver) UpdateFriendship(ctx context.Context, id int, input ent.UpdateFriendshipInput) (*ent.Friendship, error) {
+	return r.client.Friendship.
+		UpdateOneID(id).
+		SetInput(input).
+		Save(ctx)
+}
+
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	return "pong", nil
 }
