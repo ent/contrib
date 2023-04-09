@@ -16,6 +16,10 @@
 
 package billproduct
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the billproduct type in the database.
 	Label = "bill_product"
@@ -47,4 +51,27 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Order defines the ordering method for the BillProduct queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// BySku orders the results by the sku field.
+func BySku(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldSku, opts...).ToFunc()
+}
+
+// ByQuantity orders the results by the quantity field.
+func ByQuantity(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
 }

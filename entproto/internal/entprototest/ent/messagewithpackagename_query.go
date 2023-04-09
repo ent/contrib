@@ -18,7 +18,7 @@ import (
 type MessageWithPackageNameQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []messagewithpackagename.Order
 	inters     []Interceptor
 	predicates []predicate.MessageWithPackageName
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwpnq *MessageWithPackageNameQuery) Unique(unique bool) *MessageWithPackag
 }
 
 // Order specifies how the records should be ordered.
-func (mwpnq *MessageWithPackageNameQuery) Order(o ...OrderFunc) *MessageWithPackageNameQuery {
+func (mwpnq *MessageWithPackageNameQuery) Order(o ...messagewithpackagename.Order) *MessageWithPackageNameQuery {
 	mwpnq.order = append(mwpnq.order, o...)
 	return mwpnq
 }
@@ -246,7 +246,7 @@ func (mwpnq *MessageWithPackageNameQuery) Clone() *MessageWithPackageNameQuery {
 	return &MessageWithPackageNameQuery{
 		config:     mwpnq.config,
 		ctx:        mwpnq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mwpnq.order...),
+		order:      append([]messagewithpackagename.Order{}, mwpnq.order...),
 		inters:     append([]Interceptor{}, mwpnq.inters...),
 		predicates: append([]predicate.MessageWithPackageName{}, mwpnq.predicates...),
 		// clone intermediate query.

@@ -46,7 +46,7 @@ type (
 	OrderDirection = entgql.OrderDirection
 )
 
-func orderFunc(o OrderDirection, field string) OrderFunc {
+func orderFunc(o OrderDirection, field string) func(*sql.Selector) {
        if o == entgql.OrderDirectionDesc {
                return Desc(field)
        }

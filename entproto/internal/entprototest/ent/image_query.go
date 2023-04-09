@@ -21,7 +21,7 @@ import (
 type ImageQuery struct {
 	config
 	ctx                *QueryContext
-	order              []OrderFunc
+	order              []image.Order
 	inters             []Interceptor
 	predicates         []predicate.Image
 	withUserProfilePic *UserQuery
@@ -57,7 +57,7 @@ func (iq *ImageQuery) Unique(unique bool) *ImageQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (iq *ImageQuery) Order(o ...OrderFunc) *ImageQuery {
+func (iq *ImageQuery) Order(o ...image.Order) *ImageQuery {
 	iq.order = append(iq.order, o...)
 	return iq
 }
@@ -273,7 +273,7 @@ func (iq *ImageQuery) Clone() *ImageQuery {
 	return &ImageQuery{
 		config:             iq.config,
 		ctx:                iq.ctx.Clone(),
-		order:              append([]OrderFunc{}, iq.order...),
+		order:              append([]image.Order{}, iq.order...),
 		inters:             append([]Interceptor{}, iq.inters...),
 		predicates:         append([]predicate.Image{}, iq.predicates...),
 		withUserProfilePic: iq.withUserProfilePic.Clone(),

@@ -137,11 +137,7 @@ func HasPets() predicate.Category {
 // HasPetsWith applies the HasEdge predicate on the "pets" edge with a given conditions (other predicates).
 func HasPetsWith(preds ...predicate.Pet) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PetsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, PetsTable, PetsPrimaryKey...),
-		)
+		step := newPetsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

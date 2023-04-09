@@ -4,6 +4,9 @@ package todo
 
 import (
 	"fmt"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -83,4 +86,36 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("todo: invalid enum value for status field: %q", s)
 	}
+}
+
+// Order defines the ordering method for the Todo queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByTask orders the results by the task field.
+func ByTask(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldTask, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, UserFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
+	)
 }

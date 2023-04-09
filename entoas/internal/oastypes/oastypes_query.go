@@ -18,7 +18,7 @@ import (
 type OASTypesQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []oastypes.Order
 	inters     []Interceptor
 	predicates []predicate.OASTypes
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (otq *OASTypesQuery) Unique(unique bool) *OASTypesQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (otq *OASTypesQuery) Order(o ...OrderFunc) *OASTypesQuery {
+func (otq *OASTypesQuery) Order(o ...oastypes.Order) *OASTypesQuery {
 	otq.order = append(otq.order, o...)
 	return otq
 }
@@ -246,7 +246,7 @@ func (otq *OASTypesQuery) Clone() *OASTypesQuery {
 	return &OASTypesQuery{
 		config:     otq.config,
 		ctx:        otq.ctx.Clone(),
-		order:      append([]OrderFunc{}, otq.order...),
+		order:      append([]oastypes.Order{}, otq.order...),
 		inters:     append([]Interceptor{}, otq.inters...),
 		predicates: append([]predicate.OASTypes{}, otq.predicates...),
 		// clone intermediate query.

@@ -18,7 +18,7 @@ import (
 type WithoutFieldsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []withoutfields.Order
 	inters     []Interceptor
 	predicates []predicate.WithoutFields
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (wfq *WithoutFieldsQuery) Unique(unique bool) *WithoutFieldsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (wfq *WithoutFieldsQuery) Order(o ...OrderFunc) *WithoutFieldsQuery {
+func (wfq *WithoutFieldsQuery) Order(o ...withoutfields.Order) *WithoutFieldsQuery {
 	wfq.order = append(wfq.order, o...)
 	return wfq
 }
@@ -246,7 +246,7 @@ func (wfq *WithoutFieldsQuery) Clone() *WithoutFieldsQuery {
 	return &WithoutFieldsQuery{
 		config:     wfq.config,
 		ctx:        wfq.ctx.Clone(),
-		order:      append([]OrderFunc{}, wfq.order...),
+		order:      append([]withoutfields.Order{}, wfq.order...),
 		inters:     append([]Interceptor{}, wfq.inters...),
 		predicates: append([]predicate.WithoutFields{}, wfq.predicates...),
 		// clone intermediate query.

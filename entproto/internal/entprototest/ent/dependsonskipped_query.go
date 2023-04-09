@@ -20,7 +20,7 @@ import (
 type DependsOnSkippedQuery struct {
 	config
 	ctx         *QueryContext
-	order       []OrderFunc
+	order       []dependsonskipped.Order
 	inters      []Interceptor
 	predicates  []predicate.DependsOnSkipped
 	withSkipped *ImplicitSkippedMessageQuery
@@ -55,7 +55,7 @@ func (dosq *DependsOnSkippedQuery) Unique(unique bool) *DependsOnSkippedQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (dosq *DependsOnSkippedQuery) Order(o ...OrderFunc) *DependsOnSkippedQuery {
+func (dosq *DependsOnSkippedQuery) Order(o ...dependsonskipped.Order) *DependsOnSkippedQuery {
 	dosq.order = append(dosq.order, o...)
 	return dosq
 }
@@ -271,7 +271,7 @@ func (dosq *DependsOnSkippedQuery) Clone() *DependsOnSkippedQuery {
 	return &DependsOnSkippedQuery{
 		config:      dosq.config,
 		ctx:         dosq.ctx.Clone(),
-		order:       append([]OrderFunc{}, dosq.order...),
+		order:       append([]dependsonskipped.Order{}, dosq.order...),
 		inters:      append([]Interceptor{}, dosq.inters...),
 		predicates:  append([]predicate.DependsOnSkipped{}, dosq.predicates...),
 		withSkipped: dosq.withSkipped.Clone(),

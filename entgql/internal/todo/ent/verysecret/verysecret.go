@@ -16,6 +16,10 @@
 
 package verysecret
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the verysecret type in the database.
 	Label = "very_secret"
@@ -41,4 +45,17 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Order defines the ordering method for the VerySecret queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByPassword orders the results by the password field.
+func ByPassword(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }

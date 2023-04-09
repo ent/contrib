@@ -19,7 +19,7 @@ import (
 type WithModifiedFieldQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []withmodifiedfield.Order
 	inters     []Interceptor
 	predicates []predicate.WithModifiedField
 	withOwner  *UserQuery
@@ -55,7 +55,7 @@ func (wmfq *WithModifiedFieldQuery) Unique(unique bool) *WithModifiedFieldQuery 
 }
 
 // Order specifies how the records should be ordered.
-func (wmfq *WithModifiedFieldQuery) Order(o ...OrderFunc) *WithModifiedFieldQuery {
+func (wmfq *WithModifiedFieldQuery) Order(o ...withmodifiedfield.Order) *WithModifiedFieldQuery {
 	wmfq.order = append(wmfq.order, o...)
 	return wmfq
 }
@@ -271,7 +271,7 @@ func (wmfq *WithModifiedFieldQuery) Clone() *WithModifiedFieldQuery {
 	return &WithModifiedFieldQuery{
 		config:     wmfq.config,
 		ctx:        wmfq.ctx.Clone(),
-		order:      append([]OrderFunc{}, wmfq.order...),
+		order:      append([]withmodifiedfield.Order{}, wmfq.order...),
 		inters:     append([]Interceptor{}, wmfq.inters...),
 		predicates: append([]predicate.WithModifiedField{}, wmfq.predicates...),
 		withOwner:  wmfq.withOwner.Clone(),
