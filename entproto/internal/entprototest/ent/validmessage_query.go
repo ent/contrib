@@ -18,7 +18,7 @@ import (
 type ValidMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []validmessage.Order
 	inters     []Interceptor
 	predicates []predicate.ValidMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (vmq *ValidMessageQuery) Unique(unique bool) *ValidMessageQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vmq *ValidMessageQuery) Order(o ...OrderFunc) *ValidMessageQuery {
+func (vmq *ValidMessageQuery) Order(o ...validmessage.Order) *ValidMessageQuery {
 	vmq.order = append(vmq.order, o...)
 	return vmq
 }
@@ -246,7 +246,7 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 	return &ValidMessageQuery{
 		config:     vmq.config,
 		ctx:        vmq.ctx.Clone(),
-		order:      append([]OrderFunc{}, vmq.order...),
+		order:      append([]validmessage.Order{}, vmq.order...),
 		inters:     append([]Interceptor{}, vmq.inters...),
 		predicates: append([]predicate.ValidMessage{}, vmq.predicates...),
 		// clone intermediate query.

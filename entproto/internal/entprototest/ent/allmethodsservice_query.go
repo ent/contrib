@@ -18,7 +18,7 @@ import (
 type AllMethodsServiceQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []allmethodsservice.Order
 	inters     []Interceptor
 	predicates []predicate.AllMethodsService
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (amsq *AllMethodsServiceQuery) Unique(unique bool) *AllMethodsServiceQuery 
 }
 
 // Order specifies how the records should be ordered.
-func (amsq *AllMethodsServiceQuery) Order(o ...OrderFunc) *AllMethodsServiceQuery {
+func (amsq *AllMethodsServiceQuery) Order(o ...allmethodsservice.Order) *AllMethodsServiceQuery {
 	amsq.order = append(amsq.order, o...)
 	return amsq
 }
@@ -246,7 +246,7 @@ func (amsq *AllMethodsServiceQuery) Clone() *AllMethodsServiceQuery {
 	return &AllMethodsServiceQuery{
 		config:     amsq.config,
 		ctx:        amsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, amsq.order...),
+		order:      append([]allmethodsservice.Order{}, amsq.order...),
 		inters:     append([]Interceptor{}, amsq.inters...),
 		predicates: append([]predicate.AllMethodsService{}, amsq.predicates...),
 		// clone intermediate query.

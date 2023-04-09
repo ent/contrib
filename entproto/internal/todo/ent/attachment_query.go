@@ -21,7 +21,7 @@ import (
 type AttachmentQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []attachment.Order
 	inters         []Interceptor
 	predicates     []predicate.Attachment
 	withUser       *UserQuery
@@ -58,7 +58,7 @@ func (aq *AttachmentQuery) Unique(unique bool) *AttachmentQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (aq *AttachmentQuery) Order(o ...OrderFunc) *AttachmentQuery {
+func (aq *AttachmentQuery) Order(o ...attachment.Order) *AttachmentQuery {
 	aq.order = append(aq.order, o...)
 	return aq
 }
@@ -296,7 +296,7 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 	return &AttachmentQuery{
 		config:         aq.config,
 		ctx:            aq.ctx.Clone(),
-		order:          append([]OrderFunc{}, aq.order...),
+		order:          append([]attachment.Order{}, aq.order...),
 		inters:         append([]Interceptor{}, aq.inters...),
 		predicates:     append([]predicate.Attachment{}, aq.predicates...),
 		withUser:       aq.withUser.Clone(),

@@ -32,7 +32,7 @@ import (
 type VerySecretQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []verysecret.Order
 	inters     []Interceptor
 	predicates []predicate.VerySecret
 	modifiers  []func(*sql.Selector)
@@ -68,7 +68,7 @@ func (vsq *VerySecretQuery) Unique(unique bool) *VerySecretQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vsq *VerySecretQuery) Order(o ...OrderFunc) *VerySecretQuery {
+func (vsq *VerySecretQuery) Order(o ...verysecret.Order) *VerySecretQuery {
 	vsq.order = append(vsq.order, o...)
 	return vsq
 }
@@ -262,7 +262,7 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 	return &VerySecretQuery{
 		config:     vsq.config,
 		ctx:        vsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, vsq.order...),
+		order:      append([]verysecret.Order{}, vsq.order...),
 		inters:     append([]Interceptor{}, vsq.inters...),
 		predicates: append([]predicate.VerySecret{}, vsq.predicates...),
 		// clone intermediate query.

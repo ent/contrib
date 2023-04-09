@@ -20,7 +20,7 @@ import (
 type CategoryQuery struct {
 	config
 	ctx           *QueryContext
-	order         []OrderFunc
+	order         []category.Order
 	inters        []Interceptor
 	predicates    []predicate.Category
 	withBlogPosts *BlogPostQuery
@@ -55,7 +55,7 @@ func (cq *CategoryQuery) Unique(unique bool) *CategoryQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (cq *CategoryQuery) Order(o ...OrderFunc) *CategoryQuery {
+func (cq *CategoryQuery) Order(o ...category.Order) *CategoryQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -271,7 +271,7 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 	return &CategoryQuery{
 		config:        cq.config,
 		ctx:           cq.ctx.Clone(),
-		order:         append([]OrderFunc{}, cq.order...),
+		order:         append([]category.Order{}, cq.order...),
 		inters:        append([]Interceptor{}, cq.inters...),
 		predicates:    append([]predicate.Category{}, cq.predicates...),
 		withBlogPosts: cq.withBlogPosts.Clone(),

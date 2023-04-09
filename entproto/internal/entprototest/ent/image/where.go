@@ -138,11 +138,7 @@ func HasUserProfilePic() predicate.Image {
 // HasUserProfilePicWith applies the HasEdge predicate on the "user_profile_pic" edge with a given conditions (other predicates).
 func HasUserProfilePicWith(preds ...predicate.User) predicate.Image {
 	return predicate.Image(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserProfilePicInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, UserProfilePicTable, UserProfilePicColumn),
-		)
+		step := newUserProfilePicStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

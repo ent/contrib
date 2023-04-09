@@ -20,7 +20,7 @@ import (
 type NoBackrefQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []nobackref.Order
 	inters     []Interceptor
 	predicates []predicate.NoBackref
 	withImages *ImageQuery
@@ -55,7 +55,7 @@ func (nbq *NoBackrefQuery) Unique(unique bool) *NoBackrefQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (nbq *NoBackrefQuery) Order(o ...OrderFunc) *NoBackrefQuery {
+func (nbq *NoBackrefQuery) Order(o ...nobackref.Order) *NoBackrefQuery {
 	nbq.order = append(nbq.order, o...)
 	return nbq
 }
@@ -271,7 +271,7 @@ func (nbq *NoBackrefQuery) Clone() *NoBackrefQuery {
 	return &NoBackrefQuery{
 		config:     nbq.config,
 		ctx:        nbq.ctx.Clone(),
-		order:      append([]OrderFunc{}, nbq.order...),
+		order:      append([]nobackref.Order{}, nbq.order...),
 		inters:     append([]Interceptor{}, nbq.inters...),
 		predicates: append([]predicate.NoBackref{}, nbq.predicates...),
 		withImages: nbq.withImages.Clone(),

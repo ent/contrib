@@ -18,6 +18,7 @@ package billproduct
 
 import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -57,3 +58,26 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() pulid.ID
 )
+
+// Order defines the ordering method for the BillProduct queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// BySku orders the results by the sku field.
+func BySku(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldSku, opts...).ToFunc()
+}
+
+// ByQuantity orders the results by the quantity field.
+func ByQuantity(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
+}

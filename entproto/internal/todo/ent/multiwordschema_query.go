@@ -18,7 +18,7 @@ import (
 type MultiWordSchemaQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []multiwordschema.Order
 	inters     []Interceptor
 	predicates []predicate.MultiWordSchema
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwsq *MultiWordSchemaQuery) Unique(unique bool) *MultiWordSchemaQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mwsq *MultiWordSchemaQuery) Order(o ...OrderFunc) *MultiWordSchemaQuery {
+func (mwsq *MultiWordSchemaQuery) Order(o ...multiwordschema.Order) *MultiWordSchemaQuery {
 	mwsq.order = append(mwsq.order, o...)
 	return mwsq
 }
@@ -246,7 +246,7 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 	return &MultiWordSchemaQuery{
 		config:     mwsq.config,
 		ctx:        mwsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mwsq.order...),
+		order:      append([]multiwordschema.Order{}, mwsq.order...),
 		inters:     append([]Interceptor{}, mwsq.inters...),
 		predicates: append([]predicate.MultiWordSchema{}, mwsq.predicates...),
 		// clone intermediate query.

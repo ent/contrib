@@ -383,11 +383,7 @@ func HasParent() predicate.Todo {
 // HasParentWith applies the HasEdge predicate on the "parent" edge with a given conditions (other predicates).
 func HasParentWith(preds ...predicate.Todo) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
-		)
+		step := newParentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -410,11 +406,7 @@ func HasChildren() predicate.Todo {
 // HasChildrenWith applies the HasEdge predicate on the "children" edge with a given conditions (other predicates).
 func HasChildrenWith(preds ...predicate.Todo) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
-		)
+		step := newChildrenStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -437,11 +429,7 @@ func HasCategory() predicate.Todo {
 // HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
 func HasCategoryWith(preds ...predicate.Category) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CategoryInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
-		)
+		step := newCategoryStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -464,11 +452,7 @@ func HasSecret() predicate.Todo {
 // HasSecretWith applies the HasEdge predicate on the "secret" edge with a given conditions (other predicates).
 func HasSecretWith(preds ...predicate.VerySecret) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SecretInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, SecretTable, SecretColumn),
-		)
+		step := newSecretStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
