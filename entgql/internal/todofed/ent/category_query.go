@@ -34,7 +34,7 @@ import (
 type CategoryQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []category.Order
 	inters         []Interceptor
 	predicates     []predicate.Category
 	withTodos      *TodoQuery
@@ -72,7 +72,7 @@ func (cq *CategoryQuery) Unique(unique bool) *CategoryQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (cq *CategoryQuery) Order(o ...OrderFunc) *CategoryQuery {
+func (cq *CategoryQuery) Order(o ...category.Order) *CategoryQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
@@ -219,10 +219,12 @@ func (cq *CategoryQuery) AllX(ctx context.Context) []*Category {
 }
 
 // IDs executes the query and returns a list of Category IDs.
-func (cq *CategoryQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (cq *CategoryQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if cq.ctx.Unique == nil && cq.path != nil {
+		cq.Unique(true)
+	}
 	ctx = setContextOp(ctx, cq.ctx, "IDs")
-	if err := cq.Select(category.FieldID).Scan(ctx, &ids); err != nil {
+	if err = cq.Select(category.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -286,7 +288,7 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 	return &CategoryQuery{
 		config:     cq.config,
 		ctx:        cq.ctx.Clone(),
-		order:      append([]OrderFunc{}, cq.order...),
+		order:      append([]category.Order{}, cq.order...),
 		inters:     append([]Interceptor{}, cq.inters...),
 		predicates: append([]predicate.Category{}, cq.predicates...),
 		withTodos:  cq.withTodos.Clone(),
@@ -477,20 +479,12 @@ func (cq *CategoryQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (cq *CategoryQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   category.Table,
-			Columns: category.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: category.FieldID,
-			},
-		},
-		From:   cq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(category.Table, category.Columns, sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt))
+	_spec.From = cq.sql
 	if unique := cq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if cq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := cq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

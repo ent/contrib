@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -22,6 +23,7 @@ type Attachment struct {
 	Edges           AttachmentEdges `json:"edges"`
 	pet_attachment  *int
 	user_attachment *uint32
+	selectValues    sql.SelectValues
 }
 
 // AttachmentEdges holds the relations/edges for other nodes in the graph.
@@ -69,7 +71,7 @@ func (*Attachment) scanValues(columns []string) ([]any, error) {
 		case attachment.ForeignKeys[1]: // user_attachment
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -103,9 +105,17 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 				a.user_attachment = new(uint32)
 				*a.user_attachment = uint32(value.Int64)
 			}
+		default:
+			a.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Attachment.
+// This includes values selected through modifiers, order, etc.
+func (a *Attachment) Value(name string) (ent.Value, error) {
+	return a.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the Attachment entity.
@@ -147,9 +157,3 @@ func (a *Attachment) String() string {
 
 // Attachments is a parsable slice of Attachment.
 type Attachments []*Attachment
-
-func (a Attachments) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}

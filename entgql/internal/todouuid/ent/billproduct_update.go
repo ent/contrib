@@ -99,16 +99,7 @@ func (bpu *BillProductUpdate) ExecX(ctx context.Context) {
 }
 
 func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   billproduct.Table,
-			Columns: billproduct.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: billproduct.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeUUID))
 	if ps := bpu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -178,6 +169,12 @@ func (bpuo *BillProductUpdateOne) Mutation() *BillProductMutation {
 	return bpuo.mutation
 }
 
+// Where appends a list predicates to the BillProductUpdate builder.
+func (bpuo *BillProductUpdateOne) Where(ps ...predicate.BillProduct) *BillProductUpdateOne {
+	bpuo.mutation.Where(ps...)
+	return bpuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (bpuo *BillProductUpdateOne) Select(field string, fields ...string) *BillProductUpdateOne {
@@ -213,16 +210,7 @@ func (bpuo *BillProductUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProduct, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   billproduct.Table,
-			Columns: billproduct.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: billproduct.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeUUID))
 	id, ok := bpuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "BillProduct.id" for update`)}

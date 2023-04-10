@@ -84,13 +84,7 @@ func (mwic *MessageWithIDCreate) sqlSave(ctx context.Context) (*MessageWithID, e
 func (mwic *MessageWithIDCreate) createSpec() (*MessageWithID, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithID{config: mwic.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithid.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt32,
-				Column: messagewithid.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithid.Table, sqlgraph.NewFieldSpec(messagewithid.FieldID, field.TypeInt32))
 	)
 	if id, ok := mwic.mutation.ID(); ok {
 		_node.ID = id
@@ -122,8 +116,8 @@ func (mwicb *MessageWithIDCreateBulk) Save(ctx context.Context) ([]*MessageWithI
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwicb.builders[i+1].mutation)
 				} else {

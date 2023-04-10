@@ -207,11 +207,7 @@ func HasCategory() predicate.Portal {
 // HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
 func HasCategoryWith(preds ...predicate.Category) predicate.Portal {
 	return predicate.Portal(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CategoryInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, CategoryTable, CategoryColumn),
-		)
+		step := newCategoryStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

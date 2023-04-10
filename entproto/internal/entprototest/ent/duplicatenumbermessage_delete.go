@@ -40,15 +40,7 @@ func (dnmd *DuplicateNumberMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (dnmd *DuplicateNumberMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: duplicatenumbermessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: duplicatenumbermessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(duplicatenumbermessage.Table, sqlgraph.NewFieldSpec(duplicatenumbermessage.FieldID, field.TypeInt))
 	if ps := dnmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type DuplicateNumberMessageDeleteOne struct {
 	dnmd *DuplicateNumberMessageDelete
 }
 
+// Where appends a list predicates to the DuplicateNumberMessageDelete builder.
+func (dnmdo *DuplicateNumberMessageDeleteOne) Where(ps ...predicate.DuplicateNumberMessage) *DuplicateNumberMessageDeleteOne {
+	dnmdo.dnmd.mutation.Where(ps...)
+	return dnmdo
+}
+
 // Exec executes the deletion query.
 func (dnmdo *DuplicateNumberMessageDeleteOne) Exec(ctx context.Context) error {
 	n, err := dnmdo.dnmd.Exec(ctx)
@@ -84,5 +82,7 @@ func (dnmdo *DuplicateNumberMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (dnmdo *DuplicateNumberMessageDeleteOne) ExecX(ctx context.Context) {
-	dnmdo.dnmd.ExecX(ctx)
+	if err := dnmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -18,7 +19,8 @@ type DuplicateNumberMessage struct {
 	// Hello holds the value of the "hello" field.
 	Hello string `json:"hello,omitempty"`
 	// World holds the value of the "world" field.
-	World string `json:"world,omitempty"`
+	World        string `json:"world,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -31,7 +33,7 @@ func (*DuplicateNumberMessage) scanValues(columns []string) ([]any, error) {
 		case duplicatenumbermessage.FieldHello, duplicatenumbermessage.FieldWorld:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DuplicateNumberMessage", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -63,9 +65,17 @@ func (dnm *DuplicateNumberMessage) assignValues(columns []string, values []any) 
 			} else if value.Valid {
 				dnm.World = value.String
 			}
+		default:
+			dnm.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DuplicateNumberMessage.
+// This includes values selected through modifiers, order, etc.
+func (dnm *DuplicateNumberMessage) Value(name string) (ent.Value, error) {
+	return dnm.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DuplicateNumberMessage.
@@ -102,9 +112,3 @@ func (dnm *DuplicateNumberMessage) String() string {
 
 // DuplicateNumberMessages is a parsable slice of DuplicateNumberMessage.
 type DuplicateNumberMessages []*DuplicateNumberMessage
-
-func (dnm DuplicateNumberMessages) config(cfg config) {
-	for _i := range dnm {
-		dnm[_i].config = cfg
-	}
-}

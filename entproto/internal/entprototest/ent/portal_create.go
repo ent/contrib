@@ -115,13 +115,7 @@ func (pc *PortalCreate) sqlSave(ctx context.Context) (*Portal, error) {
 func (pc *PortalCreate) createSpec() (*Portal, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Portal{config: pc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: portal.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: portal.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(portal.Table, sqlgraph.NewFieldSpec(portal.FieldID, field.TypeInt))
 	)
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(portal.FieldName, field.TypeString, value)
@@ -139,10 +133,7 @@ func (pc *PortalCreate) createSpec() (*Portal, *sqlgraph.CreateSpec) {
 			Columns: []string{portal.CategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -177,8 +168,8 @@ func (pcb *PortalCreateBulk) Save(ctx context.Context) ([]*Portal, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pcb.builders[i+1].mutation)
 				} else {

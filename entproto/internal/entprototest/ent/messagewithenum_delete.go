@@ -40,15 +40,7 @@ func (mwed *MessageWithEnumDelete) ExecX(ctx context.Context) int {
 }
 
 func (mwed *MessageWithEnumDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: messagewithenum.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(messagewithenum.Table, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	if ps := mwed.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type MessageWithEnumDeleteOne struct {
 	mwed *MessageWithEnumDelete
 }
 
+// Where appends a list predicates to the MessageWithEnumDelete builder.
+func (mwedo *MessageWithEnumDeleteOne) Where(ps ...predicate.MessageWithEnum) *MessageWithEnumDeleteOne {
+	mwedo.mwed.mutation.Where(ps...)
+	return mwedo
+}
+
 // Exec executes the deletion query.
 func (mwedo *MessageWithEnumDeleteOne) Exec(ctx context.Context) error {
 	n, err := mwedo.mwed.Exec(ctx)
@@ -84,5 +82,7 @@ func (mwedo *MessageWithEnumDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mwedo *MessageWithEnumDeleteOne) ExecX(ctx context.Context) {
-	mwedo.mwed.ExecX(ctx)
+	if err := mwedo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

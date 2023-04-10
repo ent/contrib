@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/schema"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -18,7 +19,8 @@ type InvalidFieldMessage struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// JSON holds the value of the "json" field.
-	JSON *schema.SomeJSON `json:"json,omitempty"`
+	JSON         *schema.SomeJSON `json:"json,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -31,7 +33,7 @@ func (*InvalidFieldMessage) scanValues(columns []string) ([]any, error) {
 		case invalidfieldmessage.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type InvalidFieldMessage", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -59,9 +61,17 @@ func (ifm *InvalidFieldMessage) assignValues(columns []string, values []any) err
 					return fmt.Errorf("unmarshal field json: %w", err)
 				}
 			}
+		default:
+			ifm.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the InvalidFieldMessage.
+// This includes values selected through modifiers, order, etc.
+func (ifm *InvalidFieldMessage) Value(name string) (ent.Value, error) {
+	return ifm.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this InvalidFieldMessage.
@@ -95,9 +105,3 @@ func (ifm *InvalidFieldMessage) String() string {
 
 // InvalidFieldMessages is a parsable slice of InvalidFieldMessage.
 type InvalidFieldMessages []*InvalidFieldMessage
-
-func (ifm InvalidFieldMessages) config(cfg config) {
-	for _i := range ifm {
-		ifm[_i].config = cfg
-	}
-}

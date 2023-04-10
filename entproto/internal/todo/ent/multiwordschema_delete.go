@@ -40,15 +40,7 @@ func (mwsd *MultiWordSchemaDelete) ExecX(ctx context.Context) int {
 }
 
 func (mwsd *MultiWordSchemaDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: multiwordschema.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(multiwordschema.Table, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
 	if ps := mwsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type MultiWordSchemaDeleteOne struct {
 	mwsd *MultiWordSchemaDelete
 }
 
+// Where appends a list predicates to the MultiWordSchemaDelete builder.
+func (mwsdo *MultiWordSchemaDeleteOne) Where(ps ...predicate.MultiWordSchema) *MultiWordSchemaDeleteOne {
+	mwsdo.mwsd.mutation.Where(ps...)
+	return mwsdo
+}
+
 // Exec executes the deletion query.
 func (mwsdo *MultiWordSchemaDeleteOne) Exec(ctx context.Context) error {
 	n, err := mwsdo.mwsd.Exec(ctx)
@@ -84,5 +82,7 @@ func (mwsdo *MultiWordSchemaDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mwsdo *MultiWordSchemaDeleteOne) ExecX(ctx context.Context) {
-	mwsdo.mwsd.ExecX(ctx)
+	if err := mwsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -20,7 +20,7 @@ import (
 type DependsOnSkippedQuery struct {
 	config
 	ctx         *QueryContext
-	order       []OrderFunc
+	order       []dependsonskipped.Order
 	inters      []Interceptor
 	predicates  []predicate.DependsOnSkipped
 	withSkipped *ImplicitSkippedMessageQuery
@@ -55,7 +55,7 @@ func (dosq *DependsOnSkippedQuery) Unique(unique bool) *DependsOnSkippedQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (dosq *DependsOnSkippedQuery) Order(o ...OrderFunc) *DependsOnSkippedQuery {
+func (dosq *DependsOnSkippedQuery) Order(o ...dependsonskipped.Order) *DependsOnSkippedQuery {
 	dosq.order = append(dosq.order, o...)
 	return dosq
 }
@@ -202,10 +202,12 @@ func (dosq *DependsOnSkippedQuery) AllX(ctx context.Context) []*DependsOnSkipped
 }
 
 // IDs executes the query and returns a list of DependsOnSkipped IDs.
-func (dosq *DependsOnSkippedQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (dosq *DependsOnSkippedQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if dosq.ctx.Unique == nil && dosq.path != nil {
+		dosq.Unique(true)
+	}
 	ctx = setContextOp(ctx, dosq.ctx, "IDs")
-	if err := dosq.Select(dependsonskipped.FieldID).Scan(ctx, &ids); err != nil {
+	if err = dosq.Select(dependsonskipped.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -269,7 +271,7 @@ func (dosq *DependsOnSkippedQuery) Clone() *DependsOnSkippedQuery {
 	return &DependsOnSkippedQuery{
 		config:      dosq.config,
 		ctx:         dosq.ctx.Clone(),
-		order:       append([]OrderFunc{}, dosq.order...),
+		order:       append([]dependsonskipped.Order{}, dosq.order...),
 		inters:      append([]Interceptor{}, dosq.inters...),
 		predicates:  append([]predicate.DependsOnSkipped{}, dosq.predicates...),
 		withSkipped: dosq.withSkipped.Clone(),
@@ -442,20 +444,12 @@ func (dosq *DependsOnSkippedQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (dosq *DependsOnSkippedQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   dependsonskipped.Table,
-			Columns: dependsonskipped.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dependsonskipped.FieldID,
-			},
-		},
-		From:   dosq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(dependsonskipped.Table, dependsonskipped.Columns, sqlgraph.NewFieldSpec(dependsonskipped.FieldID, field.TypeInt))
+	_spec.From = dosq.sql
 	if unique := dosq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if dosq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := dosq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

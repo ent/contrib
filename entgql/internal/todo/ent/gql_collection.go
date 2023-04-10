@@ -1181,6 +1181,11 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, user.FieldUsername)
 				fieldSeen[user.FieldUsername] = struct{}{}
 			}
+		case "metadata":
+			if _, ok := fieldSeen[user.FieldMetadata]; !ok {
+				selectedFields = append(selectedFields, user.FieldMetadata)
+				fieldSeen[user.FieldMetadata] = struct{}{}
+			}
 		default:
 			unknownSeen = true
 		}

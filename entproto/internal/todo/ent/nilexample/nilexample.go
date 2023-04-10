@@ -2,6 +2,10 @@
 
 package nilexample
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the nilexample type in the database.
 	Label = "nil_example"
@@ -30,4 +34,22 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Order defines the ordering method for the NilExample queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByStrNil orders the results by the str_nil field.
+func ByStrNil(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldStrNil, opts...).ToFunc()
+}
+
+// ByTimeNil orders the results by the time_nil field.
+func ByTimeNil(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldTimeNil, opts...).ToFunc()
 }

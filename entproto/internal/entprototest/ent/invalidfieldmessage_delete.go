@@ -40,15 +40,7 @@ func (ifmd *InvalidFieldMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (ifmd *InvalidFieldMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: invalidfieldmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(invalidfieldmessage.Table, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	if ps := ifmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type InvalidFieldMessageDeleteOne struct {
 	ifmd *InvalidFieldMessageDelete
 }
 
+// Where appends a list predicates to the InvalidFieldMessageDelete builder.
+func (ifmdo *InvalidFieldMessageDeleteOne) Where(ps ...predicate.InvalidFieldMessage) *InvalidFieldMessageDeleteOne {
+	ifmdo.ifmd.mutation.Where(ps...)
+	return ifmdo
+}
+
 // Exec executes the deletion query.
 func (ifmdo *InvalidFieldMessageDeleteOne) Exec(ctx context.Context) error {
 	n, err := ifmdo.ifmd.Exec(ctx)
@@ -84,5 +82,7 @@ func (ifmdo *InvalidFieldMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ifmdo *InvalidFieldMessageDeleteOne) ExecX(ctx context.Context) {
-	ifmdo.ifmd.ExecX(ctx)
+	if err := ifmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

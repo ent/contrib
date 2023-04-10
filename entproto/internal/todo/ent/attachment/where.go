@@ -68,11 +68,7 @@ func HasUser() predicate.Attachment {
 // HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
 func HasUserWith(preds ...predicate.User) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserInverseTable, UserFieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
-		)
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -95,11 +91,7 @@ func HasRecipients() predicate.Attachment {
 // HasRecipientsWith applies the HasEdge predicate on the "recipients" edge with a given conditions (other predicates).
 func HasRecipientsWith(preds ...predicate.User) predicate.Attachment {
 	return predicate.Attachment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RecipientsInverseTable, UserFieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, RecipientsTable, RecipientsPrimaryKey...),
-		)
+		step := newRecipientsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

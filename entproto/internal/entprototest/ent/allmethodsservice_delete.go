@@ -40,15 +40,7 @@ func (amsd *AllMethodsServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (amsd *AllMethodsServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: allmethodsservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allmethodsservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(allmethodsservice.Table, sqlgraph.NewFieldSpec(allmethodsservice.FieldID, field.TypeInt))
 	if ps := amsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type AllMethodsServiceDeleteOne struct {
 	amsd *AllMethodsServiceDelete
 }
 
+// Where appends a list predicates to the AllMethodsServiceDelete builder.
+func (amsdo *AllMethodsServiceDeleteOne) Where(ps ...predicate.AllMethodsService) *AllMethodsServiceDeleteOne {
+	amsdo.amsd.mutation.Where(ps...)
+	return amsdo
+}
+
 // Exec executes the deletion query.
 func (amsdo *AllMethodsServiceDeleteOne) Exec(ctx context.Context) error {
 	n, err := amsdo.amsd.Exec(ctx)
@@ -84,5 +82,7 @@ func (amsdo *AllMethodsServiceDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (amsdo *AllMethodsServiceDeleteOne) ExecX(ctx context.Context) {
-	amsdo.amsd.ExecX(ctx)
+	if err := amsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

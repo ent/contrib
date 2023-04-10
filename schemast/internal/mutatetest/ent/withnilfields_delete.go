@@ -40,15 +40,7 @@ func (wnfd *WithNilFieldsDelete) ExecX(ctx context.Context) int {
 }
 
 func (wnfd *WithNilFieldsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: withnilfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withnilfields.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(withnilfields.Table, sqlgraph.NewFieldSpec(withnilfields.FieldID, field.TypeInt))
 	if ps := wnfd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type WithNilFieldsDeleteOne struct {
 	wnfd *WithNilFieldsDelete
 }
 
+// Where appends a list predicates to the WithNilFieldsDelete builder.
+func (wnfdo *WithNilFieldsDeleteOne) Where(ps ...predicate.WithNilFields) *WithNilFieldsDeleteOne {
+	wnfdo.wnfd.mutation.Where(ps...)
+	return wnfdo
+}
+
 // Exec executes the deletion query.
 func (wnfdo *WithNilFieldsDeleteOne) Exec(ctx context.Context) error {
 	n, err := wnfdo.wnfd.Exec(ctx)
@@ -84,5 +82,7 @@ func (wnfdo *WithNilFieldsDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (wnfdo *WithNilFieldsDeleteOne) ExecX(ctx context.Context) {
-	wnfdo.wnfd.ExecX(ctx)
+	if err := wnfdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

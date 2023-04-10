@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/attachment"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,7 +17,8 @@ type Attachment struct {
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
 	// Contents holds the value of the "contents" field.
-	Contents string `json:"contents,omitempty"`
+	Contents     string `json:"contents,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -27,7 +29,7 @@ func (*Attachment) scanValues(columns []string) ([]any, error) {
 		case attachment.FieldID, attachment.FieldContents:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -53,9 +55,17 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				a.Contents = value.String
 			}
+		default:
+			a.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Attachment.
+// This includes values selected through modifiers, order, etc.
+func (a *Attachment) Value(name string) (ent.Value, error) {
+	return a.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Attachment.
@@ -89,9 +99,3 @@ func (a *Attachment) String() string {
 
 // Attachments is a parsable slice of Attachment.
 type Attachments []*Attachment
-
-func (a Attachments) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}

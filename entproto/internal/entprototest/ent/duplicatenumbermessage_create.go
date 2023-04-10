@@ -95,13 +95,7 @@ func (dnmc *DuplicateNumberMessageCreate) sqlSave(ctx context.Context) (*Duplica
 func (dnmc *DuplicateNumberMessageCreate) createSpec() (*DuplicateNumberMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DuplicateNumberMessage{config: dnmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: duplicatenumbermessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: duplicatenumbermessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(duplicatenumbermessage.Table, sqlgraph.NewFieldSpec(duplicatenumbermessage.FieldID, field.TypeInt))
 	)
 	if value, ok := dnmc.mutation.Hello(); ok {
 		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
@@ -137,8 +131,8 @@ func (dnmcb *DuplicateNumberMessageCreateBulk) Save(ctx context.Context) ([]*Dup
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, dnmcb.builders[i+1].mutation)
 				} else {

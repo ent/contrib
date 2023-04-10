@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withnilfields"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type WithNilFields struct {
 	config
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID           int `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*WithNilFields) scanValues(columns []string) ([]any, error) {
 		case withnilfields.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type WithNilFields", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,9 +47,17 @@ func (wnf *WithNilFields) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			wnf.ID = int(value.Int64)
+		default:
+			wnf.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the WithNilFields.
+// This includes values selected through modifiers, order, etc.
+func (wnf *WithNilFields) Value(name string) (ent.Value, error) {
+	return wnf.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this WithNilFields.
@@ -79,9 +89,3 @@ func (wnf *WithNilFields) String() string {
 
 // WithNilFieldsSlice is a parsable slice of WithNilFields.
 type WithNilFieldsSlice []*WithNilFields
-
-func (wnf WithNilFieldsSlice) config(cfg config) {
-	for _i := range wnf {
-		wnf[_i].config = cfg
-	}
-}

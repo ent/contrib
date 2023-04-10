@@ -40,15 +40,7 @@ func (esmd *ExplicitSkippedMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (esmd *ExplicitSkippedMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: explicitskippedmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: explicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(explicitskippedmessage.Table, sqlgraph.NewFieldSpec(explicitskippedmessage.FieldID, field.TypeInt))
 	if ps := esmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type ExplicitSkippedMessageDeleteOne struct {
 	esmd *ExplicitSkippedMessageDelete
 }
 
+// Where appends a list predicates to the ExplicitSkippedMessageDelete builder.
+func (esmdo *ExplicitSkippedMessageDeleteOne) Where(ps ...predicate.ExplicitSkippedMessage) *ExplicitSkippedMessageDeleteOne {
+	esmdo.esmd.mutation.Where(ps...)
+	return esmdo
+}
+
 // Exec executes the deletion query.
 func (esmdo *ExplicitSkippedMessageDeleteOne) Exec(ctx context.Context) error {
 	n, err := esmdo.esmd.Exec(ctx)
@@ -84,5 +82,7 @@ func (esmdo *ExplicitSkippedMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (esmdo *ExplicitSkippedMessageDeleteOne) ExecX(ctx context.Context) {
-	esmdo.esmd.ExecX(ctx)
+	if err := esmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

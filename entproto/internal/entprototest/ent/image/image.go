@@ -2,6 +2,11 @@
 
 package image
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the image type in the database.
 	Label = "image"
@@ -47,4 +52,38 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Order defines the ordering method for the Image queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByURLPath orders the results by the url_path field.
+func ByURLPath(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldURLPath, opts...).ToFunc()
+}
+
+// ByUserProfilePicCount orders the results by user_profile_pic count.
+func ByUserProfilePicCount(opts ...sql.OrderTermOption) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserProfilePicStep(), opts...)
+	}
+}
+
+// ByUserProfilePic orders the results by user_profile_pic terms.
+func ByUserProfilePic(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserProfilePicStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newUserProfilePicStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserProfilePicInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, UserProfilePicTable, UserProfilePicColumn),
+	)
 }

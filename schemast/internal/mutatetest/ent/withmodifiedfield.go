@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/user"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -22,6 +23,7 @@ type WithModifiedField struct {
 	// The values are being populated by the WithModifiedFieldQuery when eager-loading is set.
 	Edges                     WithModifiedFieldEdges `json:"edges"`
 	with_modified_field_owner *int
+	selectValues              sql.SelectValues
 }
 
 // WithModifiedFieldEdges holds the relations/edges for other nodes in the graph.
@@ -58,7 +60,7 @@ func (*WithModifiedField) scanValues(columns []string) ([]any, error) {
 		case withmodifiedfield.ForeignKeys[0]: // with_modified_field_owner
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type WithModifiedField", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -91,9 +93,17 @@ func (wmf *WithModifiedField) assignValues(columns []string, values []any) error
 				wmf.with_modified_field_owner = new(int)
 				*wmf.with_modified_field_owner = int(value.Int64)
 			}
+		default:
+			wmf.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the WithModifiedField.
+// This includes values selected through modifiers, order, etc.
+func (wmf *WithModifiedField) Value(name string) (ent.Value, error) {
+	return wmf.selectValues.Get(name)
 }
 
 // QueryOwner queries the "owner" edge of the WithModifiedField entity.
@@ -132,9 +142,3 @@ func (wmf *WithModifiedField) String() string {
 
 // WithModifiedFields is a parsable slice of WithModifiedField.
 type WithModifiedFields []*WithModifiedField
-
-func (wmf WithModifiedFields) config(cfg config) {
-	for _i := range wmf {
-		wmf[_i].config = cfg
-	}
-}

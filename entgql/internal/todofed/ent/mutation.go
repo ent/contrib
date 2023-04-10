@@ -28,9 +28,8 @@ import (
 	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/contrib/entgql/internal/todofed/ent/verysecret"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (

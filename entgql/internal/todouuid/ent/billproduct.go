@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -35,7 +36,8 @@ type BillProduct struct {
 	// Sku holds the value of the "sku" field.
 	Sku string `json:"sku,omitempty"`
 	// Quantity holds the value of the "quantity" field.
-	Quantity uint64 `json:"quantity,omitempty"`
+	Quantity     uint64 `json:"quantity,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -50,7 +52,7 @@ func (*BillProduct) scanValues(columns []string) ([]any, error) {
 		case billproduct.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type BillProduct", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -88,9 +90,17 @@ func (bp *BillProduct) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				bp.Quantity = uint64(value.Int64)
 			}
+		default:
+			bp.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the BillProduct.
+// This includes values selected through modifiers, order, etc.
+func (bp *BillProduct) Value(name string) (ent.Value, error) {
+	return bp.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this BillProduct.
@@ -130,9 +140,3 @@ func (bp *BillProduct) String() string {
 
 // BillProducts is a parsable slice of BillProduct.
 type BillProducts []*BillProduct
-
-func (bp BillProducts) config(cfg config) {
-	for _i := range bp {
-		bp[_i].config = cfg
-	}
-}

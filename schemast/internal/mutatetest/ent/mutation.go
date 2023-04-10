@@ -11,9 +11,8 @@ import (
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
-	"entgo.io/ent/dialect/sql"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (

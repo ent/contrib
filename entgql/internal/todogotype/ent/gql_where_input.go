@@ -42,14 +42,16 @@ type BillProductWhereInput struct {
 	And        []*BillProductWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
+	ID             *string  `json:"id,omitempty"`
+	IDNEQ          *string  `json:"idNEQ,omitempty"`
+	IDIn           []string `json:"idIn,omitempty"`
+	IDNotIn        []string `json:"idNotIn,omitempty"`
+	IDGT           *string  `json:"idGT,omitempty"`
+	IDGTE          *string  `json:"idGTE,omitempty"`
+	IDLT           *string  `json:"idLT,omitempty"`
+	IDLTE          *string  `json:"idLTE,omitempty"`
+	IDEqualFold    *string  `json:"idEqualFold,omitempty"`
+	IDContainsFold *string  `json:"idContainsFold,omitempty"`
 
 	// "name" field predicates.
 	Name             *string  `json:"name,omitempty"`
@@ -186,6 +188,12 @@ func (i *BillProductWhereInput) P() (predicate.BillProduct, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, billproduct.IDLTE(*i.IDLTE))
+	}
+	if i.IDEqualFold != nil {
+		predicates = append(predicates, billproduct.IDEqualFold(*i.IDEqualFold))
+	}
+	if i.IDContainsFold != nil {
+		predicates = append(predicates, billproduct.IDContainsFold(*i.IDContainsFold))
 	}
 	if i.Name != nil {
 		predicates = append(predicates, billproduct.NameEQ(*i.Name))
@@ -674,14 +682,16 @@ type FriendshipWhereInput struct {
 	And        []*FriendshipWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
+	ID             *string  `json:"id,omitempty"`
+	IDNEQ          *string  `json:"idNEQ,omitempty"`
+	IDIn           []string `json:"idIn,omitempty"`
+	IDNotIn        []string `json:"idNotIn,omitempty"`
+	IDGT           *string  `json:"idGT,omitempty"`
+	IDGTE          *string  `json:"idGTE,omitempty"`
+	IDLT           *string  `json:"idLT,omitempty"`
+	IDLTE          *string  `json:"idLTE,omitempty"`
+	IDEqualFold    *string  `json:"idEqualFold,omitempty"`
+	IDContainsFold *string  `json:"idContainsFold,omitempty"`
 
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
@@ -826,6 +836,12 @@ func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, friendship.IDLTE(*i.IDLTE))
+	}
+	if i.IDEqualFold != nil {
+		predicates = append(predicates, friendship.IDEqualFold(*i.IDEqualFold))
+	}
+	if i.IDContainsFold != nil {
+		predicates = append(predicates, friendship.IDContainsFold(*i.IDContainsFold))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, friendship.CreatedAtEQ(*i.CreatedAt))
@@ -984,14 +1000,16 @@ type GroupWhereInput struct {
 	And        []*GroupWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
+	ID             *string  `json:"id,omitempty"`
+	IDNEQ          *string  `json:"idNEQ,omitempty"`
+	IDIn           []string `json:"idIn,omitempty"`
+	IDNotIn        []string `json:"idNotIn,omitempty"`
+	IDGT           *string  `json:"idGT,omitempty"`
+	IDGTE          *string  `json:"idGTE,omitempty"`
+	IDLT           *string  `json:"idLT,omitempty"`
+	IDLTE          *string  `json:"idLTE,omitempty"`
+	IDEqualFold    *string  `json:"idEqualFold,omitempty"`
+	IDContainsFold *string  `json:"idContainsFold,omitempty"`
 
 	// "name" field predicates.
 	Name             *string  `json:"name,omitempty"`
@@ -1107,6 +1125,12 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, group.IDLTE(*i.IDLTE))
+	}
+	if i.IDEqualFold != nil {
+		predicates = append(predicates, group.IDEqualFold(*i.IDEqualFold))
+	}
+	if i.IDContainsFold != nil {
+		predicates = append(predicates, group.IDContainsFold(*i.IDContainsFold))
 	}
 	if i.Name != nil {
 		predicates = append(predicates, group.NameEQ(*i.Name))
@@ -1362,14 +1386,16 @@ type TodoWhereInput struct {
 	And        []*TodoWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
+	ID             *string  `json:"id,omitempty"`
+	IDNEQ          *string  `json:"idNEQ,omitempty"`
+	IDIn           []string `json:"idIn,omitempty"`
+	IDNotIn        []string `json:"idNotIn,omitempty"`
+	IDGT           *string  `json:"idGT,omitempty"`
+	IDGTE          *string  `json:"idGTE,omitempty"`
+	IDLT           *string  `json:"idLT,omitempty"`
+	IDLTE          *string  `json:"idLTE,omitempty"`
+	IDEqualFold    *string  `json:"idEqualFold,omitempty"`
+	IDContainsFold *string  `json:"idContainsFold,omitempty"`
 
 	// "created_at" field predicates.
 	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
@@ -1536,6 +1562,12 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, todo.IDLTE(*i.IDLTE))
+	}
+	if i.IDEqualFold != nil {
+		predicates = append(predicates, todo.IDEqualFold(*i.IDEqualFold))
+	}
+	if i.IDContainsFold != nil {
+		predicates = append(predicates, todo.IDContainsFold(*i.IDContainsFold))
 	}
 	if i.CreatedAt != nil {
 		predicates = append(predicates, todo.CreatedAtEQ(*i.CreatedAt))
@@ -1754,14 +1786,16 @@ type UserWhereInput struct {
 	And        []*UserWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
-	ID      *string  `json:"id,omitempty"`
-	IDNEQ   *string  `json:"idNEQ,omitempty"`
-	IDIn    []string `json:"idIn,omitempty"`
-	IDNotIn []string `json:"idNotIn,omitempty"`
-	IDGT    *string  `json:"idGT,omitempty"`
-	IDGTE   *string  `json:"idGTE,omitempty"`
-	IDLT    *string  `json:"idLT,omitempty"`
-	IDLTE   *string  `json:"idLTE,omitempty"`
+	ID             *string  `json:"id,omitempty"`
+	IDNEQ          *string  `json:"idNEQ,omitempty"`
+	IDIn           []string `json:"idIn,omitempty"`
+	IDNotIn        []string `json:"idNotIn,omitempty"`
+	IDGT           *string  `json:"idGT,omitempty"`
+	IDGTE          *string  `json:"idGTE,omitempty"`
+	IDLT           *string  `json:"idLT,omitempty"`
+	IDLTE          *string  `json:"idLTE,omitempty"`
+	IDEqualFold    *string  `json:"idEqualFold,omitempty"`
+	IDContainsFold *string  `json:"idContainsFold,omitempty"`
 
 	// "name" field predicates.
 	Name             *string  `json:"name,omitempty"`
@@ -1885,6 +1919,12 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if i.IDLTE != nil {
 		predicates = append(predicates, user.IDLTE(*i.IDLTE))
+	}
+	if i.IDEqualFold != nil {
+		predicates = append(predicates, user.IDEqualFold(*i.IDEqualFold))
+	}
+	if i.IDContainsFold != nil {
+		predicates = append(predicates, user.IDContainsFold(*i.IDContainsFold))
 	}
 	if i.Name != nil {
 		predicates = append(predicates, user.NameEQ(*i.Name))

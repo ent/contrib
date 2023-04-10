@@ -2,6 +2,10 @@
 
 package attachment
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the attachment type in the database.
 	Label = "attachment"
@@ -27,4 +31,17 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Order defines the ordering method for the Attachment queries.
+type Order func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByContents orders the results by the contents field.
+func ByContents(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldContents, opts...).ToFunc()
 }

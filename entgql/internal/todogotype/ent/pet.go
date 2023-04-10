@@ -22,6 +22,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/uintgql"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -31,7 +32,8 @@ type Pet struct {
 	// ID of the ent.
 	ID uintgql.Uint64 `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	Name         string `json:"name,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -44,7 +46,7 @@ func (*Pet) scanValues(columns []string) ([]any, error) {
 		case pet.FieldName:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Pet", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -70,9 +72,17 @@ func (pe *Pet) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pe.Name = value.String
 			}
+		default:
+			pe.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Pet.
+// This includes values selected through modifiers, order, etc.
+func (pe *Pet) Value(name string) (ent.Value, error) {
+	return pe.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Pet.
@@ -106,9 +116,3 @@ func (pe *Pet) String() string {
 
 // Pets is a parsable slice of Pet.
 type Pets []*Pet
-
-func (pe Pets) config(cfg config) {
-	for _i := range pe {
-		pe[_i].config = cfg
-	}
-}

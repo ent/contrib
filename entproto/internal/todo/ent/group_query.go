@@ -20,7 +20,7 @@ import (
 type GroupQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []group.Order
 	inters     []Interceptor
 	predicates []predicate.Group
 	withUsers  *UserQuery
@@ -55,7 +55,7 @@ func (gq *GroupQuery) Unique(unique bool) *GroupQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (gq *GroupQuery) Order(o ...OrderFunc) *GroupQuery {
+func (gq *GroupQuery) Order(o ...group.Order) *GroupQuery {
 	gq.order = append(gq.order, o...)
 	return gq
 }
@@ -202,10 +202,12 @@ func (gq *GroupQuery) AllX(ctx context.Context) []*Group {
 }
 
 // IDs executes the query and returns a list of Group IDs.
-func (gq *GroupQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (gq *GroupQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if gq.ctx.Unique == nil && gq.path != nil {
+		gq.Unique(true)
+	}
 	ctx = setContextOp(ctx, gq.ctx, "IDs")
-	if err := gq.Select(group.FieldID).Scan(ctx, &ids); err != nil {
+	if err = gq.Select(group.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -269,7 +271,7 @@ func (gq *GroupQuery) Clone() *GroupQuery {
 	return &GroupQuery{
 		config:     gq.config,
 		ctx:        gq.ctx.Clone(),
-		order:      append([]OrderFunc{}, gq.order...),
+		order:      append([]group.Order{}, gq.order...),
 		inters:     append([]Interceptor{}, gq.inters...),
 		predicates: append([]predicate.Group{}, gq.predicates...),
 		withUsers:  gq.withUsers.Clone(),
@@ -442,20 +444,12 @@ func (gq *GroupQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (gq *GroupQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   group.Table,
-			Columns: group.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: group.FieldID,
-			},
-		},
-		From:   gq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(group.Table, group.Columns, sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt))
+	_spec.From = gq.sql
 	if unique := gq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if gq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := gq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
