@@ -100,6 +100,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"project_todo",
 	"todo_children",
 	"todo_secret",
 }

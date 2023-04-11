@@ -51,6 +51,13 @@ func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[int], f
 		)
 }
 
+func (r *queryResolver) Projects(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.ProjectWhereInput) (*ent.ProjectConnection, error) {
+	return r.client.Project.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithProjectFilter(where.Filter),
+		)
+}
+
 func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,

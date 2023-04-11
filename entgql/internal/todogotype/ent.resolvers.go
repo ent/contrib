@@ -46,6 +46,10 @@ func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[string]
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *queryResolver) Projects(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ProjectWhereInput) (*ProjectConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
