@@ -43,6 +43,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 	{{- $fields := filterFields $node.Fields (skipMode "type") }}
 	{{- $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
 	{{- if or $collects $fields }}
+		{{- if $fields }}
 		var (
 			unknownSeen bool
 			fieldSeen = make(map[string]struct{}, len({{ $node.Package }}.Columns))
@@ -53,6 +54,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 				make([]string, 0, len({{ $node.Package }}.Columns))
 			{{- end }}
 		)
+		{{- end }}
 		for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 			switch field.Name {
 				{{- range $i, $fc := $collects }}
@@ -154,8 +156,10 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 							}
 					{{- end }}
 				{{- end }}
+                {{- if $fields }}
 				default:
 					unknownSeen = true
+                {{- end }}
 			}
 		}
 		{{- if $fields }}
