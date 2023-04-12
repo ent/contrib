@@ -1907,6 +1907,39 @@ func TestMutation_ClearChildren(t *testing.T) {
 	require.False(t, root.QueryChildren().ExistX(ctx))
 }
 
+func TestMutation_ClearFriend(t *testing.T) {
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	gqlc := client.New(srv)
+
+	ctx := context.Background()
+	user := ec.User.Create().SaveX(ctx)
+	friend := ec.User.Create().AddFriends(user).SaveX(ctx)
+	friendship := user.QueryFriendships().FirstX(ctx)
+
+	require.True(t, user.QueryFriends().ExistX(ctx))
+	require.True(t, friend.QueryFriends().ExistX(ctx))
+
+	var rsp struct {
+		UpdateFriendship struct {
+			ID string
+		}
+	}
+	err := gqlc.Post(`
+	mutation clearFriend($id: ID!){
+		updateFriendship(id: $id, input: {clearFriend: true}) {
+			id
+		}
+	}
+	`, &rsp, client.Var("id", friendship.ID))
+
+	require.ErrorContains(t, err, "\\\"clearFriend\\\" is not defined by type \\\"UpdateFriendshipInput\\\"")
+}
+
 func TestDescendingIDs(t *testing.T) {
 	ctx := context.Background()
 	ec := enttest.Open(t, dialect.SQLite,

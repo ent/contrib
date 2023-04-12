@@ -57,5 +57,8 @@ func (Friendship) Edges() []ent.Edge {
 func (Friendship) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
+		entgql.Mutations(
+			entgql.MutationUpdate(),
+		),
 	}
 }

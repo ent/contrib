@@ -623,7 +623,7 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 					Type: namedType("[ID!]", true),
 				})
 			}
-			if !i.IsCreate {
+			if !i.IsCreate && e.Optional {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
 					Name: camel(snake(e.MutationClear())),
 					Type: namedType("Boolean", true),

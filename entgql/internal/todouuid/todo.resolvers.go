@@ -49,6 +49,10 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
+func (r *mutationResolver) UpdateFriendship(ctx context.Context, id uuid.UUID, input UpdateFriendshipInput) (*ent.Friendship, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }

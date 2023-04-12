@@ -38,7 +38,7 @@ import (
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
-            {{- if not $n.IsCreate }}
+            {{- if and (not $n.IsCreate) $e.Optional }}
                 {{ $e.MutationClear }} bool
             {{- end }}
             {{- if $e.Unique }}
@@ -79,7 +79,7 @@ import (
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
-           {{- if not $n.IsCreate }}
+           {{- if and (not $n.IsCreate) $e.Optional }}
                 if i.{{ $e.MutationClear }} {
                     m.{{ $e.MutationClear }}()
                 }
