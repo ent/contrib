@@ -101,6 +101,27 @@ func (gr *Group) Users(
 	return gr.QueryUsers().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (pr *Project) Todos(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+) (*TodoConnection, error) {
+	opts := []TodoPaginateOption{
+		WithTodoOrder(orderBy),
+		WithTodoFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := pr.Edges.totalCount[0][alias]
+	if nodes, err := pr.NamedTodos(alias); err == nil || hasTotalCount {
+		pager, err := newTodoPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &TodoConnection{Edges: []*TodoEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return pr.QueryTodos().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 	result, err := t.Edges.ParentOrErr()
 	if IsNotLoaded(err) {

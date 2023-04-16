@@ -96,6 +96,16 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
+	// ProjectsColumns holds the columns for the "projects" table.
+	ProjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// ProjectsTable holds the schema information for the "projects" table.
+	ProjectsTable = &schema.Table{
+		Name:       "projects",
+		Columns:    ProjectsColumns,
+		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -108,6 +118,7 @@ var (
 		{Name: "custom", Type: field.TypeJSON, Nullable: true},
 		{Name: "customp", Type: field.TypeJSON, Nullable: true},
 		{Name: "category_id", Type: field.TypeInt, Nullable: true},
+		{Name: "project_todos", Type: field.TypeInt, Nullable: true},
 		{Name: "todo_children", Type: field.TypeInt, Nullable: true},
 		{Name: "todo_secret", Type: field.TypeInt, Nullable: true},
 	}
@@ -124,14 +135,20 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "todos_todos_children",
+				Symbol:     "todos_projects_todos",
 				Columns:    []*schema.Column{TodosColumns[10]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "todos_todos_children",
+				Columns:    []*schema.Column{TodosColumns[11]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_very_secrets_secret",
-				Columns:    []*schema.Column{TodosColumns[11]},
+				Columns:    []*schema.Column{TodosColumns[12]},
 				RefColumns: []*schema.Column{VerySecretsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -218,6 +235,7 @@ var (
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,
+		ProjectsTable,
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,
@@ -230,8 +248,9 @@ func init() {
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
-	TodosTable.ForeignKeys[1].RefTable = TodosTable
-	TodosTable.ForeignKeys[2].RefTable = VerySecretsTable
+	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
+	TodosTable.ForeignKeys[2].RefTable = TodosTable
+	TodosTable.ForeignKeys[3].RefTable = VerySecretsTable
 	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable

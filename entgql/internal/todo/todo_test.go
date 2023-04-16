@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 4 << 32
+	idOffset = 5 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1602,14 +1602,15 @@ func TestNestedConnection(t *testing.T) {
 				}
 			}
 		)
+		fmt.Println(groups[0].ID)
 		// One query to trigger the loading of the ent_types content.
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAUAAAAJ"),
+			client.Var("cursor", "gaFp0wAAAAYAAAAK"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAUAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAYAAAAJ", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -2233,7 +2234,7 @@ func TestFieldSelection(t *testing.T) {
 		// No fields were selected besides the "id" field.
 		"SELECT `todos`.`id` FROM `todos` ORDER BY `todos`.`id`",
 		// The "id" and the "text" fields were selected + all foreign keys (see, `withFKs` query field).
-		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?, ?, ?, ?, ?, ?) ORDER BY `todos`.`id`",
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?, ?, ?, ?, ?, ?) ORDER BY `todos`.`id`",
 	}, rec.queries)
 
 	ec.Category.CreateBulk(

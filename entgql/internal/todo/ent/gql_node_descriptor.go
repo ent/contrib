@@ -252,6 +252,27 @@ func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 }
 
 // Node implements Noder interface
+func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pr.ID,
+		Type:   "Project",
+		Fields: make([]*Field, 0),
+		Edges:  make([]*Edge, 1),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Todo",
+		Name: "todos",
+	}
+	err = pr.QueryTodos().
+		Select(todo.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
