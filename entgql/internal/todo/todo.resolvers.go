@@ -25,6 +25,20 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 )
 
+func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*int, error) {
+	v, err := ent.CategoryOrderFieldTodosCount.Value(obj)
+	if err != nil {
+		return nil, err
+	}
+	// We expect to beautify this API in the future.
+	i, ok := v.(int64)
+	if !ok {
+		return nil, nil
+	}
+	vi := int(i)
+	return &vi, nil
+}
+
 func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
 	return ent.FromContext(ctx).Category.Create().SetInput(input).Save(ctx)
 }

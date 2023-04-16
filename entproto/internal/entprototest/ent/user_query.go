@@ -23,7 +23,7 @@ import (
 type UserQuery struct {
 	config
 	ctx            *QueryContext
-	order          []user.Order
+	order          []user.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.User
 	withBlogPosts  *BlogPostQuery
@@ -61,7 +61,7 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (uq *UserQuery) Order(o ...user.Order) *UserQuery {
+func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
 }
@@ -321,7 +321,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 	return &UserQuery{
 		config:         uq.config,
 		ctx:            uq.ctx.Clone(),
-		order:          append([]user.Order{}, uq.order...),
+		order:          append([]user.OrderOption{}, uq.order...),
 		inters:         append([]Interceptor{}, uq.inters...),
 		predicates:     append([]predicate.User{}, uq.predicates...),
 		withBlogPosts:  uq.withBlogPosts.Clone(),
@@ -509,7 +509,7 @@ func (uq *UserQuery) loadBlogPosts(ctx context.Context, query *BlogPostQuery, no
 	}
 	query.withFKs = true
 	query.Where(predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.BlogPostsColumn, fks...))
+		s.Where(sql.InValues(s.C(user.BlogPostsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -569,7 +569,7 @@ func (uq *UserQuery) loadSkipEdge(ctx context.Context, query *SkipEdgeExampleQue
 	}
 	query.withFKs = true
 	query.Where(predicate.SkipEdgeExample(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.SkipEdgeColumn, fks...))
+		s.Where(sql.InValues(s.C(user.SkipEdgeColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

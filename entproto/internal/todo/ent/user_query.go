@@ -24,7 +24,7 @@ import (
 type UserQuery struct {
 	config
 	ctx            *QueryContext
-	order          []user.Order
+	order          []user.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.User
 	withGroup      *GroupQuery
@@ -64,7 +64,7 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (uq *UserQuery) Order(o ...user.Order) *UserQuery {
+func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
 }
@@ -368,7 +368,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 	return &UserQuery{
 		config:         uq.config,
 		ctx:            uq.ctx.Clone(),
-		order:          append([]user.Order{}, uq.order...),
+		order:          append([]user.OrderOption{}, uq.order...),
 		inters:         append([]Interceptor{}, uq.inters...),
 		predicates:     append([]predicate.User{}, uq.predicates...),
 		withGroup:      uq.withGroup.Clone(),
@@ -623,7 +623,7 @@ func (uq *UserQuery) loadAttachment(ctx context.Context, query *AttachmentQuery,
 	}
 	query.withFKs = true
 	query.Where(predicate.Attachment(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.AttachmentColumn, fks...))
+		s.Where(sql.InValues(s.C(user.AttachmentColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -712,7 +712,7 @@ func (uq *UserQuery) loadPet(ctx context.Context, query *PetQuery, nodes []*User
 	}
 	query.withFKs = true
 	query.Where(predicate.Pet(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.PetColumn, fks...))
+		s.Where(sql.InValues(s.C(user.PetColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -740,7 +740,7 @@ func (uq *UserQuery) loadSkipEdge(ctx context.Context, query *SkipEdgeExampleQue
 	}
 	query.withFKs = true
 	query.Where(predicate.SkipEdgeExample(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.SkipEdgeColumn, fks...))
+		s.Where(sql.InValues(s.C(user.SkipEdgeColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

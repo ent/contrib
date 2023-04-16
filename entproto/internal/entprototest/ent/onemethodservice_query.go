@@ -18,7 +18,7 @@ import (
 type OneMethodServiceQuery struct {
 	config
 	ctx        *QueryContext
-	order      []onemethodservice.Order
+	order      []onemethodservice.OrderOption
 	inters     []Interceptor
 	predicates []predicate.OneMethodService
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (omsq *OneMethodServiceQuery) Unique(unique bool) *OneMethodServiceQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (omsq *OneMethodServiceQuery) Order(o ...onemethodservice.Order) *OneMethodServiceQuery {
+func (omsq *OneMethodServiceQuery) Order(o ...onemethodservice.OrderOption) *OneMethodServiceQuery {
 	omsq.order = append(omsq.order, o...)
 	return omsq
 }
@@ -246,7 +246,7 @@ func (omsq *OneMethodServiceQuery) Clone() *OneMethodServiceQuery {
 	return &OneMethodServiceQuery{
 		config:     omsq.config,
 		ctx:        omsq.ctx.Clone(),
-		order:      append([]onemethodservice.Order{}, omsq.order...),
+		order:      append([]onemethodservice.OrderOption{}, omsq.order...),
 		inters:     append([]Interceptor{}, omsq.inters...),
 		predicates: append([]predicate.OneMethodService{}, omsq.predicates...),
 		// clone intermediate query.

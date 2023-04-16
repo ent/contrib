@@ -18,7 +18,7 @@ import (
 type DuplicateNumberMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []duplicatenumbermessage.Order
+	order      []duplicatenumbermessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.DuplicateNumberMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (dnmq *DuplicateNumberMessageQuery) Unique(unique bool) *DuplicateNumberMes
 }
 
 // Order specifies how the records should be ordered.
-func (dnmq *DuplicateNumberMessageQuery) Order(o ...duplicatenumbermessage.Order) *DuplicateNumberMessageQuery {
+func (dnmq *DuplicateNumberMessageQuery) Order(o ...duplicatenumbermessage.OrderOption) *DuplicateNumberMessageQuery {
 	dnmq.order = append(dnmq.order, o...)
 	return dnmq
 }
@@ -246,7 +246,7 @@ func (dnmq *DuplicateNumberMessageQuery) Clone() *DuplicateNumberMessageQuery {
 	return &DuplicateNumberMessageQuery{
 		config:     dnmq.config,
 		ctx:        dnmq.ctx.Clone(),
-		order:      append([]duplicatenumbermessage.Order{}, dnmq.order...),
+		order:      append([]duplicatenumbermessage.OrderOption{}, dnmq.order...),
 		inters:     append([]Interceptor{}, dnmq.inters...),
 		predicates: append([]predicate.DuplicateNumberMessage{}, dnmq.predicates...),
 		// clone intermediate query.

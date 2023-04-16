@@ -81,9 +81,10 @@ func (f *Friendship) Friend(ctx context.Context) (*User, error) {
 }
 
 func (gr *Group) Users(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
+		WithUserOrder(orderBy),
 		WithUserFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias

@@ -36,20 +36,20 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the NilExample queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the NilExample queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByStrNil orders the results by the str_nil field.
-func ByStrNil(opts ...sql.OrderTermOption) Order {
+func ByStrNil(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStrNil, opts...).ToFunc()
 }
 
 // ByTimeNil orders the results by the time_nil field.
-func ByTimeNil(opts ...sql.OrderTermOption) Order {
+func ByTimeNil(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTimeNil, opts...).ToFunc()
 }

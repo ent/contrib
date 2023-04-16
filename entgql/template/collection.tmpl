@@ -115,7 +115,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 									{{- $i := 0 }}{{ if $e.IsInverse }}{{ $i = 1 }}{{ end }}
 									{{- $fk = print $node.Package "." $e.PKConstant "[" $i "]" }}
 								{{- end }}
-								modify := limitRows({{ $fk }}, limit, pager.orderExpr())
+								modify := limitRows({{ $fk }}, limit, pager.orderExpr(query))
 								query.modifiers = append(query.modifiers, modify)
 							} else {
 								query = pager.applyOrder(query)
@@ -387,7 +387,7 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 			}
 			{{- $fk := print $node.Package "." $e.ColumnConstant }}
 			query.Where(func(s *sql.Selector) {
-				s.Where(sql.InValues({{ $fk }}, ids...))
+				s.Where(sql.InValues(s.C({{ $fk }}), ids...))
 			})
 			if err := query.GroupBy({{ $fk }}).Aggregate(Count()).Scan(ctx, &v); err != nil {
 				return err

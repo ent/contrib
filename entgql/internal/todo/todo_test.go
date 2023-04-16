@@ -2231,9 +2231,9 @@ func TestFieldSelection(t *testing.T) {
 	gqlc.MustPost(query, &rsp)
 	require.Equal(t, []string{
 		// No fields were selected besides the "id" field.
-		"SELECT `todos`.`id` FROM `todos` ORDER BY `todos`.`id` ASC",
+		"SELECT `todos`.`id` FROM `todos` ORDER BY `todos`.`id`",
 		// The "id" and the "text" fields were selected + all foreign keys (see, `withFKs` query field).
-		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todo_children` IN (?, ?, ?, ?, ?, ?) ORDER BY `todos`.`id` ASC",
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?, ?, ?, ?, ?, ?) ORDER BY `todos`.`id`",
 	}, rec.queries)
 
 	ec.Category.CreateBulk(
@@ -2271,8 +2271,202 @@ func TestFieldSelection(t *testing.T) {
 		MustPost(query2, &rsp2)
 	require.Equal(t, []string{
 		// Also query the "category_id" field for the "category" selection.
-		"SELECT `todos`.`id`, `todos`.`category_id` FROM `todos` ORDER BY `todos`.`id` ASC",
+		"SELECT `todos`.`id`, `todos`.`category_id` FROM `todos` ORDER BY `todos`.`id`",
 		// Select the "text" field for the "category" selection.
 		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?, ?, ?, ?)",
 	}, rec.queries)
+}
+
+func TestOrderByEdgeCount(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	cats := ec.Category.CreateBulk(
+		ec.Category.Create().SetText("parents").SetStatus(category.StatusEnabled),
+		ec.Category.Create().SetText("children").SetStatus(category.StatusEnabled),
+	).SaveX(ctx)
+	root := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusPending).SetCategory(cats[0]),
+		ec.Todo.Create().SetText("t0.2").SetStatus(todo.StatusInProgress).SetCategory(cats[0]),
+		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted).SetCategory(cats[0]),
+	).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1.1").SetParent(root[0]).SetStatus(todo.StatusInProgress).SetCategory(cats[1]),
+		ec.Todo.Create().SetText("t1.2").SetParent(root[0]).SetStatus(todo.StatusCompleted).SetCategory(cats[1]),
+		ec.Todo.Create().SetText("t1.3").SetParent(root[0]).SetStatus(todo.StatusCompleted).SetCategory(cats[1]),
+		ec.Todo.Create().SetText("t2.1").SetParent(root[1]).SetStatus(todo.StatusInProgress).SetCategory(cats[1]),
+		ec.Todo.Create().SetText("t2.2").SetParent(root[1]).SetStatus(todo.StatusCompleted).SetCategory(cats[1]),
+		ec.Todo.Create().SetText("t3.1").SetParent(root[2]).SetStatus(todo.StatusInProgress).SetCategory(cats[1]),
+	).SaveX(ctx)
+
+	t.Run("ChildrenCount", func(t *testing.T) {
+		var (
+			// language=GraphQL
+			query = `query TodosByChildCount($direction: OrderDirection = ASC){
+				todos(
+					# Filter only those with children.
+					where: {hasChildren: true},
+					orderBy: {field: CHILDREN_COUNT, direction: $direction},
+				) {
+					edges {
+						node {
+							id
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Todos struct {
+					Edges []struct {
+						Node struct {
+							ID string
+						}
+					}
+				}
+			}
+		)
+		gqlc.MustPost(query, &rsp, client.Var("direction", "DESC"))
+		require.Len(t, rsp.Todos.Edges, 3)
+		for i, r := range root {
+			require.Equal(t, rsp.Todos.Edges[i].Node.ID, strconv.Itoa(r.ID))
+		}
+		gqlc.MustPost(query, &rsp, client.Var("direction", "ASC"))
+		require.Len(t, rsp.Todos.Edges, 3)
+		for i, r := range root {
+			require.Equal(t, rsp.Todos.Edges[len(rsp.Todos.Edges)-i-1].Node.ID, strconv.Itoa(r.ID))
+		}
+	})
+
+	t.Run("NestedEdgeCountOrdering", func(t *testing.T) {
+		var (
+			// language=GraphQL
+			query = `query CategoryByTodosCount {
+				categories(
+					orderBy: {field: TODOS_COUNT, direction: DESC},
+				) {
+					edges {
+						node {
+							id
+							todos(orderBy: {field: CHILDREN_COUNT, direction: DESC}) {
+								edges {
+									node {
+										id
+									}
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Categories struct {
+					Edges []struct {
+						Node struct {
+							ID    string
+							Todos struct {
+								Edges []struct {
+									Node struct {
+										ID string
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		)
+		gqlc.MustPost(query, &rsp)
+		require.Len(t, rsp.Categories.Edges, 2)
+		childC, parentC := rsp.Categories.Edges[0].Node, rsp.Categories.Edges[1].Node
+		// Second categories holds todos without children.
+		require.Equal(t, childC.ID, strconv.Itoa(cats[1].ID))
+		require.Len(t, childC.Todos.Edges, 6)
+		// First categories holds parent todos.
+		require.Equal(t, parentC.ID, strconv.Itoa(cats[0].ID))
+		require.Len(t, parentC.Todos.Edges, 3)
+		for i, r := range root {
+			require.Equal(t, parentC.Todos.Edges[i].Node.ID, strconv.Itoa(r.ID))
+		}
+	})
+
+	t.Run("EdgeFieldOrdering", func(t *testing.T) {
+		var (
+			// language=GraphQL
+			query = `query TodosByParentStatus($direction: OrderDirection = ASC) {
+				todos(
+					# Filter out parent todos.
+					where: {hasParent: true},
+					orderBy: {field: PARENT_STATUS, direction: $direction},
+				) {
+					edges {
+						node {
+							parent {
+								status
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Todos struct {
+					Edges []struct {
+						Node struct {
+							Parent struct {
+								Status todo.Status
+							}
+						}
+					}
+				}
+			}
+			expected = []todo.Status{
+				todo.StatusCompleted, todo.StatusInProgress, todo.StatusInProgress,
+				todo.StatusPending, todo.StatusPending, todo.StatusPending,
+			}
+		)
+		gqlc.MustPost(query, &rsp, client.Var("direction", "ASC"))
+		require.Len(t, rsp.Todos.Edges, 6)
+		for i, p := range rsp.Todos.Edges {
+			require.Equal(t, expected[i], p.Node.Parent.Status)
+		}
+		// Reverse the order.
+		gqlc.MustPost(query, &rsp, client.Var("direction", "DESC"))
+		require.Len(t, rsp.Todos.Edges, 6)
+		for i, p := range rsp.Todos.Edges {
+			require.Equal(t, expected[len(expected)-i-1], p.Node.Parent.Status)
+		}
+	})
+
+	t.Run("ExposeOrderField", func(t *testing.T) {
+		var (
+			// language=GraphQL
+			query = `query CategoryByTodosCount {
+				categories(
+					orderBy: {field: TODOS_COUNT, direction: DESC},
+				) {
+					edges {
+						node {
+							todosCount
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Categories struct {
+					Edges []struct {
+						Node struct {
+							TodosCount int
+						}
+					}
+				}
+			}
+		)
+		gqlc.MustPost(query, &rsp)
+		require.Len(t, rsp.Categories.Edges, 2)
+		require.Equal(t, rsp.Categories.Edges[0].Node.TodosCount, 6)
+		require.Equal(t, rsp.Categories.Edges[1].Node.TodosCount, 3)
+	})
 }

@@ -18,7 +18,7 @@ import (
 type MessageWithStringsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []messagewithstrings.Order
+	order      []messagewithstrings.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithStrings
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwsq *MessageWithStringsQuery) Unique(unique bool) *MessageWithStringsQuer
 }
 
 // Order specifies how the records should be ordered.
-func (mwsq *MessageWithStringsQuery) Order(o ...messagewithstrings.Order) *MessageWithStringsQuery {
+func (mwsq *MessageWithStringsQuery) Order(o ...messagewithstrings.OrderOption) *MessageWithStringsQuery {
 	mwsq.order = append(mwsq.order, o...)
 	return mwsq
 }
@@ -246,7 +246,7 @@ func (mwsq *MessageWithStringsQuery) Clone() *MessageWithStringsQuery {
 	return &MessageWithStringsQuery{
 		config:     mwsq.config,
 		ctx:        mwsq.ctx.Clone(),
-		order:      append([]messagewithstrings.Order{}, mwsq.order...),
+		order:      append([]messagewithstrings.OrderOption{}, mwsq.order...),
 		inters:     append([]Interceptor{}, mwsq.inters...),
 		predicates: append([]predicate.MessageWithStrings{}, mwsq.predicates...),
 		// clone intermediate query.

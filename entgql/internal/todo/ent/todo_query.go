@@ -35,7 +35,7 @@ import (
 type TodoQuery struct {
 	config
 	ctx               *QueryContext
-	order             []todo.Order
+	order             []todo.OrderOption
 	inters            []Interceptor
 	predicates        []predicate.Todo
 	withParent        *TodoQuery
@@ -77,7 +77,7 @@ func (tq *TodoQuery) Unique(unique bool) *TodoQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (tq *TodoQuery) Order(o ...todo.Order) *TodoQuery {
+func (tq *TodoQuery) Order(o ...todo.OrderOption) *TodoQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -359,7 +359,7 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 	return &TodoQuery{
 		config:       tq.config,
 		ctx:          tq.ctx.Clone(),
-		order:        append([]todo.Order{}, tq.order...),
+		order:        append([]todo.OrderOption{}, tq.order...),
 		inters:       append([]Interceptor{}, tq.inters...),
 		predicates:   append([]predicate.Todo{}, tq.predicates...),
 		withParent:   tq.withParent.Clone(),
@@ -613,7 +613,7 @@ func (tq *TodoQuery) loadChildren(ctx context.Context, query *TodoQuery, nodes [
 	}
 	query.withFKs = true
 	query.Where(predicate.Todo(func(s *sql.Selector) {
-		s.Where(sql.InValues(todo.ChildrenColumn, fks...))
+		s.Where(sql.InValues(s.C(todo.ChildrenColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

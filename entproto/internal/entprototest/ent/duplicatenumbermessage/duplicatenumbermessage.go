@@ -36,20 +36,20 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the DuplicateNumberMessage queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the DuplicateNumberMessage queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByHello orders the results by the hello field.
-func ByHello(opts ...sql.OrderTermOption) Order {
+func ByHello(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHello, opts...).ToFunc()
 }
 
 // ByWorld orders the results by the world field.
-func ByWorld(opts ...sql.OrderTermOption) Order {
+func ByWorld(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWorld, opts...).ToFunc()
 }

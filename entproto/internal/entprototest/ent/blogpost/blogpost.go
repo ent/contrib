@@ -73,45 +73,45 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the BlogPost queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the BlogPost queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.
-func ByTitle(opts ...sql.OrderTermOption) Order {
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
 // ByBody orders the results by the body field.
-func ByBody(opts ...sql.OrderTermOption) Order {
+func ByBody(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBody, opts...).ToFunc()
 }
 
 // ByExternalID orders the results by the external_id field.
-func ByExternalID(opts ...sql.OrderTermOption) Order {
+func ByExternalID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExternalID, opts...).ToFunc()
 }
 
 // ByAuthorField orders the results by author field.
-func ByAuthorField(field string, opts ...sql.OrderTermOption) Order {
+func ByAuthorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), sql.OrderByField(field, opts...))
 	}
 }
 
 // ByCategoriesCount orders the results by categories count.
-func ByCategoriesCount(opts ...sql.OrderTermOption) Order {
+func ByCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborsCount(s, newCategoriesStep(), opts...)
 	}
 }
 
 // ByCategories orders the results by categories terms.
-func ByCategories(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+func ByCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}

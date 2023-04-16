@@ -88,26 +88,26 @@ func StatusValidator(s Status) error {
 	}
 }
 
-// Order defines the ordering method for the Todo queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the Todo queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByTask orders the results by the task field.
-func ByTask(opts ...sql.OrderTermOption) Order {
+func ByTask(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTask, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) Order {
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
-func ByUserField(field string, opts ...sql.OrderTermOption) Order {
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}

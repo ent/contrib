@@ -69,6 +69,7 @@ enum CategoryOrderField {
   TEXT
   DURATION
   COUNT
+  TODOS_COUNT
 }
 """CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
@@ -169,11 +170,15 @@ enum TodoOrderField {
   STATUS
   PRIORITY_ORDER
   TEXT
+  PARENT_STATUS
+  CHILDREN_COUNT
+  CATEGORY_TEXT
 }
 """TodoStatus is enum for the field status"""
 enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
   IN_PROGRESS
   COMPLETED
+  PENDING
 }
 """The builtin Uint64 type"""
 scalar Uint64
@@ -254,6 +259,17 @@ type User {
   groups: [Group!]
   friends: [User!]
   friendships: [Friendship!]
+}
+"""Ordering options for User connections"""
+input UserOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Users."""
+  field: UserOrderField!
+}
+"""Properties by which User connections can be ordered."""
+enum UserOrderField {
+  GROUPS_COUNT
 }
 `, printSchema(schema))
 }
@@ -409,6 +425,7 @@ enum CategoryOrderField {
   TEXT
   DURATION
   COUNT
+  TODOS_COUNT
 }
 """CategoryStatus is enum for the field status"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
@@ -598,6 +615,9 @@ type Group implements Node @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
   ): UserConnection!
@@ -735,6 +755,9 @@ type Query {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
   ): UserConnection!
@@ -804,11 +827,15 @@ enum TodoOrderField {
   STATUS
   PRIORITY_ORDER
   TEXT
+  PARENT_STATUS
+  CHILDREN_COUNT
+  CATEGORY_TEXT
 }
 """TodoStatus is enum for the field status"""
 enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
   IN_PROGRESS
   COMPLETED
+  PENDING
 }
 """
 TodoWhereInput is used for filtering Todo objects.
@@ -985,6 +1012,9 @@ type User implements Node {
     """Returns the last _n_ elements from the list."""
     last: Int
 
+    """Ordering options for Users returned from the connection."""
+    orderBy: UserOrder
+
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
   ): UserConnection!
@@ -1020,6 +1050,17 @@ type UserEdge {
   node: User
   """A cursor for use in pagination."""
   cursor: Cursor!
+}
+"""Ordering options for User connections"""
+input UserOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Users."""
+  field: UserOrderField!
+}
+"""Properties by which User connections can be ordered."""
+enum UserOrderField {
+  GROUPS_COUNT
 }
 """
 UserWhereInput is used for filtering User objects.

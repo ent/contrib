@@ -54,28 +54,28 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the Image queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the Image queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByURLPath orders the results by the url_path field.
-func ByURLPath(opts ...sql.OrderTermOption) Order {
+func ByURLPath(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldURLPath, opts...).ToFunc()
 }
 
 // ByUserProfilePicCount orders the results by user_profile_pic count.
-func ByUserProfilePicCount(opts ...sql.OrderTermOption) Order {
+func ByUserProfilePicCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborsCount(s, newUserProfilePicStep(), opts...)
 	}
 }
 
 // ByUserProfilePic orders the results by user_profile_pic terms.
-func ByUserProfilePic(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+func ByUserProfilePic(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newUserProfilePicStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}

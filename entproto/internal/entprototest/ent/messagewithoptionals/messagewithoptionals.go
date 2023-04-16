@@ -54,45 +54,45 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the MessageWithOptionals queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the MessageWithOptionals queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByStrOptional orders the results by the str_optional field.
-func ByStrOptional(opts ...sql.OrderTermOption) Order {
+func ByStrOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStrOptional, opts...).ToFunc()
 }
 
 // ByIntOptional orders the results by the int_optional field.
-func ByIntOptional(opts ...sql.OrderTermOption) Order {
+func ByIntOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIntOptional, opts...).ToFunc()
 }
 
 // ByUintOptional orders the results by the uint_optional field.
-func ByUintOptional(opts ...sql.OrderTermOption) Order {
+func ByUintOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUintOptional, opts...).ToFunc()
 }
 
 // ByFloatOptional orders the results by the float_optional field.
-func ByFloatOptional(opts ...sql.OrderTermOption) Order {
+func ByFloatOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFloatOptional, opts...).ToFunc()
 }
 
 // ByBoolOptional orders the results by the bool_optional field.
-func ByBoolOptional(opts ...sql.OrderTermOption) Order {
+func ByBoolOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBoolOptional, opts...).ToFunc()
 }
 
 // ByUUIDOptional orders the results by the uuid_optional field.
-func ByUUIDOptional(opts ...sql.OrderTermOption) Order {
+func ByUUIDOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUUIDOptional, opts...).ToFunc()
 }
 
 // ByTimeOptional orders the results by the time_optional field.
-func ByTimeOptional(opts ...sql.OrderTermOption) Order {
+func ByTimeOptional(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTimeOptional, opts...).ToFunc()
 }

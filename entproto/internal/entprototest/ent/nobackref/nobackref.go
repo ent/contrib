@@ -40,23 +40,23 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-// Order defines the ordering method for the NoBackref queries.
-type Order func(*sql.Selector)
+// OrderOption defines the ordering options for the NoBackref queries.
+type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
-func ByID(opts ...sql.OrderTermOption) Order {
+func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
 // ByImagesCount orders the results by images count.
-func ByImagesCount(opts ...sql.OrderTermOption) Order {
+func ByImagesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborsCount(s, newImagesStep(), opts...)
 	}
 }
 
 // ByImages orders the results by images terms.
-func ByImages(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+func ByImages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newImagesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
