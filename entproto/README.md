@@ -430,6 +430,8 @@ The Proto Style Guide suggests that we use `CAPS_WITH_UNDERSCORES` for value nam
 - If no default value is defined for the enum, we generate a `<MessageName>_UNSPECIFIED = 0;` option on the enum and verify that no option received the 0 number in the enproto.Enum Options field.
 - If a default value is defined for the enum, we verify that it receives the 0 value on the Options field.
 
+Ent allows special characters in enum values. For such values, any special character is replaced by an underscore to preserve the `CAPS_WITH_UNDERSCORES` protobuf format.
+
 ## Edges
 
 Edges are annotated in the same way as fields: using `entproto.Field` annotation to specify the field number for the generated field. Unique relations are mapped to normal fields, non-unique relations are mapped to `repeated` fields.

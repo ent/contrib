@@ -3505,15 +3505,16 @@ func (m *InvalidFieldMessageMutation) ResetEdge(name string) error {
 // MessageWithEnumMutation represents an operation that mutates the MessageWithEnum nodes in the graph.
 type MessageWithEnumMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	enum_type            *messagewithenum.EnumType
-	enum_without_default *messagewithenum.EnumWithoutDefault
-	clearedFields        map[string]struct{}
-	done                 bool
-	oldValue             func(context.Context) (*MessageWithEnum, error)
-	predicates           []predicate.MessageWithEnum
+	op                           Op
+	typ                          string
+	id                           *int
+	enum_type                    *messagewithenum.EnumType
+	enum_without_default         *messagewithenum.EnumWithoutDefault
+	enum_with_special_characters *messagewithenum.EnumWithSpecialCharacters
+	clearedFields                map[string]struct{}
+	done                         bool
+	oldValue                     func(context.Context) (*MessageWithEnum, error)
+	predicates                   []predicate.MessageWithEnum
 }
 
 var _ ent.Mutation = (*MessageWithEnumMutation)(nil)
@@ -3686,6 +3687,42 @@ func (m *MessageWithEnumMutation) ResetEnumWithoutDefault() {
 	m.enum_without_default = nil
 }
 
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (m *MessageWithEnumMutation) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) {
+	m.enum_with_special_characters = &mwsc
+}
+
+// EnumWithSpecialCharacters returns the value of the "enum_with_special_characters" field in the mutation.
+func (m *MessageWithEnumMutation) EnumWithSpecialCharacters() (r messagewithenum.EnumWithSpecialCharacters, exists bool) {
+	v := m.enum_with_special_characters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnumWithSpecialCharacters returns the old "enum_with_special_characters" field's value of the MessageWithEnum entity.
+// If the MessageWithEnum object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithEnumMutation) OldEnumWithSpecialCharacters(ctx context.Context) (v messagewithenum.EnumWithSpecialCharacters, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnumWithSpecialCharacters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnumWithSpecialCharacters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnumWithSpecialCharacters: %w", err)
+	}
+	return oldValue.EnumWithSpecialCharacters, nil
+}
+
+// ResetEnumWithSpecialCharacters resets all changes to the "enum_with_special_characters" field.
+func (m *MessageWithEnumMutation) ResetEnumWithSpecialCharacters() {
+	m.enum_with_special_characters = nil
+}
+
 // Where appends a list predicates to the MessageWithEnumMutation builder.
 func (m *MessageWithEnumMutation) Where(ps ...predicate.MessageWithEnum) {
 	m.predicates = append(m.predicates, ps...)
@@ -3720,12 +3757,15 @@ func (m *MessageWithEnumMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageWithEnumMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.enum_type != nil {
 		fields = append(fields, messagewithenum.FieldEnumType)
 	}
 	if m.enum_without_default != nil {
 		fields = append(fields, messagewithenum.FieldEnumWithoutDefault)
+	}
+	if m.enum_with_special_characters != nil {
+		fields = append(fields, messagewithenum.FieldEnumWithSpecialCharacters)
 	}
 	return fields
 }
@@ -3739,6 +3779,8 @@ func (m *MessageWithEnumMutation) Field(name string) (ent.Value, bool) {
 		return m.EnumType()
 	case messagewithenum.FieldEnumWithoutDefault:
 		return m.EnumWithoutDefault()
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		return m.EnumWithSpecialCharacters()
 	}
 	return nil, false
 }
@@ -3752,6 +3794,8 @@ func (m *MessageWithEnumMutation) OldField(ctx context.Context, name string) (en
 		return m.OldEnumType(ctx)
 	case messagewithenum.FieldEnumWithoutDefault:
 		return m.OldEnumWithoutDefault(ctx)
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		return m.OldEnumWithSpecialCharacters(ctx)
 	}
 	return nil, fmt.Errorf("unknown MessageWithEnum field %s", name)
 }
@@ -3774,6 +3818,13 @@ func (m *MessageWithEnumMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnumWithoutDefault(v)
+		return nil
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		v, ok := value.(messagewithenum.EnumWithSpecialCharacters)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnumWithSpecialCharacters(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithEnum field %s", name)
@@ -3829,6 +3880,9 @@ func (m *MessageWithEnumMutation) ResetField(name string) error {
 		return nil
 	case messagewithenum.FieldEnumWithoutDefault:
 		m.ResetEnumWithoutDefault()
+		return nil
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		m.ResetEnumWithSpecialCharacters()
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithEnum field %s", name)

@@ -3189,6 +3189,7 @@ type UserMutation struct {
 	appendlabels       []string
 	device_type        *user.DeviceType
 	omit_prefix        *user.OmitPrefix
+	mime_type          *user.MimeType
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -4348,6 +4349,42 @@ func (m *UserMutation) ResetOmitPrefix() {
 	m.omit_prefix = nil
 }
 
+// SetMimeType sets the "mime_type" field.
+func (m *UserMutation) SetMimeType(ut user.MimeType) {
+	m.mime_type = &ut
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *UserMutation) MimeType() (r user.MimeType, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldMimeType(ctx context.Context) (v user.MimeType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *UserMutation) ResetMimeType() {
+	m.mime_type = nil
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *UserMutation) SetGroupID(id int) {
 	m.group = &id
@@ -4592,7 +4629,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 22)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4656,6 +4693,9 @@ func (m *UserMutation) Fields() []string {
 	if m.omit_prefix != nil {
 		fields = append(fields, user.FieldOmitPrefix)
 	}
+	if m.mime_type != nil {
+		fields = append(fields, user.FieldMimeType)
+	}
 	return fields
 }
 
@@ -4706,6 +4746,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.DeviceType()
 	case user.FieldOmitPrefix:
 		return m.OmitPrefix()
+	case user.FieldMimeType:
+		return m.MimeType()
 	}
 	return nil, false
 }
@@ -4757,6 +4799,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeviceType(ctx)
 	case user.FieldOmitPrefix:
 		return m.OldOmitPrefix(ctx)
+	case user.FieldMimeType:
+		return m.OldMimeType(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4912,6 +4956,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOmitPrefix(v)
+		return nil
+	case user.FieldMimeType:
+		v, ok := value.(user.MimeType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -5174,6 +5225,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldOmitPrefix:
 		m.ResetOmitPrefix()
+		return nil
+	case user.FieldMimeType:
+		m.ResetMimeType()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

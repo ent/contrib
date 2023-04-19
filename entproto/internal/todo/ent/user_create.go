@@ -240,6 +240,12 @@ func (uc *UserCreate) SetOmitPrefix(up user.OmitPrefix) *UserCreate {
 	return uc
 }
 
+// SetMimeType sets the "mime_type" field.
+func (uc *UserCreate) SetMimeType(ut user.MimeType) *UserCreate {
+	uc.mutation.SetMimeType(ut)
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uint32) *UserCreate {
 	uc.mutation.SetID(u)
@@ -446,6 +452,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.MimeType(); !ok {
+		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "User.mime_type"`)}
+	}
+	if v, ok := uc.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -561,6 +575,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.OmitPrefix(); ok {
 		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
 		_node.OmitPrefix = value
+	}
+	if value, ok := uc.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
+		_node.MimeType = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

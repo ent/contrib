@@ -180,7 +180,7 @@ func (suite *AdapterTestSuite) TestEnumMessage() {
 	suite.NoError(err)
 
 	message := fd.FindMessage("entpb.MessageWithEnum")
-	suite.Len(message.GetFields(), 3)
+	suite.Len(message.GetFields(), 4)
 
 	// an enum field with defaults
 	enumField := message.FindFieldByName("enum_type")
@@ -202,6 +202,16 @@ func (suite *AdapterTestSuite) TestEnumMessage() {
 	suite.EqualValues(0, enumDesc.FindValueByName("ENUM_WITHOUT_DEFAULT_UNSPECIFIED").GetNumber())
 	suite.EqualValues(1, enumDesc.FindValueByName("ENUM_WITHOUT_DEFAULT_FIRST").GetNumber())
 	suite.EqualValues(2, enumDesc.FindValueByName("ENUM_WITHOUT_DEFAULT_SECOND").GetNumber())
+
+	// an enum field with special characters
+	enumField = message.FindFieldByName("enum_with_special_characters")
+	suite.EqualValues(4, enumField.GetNumber())
+	suite.EqualValues(descriptorpb.FieldDescriptorProto_TYPE_ENUM, enumField.GetType())
+	enumDesc = enumField.GetEnumType()
+	suite.EqualValues("entpb.MessageWithEnum.EnumWithSpecialCharacters", enumDesc.GetFullyQualifiedName())
+	suite.EqualValues(0, enumDesc.FindValueByName("ENUM_WITH_SPECIAL_CHARACTERS_UNSPECIFIED").GetNumber())
+	suite.EqualValues(1, enumDesc.FindValueByName("ENUM_WITH_SPECIAL_CHARACTERS_IMAGE_JPEG").GetNumber())
+	suite.EqualValues(2, enumDesc.FindValueByName("ENUM_WITH_SPECIAL_CHARACTERS_IMAGE_PNG").GetNumber())
 }
 
 func (suite *AdapterTestSuite) TestMessageWithId() {

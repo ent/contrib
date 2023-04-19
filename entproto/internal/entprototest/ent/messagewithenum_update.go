@@ -47,6 +47,12 @@ func (mweu *MessageWithEnumUpdate) SetEnumWithoutDefault(mwd messagewithenum.Enu
 	return mweu
 }
 
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (mweu *MessageWithEnumUpdate) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdate {
+	mweu.mutation.SetEnumWithSpecialCharacters(mwsc)
+	return mweu
+}
+
 // Mutation returns the MessageWithEnumMutation object of the builder.
 func (mweu *MessageWithEnumUpdate) Mutation() *MessageWithEnumMutation {
 	return mweu.mutation
@@ -91,6 +97,11 @@ func (mweu *MessageWithEnumUpdate) check() error {
 			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
+	if v, ok := mweu.mutation.EnumWithSpecialCharacters(); ok {
+		if err := messagewithenum.EnumWithSpecialCharactersValidator(v); err != nil {
+			return &ValidationError{Name: "enum_with_special_characters", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_with_special_characters": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -111,6 +122,9 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := mweu.mutation.EnumWithoutDefault(); ok {
 		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
+	}
+	if value, ok := mweu.mutation.EnumWithSpecialCharacters(); ok {
+		_spec.SetField(messagewithenum.FieldEnumWithSpecialCharacters, field.TypeEnum, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mweu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -149,6 +163,12 @@ func (mweuo *MessageWithEnumUpdateOne) SetNillableEnumType(mt *messagewithenum.E
 // SetEnumWithoutDefault sets the "enum_without_default" field.
 func (mweuo *MessageWithEnumUpdateOne) SetEnumWithoutDefault(mwd messagewithenum.EnumWithoutDefault) *MessageWithEnumUpdateOne {
 	mweuo.mutation.SetEnumWithoutDefault(mwd)
+	return mweuo
+}
+
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (mweuo *MessageWithEnumUpdateOne) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdateOne {
+	mweuo.mutation.SetEnumWithSpecialCharacters(mwsc)
 	return mweuo
 }
 
@@ -209,6 +229,11 @@ func (mweuo *MessageWithEnumUpdateOne) check() error {
 			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
+	if v, ok := mweuo.mutation.EnumWithSpecialCharacters(); ok {
+		if err := messagewithenum.EnumWithSpecialCharactersValidator(v); err != nil {
+			return &ValidationError{Name: "enum_with_special_characters", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_with_special_characters": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -246,6 +271,9 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 	}
 	if value, ok := mweuo.mutation.EnumWithoutDefault(); ok {
 		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
+	}
+	if value, ok := mweuo.mutation.EnumWithSpecialCharacters(); ok {
+		_spec.SetField(messagewithenum.FieldEnumWithSpecialCharacters, field.TypeEnum, value)
 	}
 	_node = &MessageWithEnum{config: mweuo.config}
 	_spec.Assign = _node.assignValues

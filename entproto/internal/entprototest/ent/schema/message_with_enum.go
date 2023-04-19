@@ -50,6 +50,17 @@ func (MessageWithEnum) Fields() []ent.Field {
 					"second": 2,
 				}),
 			),
+		field.Enum("enum_with_special_characters").
+			NamedValues(
+				"jpeg", "image/jpeg",
+				"png", "image/png").
+			Annotations(
+				entproto.Field(4),
+				entproto.Enum(map[string]int32{
+					"image/jpeg": 1,
+					"image/png":  2,
+				}),
+			),
 	}
 }
 

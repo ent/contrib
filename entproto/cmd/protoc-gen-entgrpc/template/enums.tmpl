@@ -8,8 +8,13 @@
         {{ $entEnumIdent := entIdent $entLcase .PbStructField }}
         {{ $enumFieldPrefix := snake $enumType.GetName | upper | printf "%s_" }}
         {{ $omitPrefix := .EntField.Annotations.ProtoEnum.OmitFieldPrefix }}
-        func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
-            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}({{ if not $omitPrefix }}"{{ $enumFieldPrefix }}" +{{ end }} string(e))]; ok {
+        var protoIdentNormalizeRegexp{{ $pbEnumIdent.GoName }} = {{ qualify "regexp" "MustCompile" }}(`[^a-zA-Z0-9_]+`)
+        func protoIdentNormalize{{ $pbEnumIdent.GoName }}(e string) string {
+            return protoIdentNormalizeRegexp{{ $pbEnumIdent.GoName }}.ReplaceAllString(e, "_")
+        }
+
+        func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent }}) {{ ident $pbEnumIdent }} {
+            if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}({{ if not $omitPrefix }}"{{ $enumFieldPrefix }}" + {{ end }}protoIdentNormalize{{ $pbEnumIdent.GoName }}(string(e)))]; ok {
                 return {{ $pbEnumIdent | ident }}(v)
             }
             return {{ $pbEnumIdent | ident }}(0)
@@ -19,7 +24,7 @@
             if v, ok := {{ $pbEnumIdent.GoName }}_name[int32(e)]; ok {
                 entVal := map[string]string{
                 {{- range .EntField.Enums }}
-                    "{{ if not $omitPrefix }}{{ $enumFieldPrefix }}{{ end }}{{ upper .Value }}": "{{ .Value }}",
+                    "{{ if not $omitPrefix }}{{ $enumFieldPrefix }}{{ end }}{{ protoIdentNormalize .Value }}": "{{ .Value }}",
                 {{- end }}
                 }[v]
                 return {{ ident $entEnumIdent }}(entVal)

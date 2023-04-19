@@ -162,6 +162,7 @@ var (
 		{Name: "labels", Type: field.TypeJSON, Nullable: true},
 		{Name: "device_type", Type: field.TypeEnum, Enums: []string{"GLOWY9000", "SPEEDY300"}, Default: "GLOWY9000"},
 		{Name: "omit_prefix", Type: field.TypeEnum, Enums: []string{"foo", "bar"}},
+		{Name: "mime_type", Type: field.TypeEnum, Enums: []string{"image/png", "image/xml+svg"}},
 		{Name: "user_group", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -172,7 +173,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[22]},
+				Columns:    []*schema.Column{UsersColumns[23]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

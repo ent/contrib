@@ -140,6 +140,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "enum_type", Type: field.TypeEnum, Enums: []string{"pending", "active", "suspended", "deleted"}, Default: "pending"},
 		{Name: "enum_without_default", Type: field.TypeEnum, Enums: []string{"first", "second"}},
+		{Name: "enum_with_special_characters", Type: field.TypeEnum, Enums: []string{"image/jpeg", "image/png"}},
 	}
 	// MessageWithEnumsTable holds the schema information for the "message_with_enums" table.
 	MessageWithEnumsTable = &schema.Table{
