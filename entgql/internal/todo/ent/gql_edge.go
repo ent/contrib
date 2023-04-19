@@ -101,6 +101,26 @@ func (gr *Group) Users(
 	return gr.QueryUsers().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (otm *OneToMany) Parent(ctx context.Context) (*OneToMany, error) {
+	result, err := otm.Edges.ParentOrErr()
+	if IsNotLoaded(err) {
+		result, err = otm.QueryParent().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (otm *OneToMany) Children(ctx context.Context) (result []*OneToMany, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = otm.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = otm.Edges.ChildrenOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = otm.QueryChildren().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Project) Todos(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {

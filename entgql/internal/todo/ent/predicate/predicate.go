@@ -32,6 +32,9 @@ type Friendship func(*sql.Selector)
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
 
+// OneToMany is the predicate function for onetomany builders.
+type OneToMany func(*sql.Selector)
+
 // Project is the predicate function for project builders.
 type Project func(*sql.Selector)
 

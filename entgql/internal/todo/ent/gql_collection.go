@@ -26,6 +26,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
@@ -653,6 +654,119 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*GroupWhereInput); ok {
 		args.opts = append(args.opts, WithGroupFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (otm *OneToManyQuery) CollectFields(ctx context.Context, satisfies ...string) (*OneToManyQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return otm, nil
+	}
+	if err := otm.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return otm, nil
+}
+
+func (otm *OneToManyQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(onetomany.Columns))
+		selectedFields = []string{onetomany.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "parent":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OneToManyClient{config: otm.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			otm.withParent = query
+			if _, ok := fieldSeen[onetomany.FieldParentID]; !ok {
+				selectedFields = append(selectedFields, onetomany.FieldParentID)
+				fieldSeen[onetomany.FieldParentID] = struct{}{}
+			}
+		case "children":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OneToManyClient{config: otm.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			otm.WithNamedChildren(alias, func(wq *OneToManyQuery) {
+				*wq = *query
+			})
+		case "name":
+			if _, ok := fieldSeen[onetomany.FieldName]; !ok {
+				selectedFields = append(selectedFields, onetomany.FieldName)
+				fieldSeen[onetomany.FieldName] = struct{}{}
+			}
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		otm.Select(selectedFields...)
+	}
+	return nil
+}
+
+type onetomanyPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []OneToManyPaginateOption
+}
+
+func newOneToManyPaginateArgs(rv map[string]interface{}) *onetomanyPaginateArgs {
+	args := &onetomanyPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &OneToManyOrder{Field: &OneToManyOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithOneToManyOrder(order))
+			}
+		case *OneToManyOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithOneToManyOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*OneToManyWhereInput); ok {
+		args.opts = append(args.opts, WithOneToManyFilter(v.Filter))
 	}
 	return args
 }

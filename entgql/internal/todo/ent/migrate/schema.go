@@ -96,6 +96,26 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
+	// OneToManiesColumns holds the columns for the "one_to_manies" table.
+	OneToManiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
+	}
+	// OneToManiesTable holds the schema information for the "one_to_manies" table.
+	OneToManiesTable = &schema.Table{
+		Name:       "one_to_manies",
+		Columns:    OneToManiesColumns,
+		PrimaryKey: []*schema.Column{OneToManiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "one_to_manies_one_to_manies_children",
+				Columns:    []*schema.Column{OneToManiesColumns[2]},
+				RefColumns: []*schema.Column{OneToManiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// ProjectsColumns holds the columns for the "projects" table.
 	ProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -235,6 +255,7 @@ var (
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,
+		OneToManiesTable,
 		ProjectsTable,
 		TodosTable,
 		UsersTable,
@@ -247,6 +268,7 @@ var (
 func init() {
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
+	OneToManiesTable.ForeignKeys[0].RefTable = OneToManiesTable
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
 	TodosTable.ForeignKeys[2].RefTable = TodosTable
