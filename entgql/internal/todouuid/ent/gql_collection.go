@@ -69,6 +69,7 @@ func (bp *BillProductQuery) collectField(ctx context.Context, opCtx *graphql.Ope
 				selectedFields = append(selectedFields, billproduct.FieldQuantity)
 				fieldSeen[billproduct.FieldQuantity] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -333,6 +334,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				selectedFields = append(selectedFields, category.FieldStrings)
 				fieldSeen[category.FieldStrings] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -464,6 +466,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				selectedFields = append(selectedFields, friendship.FieldFriendID)
 				fieldSeen[friendship.FieldFriendID] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -618,6 +621,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				selectedFields = append(selectedFields, group.FieldName)
 				fieldSeen[group.FieldName] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -827,6 +831,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, todo.FieldCategoryID)
 				fieldSeen[todo.FieldCategoryID] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -1037,6 +1042,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, user.FieldMetadata)
 				fieldSeen[user.FieldMetadata] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}

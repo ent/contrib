@@ -149,17 +149,22 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 				{{- end }}
 				{{- range $f := $fields }}
 					{{- with fieldMapping $f }}
-						case {{ range $i, $m := . }}{{ if $i }},{{ end }}"{{ . }}"{{ end }}:
+						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
 							if _, ok := fieldSeen[{{ $node.Package }}.{{ $f.Constant }}]; !ok {
 								selectedFields = append(selectedFields, {{ $node.Package }}.{{ $f.Constant }})
 								fieldSeen[{{ $node.Package }}.{{ $f.Constant }}] = struct{}{}
 							}
 					{{- end }}
 				{{- end }}
-                {{- if $fields }}
+				{{- if $fields }}
+					{{- if $node.HasOneFieldID -}}
+						{{- with fieldMapping $node.ID }}
+						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
+						{{- end }}
+					{{- end -}}
 				default:
 					unknownSeen = true
-                {{- end }}
+				{{- end }}
 			}
 		}
 		{{- if $fields }}

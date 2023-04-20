@@ -89,6 +89,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				selectedFields = append(selectedFields, category.FieldStrings)
 				fieldSeen[category.FieldStrings] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -225,6 +226,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, todo.FieldBlob)
 				fieldSeen[todo.FieldBlob] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
