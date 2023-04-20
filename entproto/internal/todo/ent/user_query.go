@@ -636,7 +636,7 @@ func (uq *UserQuery) loadAttachment(ctx context.Context, query *AttachmentQuery,
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_attachment" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_attachment" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -725,7 +725,7 @@ func (uq *UserQuery) loadPet(ctx context.Context, query *PetQuery, nodes []*User
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_pet" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_pet" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -753,7 +753,7 @@ func (uq *UserQuery) loadSkipEdge(ctx context.Context, query *SkipEdgeExampleQue
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_skip_edge" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_skip_edge" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

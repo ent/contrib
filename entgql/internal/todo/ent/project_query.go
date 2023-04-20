@@ -437,7 +437,7 @@ func (pq *ProjectQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes [
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "project_todos" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "project_todos" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

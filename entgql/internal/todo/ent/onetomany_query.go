@@ -514,6 +514,9 @@ func (otmq *OneToManyQuery) loadChildren(ctx context.Context, query *OneToManyQu
 			init(nodes[i])
 		}
 	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(onetomany.FieldParentID)
+	}
 	query.Where(predicate.OneToMany(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(onetomany.ChildrenColumn), fks...))
 	}))
@@ -525,7 +528,7 @@ func (otmq *OneToManyQuery) loadChildren(ctx context.Context, query *OneToManyQu
 		fk := n.ParentID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "parent_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "parent_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

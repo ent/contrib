@@ -1602,15 +1602,13 @@ func TestNestedConnection(t *testing.T) {
 				}
 			}
 		)
-		fmt.Println(groups[0].ID)
-		// One query to trigger the loading of the ent_types content.
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAYAAAAK"),
+			client.Var("cursor", "gaFp0wAAAAcAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAYAAAAJ", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -2316,7 +2314,7 @@ func TestFieldSelection(t *testing.T) {
 				}
 			}
 		}
-		gqlcO2M = client.New(handler.NewDefaultServer(gen.NewSchema(ec.Debug())))
+		gqlcO2M = client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
 	)
 	rec.reset()
 	gqlcO2M.MustPost(queryO2M, &rspO2M)
