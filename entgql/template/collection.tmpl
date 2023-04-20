@@ -107,9 +107,14 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 								{{- /* Skip querying edges if "edges" "node" was not required. */}}
 								continue
 							}
-
 							if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 								return err
+							}
+							path = append(path, edgesField, nodeField)
+							if field := collectedField(ctx, path...); field != nil {
+								if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
+									return err
+								}
 							}
 							if limit := paginateLimit(args.first, args.last); limit > 0 {
 								{{- $fk := print $node.Package "." $fc.Edge.ColumnConstant }}
@@ -121,12 +126,6 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 								query.modifiers = append(query.modifiers, modify)
 							} else {
 								query = pager.applyOrder(query)
-							}
-							path = append(path, edgesField, nodeField)
-							if field := collectedField(ctx, path...); field != nil {
-								if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
-									return err
-								}
 							}
 						{{- else }}
 							if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
@@ -141,25 +140,30 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 							})
 						{{- end }}
 						{{- with $e.Field }}
-						if _, ok := fieldSeen[{{ $node.Package }}.{{ .Constant }}]; !ok {
-							selectedFields = append(selectedFields, {{ $node.Package }}.{{ .Constant }})
-							fieldSeen[{{ $node.Package }}.{{ .Constant }}] = struct{}{}
-						}
+							if _, ok := fieldSeen[{{ $node.Package }}.{{ .Constant }}]; !ok {
+								selectedFields = append(selectedFields, {{ $node.Package }}.{{ .Constant }})
+								fieldSeen[{{ $node.Package }}.{{ .Constant }}] = struct{}{}
+							}
 						{{- end }}
 				{{- end }}
 				{{- range $f := $fields }}
 					{{- with fieldMapping $f }}
-						case {{ range $i, $m := . }}{{ if $i }},{{ end }}"{{ . }}"{{ end }}:
+						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
 							if _, ok := fieldSeen[{{ $node.Package }}.{{ $f.Constant }}]; !ok {
 								selectedFields = append(selectedFields, {{ $node.Package }}.{{ $f.Constant }})
 								fieldSeen[{{ $node.Package }}.{{ $f.Constant }}] = struct{}{}
 							}
 					{{- end }}
 				{{- end }}
-                {{- if $fields }}
+				{{- if $fields }}
+					{{- if $node.HasOneFieldID -}}
+						{{- with fieldMapping $node.ID }}
+						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
+						{{- end }}
+					{{- end -}}
 				default:
 					unknownSeen = true
-                {{- end }}
+				{{- end }}
 			}
 		}
 		{{- if $fields }}

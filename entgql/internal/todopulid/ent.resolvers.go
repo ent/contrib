@@ -50,6 +50,10 @@ func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[pulid.I
 		)
 }
 
+func (r *queryResolver) OneToMany(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *OneToManyOrder, where *OneToManyWhereInput) (*OneToManyConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,

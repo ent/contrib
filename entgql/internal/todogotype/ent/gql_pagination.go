@@ -251,6 +251,7 @@ func (p *billproductPager) applyOrder(query *BillProductQuery) *BillProductQuery
 	if p.order.Field != DefaultBillProductOrder.Field {
 		query = query.Order(DefaultBillProductOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return query
 }
 
@@ -259,6 +260,7 @@ func (p *billproductPager) orderExpr(query *BillProductQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultBillProductOrder.Field {
@@ -297,11 +299,9 @@ func (bp *BillProductQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if bp, err = pager.applyCursors(bp, after, before); err != nil {
 		return nil, err
 	}
-	bp = pager.applyOrder(bp)
 	if limit := paginateLimit(first, last); limit != 0 {
 		bp.Limit(limit)
 	}
@@ -310,7 +310,7 @@ func (bp *BillProductQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	bp = pager.applyOrder(bp)
 	nodes, err := bp.All(ctx)
 	if err != nil {
 		return nil, err
@@ -514,6 +514,11 @@ func (p *categoryPager) applyOrder(query *CategoryQuery) *CategoryQuery {
 		if o.Field.column == DefaultCategoryOrder.Field.column {
 			defaultOrdered = true
 		}
+		switch o.Field.column {
+		case CategoryOrderFieldTodosCount.column:
+		default:
+			query.ctx.AppendFieldOnce(o.Field.column)
+		}
 	}
 	if !defaultOrdered {
 		direction := entgql.OrderDirectionAsc
@@ -534,6 +539,8 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 				direction = direction.Reverse()
 			}
 			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		default:
+			query.ctx.AppendFieldOnce(o.Field.column)
 		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
@@ -583,11 +590,9 @@ func (c *CategoryQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if c, err = pager.applyCursors(c, after, before); err != nil {
 		return nil, err
 	}
-	c = pager.applyOrder(c)
 	if limit := paginateLimit(first, last); limit != 0 {
 		c.Limit(limit)
 	}
@@ -596,7 +601,7 @@ func (c *CategoryQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	c = pager.applyOrder(c)
 	nodes, err := c.All(ctx)
 	if err != nil {
 		return nil, err
@@ -885,6 +890,7 @@ func (p *friendshipPager) applyOrder(query *FriendshipQuery) *FriendshipQuery {
 	if p.order.Field != DefaultFriendshipOrder.Field {
 		query = query.Order(DefaultFriendshipOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return query
 }
 
@@ -893,6 +899,7 @@ func (p *friendshipPager) orderExpr(query *FriendshipQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultFriendshipOrder.Field {
@@ -931,11 +938,9 @@ func (f *FriendshipQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if f, err = pager.applyCursors(f, after, before); err != nil {
 		return nil, err
 	}
-	f = pager.applyOrder(f)
 	if limit := paginateLimit(first, last); limit != 0 {
 		f.Limit(limit)
 	}
@@ -944,7 +949,7 @@ func (f *FriendshipQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	f = pager.applyOrder(f)
 	nodes, err := f.All(ctx)
 	if err != nil {
 		return nil, err
@@ -1127,6 +1132,7 @@ func (p *groupPager) applyOrder(query *GroupQuery) *GroupQuery {
 	if p.order.Field != DefaultGroupOrder.Field {
 		query = query.Order(DefaultGroupOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return query
 }
 
@@ -1135,6 +1141,7 @@ func (p *groupPager) orderExpr(query *GroupQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultGroupOrder.Field {
@@ -1173,11 +1180,9 @@ func (gr *GroupQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if gr, err = pager.applyCursors(gr, after, before); err != nil {
 		return nil, err
 	}
-	gr = pager.applyOrder(gr)
 	if limit := paginateLimit(first, last); limit != 0 {
 		gr.Limit(limit)
 	}
@@ -1186,7 +1191,7 @@ func (gr *GroupQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	gr = pager.applyOrder(gr)
 	nodes, err := gr.All(ctx)
 	if err != nil {
 		return nil, err
@@ -1369,6 +1374,7 @@ func (p *petPager) applyOrder(query *PetQuery) *PetQuery {
 	if p.order.Field != DefaultPetOrder.Field {
 		query = query.Order(DefaultPetOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return query
 }
 
@@ -1377,6 +1383,7 @@ func (p *petPager) orderExpr(query *PetQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultPetOrder.Field {
@@ -1415,11 +1422,9 @@ func (pe *PetQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if pe, err = pager.applyCursors(pe, after, before); err != nil {
 		return nil, err
 	}
-	pe = pager.applyOrder(pe)
 	if limit := paginateLimit(first, last); limit != 0 {
 		pe.Limit(limit)
 	}
@@ -1428,7 +1433,7 @@ func (pe *PetQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	pe = pager.applyOrder(pe)
 	nodes, err := pe.All(ctx)
 	if err != nil {
 		return nil, err
@@ -1611,6 +1616,11 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 	if p.order.Field != DefaultTodoOrder.Field {
 		query = query.Order(DefaultTodoOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	switch p.order.Field.column {
+	case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+	default:
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -1622,6 +1632,8 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	switch p.order.Field.column {
 	case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
 		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	default:
+		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -1661,11 +1673,9 @@ func (t *TodoQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if t, err = pager.applyCursors(t, after, before); err != nil {
 		return nil, err
 	}
-	t = pager.applyOrder(t)
 	if limit := paginateLimit(first, last); limit != 0 {
 		t.Limit(limit)
 	}
@@ -1674,7 +1684,7 @@ func (t *TodoQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	t = pager.applyOrder(t)
 	nodes, err := t.All(ctx)
 	if err != nil {
 		return nil, err
@@ -2029,6 +2039,11 @@ func (p *userPager) applyOrder(query *UserQuery) *UserQuery {
 	if p.order.Field != DefaultUserOrder.Field {
 		query = query.Order(DefaultUserOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	switch p.order.Field.column {
+	case UserOrderFieldGroupsCount.column:
+	default:
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -2040,6 +2055,8 @@ func (p *userPager) orderExpr(query *UserQuery) sql.Querier {
 	switch p.order.Field.column {
 	case UserOrderFieldGroupsCount.column:
 		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	default:
+		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -2079,11 +2096,9 @@ func (u *UserQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if u, err = pager.applyCursors(u, after, before); err != nil {
 		return nil, err
 	}
-	u = pager.applyOrder(u)
 	if limit := paginateLimit(first, last); limit != 0 {
 		u.Limit(limit)
 	}
@@ -2092,7 +2107,7 @@ func (u *UserQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	u = pager.applyOrder(u)
 	nodes, err := u.All(ctx)
 	if err != nil {
 		return nil, err

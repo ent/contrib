@@ -34,6 +34,8 @@ type Tx struct {
 	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// OneToMany is the client for interacting with the OneToMany builders.
+	OneToMany *OneToManyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// Todo is the client for interacting with the Todo builders.
@@ -177,6 +179,7 @@ func (tx *Tx) init() {
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
+	tx.OneToMany = NewOneToManyClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)

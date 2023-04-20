@@ -321,6 +321,9 @@ func (p *{{ $pager }}) applyCursors(query *{{ $query }}, after, before *Cursor) 
 	return query, nil
 }
 
+{{- $byEdges := list }}
+{{- range $orderFields }}{{ if not .IsFieldTerm }}{{ $byEdges = append $byEdges . }}{{ end }}{{ end }}
+
 func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 	{{- if $multiOrder }}
 		var defaultOrdered bool
@@ -333,6 +336,16 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 			if o.Field.column == {{ $defaultOrder }}.Field.column {
 				defaultOrdered = true
 			}
+			{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
+			{{- with $byEdges }}
+				switch o.Field.column {
+				case {{ range $i, $f := . }}{{ if $i }},{{ end }}{{ $f.VarName }}.column{{ end }}:
+				default:
+					query.ctx.AppendFieldOnce(o.Field.column)
+				}
+			{{- else }}
+				query.ctx.AppendFieldOnce(o.Field.column)
+			{{- end }}
 		}
 		{{- /* We need to ensure the ID field is included in ORDER BY since the other terms might not be unique. */}}
 		if !defaultOrdered {
@@ -352,13 +365,22 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 		if p.order.Field != {{ $defaultOrder }}.Field {
 			query = query.Order({{ $defaultOrder }}.Field.toTerm(direction.OrderTermOption()))
 		}
+		{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
+		{{- with $byEdges }}
+			switch p.order.Field.column {
+			case {{ range $i, $f := . }}{{ if $i }},{{ end }}{{ $f.VarName }}.column{{ end }}:
+			default:
+				{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
+				query.ctx.AppendFieldOnce(p.order.Field.column)
+			}
+		{{- else }}
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		{{- end }}
 	{{- end }}
 	return query
 }
 
 func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
-	{{- $byEdges := list }}
-	{{- range $orderFields }}{{ if not .IsFieldTerm }}{{ $byEdges = append $byEdges . }}{{ end }}{{ end }}
 	{{- if $multiOrder }}
 		{{- /* Edge ordering must be applied to update the query. */}}
 		{{- with $byEdges }}
@@ -370,7 +392,14 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 						direction = direction.Reverse()
 					}
 					query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+				default:
+					{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
+					query.ctx.AppendFieldOnce(o.Field.column)
 				}
+			}
+		{{- else }}
+			for _, o := range p.order {
+				query.ctx.AppendFieldOnce(o.Field.column)
 			}
 		{{- end }}
 		return sql.ExprFunc(func(b *sql.Builder) {
@@ -397,7 +426,12 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 			switch p.order.Field.column {
 			case {{ range $i, $f := . }}{{ if $i }},{{ end }}{{ $f.VarName }}.column{{ end }}:
 				query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+			default:
+				{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
+				query.ctx.AppendFieldOnce(p.order.Field.column)
 			}
+		{{- else }}
+			query.ctx.AppendFieldOnce(p.order.Field.column)
 		{{- end }}
 		return sql.ExprFunc(func(b *sql.Builder) {
 			b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -592,11 +626,9 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if {{ $r }}, err = pager.applyCursors({{ $r }}, after, before); err != nil {
 		return nil, err
 	}
-	{{ $r }} = pager.applyOrder({{ $r }})
 	if limit := paginateLimit(first, last); limit != 0 {
 		{{ $r }}.Limit(limit)
 	}
@@ -605,7 +637,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 			return nil, err
 		}
 	}
-
+	{{ $r }} = pager.applyOrder({{ $r }})
 	nodes, err := {{ $r }}.All(ctx)
 	if err != nil {
 		return nil, err

@@ -26,6 +26,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
@@ -69,6 +70,7 @@ func (bp *BillProductQuery) collectField(ctx context.Context, opCtx *graphql.Ope
 				selectedFields = append(selectedFields, billproduct.FieldQuantity)
 				fieldSeen[billproduct.FieldQuantity] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -195,21 +197,20 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(category.TodosColumn, limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(category.TodosColumn, limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			c.WithNamedTodos(alias, func(wq *TodoQuery) {
 				*wq = *query
@@ -284,21 +285,20 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(category.SubCategoriesPrimaryKey[0], limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(category.SubCategoriesPrimaryKey[0], limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			c.WithNamedSubCategories(alias, func(wq *CategoryQuery) {
 				*wq = *query
@@ -333,6 +333,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				selectedFields = append(selectedFields, category.FieldStrings)
 				fieldSeen[category.FieldStrings] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -464,6 +465,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				selectedFields = append(selectedFields, friendship.FieldFriendID)
 				fieldSeen[friendship.FieldFriendID] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -594,21 +596,20 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(group.UsersPrimaryKey[1], limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(group.UsersPrimaryKey[1], limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			gr.WithNamedUsers(alias, func(wq *UserQuery) {
 				*wq = *query
@@ -618,6 +619,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				selectedFields = append(selectedFields, group.FieldName)
 				fieldSeen[group.FieldName] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -653,6 +655,125 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*GroupWhereInput); ok {
 		args.opts = append(args.opts, WithGroupFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (otm *OneToManyQuery) CollectFields(ctx context.Context, satisfies ...string) (*OneToManyQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return otm, nil
+	}
+	if err := otm.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return otm, nil
+}
+
+func (otm *OneToManyQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(onetomany.Columns))
+		selectedFields = []string{onetomany.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "parent":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OneToManyClient{config: otm.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			otm.withParent = query
+			if _, ok := fieldSeen[onetomany.FieldParentID]; !ok {
+				selectedFields = append(selectedFields, onetomany.FieldParentID)
+				fieldSeen[onetomany.FieldParentID] = struct{}{}
+			}
+		case "children":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OneToManyClient{config: otm.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+				return err
+			}
+			otm.WithNamedChildren(alias, func(wq *OneToManyQuery) {
+				*wq = *query
+			})
+		case "name":
+			if _, ok := fieldSeen[onetomany.FieldName]; !ok {
+				selectedFields = append(selectedFields, onetomany.FieldName)
+				fieldSeen[onetomany.FieldName] = struct{}{}
+			}
+		case "field2":
+			if _, ok := fieldSeen[onetomany.FieldField2]; !ok {
+				selectedFields = append(selectedFields, onetomany.FieldField2)
+				fieldSeen[onetomany.FieldField2] = struct{}{}
+			}
+		case "id":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		otm.Select(selectedFields...)
+	}
+	return nil
+}
+
+type onetomanyPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []OneToManyPaginateOption
+}
+
+func newOneToManyPaginateArgs(rv map[string]interface{}) *onetomanyPaginateArgs {
+	args := &onetomanyPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &OneToManyOrder{Field: &OneToManyOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithOneToManyOrder(order))
+			}
+		case *OneToManyOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithOneToManyOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*OneToManyWhereInput); ok {
+		args.opts = append(args.opts, WithOneToManyFilter(v.Filter))
 	}
 	return args
 }
@@ -739,21 +860,20 @@ func (pr *ProjectQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(project.TodosColumn, limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(project.TodosColumn, limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			pr.WithNamedTodos(alias, func(wq *TodoQuery) {
 				*wq = *query
@@ -889,21 +1009,20 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(todo.ChildrenColumn, limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(todo.ChildrenColumn, limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			t.WithNamedChildren(alias, func(wq *TodoQuery) {
 				*wq = *query
@@ -962,6 +1081,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, todo.FieldCustomp)
 				fieldSeen[todo.FieldCustomp] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}
@@ -1114,21 +1234,20 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(user.GroupsPrimaryKey[0], limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(user.GroupsPrimaryKey[0], limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			u.WithNamedGroups(alias, func(wq *GroupQuery) {
 				*wq = *query
@@ -1203,21 +1322,20 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(user.FriendsPrimaryKey[0], limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(user.FriendsPrimaryKey[0], limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			u.WithNamedFriends(alias, func(wq *UserQuery) {
 				*wq = *query
@@ -1288,21 +1406,20 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
 				continue
 			}
-
 			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
 				return err
-			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(user.FriendshipsColumn, limit, pager.orderExpr(query))
-				query.modifiers = append(query.modifiers, modify)
-			} else {
-				query = pager.applyOrder(query)
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
 				if err := query.collectField(ctx, opCtx, *field, path, satisfies...); err != nil {
 					return err
 				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(user.FriendshipsColumn, limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			u.WithNamedFriendships(alias, func(wq *FriendshipQuery) {
 				*wq = *query
@@ -1322,6 +1439,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, user.FieldMetadata)
 				fieldSeen[user.FieldMetadata] = struct{}{}
 			}
+		case "id":
 		default:
 			unknownSeen = true
 		}

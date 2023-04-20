@@ -405,7 +405,7 @@ func (nbq *NoBackrefQuery) loadImages(ctx context.Context, query *ImageQuery, no
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "no_backref_images" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "no_backref_images" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

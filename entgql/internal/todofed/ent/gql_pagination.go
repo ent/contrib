@@ -246,6 +246,7 @@ func (p *categoryPager) applyOrder(query *CategoryQuery) *CategoryQuery {
 	if p.order.Field != DefaultCategoryOrder.Field {
 		query = query.Order(DefaultCategoryOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return query
 }
 
@@ -254,6 +255,7 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultCategoryOrder.Field {
@@ -292,11 +294,9 @@ func (c *CategoryQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if c, err = pager.applyCursors(c, after, before); err != nil {
 		return nil, err
 	}
-	c = pager.applyOrder(c)
 	if limit := paginateLimit(first, last); limit != 0 {
 		c.Limit(limit)
 	}
@@ -305,7 +305,7 @@ func (c *CategoryQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	c = pager.applyOrder(c)
 	nodes, err := c.All(ctx)
 	if err != nil {
 		return nil, err
@@ -553,6 +553,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 	if p.order.Field != DefaultTodoOrder.Field {
 		query = query.Order(DefaultTodoOrder.Field.toTerm(direction.OrderTermOption()))
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return query
 }
 
@@ -561,6 +562,7 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
+	query.ctx.AppendFieldOnce(p.order.Field.column)
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultTodoOrder.Field {
@@ -599,11 +601,9 @@ func (t *TodoQuery) Paginate(
 	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
 		return conn, nil
 	}
-
 	if t, err = pager.applyCursors(t, after, before); err != nil {
 		return nil, err
 	}
-	t = pager.applyOrder(t)
 	if limit := paginateLimit(first, last); limit != 0 {
 		t.Limit(limit)
 	}
@@ -612,7 +612,7 @@ func (t *TodoQuery) Paginate(
 			return nil, err
 		}
 	}
-
+	t = pager.applyOrder(t)
 	nodes, err := t.All(ctx)
 	if err != nil {
 		return nil, err

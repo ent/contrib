@@ -427,7 +427,7 @@ func (dosq *DependsOnSkippedQuery) loadSkipped(ctx context.Context, query *Impli
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "depends_on_skipped_skipped" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "depends_on_skipped_skipped" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

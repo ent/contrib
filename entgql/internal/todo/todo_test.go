@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 5 << 32
+	idOffset = 6 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1602,15 +1602,13 @@ func TestNestedConnection(t *testing.T) {
 				}
 			}
 		)
-		fmt.Println(groups[0].ID)
-		// One query to trigger the loading of the ent_types content.
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAYAAAAK"),
+			client.Var("cursor", "gaFp0wAAAAcAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAYAAAAJ", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -2275,6 +2273,54 @@ func TestFieldSelection(t *testing.T) {
 		"SELECT `todos`.`id`, `todos`.`category_id` FROM `todos` ORDER BY `todos`.`id`",
 		// Select the "text" field for the "category" selection.
 		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?, ?, ?, ?)",
+	}, rec.queries)
+
+	rootO2M := ec.OneToMany.CreateBulk(
+		ec.OneToMany.Create().SetName("t0.1"),
+		ec.OneToMany.Create().SetName("t0.2"),
+		ec.OneToMany.Create().SetName("t0.3"),
+	).SaveX(ctx)
+	ec.OneToMany.CreateBulk(
+		ec.OneToMany.Create().SetName("t1.1").SetParent(rootO2M[0]),
+		ec.OneToMany.Create().SetName("t1.2").SetParent(rootO2M[0]),
+		ec.OneToMany.Create().SetName("t1.3").SetParent(rootO2M[0]),
+	).SaveX(ctx)
+	var (
+		// language=GraphQL
+		queryO2M = `query {
+			oneToMany {
+				edges {
+					node {
+						id
+						name
+						children {
+							name
+						}
+					}
+				}
+			}
+		}`
+		rspO2M struct {
+			OneToMany struct {
+				Edges []struct {
+					Node struct {
+						ID       string
+						Name     string
+						Children []struct {
+							ID   string
+							Name string
+						}
+					}
+				}
+			}
+		}
+		gqlcO2M = client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	)
+	rec.reset()
+	gqlcO2M.MustPost(queryO2M, &rspO2M)
+	require.Equal(t, []string{
+		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name` FROM `one_to_manies` ORDER BY `one_to_manies`.`id`",
+		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name`, `one_to_manies`.`parent_id` FROM `one_to_manies` WHERE `one_to_manies`.`parent_id` IN (?, ?, ?, ?, ?, ?)",
 	}, rec.queries)
 }
 

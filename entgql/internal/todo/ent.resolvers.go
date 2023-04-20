@@ -19,6 +19,7 @@ package todo
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
@@ -48,6 +49,13 @@ func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[int], f
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithGroupFilter(where.Filter),
+		)
+}
+
+func (r *queryResolver) OneToMany(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.OneToManyOrder, where *ent.OneToManyWhereInput) (*ent.OneToManyConnection, error) {
+	return r.client.OneToMany.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithOneToManyFilter(where.Filter),
 		)
 }
 
@@ -84,3 +92,13 @@ type categoryResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type createCategoryInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) OneToManies(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.OneToManyOrder, where *ent.OneToManyWhereInput) (*ent.OneToManyConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
