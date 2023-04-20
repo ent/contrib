@@ -39,6 +39,20 @@ func (otmc *OneToManyCreate) SetName(s string) *OneToManyCreate {
 	return otmc
 }
 
+// SetField2 sets the "field2" field.
+func (otmc *OneToManyCreate) SetField2(s string) *OneToManyCreate {
+	otmc.mutation.SetField2(s)
+	return otmc
+}
+
+// SetNillableField2 sets the "field2" field if the given value is not nil.
+func (otmc *OneToManyCreate) SetNillableField2(s *string) *OneToManyCreate {
+	if s != nil {
+		otmc.SetField2(*s)
+	}
+	return otmc
+}
+
 // SetParentID sets the "parent_id" field.
 func (otmc *OneToManyCreate) SetParentID(i int) *OneToManyCreate {
 	otmc.mutation.SetParentID(i)
@@ -144,6 +158,10 @@ func (otmc *OneToManyCreate) createSpec() (*OneToMany, *sqlgraph.CreateSpec) {
 	if value, ok := otmc.mutation.Name(); ok {
 		_spec.SetField(onetomany.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := otmc.mutation.Field2(); ok {
+		_spec.SetField(onetomany.FieldField2, field.TypeString, value)
+		_node.Field2 = value
 	}
 	if nodes := otmc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

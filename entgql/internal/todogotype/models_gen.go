@@ -26,6 +26,7 @@ type CreateUserInput struct {
 type OneToMany struct {
 	ID       string       `json:"id"`
 	Name     string       `json:"name"`
+	Field2   *string      `json:"field2"`
 	Parent   *OneToMany   `json:"parent"`
 	Children []*OneToMany `json:"children"`
 }
@@ -87,6 +88,22 @@ type OneToManyWhereInput struct {
 	NameHasSuffix    *string  `json:"nameHasSuffix"`
 	NameEqualFold    *string  `json:"nameEqualFold"`
 	NameContainsFold *string  `json:"nameContainsFold"`
+	// field2 field predicates
+	Field2             *string  `json:"field2"`
+	Field2neq          *string  `json:"field2NEQ"`
+	Field2In           []string `json:"field2In"`
+	Field2NotIn        []string `json:"field2NotIn"`
+	Field2gt           *string  `json:"field2GT"`
+	Field2gte          *string  `json:"field2GTE"`
+	Field2lt           *string  `json:"field2LT"`
+	Field2lte          *string  `json:"field2LTE"`
+	Field2Contains     *string  `json:"field2Contains"`
+	Field2HasPrefix    *string  `json:"field2HasPrefix"`
+	Field2HasSuffix    *string  `json:"field2HasSuffix"`
+	Field2IsNil        *bool    `json:"field2IsNil"`
+	Field2NotNil       *bool    `json:"field2NotNil"`
+	Field2EqualFold    *string  `json:"field2EqualFold"`
+	Field2ContainsFold *string  `json:"field2ContainsFold"`
 	// parent edge predicates
 	HasParent     *bool                  `json:"hasParent"`
 	HasParentWith []*OneToManyWhereInput `json:"hasParentWith"`

@@ -47,6 +47,26 @@ func (otmu *OneToManyUpdate) SetName(s string) *OneToManyUpdate {
 	return otmu
 }
 
+// SetField2 sets the "field2" field.
+func (otmu *OneToManyUpdate) SetField2(s string) *OneToManyUpdate {
+	otmu.mutation.SetField2(s)
+	return otmu
+}
+
+// SetNillableField2 sets the "field2" field if the given value is not nil.
+func (otmu *OneToManyUpdate) SetNillableField2(s *string) *OneToManyUpdate {
+	if s != nil {
+		otmu.SetField2(*s)
+	}
+	return otmu
+}
+
+// ClearField2 clears the value of the "field2" field.
+func (otmu *OneToManyUpdate) ClearField2() *OneToManyUpdate {
+	otmu.mutation.ClearField2()
+	return otmu
+}
+
 // SetParentID sets the "parent_id" field.
 func (otmu *OneToManyUpdate) SetParentID(i int) *OneToManyUpdate {
 	otmu.mutation.SetParentID(i)
@@ -171,6 +191,12 @@ func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := otmu.mutation.Name(); ok {
 		_spec.SetField(onetomany.FieldName, field.TypeString, value)
 	}
+	if value, ok := otmu.mutation.Field2(); ok {
+		_spec.SetField(onetomany.FieldField2, field.TypeString, value)
+	}
+	if otmu.mutation.Field2Cleared() {
+		_spec.ClearField(onetomany.FieldField2, field.TypeString)
+	}
 	if otmu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -268,6 +294,26 @@ type OneToManyUpdateOne struct {
 // SetName sets the "name" field.
 func (otmuo *OneToManyUpdateOne) SetName(s string) *OneToManyUpdateOne {
 	otmuo.mutation.SetName(s)
+	return otmuo
+}
+
+// SetField2 sets the "field2" field.
+func (otmuo *OneToManyUpdateOne) SetField2(s string) *OneToManyUpdateOne {
+	otmuo.mutation.SetField2(s)
+	return otmuo
+}
+
+// SetNillableField2 sets the "field2" field if the given value is not nil.
+func (otmuo *OneToManyUpdateOne) SetNillableField2(s *string) *OneToManyUpdateOne {
+	if s != nil {
+		otmuo.SetField2(*s)
+	}
+	return otmuo
+}
+
+// ClearField2 clears the value of the "field2" field.
+func (otmuo *OneToManyUpdateOne) ClearField2() *OneToManyUpdateOne {
+	otmuo.mutation.ClearField2()
 	return otmuo
 }
 
@@ -424,6 +470,12 @@ func (otmuo *OneToManyUpdateOne) sqlSave(ctx context.Context) (_node *OneToMany,
 	}
 	if value, ok := otmuo.mutation.Name(); ok {
 		_spec.SetField(onetomany.FieldName, field.TypeString, value)
+	}
+	if value, ok := otmuo.mutation.Field2(); ok {
+		_spec.SetField(onetomany.FieldField2, field.TypeString, value)
+	}
+	if otmuo.mutation.Field2Cleared() {
+		_spec.ClearField(onetomany.FieldField2, field.TypeString)
 	}
 	if otmuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{

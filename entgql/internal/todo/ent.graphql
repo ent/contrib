@@ -403,6 +403,7 @@ interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Noder"
 type OneToMany implements Node {
   id: ID!
   name: String!
+  field2: String
   parent: OneToMany
   children: [OneToMany!]
 }
@@ -464,6 +465,22 @@ input OneToManyWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
+  """field2 field predicates"""
+  field2: String
+  field2NEQ: String
+  field2In: [String!]
+  field2NotIn: [String!]
+  field2GT: String
+  field2GTE: String
+  field2LT: String
+  field2LTE: String
+  field2Contains: String
+  field2HasPrefix: String
+  field2HasSuffix: String
+  field2IsNil: Boolean
+  field2NotNil: Boolean
+  field2EqualFold: String
+  field2ContainsFold: String
   """parent edge predicates"""
   hasParent: Boolean
   hasParentWith: [OneToManyWhereInput!]

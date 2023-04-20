@@ -1136,6 +1136,23 @@ type OneToManyWhereInput struct {
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
 
+	// "field2" field predicates.
+	Field2             *string  `json:"field2,omitempty"`
+	Field2NEQ          *string  `json:"field2NEQ,omitempty"`
+	Field2In           []string `json:"field2In,omitempty"`
+	Field2NotIn        []string `json:"field2NotIn,omitempty"`
+	Field2GT           *string  `json:"field2GT,omitempty"`
+	Field2GTE          *string  `json:"field2GTE,omitempty"`
+	Field2LT           *string  `json:"field2LT,omitempty"`
+	Field2LTE          *string  `json:"field2LTE,omitempty"`
+	Field2Contains     *string  `json:"field2Contains,omitempty"`
+	Field2HasPrefix    *string  `json:"field2HasPrefix,omitempty"`
+	Field2HasSuffix    *string  `json:"field2HasSuffix,omitempty"`
+	Field2IsNil        bool     `json:"field2IsNil,omitempty"`
+	Field2NotNil       bool     `json:"field2NotNil,omitempty"`
+	Field2EqualFold    *string  `json:"field2EqualFold,omitempty"`
+	Field2ContainsFold *string  `json:"field2ContainsFold,omitempty"`
+
 	// "parent" edge predicates.
 	HasParent     *bool                  `json:"hasParent,omitempty"`
 	HasParentWith []*OneToManyWhereInput `json:"hasParentWith,omitempty"`
@@ -1278,6 +1295,51 @@ func (i *OneToManyWhereInput) P() (predicate.OneToMany, error) {
 	}
 	if i.NameContainsFold != nil {
 		predicates = append(predicates, onetomany.NameContainsFold(*i.NameContainsFold))
+	}
+	if i.Field2 != nil {
+		predicates = append(predicates, onetomany.Field2EQ(*i.Field2))
+	}
+	if i.Field2NEQ != nil {
+		predicates = append(predicates, onetomany.Field2NEQ(*i.Field2NEQ))
+	}
+	if len(i.Field2In) > 0 {
+		predicates = append(predicates, onetomany.Field2In(i.Field2In...))
+	}
+	if len(i.Field2NotIn) > 0 {
+		predicates = append(predicates, onetomany.Field2NotIn(i.Field2NotIn...))
+	}
+	if i.Field2GT != nil {
+		predicates = append(predicates, onetomany.Field2GT(*i.Field2GT))
+	}
+	if i.Field2GTE != nil {
+		predicates = append(predicates, onetomany.Field2GTE(*i.Field2GTE))
+	}
+	if i.Field2LT != nil {
+		predicates = append(predicates, onetomany.Field2LT(*i.Field2LT))
+	}
+	if i.Field2LTE != nil {
+		predicates = append(predicates, onetomany.Field2LTE(*i.Field2LTE))
+	}
+	if i.Field2Contains != nil {
+		predicates = append(predicates, onetomany.Field2Contains(*i.Field2Contains))
+	}
+	if i.Field2HasPrefix != nil {
+		predicates = append(predicates, onetomany.Field2HasPrefix(*i.Field2HasPrefix))
+	}
+	if i.Field2HasSuffix != nil {
+		predicates = append(predicates, onetomany.Field2HasSuffix(*i.Field2HasSuffix))
+	}
+	if i.Field2IsNil {
+		predicates = append(predicates, onetomany.Field2IsNil())
+	}
+	if i.Field2NotNil {
+		predicates = append(predicates, onetomany.Field2NotNil())
+	}
+	if i.Field2EqualFold != nil {
+		predicates = append(predicates, onetomany.Field2EqualFold(*i.Field2EqualFold))
+	}
+	if i.Field2ContainsFold != nil {
+		predicates = append(predicates, onetomany.Field2ContainsFold(*i.Field2ContainsFold))
 	}
 
 	if i.HasParent != nil {

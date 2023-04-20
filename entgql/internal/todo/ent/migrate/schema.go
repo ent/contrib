@@ -100,6 +100,7 @@ var (
 	OneToManiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "field2", Type: field.TypeString, Nullable: true},
 		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
 	}
 	// OneToManiesTable holds the schema information for the "one_to_manies" table.
@@ -110,7 +111,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "one_to_manies_one_to_manies_children",
-				Columns:    []*schema.Column{OneToManiesColumns[2]},
+				Columns:    []*schema.Column{OneToManiesColumns[3]},
 				RefColumns: []*schema.Column{OneToManiesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

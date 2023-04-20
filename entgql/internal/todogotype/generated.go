@@ -147,6 +147,7 @@ type ComplexityRoot struct {
 
 	OneToMany struct {
 		Children func(childComplexity int) int
+		Field2   func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Parent   func(childComplexity int) int
@@ -666,6 +667,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OneToMany.Children(childComplexity), true
+
+	case "OneToMany.field2":
+		if e.complexity.OneToMany.Field2 == nil {
+			break
+		}
+
+		return e.complexity.OneToMany.Field2(childComplexity), true
 
 	case "OneToMany.id":
 		if e.complexity.OneToMany.ID == nil {
@@ -1631,6 +1639,7 @@ interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Noder"
 type OneToMany implements Node {
   id: ID!
   name: String!
+  field2: String
   parent: OneToMany
   children: [OneToMany!]
 }
@@ -1692,6 +1701,22 @@ input OneToManyWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
+  """field2 field predicates"""
+  field2: String
+  field2NEQ: String
+  field2In: [String!]
+  field2NotIn: [String!]
+  field2GT: String
+  field2GTE: String
+  field2LT: String
+  field2LTE: String
+  field2Contains: String
+  field2HasPrefix: String
+  field2HasSuffix: String
+  field2IsNil: Boolean
+  field2NotNil: Boolean
+  field2EqualFold: String
+  field2ContainsFold: String
   """parent edge predicates"""
   hasParent: Boolean
   hasParentWith: [OneToManyWhereInput!]
@@ -5537,6 +5562,47 @@ func (ec *executionContext) fieldContext_OneToMany_name(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _OneToMany_field2(ctx context.Context, field graphql.CollectedField, obj *OneToMany) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OneToMany_field2(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Field2, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OneToMany_field2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OneToMany",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OneToMany_parent(ctx context.Context, field graphql.CollectedField, obj *OneToMany) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OneToMany_parent(ctx, field)
 	if err != nil {
@@ -5577,6 +5643,8 @@ func (ec *executionContext) fieldContext_OneToMany_parent(ctx context.Context, f
 				return ec.fieldContext_OneToMany_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OneToMany_name(ctx, field)
+			case "field2":
+				return ec.fieldContext_OneToMany_field2(ctx, field)
 			case "parent":
 				return ec.fieldContext_OneToMany_parent(ctx, field)
 			case "children":
@@ -5628,6 +5696,8 @@ func (ec *executionContext) fieldContext_OneToMany_children(ctx context.Context,
 				return ec.fieldContext_OneToMany_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OneToMany_name(ctx, field)
+			case "field2":
+				return ec.fieldContext_OneToMany_field2(ctx, field)
 			case "parent":
 				return ec.fieldContext_OneToMany_parent(ctx, field)
 			case "children":
@@ -5824,6 +5894,8 @@ func (ec *executionContext) fieldContext_OneToManyEdge_node(ctx context.Context,
 				return ec.fieldContext_OneToMany_id(ctx, field)
 			case "name":
 				return ec.fieldContext_OneToMany_name(ctx, field)
+			case "field2":
+				return ec.fieldContext_OneToMany_field2(ctx, field)
 			case "parent":
 				return ec.fieldContext_OneToMany_parent(ctx, field)
 			case "children":
@@ -11922,6 +11994,126 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "field2":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2"))
+			it.Field2, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2NEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2NEQ"))
+			it.Field2neq, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2In":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2In"))
+			it.Field2In, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2NotIn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2NotIn"))
+			it.Field2NotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2GT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2GT"))
+			it.Field2gt, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2GTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2GTE"))
+			it.Field2gte, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2LT":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2LT"))
+			it.Field2lt, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2LTE":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2LTE"))
+			it.Field2lte, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2Contains":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2Contains"))
+			it.Field2Contains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2HasPrefix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2HasPrefix"))
+			it.Field2HasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2HasSuffix":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2HasSuffix"))
+			it.Field2HasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2IsNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2IsNil"))
+			it.Field2IsNil, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2NotNil":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2NotNil"))
+			it.Field2NotNil, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2EqualFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2EqualFold"))
+			it.Field2EqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field2ContainsFold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2ContainsFold"))
+			it.Field2ContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "hasParent":
 			var err error
 
@@ -14127,6 +14319,10 @@ func (ec *executionContext) _OneToMany(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "field2":
+
+			out.Values[i] = ec._OneToMany_field2(ctx, field, obj)
+
 		case "parent":
 
 			out.Values[i] = ec._OneToMany_parent(ctx, field, obj)

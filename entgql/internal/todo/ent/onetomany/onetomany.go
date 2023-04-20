@@ -28,6 +28,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldField2 holds the string denoting the field2 field in the database.
+	FieldField2 = "field2"
 	// FieldParentID holds the string denoting the parent_id field in the database.
 	FieldParentID = "parent_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -50,6 +52,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldField2,
 	FieldParentID,
 }
 
@@ -79,6 +82,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByField2 orders the results by the field2 field.
+func ByField2(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldField2, opts...).ToFunc()
 }
 
 // ByParentID orders the results by the parent_id field.

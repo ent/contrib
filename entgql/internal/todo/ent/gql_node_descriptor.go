@@ -257,7 +257,7 @@ func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     otm.ID,
 		Type:   "OneToMany",
-		Fields: make([]*Field, 1),
+		Fields: make([]*Field, 2),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -267,6 +267,14 @@ func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[0] = &Field{
 		Type:  "string",
 		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(otm.Field2); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "field2",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

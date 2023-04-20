@@ -2436,6 +2436,7 @@ type OneToManyMutation struct {
 	typ             string
 	id              *int
 	name            *string
+	field2          *string
 	clearedFields   map[string]struct{}
 	parent          *int
 	clearedparent   bool
@@ -2579,6 +2580,55 @@ func (m *OneToManyMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *OneToManyMutation) ResetName() {
 	m.name = nil
+}
+
+// SetField2 sets the "field2" field.
+func (m *OneToManyMutation) SetField2(s string) {
+	m.field2 = &s
+}
+
+// Field2 returns the value of the "field2" field in the mutation.
+func (m *OneToManyMutation) Field2() (r string, exists bool) {
+	v := m.field2
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldField2 returns the old "field2" field's value of the OneToMany entity.
+// If the OneToMany object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OneToManyMutation) OldField2(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldField2 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldField2 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldField2: %w", err)
+	}
+	return oldValue.Field2, nil
+}
+
+// ClearField2 clears the value of the "field2" field.
+func (m *OneToManyMutation) ClearField2() {
+	m.field2 = nil
+	m.clearedFields[onetomany.FieldField2] = struct{}{}
+}
+
+// Field2Cleared returns if the "field2" field was cleared in this mutation.
+func (m *OneToManyMutation) Field2Cleared() bool {
+	_, ok := m.clearedFields[onetomany.FieldField2]
+	return ok
+}
+
+// ResetField2 resets all changes to the "field2" field.
+func (m *OneToManyMutation) ResetField2() {
+	m.field2 = nil
+	delete(m.clearedFields, onetomany.FieldField2)
 }
 
 // SetParentID sets the "parent_id" field.
@@ -2744,9 +2794,12 @@ func (m *OneToManyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OneToManyMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.name != nil {
 		fields = append(fields, onetomany.FieldName)
+	}
+	if m.field2 != nil {
+		fields = append(fields, onetomany.FieldField2)
 	}
 	if m.parent != nil {
 		fields = append(fields, onetomany.FieldParentID)
@@ -2761,6 +2814,8 @@ func (m *OneToManyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case onetomany.FieldName:
 		return m.Name()
+	case onetomany.FieldField2:
+		return m.Field2()
 	case onetomany.FieldParentID:
 		return m.ParentID()
 	}
@@ -2774,6 +2829,8 @@ func (m *OneToManyMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case onetomany.FieldName:
 		return m.OldName(ctx)
+	case onetomany.FieldField2:
+		return m.OldField2(ctx)
 	case onetomany.FieldParentID:
 		return m.OldParentID(ctx)
 	}
@@ -2791,6 +2848,13 @@ func (m *OneToManyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case onetomany.FieldField2:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetField2(v)
 		return nil
 	case onetomany.FieldParentID:
 		v, ok := value.(int)
@@ -2832,6 +2896,9 @@ func (m *OneToManyMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OneToManyMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(onetomany.FieldField2) {
+		fields = append(fields, onetomany.FieldField2)
+	}
 	if m.FieldCleared(onetomany.FieldParentID) {
 		fields = append(fields, onetomany.FieldParentID)
 	}
@@ -2849,6 +2916,9 @@ func (m *OneToManyMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OneToManyMutation) ClearField(name string) error {
 	switch name {
+	case onetomany.FieldField2:
+		m.ClearField2()
+		return nil
 	case onetomany.FieldParentID:
 		m.ClearParentID()
 		return nil
@@ -2862,6 +2932,9 @@ func (m *OneToManyMutation) ResetField(name string) error {
 	switch name {
 	case onetomany.FieldName:
 		m.ResetName()
+		return nil
+	case onetomany.FieldField2:
+		m.ResetField2()
 		return nil
 	case onetomany.FieldParentID:
 		m.ResetParentID()

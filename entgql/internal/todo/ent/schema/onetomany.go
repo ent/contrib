@@ -35,6 +35,8 @@ func (OneToMany) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("NAME"),
 			),
+		field.String("field2").
+			Optional(),
 		field.Int("parent_id").
 			Optional().
 			Annotations(

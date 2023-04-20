@@ -32,6 +32,8 @@ type OneToMany struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Field2 holds the value of the "field2" field.
+	Field2 string `json:"field2,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
 	ParentID int `json:"parent_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -84,7 +86,7 @@ func (*OneToMany) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case onetomany.FieldID, onetomany.FieldParentID:
 			values[i] = new(sql.NullInt64)
-		case onetomany.FieldName:
+		case onetomany.FieldName, onetomany.FieldField2:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -112,6 +114,12 @@ func (otm *OneToMany) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				otm.Name = value.String
+			}
+		case onetomany.FieldField2:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field field2", values[i])
+			} else if value.Valid {
+				otm.Field2 = value.String
 			}
 		case onetomany.FieldParentID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -167,6 +175,9 @@ func (otm *OneToMany) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", otm.ID))
 	builder.WriteString("name=")
 	builder.WriteString(otm.Name)
+	builder.WriteString(", ")
+	builder.WriteString("field2=")
+	builder.WriteString(otm.Field2)
 	builder.WriteString(", ")
 	builder.WriteString("parent_id=")
 	builder.WriteString(fmt.Sprintf("%v", otm.ParentID))
