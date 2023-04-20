@@ -496,6 +496,9 @@ func (cq *CategoryQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes 
 		}
 	}
 	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(todo.FieldCategoryID)
+	}
 	query.Where(predicate.Todo(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(category.TodosColumn), fks...))
 	}))
@@ -507,7 +510,7 @@ func (cq *CategoryQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes 
 		fk := n.CategoryID
 		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "category_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "category_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

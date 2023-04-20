@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.18
 
 require (
-	entgo.io/ent v0.12.1
+	entgo.io/ent v0.12.2-0.20230420142637-6198beb484e8
 	github.com/99designs/gqlgen v0.17.5-0.20220428154617-9250f9ac1f90
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.7.0
