@@ -17,6 +17,8 @@ package entproto
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -29,6 +31,7 @@ const (
 
 var (
 	ErrEnumFieldsNotAnnotated = errors.New("entproto: all Enum options must be covered with an entproto.Enum annotation")
+	normalizeEnumIdent        = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
 )
 
 type EnumOption func(*enum)
@@ -76,11 +79,18 @@ func (e *enum) Verify(fld *gen.Field) error {
 	if len(e.Options) != len(fld.Enums) {
 		return ErrEnumFieldsNotAnnotated
 	}
+	pbIdentifiers := make(map[string]struct{}, len(fld.Enums))
 	for _, opt := range fld.Enums {
 		if _, ok := e.Options[opt.Value]; !ok {
 			return fmt.Errorf("entproto: Enum option %s is not annotated with"+
 				" a pbfield number using entproto.Enum", opt.Name)
 		}
+		pbIdent := NormalizeEnumIdentifier(opt.Value)
+		if _, ok := pbIdentifiers[pbIdent]; ok {
+			return fmt.Errorf("entproto: Enum option %q produces conflicting pbfield"+
+				" name %q after normalization", opt.Name, pbIdent)
+		}
+		pbIdentifiers[pbIdent] = struct{}{}
 	}
 
 	// If default value is set on the pbfield, make sure it's option number is zero.
@@ -125,4 +135,10 @@ func extractEnumAnnotation(fld *gen.Field) (*enum, error) {
 	}
 
 	return &out, nil
+}
+
+// NormalizeEnumIdentifier normalizes the identifier of an enum pbfield
+// to match the Proto Style Guide.
+func NormalizeEnumIdentifier(s string) string {
+	return strings.ToUpper(normalizeEnumIdent.ReplaceAllString(s, "_"))
 }

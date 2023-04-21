@@ -19,7 +19,6 @@ import (
 	"flag"
 	"fmt"
 	"path"
-	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -126,9 +125,7 @@ func (g *serviceGenerator) generate() error {
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
 			},
-			"protoIdentNormalize": func(s string) string {
-				return strings.ToUpper(regexp.MustCompile("[^a-zA-Z0-9_]+").ReplaceAllString(s, "_"))
-			},
+			"protoIdentNormalize": entproto.NormalizeEnumIdentifier,
 			"statusErr": func(code, msg string) string {
 				return fmt.Sprintf("%s(%s, %q)",
 					g.QualifiedGoIdent(status.Ident("Error")),

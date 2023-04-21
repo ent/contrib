@@ -21,6 +21,9 @@ type DependsOnSkipped func(*sql.Selector)
 // DuplicateNumberMessage is the predicate function for duplicatenumbermessage builders.
 type DuplicateNumberMessage func(*sql.Selector)
 
+// EnumWithConflictingValue is the predicate function for enumwithconflictingvalue builders.
+type EnumWithConflictingValue func(*sql.Selector)
+
 // ExplicitSkippedMessage is the predicate function for explicitskippedmessage builders.
 type ExplicitSkippedMessage func(*sql.Selector)
 

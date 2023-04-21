@@ -123,6 +123,11 @@ func (suite *AdapterTestSuite) TestInvalidField() {
 	suite.EqualError(err, "unsupported field type \"TypeJSON\"")
 }
 
+func (suite *AdapterTestSuite) TestEnumWithConflictingValue() {
+	_, err := suite.adapter.GetFileDescriptor("EnumWithConflictingValue")
+	suite.EqualError(err, "entproto: Enum option \"EnumJpegAlt\" produces conflicting pbfield name \"IMAGE_JPEG\" after normalization")
+}
+
 func (suite *AdapterTestSuite) TestDuplicateNumber() {
 	_, err := suite.adapter.GetFileDescriptor("DuplicateNumberMessage")
 	suite.EqualError(err, "entproto: field 2 already defined on message \"DuplicateNumberMessage\"")

@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"entgo.io/ent/entc/gen"
@@ -442,7 +441,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 		})
 	}
 	for _, opt := range fld.Enums {
-		n := strings.ToUpper(snake(regexp.MustCompile(`[^a-zA-Z0-9_]+`).ReplaceAllString(opt.Value, "_")))
+		n := strings.ToUpper(snake(NormalizeEnumIdentifier(opt.Value)))
 		if !enumAnnotation.OmitFieldPrefix {
 			n = strings.ToUpper(snake(fld.Name)) + "_" + n
 		}

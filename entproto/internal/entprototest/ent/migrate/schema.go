@@ -75,6 +75,17 @@ var (
 		Columns:    DuplicateNumberMessagesColumns,
 		PrimaryKey: []*schema.Column{DuplicateNumberMessagesColumns[0]},
 	}
+	// EnumWithConflictingValuesColumns holds the columns for the "enum_with_conflicting_values" table.
+	EnumWithConflictingValuesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "enum", Type: field.TypeEnum, Enums: []string{"image/jpeg", "IMAGE_JPEG"}},
+	}
+	// EnumWithConflictingValuesTable holds the schema information for the "enum_with_conflicting_values" table.
+	EnumWithConflictingValuesTable = &schema.Table{
+		Name:       "enum_with_conflicting_values",
+		Columns:    EnumWithConflictingValuesColumns,
+		PrimaryKey: []*schema.Column{EnumWithConflictingValuesColumns[0]},
+	}
 	// ExplicitSkippedMessagesColumns holds the columns for the "explicit_skipped_messages" table.
 	ExplicitSkippedMessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -348,6 +359,7 @@ var (
 		CategoriesTable,
 		DependsOnSkippedsTable,
 		DuplicateNumberMessagesTable,
+		EnumWithConflictingValuesTable,
 		ExplicitSkippedMessagesTable,
 		ImagesTable,
 		ImplicitSkippedMessagesTable,
