@@ -75,6 +75,10 @@ func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	return "pong", nil
 }
 
+func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
+	return &obj.Text, nil
+}
+
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	e := ent.FromContext(ctx)
 	builders := make([]*ent.TodoCreate, len(data))

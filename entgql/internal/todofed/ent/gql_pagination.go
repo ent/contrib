@@ -246,7 +246,9 @@ func (p *categoryPager) applyOrder(query *CategoryQuery) *CategoryQuery {
 	if p.order.Field != DefaultCategoryOrder.Field {
 		query = query.Order(DefaultCategoryOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -255,7 +257,9 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultCategoryOrder.Field {
@@ -553,7 +557,9 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 	if p.order.Field != DefaultTodoOrder.Field {
 		query = query.Order(DefaultTodoOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -562,7 +568,9 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultTodoOrder.Field {

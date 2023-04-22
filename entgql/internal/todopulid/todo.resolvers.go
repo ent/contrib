@@ -61,6 +61,10 @@ func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	panic(fmt.Errorf("not implemented"))
 }
