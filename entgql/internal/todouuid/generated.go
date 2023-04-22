@@ -192,18 +192,19 @@ type ComplexityRoot struct {
 	}
 
 	Todo struct {
-		Category   func(childComplexity int) int
-		CategoryID func(childComplexity int) int
-		Children   func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
-		CreatedAt  func(childComplexity int) int
-		Custom     func(childComplexity int) int
-		Customp    func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Init       func(childComplexity int) int
-		Parent     func(childComplexity int) int
-		Priority   func(childComplexity int) int
-		Status     func(childComplexity int) int
-		Text       func(childComplexity int) int
+		Category      func(childComplexity int) int
+		CategoryID    func(childComplexity int) int
+		Children      func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
+		CreatedAt     func(childComplexity int) int
+		Custom        func(childComplexity int) int
+		Customp       func(childComplexity int) int
+		ExtendedField func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Init          func(childComplexity int) int
+		Parent        func(childComplexity int) int
+		Priority      func(childComplexity int) int
+		Status        func(childComplexity int) int
+		Text          func(childComplexity int) int
 	}
 
 	TodoConnection struct {
@@ -262,6 +263,8 @@ type QueryResolver interface {
 }
 type TodoResolver interface {
 	Status(ctx context.Context, obj *ent.Todo) (todo.Status, error)
+
+	ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error)
 }
 type UserResolver interface {
 	Username(ctx context.Context, obj *ent.User) (string, error)
@@ -931,6 +934,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Customp(childComplexity), true
 
+	case "Todo.extendedField":
+		if e.complexity.Todo.ExtendedField == nil {
+			break
+		}
+
+		return e.complexity.Todo.ExtendedField(childComplexity), true
+
 	case "Todo.id":
 		if e.complexity.Todo.ID == nil {
 			break
@@ -1217,6 +1227,10 @@ extend type Category {
   Expose the TODOS_COUNT order field in case it was added in orderBy.
   """
   todosCount: Int
+}
+
+extend type Todo {
+  extendedField: String
 }
 
 extend type Query {
@@ -5266,6 +5280,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_children(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
+			case "extendedField":
+				return ec.fieldContext_Todo_extendedField(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -5351,6 +5367,8 @@ func (ec *executionContext) fieldContext_Mutation_updateTodo(ctx context.Context
 				return ec.fieldContext_Todo_children(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
+			case "extendedField":
+				return ec.fieldContext_Todo_extendedField(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -7423,6 +7441,8 @@ func (ec *executionContext) fieldContext_Todo_parent(ctx context.Context, field 
 				return ec.fieldContext_Todo_children(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
+			case "extendedField":
+				return ec.fieldContext_Todo_extendedField(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -7551,6 +7571,47 @@ func (ec *executionContext) fieldContext_Todo_category(ctx context.Context, fiel
 				return ec.fieldContext_Category_todosCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_extendedField(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_extendedField(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Todo().ExtendedField(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_extendedField(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7765,6 +7826,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_Todo_children(ctx, field)
 			case "category":
 				return ec.fieldContext_Todo_category(ctx, field)
+			case "extendedField":
+				return ec.fieldContext_Todo_extendedField(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -14880,6 +14943,23 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Todo_category(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "extendedField":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Todo_extendedField(ctx, field, obj)
 				return res
 			}
 

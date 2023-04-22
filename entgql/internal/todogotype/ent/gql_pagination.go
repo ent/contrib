@@ -251,7 +251,9 @@ func (p *billproductPager) applyOrder(query *BillProductQuery) *BillProductQuery
 	if p.order.Field != DefaultBillProductOrder.Field {
 		query = query.Order(DefaultBillProductOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -260,7 +262,9 @@ func (p *billproductPager) orderExpr(query *BillProductQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultBillProductOrder.Field {
@@ -517,7 +521,9 @@ func (p *categoryPager) applyOrder(query *CategoryQuery) *CategoryQuery {
 		switch o.Field.column {
 		case CategoryOrderFieldTodosCount.column:
 		default:
-			query.ctx.AppendFieldOnce(o.Field.column)
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(o.Field.column)
+			}
 		}
 	}
 	if !defaultOrdered {
@@ -540,7 +546,9 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 			}
 			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
 		default:
-			query.ctx.AppendFieldOnce(o.Field.column)
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(o.Field.column)
+			}
 		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
@@ -890,7 +898,9 @@ func (p *friendshipPager) applyOrder(query *FriendshipQuery) *FriendshipQuery {
 	if p.order.Field != DefaultFriendshipOrder.Field {
 		query = query.Order(DefaultFriendshipOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -899,7 +909,9 @@ func (p *friendshipPager) orderExpr(query *FriendshipQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultFriendshipOrder.Field {
@@ -1132,7 +1144,9 @@ func (p *groupPager) applyOrder(query *GroupQuery) *GroupQuery {
 	if p.order.Field != DefaultGroupOrder.Field {
 		query = query.Order(DefaultGroupOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -1141,7 +1155,9 @@ func (p *groupPager) orderExpr(query *GroupQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultGroupOrder.Field {
@@ -1374,7 +1390,9 @@ func (p *petPager) applyOrder(query *PetQuery) *PetQuery {
 	if p.order.Field != DefaultPetOrder.Field {
 		query = query.Order(DefaultPetOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return query
 }
 
@@ -1383,7 +1401,9 @@ func (p *petPager) orderExpr(query *PetQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	query.ctx.AppendFieldOnce(p.order.Field.column)
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
 		if p.order.Field != DefaultPetOrder.Field {
@@ -1619,7 +1639,9 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 	switch p.order.Field.column {
 	case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
 	default:
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return query
 }
@@ -1633,7 +1655,9 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
 		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
 	default:
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -2042,7 +2066,9 @@ func (p *userPager) applyOrder(query *UserQuery) *UserQuery {
 	switch p.order.Field.column {
 	case UserOrderFieldGroupsCount.column:
 	default:
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return query
 }
@@ -2056,7 +2082,9 @@ func (p *userPager) orderExpr(query *UserQuery) sql.Querier {
 	case UserOrderFieldGroupsCount.column:
 		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
 	default:
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))

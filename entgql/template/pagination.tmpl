@@ -341,10 +341,14 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 				switch o.Field.column {
 				case {{ range $i, $f := . }}{{ if $i }},{{ end }}{{ $f.VarName }}.column{{ end }}:
 				default:
-					query.ctx.AppendFieldOnce(o.Field.column)
+					if len(query.ctx.Fields) > 0 {
+						query.ctx.AppendFieldOnce(o.Field.column)
+					}
 				}
 			{{- else }}
-				query.ctx.AppendFieldOnce(o.Field.column)
+				if len(query.ctx.Fields) > 0 {
+					query.ctx.AppendFieldOnce(o.Field.column)
+				}
 			{{- end }}
 		}
 		{{- /* We need to ensure the ID field is included in ORDER BY since the other terms might not be unique. */}}
@@ -371,10 +375,14 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 			case {{ range $i, $f := . }}{{ if $i }},{{ end }}{{ $f.VarName }}.column{{ end }}:
 			default:
 				{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
-				query.ctx.AppendFieldOnce(p.order.Field.column)
+				if len(query.ctx.Fields) > 0 {
+					query.ctx.AppendFieldOnce(p.order.Field.column)
+				}
 			}
 		{{- else }}
-			query.ctx.AppendFieldOnce(p.order.Field.column)
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(p.order.Field.column)
+			}
 		{{- end }}
 	{{- end }}
 	return query
@@ -394,12 +402,16 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 					query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
 				default:
 					{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
-					query.ctx.AppendFieldOnce(o.Field.column)
+					if len(query.ctx.Fields) > 0 {
+						query.ctx.AppendFieldOnce(o.Field.column)
+					}
 				}
 			}
 		{{- else }}
-			for _, o := range p.order {
-				query.ctx.AppendFieldOnce(o.Field.column)
+			if len(query.ctx.Fields) > 0 {
+				for _, o := range p.order {
+					query.ctx.AppendFieldOnce(o.Field.column)
+				}
 			}
 		{{- end }}
 		return sql.ExprFunc(func(b *sql.Builder) {
@@ -428,10 +440,14 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 				query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
 			default:
 				{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
-				query.ctx.AppendFieldOnce(p.order.Field.column)
+				if len(query.ctx.Fields) > 0 {
+					query.ctx.AppendFieldOnce(p.order.Field.column)
+				}
 			}
 		{{- else }}
-			query.ctx.AppendFieldOnce(p.order.Field.column)
+			if len(query.ctx.Fields) > 0 {
+				query.ctx.AppendFieldOnce(p.order.Field.column)
+			}
 		{{- end }}
 		return sql.ExprFunc(func(b *sql.Builder) {
 			b.Ident(p.order.Field.column).Pad().WriteString(string(direction))

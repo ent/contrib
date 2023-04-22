@@ -22,6 +22,10 @@ extend type Category {
   todosCount: Int
 }
 
+extend type Todo {
+  extendedField: String
+}
+
 extend type Query {
   """
   This field is an example of extending the built-in Query type from Ent.
