@@ -161,6 +161,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
 						{{- end }}
 					{{- end -}}
+				case "__typename":
 				default:
 					unknownSeen = true
 				{{- end }}

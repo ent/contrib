@@ -2275,6 +2275,71 @@ func TestFieldSelection(t *testing.T) {
 		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?, ?, ?, ?)",
 	}, rec.queries)
 
+	var (
+		// language=GraphQL
+		query3 = `query {
+			todos {
+				edges {
+					node {
+						__typename
+						text
+					}
+				}
+			}
+		}`
+		rsp3 struct {
+			Todos struct {
+				Edges []struct {
+					Node struct {
+						TypeName string `json:"__typename"`
+						Text     string
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	client.New(handler.NewDefaultServer(gen.NewSchema(ec))).
+		MustPost(query3, &rsp3)
+	require.Equal(t, []string{
+		// Ignore the __typename meta field.
+		"SELECT `todos`.`id`, `todos`.`text` FROM `todos` ORDER BY `todos`.`id`",
+	}, rec.queries)
+
+	var (
+		// language=GraphQL
+		query4 = `query {
+			todos {
+				edges {
+					node {
+						text
+						extendedField
+					}
+				}
+			}
+		}`
+		rsp4 struct {
+			Todos struct {
+				Edges []struct {
+					Node struct {
+						Text          string
+						ExtendedField string
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	client.New(handler.NewDefaultServer(gen.NewSchema(ec))).
+		MustPost(query4, &rsp4)
+	require.Equal(t, []string{
+		// Unknown fields enforce query all columns.
+		"SELECT `todos`.`id`, `todos`.`created_at`, `todos`.`status`, " +
+			"`todos`.`priority`, `todos`.`text`, `todos`.`blob`, " +
+			"`todos`.`category_id`, `todos`.`init`, `todos`.`custom`, " +
+			"`todos`.`customp` FROM `todos` ORDER BY `todos`.`id`",
+	}, rec.queries)
+
 	rootO2M := ec.OneToMany.CreateBulk(
 		ec.OneToMany.Create().SetName("t0.1"),
 		ec.OneToMany.Create().SetName("t0.2"),
