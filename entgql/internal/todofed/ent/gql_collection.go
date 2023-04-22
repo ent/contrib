@@ -90,6 +90,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				fieldSeen[category.FieldStrings] = struct{}{}
 			}
 		case "id":
+		case "__typename":
 		default:
 			unknownSeen = true
 		}
@@ -227,6 +228,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				fieldSeen[todo.FieldBlob] = struct{}{}
 			}
 		case "id":
+		case "__typename":
 		default:
 			unknownSeen = true
 		}
