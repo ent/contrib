@@ -378,3 +378,17 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 			Prefix(with)
 	}
 }
+
+// mayAddCondition appends another type condition to the satisfies list
+// if condition is enabled (Node/Nodes) and it does not exist in the list.
+func mayAddCondition(satisfies []string, typeCond string) []string {
+	if len(satisfies) == 0 {
+		return satisfies
+	}
+	for _, s := range satisfies {
+		if typeCond == s {
+			return satisfies
+		}
+	}
+	return append(satisfies, typeCond)
+}

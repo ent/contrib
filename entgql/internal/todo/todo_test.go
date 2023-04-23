@@ -2582,3 +2582,73 @@ func TestOrderByEdgeCount(t *testing.T) {
 		require.Equal(t, rsp.Categories.Edges[1].Node.TodosCount, 3)
 	})
 }
+
+func TestSatisfiesFragments(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	cat := ec.Category.Create().SetText("cat").SetStatus(category.StatusEnabled).SaveX(ctx)
+	todos := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SetCategory(cat),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusCompleted).SetCategory(cat),
+	).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query CategoryTodo($id: ID!) {
+		  category: node(id: $id) {
+		    __typename
+		    id
+		    ... on Category {
+			  text
+			  ...CategoryTodos
+		    }
+		  }
+		}
+
+		fragment CategoryTodos on Category {
+		  todos (orderBy: {field: TEXT}) {
+		    edges {
+		      node {
+		        id
+				...TodoFields
+		      }
+		    }
+		  }
+		}
+
+		fragment TodoFields on Todo {
+		  id
+		  text
+		  createdAt
+		}
+		`
+		rsp struct {
+			Category struct {
+				TypeName string `json:"__typename"`
+				ID, Text string
+				Todos    struct {
+					Edges []struct {
+						Node struct {
+							ID, Text, CreatedAt string
+						}
+					}
+				}
+			}
+		}
+	)
+	gqlc.MustPost(query, &rsp, client.Var("id", cat.ID))
+	require.Equal(t, strconv.Itoa(cat.ID), rsp.Category.ID)
+	require.Len(t, rsp.Category.Todos.Edges, 3)
+	for i := range todos {
+		require.Equal(t, strconv.Itoa(todos[i].ID), rsp.Category.Todos.Edges[i].Node.ID)
+		require.Equal(t, todos[i].Text, rsp.Category.Todos.Edges[i].Node.Text)
+		ts, err := todos[i].CreatedAt.MarshalText()
+		require.NoError(t, err)
+		require.Equal(t, string(ts), rsp.Category.Todos.Edges[i].Node.CreatedAt)
+	}
+}
