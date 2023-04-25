@@ -148,7 +148,12 @@ func (e *Extension) generate(g *gen.Graph) error {
 			if err != nil {
 				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 			}
-			toBase, err := filepath.Rel(abs, g.Config.Target)
+			absTarget, err := filepath.Abs(g.Config.Target)
+			if err != nil {
+				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", g.Config.Target, err)
+			}
+
+			toBase, err := filepath.Rel(abs, absTarget)
 			if err != nil {
 				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 			}
