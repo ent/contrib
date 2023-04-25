@@ -19,7 +19,7 @@ import (
 type TodoQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []todo.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Todo
 	withUser   *UserQuery
@@ -55,7 +55,7 @@ func (tq *TodoQuery) Unique(unique bool) *TodoQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (tq *TodoQuery) Order(o ...OrderFunc) *TodoQuery {
+func (tq *TodoQuery) Order(o ...todo.OrderOption) *TodoQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -271,7 +271,7 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 	return &TodoQuery{
 		config:     tq.config,
 		ctx:        tq.ctx.Clone(),
-		order:      append([]OrderFunc{}, tq.order...),
+		order:      append([]todo.OrderOption{}, tq.order...),
 		inters:     append([]Interceptor{}, tq.inters...),
 		predicates: append([]predicate.Todo{}, tq.predicates...),
 		withUser:   tq.withUser.Clone(),

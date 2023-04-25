@@ -27,6 +27,10 @@ import (
 	"github.com/google/uuid"
 )
 
+func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -49,7 +53,15 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
+func (r *mutationResolver) UpdateFriendship(ctx context.Context, id uuid.UUID, input UpdateFriendshipInput) (*ent.Friendship, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

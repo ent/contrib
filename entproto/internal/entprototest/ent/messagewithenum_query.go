@@ -18,7 +18,7 @@ import (
 type MessageWithEnumQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []messagewithenum.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithEnum
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mweq *MessageWithEnumQuery) Unique(unique bool) *MessageWithEnumQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mweq *MessageWithEnumQuery) Order(o ...OrderFunc) *MessageWithEnumQuery {
+func (mweq *MessageWithEnumQuery) Order(o ...messagewithenum.OrderOption) *MessageWithEnumQuery {
 	mweq.order = append(mweq.order, o...)
 	return mweq
 }
@@ -246,7 +246,7 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 	return &MessageWithEnumQuery{
 		config:     mweq.config,
 		ctx:        mweq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mweq.order...),
+		order:      append([]messagewithenum.OrderOption{}, mweq.order...),
 		inters:     append([]Interceptor{}, mweq.inters...),
 		predicates: append([]predicate.MessageWithEnum{}, mweq.predicates...),
 		// clone intermediate query.

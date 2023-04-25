@@ -18,7 +18,7 @@ import (
 type NilExampleQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []nilexample.OrderOption
 	inters     []Interceptor
 	predicates []predicate.NilExample
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (neq *NilExampleQuery) Unique(unique bool) *NilExampleQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (neq *NilExampleQuery) Order(o ...OrderFunc) *NilExampleQuery {
+func (neq *NilExampleQuery) Order(o ...nilexample.OrderOption) *NilExampleQuery {
 	neq.order = append(neq.order, o...)
 	return neq
 }
@@ -246,7 +246,7 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 	return &NilExampleQuery{
 		config:     neq.config,
 		ctx:        neq.ctx.Clone(),
-		order:      append([]OrderFunc{}, neq.order...),
+		order:      append([]nilexample.OrderOption{}, neq.order...),
 		inters:     append([]Interceptor{}, neq.inters...),
 		predicates: append([]predicate.NilExample{}, neq.predicates...),
 		// clone intermediate query.

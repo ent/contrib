@@ -29,6 +29,8 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
@@ -50,6 +52,10 @@ type Client struct {
 	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// OneToMany is the client for interacting with the OneToMany builders.
+	OneToMany *OneToManyClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -75,6 +81,8 @@ func (c *Client) init() {
 	c.Category = NewCategoryClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
+	c.OneToMany = NewOneToManyClient(c.config)
+	c.Project = NewProjectClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.VerySecret = NewVerySecretClient(c.config)
@@ -164,6 +172,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Category:    NewCategoryClient(cfg),
 		Friendship:  NewFriendshipClient(cfg),
 		Group:       NewGroupClient(cfg),
+		OneToMany:   NewOneToManyClient(cfg),
+		Project:     NewProjectClient(cfg),
 		Todo:        NewTodoClient(cfg),
 		User:        NewUserClient(cfg),
 		VerySecret:  NewVerySecretClient(cfg),
@@ -190,6 +200,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Category:    NewCategoryClient(cfg),
 		Friendship:  NewFriendshipClient(cfg),
 		Group:       NewGroupClient(cfg),
+		OneToMany:   NewOneToManyClient(cfg),
+		Project:     NewProjectClient(cfg),
 		Todo:        NewTodoClient(cfg),
 		User:        NewUserClient(cfg),
 		VerySecret:  NewVerySecretClient(cfg),
@@ -222,7 +234,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.BillProduct, c.Category, c.Friendship, c.Group, c.Todo, c.User, c.VerySecret,
+		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
+		c.Todo, c.User, c.VerySecret,
 	} {
 		n.Use(hooks...)
 	}
@@ -232,7 +245,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.BillProduct, c.Category, c.Friendship, c.Group, c.Todo, c.User, c.VerySecret,
+		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
+		c.Todo, c.User, c.VerySecret,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -249,6 +263,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Friendship.mutate(ctx, m)
 	case *GroupMutation:
 		return c.Group.mutate(ctx, m)
+	case *OneToManyMutation:
+		return c.OneToMany.mutate(ctx, m)
+	case *ProjectMutation:
+		return c.Project.mutate(ctx, m)
 	case *TodoMutation:
 		return c.Todo.mutate(ctx, m)
 	case *UserMutation:
@@ -812,6 +830,290 @@ func (c *GroupClient) mutate(ctx context.Context, m *GroupMutation) (Value, erro
 	}
 }
 
+// OneToManyClient is a client for the OneToMany schema.
+type OneToManyClient struct {
+	config
+}
+
+// NewOneToManyClient returns a client for the OneToMany from the given config.
+func NewOneToManyClient(c config) *OneToManyClient {
+	return &OneToManyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `onetomany.Hooks(f(g(h())))`.
+func (c *OneToManyClient) Use(hooks ...Hook) {
+	c.hooks.OneToMany = append(c.hooks.OneToMany, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `onetomany.Intercept(f(g(h())))`.
+func (c *OneToManyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OneToMany = append(c.inters.OneToMany, interceptors...)
+}
+
+// Create returns a builder for creating a OneToMany entity.
+func (c *OneToManyClient) Create() *OneToManyCreate {
+	mutation := newOneToManyMutation(c.config, OpCreate)
+	return &OneToManyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OneToMany entities.
+func (c *OneToManyClient) CreateBulk(builders ...*OneToManyCreate) *OneToManyCreateBulk {
+	return &OneToManyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OneToMany.
+func (c *OneToManyClient) Update() *OneToManyUpdate {
+	mutation := newOneToManyMutation(c.config, OpUpdate)
+	return &OneToManyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OneToManyClient) UpdateOne(otm *OneToMany) *OneToManyUpdateOne {
+	mutation := newOneToManyMutation(c.config, OpUpdateOne, withOneToMany(otm))
+	return &OneToManyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OneToManyClient) UpdateOneID(id int) *OneToManyUpdateOne {
+	mutation := newOneToManyMutation(c.config, OpUpdateOne, withOneToManyID(id))
+	return &OneToManyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OneToMany.
+func (c *OneToManyClient) Delete() *OneToManyDelete {
+	mutation := newOneToManyMutation(c.config, OpDelete)
+	return &OneToManyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OneToManyClient) DeleteOne(otm *OneToMany) *OneToManyDeleteOne {
+	return c.DeleteOneID(otm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OneToManyClient) DeleteOneID(id int) *OneToManyDeleteOne {
+	builder := c.Delete().Where(onetomany.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OneToManyDeleteOne{builder}
+}
+
+// Query returns a query builder for OneToMany.
+func (c *OneToManyClient) Query() *OneToManyQuery {
+	return &OneToManyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOneToMany},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OneToMany entity by its id.
+func (c *OneToManyClient) Get(ctx context.Context, id int) (*OneToMany, error) {
+	return c.Query().Where(onetomany.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OneToManyClient) GetX(ctx context.Context, id int) *OneToMany {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryParent queries the parent edge of a OneToMany.
+func (c *OneToManyClient) QueryParent(otm *OneToMany) *OneToManyQuery {
+	query := (&OneToManyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := otm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(onetomany.Table, onetomany.FieldID, id),
+			sqlgraph.To(onetomany.Table, onetomany.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, onetomany.ParentTable, onetomany.ParentColumn),
+		)
+		fromV = sqlgraph.Neighbors(otm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChildren queries the children edge of a OneToMany.
+func (c *OneToManyClient) QueryChildren(otm *OneToMany) *OneToManyQuery {
+	query := (&OneToManyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := otm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(onetomany.Table, onetomany.FieldID, id),
+			sqlgraph.To(onetomany.Table, onetomany.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, onetomany.ChildrenTable, onetomany.ChildrenColumn),
+		)
+		fromV = sqlgraph.Neighbors(otm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OneToManyClient) Hooks() []Hook {
+	return c.hooks.OneToMany
+}
+
+// Interceptors returns the client interceptors.
+func (c *OneToManyClient) Interceptors() []Interceptor {
+	return c.inters.OneToMany
+}
+
+func (c *OneToManyClient) mutate(ctx context.Context, m *OneToManyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OneToManyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OneToManyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OneToManyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OneToManyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OneToMany mutation op: %q", m.Op())
+	}
+}
+
+// ProjectClient is a client for the Project schema.
+type ProjectClient struct {
+	config
+}
+
+// NewProjectClient returns a client for the Project from the given config.
+func NewProjectClient(c config) *ProjectClient {
+	return &ProjectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `project.Hooks(f(g(h())))`.
+func (c *ProjectClient) Use(hooks ...Hook) {
+	c.hooks.Project = append(c.hooks.Project, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `project.Intercept(f(g(h())))`.
+func (c *ProjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Project = append(c.inters.Project, interceptors...)
+}
+
+// Create returns a builder for creating a Project entity.
+func (c *ProjectClient) Create() *ProjectCreate {
+	mutation := newProjectMutation(c.config, OpCreate)
+	return &ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Project entities.
+func (c *ProjectClient) CreateBulk(builders ...*ProjectCreate) *ProjectCreateBulk {
+	return &ProjectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Project.
+func (c *ProjectClient) Update() *ProjectUpdate {
+	mutation := newProjectMutation(c.config, OpUpdate)
+	return &ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProject(pr))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProjectClient) UpdateOneID(id int) *ProjectUpdateOne {
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProjectID(id))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Project.
+func (c *ProjectClient) Delete() *ProjectDelete {
+	mutation := newProjectMutation(c.config, OpDelete)
+	return &ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProjectClient) DeleteOne(pr *Project) *ProjectDeleteOne {
+	return c.DeleteOneID(pr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProjectClient) DeleteOneID(id int) *ProjectDeleteOne {
+	builder := c.Delete().Where(project.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProjectDeleteOne{builder}
+}
+
+// Query returns a query builder for Project.
+func (c *ProjectClient) Query() *ProjectQuery {
+	return &ProjectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProject},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Project entity by its id.
+func (c *ProjectClient) Get(ctx context.Context, id int) (*Project, error) {
+	return c.Query().Where(project.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProjectClient) GetX(ctx context.Context, id int) *Project {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTodos queries the todos edge of a Project.
+func (c *ProjectClient) QueryTodos(pr *Project) *TodoQuery {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.TodosTable, project.TodosColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProjectClient) Hooks() []Hook {
+	return c.hooks.Project
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProjectClient) Interceptors() []Interceptor {
+	return c.inters.Project
+}
+
+func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Project mutation op: %q", m.Op())
+	}
+}
+
 // TodoClient is a client for the Todo schema.
 type TodoClient struct {
 	config
@@ -1281,10 +1583,11 @@ func (c *VerySecretClient) mutate(ctx context.Context, m *VerySecretMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		BillProduct, Category, Friendship, Group, Todo, User, VerySecret []ent.Hook
+		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
+		VerySecret []ent.Hook
 	}
 	inters struct {
-		BillProduct, Category, Friendship, Group, Todo, User,
+		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
 		VerySecret []ent.Interceptor
 	}
 )

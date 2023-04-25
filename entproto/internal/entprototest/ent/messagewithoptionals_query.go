@@ -18,7 +18,7 @@ import (
 type MessageWithOptionalsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []messagewithoptionals.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithOptionals
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwoq *MessageWithOptionalsQuery) Unique(unique bool) *MessageWithOptionals
 }
 
 // Order specifies how the records should be ordered.
-func (mwoq *MessageWithOptionalsQuery) Order(o ...OrderFunc) *MessageWithOptionalsQuery {
+func (mwoq *MessageWithOptionalsQuery) Order(o ...messagewithoptionals.OrderOption) *MessageWithOptionalsQuery {
 	mwoq.order = append(mwoq.order, o...)
 	return mwoq
 }
@@ -246,7 +246,7 @@ func (mwoq *MessageWithOptionalsQuery) Clone() *MessageWithOptionalsQuery {
 	return &MessageWithOptionalsQuery{
 		config:     mwoq.config,
 		ctx:        mwoq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mwoq.order...),
+		order:      append([]messagewithoptionals.OrderOption{}, mwoq.order...),
 		inters:     append([]Interceptor{}, mwoq.inters...),
 		predicates: append([]predicate.MessageWithOptionals{}, mwoq.predicates...),
 		// clone intermediate query.

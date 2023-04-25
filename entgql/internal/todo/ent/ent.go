@@ -27,6 +27,8 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
@@ -81,6 +83,7 @@ func NewTxContext(parent context.Context, tx *Tx) context.Context {
 }
 
 // OrderFunc applies an ordering on the sql selector.
+// Deprecated: Use Asc/Desc functions or the package builders instead.
 type OrderFunc func(*sql.Selector)
 
 var (
@@ -96,6 +99,8 @@ func checkColumn(table, column string) error {
 			category.Table:    category.ValidColumn,
 			friendship.Table:  friendship.ValidColumn,
 			group.Table:       group.ValidColumn,
+			onetomany.Table:   onetomany.ValidColumn,
+			project.Table:     project.ValidColumn,
 			todo.Table:        todo.ValidColumn,
 			user.Table:        user.ValidColumn,
 			verysecret.Table:  verysecret.ValidColumn,
@@ -105,7 +110,7 @@ func checkColumn(table, column string) error {
 }
 
 // Asc applies the given fields in ASC order.
-func Asc(fields ...string) OrderFunc {
+func Asc(fields ...string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
 		for _, f := range fields {
 			if err := checkColumn(s.TableName(), f); err != nil {
@@ -117,7 +122,7 @@ func Asc(fields ...string) OrderFunc {
 }
 
 // Desc applies the given fields in DESC order.
-func Desc(fields ...string) OrderFunc {
+func Desc(fields ...string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
 		for _, f := range fields {
 			if err := checkColumn(s.TableName(), f); err != nil {

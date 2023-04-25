@@ -137,11 +137,7 @@ func HasSkipped() predicate.DependsOnSkipped {
 // HasSkippedWith applies the HasEdge predicate on the "skipped" edge with a given conditions (other predicates).
 func HasSkippedWith(preds ...predicate.ImplicitSkippedMessage) predicate.DependsOnSkipped {
 	return predicate.DependsOnSkipped(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SkippedInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SkippedTable, SkippedColumn),
-		)
+		step := newSkippedStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

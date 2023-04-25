@@ -18,7 +18,7 @@ import (
 type MessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []message.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Message
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mq *MessageQuery) Unique(unique bool) *MessageQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mq *MessageQuery) Order(o ...OrderFunc) *MessageQuery {
+func (mq *MessageQuery) Order(o ...message.OrderOption) *MessageQuery {
 	mq.order = append(mq.order, o...)
 	return mq
 }
@@ -246,7 +246,7 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 	return &MessageQuery{
 		config:     mq.config,
 		ctx:        mq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mq.order...),
+		order:      append([]message.OrderOption{}, mq.order...),
 		inters:     append([]Interceptor{}, mq.inters...),
 		predicates: append([]predicate.Message{}, mq.predicates...),
 		// clone intermediate query.

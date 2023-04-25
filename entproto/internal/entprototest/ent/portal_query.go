@@ -19,7 +19,7 @@ import (
 type PortalQuery struct {
 	config
 	ctx          *QueryContext
-	order        []OrderFunc
+	order        []portal.OrderOption
 	inters       []Interceptor
 	predicates   []predicate.Portal
 	withCategory *CategoryQuery
@@ -55,7 +55,7 @@ func (pq *PortalQuery) Unique(unique bool) *PortalQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PortalQuery) Order(o ...OrderFunc) *PortalQuery {
+func (pq *PortalQuery) Order(o ...portal.OrderOption) *PortalQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -271,7 +271,7 @@ func (pq *PortalQuery) Clone() *PortalQuery {
 	return &PortalQuery{
 		config:       pq.config,
 		ctx:          pq.ctx.Clone(),
-		order:        append([]OrderFunc{}, pq.order...),
+		order:        append([]portal.OrderOption{}, pq.order...),
 		inters:       append([]Interceptor{}, pq.inters...),
 		predicates:   append([]predicate.Portal{}, pq.predicates...),
 		withCategory: pq.withCategory.Clone(),

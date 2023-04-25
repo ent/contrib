@@ -27,6 +27,8 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect"
@@ -54,6 +56,12 @@ func (n *Friendship) IsNode() {}
 
 // IsNode implements the Node interface check for GQLGen.
 func (n *Group) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen.
+func (n *OneToMany) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen.
+func (n *Project) IsNode() {}
 
 // IsNode implements the Node interface check for GQLGen.
 func (n *Todo) IsNode() {}
@@ -159,6 +167,30 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Group.Query().
 			Where(group.ID(id))
 		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case onetomany.Table:
+		query := c.OneToMany.Query().
+			Where(onetomany.ID(id))
+		query, err := query.CollectFields(ctx, "OneToMany")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.ID(id))
+		query, err := query.CollectFields(ctx, "Project")
 		if err != nil {
 			return nil, err
 		}
@@ -316,6 +348,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Group")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case onetomany.Table:
+		query := c.OneToMany.Query().
+			Where(onetomany.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "OneToMany")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Project")
 		if err != nil {
 			return nil, err
 		}

@@ -20,7 +20,7 @@ import (
 type DependsOnSkippedQuery struct {
 	config
 	ctx         *QueryContext
-	order       []OrderFunc
+	order       []dependsonskipped.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.DependsOnSkipped
 	withSkipped *ImplicitSkippedMessageQuery
@@ -55,7 +55,7 @@ func (dosq *DependsOnSkippedQuery) Unique(unique bool) *DependsOnSkippedQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (dosq *DependsOnSkippedQuery) Order(o ...OrderFunc) *DependsOnSkippedQuery {
+func (dosq *DependsOnSkippedQuery) Order(o ...dependsonskipped.OrderOption) *DependsOnSkippedQuery {
 	dosq.order = append(dosq.order, o...)
 	return dosq
 }
@@ -271,7 +271,7 @@ func (dosq *DependsOnSkippedQuery) Clone() *DependsOnSkippedQuery {
 	return &DependsOnSkippedQuery{
 		config:      dosq.config,
 		ctx:         dosq.ctx.Clone(),
-		order:       append([]OrderFunc{}, dosq.order...),
+		order:       append([]dependsonskipped.OrderOption{}, dosq.order...),
 		inters:      append([]Interceptor{}, dosq.inters...),
 		predicates:  append([]predicate.DependsOnSkipped{}, dosq.predicates...),
 		withSkipped: dosq.withSkipped.Clone(),
@@ -414,7 +414,7 @@ func (dosq *DependsOnSkippedQuery) loadSkipped(ctx context.Context, query *Impli
 	}
 	query.withFKs = true
 	query.Where(predicate.ImplicitSkippedMessage(func(s *sql.Selector) {
-		s.Where(sql.InValues(dependsonskipped.SkippedColumn, fks...))
+		s.Where(sql.InValues(s.C(dependsonskipped.SkippedColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -427,7 +427,7 @@ func (dosq *DependsOnSkippedQuery) loadSkipped(ctx context.Context, query *Impli
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "depends_on_skipped_skipped" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "depends_on_skipped_skipped" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

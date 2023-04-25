@@ -364,11 +364,7 @@ func HasTodos() predicate.Category {
 // HasTodosWith applies the HasEdge predicate on the "todos" edge with a given conditions (other predicates).
 func HasTodosWith(preds ...predicate.Todo) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TodosInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TodosTable, TodosColumn),
-		)
+		step := newTodosStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

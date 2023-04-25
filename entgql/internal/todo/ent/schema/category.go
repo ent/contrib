@@ -81,7 +81,10 @@ func (Category) Fields() []ent.Field {
 func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("todos", Todo.Type).
-			Annotations(entgql.RelayConnection()),
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.OrderField("TODOS_COUNT"),
+			),
 		edge.To("sub_categories", Category.Type).
 			Annotations(entgql.RelayConnection()),
 	}

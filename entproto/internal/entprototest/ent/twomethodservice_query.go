@@ -18,7 +18,7 @@ import (
 type TwoMethodServiceQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []twomethodservice.OrderOption
 	inters     []Interceptor
 	predicates []predicate.TwoMethodService
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (tmsq *TwoMethodServiceQuery) Unique(unique bool) *TwoMethodServiceQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (tmsq *TwoMethodServiceQuery) Order(o ...OrderFunc) *TwoMethodServiceQuery {
+func (tmsq *TwoMethodServiceQuery) Order(o ...twomethodservice.OrderOption) *TwoMethodServiceQuery {
 	tmsq.order = append(tmsq.order, o...)
 	return tmsq
 }
@@ -246,7 +246,7 @@ func (tmsq *TwoMethodServiceQuery) Clone() *TwoMethodServiceQuery {
 	return &TwoMethodServiceQuery{
 		config:     tmsq.config,
 		ctx:        tmsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, tmsq.order...),
+		order:      append([]twomethodservice.OrderOption{}, tmsq.order...),
 		inters:     append([]Interceptor{}, tmsq.inters...),
 		predicates: append([]predicate.TwoMethodService{}, tmsq.predicates...),
 		// clone intermediate query.

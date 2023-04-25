@@ -21,7 +21,7 @@ import (
 type ImageQuery struct {
 	config
 	ctx                *QueryContext
-	order              []OrderFunc
+	order              []image.OrderOption
 	inters             []Interceptor
 	predicates         []predicate.Image
 	withUserProfilePic *UserQuery
@@ -57,7 +57,7 @@ func (iq *ImageQuery) Unique(unique bool) *ImageQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (iq *ImageQuery) Order(o ...OrderFunc) *ImageQuery {
+func (iq *ImageQuery) Order(o ...image.OrderOption) *ImageQuery {
 	iq.order = append(iq.order, o...)
 	return iq
 }
@@ -273,7 +273,7 @@ func (iq *ImageQuery) Clone() *ImageQuery {
 	return &ImageQuery{
 		config:             iq.config,
 		ctx:                iq.ctx.Clone(),
-		order:              append([]OrderFunc{}, iq.order...),
+		order:              append([]image.OrderOption{}, iq.order...),
 		inters:             append([]Interceptor{}, iq.inters...),
 		predicates:         append([]predicate.Image{}, iq.predicates...),
 		withUserProfilePic: iq.withUserProfilePic.Clone(),
@@ -420,7 +420,7 @@ func (iq *ImageQuery) loadUserProfilePic(ctx context.Context, query *UserQuery, 
 	}
 	query.withFKs = true
 	query.Where(predicate.User(func(s *sql.Selector) {
-		s.Where(sql.InValues(image.UserProfilePicColumn, fks...))
+		s.Where(sql.InValues(s.C(image.UserProfilePicColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -433,7 +433,7 @@ func (iq *ImageQuery) loadUserProfilePic(ctx context.Context, query *UserQuery, 
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_profile_pic" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_profile_pic" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

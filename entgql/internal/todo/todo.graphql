@@ -15,6 +15,17 @@ extend input TodoWhereInput {
   createdToday: Boolean
 }
 
+extend type Category {
+  """
+  Expose the TODOS_COUNT order field in case it was added in orderBy.
+  """
+  todosCount: Int
+}
+
+extend type Todo {
+  extendedField: String
+}
+
 extend type Query {
   """
   This field is an example of extending the built-in Query type from Ent.
@@ -27,6 +38,7 @@ type Mutation {
   createTodo(input: CreateTodoInput!): Todo!
   updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
   clearTodos: Int!
+  updateFriendship(id: ID!, input: UpdateFriendshipInput!): Friendship!
 }
 
 type Custom {

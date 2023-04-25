@@ -2,6 +2,11 @@
 
 package dependsonskipped
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the dependsonskipped type in the database.
 	Label = "depends_on_skipped"
@@ -36,4 +41,38 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the DependsOnSkipped queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// BySkippedCount orders the results by skipped count.
+func BySkippedCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSkippedStep(), opts...)
+	}
+}
+
+// BySkipped orders the results by skipped terms.
+func BySkipped(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSkippedStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newSkippedStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SkippedInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SkippedTable, SkippedColumn),
+	)
 }

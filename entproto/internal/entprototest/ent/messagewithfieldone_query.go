@@ -18,7 +18,7 @@ import (
 type MessageWithFieldOneQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []messagewithfieldone.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithFieldOne
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwfoq *MessageWithFieldOneQuery) Unique(unique bool) *MessageWithFieldOneQ
 }
 
 // Order specifies how the records should be ordered.
-func (mwfoq *MessageWithFieldOneQuery) Order(o ...OrderFunc) *MessageWithFieldOneQuery {
+func (mwfoq *MessageWithFieldOneQuery) Order(o ...messagewithfieldone.OrderOption) *MessageWithFieldOneQuery {
 	mwfoq.order = append(mwfoq.order, o...)
 	return mwfoq
 }
@@ -246,7 +246,7 @@ func (mwfoq *MessageWithFieldOneQuery) Clone() *MessageWithFieldOneQuery {
 	return &MessageWithFieldOneQuery{
 		config:     mwfoq.config,
 		ctx:        mwfoq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mwfoq.order...),
+		order:      append([]messagewithfieldone.OrderOption{}, mwfoq.order...),
 		inters:     append([]Interceptor{}, mwfoq.inters...),
 		predicates: append([]predicate.MessageWithFieldOne{}, mwfoq.predicates...),
 		// clone intermediate query.

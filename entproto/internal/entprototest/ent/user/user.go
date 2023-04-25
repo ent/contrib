@@ -4,6 +4,9 @@ package user
 
 import (
 	"fmt"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -98,4 +101,76 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
 	}
+}
+
+// OrderOption defines the ordering options for the User queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUserName orders the results by the user_name field.
+func ByUserName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserName, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByUnnecessary orders the results by the unnecessary field.
+func ByUnnecessary(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnnecessary, opts...).ToFunc()
+}
+
+// ByBlogPostsCount orders the results by blog_posts count.
+func ByBlogPostsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBlogPostsStep(), opts...)
+	}
+}
+
+// ByBlogPosts orders the results by blog_posts terms.
+func ByBlogPosts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBlogPostsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByProfilePicField orders the results by profile_pic field.
+func ByProfilePicField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProfilePicStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySkipEdgeField orders the results by skip_edge field.
+func BySkipEdgeField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSkipEdgeStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newBlogPostsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BlogPostsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, BlogPostsTable, BlogPostsColumn),
+	)
+}
+func newProfilePicStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProfilePicInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, ProfilePicTable, ProfilePicColumn),
+	)
+}
+func newSkipEdgeStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SkipEdgeInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, SkipEdgeTable, SkipEdgeColumn),
+	)
 }

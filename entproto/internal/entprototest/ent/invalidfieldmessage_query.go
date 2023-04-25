@@ -18,7 +18,7 @@ import (
 type InvalidFieldMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []invalidfieldmessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.InvalidFieldMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (ifmq *InvalidFieldMessageQuery) Unique(unique bool) *InvalidFieldMessageQu
 }
 
 // Order specifies how the records should be ordered.
-func (ifmq *InvalidFieldMessageQuery) Order(o ...OrderFunc) *InvalidFieldMessageQuery {
+func (ifmq *InvalidFieldMessageQuery) Order(o ...invalidfieldmessage.OrderOption) *InvalidFieldMessageQuery {
 	ifmq.order = append(ifmq.order, o...)
 	return ifmq
 }
@@ -246,7 +246,7 @@ func (ifmq *InvalidFieldMessageQuery) Clone() *InvalidFieldMessageQuery {
 	return &InvalidFieldMessageQuery{
 		config:     ifmq.config,
 		ctx:        ifmq.ctx.Clone(),
-		order:      append([]OrderFunc{}, ifmq.order...),
+		order:      append([]invalidfieldmessage.OrderOption{}, ifmq.order...),
 		inters:     append([]Interceptor{}, ifmq.inters...),
 		predicates: append([]predicate.InvalidFieldMessage{}, ifmq.predicates...),
 		// clone intermediate query.

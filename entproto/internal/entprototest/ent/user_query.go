@@ -23,7 +23,7 @@ import (
 type UserQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []user.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.User
 	withBlogPosts  *BlogPostQuery
@@ -61,7 +61,7 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
+func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
 }
@@ -321,7 +321,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 	return &UserQuery{
 		config:         uq.config,
 		ctx:            uq.ctx.Clone(),
-		order:          append([]OrderFunc{}, uq.order...),
+		order:          append([]user.OrderOption{}, uq.order...),
 		inters:         append([]Interceptor{}, uq.inters...),
 		predicates:     append([]predicate.User{}, uq.predicates...),
 		withBlogPosts:  uq.withBlogPosts.Clone(),
@@ -509,7 +509,7 @@ func (uq *UserQuery) loadBlogPosts(ctx context.Context, query *BlogPostQuery, no
 	}
 	query.withFKs = true
 	query.Where(predicate.BlogPost(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.BlogPostsColumn, fks...))
+		s.Where(sql.InValues(s.C(user.BlogPostsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -522,7 +522,7 @@ func (uq *UserQuery) loadBlogPosts(ctx context.Context, query *BlogPostQuery, no
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "blog_post_author" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "blog_post_author" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -569,7 +569,7 @@ func (uq *UserQuery) loadSkipEdge(ctx context.Context, query *SkipEdgeExampleQue
 	}
 	query.withFKs = true
 	query.Where(predicate.SkipEdgeExample(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.SkipEdgeColumn, fks...))
+		s.Where(sql.InValues(s.C(user.SkipEdgeColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -582,7 +582,7 @@ func (uq *UserQuery) loadSkipEdge(ctx context.Context, query *SkipEdgeExampleQue
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_skip_edge" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_skip_edge" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -18,7 +18,7 @@ import (
 type ExplicitSkippedMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []explicitskippedmessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ExplicitSkippedMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (esmq *ExplicitSkippedMessageQuery) Unique(unique bool) *ExplicitSkippedMes
 }
 
 // Order specifies how the records should be ordered.
-func (esmq *ExplicitSkippedMessageQuery) Order(o ...OrderFunc) *ExplicitSkippedMessageQuery {
+func (esmq *ExplicitSkippedMessageQuery) Order(o ...explicitskippedmessage.OrderOption) *ExplicitSkippedMessageQuery {
 	esmq.order = append(esmq.order, o...)
 	return esmq
 }
@@ -246,7 +246,7 @@ func (esmq *ExplicitSkippedMessageQuery) Clone() *ExplicitSkippedMessageQuery {
 	return &ExplicitSkippedMessageQuery{
 		config:     esmq.config,
 		ctx:        esmq.ctx.Clone(),
-		order:      append([]OrderFunc{}, esmq.order...),
+		order:      append([]explicitskippedmessage.OrderOption{}, esmq.order...),
 		inters:     append([]Interceptor{}, esmq.inters...),
 		predicates: append([]predicate.ExplicitSkippedMessage{}, esmq.predicates...),
 		// clone intermediate query.

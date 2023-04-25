@@ -207,11 +207,7 @@ func HasBlogPosts() predicate.Category {
 // HasBlogPostsWith applies the HasEdge predicate on the "blog_posts" edge with a given conditions (other predicates).
 func HasBlogPostsWith(preds ...predicate.BlogPost) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(BlogPostsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, BlogPostsTable, BlogPostsPrimaryKey...),
-		)
+		step := newBlogPostsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
