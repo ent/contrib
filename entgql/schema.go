@@ -202,9 +202,9 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 
 		if e.genSchema {
 			if ant.RelayConnection {
-				if !e.relaySpec {
-					return ErrRelaySpecDisabled
-				}
+				// if !e.relaySpec {
+				// 	return ErrRelaySpecDisabled
+				// }
 				s.AddTypes(names.TypeDefs()...)
 
 				if ant.QueryField != nil {
@@ -440,9 +440,9 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 		case edgeAnt.RelayConnection && edge.Type.IsEdgeSchema() && !ant.RelayConnection:
 			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		case edgeAnt.RelayConnection:
-			if !e.relaySpec {
-				return nil, ErrRelaySpecDisabled
-			}
+			// if !e.relaySpec {
+			// 	return nil, ErrRelaySpecDisabled
+			// }
 			if !ant.RelayConnection {
 				return nil, fmt.Errorf("entgql.RelayConnection() must be set on entity %q in order to define %q.%q as Relay Connection", edge.Type.Name, node.Name, edge.Name)
 			}
