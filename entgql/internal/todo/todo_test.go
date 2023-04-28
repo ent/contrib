@@ -1313,7 +1313,78 @@ func TestNestedConnection(t *testing.T) {
 		bulkU[i] = ec.User.Create().SetName(fmt.Sprintf("user-%d", i)).AddGroups(groups[:len(groups)-i]...)
 	}
 	users := ec.User.CreateBulk(bulkU...).SaveX(ctx)
-	users[0].Update().AddFriends(users[1:]...).SaveX(ctx)
+	users[0].Update().AddFriends(users[1:]...).SaveX(ctx) // user 0 is friends with all
+	users[1].Update().AddFriends(users[2:]...).SaveX(ctx) // user 1 is friends with all
+
+	t.Run("After Arg Filtering", func(t *testing.T) {
+		// The after argument should only apply to the connection it was set on
+		var (
+			query = `query ($id: ID!, $after: Cursor) {
+				 user: node(id: $id) { 
+					... on User {
+						id
+						name
+						friends(after: $after) {
+							totalCount
+							edges {
+								cursor
+								node {
+									id
+									name
+									friends {
+										totalCount
+										edges {
+											node {
+												id
+												name
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				User struct {
+					Id      string
+					Name    string
+					Friends struct {
+						TotalCount int
+						Edges      []struct {
+							Cursor string
+							Node   struct {
+								Id      string
+								Name    string
+								Friends struct {
+									TotalCount int
+									Edges      []struct {
+										Node struct {
+											Id   string
+											Name string
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			after interface{}
+		)
+		for i := 0; i < 2; i++ {
+			count.reset()
+			err = gqlc.Post(query, &rsp, client.Var("id", users[0].ID), client.Var("after", after))
+			require.NoError(t, err)
+			// All returned users should have N friends where N is [len(users) - 1].
+			// And the totalCount should equal the length of the edges slice.
+			require.Len(t, rsp.User.Friends.Edges[0].Node.Friends.Edges, rsp.User.Friends.Edges[0].Node.Friends.TotalCount)
+			require.Equal(t, rsp.User.Friends.Edges[0].Node.Friends.TotalCount, len(users)-1)
+
+			after = rsp.User.Friends.Edges[0].Cursor
+		}
+	})
 
 	t.Run("TotalCount", func(t *testing.T) {
 		var (
