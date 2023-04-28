@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql"
 )
@@ -138,6 +139,27 @@ func (r *todoWhereInputResolver) CreatedToday(ctx context.Context, obj *ent.Todo
 	} else {
 		obj.AddPredicates(todo.Or(todo.CreatedAtLT(startOfDay), todo.CreatedAtGT(endOfDay)))
 	}
+	return nil
+}
+
+// BelongsToEnabledCategory is the resolver for the belongsToEnabledCategory field.
+func (r *todoWhereInputResolver) BelongsToEnabledCategory(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error {
+	if data == nil {
+		return nil
+	}
+
+	p := predicate.Todo(func(s *sql.Selector) {
+		joinT := sql.Table(category.Table)
+		s.Join(joinT).On(s.C(todo.FieldCategoryID), joinT.C(category.FieldID))
+		if *data {
+			s.Where(sql.EQ(joinT.C(category.FieldStatus), category.StatusEnabled))
+		} else {
+			s.Where(sql.NEQ(joinT.C(category.FieldStatus), category.StatusEnabled))
+		}
+	})
+
+	obj.AddPredicates(p)
+
 	return nil
 }
 

@@ -692,6 +692,12 @@ func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 		SetCreatedAt(time.Now().Add(-48*time.Hour)).
 		AddChildren(td1, td2, td3).
 		SaveX(ctx)
+	s.ent.Category.Create().
+		SetText("cat1").
+		SetStatus(category.StatusEnabled).
+		SetDuration(time.Second).
+		AddTodos(td1, td2).
+		SaveX(ctx)
 
 	s.Run("createdToday true using interface", func() {
 		var rsp struct {
@@ -819,6 +825,40 @@ func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 		)
 		s.NoError(err)
 		s.Equal(0, rsp.Todos.TotalCount)
+	})
+
+	s.Run("belongsToEnabledCategory true - using SQL JOIN", func() {
+		var (
+			rsp   response
+			query = `query() {
+				todos(where:{belongsToEnabledCategory: true}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err)
+		enabledCatTodoCount := s.ent.Todo.Query().
+			Where(todo.HasCategoryWith(category.StatusEQ(category.StatusEnabled))).
+			CountX(context.Background())
+		s.Equal(enabledCatTodoCount, rsp.Todos.TotalCount)
+	})
+
+	s.Run("belongsToEnabledCategory true and id eq (custom + generated predicate)", func() {
+		var (
+			rsp   response
+			query = `query($id: ID!) {
+				todos(where:{belongsToEnabledCategory: true, id: $id}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp, client.Var("id", td1.ID))
+		s.NoError(err)
+		enabledCatTodoCount := s.ent.Todo.Query().
+			Where(todo.ID(td1.ID), todo.HasCategoryWith(category.StatusEQ(category.StatusEnabled))).
+			CountX(context.Background())
+		s.Equal(enabledCatTodoCount, rsp.Todos.TotalCount)
 	})
 }
 

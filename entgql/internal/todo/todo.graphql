@@ -21,6 +21,7 @@ scalar UUID
 
 extend input TodoWhereInput {
   createdToday: Boolean
+  belongsToEnabledCategory: Boolean
 }
 
 extend type Category {
