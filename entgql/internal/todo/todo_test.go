@@ -1313,7 +1313,87 @@ func TestNestedConnection(t *testing.T) {
 		bulkU[i] = ec.User.Create().SetName(fmt.Sprintf("user-%d", i)).AddGroups(groups[:len(groups)-i]...)
 	}
 	users := ec.User.CreateBulk(bulkU...).SaveX(ctx)
-	users[0].Update().AddFriends(users[1:]...).SaveX(ctx)
+	users[0].Update().AddFriends(users[1:]...).SaveX(ctx) // user 0 is friends with all
+	users[1].Update().AddFriends(users[2:]...).SaveX(ctx) // user 1 is friends with all
+
+	t.Run("After Cursor", func(t *testing.T) {
+		var (
+			query = `query ($id: ID!, $after: Cursor) {
+				 user: node(id: $id) { 
+					... on User {
+						id
+						name
+						friends(after: $after) {
+							totalCount
+							edges {
+								cursor
+								node {
+									id
+									name
+									friends {
+										totalCount
+										edges {
+											node {
+												id
+												name
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				User struct {
+					ID      string
+					Name    string
+					Friends struct {
+						TotalCount int
+						Edges      []struct {
+							Cursor string
+							Node   struct {
+								ID      string
+								Name    string
+								Friends struct {
+									TotalCount int
+									Edges      []struct {
+										Node struct {
+											ID   string
+											Name string
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			after any
+		)
+		err = gqlc.Post(query, &rsp, client.Var("id", users[0].ID), client.Var("after", after))
+		require.NoError(t, err)
+		require.Equal(t, 9, rsp.User.Friends.TotalCount)
+		require.Len(t, rsp.User.Friends.Edges, 9, "All users are friends with user 0")
+		// First friend of user 0 is user 1.
+		require.Equal(t, strconv.Itoa(users[1].ID), rsp.User.Friends.Edges[0].Node.ID)
+		require.Len(t, rsp.User.Friends.Edges[0].Node.Friends.Edges, 9, "All users are friends with user 1")
+		// All other users have 2 friends (user 0 and user 1).
+		for _, u := range rsp.User.Friends.Edges[1:] {
+			require.Len(t, u.Node.Friends.Edges, 2)
+		}
+
+		// Paginate over the friends of user 0.
+		n := len(rsp.User.Friends.Edges)
+		for i := 0; i < n; i++ {
+			err = gqlc.Post(query, &rsp, client.Var("id", users[0].ID), client.Var("after", after))
+			require.NoError(t, err)
+			require.Equal(t, 9, rsp.User.Friends.TotalCount)
+			require.Lenf(t, rsp.User.Friends.Edges, n-i, "There are %d friends after %v", n-i, after)
+			after = rsp.User.Friends.Edges[0].Cursor
+		}
+	})
 
 	t.Run("TotalCount", func(t *testing.T) {
 		var (

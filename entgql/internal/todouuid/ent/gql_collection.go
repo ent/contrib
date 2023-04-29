@@ -87,7 +87,7 @@ type billproductPaginateArgs struct {
 	opts          []BillProductPaginateOption
 }
 
-func newBillProductPaginateArgs(rv map[string]interface{}) *billproductPaginateArgs {
+func newBillProductPaginateArgs(rv map[string]any) *billproductPaginateArgs {
 	args := &billproductPaginateArgs{}
 	if rv == nil {
 		return args
@@ -351,7 +351,7 @@ type categoryPaginateArgs struct {
 	opts          []CategoryPaginateOption
 }
 
-func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
+func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 	args := &categoryPaginateArgs{}
 	if rv == nil {
 		return args
@@ -372,10 +372,10 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 		switch v := v.(type) {
 		case []*CategoryOrder:
 			args.opts = append(args.opts, WithCategoryOrder(v))
-		case []interface{}:
+		case []any:
 			var orders []*CategoryOrder
 			for i := range v {
-				mv, ok := v[i].(map[string]interface{})
+				mv, ok := v[i].(map[string]any)
 				if !ok {
 					continue
 				}
@@ -484,7 +484,7 @@ type friendshipPaginateArgs struct {
 	opts          []FriendshipPaginateOption
 }
 
-func newFriendshipPaginateArgs(rv map[string]interface{}) *friendshipPaginateArgs {
+func newFriendshipPaginateArgs(rv map[string]any) *friendshipPaginateArgs {
 	args := &friendshipPaginateArgs{}
 	if rv == nil {
 		return args
@@ -639,7 +639,7 @@ type groupPaginateArgs struct {
 	opts          []GroupPaginateOption
 }
 
-func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
+func newGroupPaginateArgs(rv map[string]any) *groupPaginateArgs {
 	args := &groupPaginateArgs{}
 	if rv == nil {
 		return args
@@ -849,7 +849,7 @@ type todoPaginateArgs struct {
 	opts          []TodoPaginateOption
 }
 
-func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
+func newTodoPaginateArgs(rv map[string]any) *todoPaginateArgs {
 	args := &todoPaginateArgs{}
 	if rv == nil {
 		return args
@@ -868,7 +868,7 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &TodoOrder{Field: &TodoOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -1060,7 +1060,7 @@ type userPaginateArgs struct {
 	opts          []UserPaginateOption
 }
 
-func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
+func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 	args := &userPaginateArgs{}
 	if rv == nil {
 		return args
@@ -1079,7 +1079,7 @@ func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &UserOrder{Field: &UserOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -1116,35 +1116,18 @@ const (
 	whereField     = "where"
 )
 
-func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[string]interface{} {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]any {
+	field := collectedField(ctx, path...)
+	if field == nil || field.Arguments == nil {
 		return nil
 	}
 	oc := graphql.GetOperationContext(ctx)
-	for _, name := range path {
-		var field *graphql.CollectedField
-		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Alias == name {
-				field = &f
-				break
-			}
-		}
-		if field == nil {
-			return nil
-		}
-		cf, err := fc.Child(ctx, *field)
-		if err != nil {
-			args := field.ArgumentMap(oc.Variables)
-			return unmarshalArgs(ctx, whereInput, args)
-		}
-		fc = cf
-	}
-	return fc.Args
+	args := field.ArgumentMap(oc.Variables)
+	return unmarshalArgs(ctx, whereInput, args)
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
-func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
+func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
 		if !ok {

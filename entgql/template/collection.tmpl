@@ -190,7 +190,7 @@ type {{ $paginateArg }} struct {
 	opts []{{ print $name "PaginateOption" }}
 }
 
-func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
+func {{ $newPaginateArg }}(rv map[string]any) *{{ $paginateArg }} {
 	args := &{{ $paginateArg }}{}
 	if rv == nil {
 		return args
@@ -213,10 +213,10 @@ func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
 			{{- if $multiOrder }}
 				case []*{{ $order }}:
 					args.opts = append(args.opts, {{ print "With" $order }}(v))
-				case []interface{}:
+				case []any:
 					var orders []*{{ $order }}
 					for i := range v {
-						mv, ok := v[i].(map[string]interface{})
+						mv, ok := v[i].(map[string]any)
 						if !ok {
 							continue
 						}
@@ -236,7 +236,7 @@ func {{ $newPaginateArg }}(rv map[string]interface{}) *{{ $paginateArg }} {
 					}
 					args.opts = append(args.opts, {{ print "With" $order }}(orders))
 			{{- else }}
-				case map[string]interface{}:
+				case map[string]any:
 					var (
 						err1, err2 error
 						order = &{{ $order }}{Field: &{{ $orderField }}{}, Direction: entgql.OrderDirectionAsc}
@@ -277,35 +277,18 @@ const (
 	{{- end }}
 )
 
-func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[string]interface{} {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]any {
+	field := collectedField(ctx, path...)
+	if field == nil || field.Arguments == nil {
 		return nil
 	}
 	oc := graphql.GetOperationContext(ctx)
-	for _, name := range path {
-		var field *graphql.CollectedField
-		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Alias == name {
-				field = &f
-				break
-			}
-		}
-		if field == nil {
-			return nil
-		}
-		cf, err := fc.Child(ctx, *field)
-		if err != nil {
-			args := field.ArgumentMap(oc.Variables)
-			return unmarshalArgs(ctx, whereInput, args)
-		}
-		fc = cf
-	}
-	return fc.Args
+	args := field.ArgumentMap(oc.Variables)
+	return unmarshalArgs(ctx, whereInput, args)
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
-func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
+func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
 		if !ok {
