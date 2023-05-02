@@ -10,7 +10,7 @@
     }
     bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
     for i, req := range requests {
-        {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
+        {{ $reqVar }} := req.Get{{ $reqVar }}()
         var err error
         bulk[i], err = svc.createBuilder({{ $reqVar }})
         if err != nil {
