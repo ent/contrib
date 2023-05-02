@@ -65,7 +65,7 @@
             return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
         }
         return &List{{ .G.EntType.Name }}Response{
-            {{ .G.EntType.Name }}List: protoList,
+            {{ camel .G.EntType.Name }}List: protoList,
             NextPageToken: nextPageToken,
         }, nil
     default:
