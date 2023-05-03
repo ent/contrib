@@ -2732,3 +2732,65 @@ func TestSatisfiesFragments(t *testing.T) {
 		require.Equal(t, string(ts), rsp.Category.Todos.Edges[i].Node.CreatedAt)
 	}
 }
+
+func TestSatisfiesDeeperFragments(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	cat := ec.Category.Create().SetText("cat").SetStatus(category.StatusEnabled).SaveX(ctx)
+	todos := ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SetCategory(cat),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusCompleted).SetCategory(cat),
+	).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query Node($id: ID!) {
+			todo: node(id: $id) {
+				__typename
+				... on Todo {
+					... MainFra
+				}
+				id
+			}
+		}
+
+		fragment MainFra on Todo {
+			...Child1
+			id
+			category {
+				id
+			}
+		}
+
+		fragment Child2 on Category {
+			id
+			text
+		}
+
+		fragment Child1 on Todo {
+			text
+			category {
+				id
+				... Child2
+			}
+		}`
+		rsp struct {
+			Todo struct {
+				TypeName string `json:"__typename"`
+				ID, Text string
+				Category struct {
+					ID, Text string
+				}
+			}
+		}
+	)
+
+	gqlc.MustPost(query, &rsp, client.Var("id", todos[0].ID))
+	require.Equal(t, "cat", cat.Text)
+	require.Equal(t, "cat", rsp.Todo.Category.Text)
+}

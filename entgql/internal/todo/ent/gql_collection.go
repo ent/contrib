@@ -430,7 +430,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				path  = append(path, alias)
 				query = (&UserClient{config: f.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "User")...); err != nil {
 				return err
 			}
 			f.withUser = query
@@ -444,7 +444,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 				path  = append(path, alias)
 				query = (&UserClient{config: f.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "User")...); err != nil {
 				return err
 			}
 			f.withFriend = query
@@ -690,7 +690,7 @@ func (otm *OneToManyQuery) collectField(ctx context.Context, opCtx *graphql.Oper
 				path  = append(path, alias)
 				query = (&OneToManyClient{config: otm.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "OneToMany")...); err != nil {
 				return err
 			}
 			otm.withParent = query
@@ -704,7 +704,7 @@ func (otm *OneToManyQuery) collectField(ctx context.Context, opCtx *graphql.Oper
 				path  = append(path, alias)
 				query = (&OneToManyClient{config: otm.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "OneToMany")...); err != nil {
 				return err
 			}
 			otm.WithNamedChildren(alias, func(wq *OneToManyQuery) {
@@ -944,7 +944,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				path  = append(path, alias)
 				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "Todo")...); err != nil {
 				return err
 			}
 			t.withParent = query
@@ -1038,7 +1038,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				path  = append(path, alias)
 				query = (&CategoryClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "Category")...); err != nil {
 				return err
 			}
 			t.withCategory = query

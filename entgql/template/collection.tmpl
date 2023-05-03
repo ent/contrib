@@ -128,7 +128,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 								query = pager.applyOrder(query)
 							}
 						{{- else }}
-							if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+							if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
 								return err
 							}
 						{{- end }}
