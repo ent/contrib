@@ -6,7 +6,7 @@
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
     {{- $methodName := .Method.GoName -}}
     {{- $reqVar := camel .G.EntType.Name -}}
-    {{ $reqVar }} := req.Get{{ $reqVar }}()
+    {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
     {{- if eq .Method.GoName "Create" }}
         m, err := svc.createBuilder({{ $reqVar }})
         if err != nil {
