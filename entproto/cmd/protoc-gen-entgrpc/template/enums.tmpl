@@ -8,21 +8,21 @@
         {{ $entEnumIdent := entIdent $entLcase .PbStructField }}
         {{ $enumFieldPrefix := snake $enumType.GetName | upper | printf "%s_" }}
         {{ $omitPrefix := .EntField.Annotations.ProtoEnum.OmitFieldPrefix }}
-        func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
+        func toProto{{ $pbEnumIdent.GoName }} (e enums.{{ $enumType.GetName }}) {{ ident $pbEnumIdent }} {
             if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}({{ if not $omitPrefix }}"{{ $enumFieldPrefix }}" +{{ end }} string(e))]; ok {
                 return {{ $pbEnumIdent | ident }}(v)
             }
             return {{ $pbEnumIdent | ident }}(0)
         }
 
-        func toEnt{{ $pbEnumIdent.GoName }}(e {{ ident $pbEnumIdent }}) {{ ident $entEnumIdent  }} {
+        func toEnt{{ $pbEnumIdent.GoName }}(e {{ ident $pbEnumIdent }}) enums.{{ $enumType.GetName }} {
             if v, ok := {{ $pbEnumIdent.GoName }}_name[int32(e)]; ok {
                 entVal := map[string]string{
                 {{- range .EntField.Enums }}
                     "{{ if not $omitPrefix }}{{ $enumFieldPrefix }}{{ end }}{{ upper .Value }}": "{{ .Value }}",
                 {{- end }}
                 }[v]
-                return {{ ident $entEnumIdent }}(entVal)
+                return enums.{{ $enumType.GetName }}(entVal)
             }
             return ""
         }
