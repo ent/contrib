@@ -23,8 +23,8 @@ func NewPonyService(client *ent.Client) *PonyService {
 	}
 }
 
-// toProtoPony transforms the ent type to the pb type
-func toProtoPony(e *ent.Pony) (*Pony, error) {
+// ToProtoPony transforms the ent type to the pb type
+func ToProtoPony(e *ent.Pony) (*Pony, error) {
 	v := &Pony{}
 	id := int64(e.ID)
 	v.Id = id
@@ -33,11 +33,11 @@ func toProtoPony(e *ent.Pony) (*Pony, error) {
 	return v, nil
 }
 
-// toProtoPonyList transforms a list of ent type to a list of pb type
-func toProtoPonyList(e []*ent.Pony) ([]*Pony, error) {
+// ToProtoPonyList transforms a list of ent type to a list of pb type
+func ToProtoPonyList(e []*ent.Pony) ([]*Pony, error) {
 	var pbList []*Pony
 	for _, entEntity := range e {
-		pbEntity, err := toProtoPony(entEntity)
+		pbEntity, err := ToProtoPony(entEntity)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -64,7 +64,7 @@ func (svc *PonyService) BatchCreate(ctx context.Context, req *BatchCreatePoniesR
 	res, err := svc.client.Pony.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtoPonyList(res)
+		protoList, err := ToProtoPonyList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}

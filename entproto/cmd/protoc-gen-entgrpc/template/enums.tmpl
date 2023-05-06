@@ -8,7 +8,7 @@
         {{ $entEnumIdent := entIdent $entLcase .PbStructField }}
         {{ $enumFieldPrefix := snake $enumType.GetName | upper | printf "%s_" }}
         {{ $omitPrefix := .EntField.Annotations.ProtoEnum.OmitFieldPrefix }}
-        func toProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
+        func ToProto{{ $pbEnumIdent.GoName }} (e {{ ident $entEnumIdent  }}) {{ ident $pbEnumIdent }} {
             if v, ok := {{ $pbEnumIdent.GoName }}_value[{{ qualify "strings" "ToUpper" }}({{ if not $omitPrefix }}"{{ $enumFieldPrefix }}" +{{ end }} string(e))]; ok {
                 return {{ $pbEnumIdent | ident }}(v)
             }

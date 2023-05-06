@@ -60,7 +60,7 @@
 		    []byte({{ qualify "fmt" "Sprintf" }}("%v", entList[len(entList)-1].ID)))
 		entList = entList[:len(entList)-1]
         }
-        protoList, err := toProto{{ .G.EntType.Name }}List(entList)
+        protoList, err := ToProto{{ .G.EntType.Name }}List(entList)
         if err != nil {
             return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
         }

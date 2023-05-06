@@ -22,7 +22,7 @@
     res, err := m.Save(ctx)
     switch {
         case err == nil:
-            proto, err := toProto{{ .G.EntType.Name }}(res)
+            proto, err := ToProto{{ .G.EntType.Name }}(res)
             if err != nil {
                 return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
             }

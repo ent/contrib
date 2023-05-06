@@ -29,8 +29,8 @@ func NewAttachmentService(client *ent.Client) *AttachmentService {
 	}
 }
 
-// toProtoAttachment transforms the ent type to the pb type
-func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
+// ToProtoAttachment transforms the ent type to the pb type
+func ToProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	v := &Attachment{}
 	id, err := e.ID.MarshalBinary()
 	if err != nil {
@@ -52,11 +52,11 @@ func toProtoAttachment(e *ent.Attachment) (*Attachment, error) {
 	return v, nil
 }
 
-// toProtoAttachmentList transforms a list of ent type to a list of pb type
-func toProtoAttachmentList(e []*ent.Attachment) ([]*Attachment, error) {
+// ToProtoAttachmentList transforms a list of ent type to a list of pb type
+func ToProtoAttachmentList(e []*ent.Attachment) ([]*Attachment, error) {
 	var pbList []*Attachment
 	for _, entEntity := range e {
-		pbEntity, err := toProtoAttachment(entEntity)
+		pbEntity, err := ToProtoAttachment(entEntity)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -75,7 +75,7 @@ func (svc *AttachmentService) Create(ctx context.Context, req *CreateAttachmentR
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoAttachment(res)
+		proto, err := ToProtoAttachment(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -118,7 +118,7 @@ func (svc *AttachmentService) Get(ctx context.Context, req *GetAttachmentRequest
 	}
 	switch {
 	case err == nil:
-		return toProtoAttachment(get)
+		return ToProtoAttachment(get)
 	case ent.IsNotFound(err):
 		return nil, status.Errorf(codes.NotFound, "not found: %s", err)
 	default:
@@ -147,7 +147,7 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
-		proto, err := toProtoAttachment(res)
+		proto, err := ToProtoAttachment(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -231,7 +231,7 @@ func (svc *AttachmentService) List(ctx context.Context, req *ListAttachmentReque
 				[]byte(fmt.Sprintf("%v", entList[len(entList)-1].ID)))
 			entList = entList[:len(entList)-1]
 		}
-		protoList, err := toProtoAttachmentList(entList)
+		protoList, err := ToProtoAttachmentList(entList)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
@@ -263,7 +263,7 @@ func (svc *AttachmentService) BatchCreate(ctx context.Context, req *BatchCreateA
 	res, err := svc.client.Attachment.CreateBulk(bulk...).Save(ctx)
 	switch {
 	case err == nil:
-		protoList, err := toProtoAttachmentList(res)
+		protoList, err := ToProtoAttachmentList(res)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "internal error: %s", err)
 		}
