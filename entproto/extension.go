@@ -56,8 +56,8 @@ func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 //	}
 type Extension struct {
 	entc.DefaultExtension
-	protoDir            string
-	generateProtoHelper bool
+	protoDir    string
+	skipGenFile bool
 }
 
 // WithProtoDir sets the directory where the generated .proto files will be written.
@@ -67,13 +67,13 @@ func WithProtoDir(dir string) ExtensionOption {
 	}
 }
 
-// WithProtoHelper sets whether to generate a helper file next to each .proto file.
+// SkipGenFile skips generate a helper file next to each .proto file.
 // The helper file contains a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
 // If generate.go already exists next to the .proto file, this step is skipped.
-// Set generate to false to disable the generation of the generate.go file.
-func WithProtoHelper(generate bool) ExtensionOption {
+// With this option, you can disable the generation of the generate.go file.
+func SkipGenFile() ExtensionOption {
 	return func(e *Extension) {
-		e.generateProtoHelper = generate
+		e.skipGenFile = true
 	}
 }
 
@@ -117,10 +117,10 @@ func Hook() gen.Hook {
 // file containing a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
 // If generate.go already exists next to the .proto file, this step is skipped.
 // You can use entproto.WithProtoDir to set the directory where the generated .proto files will be written.
-// You can use entproto.WithProtoHelper to disable the generation of the generate.go file.
+// You can use entproto.SkipGenFile to disable the generation of the generate.go file.
 func Generate(g *gen.Graph) error {
 	x := &Extension{
-		generateProtoHelper: true,
+		skipGenFile: true,
 	}
 	return x.generate(g)
 }
@@ -155,7 +155,7 @@ func (e *Extension) generate(g *gen.Graph) error {
 		return fmt.Errorf("entproto: failed writing .proto files: %w", err)
 	}
 
-	if e.generateProtoHelper {
+	if !e.skipGenFile {
 		// Print a generate.go file with protoc command for go file generation
 		for _, fd := range allDescriptors {
 			protoFilePath := filepath.Join(entProtoDir, fd.GetName())
