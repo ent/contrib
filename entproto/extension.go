@@ -119,9 +119,7 @@ func Hook() gen.Hook {
 // You can use entproto.WithProtoDir to set the directory where the generated .proto files will be written.
 // You can use entproto.SkipGenFile to disable the generation of the generate.go file.
 func Generate(g *gen.Graph) error {
-	x := &Extension{
-		skipGenFile: true,
-	}
+	x := &Extension{}
 	return x.generate(g)
 }
 
