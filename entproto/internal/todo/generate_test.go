@@ -47,11 +47,13 @@ func TestGenerateOptionSkipGenFile(t *testing.T) {
 	entprotoExt,err := entproto.NewExtension(entproto.SkipGenFile())
 	require.NoError(t, err)
 
-	err = entc.Generate("./ent/schema",
+	err = entc.Generate(
+		"./ent/schema",
 		&gen.Config{
 			Target: tgt,
 		},
-		entc.Extensions(entprotoExt))
+		entc.Extensions(entprotoExt),
+	)
 	require.NoError(t, err)
 
 	bytes, err := os.ReadFile(filepath.Join(tgt, "proto", "entpb", "entpb.proto"))
