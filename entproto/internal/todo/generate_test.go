@@ -28,7 +28,6 @@ import (
 
 func TestGenerate(t *testing.T) {
 	tgt := t.TempDir()
-
 	graph, err := entc.LoadGraph("./ent/schema", &gen.Config{
 		Target: tgt,
 	})
