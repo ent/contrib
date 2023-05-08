@@ -116,7 +116,6 @@ func Hook() gen.Hook {
 // Next to each .proto file, Generate creates a generate.go
 // file containing a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
 // If generate.go already exists next to the .proto file, this step is skipped.
-// You can use entproto.WithProtoDir to set the directory where the generated .proto files will be written.
 // You can use entproto.SkipGenFile to disable the generation of the generate.go file.
 func Generate(g *gen.Graph) error {
 	x := &Extension{}
