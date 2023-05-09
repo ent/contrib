@@ -501,6 +501,26 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+// Node implements Noder interface
+func (w *Workspace) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     w.ID,
+		Type:   "Workspace",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(w.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 // Node returns the node with given global ID.
 //
 // This API helpful in case you want to build

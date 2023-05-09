@@ -108,6 +108,10 @@ input OneToManyOrder {
 enum OneToManyOrderField {
   NAME
 }
+type Organization @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
+  id: ID!
+  name: String!
+}
 type Project {
   id: ID!
   todos: [Todo!]

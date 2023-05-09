@@ -125,6 +125,7 @@ func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption
 func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
 	switch table {
 	{{- range $n := $gqlNodes }}
+		{{- $names := nodePaginationNames $n }}
 		{{- $unmarshalID := gqlUnmarshaler $n.ID }}
 		case {{ $n.Package }}.Table:
 			{{- if $unmarshalID }}
@@ -136,7 +137,7 @@ func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Nod
 			query := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.ID({{ if $unmarshalID }}u{{ end }}id))
 			{{- if hasTemplate "gql_collection" }}
-				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
+				query, err := query.CollectFields(ctx, "{{ $names.Node }}")
 				if err != nil {
 					return nil, err
 				}
@@ -221,6 +222,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	}
 	switch table {
 	{{- range $n := $gqlNodes }}
+		{{- $names := nodePaginationNames $n }}
 		case {{ $n.Package }}.Table:
 			{{- $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
 			{{- $unmarshalID := and $idType.Mixed (gqlUnmarshaler $n.ID) }}
@@ -235,7 +237,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 			query := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.IDIn({{ if $unmarshalID }}u{{ end }}ids...))
 			{{- if hasTemplate "gql_collection" }}
-				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
+				query, err := query.CollectFields(ctx, "{{ $names.Node }}")
 				if err != nil {
 					return nil, err
 				}

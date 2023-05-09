@@ -22,10 +22,15 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql"
+	ent1 "entgo.io/contrib/entgql/internal/todo/ent"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"github.com/google/uuid"
 )
+
+func (r *organizationResolver) ID(ctx context.Context, obj *ent1.Workspace) (uuid.UUID, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 func (r *queryResolver) Node(ctx context.Context, id uuid.UUID) (ent.Noder, error) {
 	return r.client.Noder(ctx, id, ent.WithFixedNodeType(todo.Table))
@@ -152,6 +157,9 @@ func (r *userWhereInputResolver) UsernameLte(ctx context.Context, obj *ent.UserW
 // Category returns CategoryResolver implementation.
 func (r *Resolver) Category() CategoryResolver { return &categoryResolver{r} }
 
+// Organization returns OrganizationResolver implementation.
+func (r *Resolver) Organization() OrganizationResolver { return &organizationResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -185,6 +193,7 @@ func (r *Resolver) UpdateUserInput() UpdateUserInputResolver { return &updateUse
 func (r *Resolver) UserWhereInput() UserWhereInputResolver { return &userWhereInputResolver{r} }
 
 type categoryResolver struct{ *Resolver }
+type organizationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
