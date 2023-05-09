@@ -28,6 +28,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/specialtext"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
@@ -913,6 +914,73 @@ func newProjectPaginateArgs(rv map[string]any) *projectPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*ProjectWhereInput); ok {
 		args.opts = append(args.opts, WithProjectFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (st *SpecialTextQuery) CollectFields(ctx context.Context, satisfies ...string) (*SpecialTextQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return st, nil
+	}
+	if err := st.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return st, nil
+}
+
+func (st *SpecialTextQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(specialtext.Columns))
+		selectedFields = []string{specialtext.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "content":
+			if _, ok := fieldSeen[specialtext.FieldContent]; !ok {
+				selectedFields = append(selectedFields, specialtext.FieldContent)
+				fieldSeen[specialtext.FieldContent] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		st.Select(selectedFields...)
+	}
+	return nil
+}
+
+type notspecialtextPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []NotSpecialTextPaginateOption
+}
+
+func newNotSpecialTextPaginateArgs(rv map[string]any) *notspecialtextPaginateArgs {
+	args := &notspecialtextPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*NotSpecialTextWhereInput); ok {
+		args.opts = append(args.opts, WithNotSpecialTextFilter(v.Filter))
 	}
 	return args
 }

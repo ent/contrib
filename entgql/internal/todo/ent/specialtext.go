@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"entgo.io/contrib/entgql/internal/renamedtype/ent/clashingtext"
+	"entgo.io/contrib/entgql/internal/todo/ent/specialtext"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
-// ClashingText is the model entity for the ClashingText schema.
-type ClashingText struct {
+// SpecialText is the model entity for the SpecialText schema.
+type SpecialText struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -36,13 +36,13 @@ type ClashingText struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*ClashingText) scanValues(columns []string) ([]any, error) {
+func (*SpecialText) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case clashingtext.FieldID:
+		case specialtext.FieldID:
 			values[i] = new(sql.NullInt64)
-		case clashingtext.FieldContent:
+		case specialtext.FieldContent:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -52,66 +52,66 @@ func (*ClashingText) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the ClashingText fields.
-func (ct *ClashingText) assignValues(columns []string, values []any) error {
+// to the SpecialText fields.
+func (st *SpecialText) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case clashingtext.FieldID:
+		case specialtext.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			ct.ID = int(value.Int64)
-		case clashingtext.FieldContent:
+			st.ID = int(value.Int64)
+		case specialtext.FieldContent:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
 			} else if value.Valid {
-				ct.Content = value.String
+				st.Content = value.String
 			}
 		default:
-			ct.selectValues.Set(columns[i], values[i])
+			st.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the ClashingText.
+// Value returns the ent.Value that was dynamically selected and assigned to the SpecialText.
 // This includes values selected through modifiers, order, etc.
-func (ct *ClashingText) Value(name string) (ent.Value, error) {
-	return ct.selectValues.Get(name)
+func (st *SpecialText) Value(name string) (ent.Value, error) {
+	return st.selectValues.Get(name)
 }
 
-// Update returns a builder for updating this ClashingText.
-// Note that you need to call ClashingText.Unwrap() before calling this method if this ClashingText
+// Update returns a builder for updating this SpecialText.
+// Note that you need to call SpecialText.Unwrap() before calling this method if this SpecialText
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (ct *ClashingText) Update() *ClashingTextUpdateOne {
-	return NewClashingTextClient(ct.config).UpdateOne(ct)
+func (st *SpecialText) Update() *SpecialTextUpdateOne {
+	return NewSpecialTextClient(st.config).UpdateOne(st)
 }
 
-// Unwrap unwraps the ClashingText entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the SpecialText entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (ct *ClashingText) Unwrap() *ClashingText {
-	_tx, ok := ct.config.driver.(*txDriver)
+func (st *SpecialText) Unwrap() *SpecialText {
+	_tx, ok := st.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: ClashingText is not a transactional entity")
+		panic("ent: SpecialText is not a transactional entity")
 	}
-	ct.config.driver = _tx.drv
-	return ct
+	st.config.driver = _tx.drv
+	return st
 }
 
 // String implements the fmt.Stringer.
-func (ct *ClashingText) String() string {
+func (st *SpecialText) String() string {
 	var builder strings.Builder
-	builder.WriteString("ClashingText(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", ct.ID))
+	builder.WriteString("SpecialText(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", st.ID))
 	builder.WriteString("content=")
-	builder.WriteString(ct.Content)
+	builder.WriteString(st.Content)
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// ClashingTexts is a parsable slice of ClashingText.
-type ClashingTexts []*ClashingText
+// SpecialTexts is a parsable slice of SpecialText.
+type SpecialTexts []*SpecialText

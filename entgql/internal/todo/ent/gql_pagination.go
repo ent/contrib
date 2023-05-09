@@ -30,6 +30,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/specialtext"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent"
@@ -1848,6 +1849,255 @@ func (pr *Project) ToEdge(order *ProjectOrder) *ProjectEdge {
 	return &ProjectEdge{
 		Node:   pr,
 		Cursor: order.Field.toCursor(pr),
+	}
+}
+
+// NotSpecialText is the type alias for SpecialText.
+type NotSpecialText = SpecialText
+
+// NotSpecialTextEdge is the edge representation of NotSpecialText.
+type NotSpecialTextEdge struct {
+	Node   *NotSpecialText `json:"node"`
+	Cursor Cursor          `json:"cursor"`
+}
+
+// NotSpecialTextConnection is the connection containing edges to NotSpecialText.
+type NotSpecialTextConnection struct {
+	Edges      []*NotSpecialTextEdge `json:"edges"`
+	PageInfo   PageInfo              `json:"pageInfo"`
+	TotalCount int                   `json:"totalCount"`
+}
+
+func (c *NotSpecialTextConnection) build(nodes []*NotSpecialText, pager *notspecialtextPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *NotSpecialText
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *NotSpecialText {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *NotSpecialText {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*NotSpecialTextEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &NotSpecialTextEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// NotSpecialTextPaginateOption enables pagination customization.
+type NotSpecialTextPaginateOption func(*notspecialtextPager) error
+
+// WithNotSpecialTextOrder configures pagination ordering.
+func WithNotSpecialTextOrder(order *NotSpecialTextOrder) NotSpecialTextPaginateOption {
+	if order == nil {
+		order = DefaultNotSpecialTextOrder
+	}
+	o := *order
+	return func(pager *notspecialtextPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultNotSpecialTextOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithNotSpecialTextFilter configures pagination filter.
+func WithNotSpecialTextFilter(filter func(*SpecialTextQuery) (*SpecialTextQuery, error)) NotSpecialTextPaginateOption {
+	return func(pager *notspecialtextPager) error {
+		if filter == nil {
+			return errors.New("SpecialTextQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type notspecialtextPager struct {
+	reverse bool
+	order   *NotSpecialTextOrder
+	filter  func(*SpecialTextQuery) (*SpecialTextQuery, error)
+}
+
+func newNotSpecialTextPager(opts []NotSpecialTextPaginateOption, reverse bool) (*notspecialtextPager, error) {
+	pager := &notspecialtextPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultNotSpecialTextOrder
+	}
+	return pager, nil
+}
+
+func (p *notspecialtextPager) applyFilter(query *SpecialTextQuery) (*SpecialTextQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *notspecialtextPager) toCursor(st *NotSpecialText) Cursor {
+	return p.order.Field.toCursor(st)
+}
+
+func (p *notspecialtextPager) applyCursors(query *SpecialTextQuery, after, before *Cursor) (*SpecialTextQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultNotSpecialTextOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *notspecialtextPager) applyOrder(query *SpecialTextQuery) *SpecialTextQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultNotSpecialTextOrder.Field {
+		query = query.Order(DefaultNotSpecialTextOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *notspecialtextPager) orderExpr(query *SpecialTextQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultNotSpecialTextOrder.Field {
+			b.Comma().Ident(DefaultNotSpecialTextOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to NotSpecialText.
+func (st *SpecialTextQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...NotSpecialTextPaginateOption,
+) (*NotSpecialTextConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newNotSpecialTextPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if st, err = pager.applyFilter(st); err != nil {
+		return nil, err
+	}
+	conn := &NotSpecialTextConnection{Edges: []*NotSpecialTextEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = st.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if st, err = pager.applyCursors(st, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		st.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := st.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	st = pager.applyOrder(st)
+	nodes, err := st.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// NotSpecialTextOrderField defines the ordering field of SpecialText.
+type NotSpecialTextOrderField struct {
+	// Value extracts the ordering value from the given SpecialText.
+	Value    func(*NotSpecialText) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) specialtext.OrderOption
+	toCursor func(*NotSpecialText) Cursor
+}
+
+// NotSpecialTextOrder defines the ordering of SpecialText.
+type NotSpecialTextOrder struct {
+	Direction OrderDirection            `json:"direction"`
+	Field     *NotSpecialTextOrderField `json:"field"`
+}
+
+// DefaultNotSpecialTextOrder is the default ordering of SpecialText.
+var DefaultNotSpecialTextOrder = &NotSpecialTextOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &NotSpecialTextOrderField{
+		Value: func(st *NotSpecialText) (ent.Value, error) {
+			return st.ID, nil
+		},
+		column: specialtext.FieldID,
+		toTerm: specialtext.ByID,
+		toCursor: func(st *NotSpecialText) Cursor {
+			return Cursor{ID: st.ID}
+		},
+	},
+}
+
+// ToEdge converts NotSpecialText into NotSpecialTextEdge.
+func (st *NotSpecialText) ToEdge(order *NotSpecialTextOrder) *NotSpecialTextEdge {
+	if order == nil {
+		order = DefaultNotSpecialTextOrder
+	}
+	return &NotSpecialTextEdge{
+		Node:   st,
+		Cursor: order.Field.toCursor(st),
 	}
 }
 

@@ -127,6 +127,17 @@ var (
 		Columns:    ProjectsColumns,
 		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
 	}
+	// SpecialTextsColumns holds the columns for the "special_texts" table.
+	SpecialTextsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "content", Type: field.TypeString},
+	}
+	// SpecialTextsTable holds the schema information for the "special_texts" table.
+	SpecialTextsTable = &schema.Table{
+		Name:       "special_texts",
+		Columns:    SpecialTextsColumns,
+		PrimaryKey: []*schema.Column{SpecialTextsColumns[0]},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -258,6 +269,7 @@ var (
 		GroupsTable,
 		OneToManiesTable,
 		ProjectsTable,
+		SpecialTextsTable,
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,

@@ -38,6 +38,9 @@ type OneToMany func(*sql.Selector)
 // Project is the predicate function for project builders.
 type Project func(*sql.Selector)
 
+// SpecialText is the predicate function for specialtext builders.
+type SpecialText func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
 

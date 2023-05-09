@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 6 << 32
+	idOffset = 7 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1684,11 +1684,11 @@ func TestNestedConnection(t *testing.T) {
 		)
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAcAAAAJ"),
+			client.Var("cursor", "gaFp0wAAAAgAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFp0wAAAAgAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -2793,6 +2793,36 @@ func TestSatisfiesDeeperFragments(t *testing.T) {
 	gqlc.MustPost(query, &rsp, client.Var("id", todos[0].ID))
 	require.Equal(t, "cat", cat.Text)
 	require.Equal(t, "cat", rsp.Todo.Category.Text)
+}
+
+func TestRenamedType(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	c1 := ec.SpecialText.Create().SetContent("c1").SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query Node($id: ID!) {
+			text: node(id: $id) {
+				id
+				... on NotSpecialText {
+					content
+				}
+			}
+		}`
+		rsp struct {
+			Text struct {
+				ID, Content string
+			}
+		}
+	)
+
+	gqlc.MustPost(query, &rsp, client.Var("id", c1.ID))
+	require.Equal(t, "c1", rsp.Text.Content)
 }
 
 func TestSatisfiesNodeFragments(t *testing.T) {

@@ -31,6 +31,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/specialtext"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
@@ -56,6 +57,8 @@ type Client struct {
 	OneToMany *OneToManyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
+	// SpecialText is the client for interacting with the SpecialText builders.
+	SpecialText *SpecialTextClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -83,6 +86,7 @@ func (c *Client) init() {
 	c.Group = NewGroupClient(c.config)
 	c.OneToMany = NewOneToManyClient(c.config)
 	c.Project = NewProjectClient(c.config)
+	c.SpecialText = NewSpecialTextClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.VerySecret = NewVerySecretClient(c.config)
@@ -174,6 +178,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Group:       NewGroupClient(cfg),
 		OneToMany:   NewOneToManyClient(cfg),
 		Project:     NewProjectClient(cfg),
+		SpecialText: NewSpecialTextClient(cfg),
 		Todo:        NewTodoClient(cfg),
 		User:        NewUserClient(cfg),
 		VerySecret:  NewVerySecretClient(cfg),
@@ -202,6 +207,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Group:       NewGroupClient(cfg),
 		OneToMany:   NewOneToManyClient(cfg),
 		Project:     NewProjectClient(cfg),
+		SpecialText: NewSpecialTextClient(cfg),
 		Todo:        NewTodoClient(cfg),
 		User:        NewUserClient(cfg),
 		VerySecret:  NewVerySecretClient(cfg),
@@ -235,7 +241,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret,
+		c.SpecialText, c.Todo, c.User, c.VerySecret,
 	} {
 		n.Use(hooks...)
 	}
@@ -246,7 +252,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret,
+		c.SpecialText, c.Todo, c.User, c.VerySecret,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -267,6 +273,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OneToMany.mutate(ctx, m)
 	case *ProjectMutation:
 		return c.Project.mutate(ctx, m)
+	case *SpecialTextMutation:
+		return c.SpecialText.mutate(ctx, m)
 	case *TodoMutation:
 		return c.Todo.mutate(ctx, m)
 	case *UserMutation:
@@ -1114,6 +1122,124 @@ func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, 
 	}
 }
 
+// SpecialTextClient is a client for the SpecialText schema.
+type SpecialTextClient struct {
+	config
+}
+
+// NewSpecialTextClient returns a client for the SpecialText from the given config.
+func NewSpecialTextClient(c config) *SpecialTextClient {
+	return &SpecialTextClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `specialtext.Hooks(f(g(h())))`.
+func (c *SpecialTextClient) Use(hooks ...Hook) {
+	c.hooks.SpecialText = append(c.hooks.SpecialText, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `specialtext.Intercept(f(g(h())))`.
+func (c *SpecialTextClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SpecialText = append(c.inters.SpecialText, interceptors...)
+}
+
+// Create returns a builder for creating a SpecialText entity.
+func (c *SpecialTextClient) Create() *SpecialTextCreate {
+	mutation := newSpecialTextMutation(c.config, OpCreate)
+	return &SpecialTextCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SpecialText entities.
+func (c *SpecialTextClient) CreateBulk(builders ...*SpecialTextCreate) *SpecialTextCreateBulk {
+	return &SpecialTextCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SpecialText.
+func (c *SpecialTextClient) Update() *SpecialTextUpdate {
+	mutation := newSpecialTextMutation(c.config, OpUpdate)
+	return &SpecialTextUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SpecialTextClient) UpdateOne(st *SpecialText) *SpecialTextUpdateOne {
+	mutation := newSpecialTextMutation(c.config, OpUpdateOne, withSpecialText(st))
+	return &SpecialTextUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SpecialTextClient) UpdateOneID(id int) *SpecialTextUpdateOne {
+	mutation := newSpecialTextMutation(c.config, OpUpdateOne, withSpecialTextID(id))
+	return &SpecialTextUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SpecialText.
+func (c *SpecialTextClient) Delete() *SpecialTextDelete {
+	mutation := newSpecialTextMutation(c.config, OpDelete)
+	return &SpecialTextDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SpecialTextClient) DeleteOne(st *SpecialText) *SpecialTextDeleteOne {
+	return c.DeleteOneID(st.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SpecialTextClient) DeleteOneID(id int) *SpecialTextDeleteOne {
+	builder := c.Delete().Where(specialtext.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SpecialTextDeleteOne{builder}
+}
+
+// Query returns a query builder for SpecialText.
+func (c *SpecialTextClient) Query() *SpecialTextQuery {
+	return &SpecialTextQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSpecialText},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SpecialText entity by its id.
+func (c *SpecialTextClient) Get(ctx context.Context, id int) (*SpecialText, error) {
+	return c.Query().Where(specialtext.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SpecialTextClient) GetX(ctx context.Context, id int) *SpecialText {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SpecialTextClient) Hooks() []Hook {
+	return c.hooks.SpecialText
+}
+
+// Interceptors returns the client interceptors.
+func (c *SpecialTextClient) Interceptors() []Interceptor {
+	return c.inters.SpecialText
+}
+
+func (c *SpecialTextClient) mutate(ctx context.Context, m *SpecialTextMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SpecialTextCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SpecialTextUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SpecialTextUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SpecialTextDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SpecialText mutation op: %q", m.Op())
+	}
+}
+
 // TodoClient is a client for the Todo schema.
 type TodoClient struct {
 	config
@@ -1583,11 +1709,11 @@ func (c *VerySecretClient) mutate(ctx context.Context, m *VerySecretMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret []ent.Hook
+		BillProduct, Category, Friendship, Group, OneToMany, Project, SpecialText, Todo,
+		User, VerySecret []ent.Hook
 	}
 	inters struct {
-		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret []ent.Interceptor
+		BillProduct, Category, Friendship, Group, OneToMany, Project, SpecialText, Todo,
+		User, VerySecret []ent.Interceptor
 	}
 )

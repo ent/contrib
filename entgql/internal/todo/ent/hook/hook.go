@@ -95,6 +95,18 @@ func (f ProjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProjectMutation", m)
 }
 
+// The SpecialTextFunc type is an adapter to allow the use of ordinary
+// function as SpecialText mutator.
+type SpecialTextFunc func(context.Context, *ent.SpecialTextMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SpecialTextFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SpecialTextMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SpecialTextMutation", m)
+}
+
 // The TodoFunc type is an adapter to allow the use of ordinary
 // function as Todo mutator.
 type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)

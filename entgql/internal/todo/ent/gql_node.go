@@ -29,6 +29,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/specialtext"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect"
@@ -62,6 +63,9 @@ func (n *OneToMany) IsNode() {}
 
 // IsNode implements the Node interface check for GQLGen.
 func (n *Project) IsNode() {}
+
+// IsNode implements the Node interface check for GQLGen.
+func (n *SpecialText) IsNode() {}
 
 // IsNode implements the Node interface check for GQLGen.
 func (n *Todo) IsNode() {}
@@ -191,6 +195,18 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Project.Query().
 			Where(project.ID(id))
 		query, err := query.CollectFields(ctx, "Project")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case specialtext.Table:
+		query := c.SpecialText.Query().
+			Where(specialtext.ID(id))
+		query, err := query.CollectFields(ctx, "SpecialText")
 		if err != nil {
 			return nil, err
 		}
@@ -380,6 +396,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Project.Query().
 			Where(project.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Project")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case specialtext.Table:
+		query := c.SpecialText.Query().
+			Where(specialtext.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "SpecialText")
 		if err != nil {
 			return nil, err
 		}

@@ -38,6 +38,8 @@ type Tx struct {
 	OneToMany *OneToManyClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
+	// SpecialText is the client for interacting with the SpecialText builders.
+	SpecialText *SpecialTextClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -181,6 +183,7 @@ func (tx *Tx) init() {
 	tx.Group = NewGroupClient(tx.config)
 	tx.OneToMany = NewOneToManyClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
+	tx.SpecialText = NewSpecialTextClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.VerySecret = NewVerySecretClient(tx.config)

@@ -322,6 +322,26 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 }
 
 // Node implements Noder interface
+func (st *SpecialText) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     st.ID,
+		Type:   "SpecialText",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(st.Content); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "content",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
 func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,

@@ -29,6 +29,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/specialtext"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
@@ -101,6 +102,7 @@ func checkColumn(table, column string) error {
 			group.Table:       group.ValidColumn,
 			onetomany.Table:   onetomany.ValidColumn,
 			project.Table:     project.ValidColumn,
+			specialtext.Table: specialtext.ValidColumn,
 			todo.Table:        todo.ValidColumn,
 			user.Table:        user.ValidColumn,
 			verysecret.Table:  verysecret.ValidColumn,
