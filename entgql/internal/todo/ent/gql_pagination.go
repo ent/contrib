@@ -32,6 +32,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
+	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
@@ -2582,5 +2583,254 @@ func (u *User) ToEdge(order *UserOrder) *UserEdge {
 	return &UserEdge{
 		Node:   u,
 		Cursor: order.Field.toCursor(u),
+	}
+}
+
+// Organization is the type alias for Workspace.
+type Organization = Workspace
+
+// OrganizationEdge is the edge representation of Organization.
+type OrganizationEdge struct {
+	Node   *Organization `json:"node"`
+	Cursor Cursor        `json:"cursor"`
+}
+
+// OrganizationConnection is the connection containing edges to Organization.
+type OrganizationConnection struct {
+	Edges      []*OrganizationEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
+}
+
+func (c *OrganizationConnection) build(nodes []*Organization, pager *organizationPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Organization
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Organization {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Organization {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*OrganizationEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &OrganizationEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// OrganizationPaginateOption enables pagination customization.
+type OrganizationPaginateOption func(*organizationPager) error
+
+// WithOrganizationOrder configures pagination ordering.
+func WithOrganizationOrder(order *OrganizationOrder) OrganizationPaginateOption {
+	if order == nil {
+		order = DefaultOrganizationOrder
+	}
+	o := *order
+	return func(pager *organizationPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultOrganizationOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithOrganizationFilter configures pagination filter.
+func WithOrganizationFilter(filter func(*WorkspaceQuery) (*WorkspaceQuery, error)) OrganizationPaginateOption {
+	return func(pager *organizationPager) error {
+		if filter == nil {
+			return errors.New("WorkspaceQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type organizationPager struct {
+	reverse bool
+	order   *OrganizationOrder
+	filter  func(*WorkspaceQuery) (*WorkspaceQuery, error)
+}
+
+func newOrganizationPager(opts []OrganizationPaginateOption, reverse bool) (*organizationPager, error) {
+	pager := &organizationPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultOrganizationOrder
+	}
+	return pager, nil
+}
+
+func (p *organizationPager) applyFilter(query *WorkspaceQuery) (*WorkspaceQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *organizationPager) toCursor(w *Organization) Cursor {
+	return p.order.Field.toCursor(w)
+}
+
+func (p *organizationPager) applyCursors(query *WorkspaceQuery, after, before *Cursor) (*WorkspaceQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultOrganizationOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *organizationPager) applyOrder(query *WorkspaceQuery) *WorkspaceQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultOrganizationOrder.Field {
+		query = query.Order(DefaultOrganizationOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *organizationPager) orderExpr(query *WorkspaceQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultOrganizationOrder.Field {
+			b.Comma().Ident(DefaultOrganizationOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Organization.
+func (w *WorkspaceQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...OrganizationPaginateOption,
+) (*OrganizationConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newOrganizationPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if w, err = pager.applyFilter(w); err != nil {
+		return nil, err
+	}
+	conn := &OrganizationConnection{Edges: []*OrganizationEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = w.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if w, err = pager.applyCursors(w, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		w.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := w.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	w = pager.applyOrder(w)
+	nodes, err := w.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// OrganizationOrderField defines the ordering field of Workspace.
+type OrganizationOrderField struct {
+	// Value extracts the ordering value from the given Workspace.
+	Value    func(*Organization) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) workspace.OrderOption
+	toCursor func(*Organization) Cursor
+}
+
+// OrganizationOrder defines the ordering of Workspace.
+type OrganizationOrder struct {
+	Direction OrderDirection          `json:"direction"`
+	Field     *OrganizationOrderField `json:"field"`
+}
+
+// DefaultOrganizationOrder is the default ordering of Workspace.
+var DefaultOrganizationOrder = &OrganizationOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &OrganizationOrderField{
+		Value: func(w *Organization) (ent.Value, error) {
+			return w.ID, nil
+		},
+		column: workspace.FieldID,
+		toTerm: workspace.ByID,
+		toCursor: func(w *Organization) Cursor {
+			return Cursor{ID: w.ID}
+		},
+	},
+}
+
+// ToEdge converts Organization into OrganizationEdge.
+func (w *Organization) ToEdge(order *OrganizationOrder) *OrganizationEdge {
+	if order == nil {
+		order = DefaultOrganizationOrder
+	}
+	return &OrganizationEdge{
+		Node:   w,
+		Cursor: order.Field.toCursor(w),
 	}
 }

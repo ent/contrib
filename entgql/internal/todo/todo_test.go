@@ -2794,3 +2794,32 @@ func TestSatisfiesDeeperFragments(t *testing.T) {
 	require.Equal(t, "cat", cat.Text)
 	require.Equal(t, "cat", rsp.Todo.Category.Text)
 }
+
+func TestRenamedType(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	wr := ec.Workspace.Create().SetName("Ariga").SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query Node($id: ID!) {
+			text: node(id: $id) {
+				id
+				... on Organization {
+					name
+				}
+			}
+		}`
+		rsp struct {
+			Text struct {
+				ID, Name string
+			}
+		}
+	)
+	gqlc.MustPost(query, &rsp, client.Var("id", wr.ID))
+	require.Equal(t, "Ariga", rsp.Text.Name)
+}

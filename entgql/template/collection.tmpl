@@ -59,6 +59,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 			switch field.Name {
 				{{- range $i, $fc := $collects }}
 					{{- $e := $fc.Edge }}
+					{{- $enames := nodePaginationNames $e.Type }}
 					case {{ range $i, $value := $fc.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
 						var (
 							alias = field.Alias
@@ -112,7 +113,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 							}
 							path = append(path, edgesField, nodeField)
 							if field := collectedField(ctx, path...); field != nil {
-								if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
+								if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "{{ $enames.Node }}")...); err != nil {
 									return err
 								}
 							}
@@ -128,7 +129,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 								query = pager.applyOrder(query)
 							}
 						{{- else }}
-							if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
+							if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, "{{ $enames.Node }}")...); err != nil {
 								return err
 							}
 						{{- end }}

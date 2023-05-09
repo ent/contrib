@@ -200,6 +200,17 @@ var (
 		Columns:    VerySecretsColumns,
 		PrimaryKey: []*schema.Column{VerySecretsColumns[0]},
 	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+	}
 	// CategorySubCategoriesColumns holds the columns for the "category_sub_categories" table.
 	CategorySubCategoriesColumns = []*schema.Column{
 		{Name: "category_id", Type: field.TypeInt},
@@ -261,6 +272,7 @@ var (
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,
+		WorkspacesTable,
 		CategorySubCategoriesTable,
 		UserGroupsTable,
 	}

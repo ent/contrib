@@ -46,3 +46,6 @@ type User func(*sql.Selector)
 
 // VerySecret is the predicate function for verysecret builders.
 type VerySecret func(*sql.Selector)
+
+// Workspace is the predicate function for workspace builders.
+type Workspace func(*sql.Selector)

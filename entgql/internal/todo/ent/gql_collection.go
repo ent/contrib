@@ -30,6 +30,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
+	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -1504,6 +1505,73 @@ func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*UserWhereInput); ok {
 		args.opts = append(args.opts, WithUserFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (w *WorkspaceQuery) CollectFields(ctx context.Context, satisfies ...string) (*WorkspaceQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return w, nil
+	}
+	if err := w.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return w, nil
+}
+
+func (w *WorkspaceQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(workspace.Columns))
+		selectedFields = []string{workspace.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "name":
+			if _, ok := fieldSeen[workspace.FieldName]; !ok {
+				selectedFields = append(selectedFields, workspace.FieldName)
+				fieldSeen[workspace.FieldName] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		w.Select(selectedFields...)
+	}
+	return nil
+}
+
+type organizationPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []OrganizationPaginateOption
+}
+
+func newOrganizationPaginateArgs(rv map[string]any) *organizationPaginateArgs {
+	args := &organizationPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*OrganizationWhereInput); ok {
+		args.opts = append(args.opts, WithOrganizationFilter(v.Filter))
 	}
 	return args
 }
