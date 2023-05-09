@@ -2794,3 +2794,39 @@ func TestSatisfiesDeeperFragments(t *testing.T) {
 	require.Equal(t, "cat", cat.Text)
 	require.Equal(t, "cat", rsp.Todo.Category.Text)
 }
+
+func TestSatisfiesNodeFragments(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	t1 := ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query Node($id: ID!) {
+			todo: node(id: $id) {
+				...NodeFragment
+			}
+		}
+
+		fragment NodeFragment on Node {
+			... on Todo {
+				createdAt
+				status
+				text
+			}
+		}`
+		rsp struct {
+			Todo struct {
+				ID, Text, CreatedAt string
+				Status              todo.Status
+			}
+		}
+	)
+
+	gqlc.MustPost(query, &rsp, client.Var("id", t1.ID))
+	require.Equal(t, "t1", rsp.Todo.Text)
+}
