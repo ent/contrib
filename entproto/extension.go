@@ -110,6 +110,15 @@ func Generate(g *gen.Graph) error {
 }
 
 func (e *Extension) generate(g *gen.Graph) error {
+	if g.Config.Target == "" {
+		abs, err := filepath.Abs("./")
+		if err != nil {
+			return fmt.Errorf("entproto: failed getting an absolute path from the graph target: %w", err)
+		}
+
+		g.Config.Target = abs
+	}
+
 	entProtoDir := path.Join(g.Config.Target, "proto")
 	if e.protoDir != "" {
 		entProtoDir = e.protoDir
