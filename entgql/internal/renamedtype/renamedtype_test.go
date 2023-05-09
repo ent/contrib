@@ -18,42 +18,18 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"entgo.io/contrib/entgql"
 	gen "entgo.io/contrib/entgql/internal/renamedtype"
-	"entgo.io/contrib/entgql/internal/renamedtype/ent"
 	"entgo.io/contrib/entgql/internal/renamedtype/ent/enttest"
 	"entgo.io/contrib/entgql/internal/renamedtype/ent/migrate"
 	"entgo.io/ent/dialect"
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/stretchr/testify/suite"
 
 	_ "github.com/mattn/go-sqlite3"
 )
-
-type todoTestSuite struct {
-	suite.Suite
-	*client.Client
-	ent *ent.Client
-}
-
-func (s *todoTestSuite) SetupTest() {
-	time.Local = time.UTC
-	s.ent = enttest.Open(s.T(), dialect.SQLite,
-		fmt.Sprintf("file:%s-%d?mode=memory&cache=shared&_fk=1",
-			s.T().Name(), time.Now().UnixNano(),
-		),
-		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
-	)
-
-	srv := handler.NewDefaultServer(gen.NewSchema(s.ent))
-	srv.Use(entgql.Transactioner{TxOpener: s.ent})
-	s.Client = client.New(srv)
-}
 
 func TestRenamedType(t *testing.T) {
 	ctx := context.Background()
