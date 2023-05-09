@@ -92,6 +92,26 @@ func EnumWithoutDefaultNotIn(vs ...EnumWithoutDefault) predicate.MessageWithEnum
 	return predicate.MessageWithEnum(sql.FieldNotIn(FieldEnumWithoutDefault, vs...))
 }
 
+// EnumWithSpecialCharactersEQ applies the EQ predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersEQ(v EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldEQ(FieldEnumWithSpecialCharacters, v))
+}
+
+// EnumWithSpecialCharactersNEQ applies the NEQ predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersNEQ(v EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldNEQ(FieldEnumWithSpecialCharacters, v))
+}
+
+// EnumWithSpecialCharactersIn applies the In predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersIn(vs ...EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldIn(FieldEnumWithSpecialCharacters, vs...))
+}
+
+// EnumWithSpecialCharactersNotIn applies the NotIn predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersNotIn(vs ...EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldNotIn(FieldEnumWithSpecialCharacters, vs...))
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.MessageWithEnum) predicate.MessageWithEnum {
 	return predicate.MessageWithEnum(func(s *sql.Selector) {

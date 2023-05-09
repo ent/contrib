@@ -125,6 +125,7 @@ func (g *serviceGenerator) generate() error {
 			"qualify": func(pkg, ident string) string {
 				return g.QualifiedGoIdent(protogen.GoImportPath(pkg).Ident(ident))
 			},
+			"protoIdentNormalize": entproto.NormalizeEnumIdentifier,
 			"statusErr": func(code, msg string) string {
 				return fmt.Sprintf("%s(%s, %q)",
 					g.QualifiedGoIdent(status.Ident("Error")),
