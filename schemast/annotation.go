@@ -242,6 +242,16 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 		c = fnCall(selectorLit("entgql", "QueryField"))
 		return c, true, nil
 	}
+	if m.MultiOrder {
+		c = fnCall(selectorLit("entgql", "MultiOrder"))
+		return c, true, nil
+	}
+
+	if m.OrderField != "" {
+		c = fnCall(selectorLit("entgql", "OrderField"), strLit(m.OrderField))
+		return c, true, nil
+	}
+
 	return nil, false, fmt.Errorf("schemast: unknown entgql annotation")
 }
 
