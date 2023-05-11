@@ -48,3 +48,7 @@ type Custom {
 extend input CreateCategoryInput {
   createTodos: [CreateTodoInput!]
 }
+
+interface NamedNode {
+  name: String!
+}

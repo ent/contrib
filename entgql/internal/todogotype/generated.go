@@ -1272,7 +1272,10 @@ type Custom {
 extend input CreateCategoryInput {
   createTodos: [CreateTodoInput!]
 }
-`, BuiltIn: false},
+
+interface NamedNode {
+  name: String!
+}`, BuiltIn: false},
 	{Name: "../todo/ent.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type BillProduct implements Node {
@@ -1591,7 +1594,7 @@ input FriendshipWhereInput {
   createdAtLT: Time
   createdAtLTE: Time
 }
-type Group implements Node @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
+type Group implements Node & NamedNode @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users(
@@ -14008,6 +14011,20 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _NamedNode(ctx context.Context, sel ast.SelectionSet, obj NamedNode) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case *ent.Group:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Group(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj ent.Noder) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
@@ -14518,7 +14535,7 @@ func (ec *executionContext) _FriendshipEdge(ctx context.Context, sel ast.Selecti
 	return out
 }
 
-var groupImplementors = []string{"Group", "Node"}
+var groupImplementors = []string{"Group", "Node", "NamedNode"}
 
 func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, obj *ent.Group) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, groupImplementors)

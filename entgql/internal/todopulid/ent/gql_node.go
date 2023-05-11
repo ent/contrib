@@ -37,23 +37,38 @@ type Noder interface {
 	IsNode()
 }
 
-// IsNode implements the Node interface check for GQLGen.
-func (n *BillProduct) IsNode() {}
+var billproductImplementors = []string{"BillProduct", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Category) IsNode() {}
+func (*BillProduct) IsNode() {}
+
+var categoryImplementors = []string{"Category", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Friendship) IsNode() {}
+func (*Category) IsNode() {}
+
+var friendshipImplementors = []string{"Friendship", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Group) IsNode() {}
+func (*Friendship) IsNode() {}
+
+var groupImplementors = []string{"Group", "Node", "NamedNode"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Todo) IsNode() {}
+func (*Group) IsNode() {}
+
+// IsNamedNode implements the NamedNode interface check for GQLGen.
+func (*Group) IsNamedNode() {}
+
+var todoImplementors = []string{"Todo", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *User) IsNode() {}
+func (*Todo) IsNode() {}
+
+var userImplementors = []string{"User", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*User) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -120,7 +135,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		query := c.BillProduct.Query().
 			Where(billproduct.ID(uid))
-		query, err := query.CollectFields(ctx, "BillProduct")
+		query, err := query.CollectFields(ctx, billproductImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +151,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		query := c.Category.Query().
 			Where(category.ID(uid))
-		query, err := query.CollectFields(ctx, "Category")
+		query, err := query.CollectFields(ctx, categoryImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +167,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		query := c.Friendship.Query().
 			Where(friendship.ID(uid))
-		query, err := query.CollectFields(ctx, "Friendship")
+		query, err := query.CollectFields(ctx, friendshipImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +183,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		query := c.Group.Query().
 			Where(group.ID(uid))
-		query, err := query.CollectFields(ctx, "Group")
+		query, err := query.CollectFields(ctx, groupImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +199,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		query := c.Todo.Query().
 			Where(todo.ID(uid))
-		query, err := query.CollectFields(ctx, "Todo")
+		query, err := query.CollectFields(ctx, todoImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +215,7 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 		}
 		query := c.User.Query().
 			Where(user.ID(uid))
-		query, err := query.CollectFields(ctx, "User")
+		query, err := query.CollectFields(ctx, userImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +300,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	case billproduct.Table:
 		query := c.BillProduct.Query().
 			Where(billproduct.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "BillProduct")
+		query, err := query.CollectFields(ctx, billproductImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -301,7 +316,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	case category.Table:
 		query := c.Category.Query().
 			Where(category.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Category")
+		query, err := query.CollectFields(ctx, categoryImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -317,7 +332,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	case friendship.Table:
 		query := c.Friendship.Query().
 			Where(friendship.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Friendship")
+		query, err := query.CollectFields(ctx, friendshipImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +348,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Group")
+		query, err := query.CollectFields(ctx, groupImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -349,7 +364,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	case todo.Table:
 		query := c.Todo.Query().
 			Where(todo.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Todo")
+		query, err := query.CollectFields(ctx, todoImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -365,7 +380,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 	case user.Table:
 		query := c.User.Query().
 			Where(user.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "User")
+		query, err := query.CollectFields(ctx, userImplementors...)
 		if err != nil {
 			return nil, err
 		}
