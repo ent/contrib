@@ -54,5 +54,6 @@ func (Group) Annotations() []schema.Annotation {
 			annotation.HasPermissions([]string{"ADMIN", "MODERATOR"}),
 		),
 		entgql.MultiOrder(),
+		entgql.Implements("NamedNode"),
 	}
 }

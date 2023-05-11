@@ -13,6 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type NamedNode interface {
+	IsNamedNode()
+}
+
 type OneToMany struct {
 	ID       uuid.UUID    `json:"id"`
 	Name     string       `json:"name"`

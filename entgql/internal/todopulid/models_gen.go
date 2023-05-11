@@ -13,6 +13,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
 
+type NamedNode interface {
+	IsNamedNode()
+}
+
 type OneToMany struct {
 	ID       pulid.ID     `json:"id"`
 	Name     string       `json:"name"`

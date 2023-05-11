@@ -2823,3 +2823,65 @@ func TestRenamedType(t *testing.T) {
 	gqlc.MustPost(query, &rsp, client.Var("id", wr.ID))
 	require.Equal(t, "Ariga", rsp.Text.Name)
 }
+
+func TestSatisfiesNodeFragments(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	t1 := ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query = `query Node($id: ID!) {
+			todo: node(id: $id) {
+				id
+				...NodeFragment
+			}
+		}
+		fragment NodeFragment on Node {
+			... on Todo {
+				createdAt
+				status
+				text
+			}
+		}`
+		rsp struct {
+			Todo struct {
+				ID, Text, CreatedAt string
+				Status              todo.Status
+			}
+		}
+	)
+	gqlc.MustPost(query, &rsp, client.Var("id", t1.ID))
+	require.Equal(t, strconv.Itoa(t1.ID), rsp.Todo.ID)
+	require.Equal(t, "t1", rsp.Todo.Text)
+	require.NotEmpty(t, rsp.Todo.Status)
+	require.NotEmpty(t, rsp.Todo.CreatedAt)
+
+	g1 := ec.Group.Create().SetName("g1").SaveX(ctx)
+	var (
+		// language=GraphQL
+		query1 = `query Node($id: ID!) {
+			group: node(id: $id) {
+				id
+				...NamedNodeFragment
+			}
+		}
+		fragment NamedNodeFragment on NamedNode {
+			... on Group {
+				name
+			}
+		}`
+		rsp1 struct {
+			Group struct {
+				ID, Name string
+			}
+		}
+	)
+	gqlc.MustPost(query1, &rsp1, client.Var("id", g1.ID))
+	require.Equal(t, strconv.Itoa(g1.ID), rsp1.Group.ID)
+	require.Equal(t, "g1", rsp1.Group.Name)
+}

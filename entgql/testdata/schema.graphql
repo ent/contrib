@@ -83,7 +83,7 @@ type Friendship {
   user: User!
   friend: User!
 }
-type Group @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
+type Group implements NamedNode @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users: [User!]
