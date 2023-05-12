@@ -299,12 +299,13 @@ func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
-	Name      *string
-	Username  *uuid.UUID
-	Password  *string
-	Metadata  map[string]interface{}
-	GroupIDs  []int
-	FriendIDs []int
+	Name             *string
+	Username         *uuid.UUID
+	Password         *string
+	RequiredMetadata map[string]interface{}
+	Metadata         map[string]interface{}
+	GroupIDs         []int
+	FriendIDs        []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -317,6 +318,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if v := i.RequiredMetadata; v != nil {
+		m.SetRequiredMetadata(v)
 	}
 	if v := i.Metadata; v != nil {
 		m.SetMetadata(v)
@@ -337,18 +341,19 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
-	Name            *string
-	Username        *uuid.UUID
-	ClearPassword   bool
-	Password        *string
-	ClearMetadata   bool
-	Metadata        map[string]interface{}
-	ClearGroups     bool
-	AddGroupIDs     []int
-	RemoveGroupIDs  []int
-	ClearFriends    bool
-	AddFriendIDs    []int
-	RemoveFriendIDs []int
+	Name             *string
+	Username         *uuid.UUID
+	ClearPassword    bool
+	Password         *string
+	RequiredMetadata map[string]interface{}
+	ClearMetadata    bool
+	Metadata         map[string]interface{}
+	ClearGroups      bool
+	AddGroupIDs      []int
+	RemoveGroupIDs   []int
+	ClearFriends     bool
+	AddFriendIDs     []int
+	RemoveFriendIDs  []int
 }
 
 // Mutate applies the UpdateUserInput on the UserMutation builder.
@@ -364,6 +369,9 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if v := i.RequiredMetadata; v != nil {
+		m.SetRequiredMetadata(v)
 	}
 	if i.ClearMetadata {
 		m.ClearMetadata()

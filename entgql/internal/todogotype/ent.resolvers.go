@@ -71,6 +71,10 @@ func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, err
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *userResolver) RequiredMetadata(ctx context.Context, obj *ent.User) (map[string]interface{}, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *userResolver) Metadata(ctx context.Context, obj *ent.User) (map[string]interface{}, error) {
 	panic(fmt.Errorf("not implemented"))
 }

@@ -226,13 +226,14 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Friends     func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
-		Friendships func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.FriendshipWhereInput) int
-		Groups      func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.GroupWhereInput) int
-		ID          func(childComplexity int) int
-		Metadata    func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Username    func(childComplexity int) int
+		Friends          func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
+		Friendships      func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.FriendshipWhereInput) int
+		Groups           func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.GroupWhereInput) int
+		ID               func(childComplexity int) int
+		Metadata         func(childComplexity int) int
+		Name             func(childComplexity int) int
+		RequiredMetadata func(childComplexity int) int
+		Username         func(childComplexity int) int
 	}
 
 	UserConnection struct {
@@ -1099,6 +1100,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Name(childComplexity), true
 
+	case "User.requiredMetadata":
+		if e.complexity.User.RequiredMetadata == nil {
+			break
+		}
+
+		return e.complexity.User.RequiredMetadata(childComplexity), true
+
 	case "User.username":
 		if e.complexity.User.Username == nil {
 			break
@@ -1542,6 +1550,7 @@ input CreateUserInput {
   name: String
   username: UUID
   password: String
+  requiredMetadata: Map!
   metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
@@ -2187,6 +2196,7 @@ input UpdateUserInput {
   username: UUID
   password: String
   clearPassword: Boolean
+  requiredMetadata: Map
   metadata: Map
   clearMetadata: Boolean
   addGroupIDs: [ID!]
@@ -2200,6 +2210,7 @@ type User implements Node {
   id: ID!
   name: String!
   username: UUID!
+  requiredMetadata: Map!
   metadata: Map
   groups(
     """Returns the elements in the list that come after the specified cursor."""
@@ -4468,6 +4479,8 @@ func (ec *executionContext) fieldContext_Friendship_user(ctx context.Context, fi
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "requiredMetadata":
+				return ec.fieldContext_User_requiredMetadata(ctx, field)
 			case "metadata":
 				return ec.fieldContext_User_metadata(ctx, field)
 			case "groups":
@@ -4528,6 +4541,8 @@ func (ec *executionContext) fieldContext_Friendship_friend(ctx context.Context, 
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "requiredMetadata":
+				return ec.fieldContext_User_requiredMetadata(ctx, field)
 			case "metadata":
 				return ec.fieldContext_User_metadata(ctx, field)
 			case "groups":
@@ -8163,6 +8178,50 @@ func (ec *executionContext) fieldContext_User_username(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _User_requiredMetadata(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_requiredMetadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RequiredMetadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalNMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_requiredMetadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_metadata(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_metadata(ctx, field)
 	if err != nil {
@@ -8580,6 +8639,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(ctx context.Context, fiel
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
+			case "requiredMetadata":
+				return ec.fieldContext_User_requiredMetadata(ctx, field)
 			case "metadata":
 				return ec.fieldContext_User_metadata(ctx, field)
 			case "groups":
@@ -11564,6 +11625,14 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "requiredMetadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requiredMetadata"))
+			it.RequiredMetadata, err = ec.unmarshalNMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "metadata":
 			var err error
 
@@ -13573,6 +13642,14 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "requiredMetadata":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requiredMetadata"))
+			it.RequiredMetadata, err = ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "metadata":
 			var err error
 
@@ -15519,6 +15596,13 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "requiredMetadata":
+
+			out.Values[i] = ec._User_requiredMetadata(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "metadata":
 
 			out.Values[i] = ec._User_metadata(ctx, field, obj)
@@ -16276,6 +16360,27 @@ func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
