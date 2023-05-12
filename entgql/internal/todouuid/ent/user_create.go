@@ -78,6 +78,12 @@ func (uc *UserCreate) SetNillablePassword(s *string) *UserCreate {
 	return uc
 }
 
+// SetRequiredMetadata sets the "required_metadata" field.
+func (uc *UserCreate) SetRequiredMetadata(m map[string]interface{}) *UserCreate {
+	uc.mutation.SetRequiredMetadata(m)
+	return uc
+}
+
 // SetMetadata sets the "metadata" field.
 func (uc *UserCreate) SetMetadata(m map[string]interface{}) *UserCreate {
 	uc.mutation.SetMetadata(m)
@@ -200,6 +206,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
+	if _, ok := uc.mutation.RequiredMetadata(); !ok {
+		return &ValidationError{Name: "required_metadata", err: errors.New(`ent: missing required field "User.required_metadata"`)}
+	}
 	return nil
 }
 
@@ -246,6 +255,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = value
+	}
+	if value, ok := uc.mutation.RequiredMetadata(); ok {
+		_spec.SetField(user.FieldRequiredMetadata, field.TypeJSON, value)
+		_node.RequiredMetadata = value
 	}
 	if value, ok := uc.mutation.Metadata(); ok {
 		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)

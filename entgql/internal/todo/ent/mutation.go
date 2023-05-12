@@ -4595,6 +4595,7 @@ type UserMutation struct {
 	name               *string
 	username           *uuid.UUID
 	password           *string
+	required_metadata  *map[string]interface{}
 	metadata           *map[string]interface{}
 	clearedFields      map[string]struct{}
 	groups             map[int]struct{}
@@ -4828,6 +4829,42 @@ func (m *UserMutation) PasswordCleared() bool {
 func (m *UserMutation) ResetPassword() {
 	m.password = nil
 	delete(m.clearedFields, user.FieldPassword)
+}
+
+// SetRequiredMetadata sets the "required_metadata" field.
+func (m *UserMutation) SetRequiredMetadata(value map[string]interface{}) {
+	m.required_metadata = &value
+}
+
+// RequiredMetadata returns the value of the "required_metadata" field in the mutation.
+func (m *UserMutation) RequiredMetadata() (r map[string]interface{}, exists bool) {
+	v := m.required_metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredMetadata returns the old "required_metadata" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldRequiredMetadata(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredMetadata: %w", err)
+	}
+	return oldValue.RequiredMetadata, nil
+}
+
+// ResetRequiredMetadata resets all changes to the "required_metadata" field.
+func (m *UserMutation) ResetRequiredMetadata() {
+	m.required_metadata = nil
 }
 
 // SetMetadata sets the "metadata" field.
@@ -5075,7 +5112,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -5084,6 +5121,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
+	}
+	if m.required_metadata != nil {
+		fields = append(fields, user.FieldRequiredMetadata)
 	}
 	if m.metadata != nil {
 		fields = append(fields, user.FieldMetadata)
@@ -5102,6 +5142,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldPassword:
 		return m.Password()
+	case user.FieldRequiredMetadata:
+		return m.RequiredMetadata()
 	case user.FieldMetadata:
 		return m.Metadata()
 	}
@@ -5119,6 +5161,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
+	case user.FieldRequiredMetadata:
+		return m.OldRequiredMetadata(ctx)
 	case user.FieldMetadata:
 		return m.OldMetadata(ctx)
 	}
@@ -5150,6 +5194,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPassword(v)
+		return nil
+	case user.FieldRequiredMetadata:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredMetadata(v)
 		return nil
 	case user.FieldMetadata:
 		v, ok := value.(map[string]interface{})
@@ -5230,6 +5281,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ResetPassword()
+		return nil
+	case user.FieldRequiredMetadata:
+		m.ResetRequiredMetadata()
 		return nil
 	case user.FieldMetadata:
 		m.ResetMetadata()

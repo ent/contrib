@@ -38,7 +38,8 @@ func (User) Fields() []ent.Field {
 		field.String("password").
 			Sensitive().
 			Optional(),
-		field.JSON("metadata", map[string]interface{}{}).
+		field.JSON("required_metadata", map[string]any{}),
+		field.JSON("metadata", map[string]any{}).
 			Optional(),
 	}
 }

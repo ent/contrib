@@ -1310,7 +1310,10 @@ func TestNestedConnection(t *testing.T) {
 	groups := ec.Group.CreateBulk(bulkG...).SaveX(ctx)
 	bulkU := make([]*ent.UserCreate, 10)
 	for i := range bulkU {
-		bulkU[i] = ec.User.Create().SetName(fmt.Sprintf("user-%d", i)).AddGroups(groups[:len(groups)-i]...)
+		bulkU[i] = ec.User.Create().
+			SetName(fmt.Sprintf("user-%d", i)).
+			AddGroups(groups[:len(groups)-i]...).
+			SetRequiredMetadata(map[string]any{})
 	}
 	users := ec.User.CreateBulk(bulkU...).SaveX(ctx)
 	users[0].Update().AddFriends(users[1:]...).SaveX(ctx) // user 0 is friends with all
@@ -1996,8 +1999,8 @@ func TestMutation_ClearFriend(t *testing.T) {
 	gqlc := client.New(srv)
 
 	ctx := context.Background()
-	user := ec.User.Create().SaveX(ctx)
-	friend := ec.User.Create().AddFriends(user).SaveX(ctx)
+	user := ec.User.Create().SetRequiredMetadata(map[string]any{}).SaveX(ctx)
+	friend := ec.User.Create().SetRequiredMetadata(map[string]any{}).AddFriends(user).SaveX(ctx)
 	friendship := user.QueryFriendships().FirstX(ctx)
 
 	require.True(t, user.QueryFriends().ExistX(ctx))
