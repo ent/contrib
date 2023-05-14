@@ -172,7 +172,6 @@ func (e *Extension) generate(g *gen.Graph) error {
 			}
 		}
 	}
-
 	return nil
 }
 
