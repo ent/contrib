@@ -67,10 +67,7 @@ func WithProtoDir(dir string) ExtensionOption {
 	}
 }
 
-// SkipGenFile skips generate a helper file next to each .proto file.
-// The helper file contains a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
-// If generate.go already exists next to the .proto file, this step is skipped.
-// With this option, you can disable the generation of the generate.go file.
+// SkipGenFile skips the generation of a generate.go file next to each .proto file.
 func SkipGenFile() ExtensionOption {
 	return func(e *Extension) {
 		e.skipGenFile = true
