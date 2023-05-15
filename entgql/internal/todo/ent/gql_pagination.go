@@ -298,6 +298,9 @@ func (bp *BillProductQuery) Paginate(
 			if conn.TotalCount, err = bp.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -592,6 +595,9 @@ func (c *CategoryQuery) Paginate(
 		if hasPagination || ignoredEdges {
 			if conn.TotalCount, err = c.Clone().Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
@@ -963,6 +969,9 @@ func (f *FriendshipQuery) Paginate(
 			if conn.TotalCount, err = f.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -1245,6 +1254,9 @@ func (gr *GroupQuery) Paginate(
 			if conn.TotalCount, err = gr.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -1490,6 +1502,9 @@ func (otm *OneToManyQuery) Paginate(
 		if hasPagination || ignoredEdges {
 			if conn.TotalCount, err = otm.Clone().Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
@@ -1784,6 +1799,9 @@ func (pr *ProjectQuery) Paginate(
 			if conn.TotalCount, err = pr.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -2038,6 +2056,9 @@ func (t *TodoQuery) Paginate(
 		if hasPagination || ignoredEdges {
 			if conn.TotalCount, err = t.Clone().Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
@@ -2466,6 +2487,9 @@ func (u *UserQuery) Paginate(
 			if conn.TotalCount, err = u.Clone().Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -2766,6 +2790,9 @@ func (w *WorkspaceQuery) Paginate(
 		if hasPagination || ignoredEdges {
 			if conn.TotalCount, err = w.Clone().Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
