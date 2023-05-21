@@ -181,6 +181,16 @@ func TestFromFieldDescriptor(t *testing.T) {
 			field:    field.UUID("x", uuid.UUID{}),
 			expected: `field.UUID("x", uuid.UUID{})`,
 		},
+		{
+			name:     "uuid",
+			field:    field.UUID("x", uuid.UUID{}).Default(uuid.New),
+			expected: `field.UUID("x", uuid.UUID{}).Default(uuid.New)`,
+		},
+		{
+			name:     "uuid",
+			field:    field.UUID("x", uuid.UUID{}).Default(time.Now),
+			expected: `field.UUID("x", uuid.UUID{}).Default(time.Now)`,
+		},
 	}
 
 	for _, tt := range tests {

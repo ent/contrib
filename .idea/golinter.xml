@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GoLinterSettings">
+    <option name="enabledLinters">
+      <list>
+        <option value="staticcheck" />
+        <option value="dupl" />
+        <option value="govet" />
+        <option value="misspell" />
+        <option value="gocritic" />
+        <option value="typecheck" />
+        <option value="errcheck" />
+        <option value="dogsled" />
+        <option value="ineffassign" />
+        <option value="deadcode" />
+        <option value="bodyclose" />
+        <option value="varcheck" />
+        <option value="goheader" />
+        <option value="gosec" />
+        <option value="structcheck" />
+        <option value="unconvert" />
+        <option value="unused" />
+        <option value="stylecheck" />
+        <option value="whitespace" />
+        <option value="depguard" />
+        <option value="gosimple" />
+      </list>
+    </option>
+    <option name="goLinterExe" value="/usr/local/bin/golangci-lint" />
+    <option name="linterSelected" value="true" />
+  </component>
+</project>

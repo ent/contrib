@@ -279,7 +279,8 @@ func defaultExpr(d interface{}) (ast.Expr, error) {
 		return lit, nil
 	case reflect.Func:
 		f := runtime.FuncForPC(v.Pointer()).Name()
-		parts := strings.Split(f, ".")
+		parts := strings.Split(f, "/")
+		parts = strings.Split(parts[len(parts)-1], ".")
 		if len(parts) != 2 {
 			return nil, errors.New("schemast: only selector exprs are supported for default func")
 		}
