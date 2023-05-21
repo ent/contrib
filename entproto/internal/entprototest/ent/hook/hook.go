@@ -69,6 +69,18 @@ func (f DuplicateNumberMessageFunc) Mutate(ctx context.Context, m ent.Mutation) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DuplicateNumberMessageMutation", m)
 }
 
+// The EnumWithConflictingValueFunc type is an adapter to allow the use of ordinary
+// function as EnumWithConflictingValue mutator.
+type EnumWithConflictingValueFunc func(context.Context, *ent.EnumWithConflictingValueMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EnumWithConflictingValueFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EnumWithConflictingValueMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnumWithConflictingValueMutation", m)
+}
+
 // The ExplicitSkippedMessageFunc type is an adapter to allow the use of ordinary
 // function as ExplicitSkippedMessage mutator.
 type ExplicitSkippedMessageFunc func(context.Context, *ent.ExplicitSkippedMessageMutation) (ent.Value, error)

@@ -441,7 +441,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 		})
 	}
 	for _, opt := range fld.Enums {
-		n := strings.ToUpper(snake(opt.Value))
+		n := strings.ToUpper(snake(NormalizeEnumIdentifier(opt.Value)))
 		if !enumAnnotation.OmitFieldPrefix {
 			n = strings.ToUpper(snake(fld.Name)) + "_" + n
 		}

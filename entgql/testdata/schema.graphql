@@ -71,6 +71,7 @@ input CreateUserInput {
   name: String
   username: UUID
   password: String
+  requiredMetadata: Map!
   metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
@@ -83,7 +84,7 @@ type Friendship {
   user: User!
   friend: User!
 }
-type Group @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
+type Group implements NamedNode @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users: [User!]
@@ -107,6 +108,10 @@ input OneToManyOrder {
 """Properties by which OneToMany connections can be ordered."""
 enum OneToManyOrderField {
   NAME
+}
+type Organization @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
+  id: ID!
+  name: String!
 }
 type Project {
   id: ID!
@@ -223,6 +228,7 @@ input UpdateUserInput {
   username: UUID
   password: String
   clearPassword: Boolean
+  requiredMetadata: Map
   metadata: Map
   clearMetadata: Boolean
   addGroupIDs: [ID!]
@@ -236,6 +242,7 @@ type User {
   id: ID!
   name: String!
   username: UUID!
+  requiredMetadata: Map!
   metadata: Map
   """The groups of the user"""
   groups: [Group!]

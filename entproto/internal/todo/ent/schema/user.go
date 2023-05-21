@@ -141,6 +141,20 @@ func (User) Fields() []ent.Field {
 					entproto.OmitFieldPrefix(),
 				),
 			),
+		field.Enum("mime_type").
+			NamedValues(
+				"png", "image/png",
+				"svg", "image/xml+svg",
+			).
+			Annotations(
+				entproto.Field(104),
+				entproto.Enum(
+					map[string]int32{
+						"image/png":     1,
+						"image/xml+svg": 2,
+					},
+				),
+			),
 	}
 }
 

@@ -432,7 +432,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
 		Type:   "User",
-		Fields: make([]*Field, 4),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -460,10 +460,18 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "password",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Metadata); err != nil {
+	if buf, err = json.Marshal(u.RequiredMetadata); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
+		Type:  "map[string]interface {}",
+		Name:  "required_metadata",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Metadata); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
 		Type:  "map[string]interface {}",
 		Name:  "metadata",
 		Value: string(buf),
@@ -497,6 +505,26 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
+func (w *Workspace) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     w.ID,
+		Type:   "Workspace",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(w.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
 	}
 	return node, nil
 }

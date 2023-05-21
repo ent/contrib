@@ -38,6 +38,8 @@ type User struct {
 	Username uuid.UUID `json:"username,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
+	// RequiredMetadata holds the value of the "required_metadata" field.
+	RequiredMetadata map[string]interface{} `json:"required_metadata,omitempty"`
 	// Metadata holds the value of the "metadata" field.
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -97,7 +99,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldMetadata:
+		case user.FieldRequiredMetadata, user.FieldMetadata:
 			values[i] = new([]byte)
 		case user.FieldName, user.FieldPassword:
 			values[i] = new(sql.NullString)
@@ -141,6 +143,14 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
 				u.Password = value.String
+			}
+		case user.FieldRequiredMetadata:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field required_metadata", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.RequiredMetadata); err != nil {
+					return fmt.Errorf("unmarshal field required_metadata: %w", err)
+				}
 			}
 		case user.FieldMetadata:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -208,6 +218,9 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", u.Username))
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("required_metadata=")
+	builder.WriteString(fmt.Sprintf("%v", u.RequiredMetadata))
 	builder.WriteString(", ")
 	builder.WriteString("metadata=")
 	builder.WriteString(fmt.Sprintf("%v", u.Metadata))

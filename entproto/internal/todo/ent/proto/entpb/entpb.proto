@@ -358,6 +358,8 @@ message User {
 
   OmitPrefix omit_prefix = 103;
 
+  MimeType mime_type = 104;
+
   Group group = 7;
 
   Attachment attachment = 11;
@@ -386,6 +388,14 @@ message User {
     FOO = 1;
 
     BAR = 2;
+  }
+
+  enum MimeType {
+    MIME_TYPE_UNSPECIFIED = 0;
+
+    MIME_TYPE_IMAGE_PNG = 1;
+
+    MIME_TYPE_IMAGE_XML_SVG = 2;
   }
 }
 

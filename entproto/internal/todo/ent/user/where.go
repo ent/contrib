@@ -1002,6 +1002,26 @@ func OmitPrefixNotIn(vs ...OmitPrefix) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldOmitPrefix, vs...))
 }
 
+// MimeTypeEQ applies the EQ predicate on the "mime_type" field.
+func MimeTypeEQ(v MimeType) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldMimeType, v))
+}
+
+// MimeTypeNEQ applies the NEQ predicate on the "mime_type" field.
+func MimeTypeNEQ(v MimeType) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldMimeType, v))
+}
+
+// MimeTypeIn applies the In predicate on the "mime_type" field.
+func MimeTypeIn(vs ...MimeType) predicate.User {
+	return predicate.User(sql.FieldIn(FieldMimeType, vs...))
+}
+
+// MimeTypeNotIn applies the NotIn predicate on the "mime_type" field.
+func MimeTypeNotIn(vs ...MimeType) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldMimeType, vs...))
+}
+
 // HasGroup applies the HasEdge predicate on the "group" edge.
 func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

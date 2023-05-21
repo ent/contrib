@@ -17,6 +17,7 @@ package entpb
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -63,6 +64,7 @@ func TestUserService_Create(t *testing.T) {
 		AccountBalance: 2000.50,
 		Labels:         []string{"member", "production"},
 		OmitPrefix:     User_BAR,
+		MimeType:       User_MIME_TYPE_IMAGE_XML_SVG,
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -80,6 +82,7 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
 	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
 	require.EqualValues(t, inputUser.Labels, fromDB.Labels)
+	require.EqualValues(t, inputUser.MimeType.String(), strings.ToUpper("MIME_TYPE_"+regexp.MustCompile("[^a-zA-Z0-9_]+").ReplaceAllString(string(fromDB.MimeType), "_")))
 
 	// preexisting user
 	_, err = svc.Create(ctx, &CreateUserRequest{
@@ -108,6 +111,7 @@ func TestUserService_Get(t *testing.T) {
 		SetAccountBalance(2000.50).
 		SetLabels([]string{"on", "off"}).
 		SetOmitPrefix(user.OmitPrefixBar).
+		SetMimeType(user.MimeTypeSvg).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
 		Id: created.ID,
@@ -121,6 +125,7 @@ func TestUserService_Get(t *testing.T) {
 	require.EqualValues(t, created.AccountBalance, get.AccountBalance)
 	require.EqualValues(t, created.Labels, get.Labels)
 	require.EqualValues(t, User_BAR, get.OmitPrefix)
+	require.EqualValues(t, User_MIME_TYPE_IMAGE_XML_SVG, get.MimeType)
 	get, err = svc.Get(ctx, &GetUserRequest{
 		Id: 1000,
 	})
@@ -145,6 +150,7 @@ func TestUserService_Delete(t *testing.T) {
 		SetCrmID(uuid.New()).
 		SetCustomPb(1).
 		SetOmitPrefix(user.OmitPrefixBar).
+		SetMimeType(user.MimeTypeSvg).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
 		Id: created.ID,
@@ -182,6 +188,7 @@ func TestUserService_Update(t *testing.T) {
 		SetAccountBalance(2000.50).
 		SetLabels(nil).
 		SetOmitPrefix(user.OmitPrefixFoo).
+		SetMimeType(user.MimeTypeSvg).
 		SaveX(ctx)
 
 	attachmentID, err := attachment.ID.MarshalBinary()
@@ -208,6 +215,7 @@ func TestUserService_Update(t *testing.T) {
 		HeightInCm:     175.18,
 		AccountBalance: 5000.75,
 		OmitPrefix:     User_FOO,
+		MimeType:       User_MIME_TYPE_IMAGE_PNG,
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,
@@ -218,6 +226,7 @@ func TestUserService_Update(t *testing.T) {
 	afterUpd := client.User.GetX(ctx, created.ID)
 	require.EqualValues(t, inputUser.Exp, afterUpd.Exp)
 	require.EqualValues(t, user.OmitPrefixFoo, afterUpd.OmitPrefix)
+	require.EqualValues(t, user.MimeTypePng, afterUpd.MimeType)
 }
 
 func TestUserService_List(t *testing.T) {
@@ -239,6 +248,7 @@ func TestUserService_List(t *testing.T) {
 			SetCustomPb(1).
 			SetLabels(nil).
 			SetOmitPrefix(user.OmitPrefixBar).
+			SetMimeType(user.MimeTypeSvg).
 			SaveX(ctx)
 	}
 
@@ -321,6 +331,7 @@ func TestUserService_BatchCreate(t *testing.T) {
 				Labels:     nil,
 				Status:     User_STATUS_ACTIVE,
 				OmitPrefix: User_BAR,
+				MimeType:   User_MIME_TYPE_IMAGE_PNG,
 			},
 		}
 		requests = append(requests, request)

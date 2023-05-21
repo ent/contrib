@@ -89,6 +89,8 @@ var (
 		"isRelayConn":         isRelayConn,
 		"isSkipMode":          isSkipMode,
 		"mutationInputs":      mutationInputs,
+		"nodeImplementors":    nodeImplementors,
+		"nodeImplementorsVar": nodeImplementorsVar,
 		"nodePaginationNames": nodePaginationNames,
 		"orderFields":         orderFields,
 		"skipMode":            skipModeFromString,
@@ -752,4 +754,19 @@ func skipMutationTemplate(g *gen.Graph) bool {
 		}
 	}
 	return true
+}
+
+func nodeImplementors(n *gen.Type) (ifaces []string, err error) {
+	ant, err := annotation(n.Annotations)
+	if err != nil {
+		return nil, err
+	}
+	if !ant.Skip.Is(SkipType) && !slices.Contains(ant.Implements, "Node") {
+		ifaces = append(ifaces, "Node")
+	}
+	return append(ifaces, ant.Implements...), nil
+}
+
+func nodeImplementorsVar(n *gen.Type) string {
+	return strings.ToLower(n.Name) + "Implementors"
 }

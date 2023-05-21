@@ -12,6 +12,7 @@ import (
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	regexp "regexp"
 	strconv "strconv"
 	strings "strings"
 )
@@ -29,8 +30,14 @@ func NewMultiWordSchemaService(client *ent.Client) *MultiWordSchemaService {
 	}
 }
 
+var protoIdentNormalizeRegexpMultiWordSchema_Unit = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+
+func protoIdentNormalizeMultiWordSchema_Unit(e string) string {
+	return protoIdentNormalizeRegexpMultiWordSchema_Unit.ReplaceAllString(e, "_")
+}
+
 func toProtoMultiWordSchema_Unit(e multiwordschema.Unit) MultiWordSchema_Unit {
-	if v, ok := MultiWordSchema_Unit_value[strings.ToUpper("UNIT_"+string(e))]; ok {
+	if v, ok := MultiWordSchema_Unit_value[strings.ToUpper("UNIT_"+protoIdentNormalizeMultiWordSchema_Unit(string(e)))]; ok {
 		return MultiWordSchema_Unit(v)
 	}
 	return MultiWordSchema_Unit(0)
