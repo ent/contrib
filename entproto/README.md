@@ -330,29 +330,29 @@ message User {
 
 Field type mappings:
 
-| Ent Type    | Proto Type                | More considerations                                                                                                                                                         |
-| ----------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TypeBool    | bool                      |
-| TypeTime    | google.protobuf.Timestamp |
-| TypeJSON    | X                         |
-| TypeUUID    | bytes                     | When receiving an arbitrary byte slice as input, 16-byte length must be validated                                                                                           |
-| TypeBytes   | bytes                     |
-| TypeEnum    | Enum                      | Proto enums like proto fields require stable numbers to be assigned to each value. Therefore we will need to add an extra annotation to map from field value to tag number. |
-| TypeString  | string                    |
-| TypeOther   | X                         |
-| TypeInt8    | int32                     |
-| TypeInt16   | int32                     |
-| TypeInt32   | int32                     |
-| TypeInt     | int32                     |
-| TypeInt64   | int64                     |
-| TypeUint8   | uint32                    |
-| TypeUint16  | uint32                    |
-| TypeUint32  | uint32                    |
-| TypeUint    | uint32                    |
-| TypeUint64  | uint64                    |
-| TypeFloat32 | float                     |
-| TypeFloat64 | double                    |
-|             |
+| Ent Type       | Proto Type                | More considerations                                                                                                                                                         |
+|----------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| TypeBool       | bool                      |                                                                                                                                                                             |
+| TypeTime       | google.protobuf.Timestamp |                                                                                                                                                                             |
+| TypeJSON\[[]T] | repeated T                | T must be one of: `string`, `int32`, `int64`, `uint32`, `uint64`                                                                                                            |
+| TypeUUID       | bytes                     | When receiving an arbitrary byte slice as input, 16-byte length must be validated                                                                                           |
+| TypeBytes      | bytes                     |                                                                                                                                                                             |
+| TypeEnum       | Enum                      | Proto enums like proto fields require stable numbers to be assigned to each value. Therefore we will need to add an extra annotation to map from field value to tag number. |
+| TypeString     | string                    |                                                                                                                                                                             |
+| TypeOther      | X                         |                                                                                                                                                                             |
+| TypeInt8       | int32                     |                                                                                                                                                                             |
+| TypeInt16      | int32                     |                                                                                                                                                                             |
+| TypeInt32      | int32                     |                                                                                                                                                                             |
+| TypeInt        | int32                     |                                                                                                                                                                             |
+| TypeInt64      | int64                     |                                                                                                                                                                             |
+| TypeUint8      | uint32                    |                                                                                                                                                                             |
+| TypeUint16     | uint32                    |                                                                                                                                                                             |
+| TypeUint32     | uint32                    |                                                                                                                                                                             |
+| TypeUint       | uint32                    |                                                                                                                                                                             |
+| TypeUint64     | uint64                    |                                                                                                                                                                             |
+| TypeFloat32    | float                     |                                                                                                                                                                             |
+| TypeFloat64    | double                    |                                                                                                                                                                             |
+|                |                           |                                                                                                                                                                             |
 
 Validations:
 

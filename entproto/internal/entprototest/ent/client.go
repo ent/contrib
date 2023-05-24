@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithints"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
@@ -71,6 +72,8 @@ type Client struct {
 	MessageWithFieldOne *MessageWithFieldOneClient
 	// MessageWithID is the client for interacting with the MessageWithID builders.
 	MessageWithID *MessageWithIDClient
+	// MessageWithInts is the client for interacting with the MessageWithInts builders.
+	MessageWithInts *MessageWithIntsClient
 	// MessageWithOptionals is the client for interacting with the MessageWithOptionals builders.
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
@@ -117,6 +120,7 @@ func (c *Client) init() {
 	c.MessageWithEnum = NewMessageWithEnumClient(c.config)
 	c.MessageWithFieldOne = NewMessageWithFieldOneClient(c.config)
 	c.MessageWithID = NewMessageWithIDClient(c.config)
+	c.MessageWithInts = NewMessageWithIntsClient(c.config)
 	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
 	c.MessageWithStrings = NewMessageWithStringsClient(c.config)
@@ -222,6 +226,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithEnum:          NewMessageWithEnumClient(cfg),
 		MessageWithFieldOne:      NewMessageWithFieldOneClient(cfg),
 		MessageWithID:            NewMessageWithIDClient(cfg),
+		MessageWithInts:          NewMessageWithIntsClient(cfg),
 		MessageWithOptionals:     NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName:   NewMessageWithPackageNameClient(cfg),
 		MessageWithStrings:       NewMessageWithStringsClient(cfg),
@@ -264,6 +269,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithEnum:          NewMessageWithEnumClient(cfg),
 		MessageWithFieldOne:      NewMessageWithFieldOneClient(cfg),
 		MessageWithID:            NewMessageWithIDClient(cfg),
+		MessageWithInts:          NewMessageWithIntsClient(cfg),
 		MessageWithOptionals:     NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName:   NewMessageWithPackageNameClient(cfg),
 		MessageWithStrings:       NewMessageWithStringsClient(cfg),
@@ -306,10 +312,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.AllMethodsService, c.BlogPost, c.Category, c.DependsOnSkipped,
 		c.DuplicateNumberMessage, c.EnumWithConflictingValue, c.ExplicitSkippedMessage,
 		c.Image, c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
-		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithOptionals,
-		c.MessageWithPackageName, c.MessageWithStrings, c.NoBackref,
-		c.OneMethodService, c.Portal, c.SkipEdgeExample, c.TwoMethodService, c.User,
-		c.ValidMessage,
+		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithInts,
+		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithStrings,
+		c.NoBackref, c.OneMethodService, c.Portal, c.SkipEdgeExample,
+		c.TwoMethodService, c.User, c.ValidMessage,
 	} {
 		n.Use(hooks...)
 	}
@@ -322,10 +328,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.AllMethodsService, c.BlogPost, c.Category, c.DependsOnSkipped,
 		c.DuplicateNumberMessage, c.EnumWithConflictingValue, c.ExplicitSkippedMessage,
 		c.Image, c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
-		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithOptionals,
-		c.MessageWithPackageName, c.MessageWithStrings, c.NoBackref,
-		c.OneMethodService, c.Portal, c.SkipEdgeExample, c.TwoMethodService, c.User,
-		c.ValidMessage,
+		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithInts,
+		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithStrings,
+		c.NoBackref, c.OneMethodService, c.Portal, c.SkipEdgeExample,
+		c.TwoMethodService, c.User, c.ValidMessage,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -360,6 +366,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MessageWithFieldOne.mutate(ctx, m)
 	case *MessageWithIDMutation:
 		return c.MessageWithID.mutate(ctx, m)
+	case *MessageWithIntsMutation:
+		return c.MessageWithInts.mutate(ctx, m)
 	case *MessageWithOptionalsMutation:
 		return c.MessageWithOptionals.mutate(ctx, m)
 	case *MessageWithPackageNameMutation:
@@ -1999,6 +2007,124 @@ func (c *MessageWithIDClient) mutate(ctx context.Context, m *MessageWithIDMutati
 	}
 }
 
+// MessageWithIntsClient is a client for the MessageWithInts schema.
+type MessageWithIntsClient struct {
+	config
+}
+
+// NewMessageWithIntsClient returns a client for the MessageWithInts from the given config.
+func NewMessageWithIntsClient(c config) *MessageWithIntsClient {
+	return &MessageWithIntsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagewithints.Hooks(f(g(h())))`.
+func (c *MessageWithIntsClient) Use(hooks ...Hook) {
+	c.hooks.MessageWithInts = append(c.hooks.MessageWithInts, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithints.Intercept(f(g(h())))`.
+func (c *MessageWithIntsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithInts = append(c.inters.MessageWithInts, interceptors...)
+}
+
+// Create returns a builder for creating a MessageWithInts entity.
+func (c *MessageWithIntsClient) Create() *MessageWithIntsCreate {
+	mutation := newMessageWithIntsMutation(c.config, OpCreate)
+	return &MessageWithIntsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageWithInts entities.
+func (c *MessageWithIntsClient) CreateBulk(builders ...*MessageWithIntsCreate) *MessageWithIntsCreateBulk {
+	return &MessageWithIntsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageWithInts.
+func (c *MessageWithIntsClient) Update() *MessageWithIntsUpdate {
+	mutation := newMessageWithIntsMutation(c.config, OpUpdate)
+	return &MessageWithIntsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageWithIntsClient) UpdateOne(mwi *MessageWithInts) *MessageWithIntsUpdateOne {
+	mutation := newMessageWithIntsMutation(c.config, OpUpdateOne, withMessageWithInts(mwi))
+	return &MessageWithIntsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageWithIntsClient) UpdateOneID(id int) *MessageWithIntsUpdateOne {
+	mutation := newMessageWithIntsMutation(c.config, OpUpdateOne, withMessageWithIntsID(id))
+	return &MessageWithIntsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageWithInts.
+func (c *MessageWithIntsClient) Delete() *MessageWithIntsDelete {
+	mutation := newMessageWithIntsMutation(c.config, OpDelete)
+	return &MessageWithIntsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageWithIntsClient) DeleteOne(mwi *MessageWithInts) *MessageWithIntsDeleteOne {
+	return c.DeleteOneID(mwi.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageWithIntsClient) DeleteOneID(id int) *MessageWithIntsDeleteOne {
+	builder := c.Delete().Where(messagewithints.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageWithIntsDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageWithInts.
+func (c *MessageWithIntsClient) Query() *MessageWithIntsQuery {
+	return &MessageWithIntsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithInts},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageWithInts entity by its id.
+func (c *MessageWithIntsClient) Get(ctx context.Context, id int) (*MessageWithInts, error) {
+	return c.Query().Where(messagewithints.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageWithIntsClient) GetX(ctx context.Context, id int) *MessageWithInts {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MessageWithIntsClient) Hooks() []Hook {
+	return c.hooks.MessageWithInts
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageWithIntsClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithInts
+}
+
+func (c *MessageWithIntsClient) mutate(ctx context.Context, m *MessageWithIntsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithIntsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithIntsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithIntsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithIntsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithInts mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithOptionalsClient is a client for the MessageWithOptionals schema.
 type MessageWithOptionalsClient struct {
 	config
@@ -3281,7 +3407,7 @@ type (
 		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
 		EnumWithConflictingValue, ExplicitSkippedMessage, Image,
 		ImplicitSkippedMessage, InvalidFieldMessage, MessageWithEnum,
-		MessageWithFieldOne, MessageWithID, MessageWithOptionals,
+		MessageWithFieldOne, MessageWithID, MessageWithInts, MessageWithOptionals,
 		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
 		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Hook
 	}
@@ -3289,7 +3415,7 @@ type (
 		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
 		EnumWithConflictingValue, ExplicitSkippedMessage, Image,
 		ImplicitSkippedMessage, InvalidFieldMessage, MessageWithEnum,
-		MessageWithFieldOne, MessageWithID, MessageWithOptionals,
+		MessageWithFieldOne, MessageWithID, MessageWithInts, MessageWithOptionals,
 		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
 		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Interceptor
 	}
