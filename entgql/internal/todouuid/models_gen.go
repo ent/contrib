@@ -17,6 +17,14 @@ type NamedNode interface {
 	IsNamedNode()
 }
 
+type CategoryTypes struct {
+	Public *bool `json:"public"`
+}
+
+type CategoryTypesInput struct {
+	Public *bool `json:"public"`
+}
+
 type OneToMany struct {
 	ID       uuid.UUID    `json:"id"`
 	Name     string       `json:"name"`

@@ -30,6 +30,7 @@ type CreateCategoryInput struct {
 	Text           string
 	Status         category.Status
 	Config         *schematype.CategoryConfig
+	Types          *schematype.CategoryTypes
 	Duration       *time.Duration
 	Count          *uint64
 	Strings        []string
@@ -43,6 +44,9 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetStatus(i.Status)
 	if v := i.Config; v != nil {
 		m.SetConfig(v)
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
 	}
 	if v := i.Duration; v != nil {
 		m.SetDuration(*v)
@@ -73,6 +77,8 @@ type UpdateCategoryInput struct {
 	Status               *category.Status
 	ClearConfig          bool
 	Config               *schematype.CategoryConfig
+	ClearTypes           bool
+	Types                *schematype.CategoryTypes
 	ClearDuration        bool
 	Duration             *time.Duration
 	ClearCount           bool
@@ -101,6 +107,12 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.Config; v != nil {
 		m.SetConfig(v)
+	}
+	if i.ClearTypes {
+		m.ClearTypes()
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
 	}
 	if i.ClearDuration {
 		m.ClearDuration()

@@ -70,6 +70,18 @@ func (cu *CategoryUpdate) ClearConfig() *CategoryUpdate {
 	return cu
 }
 
+// SetTypes sets the "types" field.
+func (cu *CategoryUpdate) SetTypes(st *schematype.CategoryTypes) *CategoryUpdate {
+	cu.mutation.SetTypes(st)
+	return cu
+}
+
+// ClearTypes clears the value of the "types" field.
+func (cu *CategoryUpdate) ClearTypes() *CategoryUpdate {
+	cu.mutation.ClearTypes()
+	return cu
+}
+
 // SetDuration sets the "duration" field.
 func (cu *CategoryUpdate) SetDuration(t time.Duration) *CategoryUpdate {
 	cu.mutation.ResetDuration()
@@ -285,6 +297,12 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.ConfigCleared() {
 		_spec.ClearField(category.FieldConfig, field.TypeOther)
 	}
+	if value, ok := cu.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+	}
+	if cu.mutation.TypesCleared() {
+		_spec.ClearField(category.FieldTypes, field.TypeJSON)
+	}
 	if value, ok := cu.mutation.Duration(); ok {
 		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
 	}
@@ -445,6 +463,18 @@ func (cuo *CategoryUpdateOne) SetConfig(sc *schematype.CategoryConfig) *Category
 // ClearConfig clears the value of the "config" field.
 func (cuo *CategoryUpdateOne) ClearConfig() *CategoryUpdateOne {
 	cuo.mutation.ClearConfig()
+	return cuo
+}
+
+// SetTypes sets the "types" field.
+func (cuo *CategoryUpdateOne) SetTypes(st *schematype.CategoryTypes) *CategoryUpdateOne {
+	cuo.mutation.SetTypes(st)
+	return cuo
+}
+
+// ClearTypes clears the value of the "types" field.
+func (cuo *CategoryUpdateOne) ClearTypes() *CategoryUpdateOne {
+	cuo.mutation.ClearTypes()
 	return cuo
 }
 
@@ -692,6 +722,12 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 	}
 	if cuo.mutation.ConfigCleared() {
 		_spec.ClearField(category.FieldConfig, field.TypeOther)
+	}
+	if value, ok := cuo.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+	}
+	if cuo.mutation.TypesCleared() {
+		_spec.ClearField(category.FieldTypes, field.TypeJSON)
 	}
 	if value, ok := cuo.mutation.Duration(); ok {
 		_spec.SetField(category.FieldDuration, field.TypeInt64, value)

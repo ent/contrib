@@ -27,6 +27,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
+func (r *categoryResolver) Types(ctx context.Context, obj *ent.Category) (*CategoryTypes, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *organizationResolver) ID(ctx context.Context, obj *ent1.Workspace) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -87,6 +91,10 @@ func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *en
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *createCategoryInputResolver) Types(ctx context.Context, obj *ent.CreateCategoryInput, data *CategoryTypesInput) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *createTodoInputResolver) Status(ctx context.Context, obj *ent.CreateTodoInput, data todo.Status) error {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -104,6 +112,10 @@ func (r *todoWhereInputResolver) StatusIn(ctx context.Context, obj *ent.TodoWher
 }
 
 func (r *todoWhereInputResolver) StatusNotIn(ctx context.Context, obj *ent.TodoWhereInput, data []todo.Status) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *updateCategoryInputResolver) Types(ctx context.Context, obj *ent.UpdateCategoryInput, data *CategoryTypesInput) error {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -169,6 +181,11 @@ func (r *Resolver) CreateTodoInput() CreateTodoInputResolver { return &createTod
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
+// UpdateCategoryInput returns UpdateCategoryInputResolver implementation.
+func (r *Resolver) UpdateCategoryInput() UpdateCategoryInputResolver {
+	return &updateCategoryInputResolver{r}
+}
+
 // UpdateTodoInput returns UpdateTodoInputResolver implementation.
 func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTodoInputResolver{r} }
 
@@ -183,5 +200,6 @@ type userResolver struct{ *Resolver }
 type createCategoryInputResolver struct{ *Resolver }
 type createTodoInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
+type updateCategoryInputResolver struct{ *Resolver }
 type updateTodoInputResolver struct{ *Resolver }
 type userWhereInputResolver struct{ *Resolver }

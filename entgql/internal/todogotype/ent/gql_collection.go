@@ -319,6 +319,11 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				selectedFields = append(selectedFields, category.FieldConfig)
 				fieldSeen[category.FieldConfig] = struct{}{}
 			}
+		case "types":
+			if _, ok := fieldSeen[category.FieldTypes]; !ok {
+				selectedFields = append(selectedFields, category.FieldTypes)
+				fieldSeen[category.FieldTypes] = struct{}{}
+			}
 		case "duration":
 			if _, ok := fieldSeen[category.FieldDuration]; !ok {
 				selectedFields = append(selectedFields, category.FieldDuration)

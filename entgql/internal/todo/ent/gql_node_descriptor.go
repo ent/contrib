@@ -91,7 +91,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Category",
-		Fields: make([]*Field, 6),
+		Fields: make([]*Field, 7),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -119,10 +119,18 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "config",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Duration); err != nil {
+	if buf, err = json.Marshal(c.Types); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
+		Type:  "*schematype.CategoryTypes",
+		Name:  "types",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Duration); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
 		Type:  "time.Duration",
 		Name:  "duration",
 		Value: string(buf),
@@ -130,7 +138,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Count); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "uint64",
 		Name:  "count",
 		Value: string(buf),
@@ -138,7 +146,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Strings); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "[]string",
 		Name:  "strings",
 		Value: string(buf),
