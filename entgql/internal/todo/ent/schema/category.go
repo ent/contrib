@@ -59,6 +59,8 @@ func (Category) Fields() []ent.Field {
 				dialect.SQLite: "json",
 			}).
 			Optional(),
+		field.JSON("types", &schematype.CategoryTypes{}).
+			Optional(),
 		field.Int64("duration").
 			GoType(time.Duration(0)).
 			Optional().

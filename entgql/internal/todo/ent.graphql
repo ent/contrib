@@ -66,6 +66,7 @@ type Category implements Node {
   text: String!
   status: CategoryStatus!
   config: CategoryConfig
+  types: CategoryTypes
   duration: Duration
   count: Uint64
   strings: [String!]
@@ -228,6 +229,7 @@ input CreateCategoryInput {
   text: String!
   status: CategoryStatus!
   config: CategoryConfigInput
+  types: CategoryTypesInput
   duration: Duration
   count: Uint64
   strings: [String!]
@@ -852,6 +854,8 @@ input UpdateCategoryInput {
   status: CategoryStatus
   config: CategoryConfigInput
   clearConfig: Boolean
+  types: CategoryTypesInput
+  clearTypes: Boolean
   duration: Duration
   clearDuration: Boolean
   count: Uint64

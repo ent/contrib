@@ -56,6 +56,7 @@ type ResolverRoot interface {
 	CreateTodoInput() CreateTodoInputResolver
 	CreateUserInput() CreateUserInputResolver
 	TodoWhereInput() TodoWhereInputResolver
+	UpdateCategoryInput() UpdateCategoryInputResolver
 	UpdateTodoInput() UpdateTodoInputResolver
 	UpdateUserInput() UpdateUserInputResolver
 	UserWhereInput() UserWhereInputResolver
@@ -84,6 +85,7 @@ type ComplexityRoot struct {
 		Text          func(childComplexity int) int
 		Todos         func(childComplexity int, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) int
 		TodosCount    func(childComplexity int) int
+		Types         func(childComplexity int) int
 	}
 
 	CategoryConfig struct {
@@ -99,6 +101,10 @@ type ComplexityRoot struct {
 	CategoryEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	CategoryTypes struct {
+		Public func(childComplexity int) int
 	}
 
 	Custom struct {
@@ -249,6 +255,8 @@ type ComplexityRoot struct {
 }
 
 type CategoryResolver interface {
+	Types(ctx context.Context, obj *ent.Category) (*CategoryTypes, error)
+
 	TodosCount(ctx context.Context, obj *ent.Category) (*int, error)
 }
 type MutationResolver interface {
@@ -285,6 +293,8 @@ type UserResolver interface {
 }
 
 type CreateCategoryInputResolver interface {
+	Types(ctx context.Context, obj *ent.CreateCategoryInput, data *CategoryTypesInput) error
+
 	CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error
 }
 type CreateTodoInputResolver interface {
@@ -300,6 +310,9 @@ type TodoWhereInputResolver interface {
 	StatusNotIn(ctx context.Context, obj *ent.TodoWhereInput, data []todo.Status) error
 
 	CreatedToday(ctx context.Context, obj *ent.TodoWhereInput, data *bool) error
+}
+type UpdateCategoryInputResolver interface {
+	Types(ctx context.Context, obj *ent.UpdateCategoryInput, data *CategoryTypesInput) error
 }
 type UpdateTodoInputResolver interface {
 	Status(ctx context.Context, obj *ent.UpdateTodoInput, data *todo.Status) error
@@ -441,6 +454,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Category.TodosCount(childComplexity), true
 
+	case "Category.types":
+		if e.complexity.Category.Types == nil {
+			break
+		}
+
+		return e.complexity.Category.Types(childComplexity), true
+
 	case "CategoryConfig.maxMembers":
 		if e.complexity.CategoryConfig.MaxMembers == nil {
 			break
@@ -482,6 +502,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CategoryEdge.Node(childComplexity), true
+
+	case "CategoryTypes.public":
+		if e.complexity.CategoryTypes.Public == nil {
+			break
+		}
+
+		return e.complexity.CategoryTypes.Public(childComplexity), true
 
 	case "Custom.info":
 		if e.complexity.Custom.Info == nil {
@@ -1160,6 +1187,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputBillProductWhereInput,
 		ec.unmarshalInputCategoryConfigInput,
 		ec.unmarshalInputCategoryOrder,
+		ec.unmarshalInputCategoryTypesInput,
 		ec.unmarshalInputCategoryWhereInput,
 		ec.unmarshalInputCreateCategoryInput,
 		ec.unmarshalInputCreateTodoInput,
@@ -1246,6 +1274,14 @@ type CategoryConfig {
 
 input CategoryConfigInput {
   maxMembers: Int
+}
+
+type CategoryTypes {
+  public: Boolean
+}
+
+input CategoryTypesInput {
+  public: Boolean
 }
 
 scalar Duration
@@ -1360,6 +1396,7 @@ type Category implements Node {
   text: String!
   status: CategoryStatus!
   config: CategoryConfig
+  types: CategoryTypes
   duration: Duration
   count: Uint64
   strings: [String!]
@@ -1522,6 +1559,7 @@ input CreateCategoryInput {
   text: String!
   status: CategoryStatus!
   config: CategoryConfigInput
+  types: CategoryTypesInput
   duration: Duration
   count: Uint64
   strings: [String!]
@@ -2146,6 +2184,8 @@ input UpdateCategoryInput {
   status: CategoryStatus
   config: CategoryConfigInput
   clearConfig: Boolean
+  types: CategoryTypesInput
+  clearTypes: Boolean
   duration: Duration
   clearDuration: Boolean
   count: Uint64
@@ -3631,6 +3671,51 @@ func (ec *executionContext) fieldContext_Category_config(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Category_types(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Category_types(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Category().Types(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*CategoryTypes)
+	fc.Result = res
+	return ec.marshalOCategoryTypes2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypes(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Category_types(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Category",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "public":
+				return ec.fieldContext_CategoryTypes_public(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CategoryTypes", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Category_duration(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Category_duration(ctx, field)
 	if err != nil {
@@ -4151,6 +4236,8 @@ func (ec *executionContext) fieldContext_CategoryEdge_node(ctx context.Context, 
 				return ec.fieldContext_Category_status(ctx, field)
 			case "config":
 				return ec.fieldContext_Category_config(ctx, field)
+			case "types":
+				return ec.fieldContext_Category_types(ctx, field)
 			case "duration":
 				return ec.fieldContext_Category_duration(ctx, field)
 			case "count":
@@ -4209,6 +4296,47 @@ func (ec *executionContext) fieldContext_CategoryEdge_cursor(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CategoryTypes_public(ctx context.Context, field graphql.CollectedField, obj *CategoryTypes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CategoryTypes_public(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Public, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CategoryTypes_public(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CategoryTypes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5262,6 +5390,8 @@ func (ec *executionContext) fieldContext_Mutation_createCategory(ctx context.Con
 				return ec.fieldContext_Category_status(ctx, field)
 			case "config":
 				return ec.fieldContext_Category_config(ctx, field)
+			case "types":
+				return ec.fieldContext_Category_types(ctx, field)
 			case "duration":
 				return ec.fieldContext_Category_duration(ctx, field)
 			case "count":
@@ -7724,6 +7854,8 @@ func (ec *executionContext) fieldContext_Todo_category(ctx context.Context, fiel
 				return ec.fieldContext_Category_status(ctx, field)
 			case "config":
 				return ec.fieldContext_Category_config(ctx, field)
+			case "types":
+				return ec.fieldContext_Category_types(ctx, field)
 			case "duration":
 				return ec.fieldContext_Category_duration(ctx, field)
 			case "count":
@@ -10906,6 +11038,29 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCategoryTypesInput(ctx context.Context, obj interface{}) (CategoryTypesInput, error) {
+	var it CategoryTypesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "public":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("public"))
+			it.Public, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context, obj interface{}) (ent.CategoryWhereInput, error) {
 	var it ent.CategoryWhereInput
 	asMap := map[string]interface{}{}
@@ -11448,6 +11603,17 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
 			it.Config, err = ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
+				return it, err
+			}
+		case "types":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
+			data, err := ec.unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypesInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateCategoryInput().Types(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "duration":
@@ -13335,6 +13501,25 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "types":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
+			data, err := ec.unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypesInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateCategoryInput().Types(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "clearTypes":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearTypes"))
+			it.ClearTypes, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "duration":
 			var err error
 
@@ -14262,6 +14447,23 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 
 			out.Values[i] = ec._Category_config(ctx, field, obj)
 
+		case "types":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Category_types(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "duration":
 
 			out.Values[i] = ec._Category_duration(ctx, field, obj)
@@ -14427,6 +14629,31 @@ func (ec *executionContext) _CategoryEdge(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var categoryTypesImplementors = []string{"CategoryTypes"}
+
+func (ec *executionContext) _CategoryTypes(ctx context.Context, sel ast.SelectionSet, obj *CategoryTypes) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, categoryTypesImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CategoryTypes")
+		case "public":
+
+			out.Values[i] = ec._CategoryTypes_public(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17204,6 +17431,21 @@ func (ec *executionContext) marshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋent
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOCategoryTypes2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypes(ctx context.Context, sel ast.SelectionSet, v *CategoryTypes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CategoryTypes(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypesInput(ctx context.Context, v interface{}) (*CategoryTypesInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCategoryTypesInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.CategoryWhereInput, error) {

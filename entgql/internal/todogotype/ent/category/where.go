@@ -227,6 +227,16 @@ func ConfigNotNil() predicate.Category {
 	return predicate.Category(sql.FieldNotNull(FieldConfig))
 }
 
+// TypesIsNil applies the IsNil predicate on the "types" field.
+func TypesIsNil() predicate.Category {
+	return predicate.Category(sql.FieldIsNull(FieldTypes))
+}
+
+// TypesNotNil applies the NotNil predicate on the "types" field.
+func TypesNotNil() predicate.Category {
+	return predicate.Category(sql.FieldNotNull(FieldTypes))
+}
+
 // DurationEQ applies the EQ predicate on the "duration" field.
 func DurationEQ(v time.Duration) predicate.Category {
 	vc := int64(v)

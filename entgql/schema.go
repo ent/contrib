@@ -89,7 +89,6 @@ var (
 			},
 		},
 	}
-
 	inputObjectFilter    = func(t string) bool { return strings.HasSuffix(t, "Input") }
 	nonInputObjectFilter = func(t string) bool { return !inputObjectFilter(t) }
 )

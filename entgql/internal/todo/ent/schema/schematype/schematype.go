@@ -38,3 +38,8 @@ func (t *CategoryConfig) Scan(v interface{}) (err error) {
 func (t *CategoryConfig) Value() (driver.Value, error) {
 	return json.Marshal(t)
 }
+
+// CategoryTypes is a simple JSON type.
+type CategoryTypes struct {
+	Public bool `json:"public,omitempty"`
+}

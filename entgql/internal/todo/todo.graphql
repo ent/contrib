@@ -8,6 +8,14 @@ input CategoryConfigInput {
   maxMembers: Int
 }
 
+type CategoryTypes {
+  public: Boolean
+}
+
+input CategoryTypesInput {
+  public: Boolean
+}
+
 scalar Duration
 scalar UUID
 

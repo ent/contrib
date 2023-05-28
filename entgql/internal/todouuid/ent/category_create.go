@@ -55,6 +55,12 @@ func (cc *CategoryCreate) SetConfig(sc *schematype.CategoryConfig) *CategoryCrea
 	return cc
 }
 
+// SetTypes sets the "types" field.
+func (cc *CategoryCreate) SetTypes(st *schematype.CategoryTypes) *CategoryCreate {
+	cc.mutation.SetTypes(st)
+	return cc
+}
+
 // SetDuration sets the "duration" field.
 func (cc *CategoryCreate) SetDuration(t time.Duration) *CategoryCreate {
 	cc.mutation.SetDuration(t)
@@ -238,6 +244,10 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Config(); ok {
 		_spec.SetField(category.FieldConfig, field.TypeOther, value)
 		_node.Config = value
+	}
+	if value, ok := cc.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+		_node.Types = value
 	}
 	if value, ok := cc.mutation.Duration(); ok {
 		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
