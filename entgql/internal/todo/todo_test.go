@@ -2888,3 +2888,18 @@ func TestSatisfiesNodeFragments(t *testing.T) {
 	require.Equal(t, strconv.Itoa(g1.ID), rsp1.Group.ID)
 	require.Equal(t, "g1", rsp1.Group.Name)
 }
+
+func TestPaginate(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(
+		t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	first := 1
+	// Ensure that the pagination query compiles.
+	_, err := ec.Todo.Query().
+		Select(todo.FieldPriority, todo.FieldStatus).
+		Paginate(ctx, nil, &first, nil, nil)
+	require.NoError(t, err)
+}
