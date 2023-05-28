@@ -632,7 +632,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := {{ $r }}.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
+			{{- /* Clear the selection fields before counting to avoid generating invalid queries. */}}
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
