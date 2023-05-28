@@ -289,7 +289,6 @@ func (c *CategoryQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := c.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -603,7 +602,6 @@ func (t *TodoQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := t.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err

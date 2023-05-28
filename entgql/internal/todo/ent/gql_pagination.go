@@ -296,7 +296,6 @@ func (bp *BillProductQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := bp.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -594,7 +593,6 @@ func (c *CategoryQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := c.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -967,7 +965,6 @@ func (f *FriendshipQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := f.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -1252,7 +1249,6 @@ func (gr *GroupQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := gr.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -1501,7 +1497,6 @@ func (otm *OneToManyQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := otm.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -1797,7 +1792,6 @@ func (pr *ProjectQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := pr.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -2055,7 +2049,6 @@ func (t *TodoQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := t.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -2485,7 +2478,6 @@ func (u *UserQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := u.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
@@ -2789,7 +2781,6 @@ func (w *WorkspaceQuery) Paginate(
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
 			c := w.Clone()
-			// We don't need to select the fields of the node, since we only need the count.
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
