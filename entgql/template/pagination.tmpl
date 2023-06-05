@@ -55,6 +55,19 @@ func orderFunc(o OrderDirection, field string) func(*sql.Selector) {
 
 const errInvalidPagination = "INVALID_PAGINATION"
 
+func validateLimitOffset(limit, offset *int) (err *gqlerror.Error) {
+	switch {
+	{{- range $arg := list "limit" "offset" }}
+		case {{ $arg }} != nil && *{{ $arg }} < 0:
+			err = &gqlerror.Error{
+				Message: "`{{ $arg }}` on a connection cannot be less than zero.",
+			}
+			errcode.Set(err, errInvalidPagination)
+	{{- end }}
+	}
+	return err
+}
+
 func validateFirstLast(first, last *int) (err *gqlerror.Error) {
 	switch {
 	case first != nil && last != nil:
@@ -144,39 +157,50 @@ type {{ $conn }} struct {
 {{ $pager := print (camel $name) "Pager" }}
 {{ $multiOrder := $node.Annotations.EntGQL.MultiOrder }}
 
-func (c *{{ $conn }}) build(nodes []*{{ $name }}, pager *{{ $pager }}, after *Cursor, first *int, before *Cursor, last *int) {
-	c.PageInfo.HasNextPage = before != nil
-	c.PageInfo.HasPreviousPage = after != nil
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *{{ $name }}
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *{{ $name }} {
-			return nodes[n-i]
+func (c *{{ $conn }}) build(nodes []*{{ $name }}, pager *{{ $pager }}, after *Cursor, first *int, before *Cursor, last *int, withPageInfo bool) {
+	c.Edges = make([]*{{ $edge }}, len(nodes))
+	if withPageInfo {
+		c.PageInfo.HasNextPage = before != nil
+		c.PageInfo.HasPreviousPage = after != nil
+		if first != nil && *first+1 == len(nodes) {
+			c.PageInfo.HasNextPage = true
+			nodes = nodes[:len(nodes)-1]
+		} else if last != nil && *last+1 == len(nodes) {
+			c.PageInfo.HasPreviousPage = true
+			nodes = nodes[:len(nodes)-1]
+		}
+		var nodeAt func(int) *{{ $name }}
+		if last != nil {
+			n := len(nodes) - 1
+			nodeAt = func(i int) *{{ $name }} {
+				return nodes[n-i]
+			}
+		} else {
+			nodeAt = func(i int) *{{ $name }} {
+				return nodes[i]
+			}
+		}
+		for i := range nodes {
+			node := nodeAt(i)
+			c.Edges[i] = &{{ $edge }}{
+				Node: node,
+				Cursor: pager.toCursor(node),
+			}
+		}
+		if l := len(c.Edges); l > 0 {
+			c.PageInfo.StartCursor = &c.Edges[0].Cursor
+			c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
 		}
 	} else {
-		nodeAt = func(i int) *{{ $name }} {
-			return nodes[i]
+		for i := range nodes {
+			node := nodes[i]
+			c.Edges[i] = &{{ $edge }}{
+				Node: node,
+				Cursor: pager.toCursor(node),
+			}
 		}
 	}
-	c.Edges = make([]*{{ $edge }}, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &{{ $edge }}{
-			Node: node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	if l := len(c.Edges); l > 0 {
-		c.PageInfo.StartCursor = &c.Edges[0].Cursor
-		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
-	}
+
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -458,6 +482,15 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 	{{- end }}
 }
 
+// Paginate executes the query and returns a limit/offset paginated connection to {{ $name }}.
+func ({{ $r }} *{{ $query }}) PaginateLimitOffset(
+	ctx context.Context, limit *int, offset *int, opts ...{{ $opt }},
+) (*{{ $conn }}, error) {
+	{{- with extend $ "Node" $node "Query" $r -}}
+		{{ template "gql_pagination/helper/paginate_limit_offset" . }}
+	{{- end -}}
+}
+
 // Paginate executes the query and returns a relay based cursor connection to {{ $name }}.
 func ({{ $r }} *{{ $query }}) Paginate(
 	ctx context.Context, after *Cursor, first *int,
@@ -658,6 +691,61 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if err != nil {
 		return nil, err
 	}
-	conn.build(nodes, pager, after, first, before, last)
+	conn.build(nodes, pager, after, first, before, last, true)
+	return conn, nil
+{{ end }}
+
+{{ define "gql_pagination/helper/paginate_limit_offset" }}
+	{{- $node := $.Scope.Node }}
+	{{- $r := $.Scope.Query }}
+	{{- $names := nodePaginationNames $node }}
+	{{- $name := $names.Node }}
+	{{- $order := $names.Order }}
+	{{- $edge := $names.Edge }}
+	{{- $conn := $names.Connection }}
+	{{- $newPager := print "new" $name "Pager" -}}
+
+	if err := validateLimitOffset(limit, offset); err != nil {
+		return nil, err
+	}
+	pager, err := {{ $newPager }}(opts, false)
+	if err != nil {
+		return nil, err
+	}
+	if {{ $r }}, err = pager.applyFilter({{ $r }}); err != nil {
+		return nil, err
+	}
+	{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
+	conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) {
+		hasPagination := limit != nil || offset != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = {{ $r }}.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+		}
+		{{- /* TotalCount will be settled by conn.build() */}}
+	}
+	if ignoredEdges || (limit != nil && *limit == 0) {
+		return conn, nil
+	}
+	if limit != nil {
+		{{ $r }}.Limit(*limit)
+	}
+	if offset != nil {
+		{{ $r }}.Offset(*offset)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	{{ $r }} = pager.applyOrder({{ $r }})
+	nodes, err := {{ $r }}.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, nil, nil, nil, nil, false)
 	return conn, nil
 {{ end }}

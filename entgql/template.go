@@ -563,11 +563,11 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 					Type:        ast.NamedType(p.Node, nil),
 					Description: "The item at the end of the edge.",
 				},
-				{
+				/*{
 					Name:        "cursor",
 					Type:        ast.NonNullNamedType(RelayCursor, nil),
 					Description: "A cursor for use in pagination.",
-				},
+				},*/
 			},
 		},
 		{
@@ -580,11 +580,11 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 					Type:        ast.ListType(ast.NamedType(p.Edge, nil), nil),
 					Description: "A list of edges.",
 				},
-				{
+				/*{
 					Name:        "pageInfo",
 					Type:        ast.NonNullNamedType(RelayPageInfo, nil),
 					Description: "Information to aid in pagination.",
-				},
+				},*/
 				{
 					Name:        "totalCount",
 					Type:        ast.NonNullNamedType("Int", nil),
@@ -625,6 +625,16 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, h
 		Type: ast.NonNullNamedType(p.Connection, nil),
 		Arguments: ast.ArgumentDefinitionList{
 			{
+				Name:        "limit",
+				Type:        ast.NamedType("Int", nil),
+				Description: "Pagination limit.",
+			},
+			{
+				Name:        "offset",
+				Type:        ast.NamedType("Int", nil),
+				Description: "Pagination offset.",
+			},
+			/*{
 				Name:        "after",
 				Type:        ast.NamedType(RelayCursor, nil),
 				Description: "Returns the elements in the list that come after the specified cursor.",
@@ -643,7 +653,7 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, h
 				Name:        "last",
 				Type:        ast.NamedType("Int", nil),
 				Description: "Returns the last _n_ elements from the list.",
-			},
+			},*/
 		},
 	}
 	if hasOrderBy {

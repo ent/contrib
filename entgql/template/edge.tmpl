@@ -64,7 +64,7 @@ import (
 	{{ $newPager := print "new" $names.Node "Pager" }}
 
 	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
-		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+		ctx context.Context, limit *int, offset *int,
 		{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
 	) (*{{ $conn }}, error) {
@@ -81,16 +81,16 @@ import (
 		totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
 		if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
-			pager, err := {{ $newPager }}(opts, last != nil)
+			pager, err := {{ $newPager }}(opts, false)
 			if err != nil {
 				return nil, err
 			}
 			{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
 			conn := &{{ $conn }}{Edges: []*{{ $edge }}{}, TotalCount: totalCount}
-			conn.build(nodes, pager, after, first, before, last)
+			conn.build(nodes, pager, nil, nil, nil, nil, false)
 			return conn, nil
 		}
-		return {{ $r }}.Query{{ $e.StructField }}().Paginate(ctx, after, first, before, last, opts...)
+		return {{ $r }}.Query{{ $e.StructField }}().PaginateLimitOffset(ctx, limit, offset, opts...)
 	}
 {{ end }}
 
