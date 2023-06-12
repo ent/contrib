@@ -272,8 +272,8 @@ func (p *{{ $pager }}) applyFilter(query *{{ $query }}) (*{{ $query }}, error) {
 func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
 	{{- if $multiOrder }}
 		cs := make([]any, 0, len(p.order))
-		for _, o := range p.order {
-			cs = append(cs, o.Field.toCursor({{ $r }}).Value)
+		for _, order := range p.order {
+			cs = append(cs, order.Field.toCursor({{ $r }}).Value)
 		}
 		{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
 		return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}, Value: cs}
