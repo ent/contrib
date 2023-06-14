@@ -42,10 +42,7 @@ func gen() error {
 	}
 	cmd := exec.Command("go", "generate", "./...")
 	cmd.Dir = dir
-
-	// Redirect the command's output to the current process's output
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 	return cmd.Run()
 }
