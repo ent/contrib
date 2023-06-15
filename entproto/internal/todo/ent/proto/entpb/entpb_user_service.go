@@ -171,6 +171,10 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.HeightInCm = height_in_cm
 	id := e.ID
 	v.Id = id
+	int32s := e.Int32s
+	v.Int32S = int32s
+	int64s := e.Int64s
+	v.Int64S = int64s
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
 	labels := e.Labels
@@ -191,6 +195,10 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Status = status
 	_type := wrapperspb.String(e.Type)
 	v.Type = _type
+	uint32s := e.Uint32s
+	v.Uint32S = uint32s
+	uint64s := e.Uint64s
+	v.Uint64S = uint64s
 	user_name := e.UserName
 	v.UserName = user_name
 	if edg := e.Edges.Attachment; edg != nil {
@@ -339,6 +347,14 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetExternalID(userExternalID)
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
+	if user.GetInt32S() != nil {
+		userInt32s := user.GetInt32S()
+		m.SetInt32s(userInt32s)
+	}
+	if user.GetInt64S() != nil {
+		userInt64s := user.GetInt64S()
+		m.SetInt64s(userInt64s)
+	}
 	if user.GetLabels() != nil {
 		userLabels := user.GetLabels()
 		m.SetLabels(userLabels)
@@ -366,6 +382,14 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	if user.GetType() != nil {
 		userType := user.GetType().GetValue()
 		m.SetType(userType)
+	}
+	if user.GetUint32S() != nil {
+		userUint32s := user.GetUint32S()
+		m.SetUint32s(userUint32s)
+	}
+	if user.GetUint64S() != nil {
+		userUint64s := user.GetUint64S()
+		m.SetUint64s(userUint64s)
 	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
@@ -564,6 +588,14 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m.SetExternalID(userExternalID)
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
+	if user.GetInt32S() != nil {
+		userInt32s := user.GetInt32S()
+		m.SetInt32s(userInt32s)
+	}
+	if user.GetInt64S() != nil {
+		userInt64s := user.GetInt64S()
+		m.SetInt64s(userInt64s)
+	}
 	userJoined := runtime.ExtractTime(user.GetJoined())
 	m.SetJoined(userJoined)
 	if user.GetLabels() != nil {
@@ -593,6 +625,14 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	if user.GetType() != nil {
 		userType := user.GetType().GetValue()
 		m.SetType(userType)
+	}
+	if user.GetUint32S() != nil {
+		userUint32s := user.GetUint32S()
+		m.SetUint32s(userUint32s)
+	}
+	if user.GetUint64S() != nil {
+		userUint64s := user.GetUint64S()
+		m.SetUint64s(userUint64s)
 	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)

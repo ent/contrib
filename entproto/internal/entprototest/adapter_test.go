@@ -102,6 +102,23 @@ func (suite *AdapterTestSuite) TestMessageWithStrings() {
 	suite.Require().True(field.IsRepeated(), "expected repeated")
 }
 
+func (suite *AdapterTestSuite) TestMessageWithInts() {
+	message, err := suite.adapter.GetMessageDescriptor("MessageWithInts")
+	suite.NoError(err)
+	field := message.FindFieldByName("int32s")
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_INT32, field.GetType(), "expected repeated")
+	suite.Require().True(field.IsRepeated(), "expected repeated")
+	field = message.FindFieldByName("int64s")
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_INT64, field.GetType(), "expected repeated")
+	suite.Require().True(field.IsRepeated(), "expected repeated")
+	field = message.FindFieldByName("uint32s")
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_UINT32, field.GetType(), "expected repeated")
+	suite.Require().True(field.IsRepeated(), "expected repeated")
+	field = message.FindFieldByName("uint64s")
+	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_UINT64, field.GetType(), "expected repeated")
+	suite.Require().True(field.IsRepeated(), "expected repeated")
+}
+
 func (suite *AdapterTestSuite) TestExplicitSkippedMessage() {
 	_, err := suite.adapter.GetFileDescriptor("ExplicitSkippedMessage")
 	suite.EqualError(err, entproto.ErrSchemaSkipped.Error())

@@ -165,6 +165,18 @@ func (f MessageWithIDFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithIDMutation", m)
 }
 
+// The MessageWithIntsFunc type is an adapter to allow the use of ordinary
+// function as MessageWithInts mutator.
+type MessageWithIntsFunc func(context.Context, *ent.MessageWithIntsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageWithIntsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageWithIntsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithIntsMutation", m)
+}
+
 // The MessageWithOptionalsFunc type is an adapter to allow the use of ordinary
 // function as MessageWithOptionals mutator.
 type MessageWithOptionalsFunc func(context.Context, *ent.MessageWithOptionalsMutation) (ent.Value, error)

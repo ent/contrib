@@ -962,6 +962,46 @@ func LabelsNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldLabels))
 }
 
+// Int32sIsNil applies the IsNil predicate on the "int32s" field.
+func Int32sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInt32s))
+}
+
+// Int32sNotNil applies the NotNil predicate on the "int32s" field.
+func Int32sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInt32s))
+}
+
+// Int64sIsNil applies the IsNil predicate on the "int64s" field.
+func Int64sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInt64s))
+}
+
+// Int64sNotNil applies the NotNil predicate on the "int64s" field.
+func Int64sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInt64s))
+}
+
+// Uint32sIsNil applies the IsNil predicate on the "uint32s" field.
+func Uint32sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUint32s))
+}
+
+// Uint32sNotNil applies the NotNil predicate on the "uint32s" field.
+func Uint32sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUint32s))
+}
+
+// Uint64sIsNil applies the IsNil predicate on the "uint64s" field.
+func Uint64sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUint64s))
+}
+
+// Uint64sNotNil applies the NotNil predicate on the "uint64s" field.
+func Uint64sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUint64s))
+}
+
 // DeviceTypeEQ applies the EQ predicate on the "device_type" field.
 func DeviceTypeEQ(v DeviceType) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDeviceType, v))
