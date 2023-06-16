@@ -25,49 +25,7 @@ func (ismc *ImplicitSkippedMessageCreate) Mutation() *ImplicitSkippedMessageMuta
 
 // Save creates the ImplicitSkippedMessage in the database.
 func (ismc *ImplicitSkippedMessageCreate) Save(ctx context.Context) (*ImplicitSkippedMessage, error) {
-	var (
-		err  error
-		node *ImplicitSkippedMessage
-	)
-	if len(ismc.hooks) == 0 {
-		if err = ismc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ismc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ismc.check(); err != nil {
-				return nil, err
-			}
-			ismc.mutation = mutation
-			if node, err = ismc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ismc.hooks) - 1; i >= 0; i-- {
-			if ismc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ismc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ismc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ImplicitSkippedMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ImplicitSkippedMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ImplicitSkippedMessage, ImplicitSkippedMessageMutation](ctx, ismc.sqlSave, ismc.mutation, ismc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (ismc *ImplicitSkippedMessageCreate) check() error {
 }
 
 func (ismc *ImplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*ImplicitSkippedMessage, error) {
+	if err := ismc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ismc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ismc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,19 +68,15 @@ func (ismc *ImplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*Implici
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ismc.mutation.id = &_node.ID
+	ismc.mutation.done = true
 	return _node, nil
 }
 
 func (ismc *ImplicitSkippedMessageCreate) createSpec() (*ImplicitSkippedMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ImplicitSkippedMessage{config: ismc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: implicitskippedmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(implicitskippedmessage.Table, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -147,8 +104,8 @@ func (ismcb *ImplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Imp
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ismcb.builders[i+1].mutation)
 				} else {

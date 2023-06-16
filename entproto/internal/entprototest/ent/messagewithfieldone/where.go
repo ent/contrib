@@ -9,144 +9,92 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldLTE(FieldID, id))
 }
 
 // FieldOne applies equality check predicate on the "field_one" field. It's identical to FieldOneEQ.
 func FieldOne(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldEQ(FieldFieldOne, v))
 }
 
 // FieldOneEQ applies the EQ predicate on the "field_one" field.
 func FieldOneEQ(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldEQ(FieldFieldOne, v))
 }
 
 // FieldOneNEQ applies the NEQ predicate on the "field_one" field.
 func FieldOneNEQ(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldNEQ(FieldFieldOne, v))
 }
 
 // FieldOneIn applies the In predicate on the "field_one" field.
 func FieldOneIn(vs ...int32) predicate.MessageWithFieldOne {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldFieldOne), v...))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldIn(FieldFieldOne, vs...))
 }
 
 // FieldOneNotIn applies the NotIn predicate on the "field_one" field.
 func FieldOneNotIn(vs ...int32) predicate.MessageWithFieldOne {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldFieldOne), v...))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldNotIn(FieldFieldOne, vs...))
 }
 
 // FieldOneGT applies the GT predicate on the "field_one" field.
 func FieldOneGT(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldGT(FieldFieldOne, v))
 }
 
 // FieldOneGTE applies the GTE predicate on the "field_one" field.
 func FieldOneGTE(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldGTE(FieldFieldOne, v))
 }
 
 // FieldOneLT applies the LT predicate on the "field_one" field.
 func FieldOneLT(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldLT(FieldFieldOne, v))
 }
 
 // FieldOneLTE applies the LTE predicate on the "field_one" field.
 func FieldOneLTE(v int32) predicate.MessageWithFieldOne {
-	return predicate.MessageWithFieldOne(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldFieldOne), v))
-	})
+	return predicate.MessageWithFieldOne(sql.FieldLTE(FieldFieldOne, v))
 }
 
 // And groups predicates with the AND operator between them.

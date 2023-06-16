@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,8 @@ type (
 	Annotation struct {
 		// OrderField is the ordering field as defined in graphql schema.
 		OrderField string `json:"OrderField,omitempty"`
+		// MultiOrder indicates that orderBy should accept a list of OrderField terms.
+		MultiOrder bool `json:"MultiOrder,omitempty"`
 		// Unbind implies the edge field name in GraphQL schema is not equivalent
 		// to the name used in ent schema. That means, by default, edges with this
 		// annotation will not be eager-loaded on Paginate calls. See the `MapsTo`
@@ -73,7 +75,8 @@ type (
 
 	// MutationConfig hold config for mutation
 	MutationConfig struct {
-		IsCreate bool `json:"IsCreate,omitempty"`
+		IsCreate    bool   `json:"IsCreate,omitempty"`
+		Description string `json:"Description,omitempty"`
 	}
 )
 
@@ -132,6 +135,11 @@ func (Annotation) Name() string {
 //		)
 func OrderField(name string) Annotation {
 	return Annotation{OrderField: name}
+}
+
+// MultiOrder indicates that orderBy should accept a list of OrderField terms.
+func MultiOrder() Annotation {
+	return Annotation{MultiOrder: true}
 }
 
 // Bind returns a binding annotation.
@@ -361,18 +369,46 @@ func (a queryFieldAnnotation) Description(text string) queryFieldAnnotation {
 
 type MutationOption interface {
 	IsCreate() bool
+	GetDescription() string
+
+	// Description allows you to customize the comment of the auto-generated Mutation Input
+	//
+	// For example,
+	//
+	//   entgql.Mutations(
+	//       entgql.MutationCreate().
+	// 		     Description("The fields used in the creation of a TodoItem"),
+	//   ),
+	//
+	// Creates
+	//
+	//  """The fields used in the creation of a TodoItem"""
+	//  input CreateTodoItem {
+	//  	"""fields omitted"""
+	//  }
+	Description(string) MutationOption
 }
 
-type builtinMutation bool
+type builtinMutation struct {
+	description string
+	isCreate    bool
+}
 
-func (v builtinMutation) IsCreate() bool { return bool(v) }
+func (v builtinMutation) IsCreate() bool { return v.isCreate }
+
+func (v builtinMutation) GetDescription() string { return v.description }
+
+func (v builtinMutation) Description(desc string) MutationOption {
+	v.description = desc
+	return v
+}
 
 func MutationCreate() MutationOption {
-	return builtinMutation(true)
+	return builtinMutation{isCreate: true}
 }
 
 func MutationUpdate() MutationOption {
-	return builtinMutation(false)
+	return builtinMutation{isCreate: false}
 }
 
 // Mutations returns an annotation for generate input types for mutation.
@@ -383,7 +419,10 @@ func Mutations(inputs ...MutationOption) Annotation {
 
 	a := []MutationConfig{}
 	for _, f := range inputs {
-		a = append(a, MutationConfig{IsCreate: f.IsCreate()})
+		a = append(a, MutationConfig{
+			IsCreate:    f.IsCreate(),
+			Description: f.GetDescription(),
+		})
 	}
 	return Annotation{MutationInputs: a}
 }
@@ -409,6 +448,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.OrderField != "" {
 		a.OrderField = ant.OrderField
+	}
+	if ant.MultiOrder {
+		a.MultiOrder = true
 	}
 	if ant.Unbind {
 		a.Unbind = true
@@ -466,7 +508,7 @@ func (c FieldConfig) fieldName(gqlType string) string {
 	if c.Name != "" {
 		return c.Name
 	}
-	return camel(plural(gqlType))
+	return camel(snake(plural(gqlType)))
 }
 
 func (c *FieldConfig) merge(ant *FieldConfig) {

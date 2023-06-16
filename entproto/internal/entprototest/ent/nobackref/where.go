@@ -10,73 +10,47 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.NoBackref(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.NoBackref(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.NoBackref {
-	return predicate.NoBackref(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.NoBackref(sql.FieldLTE(FieldID, id))
 }
 
 // HasImages applies the HasEdge predicate on the "images" edge.
@@ -84,7 +58,6 @@ func HasImages() predicate.NoBackref {
 	return predicate.NoBackref(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ImagesTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ImagesTable, ImagesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -94,11 +67,7 @@ func HasImages() predicate.NoBackref {
 // HasImagesWith applies the HasEdge predicate on the "images" edge with a given conditions (other predicates).
 func HasImagesWith(preds ...predicate.Image) predicate.NoBackref {
 	return predicate.NoBackref(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ImagesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ImagesTable, ImagesColumn),
-		)
+		step := newImagesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

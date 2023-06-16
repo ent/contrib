@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (amsd *AllMethodsServiceDelete) Where(ps ...predicate.AllMethodsService) *A
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (amsd *AllMethodsServiceDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(amsd.hooks) == 0 {
-		affected, err = amsd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AllMethodsServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			amsd.mutation = mutation
-			affected, err = amsd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(amsd.hooks) - 1; i >= 0; i-- {
-			if amsd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = amsd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, amsd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, AllMethodsServiceMutation](ctx, amsd.sqlExec, amsd.mutation, amsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (amsd *AllMethodsServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (amsd *AllMethodsServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: allmethodsservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allmethodsservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(allmethodsservice.Table, sqlgraph.NewFieldSpec(allmethodsservice.FieldID, field.TypeInt))
 	if ps := amsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (amsd *AllMethodsServiceDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	amsd.mutation.done = true
 	return affected, err
 }
 
 // AllMethodsServiceDeleteOne is the builder for deleting a single AllMethodsService entity.
 type AllMethodsServiceDeleteOne struct {
 	amsd *AllMethodsServiceDelete
+}
+
+// Where appends a list predicates to the AllMethodsServiceDelete builder.
+func (amsdo *AllMethodsServiceDeleteOne) Where(ps ...predicate.AllMethodsService) *AllMethodsServiceDeleteOne {
+	amsdo.amsd.mutation.Where(ps...)
+	return amsdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (amsdo *AllMethodsServiceDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (amsdo *AllMethodsServiceDeleteOne) ExecX(ctx context.Context) {
-	amsdo.amsd.ExecX(ctx)
+	if err := amsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

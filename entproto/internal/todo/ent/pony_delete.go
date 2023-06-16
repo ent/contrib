@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/pony"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
@@ -28,34 +27,7 @@ func (pd *PonyDelete) Where(ps ...predicate.Pony) *PonyDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (pd *PonyDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(pd.hooks) == 0 {
-		affected, err = pd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PonyMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pd.mutation = mutation
-			affected, err = pd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(pd.hooks) - 1; i >= 0; i-- {
-			if pd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = pd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, pd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, PonyMutation](ctx, pd.sqlExec, pd.mutation, pd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (pd *PonyDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *PonyDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: pony.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(pony.Table, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	if ps := pd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (pd *PonyDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	pd.mutation.done = true
 	return affected, err
 }
 
 // PonyDeleteOne is the builder for deleting a single Pony entity.
 type PonyDeleteOne struct {
 	pd *PonyDelete
+}
+
+// Where appends a list predicates to the PonyDelete builder.
+func (pdo *PonyDeleteOne) Where(ps ...predicate.Pony) *PonyDeleteOne {
+	pdo.pd.mutation.Where(ps...)
+	return pdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (pdo *PonyDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (pdo *PonyDeleteOne) ExecX(ctx context.Context) {
-	pdo.pd.ExecX(ctx)
+	if err := pdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

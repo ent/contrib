@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"text/template"
 	"text/template/parse"
@@ -29,6 +30,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/ast"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -41,6 +43,9 @@ var (
 
 	// NodeTemplate implements the Relay Node interface for all types.
 	NodeTemplate = parseT("template/node.tmpl")
+
+	// NodeDescriptorTemplate implements the Node descriptor API for all types.
+	NodeDescriptorTemplate = parseT("template/node_descriptor.tmpl")
 
 	// PaginationTemplate adds pagination support according to the GraphQL Cursor Connections Spec.
 	// More info can be found in the following link: https://relay.dev/graphql/connections.htm.
@@ -73,6 +78,7 @@ var (
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
 		"fieldCollections":    fieldCollections,
+		"fieldMapping":        fieldMapping,
 		"filterEdges":         filterEdges,
 		"filterFields":        filterFields,
 		"filterNodes":         filterNodes,
@@ -83,6 +89,8 @@ var (
 		"isRelayConn":         isRelayConn,
 		"isSkipMode":          isSkipMode,
 		"mutationInputs":      mutationInputs,
+		"nodeImplementors":    nodeImplementors,
+		"nodeImplementorsVar": nodeImplementorsVar,
 		"nodePaginationNames": nodePaginationNames,
 		"orderFields":         orderFields,
 		"skipMode":            skipModeFromString,
@@ -227,7 +235,10 @@ type InputFieldDescriptor struct {
 
 // IsPointer returns true if the Go type should be a pointer
 func (f *InputFieldDescriptor) IsPointer() bool {
-	return f.Nullable && !f.Type.RType.IsPtr()
+	if f.Type.Nillable || f.Type.RType.IsPtr() {
+		return false
+	}
+	return f.Nullable
 }
 
 // InputFields returns the list of fields in the input type.
@@ -358,23 +369,121 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 	return filteredFields, nil
 }
 
-// orderFields returns the fields of the given node with the `OrderField` annotation.
-func orderFields(n *gen.Type) ([]*gen.Field, error) {
-	var ordered []*gen.Field
-	for _, f := range n.Fields {
-		ant, err := annotation(f.Annotations)
-		if err != nil {
-			return nil, err
-		}
-		if ant.Skip.Is(SkipOrderField) || ant.OrderField == "" {
-			continue
-		}
-		if !f.Type.Comparable() {
-			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
-		}
-		ordered = append(ordered, f)
+// OrderTerm is a struct that represents a single GraphQL order term.
+type OrderTerm struct {
+	GQL   string     // The GraphQL name of the field.
+	Type  *gen.Type  // The type that owns the field.
+	Field *gen.Field // Not nil if it is a type/edge field.
+	Edge  *gen.Edge  // Not nil if it is an edge field or count.
+	Count bool       // True if it is a count field.
+}
+
+// IsFieldTerm returns true if the order term is a type field term.
+func (o *OrderTerm) IsFieldTerm() bool {
+	return o.Field != nil && o.Edge == nil
+}
+
+// IsEdgeFieldTerm returns true if the order term is an edge field term.
+func (o *OrderTerm) IsEdgeFieldTerm() bool {
+	return o.Field != nil && o.Edge != nil
+}
+
+// IsEdgeCountTerm returns true if the order term is an edge count term.
+func (o *OrderTerm) IsEdgeCountTerm() bool {
+	return o.Field == nil && o.Edge != nil && o.Count
+}
+
+// VarName returns the name of the variable holding the order term.
+func (o *OrderTerm) VarName() (string, error) {
+	switch prefix := paginationNames(o.Type.Name).OrderField; {
+	case o.IsFieldTerm():
+		return prefix + o.Field.StructField(), nil
+	case o.IsEdgeFieldTerm():
+		return prefix + o.Edge.StructField() + o.Field.StructField(), nil
+	case o.IsEdgeCountTerm():
+		return prefix + o.Edge.StructField() + "Count", nil
+	default:
+		return "", fmt.Errorf("entgql: invalid order term %v", o)
 	}
-	return ordered, nil
+}
+
+// VarField returns the field name inside the variable holding the order term.
+func (o *OrderTerm) VarField() (string, error) {
+	switch {
+	case o.IsFieldTerm():
+		return fmt.Sprintf("%s.%s", o.Type.Package(), o.Field.Constant()), nil
+	case o.IsEdgeFieldTerm(), o.IsEdgeCountTerm():
+		return strconv.Quote(strings.ToLower(o.GQL)), nil
+	default:
+		return "", fmt.Errorf("entgql: invalid order term %v", o)
+	}
+}
+
+// orderFields returns the GraphQL fields of the given node with the `OrderField` annotation.
+func orderFields(n *gen.Type) ([]*OrderTerm, error) {
+	var (
+		terms  []*OrderTerm
+		fields = n.Fields
+	)
+	if n.HasOneFieldID() {
+		fields = append([]*gen.Field{n.ID}, fields...)
+	}
+	for _, f := range fields {
+		switch ant, err := annotation(f.Annotations); {
+		case err != nil:
+			return nil, err
+		case ant.Skip.Is(SkipOrderField), ant.OrderField == "":
+		case !f.Type.Comparable():
+			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
+		default:
+			terms = append(terms, &OrderTerm{
+				GQL:   ant.OrderField,
+				Type:  n,
+				Field: f,
+			})
+		}
+	}
+	for _, e := range n.Edges {
+		name := strings.ToUpper(e.Name)
+		switch ant, err := annotation(e.Annotations); {
+		case err != nil:
+			return nil, err
+		case ant.Skip.Is(SkipOrderField), ant.OrderField == "":
+		case ant.OrderField == fmt.Sprintf("%s_COUNT", name):
+			// Validate that the edge has a count ordering.
+			if _, err := e.OrderCountName(); err != nil {
+				return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
+			}
+			terms = append(terms, &OrderTerm{
+				GQL:   ant.OrderField,
+				Type:  n,
+				Edge:  e,
+				Count: true,
+			})
+		case strings.HasPrefix(ant.OrderField, name+"_"):
+			// Validate that the edge has a edge field ordering.
+			if _, err := e.OrderFieldName(); err != nil {
+				return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
+			}
+			ef := strings.TrimPrefix(ant.OrderField, name+"_")
+			idx := slices.IndexFunc(e.Type.Fields, func(f *gen.Field) bool {
+				ant, err := annotation(f.Annotations)
+				return err == nil && ant.OrderField == ef
+			})
+			if idx == -1 {
+				return nil, fmt.Errorf("entgql: order field %s defined on edge %s.%s was not found on its reference", ant.OrderField, n.Name, e.Name)
+			}
+			terms = append(terms, &OrderTerm{
+				GQL:   ant.OrderField,
+				Edge:  e,
+				Type:  e.Type,
+				Field: e.Type.Fields[idx],
+			})
+		default:
+			return nil, fmt.Errorf("entgql: invalid order field defined on edge %s.%s", n.Name, e.Name)
+		}
+	}
+	return terms, nil
 }
 
 // hasWhereInput returns true if neither the edge nor its
@@ -392,22 +501,27 @@ func hasWhereInput(n *gen.Edge) (v bool, err error) {
 }
 
 // skipModeFromString returns SkipFlag from a string
-func skipModeFromString(s string) (SkipMode, error) {
-	switch s {
-	case "type":
-		return SkipType, nil
-	case "enum_field":
-		return SkipEnumField, nil
-	case "order_field":
-		return SkipOrderField, nil
-	case "where_input":
-		return SkipWhereInput, nil
-	case "mutation_create_input":
-		return SkipMutationCreateInput, nil
-	case "mutation_update_input":
-		return SkipMutationUpdateInput, nil
+func skipModeFromString(modes ...string) (SkipMode, error) {
+	var m SkipMode
+	for _, s := range modes {
+		switch s {
+		case "type":
+			m |= SkipType
+		case "enum_field":
+			m |= SkipEnumField
+		case "order_field":
+			m |= SkipOrderField
+		case "where_input":
+			m |= SkipWhereInput
+		case "mutation_create_input":
+			m |= SkipMutationCreateInput
+		case "mutation_update_input":
+			m |= SkipMutationUpdateInput
+		default:
+			return 0, fmt.Errorf("invalid skip mode: %s", s)
+		}
 	}
-	return 0, fmt.Errorf("invalid skip mode: %s", s)
+	return m, nil
 }
 
 func isSkipMode(antSkip interface{}, m string) (bool, error) {
@@ -491,7 +605,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 		Fields: ast.FieldList{
 			{
 				Name: "direction",
-				Type: ast.NonNullNamedType(OrderDirection, nil),
+				Type: ast.NonNullNamedType(OrderDirectionEnum, nil),
 				DefaultValue: &ast.Value{
 					Raw:  "ASC",
 					Kind: ast.EnumValue,
@@ -507,7 +621,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 	}
 }
 
-func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput bool) *ast.FieldDefinition {
+func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, hasWhereInput bool) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: name,
 		Type: ast.NonNullNamedType(p.Connection, nil),
@@ -535,9 +649,13 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, hasWhereInput
 		},
 	}
 	if hasOrderBy {
+		orderT := ast.NamedType(p.Order, nil)
+		if multiOrder {
+			orderT = ast.ListType(ast.NonNullNamedType(p.Order, nil), nil)
+		}
 		def.Arguments = append(def.Arguments, &ast.ArgumentDefinition{
 			Name:        "orderBy",
-			Type:        ast.NamedType(p.Order, nil),
+			Type:        orderT,
 			Description: fmt.Sprintf("Ordering options for %s returned from the connection.", plural(p.Node)),
 		})
 	}
@@ -636,4 +754,19 @@ func skipMutationTemplate(g *gen.Graph) bool {
 		}
 	}
 	return true
+}
+
+func nodeImplementors(n *gen.Type) (ifaces []string, err error) {
+	ant, err := annotation(n.Annotations)
+	if err != nil {
+		return nil, err
+	}
+	if !ant.Skip.Is(SkipType) && !slices.Contains(ant.Implements, "Node") {
+		ifaces = append(ifaces, "Node")
+	}
+	return append(ifaces, ant.Implements...), nil
+}
+
+func nodeImplementorsVar(n *gen.Type) string {
+	return strings.ToLower(n.Name) + "Implementors"
 }

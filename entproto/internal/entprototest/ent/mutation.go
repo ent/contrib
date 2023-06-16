@@ -13,10 +13,12 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/enumwithconflictingvalue"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithints"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
@@ -27,9 +29,9 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
-	"github.com/google/uuid"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -41,28 +43,30 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAllMethodsService      = "AllMethodsService"
-	TypeBlogPost               = "BlogPost"
-	TypeCategory               = "Category"
-	TypeDependsOnSkipped       = "DependsOnSkipped"
-	TypeDuplicateNumberMessage = "DuplicateNumberMessage"
-	TypeExplicitSkippedMessage = "ExplicitSkippedMessage"
-	TypeImage                  = "Image"
-	TypeImplicitSkippedMessage = "ImplicitSkippedMessage"
-	TypeInvalidFieldMessage    = "InvalidFieldMessage"
-	TypeMessageWithEnum        = "MessageWithEnum"
-	TypeMessageWithFieldOne    = "MessageWithFieldOne"
-	TypeMessageWithID          = "MessageWithID"
-	TypeMessageWithOptionals   = "MessageWithOptionals"
-	TypeMessageWithPackageName = "MessageWithPackageName"
-	TypeMessageWithStrings     = "MessageWithStrings"
-	TypeNoBackref              = "NoBackref"
-	TypeOneMethodService       = "OneMethodService"
-	TypePortal                 = "Portal"
-	TypeSkipEdgeExample        = "SkipEdgeExample"
-	TypeTwoMethodService       = "TwoMethodService"
-	TypeUser                   = "User"
-	TypeValidMessage           = "ValidMessage"
+	TypeAllMethodsService        = "AllMethodsService"
+	TypeBlogPost                 = "BlogPost"
+	TypeCategory                 = "Category"
+	TypeDependsOnSkipped         = "DependsOnSkipped"
+	TypeDuplicateNumberMessage   = "DuplicateNumberMessage"
+	TypeEnumWithConflictingValue = "EnumWithConflictingValue"
+	TypeExplicitSkippedMessage   = "ExplicitSkippedMessage"
+	TypeImage                    = "Image"
+	TypeImplicitSkippedMessage   = "ImplicitSkippedMessage"
+	TypeInvalidFieldMessage      = "InvalidFieldMessage"
+	TypeMessageWithEnum          = "MessageWithEnum"
+	TypeMessageWithFieldOne      = "MessageWithFieldOne"
+	TypeMessageWithID            = "MessageWithID"
+	TypeMessageWithInts          = "MessageWithInts"
+	TypeMessageWithOptionals     = "MessageWithOptionals"
+	TypeMessageWithPackageName   = "MessageWithPackageName"
+	TypeMessageWithStrings       = "MessageWithStrings"
+	TypeNoBackref                = "NoBackref"
+	TypeOneMethodService         = "OneMethodService"
+	TypePortal                   = "Portal"
+	TypeSkipEdgeExample          = "SkipEdgeExample"
+	TypeTwoMethodService         = "TwoMethodService"
+	TypeUser                     = "User"
+	TypeValidMessage             = "ValidMessage"
 )
 
 // AllMethodsServiceMutation represents an operation that mutates the AllMethodsService nodes in the graph.
@@ -180,9 +184,24 @@ func (m *AllMethodsServiceMutation) Where(ps ...predicate.AllMethodsService) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the AllMethodsServiceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AllMethodsServiceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AllMethodsService, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *AllMethodsServiceMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AllMethodsServiceMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (AllMethodsService).
@@ -659,9 +678,24 @@ func (m *BlogPostMutation) Where(ps ...predicate.BlogPost) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the BlogPostMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BlogPostMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.BlogPost, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *BlogPostMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BlogPostMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (BlogPost).
@@ -1167,9 +1201,24 @@ func (m *CategoryMutation) Where(ps ...predicate.Category) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the CategoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CategoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Category, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *CategoryMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CategoryMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Category).
@@ -1588,9 +1637,24 @@ func (m *DependsOnSkippedMutation) Where(ps ...predicate.DependsOnSkipped) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the DependsOnSkippedMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DependsOnSkippedMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DependsOnSkipped, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *DependsOnSkippedMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DependsOnSkippedMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (DependsOnSkipped).
@@ -1972,9 +2036,24 @@ func (m *DuplicateNumberMessageMutation) Where(ps ...predicate.DuplicateNumberMe
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the DuplicateNumberMessageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DuplicateNumberMessageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DuplicateNumberMessage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *DuplicateNumberMessageMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DuplicateNumberMessageMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (DuplicateNumberMessage).
@@ -2148,6 +2227,332 @@ func (m *DuplicateNumberMessageMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown DuplicateNumberMessage edge %s", name)
 }
 
+// EnumWithConflictingValueMutation represents an operation that mutates the EnumWithConflictingValue nodes in the graph.
+type EnumWithConflictingValueMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	enum          *enumwithconflictingvalue.Enum
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*EnumWithConflictingValue, error)
+	predicates    []predicate.EnumWithConflictingValue
+}
+
+var _ ent.Mutation = (*EnumWithConflictingValueMutation)(nil)
+
+// enumwithconflictingvalueOption allows management of the mutation configuration using functional options.
+type enumwithconflictingvalueOption func(*EnumWithConflictingValueMutation)
+
+// newEnumWithConflictingValueMutation creates new mutation for the EnumWithConflictingValue entity.
+func newEnumWithConflictingValueMutation(c config, op Op, opts ...enumwithconflictingvalueOption) *EnumWithConflictingValueMutation {
+	m := &EnumWithConflictingValueMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEnumWithConflictingValue,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEnumWithConflictingValueID sets the ID field of the mutation.
+func withEnumWithConflictingValueID(id int) enumwithconflictingvalueOption {
+	return func(m *EnumWithConflictingValueMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EnumWithConflictingValue
+		)
+		m.oldValue = func(ctx context.Context) (*EnumWithConflictingValue, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EnumWithConflictingValue.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEnumWithConflictingValue sets the old EnumWithConflictingValue of the mutation.
+func withEnumWithConflictingValue(node *EnumWithConflictingValue) enumwithconflictingvalueOption {
+	return func(m *EnumWithConflictingValueMutation) {
+		m.oldValue = func(context.Context) (*EnumWithConflictingValue, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EnumWithConflictingValueMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EnumWithConflictingValueMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EnumWithConflictingValueMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EnumWithConflictingValueMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EnumWithConflictingValue.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetEnum sets the "enum" field.
+func (m *EnumWithConflictingValueMutation) SetEnum(e enumwithconflictingvalue.Enum) {
+	m.enum = &e
+}
+
+// Enum returns the value of the "enum" field in the mutation.
+func (m *EnumWithConflictingValueMutation) Enum() (r enumwithconflictingvalue.Enum, exists bool) {
+	v := m.enum
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnum returns the old "enum" field's value of the EnumWithConflictingValue entity.
+// If the EnumWithConflictingValue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnumWithConflictingValueMutation) OldEnum(ctx context.Context) (v enumwithconflictingvalue.Enum, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnum is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnum requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnum: %w", err)
+	}
+	return oldValue.Enum, nil
+}
+
+// ResetEnum resets all changes to the "enum" field.
+func (m *EnumWithConflictingValueMutation) ResetEnum() {
+	m.enum = nil
+}
+
+// Where appends a list predicates to the EnumWithConflictingValueMutation builder.
+func (m *EnumWithConflictingValueMutation) Where(ps ...predicate.EnumWithConflictingValue) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EnumWithConflictingValueMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EnumWithConflictingValueMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EnumWithConflictingValue, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EnumWithConflictingValueMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EnumWithConflictingValueMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EnumWithConflictingValue).
+func (m *EnumWithConflictingValueMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EnumWithConflictingValueMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.enum != nil {
+		fields = append(fields, enumwithconflictingvalue.FieldEnum)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EnumWithConflictingValueMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case enumwithconflictingvalue.FieldEnum:
+		return m.Enum()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EnumWithConflictingValueMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case enumwithconflictingvalue.FieldEnum:
+		return m.OldEnum(ctx)
+	}
+	return nil, fmt.Errorf("unknown EnumWithConflictingValue field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnumWithConflictingValueMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case enumwithconflictingvalue.FieldEnum:
+		v, ok := value.(enumwithconflictingvalue.Enum)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnum(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EnumWithConflictingValue field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EnumWithConflictingValueMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EnumWithConflictingValueMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EnumWithConflictingValueMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown EnumWithConflictingValue numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EnumWithConflictingValueMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EnumWithConflictingValueMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EnumWithConflictingValueMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown EnumWithConflictingValue nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EnumWithConflictingValueMutation) ResetField(name string) error {
+	switch name {
+	case enumwithconflictingvalue.FieldEnum:
+		m.ResetEnum()
+		return nil
+	}
+	return fmt.Errorf("unknown EnumWithConflictingValue field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EnumWithConflictingValueMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EnumWithConflictingValueMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EnumWithConflictingValueMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EnumWithConflictingValueMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EnumWithConflictingValueMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EnumWithConflictingValueMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EnumWithConflictingValueMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown EnumWithConflictingValue unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EnumWithConflictingValueMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown EnumWithConflictingValue edge %s", name)
+}
+
 // ExplicitSkippedMessageMutation represents an operation that mutates the ExplicitSkippedMessage nodes in the graph.
 type ExplicitSkippedMessageMutation struct {
 	config
@@ -2263,9 +2668,24 @@ func (m *ExplicitSkippedMessageMutation) Where(ps ...predicate.ExplicitSkippedMe
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ExplicitSkippedMessageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ExplicitSkippedMessageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ExplicitSkippedMessage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ExplicitSkippedMessageMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ExplicitSkippedMessageMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (ExplicitSkippedMessage).
@@ -2612,9 +3032,24 @@ func (m *ImageMutation) Where(ps ...predicate.Image) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ImageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ImageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Image, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ImageMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ImageMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Image).
@@ -2922,9 +3357,24 @@ func (m *ImplicitSkippedMessageMutation) Where(ps ...predicate.ImplicitSkippedMe
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ImplicitSkippedMessageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ImplicitSkippedMessageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ImplicitSkippedMessage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ImplicitSkippedMessageMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ImplicitSkippedMessageMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (ImplicitSkippedMessage).
@@ -3208,9 +3658,24 @@ func (m *InvalidFieldMessageMutation) Where(ps ...predicate.InvalidFieldMessage)
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the InvalidFieldMessageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InvalidFieldMessageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.InvalidFieldMessage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *InvalidFieldMessageMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InvalidFieldMessageMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (InvalidFieldMessage).
@@ -3370,15 +3835,16 @@ func (m *InvalidFieldMessageMutation) ResetEdge(name string) error {
 // MessageWithEnumMutation represents an operation that mutates the MessageWithEnum nodes in the graph.
 type MessageWithEnumMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	enum_type            *messagewithenum.EnumType
-	enum_without_default *messagewithenum.EnumWithoutDefault
-	clearedFields        map[string]struct{}
-	done                 bool
-	oldValue             func(context.Context) (*MessageWithEnum, error)
-	predicates           []predicate.MessageWithEnum
+	op                           Op
+	typ                          string
+	id                           *int
+	enum_type                    *messagewithenum.EnumType
+	enum_without_default         *messagewithenum.EnumWithoutDefault
+	enum_with_special_characters *messagewithenum.EnumWithSpecialCharacters
+	clearedFields                map[string]struct{}
+	done                         bool
+	oldValue                     func(context.Context) (*MessageWithEnum, error)
+	predicates                   []predicate.MessageWithEnum
 }
 
 var _ ent.Mutation = (*MessageWithEnumMutation)(nil)
@@ -3551,14 +4017,65 @@ func (m *MessageWithEnumMutation) ResetEnumWithoutDefault() {
 	m.enum_without_default = nil
 }
 
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (m *MessageWithEnumMutation) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) {
+	m.enum_with_special_characters = &mwsc
+}
+
+// EnumWithSpecialCharacters returns the value of the "enum_with_special_characters" field in the mutation.
+func (m *MessageWithEnumMutation) EnumWithSpecialCharacters() (r messagewithenum.EnumWithSpecialCharacters, exists bool) {
+	v := m.enum_with_special_characters
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnumWithSpecialCharacters returns the old "enum_with_special_characters" field's value of the MessageWithEnum entity.
+// If the MessageWithEnum object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithEnumMutation) OldEnumWithSpecialCharacters(ctx context.Context) (v messagewithenum.EnumWithSpecialCharacters, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnumWithSpecialCharacters is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnumWithSpecialCharacters requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnumWithSpecialCharacters: %w", err)
+	}
+	return oldValue.EnumWithSpecialCharacters, nil
+}
+
+// ResetEnumWithSpecialCharacters resets all changes to the "enum_with_special_characters" field.
+func (m *MessageWithEnumMutation) ResetEnumWithSpecialCharacters() {
+	m.enum_with_special_characters = nil
+}
+
 // Where appends a list predicates to the MessageWithEnumMutation builder.
 func (m *MessageWithEnumMutation) Where(ps ...predicate.MessageWithEnum) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MessageWithEnumMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithEnumMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithEnum, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithEnumMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithEnumMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MessageWithEnum).
@@ -3570,12 +4087,15 @@ func (m *MessageWithEnumMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageWithEnumMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.enum_type != nil {
 		fields = append(fields, messagewithenum.FieldEnumType)
 	}
 	if m.enum_without_default != nil {
 		fields = append(fields, messagewithenum.FieldEnumWithoutDefault)
+	}
+	if m.enum_with_special_characters != nil {
+		fields = append(fields, messagewithenum.FieldEnumWithSpecialCharacters)
 	}
 	return fields
 }
@@ -3589,6 +4109,8 @@ func (m *MessageWithEnumMutation) Field(name string) (ent.Value, bool) {
 		return m.EnumType()
 	case messagewithenum.FieldEnumWithoutDefault:
 		return m.EnumWithoutDefault()
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		return m.EnumWithSpecialCharacters()
 	}
 	return nil, false
 }
@@ -3602,6 +4124,8 @@ func (m *MessageWithEnumMutation) OldField(ctx context.Context, name string) (en
 		return m.OldEnumType(ctx)
 	case messagewithenum.FieldEnumWithoutDefault:
 		return m.OldEnumWithoutDefault(ctx)
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		return m.OldEnumWithSpecialCharacters(ctx)
 	}
 	return nil, fmt.Errorf("unknown MessageWithEnum field %s", name)
 }
@@ -3624,6 +4148,13 @@ func (m *MessageWithEnumMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnumWithoutDefault(v)
+		return nil
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		v, ok := value.(messagewithenum.EnumWithSpecialCharacters)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnumWithSpecialCharacters(v)
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithEnum field %s", name)
@@ -3679,6 +4210,9 @@ func (m *MessageWithEnumMutation) ResetField(name string) error {
 		return nil
 	case messagewithenum.FieldEnumWithoutDefault:
 		m.ResetEnumWithoutDefault()
+		return nil
+	case messagewithenum.FieldEnumWithSpecialCharacters:
+		m.ResetEnumWithSpecialCharacters()
 		return nil
 	}
 	return fmt.Errorf("unknown MessageWithEnum field %s", name)
@@ -3905,9 +4439,24 @@ func (m *MessageWithFieldOneMutation) Where(ps ...predicate.MessageWithFieldOne)
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MessageWithFieldOneMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithFieldOneMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithFieldOne, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithFieldOneMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithFieldOneMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MessageWithFieldOne).
@@ -4200,9 +4749,24 @@ func (m *MessageWithIDMutation) Where(ps ...predicate.MessageWithID) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MessageWithIDMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithIDMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithID, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithIDMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithIDMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MessageWithID).
@@ -4332,6 +4896,558 @@ func (m *MessageWithIDMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *MessageWithIDMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown MessageWithID edge %s", name)
+}
+
+// MessageWithIntsMutation represents an operation that mutates the MessageWithInts nodes in the graph.
+type MessageWithIntsMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	int32s        *[]int32
+	appendint32s  []int32
+	int64s        *[]int64
+	appendint64s  []int64
+	uint32s       *[]uint32
+	appenduint32s []uint32
+	uint64s       *[]uint64
+	appenduint64s []uint64
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*MessageWithInts, error)
+	predicates    []predicate.MessageWithInts
+}
+
+var _ ent.Mutation = (*MessageWithIntsMutation)(nil)
+
+// messagewithintsOption allows management of the mutation configuration using functional options.
+type messagewithintsOption func(*MessageWithIntsMutation)
+
+// newMessageWithIntsMutation creates new mutation for the MessageWithInts entity.
+func newMessageWithIntsMutation(c config, op Op, opts ...messagewithintsOption) *MessageWithIntsMutation {
+	m := &MessageWithIntsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMessageWithInts,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMessageWithIntsID sets the ID field of the mutation.
+func withMessageWithIntsID(id int) messagewithintsOption {
+	return func(m *MessageWithIntsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MessageWithInts
+		)
+		m.oldValue = func(ctx context.Context) (*MessageWithInts, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MessageWithInts.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMessageWithInts sets the old MessageWithInts of the mutation.
+func withMessageWithInts(node *MessageWithInts) messagewithintsOption {
+	return func(m *MessageWithIntsMutation) {
+		m.oldValue = func(context.Context) (*MessageWithInts, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MessageWithIntsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MessageWithIntsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MessageWithIntsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MessageWithIntsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MessageWithInts.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetInt32s sets the "int32s" field.
+func (m *MessageWithIntsMutation) SetInt32s(i []int32) {
+	m.int32s = &i
+	m.appendint32s = nil
+}
+
+// Int32s returns the value of the "int32s" field in the mutation.
+func (m *MessageWithIntsMutation) Int32s() (r []int32, exists bool) {
+	v := m.int32s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInt32s returns the old "int32s" field's value of the MessageWithInts entity.
+// If the MessageWithInts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithIntsMutation) OldInt32s(ctx context.Context) (v []int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInt32s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInt32s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInt32s: %w", err)
+	}
+	return oldValue.Int32s, nil
+}
+
+// AppendInt32s adds i to the "int32s" field.
+func (m *MessageWithIntsMutation) AppendInt32s(i []int32) {
+	m.appendint32s = append(m.appendint32s, i...)
+}
+
+// AppendedInt32s returns the list of values that were appended to the "int32s" field in this mutation.
+func (m *MessageWithIntsMutation) AppendedInt32s() ([]int32, bool) {
+	if len(m.appendint32s) == 0 {
+		return nil, false
+	}
+	return m.appendint32s, true
+}
+
+// ResetInt32s resets all changes to the "int32s" field.
+func (m *MessageWithIntsMutation) ResetInt32s() {
+	m.int32s = nil
+	m.appendint32s = nil
+}
+
+// SetInt64s sets the "int64s" field.
+func (m *MessageWithIntsMutation) SetInt64s(i []int64) {
+	m.int64s = &i
+	m.appendint64s = nil
+}
+
+// Int64s returns the value of the "int64s" field in the mutation.
+func (m *MessageWithIntsMutation) Int64s() (r []int64, exists bool) {
+	v := m.int64s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInt64s returns the old "int64s" field's value of the MessageWithInts entity.
+// If the MessageWithInts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithIntsMutation) OldInt64s(ctx context.Context) (v []int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInt64s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInt64s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInt64s: %w", err)
+	}
+	return oldValue.Int64s, nil
+}
+
+// AppendInt64s adds i to the "int64s" field.
+func (m *MessageWithIntsMutation) AppendInt64s(i []int64) {
+	m.appendint64s = append(m.appendint64s, i...)
+}
+
+// AppendedInt64s returns the list of values that were appended to the "int64s" field in this mutation.
+func (m *MessageWithIntsMutation) AppendedInt64s() ([]int64, bool) {
+	if len(m.appendint64s) == 0 {
+		return nil, false
+	}
+	return m.appendint64s, true
+}
+
+// ResetInt64s resets all changes to the "int64s" field.
+func (m *MessageWithIntsMutation) ResetInt64s() {
+	m.int64s = nil
+	m.appendint64s = nil
+}
+
+// SetUint32s sets the "uint32s" field.
+func (m *MessageWithIntsMutation) SetUint32s(u []uint32) {
+	m.uint32s = &u
+	m.appenduint32s = nil
+}
+
+// Uint32s returns the value of the "uint32s" field in the mutation.
+func (m *MessageWithIntsMutation) Uint32s() (r []uint32, exists bool) {
+	v := m.uint32s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUint32s returns the old "uint32s" field's value of the MessageWithInts entity.
+// If the MessageWithInts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithIntsMutation) OldUint32s(ctx context.Context) (v []uint32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUint32s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUint32s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUint32s: %w", err)
+	}
+	return oldValue.Uint32s, nil
+}
+
+// AppendUint32s adds u to the "uint32s" field.
+func (m *MessageWithIntsMutation) AppendUint32s(u []uint32) {
+	m.appenduint32s = append(m.appenduint32s, u...)
+}
+
+// AppendedUint32s returns the list of values that were appended to the "uint32s" field in this mutation.
+func (m *MessageWithIntsMutation) AppendedUint32s() ([]uint32, bool) {
+	if len(m.appenduint32s) == 0 {
+		return nil, false
+	}
+	return m.appenduint32s, true
+}
+
+// ResetUint32s resets all changes to the "uint32s" field.
+func (m *MessageWithIntsMutation) ResetUint32s() {
+	m.uint32s = nil
+	m.appenduint32s = nil
+}
+
+// SetUint64s sets the "uint64s" field.
+func (m *MessageWithIntsMutation) SetUint64s(u []uint64) {
+	m.uint64s = &u
+	m.appenduint64s = nil
+}
+
+// Uint64s returns the value of the "uint64s" field in the mutation.
+func (m *MessageWithIntsMutation) Uint64s() (r []uint64, exists bool) {
+	v := m.uint64s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUint64s returns the old "uint64s" field's value of the MessageWithInts entity.
+// If the MessageWithInts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageWithIntsMutation) OldUint64s(ctx context.Context) (v []uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUint64s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUint64s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUint64s: %w", err)
+	}
+	return oldValue.Uint64s, nil
+}
+
+// AppendUint64s adds u to the "uint64s" field.
+func (m *MessageWithIntsMutation) AppendUint64s(u []uint64) {
+	m.appenduint64s = append(m.appenduint64s, u...)
+}
+
+// AppendedUint64s returns the list of values that were appended to the "uint64s" field in this mutation.
+func (m *MessageWithIntsMutation) AppendedUint64s() ([]uint64, bool) {
+	if len(m.appenduint64s) == 0 {
+		return nil, false
+	}
+	return m.appenduint64s, true
+}
+
+// ResetUint64s resets all changes to the "uint64s" field.
+func (m *MessageWithIntsMutation) ResetUint64s() {
+	m.uint64s = nil
+	m.appenduint64s = nil
+}
+
+// Where appends a list predicates to the MessageWithIntsMutation builder.
+func (m *MessageWithIntsMutation) Where(ps ...predicate.MessageWithInts) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MessageWithIntsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithIntsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithInts, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MessageWithIntsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithIntsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MessageWithInts).
+func (m *MessageWithIntsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MessageWithIntsMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.int32s != nil {
+		fields = append(fields, messagewithints.FieldInt32s)
+	}
+	if m.int64s != nil {
+		fields = append(fields, messagewithints.FieldInt64s)
+	}
+	if m.uint32s != nil {
+		fields = append(fields, messagewithints.FieldUint32s)
+	}
+	if m.uint64s != nil {
+		fields = append(fields, messagewithints.FieldUint64s)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MessageWithIntsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case messagewithints.FieldInt32s:
+		return m.Int32s()
+	case messagewithints.FieldInt64s:
+		return m.Int64s()
+	case messagewithints.FieldUint32s:
+		return m.Uint32s()
+	case messagewithints.FieldUint64s:
+		return m.Uint64s()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MessageWithIntsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case messagewithints.FieldInt32s:
+		return m.OldInt32s(ctx)
+	case messagewithints.FieldInt64s:
+		return m.OldInt64s(ctx)
+	case messagewithints.FieldUint32s:
+		return m.OldUint32s(ctx)
+	case messagewithints.FieldUint64s:
+		return m.OldUint64s(ctx)
+	}
+	return nil, fmt.Errorf("unknown MessageWithInts field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageWithIntsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case messagewithints.FieldInt32s:
+		v, ok := value.([]int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInt32s(v)
+		return nil
+	case messagewithints.FieldInt64s:
+		v, ok := value.([]int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInt64s(v)
+		return nil
+	case messagewithints.FieldUint32s:
+		v, ok := value.([]uint32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUint32s(v)
+		return nil
+	case messagewithints.FieldUint64s:
+		v, ok := value.([]uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUint64s(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MessageWithInts field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MessageWithIntsMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MessageWithIntsMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MessageWithIntsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown MessageWithInts numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MessageWithIntsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MessageWithIntsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MessageWithIntsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MessageWithInts nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MessageWithIntsMutation) ResetField(name string) error {
+	switch name {
+	case messagewithints.FieldInt32s:
+		m.ResetInt32s()
+		return nil
+	case messagewithints.FieldInt64s:
+		m.ResetInt64s()
+		return nil
+	case messagewithints.FieldUint32s:
+		m.ResetUint32s()
+		return nil
+	case messagewithints.FieldUint64s:
+		m.ResetUint64s()
+		return nil
+	}
+	return fmt.Errorf("unknown MessageWithInts field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MessageWithIntsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MessageWithIntsMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MessageWithIntsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MessageWithIntsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MessageWithIntsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MessageWithIntsMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MessageWithIntsMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown MessageWithInts unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MessageWithIntsMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown MessageWithInts edge %s", name)
 }
 
 // MessageWithOptionalsMutation represents an operation that mutates the MessageWithOptionals nodes in the graph.
@@ -4915,9 +6031,24 @@ func (m *MessageWithOptionalsMutation) Where(ps ...predicate.MessageWithOptional
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MessageWithOptionalsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithOptionalsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithOptionals, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithOptionalsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithOptionalsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MessageWithOptionals).
@@ -5435,9 +6566,24 @@ func (m *MessageWithPackageNameMutation) Where(ps ...predicate.MessageWithPackag
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MessageWithPackageNameMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithPackageNameMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithPackageName, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithPackageNameMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithPackageNameMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MessageWithPackageName).
@@ -5762,9 +6908,24 @@ func (m *MessageWithStringsMutation) Where(ps ...predicate.MessageWithStrings) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MessageWithStringsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MessageWithStringsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MessageWithStrings, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MessageWithStringsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MessageWithStringsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MessageWithStrings).
@@ -6093,9 +7254,24 @@ func (m *NoBackrefMutation) Where(ps ...predicate.NoBackref) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the NoBackrefMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NoBackrefMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NoBackref, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *NoBackrefMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NoBackrefMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (NoBackref).
@@ -6378,9 +7554,24 @@ func (m *OneMethodServiceMutation) Where(ps ...predicate.OneMethodService) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the OneMethodServiceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OneMethodServiceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OneMethodService, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *OneMethodServiceMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OneMethodServiceMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (OneMethodService).
@@ -6742,9 +7933,24 @@ func (m *PortalMutation) Where(ps ...predicate.Portal) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PortalMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PortalMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Portal, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PortalMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PortalMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Portal).
@@ -7100,9 +8306,24 @@ func (m *SkipEdgeExampleMutation) Where(ps ...predicate.SkipEdgeExample) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the SkipEdgeExampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SkipEdgeExampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SkipEdgeExample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *SkipEdgeExampleMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SkipEdgeExampleMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (SkipEdgeExample).
@@ -7375,9 +8596,24 @@ func (m *TwoMethodServiceMutation) Where(ps ...predicate.TwoMethodService) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TwoMethodServiceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TwoMethodServiceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TwoMethodService, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TwoMethodServiceMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TwoMethodServiceMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (TwoMethodService).
@@ -7887,9 +9123,24 @@ func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (User).
@@ -8517,9 +9768,24 @@ func (m *ValidMessageMutation) Where(ps ...predicate.ValidMessage) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ValidMessageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ValidMessageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ValidMessage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ValidMessageMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ValidMessageMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (ValidMessage).

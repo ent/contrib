@@ -25,49 +25,7 @@ func (tmsc *TwoMethodServiceCreate) Mutation() *TwoMethodServiceMutation {
 
 // Save creates the TwoMethodService in the database.
 func (tmsc *TwoMethodServiceCreate) Save(ctx context.Context) (*TwoMethodService, error) {
-	var (
-		err  error
-		node *TwoMethodService
-	)
-	if len(tmsc.hooks) == 0 {
-		if err = tmsc.check(); err != nil {
-			return nil, err
-		}
-		node, err = tmsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TwoMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tmsc.check(); err != nil {
-				return nil, err
-			}
-			tmsc.mutation = mutation
-			if node, err = tmsc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tmsc.hooks) - 1; i >= 0; i-- {
-			if tmsc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tmsc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tmsc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*TwoMethodService)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TwoMethodServiceMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*TwoMethodService, TwoMethodServiceMutation](ctx, tmsc.sqlSave, tmsc.mutation, tmsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (tmsc *TwoMethodServiceCreate) check() error {
 }
 
 func (tmsc *TwoMethodServiceCreate) sqlSave(ctx context.Context) (*TwoMethodService, error) {
+	if err := tmsc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := tmsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, tmsc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,19 +68,15 @@ func (tmsc *TwoMethodServiceCreate) sqlSave(ctx context.Context) (*TwoMethodServ
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	tmsc.mutation.id = &_node.ID
+	tmsc.mutation.done = true
 	return _node, nil
 }
 
 func (tmsc *TwoMethodServiceCreate) createSpec() (*TwoMethodService, *sqlgraph.CreateSpec) {
 	var (
 		_node = &TwoMethodService{config: tmsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: twomethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(twomethodservice.Table, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -147,8 +104,8 @@ func (tmscb *TwoMethodServiceCreateBulk) Save(ctx context.Context) ([]*TwoMethod
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tmscb.builders[i+1].mutation)
 				} else {

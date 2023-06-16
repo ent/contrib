@@ -20,7 +20,8 @@
             "in": "query",
             "description": "what page to render",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           },
           {
@@ -28,7 +29,9 @@
             "in": "query",
             "description": "item count to render per page",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "maximum": 255,
+              "minimum": 1
             }
           }
         ],
@@ -128,10 +131,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Category",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -171,10 +174,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Category",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -207,10 +210,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Category",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "requestBody": {
@@ -274,10 +277,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Category",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -339,7 +342,8 @@
             "in": "query",
             "description": "what page to render",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           },
           {
@@ -347,7 +351,9 @@
             "in": "query",
             "description": "item count to render per page",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "maximum": 255,
+              "minimum": 1
             }
           }
         ],
@@ -465,10 +471,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Pet",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -508,10 +514,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Pet",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -544,10 +550,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Pet",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "requestBody": {
@@ -629,10 +635,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Pet",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -693,10 +699,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Pet",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",
@@ -757,10 +763,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the Pet",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -803,7 +809,8 @@
             "in": "query",
             "description": "what page to render",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           },
           {
@@ -811,7 +818,9 @@
             "in": "query",
             "description": "item count to render per page",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "maximum": 255,
+              "minimum": 1
             }
           }
         ],
@@ -915,10 +924,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -958,10 +967,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -994,10 +1003,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "requestBody": {
@@ -1064,10 +1073,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the User",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           },
           {
             "name": "page",

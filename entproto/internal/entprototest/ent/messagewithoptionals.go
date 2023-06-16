@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -33,6 +34,7 @@ type MessageWithOptionals struct {
 	UUIDOptional uuid.UUID `json:"uuid_optional,omitempty"`
 	// TimeOptional holds the value of the "time_optional" field.
 	TimeOptional time.Time `json:"time_optional,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -55,7 +57,7 @@ func (*MessageWithOptionals) scanValues(columns []string) ([]any, error) {
 		case messagewithoptionals.FieldUUIDOptional:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type MessageWithOptionals", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -123,16 +125,24 @@ func (mwo *MessageWithOptionals) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				mwo.TimeOptional = value.Time
 			}
+		default:
+			mwo.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the MessageWithOptionals.
+// This includes values selected through modifiers, order, etc.
+func (mwo *MessageWithOptionals) Value(name string) (ent.Value, error) {
+	return mwo.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MessageWithOptionals.
 // Note that you need to call MessageWithOptionals.Unwrap() before calling this method if this MessageWithOptionals
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwo *MessageWithOptionals) Update() *MessageWithOptionalsUpdateOne {
-	return (&MessageWithOptionalsClient{config: mwo.config}).UpdateOne(mwo)
+	return NewMessageWithOptionalsClient(mwo.config).UpdateOne(mwo)
 }
 
 // Unwrap unwraps the MessageWithOptionals entity that was returned from a transaction after it was closed,
@@ -180,9 +190,3 @@ func (mwo *MessageWithOptionals) String() string {
 
 // MessageWithOptionalsSlice is a parsable slice of MessageWithOptionals.
 type MessageWithOptionalsSlice []*MessageWithOptionals
-
-func (mwo MessageWithOptionalsSlice) config(cfg config) {
-	for _i := range mwo {
-		mwo[_i].config = cfg
-	}
-}

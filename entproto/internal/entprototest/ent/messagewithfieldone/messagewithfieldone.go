@@ -2,6 +2,10 @@
 
 package messagewithfieldone
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the messagewithfieldone type in the database.
 	Label = "message_with_field_one"
@@ -27,4 +31,17 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the MessageWithFieldOne queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByFieldOne orders the results by the field_one field.
+func ByFieldOne(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFieldOne, opts...).ToFunc()
 }

@@ -122,34 +122,7 @@ func (bpu *BlogPostUpdate) RemoveCategories(c ...*Category) *BlogPostUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bpu *BlogPostUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(bpu.hooks) == 0 {
-		affected, err = bpu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BlogPostMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			bpu.mutation = mutation
-			affected, err = bpu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(bpu.hooks) - 1; i >= 0; i-- {
-			if bpu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, bpu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, BlogPostMutation](ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -175,16 +148,7 @@ func (bpu *BlogPostUpdate) ExecX(ctx context.Context) {
 }
 
 func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   blogpost.Table,
-			Columns: blogpost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: blogpost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(blogpost.Table, blogpost.Columns, sqlgraph.NewFieldSpec(blogpost.FieldID, field.TypeInt))
 	if ps := bpu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -193,32 +157,16 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := bpu.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldTitle,
-		})
+		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := bpu.mutation.Body(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldBody,
-		})
+		_spec.SetField(blogpost.FieldBody, field.TypeString, value)
 	}
 	if value, ok := bpu.mutation.ExternalID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.SetField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if value, ok := bpu.mutation.AddedExternalID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.AddField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if bpu.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -228,10 +176,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{blogpost.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -244,10 +189,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{blogpost.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -263,10 +205,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -279,10 +218,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -298,10 +234,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -317,6 +250,7 @@ func (bpu *BlogPostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	bpu.mutation.done = true
 	return n, nil
 }
 
@@ -419,6 +353,12 @@ func (bpuo *BlogPostUpdateOne) RemoveCategories(c ...*Category) *BlogPostUpdateO
 	return bpuo.RemoveCategoryIDs(ids...)
 }
 
+// Where appends a list predicates to the BlogPostUpdate builder.
+func (bpuo *BlogPostUpdateOne) Where(ps ...predicate.BlogPost) *BlogPostUpdateOne {
+	bpuo.mutation.Where(ps...)
+	return bpuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (bpuo *BlogPostUpdateOne) Select(field string, fields ...string) *BlogPostUpdateOne {
@@ -428,40 +368,7 @@ func (bpuo *BlogPostUpdateOne) Select(field string, fields ...string) *BlogPostU
 
 // Save executes the query and returns the updated BlogPost entity.
 func (bpuo *BlogPostUpdateOne) Save(ctx context.Context) (*BlogPost, error) {
-	var (
-		err  error
-		node *BlogPost
-	)
-	if len(bpuo.hooks) == 0 {
-		node, err = bpuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BlogPostMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			bpuo.mutation = mutation
-			node, err = bpuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(bpuo.hooks) - 1; i >= 0; i-- {
-			if bpuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, bpuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*BlogPost)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from BlogPostMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*BlogPost, BlogPostMutation](ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -487,16 +394,7 @@ func (bpuo *BlogPostUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   blogpost.Table,
-			Columns: blogpost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: blogpost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(blogpost.Table, blogpost.Columns, sqlgraph.NewFieldSpec(blogpost.FieldID, field.TypeInt))
 	id, ok := bpuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "BlogPost.id" for update`)}
@@ -522,32 +420,16 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 		}
 	}
 	if value, ok := bpuo.mutation.Title(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldTitle,
-		})
+		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := bpuo.mutation.Body(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: blogpost.FieldBody,
-		})
+		_spec.SetField(blogpost.FieldBody, field.TypeString, value)
 	}
 	if value, ok := bpuo.mutation.ExternalID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.SetField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if value, ok := bpuo.mutation.AddedExternalID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: blogpost.FieldExternalID,
-		})
+		_spec.AddField(blogpost.FieldExternalID, field.TypeInt, value)
 	}
 	if bpuo.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -557,10 +439,7 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Columns: []string{blogpost.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -573,10 +452,7 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Columns: []string{blogpost.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -592,10 +468,7 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -608,10 +481,7 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -627,10 +497,7 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -649,5 +516,6 @@ func (bpuo *BlogPostUpdateOne) sqlSave(ctx context.Context) (_node *BlogPost, er
 		}
 		return nil, err
 	}
+	bpuo.mutation.done = true
 	return _node, nil
 }

@@ -17,11 +17,9 @@ import (
 // OASTypesQuery is the builder for querying OASTypes entities.
 type OASTypesQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []oastypes.OrderOption
+	inters     []Interceptor
 	predicates []predicate.OASTypes
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,27 +32,27 @@ func (otq *OASTypesQuery) Where(ps ...predicate.OASTypes) *OASTypesQuery {
 	return otq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (otq *OASTypesQuery) Limit(limit int) *OASTypesQuery {
-	otq.limit = &limit
+	otq.ctx.Limit = &limit
 	return otq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (otq *OASTypesQuery) Offset(offset int) *OASTypesQuery {
-	otq.offset = &offset
+	otq.ctx.Offset = &offset
 	return otq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (otq *OASTypesQuery) Unique(unique bool) *OASTypesQuery {
-	otq.unique = &unique
+	otq.ctx.Unique = &unique
 	return otq
 }
 
-// Order adds an order step to the query.
-func (otq *OASTypesQuery) Order(o ...OrderFunc) *OASTypesQuery {
+// Order specifies how the records should be ordered.
+func (otq *OASTypesQuery) Order(o ...oastypes.OrderOption) *OASTypesQuery {
 	otq.order = append(otq.order, o...)
 	return otq
 }
@@ -62,7 +60,7 @@ func (otq *OASTypesQuery) Order(o ...OrderFunc) *OASTypesQuery {
 // First returns the first OASTypes entity from the query.
 // Returns a *NotFoundError when no OASTypes was found.
 func (otq *OASTypesQuery) First(ctx context.Context) (*OASTypes, error) {
-	nodes, err := otq.Limit(1).All(ctx)
+	nodes, err := otq.Limit(1).All(setContextOp(ctx, otq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (otq *OASTypesQuery) FirstX(ctx context.Context) *OASTypes {
 // Returns a *NotFoundError when no OASTypes ID was found.
 func (otq *OASTypesQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = otq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = otq.Limit(1).IDs(setContextOp(ctx, otq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (otq *OASTypesQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one OASTypes entity is found.
 // Returns a *NotFoundError when no OASTypes entities are found.
 func (otq *OASTypesQuery) Only(ctx context.Context) (*OASTypes, error) {
-	nodes, err := otq.Limit(2).All(ctx)
+	nodes, err := otq.Limit(2).All(setContextOp(ctx, otq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (otq *OASTypesQuery) OnlyX(ctx context.Context) *OASTypes {
 // Returns a *NotFoundError when no entities are found.
 func (otq *OASTypesQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = otq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = otq.Limit(2).IDs(setContextOp(ctx, otq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (otq *OASTypesQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of OASTypesSlice.
 func (otq *OASTypesQuery) All(ctx context.Context) ([]*OASTypes, error) {
+	ctx = setContextOp(ctx, otq.ctx, "All")
 	if err := otq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return otq.sqlAll(ctx)
+	qr := querierAll[[]*OASTypes, *OASTypesQuery]()
+	return withInterceptors[[]*OASTypes](ctx, otq, qr, otq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -177,9 +177,12 @@ func (otq *OASTypesQuery) AllX(ctx context.Context) []*OASTypes {
 }
 
 // IDs executes the query and returns a list of OASTypes IDs.
-func (otq *OASTypesQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := otq.Select(oastypes.FieldID).Scan(ctx, &ids); err != nil {
+func (otq *OASTypesQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if otq.ctx.Unique == nil && otq.path != nil {
+		otq.Unique(true)
+	}
+	ctx = setContextOp(ctx, otq.ctx, "IDs")
+	if err = otq.Select(oastypes.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -196,10 +199,11 @@ func (otq *OASTypesQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (otq *OASTypesQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, otq.ctx, "Count")
 	if err := otq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return otq.sqlCount(ctx)
+	return withInterceptors[int](ctx, otq, querierCount[*OASTypesQuery](), otq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +217,15 @@ func (otq *OASTypesQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (otq *OASTypesQuery) Exist(ctx context.Context) (bool, error) {
-	if err := otq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, otq.ctx, "Exist")
+	switch _, err := otq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("oastypes: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return otq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +245,13 @@ func (otq *OASTypesQuery) Clone() *OASTypesQuery {
 	}
 	return &OASTypesQuery{
 		config:     otq.config,
-		limit:      otq.limit,
-		offset:     otq.offset,
-		order:      append([]OrderFunc{}, otq.order...),
+		ctx:        otq.ctx.Clone(),
+		order:      append([]oastypes.OrderOption{}, otq.order...),
+		inters:     append([]Interceptor{}, otq.inters...),
 		predicates: append([]predicate.OASTypes{}, otq.predicates...),
 		// clone intermediate query.
-		sql:    otq.sql.Clone(),
-		path:   otq.path,
-		unique: otq.unique,
+		sql:  otq.sql.Clone(),
+		path: otq.path,
 	}
 }
 
@@ -262,16 +270,11 @@ func (otq *OASTypesQuery) Clone() *OASTypesQuery {
 //		Aggregate(oastypes.Count()).
 //		Scan(ctx, &v)
 func (otq *OASTypesQuery) GroupBy(field string, fields ...string) *OASTypesGroupBy {
-	grbuild := &OASTypesGroupBy{config: otq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := otq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return otq.sqlQuery(ctx), nil
-	}
+	otq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &OASTypesGroupBy{build: otq}
+	grbuild.flds = &otq.ctx.Fields
 	grbuild.label = oastypes.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +291,30 @@ func (otq *OASTypesQuery) GroupBy(field string, fields ...string) *OASTypesGroup
 //		Select(oastypes.FieldInt).
 //		Scan(ctx, &v)
 func (otq *OASTypesQuery) Select(fields ...string) *OASTypesSelect {
-	otq.fields = append(otq.fields, fields...)
-	selbuild := &OASTypesSelect{OASTypesQuery: otq}
-	selbuild.label = oastypes.Label
-	selbuild.flds, selbuild.scan = &otq.fields, selbuild.Scan
-	return selbuild
+	otq.ctx.Fields = append(otq.ctx.Fields, fields...)
+	sbuild := &OASTypesSelect{OASTypesQuery: otq}
+	sbuild.label = oastypes.Label
+	sbuild.flds, sbuild.scan = &otq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a OASTypesSelect configured with the given aggregations.
+func (otq *OASTypesQuery) Aggregate(fns ...AggregateFunc) *OASTypesSelect {
+	return otq.Select().Aggregate(fns...)
 }
 
 func (otq *OASTypesQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range otq.fields {
+	for _, inter := range otq.inters {
+		if inter == nil {
+			return fmt.Errorf("oastypes: uninitialized interceptor (forgotten import oastypes/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, otq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range otq.ctx.Fields {
 		if !oastypes.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("oastypes: invalid field %q for query", f)}
 		}
@@ -338,41 +356,22 @@ func (otq *OASTypesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OA
 
 func (otq *OASTypesQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := otq.querySpec()
-	_spec.Node.Columns = otq.fields
-	if len(otq.fields) > 0 {
-		_spec.Unique = otq.unique != nil && *otq.unique
+	_spec.Node.Columns = otq.ctx.Fields
+	if len(otq.ctx.Fields) > 0 {
+		_spec.Unique = otq.ctx.Unique != nil && *otq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, otq.driver, _spec)
 }
 
-func (otq *OASTypesQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := otq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("oastypes: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (otq *OASTypesQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   oastypes.Table,
-			Columns: oastypes.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: oastypes.FieldID,
-			},
-		},
-		From:   otq.sql,
-		Unique: true,
-	}
-	if unique := otq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(oastypes.Table, oastypes.Columns, sqlgraph.NewFieldSpec(oastypes.FieldID, field.TypeInt))
+	_spec.From = otq.sql
+	if unique := otq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if otq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := otq.fields; len(fields) > 0 {
+	if fields := otq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, oastypes.FieldID)
 		for i := range fields {
@@ -388,10 +387,10 @@ func (otq *OASTypesQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := otq.limit; limit != nil {
+	if limit := otq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := otq.offset; offset != nil {
+	if offset := otq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := otq.order; len(ps) > 0 {
@@ -407,7 +406,7 @@ func (otq *OASTypesQuery) querySpec() *sqlgraph.QuerySpec {
 func (otq *OASTypesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(otq.driver.Dialect())
 	t1 := builder.Table(oastypes.Table)
-	columns := otq.fields
+	columns := otq.ctx.Fields
 	if len(columns) == 0 {
 		columns = oastypes.Columns
 	}
@@ -416,7 +415,7 @@ func (otq *OASTypesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = otq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if otq.unique != nil && *otq.unique {
+	if otq.ctx.Unique != nil && *otq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range otq.predicates {
@@ -425,12 +424,12 @@ func (otq *OASTypesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range otq.order {
 		p(selector)
 	}
-	if offset := otq.offset; offset != nil {
+	if offset := otq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := otq.limit; limit != nil {
+	if limit := otq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +437,8 @@ func (otq *OASTypesQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // OASTypesGroupBy is the group-by builder for OASTypes entities.
 type OASTypesGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *OASTypesQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +447,77 @@ func (otgb *OASTypesGroupBy) Aggregate(fns ...AggregateFunc) *OASTypesGroupBy {
 	return otgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (otgb *OASTypesGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := otgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, otgb.build.ctx, "GroupBy")
+	if err := otgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	otgb.sql = query
-	return otgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*OASTypesQuery, *OASTypesGroupBy](ctx, otgb.build, otgb, otgb.build.inters, v)
 }
 
-func (otgb *OASTypesGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range otgb.fields {
-		if !oastypes.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (otgb *OASTypesGroupBy) sqlScan(ctx context.Context, root *OASTypesQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(otgb.fns))
+	for _, fn := range otgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := otgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*otgb.flds)+len(otgb.fns))
+		for _, f := range *otgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*otgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := otgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := otgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (otgb *OASTypesGroupBy) sqlQuery() *sql.Selector {
-	selector := otgb.sql.Select()
-	aggregation := make([]string, 0, len(otgb.fns))
-	for _, fn := range otgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(otgb.fields)+len(otgb.fns))
-		for _, f := range otgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(otgb.fields...)...)
-}
-
 // OASTypesSelect is the builder for selecting fields of OASTypes entities.
 type OASTypesSelect struct {
 	*OASTypesQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (ots *OASTypesSelect) Aggregate(fns ...AggregateFunc) *OASTypesSelect {
+	ots.fns = append(ots.fns, fns...)
+	return ots
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (ots *OASTypesSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ots.ctx, "Select")
 	if err := ots.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ots.sql = ots.OASTypesQuery.sqlQuery(ctx)
-	return ots.sqlScan(ctx, v)
+	return scanWithInterceptors[*OASTypesQuery, *OASTypesSelect](ctx, ots.OASTypesQuery, ots, ots.inters, v)
 }
 
-func (ots *OASTypesSelect) sqlScan(ctx context.Context, v any) error {
+func (ots *OASTypesSelect) sqlScan(ctx context.Context, root *OASTypesQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(ots.fns))
+	for _, fn := range ots.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*ots.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := ots.sql.Query()
+	query, args := selector.Query()
 	if err := ots.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

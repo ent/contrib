@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,6 +35,12 @@ type Category struct {
 // Fields of the Category.
 func (Category) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("id").
+			Annotations(
+				// Setting the OrderField explicitly on the "ID"
+				// field, adds it to the generated GraphQL schema.
+				entgql.OrderField("ID"),
+			),
 		field.Text("text").
 			NotEmpty().
 			Annotations(
@@ -53,6 +59,8 @@ func (Category) Fields() []ent.Field {
 				dialect.SQLite: "json",
 			}).
 			Optional(),
+		field.JSON("types", &schematype.CategoryTypes{}).
+			Optional(),
 		field.Int64("duration").
 			GoType(time.Duration(0)).
 			Optional().
@@ -63,6 +71,7 @@ func (Category) Fields() []ent.Field {
 		field.Uint64("count").
 			Optional().
 			Annotations(
+				entgql.OrderField("COUNT"),
 				entgql.Type("Uint64"),
 			),
 		field.Strings("strings").
@@ -74,6 +83,11 @@ func (Category) Fields() []ent.Field {
 func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("todos", Todo.Type).
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.OrderField("TODOS_COUNT"),
+			),
+		edge.To("sub_categories", Category.Type).
 			Annotations(entgql.RelayConnection()),
 	}
 }
@@ -81,6 +95,9 @@ func (Category) Edges() []ent.Edge {
 // Annotations returns Todo annotations.
 func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.RelayConnection(),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+		entgql.MultiOrder(),
 	}
 }

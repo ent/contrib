@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -85,50 +85,8 @@ func (gc *GroupCreate) Mutation() *GroupMutation {
 
 // Save creates the Group in the database.
 func (gc *GroupCreate) Save(ctx context.Context) (*Group, error) {
-	var (
-		err  error
-		node *Group
-	)
 	gc.defaults()
-	if len(gc.hooks) == 0 {
-		if err = gc.check(); err != nil {
-			return nil, err
-		}
-		node, err = gc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*GroupMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = gc.check(); err != nil {
-				return nil, err
-			}
-			gc.mutation = mutation
-			if node, err = gc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(gc.hooks) - 1; i >= 0; i-- {
-			if gc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = gc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, gc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Group)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from GroupMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Group, GroupMutation](ctx, gc.sqlSave, gc.mutation, gc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -174,6 +132,9 @@ func (gc *GroupCreate) check() error {
 }
 
 func (gc *GroupCreate) sqlSave(ctx context.Context) (*Group, error) {
+	if err := gc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := gc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, gc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -188,30 +149,22 @@ func (gc *GroupCreate) sqlSave(ctx context.Context) (*Group, error) {
 			return nil, err
 		}
 	}
+	gc.mutation.id = &_node.ID
+	gc.mutation.done = true
 	return _node, nil
 }
 
 func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Group{config: gc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: group.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: group.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(group.Table, sqlgraph.NewFieldSpec(group.FieldID, field.TypeString))
 	)
 	if id, ok := gc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := gc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: group.FieldName,
-		})
+		_spec.SetField(group.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if nodes := gc.mutation.UsersIDs(); len(nodes) > 0 {
@@ -222,10 +175,7 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 			Columns: group.UsersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -260,8 +210,8 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, gcb.builders[i+1].mutation)
 				} else {

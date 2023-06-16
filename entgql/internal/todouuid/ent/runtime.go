@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ package ent
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todouuid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
@@ -33,13 +34,19 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	billproductFields := schema.BillProduct{}.Fields()
+	_ = billproductFields
+	// billproductDescID is the schema descriptor for id field.
+	billproductDescID := billproductFields[0].Descriptor()
+	// billproduct.DefaultID holds the default value on creation for the id field.
+	billproduct.DefaultID = billproductDescID.Default.(func() uuid.UUID)
 	categoryMixin := schema.Category{}.Mixin()
 	categoryMixinFields0 := categoryMixin[0].Fields()
 	_ = categoryMixinFields0
 	categoryFields := schema.Category{}.Fields()
 	_ = categoryFields
 	// categoryDescText is the schema descriptor for text field.
-	categoryDescText := categoryMixinFields0[0].Descriptor()
+	categoryDescText := categoryMixinFields0[1].Descriptor()
 	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
 	// categoryDescID is the schema descriptor for id field.
@@ -99,6 +106,10 @@ func init() {
 	userDescName := userMixinFields0[0].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userMixinFields0[1].Descriptor()
+	// user.DefaultUsername holds the default value on creation for the username field.
+	user.DefaultUsername = userDescUsername.Default.(func() uuid.UUID)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.

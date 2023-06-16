@@ -72,34 +72,7 @@ func (nbu *NoBackrefUpdate) RemoveImages(i ...*Image) *NoBackrefUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (nbu *NoBackrefUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(nbu.hooks) == 0 {
-		affected, err = nbu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NoBackrefMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			nbu.mutation = mutation
-			affected, err = nbu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(nbu.hooks) - 1; i >= 0; i-- {
-			if nbu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = nbu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, nbu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, NoBackrefMutation](ctx, nbu.sqlSave, nbu.mutation, nbu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -125,16 +98,7 @@ func (nbu *NoBackrefUpdate) ExecX(ctx context.Context) {
 }
 
 func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nobackref.Table,
-			Columns: nobackref.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nobackref.Table, nobackref.Columns, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
 	if ps := nbu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -150,10 +114,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -166,10 +127,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -185,10 +143,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -204,6 +159,7 @@ func (nbu *NoBackrefUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	nbu.mutation.done = true
 	return n, nil
 }
 
@@ -256,6 +212,12 @@ func (nbuo *NoBackrefUpdateOne) RemoveImages(i ...*Image) *NoBackrefUpdateOne {
 	return nbuo.RemoveImageIDs(ids...)
 }
 
+// Where appends a list predicates to the NoBackrefUpdate builder.
+func (nbuo *NoBackrefUpdateOne) Where(ps ...predicate.NoBackref) *NoBackrefUpdateOne {
+	nbuo.mutation.Where(ps...)
+	return nbuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (nbuo *NoBackrefUpdateOne) Select(field string, fields ...string) *NoBackrefUpdateOne {
@@ -265,40 +227,7 @@ func (nbuo *NoBackrefUpdateOne) Select(field string, fields ...string) *NoBackre
 
 // Save executes the query and returns the updated NoBackref entity.
 func (nbuo *NoBackrefUpdateOne) Save(ctx context.Context) (*NoBackref, error) {
-	var (
-		err  error
-		node *NoBackref
-	)
-	if len(nbuo.hooks) == 0 {
-		node, err = nbuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NoBackrefMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			nbuo.mutation = mutation
-			node, err = nbuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(nbuo.hooks) - 1; i >= 0; i-- {
-			if nbuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = nbuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, nbuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*NoBackref)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from NoBackrefMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*NoBackref, NoBackrefMutation](ctx, nbuo.sqlSave, nbuo.mutation, nbuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -324,16 +253,7 @@ func (nbuo *NoBackrefUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nobackref.Table,
-			Columns: nobackref.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nobackref.Table, nobackref.Columns, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
 	id, ok := nbuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "NoBackref.id" for update`)}
@@ -366,10 +286,7 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -382,10 +299,7 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -401,10 +315,7 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 			Columns: []string{nobackref.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: image.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -423,5 +334,6 @@ func (nbuo *NoBackrefUpdateOne) sqlSave(ctx context.Context) (_node *NoBackref, 
 		}
 		return nil, err
 	}
+	nbuo.mutation.done = true
 	return _node, nil
 }

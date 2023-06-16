@@ -38,49 +38,7 @@ func (ac *AttachmentCreate) Mutation() *AttachmentMutation {
 
 // Save creates the Attachment in the database.
 func (ac *AttachmentCreate) Save(ctx context.Context) (*Attachment, error) {
-	var (
-		err  error
-		node *Attachment
-	)
-	if len(ac.hooks) == 0 {
-		if err = ac.check(); err != nil {
-			return nil, err
-		}
-		node, err = ac.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AttachmentMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ac.check(); err != nil {
-				return nil, err
-			}
-			ac.mutation = mutation
-			if node, err = ac.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ac.hooks) - 1; i >= 0; i-- {
-			if ac.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ac.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ac.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Attachment)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AttachmentMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Attachment, AttachmentMutation](ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -114,6 +72,9 @@ func (ac *AttachmentCreate) check() error {
 }
 
 func (ac *AttachmentCreate) sqlSave(ctx context.Context) (*Attachment, error) {
+	if err := ac.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ac.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ac.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -128,30 +89,22 @@ func (ac *AttachmentCreate) sqlSave(ctx context.Context) (*Attachment, error) {
 			return nil, fmt.Errorf("unexpected Attachment.ID type: %T", _spec.ID.Value)
 		}
 	}
+	ac.mutation.id = &_node.ID
+	ac.mutation.done = true
 	return _node, nil
 }
 
 func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Attachment{config: ac.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: attachment.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: attachment.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(attachment.Table, sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeString))
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
 	if value, ok := ac.mutation.Contents(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: attachment.FieldContents,
-		})
+		_spec.SetField(attachment.FieldContents, field.TypeString, value)
 		_node.Contents = value
 	}
 	return _node, _spec
@@ -180,8 +133,8 @@ func (acb *AttachmentCreateBulk) Save(ctx context.Context) ([]*Attachment, error
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {

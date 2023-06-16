@@ -31,49 +31,7 @@ func (mwic *MessageWithIDCreate) Mutation() *MessageWithIDMutation {
 
 // Save creates the MessageWithID in the database.
 func (mwic *MessageWithIDCreate) Save(ctx context.Context) (*MessageWithID, error) {
-	var (
-		err  error
-		node *MessageWithID
-	)
-	if len(mwic.hooks) == 0 {
-		if err = mwic.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwic.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithIDMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwic.check(); err != nil {
-				return nil, err
-			}
-			mwic.mutation = mutation
-			if node, err = mwic.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwic.hooks) - 1; i >= 0; i-- {
-			if mwic.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwic.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwic.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithID)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithIDMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithID, MessageWithIDMutation](ctx, mwic.sqlSave, mwic.mutation, mwic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -104,6 +62,9 @@ func (mwic *MessageWithIDCreate) check() error {
 }
 
 func (mwic *MessageWithIDCreate) sqlSave(ctx context.Context) (*MessageWithID, error) {
+	if err := mwic.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwic.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwic.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -115,19 +76,15 @@ func (mwic *MessageWithIDCreate) sqlSave(ctx context.Context) (*MessageWithID, e
 		id := _spec.ID.Value.(int64)
 		_node.ID = int32(id)
 	}
+	mwic.mutation.id = &_node.ID
+	mwic.mutation.done = true
 	return _node, nil
 }
 
 func (mwic *MessageWithIDCreate) createSpec() (*MessageWithID, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithID{config: mwic.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithid.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt32,
-				Column: messagewithid.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithid.Table, sqlgraph.NewFieldSpec(messagewithid.FieldID, field.TypeInt32))
 	)
 	if id, ok := mwic.mutation.ID(); ok {
 		_node.ID = id
@@ -159,8 +116,8 @@ func (mwicb *MessageWithIDCreateBulk) Save(ctx context.Context) ([]*MessageWithI
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwicb.builders[i+1].mutation)
 				} else {

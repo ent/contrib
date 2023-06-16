@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -21,7 +22,8 @@ type Attachment struct {
 	// The values are being populated by the AttachmentQuery when eager-loading is set.
 	Edges           AttachmentEdges `json:"edges"`
 	pet_attachment  *int
-	user_attachment *int
+	user_attachment *uint32
+	selectValues    sql.SelectValues
 }
 
 // AttachmentEdges holds the relations/edges for other nodes in the graph.
@@ -69,7 +71,7 @@ func (*Attachment) scanValues(columns []string) ([]any, error) {
 		case attachment.ForeignKeys[1]: // user_attachment
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Attachment", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -100,29 +102,37 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_attachment", value)
 			} else if value.Valid {
-				a.user_attachment = new(int)
-				*a.user_attachment = int(value.Int64)
+				a.user_attachment = new(uint32)
+				*a.user_attachment = uint32(value.Int64)
 			}
+		default:
+			a.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Attachment.
+// This includes values selected through modifiers, order, etc.
+func (a *Attachment) Value(name string) (ent.Value, error) {
+	return a.selectValues.Get(name)
+}
+
 // QueryUser queries the "user" edge of the Attachment entity.
 func (a *Attachment) QueryUser() *UserQuery {
-	return (&AttachmentClient{config: a.config}).QueryUser(a)
+	return NewAttachmentClient(a.config).QueryUser(a)
 }
 
 // QueryRecipients queries the "recipients" edge of the Attachment entity.
 func (a *Attachment) QueryRecipients() *UserQuery {
-	return (&AttachmentClient{config: a.config}).QueryRecipients(a)
+	return NewAttachmentClient(a.config).QueryRecipients(a)
 }
 
 // Update returns a builder for updating this Attachment.
 // Note that you need to call Attachment.Unwrap() before calling this method if this Attachment
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (a *Attachment) Update() *AttachmentUpdateOne {
-	return (&AttachmentClient{config: a.config}).UpdateOne(a)
+	return NewAttachmentClient(a.config).UpdateOne(a)
 }
 
 // Unwrap unwraps the Attachment entity that was returned from a transaction after it was closed,
@@ -147,9 +157,3 @@ func (a *Attachment) String() string {
 
 // Attachments is a parsable slice of Attachment.
 type Attachments []*Attachment
-
-func (a Attachments) config(cfg config) {
-	for _i := range a {
-		a[_i].config = cfg
-	}
-}

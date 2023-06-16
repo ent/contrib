@@ -47,34 +47,7 @@ func (mwfou *MessageWithFieldOneUpdate) Mutation() *MessageWithFieldOneMutation 
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwfou *MessageWithFieldOneUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwfou.hooks) == 0 {
-		affected, err = mwfou.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithFieldOneMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwfou.mutation = mutation
-			affected, err = mwfou.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwfou.hooks) - 1; i >= 0; i-- {
-			if mwfou.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwfou.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwfou.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithFieldOneMutation](ctx, mwfou.sqlSave, mwfou.mutation, mwfou.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -100,16 +73,7 @@ func (mwfou *MessageWithFieldOneUpdate) ExecX(ctx context.Context) {
 }
 
 func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithfieldone.Table,
-			Columns: messagewithfieldone.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithfieldone.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithfieldone.Table, messagewithfieldone.Columns, sqlgraph.NewFieldSpec(messagewithfieldone.FieldID, field.TypeInt))
 	if ps := mwfou.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -118,18 +82,10 @@ func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 	}
 	if value, ok := mwfou.mutation.FieldOne(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.SetField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	if value, ok := mwfou.mutation.AddedFieldOne(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.AddField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwfou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -139,6 +95,7 @@ func (mwfou *MessageWithFieldOneUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		return 0, err
 	}
+	mwfou.mutation.done = true
 	return n, nil
 }
 
@@ -168,6 +125,12 @@ func (mwfouo *MessageWithFieldOneUpdateOne) Mutation() *MessageWithFieldOneMutat
 	return mwfouo.mutation
 }
 
+// Where appends a list predicates to the MessageWithFieldOneUpdate builder.
+func (mwfouo *MessageWithFieldOneUpdateOne) Where(ps ...predicate.MessageWithFieldOne) *MessageWithFieldOneUpdateOne {
+	mwfouo.mutation.Where(ps...)
+	return mwfouo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mwfouo *MessageWithFieldOneUpdateOne) Select(field string, fields ...string) *MessageWithFieldOneUpdateOne {
@@ -177,40 +140,7 @@ func (mwfouo *MessageWithFieldOneUpdateOne) Select(field string, fields ...strin
 
 // Save executes the query and returns the updated MessageWithFieldOne entity.
 func (mwfouo *MessageWithFieldOneUpdateOne) Save(ctx context.Context) (*MessageWithFieldOne, error) {
-	var (
-		err  error
-		node *MessageWithFieldOne
-	)
-	if len(mwfouo.hooks) == 0 {
-		node, err = mwfouo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithFieldOneMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwfouo.mutation = mutation
-			node, err = mwfouo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwfouo.hooks) - 1; i >= 0; i-- {
-			if mwfouo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwfouo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwfouo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithFieldOne)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithFieldOneMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithFieldOne, MessageWithFieldOneMutation](ctx, mwfouo.sqlSave, mwfouo.mutation, mwfouo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -236,16 +166,7 @@ func (mwfouo *MessageWithFieldOneUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithFieldOne, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithfieldone.Table,
-			Columns: messagewithfieldone.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithfieldone.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithfieldone.Table, messagewithfieldone.Columns, sqlgraph.NewFieldSpec(messagewithfieldone.FieldID, field.TypeInt))
 	id, ok := mwfouo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithFieldOne.id" for update`)}
@@ -271,18 +192,10 @@ func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 	}
 	if value, ok := mwfouo.mutation.FieldOne(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.SetField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	if value, ok := mwfouo.mutation.AddedFieldOne(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt32,
-			Value:  value,
-			Column: messagewithfieldone.FieldFieldOne,
-		})
+		_spec.AddField(messagewithfieldone.FieldFieldOne, field.TypeInt32, value)
 	}
 	_node = &MessageWithFieldOne{config: mwfouo.config}
 	_spec.Assign = _node.assignValues
@@ -295,5 +208,6 @@ func (mwfouo *MessageWithFieldOneUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		return nil, err
 	}
+	mwfouo.mutation.done = true
 	return _node, nil
 }

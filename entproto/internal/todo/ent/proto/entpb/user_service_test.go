@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,13 @@ package entpb
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"entgo.io/contrib/entproto"
+	"entgo.io/contrib/entproto/internal/todo/ent/user"
 
 	"entgo.io/contrib/entproto/internal/todo/ent"
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
@@ -50,7 +52,7 @@ func TestUserService_Create(t *testing.T) {
 		Joined:     timestamppb.Now(),
 		Exp:        100,
 		Points:     1000,
-		Status:     User_ACTIVE,
+		Status:     User_STATUS_ACTIVE,
 		ExternalId: 1,
 		Group: &Group{
 			Id: int64(group.ID),
@@ -61,23 +63,30 @@ func TestUserService_Create(t *testing.T) {
 		HeightInCm:     170.18,
 		AccountBalance: 2000.50,
 		Labels:         []string{"member", "production"},
+		OmitPrefix:     User_BAR,
+		MimeType:       User_MIME_TYPE_IMAGE_XML_SVG,
+		Int32S:         []int32{1, 2, 3},
+		Int64S:         []int64{1, 2, 3},
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
 	})
 	require.NoError(t, err)
-	require.EqualValues(t, created.Status, User_ACTIVE)
+	require.EqualValues(t, created.Status, User_STATUS_ACTIVE)
 
-	fromDB := client.User.GetX(ctx, int(created.Id))
+	fromDB := client.User.GetX(ctx, created.Id)
 	require.EqualValues(t, inputUser.UserName, fromDB.UserName)
 	require.EqualValues(t, inputUser.Joined.AsTime().Unix(), fromDB.Joined.Unix())
 	require.EqualValues(t, inputUser.Exp, fromDB.Exp)
 	require.EqualValues(t, inputUser.Points, fromDB.Points)
-	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper(string(fromDB.Status)))
+	require.EqualValues(t, inputUser.Status.String(), strings.ToUpper("STATUS_"+string(fromDB.Status)))
 	require.EqualValues(t, inputUser.Banned, fromDB.Banned)
 	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
 	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
 	require.EqualValues(t, inputUser.Labels, fromDB.Labels)
+	require.EqualValues(t, inputUser.Int64S, fromDB.Int64s)
+	require.EqualValues(t, inputUser.Int32S, fromDB.Int32s)
+	require.EqualValues(t, inputUser.MimeType.String(), strings.ToUpper("MIME_TYPE_"+regexp.MustCompile("[^a-zA-Z0-9_]+").ReplaceAllString(string(fromDB.MimeType), "_")))
 
 	// preexisting user
 	_, err = svc.Create(ctx, &CreateUserRequest{
@@ -105,9 +114,11 @@ func TestUserService_Get(t *testing.T) {
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
 		SetLabels([]string{"on", "off"}).
+		SetOmitPrefix(user.OmitPrefixBar).
+		SetMimeType(user.MimeTypeSvg).
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetUserRequest{
-		Id: int64(created.ID),
+		Id: created.ID,
 	})
 	require.NoError(t, err)
 	require.EqualValues(t, created.UserName, get.UserName)
@@ -117,6 +128,8 @@ func TestUserService_Get(t *testing.T) {
 	require.EqualValues(t, created.HeightInCm, get.HeightInCm)
 	require.EqualValues(t, created.AccountBalance, get.AccountBalance)
 	require.EqualValues(t, created.Labels, get.Labels)
+	require.EqualValues(t, User_BAR, get.OmitPrefix)
+	require.EqualValues(t, User_MIME_TYPE_IMAGE_XML_SVG, get.MimeType)
 	get, err = svc.Get(ctx, &GetUserRequest{
 		Id: 1000,
 	})
@@ -140,9 +153,11 @@ func TestUserService_Delete(t *testing.T) {
 		SetExternalID(1).
 		SetCrmID(uuid.New()).
 		SetCustomPb(1).
+		SetOmitPrefix(user.OmitPrefixBar).
+		SetMimeType(user.MimeTypeSvg).
 		SaveX(ctx)
 	d, err := svc.Delete(ctx, &DeleteUserRequest{
-		Id: int64(created.ID),
+		Id: created.ID,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, d)
@@ -176,6 +191,8 @@ func TestUserService_Update(t *testing.T) {
 		SetHeightInCm(170.18).
 		SetAccountBalance(2000.50).
 		SetLabels(nil).
+		SetOmitPrefix(user.OmitPrefixFoo).
+		SetMimeType(user.MimeTypeSvg).
 		SaveX(ctx)
 
 	attachmentID, err := attachment.ID.MarshalBinary()
@@ -185,13 +202,13 @@ func TestUserService_Update(t *testing.T) {
 	require.NoError(t, err, "Converting UUID to Bytes: %v", crmID)
 
 	inputUser := &User{
-		Id:         int64(created.ID),
+		Id:         created.ID,
 		UserName:   "rotemtam",
 		Joined:     timestamppb.Now(),
 		Exp:        999,
 		Points:     999,
 		ExternalId: 1,
-		Status:     User_ACTIVE,
+		Status:     User_STATUS_ACTIVE,
 		Group: &Group{
 			Id: int64(group.ID),
 		},
@@ -201,6 +218,8 @@ func TestUserService_Update(t *testing.T) {
 		CrmId:          crmID,
 		HeightInCm:     175.18,
 		AccountBalance: 5000.75,
+		OmitPrefix:     User_FOO,
+		MimeType:       User_MIME_TYPE_IMAGE_PNG,
 	}
 	updated, err := svc.Update(ctx, &UpdateUserRequest{
 		User: inputUser,
@@ -210,6 +229,8 @@ func TestUserService_Update(t *testing.T) {
 
 	afterUpd := client.User.GetX(ctx, created.ID)
 	require.EqualValues(t, inputUser.Exp, afterUpd.Exp)
+	require.EqualValues(t, user.OmitPrefixFoo, afterUpd.OmitPrefix)
+	require.EqualValues(t, user.MimeTypePng, afterUpd.MimeType)
 }
 
 func TestUserService_List(t *testing.T) {
@@ -230,6 +251,8 @@ func TestUserService_List(t *testing.T) {
 			SetCrmID(uuid.New()).
 			SetCustomPb(1).
 			SetLabels(nil).
+			SetOmitPrefix(user.OmitPrefixBar).
+			SetMimeType(user.MimeTypeSvg).
 			SaveX(ctx)
 	}
 
@@ -310,7 +333,9 @@ func TestUserService_BatchCreate(t *testing.T) {
 				CrmId:      crmid,
 				CustomPb:   1,
 				Labels:     nil,
-				Status:     User_ACTIVE,
+				Status:     User_STATUS_ACTIVE,
+				OmitPrefix: User_BAR,
+				MimeType:   User_MIME_TYPE_IMAGE_PNG,
 			},
 		}
 		requests = append(requests, request)

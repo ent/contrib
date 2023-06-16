@@ -40,34 +40,7 @@ func (mwpnu *MessageWithPackageNameUpdate) Mutation() *MessageWithPackageNameMut
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwpnu *MessageWithPackageNameUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwpnu.hooks) == 0 {
-		affected, err = mwpnu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithPackageNameMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwpnu.mutation = mutation
-			affected, err = mwpnu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwpnu.hooks) - 1; i >= 0; i-- {
-			if mwpnu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwpnu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwpnu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithPackageNameMutation](ctx, mwpnu.sqlSave, mwpnu.mutation, mwpnu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -93,16 +66,7 @@ func (mwpnu *MessageWithPackageNameUpdate) ExecX(ctx context.Context) {
 }
 
 func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithpackagename.Table,
-			Columns: messagewithpackagename.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithpackagename.Table, messagewithpackagename.Columns, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
 	if ps := mwpnu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -111,11 +75,7 @@ func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, 
 		}
 	}
 	if value, ok := mwpnu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithpackagename.FieldName,
-		})
+		_spec.SetField(messagewithpackagename.FieldName, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mwpnu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -125,6 +85,7 @@ func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, 
 		}
 		return 0, err
 	}
+	mwpnu.mutation.done = true
 	return n, nil
 }
 
@@ -147,6 +108,12 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Mutation() *MessageWithPackageNam
 	return mwpnuo.mutation
 }
 
+// Where appends a list predicates to the MessageWithPackageNameUpdate builder.
+func (mwpnuo *MessageWithPackageNameUpdateOne) Where(ps ...predicate.MessageWithPackageName) *MessageWithPackageNameUpdateOne {
+	mwpnuo.mutation.Where(ps...)
+	return mwpnuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mwpnuo *MessageWithPackageNameUpdateOne) Select(field string, fields ...string) *MessageWithPackageNameUpdateOne {
@@ -156,40 +123,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Select(field string, fields ...st
 
 // Save executes the query and returns the updated MessageWithPackageName entity.
 func (mwpnuo *MessageWithPackageNameUpdateOne) Save(ctx context.Context) (*MessageWithPackageName, error) {
-	var (
-		err  error
-		node *MessageWithPackageName
-	)
-	if len(mwpnuo.hooks) == 0 {
-		node, err = mwpnuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithPackageNameMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwpnuo.mutation = mutation
-			node, err = mwpnuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwpnuo.hooks) - 1; i >= 0; i-- {
-			if mwpnuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwpnuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwpnuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithPackageName)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithPackageNameMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithPackageName, MessageWithPackageNameMutation](ctx, mwpnuo.sqlSave, mwpnuo.mutation, mwpnuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -215,16 +149,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithPackageName, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithpackagename.Table,
-			Columns: messagewithpackagename.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithpackagename.Table, messagewithpackagename.Columns, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
 	id, ok := mwpnuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithPackageName.id" for update`)}
@@ -250,11 +175,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_no
 		}
 	}
 	if value, ok := mwpnuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: messagewithpackagename.FieldName,
-		})
+		_spec.SetField(messagewithpackagename.FieldName, field.TypeString, value)
 	}
 	_node = &MessageWithPackageName{config: mwpnuo.config}
 	_spec.Assign = _node.assignValues
@@ -267,5 +188,6 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_no
 		}
 		return nil, err
 	}
+	mwpnuo.mutation.done = true
 	return _node, nil
 }

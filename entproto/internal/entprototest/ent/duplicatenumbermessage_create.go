@@ -38,49 +38,7 @@ func (dnmc *DuplicateNumberMessageCreate) Mutation() *DuplicateNumberMessageMuta
 
 // Save creates the DuplicateNumberMessage in the database.
 func (dnmc *DuplicateNumberMessageCreate) Save(ctx context.Context) (*DuplicateNumberMessage, error) {
-	var (
-		err  error
-		node *DuplicateNumberMessage
-	)
-	if len(dnmc.hooks) == 0 {
-		if err = dnmc.check(); err != nil {
-			return nil, err
-		}
-		node, err = dnmc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DuplicateNumberMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = dnmc.check(); err != nil {
-				return nil, err
-			}
-			dnmc.mutation = mutation
-			if node, err = dnmc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(dnmc.hooks) - 1; i >= 0; i-- {
-			if dnmc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dnmc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, dnmc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*DuplicateNumberMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from DuplicateNumberMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*DuplicateNumberMessage, DuplicateNumberMessageMutation](ctx, dnmc.sqlSave, dnmc.mutation, dnmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -117,6 +75,9 @@ func (dnmc *DuplicateNumberMessageCreate) check() error {
 }
 
 func (dnmc *DuplicateNumberMessageCreate) sqlSave(ctx context.Context) (*DuplicateNumberMessage, error) {
+	if err := dnmc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := dnmc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, dnmc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -126,34 +87,22 @@ func (dnmc *DuplicateNumberMessageCreate) sqlSave(ctx context.Context) (*Duplica
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	dnmc.mutation.id = &_node.ID
+	dnmc.mutation.done = true
 	return _node, nil
 }
 
 func (dnmc *DuplicateNumberMessageCreate) createSpec() (*DuplicateNumberMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DuplicateNumberMessage{config: dnmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: duplicatenumbermessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: duplicatenumbermessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(duplicatenumbermessage.Table, sqlgraph.NewFieldSpec(duplicatenumbermessage.FieldID, field.TypeInt))
 	)
 	if value, ok := dnmc.mutation.Hello(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldHello,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldHello, field.TypeString, value)
 		_node.Hello = value
 	}
 	if value, ok := dnmc.mutation.World(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: duplicatenumbermessage.FieldWorld,
-		})
+		_spec.SetField(duplicatenumbermessage.FieldWorld, field.TypeString, value)
 		_node.World = value
 	}
 	return _node, _spec
@@ -182,8 +131,8 @@ func (dnmcb *DuplicateNumberMessageCreateBulk) Save(ctx context.Context) ([]*Dup
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, dnmcb.builders[i+1].mutation)
 				} else {

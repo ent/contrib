@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -40,7 +41,8 @@ type Friendship struct {
 	FriendID uuid.UUID `json:"friend_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FriendshipQuery when eager-loading is set.
-	Edges FriendshipEdges `json:"edges"`
+	Edges        FriendshipEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // FriendshipEdges holds the relations/edges for other nodes in the graph.
@@ -92,7 +94,7 @@ func (*Friendship) scanValues(columns []string) ([]any, error) {
 		case friendship.FieldID, friendship.FieldUserID, friendship.FieldFriendID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Friendship", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -130,26 +132,34 @@ func (f *Friendship) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				f.FriendID = *value
 			}
+		default:
+			f.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Friendship.
+// This includes values selected through modifiers, order, etc.
+func (f *Friendship) Value(name string) (ent.Value, error) {
+	return f.selectValues.Get(name)
+}
+
 // QueryUser queries the "user" edge of the Friendship entity.
 func (f *Friendship) QueryUser() *UserQuery {
-	return (&FriendshipClient{config: f.config}).QueryUser(f)
+	return NewFriendshipClient(f.config).QueryUser(f)
 }
 
 // QueryFriend queries the "friend" edge of the Friendship entity.
 func (f *Friendship) QueryFriend() *UserQuery {
-	return (&FriendshipClient{config: f.config}).QueryFriend(f)
+	return NewFriendshipClient(f.config).QueryFriend(f)
 }
 
 // Update returns a builder for updating this Friendship.
 // Note that you need to call Friendship.Unwrap() before calling this method if this Friendship
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (f *Friendship) Update() *FriendshipUpdateOne {
-	return (&FriendshipClient{config: f.config}).UpdateOne(f)
+	return NewFriendshipClient(f.config).UpdateOne(f)
 }
 
 // Unwrap unwraps the Friendship entity that was returned from a transaction after it was closed,
@@ -182,9 +192,3 @@ func (f *Friendship) String() string {
 
 // Friendships is a parsable slice of Friendship.
 type Friendships []*Friendship
-
-func (f Friendships) config(cfg config) {
-	for _i := range f {
-		f[_i].config = cfg
-	}
-}

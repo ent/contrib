@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
 	"entgo.io/contrib/entgql/internal/todofed/ent/schema/schematype"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -46,7 +47,8 @@ type Category struct {
 	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
-	Edges CategoryEdges `json:"edges"`
+	Edges        CategoryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
@@ -85,7 +87,7 @@ func (*Category) scanValues(columns []string) ([]any, error) {
 		case category.FieldText, category.FieldStatus:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -143,21 +145,29 @@ func (c *Category) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field strings: %w", err)
 				}
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Category.
+// This includes values selected through modifiers, order, etc.
+func (c *Category) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
+}
+
 // QueryTodos queries the "todos" edge of the Category entity.
 func (c *Category) QueryTodos() *TodoQuery {
-	return (&CategoryClient{config: c.config}).QueryTodos(c)
+	return NewCategoryClient(c.config).QueryTodos(c)
 }
 
 // Update returns a builder for updating this Category.
 // Note that you need to call Category.Unwrap() before calling this method if this Category
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Category) Update() *CategoryUpdateOne {
-	return (&CategoryClient{config: c.config}).UpdateOne(c)
+	return NewCategoryClient(c.config).UpdateOne(c)
 }
 
 // Unwrap unwraps the Category entity that was returned from a transaction after it was closed,
@@ -226,9 +236,3 @@ func (c *Category) appendNamedTodos(name string, edges ...*Todo) {
 
 // Categories is a parsable slice of Category.
 type Categories []*Category
-
-func (c Categories) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

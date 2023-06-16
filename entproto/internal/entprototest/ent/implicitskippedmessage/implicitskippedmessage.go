@@ -2,6 +2,10 @@
 
 package implicitskippedmessage
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the implicitskippedmessage type in the database.
 	Label = "implicit_skipped_message"
@@ -35,4 +39,12 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the ImplicitSkippedMessage queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
 }

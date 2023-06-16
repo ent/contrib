@@ -40,34 +40,7 @@ func (pu *PonyUpdate) Mutation() *PonyMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *PonyUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(pu.hooks) == 0 {
-		affected, err = pu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PonyMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pu.mutation = mutation
-			affected, err = pu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(pu.hooks) - 1; i >= 0; i-- {
-			if pu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = pu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, pu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, PonyMutation](ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -93,16 +66,7 @@ func (pu *PonyUpdate) ExecX(ctx context.Context) {
 }
 
 func (pu *PonyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pony.Table,
-			Columns: pony.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(pony.Table, pony.Columns, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -111,11 +75,7 @@ func (pu *PonyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := pu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: pony.FieldName,
-		})
+		_spec.SetField(pony.FieldName, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -125,6 +85,7 @@ func (pu *PonyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	pu.mutation.done = true
 	return n, nil
 }
 
@@ -147,6 +108,12 @@ func (puo *PonyUpdateOne) Mutation() *PonyMutation {
 	return puo.mutation
 }
 
+// Where appends a list predicates to the PonyUpdate builder.
+func (puo *PonyUpdateOne) Where(ps ...predicate.Pony) *PonyUpdateOne {
+	puo.mutation.Where(ps...)
+	return puo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (puo *PonyUpdateOne) Select(field string, fields ...string) *PonyUpdateOne {
@@ -156,40 +123,7 @@ func (puo *PonyUpdateOne) Select(field string, fields ...string) *PonyUpdateOne 
 
 // Save executes the query and returns the updated Pony entity.
 func (puo *PonyUpdateOne) Save(ctx context.Context) (*Pony, error) {
-	var (
-		err  error
-		node *Pony
-	)
-	if len(puo.hooks) == 0 {
-		node, err = puo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PonyMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			puo.mutation = mutation
-			node, err = puo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(puo.hooks) - 1; i >= 0; i-- {
-			if puo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = puo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, puo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Pony)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from PonyMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Pony, PonyMutation](ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -215,16 +149,7 @@ func (puo *PonyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (puo *PonyUpdateOne) sqlSave(ctx context.Context) (_node *Pony, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pony.Table,
-			Columns: pony.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(pony.Table, pony.Columns, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Pony.id" for update`)}
@@ -250,11 +175,7 @@ func (puo *PonyUpdateOne) sqlSave(ctx context.Context) (_node *Pony, err error) 
 		}
 	}
 	if value, ok := puo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: pony.FieldName,
-		})
+		_spec.SetField(pony.FieldName, field.TypeString, value)
 	}
 	_node = &Pony{config: puo.config}
 	_spec.Assign = _node.assignValues
@@ -267,5 +188,6 @@ func (puo *PonyUpdateOne) sqlSave(ctx context.Context) (_node *Pony, err error) 
 		}
 		return nil, err
 	}
+	puo.mutation.done = true
 	return _node, nil
 }

@@ -39,6 +39,12 @@ func (mwec *MessageWithEnumCreate) SetEnumWithoutDefault(mwd messagewithenum.Enu
 	return mwec
 }
 
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (mwec *MessageWithEnumCreate) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumCreate {
+	mwec.mutation.SetEnumWithSpecialCharacters(mwsc)
+	return mwec
+}
+
 // Mutation returns the MessageWithEnumMutation object of the builder.
 func (mwec *MessageWithEnumCreate) Mutation() *MessageWithEnumMutation {
 	return mwec.mutation
@@ -46,50 +52,8 @@ func (mwec *MessageWithEnumCreate) Mutation() *MessageWithEnumMutation {
 
 // Save creates the MessageWithEnum in the database.
 func (mwec *MessageWithEnumCreate) Save(ctx context.Context) (*MessageWithEnum, error) {
-	var (
-		err  error
-		node *MessageWithEnum
-	)
 	mwec.defaults()
-	if len(mwec.hooks) == 0 {
-		if err = mwec.check(); err != nil {
-			return nil, err
-		}
-		node, err = mwec.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithEnumMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = mwec.check(); err != nil {
-				return nil, err
-			}
-			mwec.mutation = mutation
-			if node, err = mwec.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(mwec.hooks) - 1; i >= 0; i-- {
-			if mwec.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwec.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, mwec.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*MessageWithEnum)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from MessageWithEnumMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*MessageWithEnum, MessageWithEnumMutation](ctx, mwec.sqlSave, mwec.mutation, mwec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -140,10 +104,21 @@ func (mwec *MessageWithEnumCreate) check() error {
 			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
+	if _, ok := mwec.mutation.EnumWithSpecialCharacters(); !ok {
+		return &ValidationError{Name: "enum_with_special_characters", err: errors.New(`ent: missing required field "MessageWithEnum.enum_with_special_characters"`)}
+	}
+	if v, ok := mwec.mutation.EnumWithSpecialCharacters(); ok {
+		if err := messagewithenum.EnumWithSpecialCharactersValidator(v); err != nil {
+			return &ValidationError{Name: "enum_with_special_characters", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_with_special_characters": %w`, err)}
+		}
+	}
 	return nil
 }
 
 func (mwec *MessageWithEnumCreate) sqlSave(ctx context.Context) (*MessageWithEnum, error) {
+	if err := mwec.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := mwec.createSpec()
 	if err := sqlgraph.CreateNode(ctx, mwec.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -153,35 +128,27 @@ func (mwec *MessageWithEnumCreate) sqlSave(ctx context.Context) (*MessageWithEnu
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	mwec.mutation.id = &_node.ID
+	mwec.mutation.done = true
 	return _node, nil
 }
 
 func (mwec *MessageWithEnumCreate) createSpec() (*MessageWithEnum, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithEnum{config: mwec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithenum.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithenum.Table, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	)
 	if value, ok := mwec.mutation.EnumType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumType,
-		})
+		_spec.SetField(messagewithenum.FieldEnumType, field.TypeEnum, value)
 		_node.EnumType = value
 	}
 	if value, ok := mwec.mutation.EnumWithoutDefault(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: messagewithenum.FieldEnumWithoutDefault,
-		})
+		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
 		_node.EnumWithoutDefault = value
+	}
+	if value, ok := mwec.mutation.EnumWithSpecialCharacters(); ok {
+		_spec.SetField(messagewithenum.FieldEnumWithSpecialCharacters, field.TypeEnum, value)
+		_node.EnumWithSpecialCharacters = value
 	}
 	return _node, _spec
 }
@@ -210,8 +177,8 @@ func (mwecb *MessageWithEnumCreateBulk) Save(ctx context.Context) ([]*MessageWit
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwecb.builders[i+1].mutation)
 				} else {

@@ -12,6 +12,7 @@ import (
 
 	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
 	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
@@ -73,6 +74,13 @@ type OASTypes struct {
 	JSONObj url.URL `json:"json_obj,omitempty"`
 	// Other holds the value of the "other" field.
 	Other *schema.Link `json:"other,omitempty"`
+	// Optional holds the value of the "optional" field.
+	Optional int `json:"optional,omitempty"`
+	// Nillable holds the value of the "nillable" field.
+	Nillable *int `json:"nillable,omitempty"`
+	// OptionalAndNillable holds the value of the "optional_and_nillable" field.
+	OptionalAndNillable *int `json:"optional_and_nillable,omitempty"`
+	selectValues        sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -88,7 +96,7 @@ func (*OASTypes) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case oastypes.FieldFloat32, oastypes.FieldFloat64:
 			values[i] = new(sql.NullFloat64)
-		case oastypes.FieldID, oastypes.FieldInt, oastypes.FieldInt8, oastypes.FieldInt16, oastypes.FieldInt32, oastypes.FieldInt64, oastypes.FieldUint, oastypes.FieldUint8, oastypes.FieldUint16, oastypes.FieldUint32, oastypes.FieldUint64:
+		case oastypes.FieldID, oastypes.FieldInt, oastypes.FieldInt8, oastypes.FieldInt16, oastypes.FieldInt32, oastypes.FieldInt64, oastypes.FieldUint, oastypes.FieldUint8, oastypes.FieldUint16, oastypes.FieldUint32, oastypes.FieldUint64, oastypes.FieldOptional, oastypes.FieldNillable, oastypes.FieldOptionalAndNillable:
 			values[i] = new(sql.NullInt64)
 		case oastypes.FieldStringField, oastypes.FieldText, oastypes.FieldState:
 			values[i] = new(sql.NullString)
@@ -97,7 +105,7 @@ func (*OASTypes) scanValues(columns []string) ([]any, error) {
 		case oastypes.FieldUUID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type OASTypes", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -285,16 +293,44 @@ func (ot *OASTypes) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ot.Other = value
 			}
+		case oastypes.FieldOptional:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field optional", values[i])
+			} else if value.Valid {
+				ot.Optional = int(value.Int64)
+			}
+		case oastypes.FieldNillable:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field nillable", values[i])
+			} else if value.Valid {
+				ot.Nillable = new(int)
+				*ot.Nillable = int(value.Int64)
+			}
+		case oastypes.FieldOptionalAndNillable:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field optional_and_nillable", values[i])
+			} else if value.Valid {
+				ot.OptionalAndNillable = new(int)
+				*ot.OptionalAndNillable = int(value.Int64)
+			}
+		default:
+			ot.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the OASTypes.
+// This includes values selected through modifiers, order, etc.
+func (ot *OASTypes) Value(name string) (ent.Value, error) {
+	return ot.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this OASTypes.
 // Note that you need to call OASTypes.Unwrap() before calling this method if this OASTypes
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ot *OASTypes) Update() *OASTypesUpdateOne {
-	return (&OASTypesClient{config: ot.config}).UpdateOne(ot)
+	return NewOASTypesClient(ot.config).UpdateOne(ot)
 }
 
 // Unwrap unwraps the OASTypes entity that was returned from a transaction after it was closed,
@@ -390,15 +426,22 @@ func (ot *OASTypes) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("other=")
 	builder.WriteString(fmt.Sprintf("%v", ot.Other))
+	builder.WriteString(", ")
+	builder.WriteString("optional=")
+	builder.WriteString(fmt.Sprintf("%v", ot.Optional))
+	builder.WriteString(", ")
+	if v := ot.Nillable; v != nil {
+		builder.WriteString("nillable=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := ot.OptionalAndNillable; v != nil {
+		builder.WriteString("optional_and_nillable=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }
 
 // OASTypesSlice is a parsable slice of OASTypes.
 type OASTypesSlice []*OASTypes
-
-func (ot OASTypesSlice) config(cfg config) {
-	for _i := range ot {
-		ot[_i].config = cfg
-	}
-}

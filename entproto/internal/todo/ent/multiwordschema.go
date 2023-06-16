@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,7 +17,8 @@ type MultiWordSchema struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Unit holds the value of the "unit" field.
-	Unit multiwordschema.Unit `json:"unit,omitempty"`
+	Unit         multiwordschema.Unit `json:"unit,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -29,7 +31,7 @@ func (*MultiWordSchema) scanValues(columns []string) ([]any, error) {
 		case multiwordschema.FieldUnit:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type MultiWordSchema", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -55,16 +57,24 @@ func (mws *MultiWordSchema) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				mws.Unit = multiwordschema.Unit(value.String)
 			}
+		default:
+			mws.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the MultiWordSchema.
+// This includes values selected through modifiers, order, etc.
+func (mws *MultiWordSchema) Value(name string) (ent.Value, error) {
+	return mws.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MultiWordSchema.
 // Note that you need to call MultiWordSchema.Unwrap() before calling this method if this MultiWordSchema
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mws *MultiWordSchema) Update() *MultiWordSchemaUpdateOne {
-	return (&MultiWordSchemaClient{config: mws.config}).UpdateOne(mws)
+	return NewMultiWordSchemaClient(mws.config).UpdateOne(mws)
 }
 
 // Unwrap unwraps the MultiWordSchema entity that was returned from a transaction after it was closed,
@@ -91,9 +101,3 @@ func (mws *MultiWordSchema) String() string {
 
 // MultiWordSchemas is a parsable slice of MultiWordSchema.
 type MultiWordSchemas []*MultiWordSchema
-
-func (mws MultiWordSchemas) config(cfg config) {
-	for _i := range mws {
-		mws[_i].config = cfg
-	}
-}

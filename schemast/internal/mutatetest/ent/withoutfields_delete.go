@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withoutfields"
@@ -28,34 +27,7 @@ func (wfd *WithoutFieldsDelete) Where(ps ...predicate.WithoutFields) *WithoutFie
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wfd *WithoutFieldsDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(wfd.hooks) == 0 {
-		affected, err = wfd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithoutFieldsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wfd.mutation = mutation
-			affected, err = wfd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(wfd.hooks) - 1; i >= 0; i-- {
-			if wfd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wfd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, wfd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, WithoutFieldsMutation](ctx, wfd.sqlExec, wfd.mutation, wfd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (wfd *WithoutFieldsDelete) ExecX(ctx context.Context) int {
 }
 
 func (wfd *WithoutFieldsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: withoutfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withoutfields.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(withoutfields.Table, sqlgraph.NewFieldSpec(withoutfields.FieldID, field.TypeInt))
 	if ps := wfd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (wfd *WithoutFieldsDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	wfd.mutation.done = true
 	return affected, err
 }
 
 // WithoutFieldsDeleteOne is the builder for deleting a single WithoutFields entity.
 type WithoutFieldsDeleteOne struct {
 	wfd *WithoutFieldsDelete
+}
+
+// Where appends a list predicates to the WithoutFieldsDelete builder.
+func (wfdo *WithoutFieldsDeleteOne) Where(ps ...predicate.WithoutFields) *WithoutFieldsDeleteOne {
+	wfdo.wfd.mutation.Where(ps...)
+	return wfdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (wfdo *WithoutFieldsDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (wfdo *WithoutFieldsDeleteOne) ExecX(ctx context.Context) {
-	wfdo.wfd.ExecX(ctx)
+	if err := wfdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

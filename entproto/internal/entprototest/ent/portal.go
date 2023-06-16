@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/portal"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -24,6 +25,7 @@ type Portal struct {
 	// The values are being populated by the PortalQuery when eager-loading is set.
 	Edges           PortalEdges `json:"edges"`
 	portal_category *int
+	selectValues    sql.SelectValues
 }
 
 // PortalEdges holds the relations/edges for other nodes in the graph.
@@ -60,7 +62,7 @@ func (*Portal) scanValues(columns []string) ([]any, error) {
 		case portal.ForeignKeys[0]: // portal_category
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Portal", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -99,21 +101,29 @@ func (po *Portal) assignValues(columns []string, values []any) error {
 				po.portal_category = new(int)
 				*po.portal_category = int(value.Int64)
 			}
+		default:
+			po.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Portal.
+// This includes values selected through modifiers, order, etc.
+func (po *Portal) Value(name string) (ent.Value, error) {
+	return po.selectValues.Get(name)
+}
+
 // QueryCategory queries the "category" edge of the Portal entity.
 func (po *Portal) QueryCategory() *CategoryQuery {
-	return (&PortalClient{config: po.config}).QueryCategory(po)
+	return NewPortalClient(po.config).QueryCategory(po)
 }
 
 // Update returns a builder for updating this Portal.
 // Note that you need to call Portal.Unwrap() before calling this method if this Portal
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (po *Portal) Update() *PortalUpdateOne {
-	return (&PortalClient{config: po.config}).UpdateOne(po)
+	return NewPortalClient(po.config).UpdateOne(po)
 }
 
 // Unwrap unwraps the Portal entity that was returned from a transaction after it was closed,
@@ -143,9 +153,3 @@ func (po *Portal) String() string {
 
 // Portals is a parsable slice of Portal.
 type Portals []*Portal
-
-func (po Portals) config(cfg config) {
-	for _i := range po {
-		po[_i].config = cfg
-	}
-}

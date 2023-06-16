@@ -13,9 +13,19 @@ in the LICENSE file in the root directory of this source tree.
         {{ template "header" . }}
 {{- end }}
 
+
+{{ $gqlNodes := filterNodes $.Nodes (skipMode "where_input") }}
+
+import (
+    "{{ $.Config.Package }}/predicate"
+	{{- range $n := $gqlNodes }}
+        {{- template "import/types" $n }}
+		"{{ $.Config.Package }}/{{ $n.Package }}"
+	{{- end }}
+)
 {{ template "import" $ }}
 
-{{ range $n := filterNodes $.Nodes (skipMode "where_input") }}
+{{ range $n := $gqlNodes }}
     {{ $comparableFields := list $n.ID }}
     {{ $names := nodePaginationNames $n }}
     {{ with $annotation := $n.ID.Annotations.EntGQL }}

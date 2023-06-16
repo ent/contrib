@@ -15,6 +15,7 @@ autobind:
   - entgo.io/contrib/entgql/internal/todo/ent
   # Auto-bind the generated `Status` enum to GraphQL.
   - entgo.io/contrib/entgql/internal/todo/ent/todo
+  - entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct
 
 models:
   ID:
@@ -26,6 +27,9 @@ models:
   Duration:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/durationgql.Duration
+  Map:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent.Noder
@@ -37,3 +41,12 @@ models:
   CategoryConfigInput:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  CategoryTypes:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryTypes
+  CategoryTypesInput:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryTypes
+  UUID:
+    model:
+      - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID

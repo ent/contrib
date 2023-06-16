@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@ package main
 import (
 	"flag"
 	"log"
+	"path/filepath"
 
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/entc"
@@ -31,7 +32,13 @@ func main() {
 	if *schemaPath == "" {
 		log.Fatal("entproto: must specify schema path. use entproto -path ./ent/schema")
 	}
-	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{})
+	abs, err := filepath.Abs(*schemaPath)
+	if err != nil {
+		log.Fatalf("entproto: failed getting absolute path: %v", err)
+	}
+	graph, err := entc.LoadGraph(*schemaPath, &gen.Config{
+		Target: filepath.Dir(abs),
+	})
 	if err != nil {
 		log.Fatalf("entproto: failed loading ent graph: %v", err)
 	}

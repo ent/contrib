@@ -46,7 +46,7 @@ func toProtoPet(e *ent.Pet) (*Pet, error) {
 		})
 	}
 	if edg := e.Edges.Owner; edg != nil {
-		id := int64(edg.ID)
+		id := edg.ID
 		v.Owner = &User{
 			Id: id,
 		}
@@ -139,7 +139,7 @@ func (svc *PetService) Update(ctx context.Context, req *UpdatePetRequest) (*Pet,
 		m.AddAttachmentIDs(attachment)
 	}
 	if pet.GetOwner() != nil {
-		petOwner := int(pet.GetOwner().GetId())
+		petOwner := uint32(pet.GetOwner().GetId())
 		m.SetOwnerID(petOwner)
 	}
 
@@ -287,7 +287,7 @@ func (svc *PetService) createBuilder(pet *Pet) (*ent.PetCreate, error) {
 		m.AddAttachmentIDs(attachment)
 	}
 	if pet.GetOwner() != nil {
-		petOwner := int(pet.GetOwner().GetId())
+		petOwner := uint32(pet.GetOwner().GetId())
 		m.SetOwnerID(petOwner)
 	}
 	return m, nil

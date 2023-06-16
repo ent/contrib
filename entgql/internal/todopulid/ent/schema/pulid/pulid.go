@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,11 +62,14 @@ func (u *ID) Scan(src interface{}) error {
 	if src == nil {
 		return fmt.Errorf("pulid: expected a value")
 	}
-	s, ok := src.(string)
-	if !ok {
-		return fmt.Errorf("pulid: expected a string")
+	switch src := src.(type) {
+	case string:
+		*u = ID(src)
+	case ID:
+		*u = src
+	default:
+		return fmt.Errorf("pulid: unexpected type, %T", src)
 	}
-	*u = ID(s)
 	return nil
 }
 

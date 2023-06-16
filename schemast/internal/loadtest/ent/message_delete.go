@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/schemast/internal/loadtest/ent/message"
 	"entgo.io/contrib/schemast/internal/loadtest/ent/predicate"
@@ -28,34 +27,7 @@ func (md *MessageDelete) Where(ps ...predicate.Message) *MessageDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (md *MessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(md.hooks) == 0 {
-		affected, err = md.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			md.mutation = mutation
-			affected, err = md.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(md.hooks) - 1; i >= 0; i-- {
-			if md.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = md.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, md.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageMutation](ctx, md.sqlExec, md.mutation, md.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (md *MessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (md *MessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: message.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: message.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(message.Table, sqlgraph.NewFieldSpec(message.FieldID, field.TypeInt))
 	if ps := md.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (md *MessageDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	md.mutation.done = true
 	return affected, err
 }
 
 // MessageDeleteOne is the builder for deleting a single Message entity.
 type MessageDeleteOne struct {
 	md *MessageDelete
+}
+
+// Where appends a list predicates to the MessageDelete builder.
+func (mdo *MessageDeleteOne) Where(ps ...predicate.Message) *MessageDeleteOne {
+	mdo.md.mutation.Where(ps...)
+	return mdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (mdo *MessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mdo *MessageDeleteOne) ExecX(ctx context.Context) {
-	mdo.md.ExecX(ctx)
+	if err := mdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

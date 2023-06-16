@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
@@ -28,34 +27,7 @@ func (tmsd *TwoMethodServiceDelete) Where(ps ...predicate.TwoMethodService) *Two
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (tmsd *TwoMethodServiceDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(tmsd.hooks) == 0 {
-		affected, err = tmsd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TwoMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tmsd.mutation = mutation
-			affected, err = tmsd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(tmsd.hooks) - 1; i >= 0; i-- {
-			if tmsd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tmsd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, tmsd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, TwoMethodServiceMutation](ctx, tmsd.sqlExec, tmsd.mutation, tmsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (tmsd *TwoMethodServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (tmsd *TwoMethodServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: twomethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: twomethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(twomethodservice.Table, sqlgraph.NewFieldSpec(twomethodservice.FieldID, field.TypeInt))
 	if ps := tmsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (tmsd *TwoMethodServiceDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	tmsd.mutation.done = true
 	return affected, err
 }
 
 // TwoMethodServiceDeleteOne is the builder for deleting a single TwoMethodService entity.
 type TwoMethodServiceDeleteOne struct {
 	tmsd *TwoMethodServiceDelete
+}
+
+// Where appends a list predicates to the TwoMethodServiceDelete builder.
+func (tmsdo *TwoMethodServiceDeleteOne) Where(ps ...predicate.TwoMethodService) *TwoMethodServiceDeleteOne {
+	tmsdo.tmsd.mutation.Where(ps...)
+	return tmsdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (tmsdo *TwoMethodServiceDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (tmsdo *TwoMethodServiceDeleteOne) ExecX(ctx context.Context) {
-	tmsdo.tmsd.ExecX(ctx)
+	if err := tmsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

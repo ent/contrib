@@ -11,179 +11,117 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.Image(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.Image(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id uuid.UUID) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.Image(sql.FieldLTE(FieldID, id))
 }
 
 // URLPath applies equality check predicate on the "url_path" field. It's identical to URLPathEQ.
 func URLPath(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldEQ(FieldURLPath, v))
 }
 
 // URLPathEQ applies the EQ predicate on the "url_path" field.
 func URLPathEQ(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldEQ(FieldURLPath, v))
 }
 
 // URLPathNEQ applies the NEQ predicate on the "url_path" field.
 func URLPathNEQ(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldNEQ(FieldURLPath, v))
 }
 
 // URLPathIn applies the In predicate on the "url_path" field.
 func URLPathIn(vs ...string) predicate.Image {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldURLPath), v...))
-	})
+	return predicate.Image(sql.FieldIn(FieldURLPath, vs...))
 }
 
 // URLPathNotIn applies the NotIn predicate on the "url_path" field.
 func URLPathNotIn(vs ...string) predicate.Image {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldURLPath), v...))
-	})
+	return predicate.Image(sql.FieldNotIn(FieldURLPath, vs...))
 }
 
 // URLPathGT applies the GT predicate on the "url_path" field.
 func URLPathGT(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldGT(FieldURLPath, v))
 }
 
 // URLPathGTE applies the GTE predicate on the "url_path" field.
 func URLPathGTE(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldGTE(FieldURLPath, v))
 }
 
 // URLPathLT applies the LT predicate on the "url_path" field.
 func URLPathLT(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldLT(FieldURLPath, v))
 }
 
 // URLPathLTE applies the LTE predicate on the "url_path" field.
 func URLPathLTE(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldLTE(FieldURLPath, v))
 }
 
 // URLPathContains applies the Contains predicate on the "url_path" field.
 func URLPathContains(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldContains(FieldURLPath, v))
 }
 
 // URLPathHasPrefix applies the HasPrefix predicate on the "url_path" field.
 func URLPathHasPrefix(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldHasPrefix(FieldURLPath, v))
 }
 
 // URLPathHasSuffix applies the HasSuffix predicate on the "url_path" field.
 func URLPathHasSuffix(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldHasSuffix(FieldURLPath, v))
 }
 
 // URLPathEqualFold applies the EqualFold predicate on the "url_path" field.
 func URLPathEqualFold(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldEqualFold(FieldURLPath, v))
 }
 
 // URLPathContainsFold applies the ContainsFold predicate on the "url_path" field.
 func URLPathContainsFold(v string) predicate.Image {
-	return predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldURLPath), v))
-	})
+	return predicate.Image(sql.FieldContainsFold(FieldURLPath, v))
 }
 
 // HasUserProfilePic applies the HasEdge predicate on the "user_profile_pic" edge.
@@ -191,7 +129,6 @@ func HasUserProfilePic() predicate.Image {
 	return predicate.Image(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserProfilePicTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, UserProfilePicTable, UserProfilePicColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -201,11 +138,7 @@ func HasUserProfilePic() predicate.Image {
 // HasUserProfilePicWith applies the HasEdge predicate on the "user_profile_pic" edge with a given conditions (other predicates).
 func HasUserProfilePicWith(preds ...predicate.User) predicate.Image {
 	return predicate.Image(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(UserProfilePicInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, UserProfilePicTable, UserProfilePicColumn),
-		)
+		step := newUserProfilePicStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

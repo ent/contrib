@@ -4,6 +4,8 @@ package multiwordschema
 
 import (
 	"fmt"
+
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -57,4 +59,17 @@ func UnitValidator(u Unit) error {
 	default:
 		return fmt.Errorf("multiwordschema: invalid enum value for unit field: %q", u)
 	}
+}
+
+// OrderOption defines the ordering options for the MultiWordSchema queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUnit orders the results by the unit field.
+func ByUnit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnit, opts...).ToFunc()
 }

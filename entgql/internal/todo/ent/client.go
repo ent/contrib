@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,14 +23,18 @@ import (
 	"log"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
+	"entgo.io/ent"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
-
+	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -41,25 +45,33 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// BillProduct is the client for interacting with the BillProduct builders.
+	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
 	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// OneToMany is the client for interacting with the OneToMany builders.
+	OneToMany *OneToManyClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// VerySecret is the client for interacting with the VerySecret builders.
 	VerySecret *VerySecretClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
 	// additional fields for node api
 	tables tables
 }
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -68,12 +80,65 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.BillProduct = NewBillProductClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
+	c.OneToMany = NewOneToManyClient(c.config)
+	c.Project = NewProjectClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.VerySecret = NewVerySecretClient(c.config)
+	c.Workspace = NewWorkspaceClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -105,14 +170,18 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Category:   NewCategoryClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Group:      NewGroupClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
-		VerySecret: NewVerySecretClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		BillProduct: NewBillProductClient(cfg),
+		Category:    NewCategoryClient(cfg),
+		Friendship:  NewFriendshipClient(cfg),
+		Group:       NewGroupClient(cfg),
+		OneToMany:   NewOneToManyClient(cfg),
+		Project:     NewProjectClient(cfg),
+		Todo:        NewTodoClient(cfg),
+		User:        NewUserClient(cfg),
+		VerySecret:  NewVerySecretClient(cfg),
+		Workspace:   NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -130,21 +199,25 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Category:   NewCategoryClient(cfg),
-		Friendship: NewFriendshipClient(cfg),
-		Group:      NewGroupClient(cfg),
-		Todo:       NewTodoClient(cfg),
-		User:       NewUserClient(cfg),
-		VerySecret: NewVerySecretClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		BillProduct: NewBillProductClient(cfg),
+		Category:    NewCategoryClient(cfg),
+		Friendship:  NewFriendshipClient(cfg),
+		Group:       NewGroupClient(cfg),
+		OneToMany:   NewOneToManyClient(cfg),
+		Project:     NewProjectClient(cfg),
+		Todo:        NewTodoClient(cfg),
+		User:        NewUserClient(cfg),
+		VerySecret:  NewVerySecretClient(cfg),
+		Workspace:   NewWorkspaceClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Category.
+//		BillProduct.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -166,12 +239,169 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Category.Use(hooks...)
-	c.Friendship.Use(hooks...)
-	c.Group.Use(hooks...)
-	c.Todo.Use(hooks...)
-	c.User.Use(hooks...)
-	c.VerySecret.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
+		c.Todo, c.User, c.VerySecret, c.Workspace,
+	} {
+		n.Use(hooks...)
+	}
+}
+
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
+		c.Todo, c.User, c.VerySecret, c.Workspace,
+	} {
+		n.Intercept(interceptors...)
+	}
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *BillProductMutation:
+		return c.BillProduct.mutate(ctx, m)
+	case *CategoryMutation:
+		return c.Category.mutate(ctx, m)
+	case *FriendshipMutation:
+		return c.Friendship.mutate(ctx, m)
+	case *GroupMutation:
+		return c.Group.mutate(ctx, m)
+	case *OneToManyMutation:
+		return c.OneToMany.mutate(ctx, m)
+	case *ProjectMutation:
+		return c.Project.mutate(ctx, m)
+	case *TodoMutation:
+		return c.Todo.mutate(ctx, m)
+	case *UserMutation:
+		return c.User.mutate(ctx, m)
+	case *VerySecretMutation:
+		return c.VerySecret.mutate(ctx, m)
+	case *WorkspaceMutation:
+		return c.Workspace.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// BillProductClient is a client for the BillProduct schema.
+type BillProductClient struct {
+	config
+}
+
+// NewBillProductClient returns a client for the BillProduct from the given config.
+func NewBillProductClient(c config) *BillProductClient {
+	return &BillProductClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `billproduct.Hooks(f(g(h())))`.
+func (c *BillProductClient) Use(hooks ...Hook) {
+	c.hooks.BillProduct = append(c.hooks.BillProduct, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `billproduct.Intercept(f(g(h())))`.
+func (c *BillProductClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BillProduct = append(c.inters.BillProduct, interceptors...)
+}
+
+// Create returns a builder for creating a BillProduct entity.
+func (c *BillProductClient) Create() *BillProductCreate {
+	mutation := newBillProductMutation(c.config, OpCreate)
+	return &BillProductCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BillProduct entities.
+func (c *BillProductClient) CreateBulk(builders ...*BillProductCreate) *BillProductCreateBulk {
+	return &BillProductCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BillProduct.
+func (c *BillProductClient) Update() *BillProductUpdate {
+	mutation := newBillProductMutation(c.config, OpUpdate)
+	return &BillProductUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BillProductClient) UpdateOne(bp *BillProduct) *BillProductUpdateOne {
+	mutation := newBillProductMutation(c.config, OpUpdateOne, withBillProduct(bp))
+	return &BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BillProductClient) UpdateOneID(id int) *BillProductUpdateOne {
+	mutation := newBillProductMutation(c.config, OpUpdateOne, withBillProductID(id))
+	return &BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BillProduct.
+func (c *BillProductClient) Delete() *BillProductDelete {
+	mutation := newBillProductMutation(c.config, OpDelete)
+	return &BillProductDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BillProductClient) DeleteOne(bp *BillProduct) *BillProductDeleteOne {
+	return c.DeleteOneID(bp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BillProductClient) DeleteOneID(id int) *BillProductDeleteOne {
+	builder := c.Delete().Where(billproduct.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BillProductDeleteOne{builder}
+}
+
+// Query returns a query builder for BillProduct.
+func (c *BillProductClient) Query() *BillProductQuery {
+	return &BillProductQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBillProduct},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BillProduct entity by its id.
+func (c *BillProductClient) Get(ctx context.Context, id int) (*BillProduct, error) {
+	return c.Query().Where(billproduct.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BillProductClient) GetX(ctx context.Context, id int) *BillProduct {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BillProductClient) Hooks() []Hook {
+	return c.hooks.BillProduct
+}
+
+// Interceptors returns the client interceptors.
+func (c *BillProductClient) Interceptors() []Interceptor {
+	return c.inters.BillProduct
+}
+
+func (c *BillProductClient) mutate(ctx context.Context, m *BillProductMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BillProductCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BillProductUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BillProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BillProductDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BillProduct mutation op: %q", m.Op())
+	}
 }
 
 // CategoryClient is a client for the Category schema.
@@ -188,6 +418,12 @@ func NewCategoryClient(c config) *CategoryClient {
 // A call to `Use(f, g, h)` equals to `category.Hooks(f(g(h())))`.
 func (c *CategoryClient) Use(hooks ...Hook) {
 	c.hooks.Category = append(c.hooks.Category, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `category.Intercept(f(g(h())))`.
+func (c *CategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Category = append(c.inters.Category, interceptors...)
 }
 
 // Create returns a builder for creating a Category entity.
@@ -230,7 +466,7 @@ func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -242,6 +478,8 @@ func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 func (c *CategoryClient) Query() *CategoryQuery {
 	return &CategoryQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeCategory},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -261,8 +499,8 @@ func (c *CategoryClient) GetX(ctx context.Context, id int) *Category {
 
 // QueryTodos queries the todos edge of a Category.
 func (c *CategoryClient) QueryTodos(ca *Category) *TodoQuery {
-	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ca.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(category.Table, category.FieldID, id),
@@ -275,9 +513,45 @@ func (c *CategoryClient) QueryTodos(ca *Category) *TodoQuery {
 	return query
 }
 
+// QuerySubCategories queries the sub_categories edge of a Category.
+func (c *CategoryClient) QuerySubCategories(ca *Category) *CategoryQuery {
+	query := (&CategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, id),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, category.SubCategoriesTable, category.SubCategoriesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CategoryClient) Hooks() []Hook {
 	return c.hooks.Category
+}
+
+// Interceptors returns the client interceptors.
+func (c *CategoryClient) Interceptors() []Interceptor {
+	return c.inters.Category
+}
+
+func (c *CategoryClient) mutate(ctx context.Context, m *CategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Category mutation op: %q", m.Op())
+	}
 }
 
 // FriendshipClient is a client for the Friendship schema.
@@ -294,6 +568,12 @@ func NewFriendshipClient(c config) *FriendshipClient {
 // A call to `Use(f, g, h)` equals to `friendship.Hooks(f(g(h())))`.
 func (c *FriendshipClient) Use(hooks ...Hook) {
 	c.hooks.Friendship = append(c.hooks.Friendship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `friendship.Intercept(f(g(h())))`.
+func (c *FriendshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Friendship = append(c.inters.Friendship, interceptors...)
 }
 
 // Create returns a builder for creating a Friendship entity.
@@ -336,7 +616,7 @@ func (c *FriendshipClient) DeleteOne(f *Friendship) *FriendshipDeleteOne {
 	return c.DeleteOneID(f.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *FriendshipClient) DeleteOneID(id int) *FriendshipDeleteOne {
 	builder := c.Delete().Where(friendship.ID(id))
 	builder.mutation.id = &id
@@ -348,6 +628,8 @@ func (c *FriendshipClient) DeleteOneID(id int) *FriendshipDeleteOne {
 func (c *FriendshipClient) Query() *FriendshipQuery {
 	return &FriendshipQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeFriendship},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -367,8 +649,8 @@ func (c *FriendshipClient) GetX(ctx context.Context, id int) *Friendship {
 
 // QueryUser queries the user edge of a Friendship.
 func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := f.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(friendship.Table, friendship.FieldID, id),
@@ -383,8 +665,8 @@ func (c *FriendshipClient) QueryUser(f *Friendship) *UserQuery {
 
 // QueryFriend queries the friend edge of a Friendship.
 func (c *FriendshipClient) QueryFriend(f *Friendship) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := f.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(friendship.Table, friendship.FieldID, id),
@@ -402,6 +684,26 @@ func (c *FriendshipClient) Hooks() []Hook {
 	return c.hooks.Friendship
 }
 
+// Interceptors returns the client interceptors.
+func (c *FriendshipClient) Interceptors() []Interceptor {
+	return c.inters.Friendship
+}
+
+func (c *FriendshipClient) mutate(ctx context.Context, m *FriendshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FriendshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FriendshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FriendshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FriendshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Friendship mutation op: %q", m.Op())
+	}
+}
+
 // GroupClient is a client for the Group schema.
 type GroupClient struct {
 	config
@@ -416,6 +718,12 @@ func NewGroupClient(c config) *GroupClient {
 // A call to `Use(f, g, h)` equals to `group.Hooks(f(g(h())))`.
 func (c *GroupClient) Use(hooks ...Hook) {
 	c.hooks.Group = append(c.hooks.Group, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `group.Intercept(f(g(h())))`.
+func (c *GroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Group = append(c.inters.Group, interceptors...)
 }
 
 // Create returns a builder for creating a Group entity.
@@ -458,7 +766,7 @@ func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
 	return c.DeleteOneID(gr.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *GroupClient) DeleteOneID(id int) *GroupDeleteOne {
 	builder := c.Delete().Where(group.ID(id))
 	builder.mutation.id = &id
@@ -470,6 +778,8 @@ func (c *GroupClient) DeleteOneID(id int) *GroupDeleteOne {
 func (c *GroupClient) Query() *GroupQuery {
 	return &GroupQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeGroup},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -489,8 +799,8 @@ func (c *GroupClient) GetX(ctx context.Context, id int) *Group {
 
 // QueryUsers queries the users edge of a Group.
 func (c *GroupClient) QueryUsers(gr *Group) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(group.Table, group.FieldID, id),
@@ -508,6 +818,310 @@ func (c *GroupClient) Hooks() []Hook {
 	return c.hooks.Group
 }
 
+// Interceptors returns the client interceptors.
+func (c *GroupClient) Interceptors() []Interceptor {
+	return c.inters.Group
+}
+
+func (c *GroupClient) mutate(ctx context.Context, m *GroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Group mutation op: %q", m.Op())
+	}
+}
+
+// OneToManyClient is a client for the OneToMany schema.
+type OneToManyClient struct {
+	config
+}
+
+// NewOneToManyClient returns a client for the OneToMany from the given config.
+func NewOneToManyClient(c config) *OneToManyClient {
+	return &OneToManyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `onetomany.Hooks(f(g(h())))`.
+func (c *OneToManyClient) Use(hooks ...Hook) {
+	c.hooks.OneToMany = append(c.hooks.OneToMany, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `onetomany.Intercept(f(g(h())))`.
+func (c *OneToManyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OneToMany = append(c.inters.OneToMany, interceptors...)
+}
+
+// Create returns a builder for creating a OneToMany entity.
+func (c *OneToManyClient) Create() *OneToManyCreate {
+	mutation := newOneToManyMutation(c.config, OpCreate)
+	return &OneToManyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OneToMany entities.
+func (c *OneToManyClient) CreateBulk(builders ...*OneToManyCreate) *OneToManyCreateBulk {
+	return &OneToManyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OneToMany.
+func (c *OneToManyClient) Update() *OneToManyUpdate {
+	mutation := newOneToManyMutation(c.config, OpUpdate)
+	return &OneToManyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OneToManyClient) UpdateOne(otm *OneToMany) *OneToManyUpdateOne {
+	mutation := newOneToManyMutation(c.config, OpUpdateOne, withOneToMany(otm))
+	return &OneToManyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OneToManyClient) UpdateOneID(id int) *OneToManyUpdateOne {
+	mutation := newOneToManyMutation(c.config, OpUpdateOne, withOneToManyID(id))
+	return &OneToManyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OneToMany.
+func (c *OneToManyClient) Delete() *OneToManyDelete {
+	mutation := newOneToManyMutation(c.config, OpDelete)
+	return &OneToManyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OneToManyClient) DeleteOne(otm *OneToMany) *OneToManyDeleteOne {
+	return c.DeleteOneID(otm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OneToManyClient) DeleteOneID(id int) *OneToManyDeleteOne {
+	builder := c.Delete().Where(onetomany.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OneToManyDeleteOne{builder}
+}
+
+// Query returns a query builder for OneToMany.
+func (c *OneToManyClient) Query() *OneToManyQuery {
+	return &OneToManyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOneToMany},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OneToMany entity by its id.
+func (c *OneToManyClient) Get(ctx context.Context, id int) (*OneToMany, error) {
+	return c.Query().Where(onetomany.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OneToManyClient) GetX(ctx context.Context, id int) *OneToMany {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryParent queries the parent edge of a OneToMany.
+func (c *OneToManyClient) QueryParent(otm *OneToMany) *OneToManyQuery {
+	query := (&OneToManyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := otm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(onetomany.Table, onetomany.FieldID, id),
+			sqlgraph.To(onetomany.Table, onetomany.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, onetomany.ParentTable, onetomany.ParentColumn),
+		)
+		fromV = sqlgraph.Neighbors(otm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChildren queries the children edge of a OneToMany.
+func (c *OneToManyClient) QueryChildren(otm *OneToMany) *OneToManyQuery {
+	query := (&OneToManyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := otm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(onetomany.Table, onetomany.FieldID, id),
+			sqlgraph.To(onetomany.Table, onetomany.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, onetomany.ChildrenTable, onetomany.ChildrenColumn),
+		)
+		fromV = sqlgraph.Neighbors(otm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OneToManyClient) Hooks() []Hook {
+	return c.hooks.OneToMany
+}
+
+// Interceptors returns the client interceptors.
+func (c *OneToManyClient) Interceptors() []Interceptor {
+	return c.inters.OneToMany
+}
+
+func (c *OneToManyClient) mutate(ctx context.Context, m *OneToManyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OneToManyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OneToManyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OneToManyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OneToManyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OneToMany mutation op: %q", m.Op())
+	}
+}
+
+// ProjectClient is a client for the Project schema.
+type ProjectClient struct {
+	config
+}
+
+// NewProjectClient returns a client for the Project from the given config.
+func NewProjectClient(c config) *ProjectClient {
+	return &ProjectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `project.Hooks(f(g(h())))`.
+func (c *ProjectClient) Use(hooks ...Hook) {
+	c.hooks.Project = append(c.hooks.Project, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `project.Intercept(f(g(h())))`.
+func (c *ProjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Project = append(c.inters.Project, interceptors...)
+}
+
+// Create returns a builder for creating a Project entity.
+func (c *ProjectClient) Create() *ProjectCreate {
+	mutation := newProjectMutation(c.config, OpCreate)
+	return &ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Project entities.
+func (c *ProjectClient) CreateBulk(builders ...*ProjectCreate) *ProjectCreateBulk {
+	return &ProjectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Project.
+func (c *ProjectClient) Update() *ProjectUpdate {
+	mutation := newProjectMutation(c.config, OpUpdate)
+	return &ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProject(pr))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProjectClient) UpdateOneID(id int) *ProjectUpdateOne {
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProjectID(id))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Project.
+func (c *ProjectClient) Delete() *ProjectDelete {
+	mutation := newProjectMutation(c.config, OpDelete)
+	return &ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProjectClient) DeleteOne(pr *Project) *ProjectDeleteOne {
+	return c.DeleteOneID(pr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProjectClient) DeleteOneID(id int) *ProjectDeleteOne {
+	builder := c.Delete().Where(project.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProjectDeleteOne{builder}
+}
+
+// Query returns a query builder for Project.
+func (c *ProjectClient) Query() *ProjectQuery {
+	return &ProjectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProject},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Project entity by its id.
+func (c *ProjectClient) Get(ctx context.Context, id int) (*Project, error) {
+	return c.Query().Where(project.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProjectClient) GetX(ctx context.Context, id int) *Project {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTodos queries the todos edge of a Project.
+func (c *ProjectClient) QueryTodos(pr *Project) *TodoQuery {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.TodosTable, project.TodosColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProjectClient) Hooks() []Hook {
+	return c.hooks.Project
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProjectClient) Interceptors() []Interceptor {
+	return c.inters.Project
+}
+
+func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Project mutation op: %q", m.Op())
+	}
+}
+
 // TodoClient is a client for the Todo schema.
 type TodoClient struct {
 	config
@@ -522,6 +1136,12 @@ func NewTodoClient(c config) *TodoClient {
 // A call to `Use(f, g, h)` equals to `todo.Hooks(f(g(h())))`.
 func (c *TodoClient) Use(hooks ...Hook) {
 	c.hooks.Todo = append(c.hooks.Todo, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `todo.Intercept(f(g(h())))`.
+func (c *TodoClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Todo = append(c.inters.Todo, interceptors...)
 }
 
 // Create returns a builder for creating a Todo entity.
@@ -564,7 +1184,7 @@ func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
 	return c.DeleteOneID(t.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
 	builder := c.Delete().Where(todo.ID(id))
 	builder.mutation.id = &id
@@ -576,6 +1196,8 @@ func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
 func (c *TodoClient) Query() *TodoQuery {
 	return &TodoQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeTodo},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -595,8 +1217,8 @@ func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 
 // QueryParent queries the parent edge of a Todo.
 func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
-	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -611,8 +1233,8 @@ func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
 
 // QueryChildren queries the children edge of a Todo.
 func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
-	query := &TodoQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -627,8 +1249,8 @@ func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 
 // QueryCategory queries the category edge of a Todo.
 func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
-	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&CategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -643,8 +1265,8 @@ func (c *TodoClient) QueryCategory(t *Todo) *CategoryQuery {
 
 // QuerySecret queries the secret edge of a Todo.
 func (c *TodoClient) QuerySecret(t *Todo) *VerySecretQuery {
-	query := &VerySecretQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&VerySecretClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(todo.Table, todo.FieldID, id),
@@ -662,6 +1284,26 @@ func (c *TodoClient) Hooks() []Hook {
 	return c.hooks.Todo
 }
 
+// Interceptors returns the client interceptors.
+func (c *TodoClient) Interceptors() []Interceptor {
+	return c.inters.Todo
+}
+
+func (c *TodoClient) mutate(ctx context.Context, m *TodoMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TodoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TodoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Todo mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -676,6 +1318,12 @@ func NewUserClient(c config) *UserClient {
 // A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
 func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
+func (c *UserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.User = append(c.inters.User, interceptors...)
 }
 
 // Create returns a builder for creating a User entity.
@@ -718,7 +1366,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -730,6 +1378,8 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -749,8 +1399,8 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 
 // QueryGroups queries the groups edge of a User.
 func (c *UserClient) QueryGroups(u *User) *GroupQuery {
-	query := &GroupQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -765,8 +1415,8 @@ func (c *UserClient) QueryGroups(u *User) *GroupQuery {
 
 // QueryFriends queries the friends edge of a User.
 func (c *UserClient) QueryFriends(u *User) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -781,8 +1431,8 @@ func (c *UserClient) QueryFriends(u *User) *UserQuery {
 
 // QueryFriendships queries the friendships edge of a User.
 func (c *UserClient) QueryFriendships(u *User) *FriendshipQuery {
-	query := &FriendshipQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&FriendshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -800,6 +1450,26 @@ func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
 }
 
+// Interceptors returns the client interceptors.
+func (c *UserClient) Interceptors() []Interceptor {
+	return c.inters.User
+}
+
+func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
 // VerySecretClient is a client for the VerySecret schema.
 type VerySecretClient struct {
 	config
@@ -814,6 +1484,12 @@ func NewVerySecretClient(c config) *VerySecretClient {
 // A call to `Use(f, g, h)` equals to `verysecret.Hooks(f(g(h())))`.
 func (c *VerySecretClient) Use(hooks ...Hook) {
 	c.hooks.VerySecret = append(c.hooks.VerySecret, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `verysecret.Intercept(f(g(h())))`.
+func (c *VerySecretClient) Intercept(interceptors ...Interceptor) {
+	c.inters.VerySecret = append(c.inters.VerySecret, interceptors...)
 }
 
 // Create returns a builder for creating a VerySecret entity.
@@ -856,7 +1532,7 @@ func (c *VerySecretClient) DeleteOne(vs *VerySecret) *VerySecretDeleteOne {
 	return c.DeleteOneID(vs.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *VerySecretClient) DeleteOneID(id int) *VerySecretDeleteOne {
 	builder := c.Delete().Where(verysecret.ID(id))
 	builder.mutation.id = &id
@@ -868,6 +1544,8 @@ func (c *VerySecretClient) DeleteOneID(id int) *VerySecretDeleteOne {
 func (c *VerySecretClient) Query() *VerySecretQuery {
 	return &VerySecretQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeVerySecret},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -889,3 +1567,153 @@ func (c *VerySecretClient) GetX(ctx context.Context, id int) *VerySecret {
 func (c *VerySecretClient) Hooks() []Hook {
 	return c.hooks.VerySecret
 }
+
+// Interceptors returns the client interceptors.
+func (c *VerySecretClient) Interceptors() []Interceptor {
+	return c.inters.VerySecret
+}
+
+func (c *VerySecretClient) mutate(ctx context.Context, m *VerySecretMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&VerySecretCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&VerySecretUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&VerySecretUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&VerySecretDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown VerySecret mutation op: %q", m.Op())
+	}
+}
+
+// WorkspaceClient is a client for the Workspace schema.
+type WorkspaceClient struct {
+	config
+}
+
+// NewWorkspaceClient returns a client for the Workspace from the given config.
+func NewWorkspaceClient(c config) *WorkspaceClient {
+	return &WorkspaceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workspace.Hooks(f(g(h())))`.
+func (c *WorkspaceClient) Use(hooks ...Hook) {
+	c.hooks.Workspace = append(c.hooks.Workspace, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workspace.Intercept(f(g(h())))`.
+func (c *WorkspaceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Workspace = append(c.inters.Workspace, interceptors...)
+}
+
+// Create returns a builder for creating a Workspace entity.
+func (c *WorkspaceClient) Create() *WorkspaceCreate {
+	mutation := newWorkspaceMutation(c.config, OpCreate)
+	return &WorkspaceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Workspace entities.
+func (c *WorkspaceClient) CreateBulk(builders ...*WorkspaceCreate) *WorkspaceCreateBulk {
+	return &WorkspaceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Workspace.
+func (c *WorkspaceClient) Update() *WorkspaceUpdate {
+	mutation := newWorkspaceMutation(c.config, OpUpdate)
+	return &WorkspaceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkspaceClient) UpdateOne(w *Workspace) *WorkspaceUpdateOne {
+	mutation := newWorkspaceMutation(c.config, OpUpdateOne, withWorkspace(w))
+	return &WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkspaceClient) UpdateOneID(id int) *WorkspaceUpdateOne {
+	mutation := newWorkspaceMutation(c.config, OpUpdateOne, withWorkspaceID(id))
+	return &WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Workspace.
+func (c *WorkspaceClient) Delete() *WorkspaceDelete {
+	mutation := newWorkspaceMutation(c.config, OpDelete)
+	return &WorkspaceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkspaceClient) DeleteOne(w *Workspace) *WorkspaceDeleteOne {
+	return c.DeleteOneID(w.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkspaceClient) DeleteOneID(id int) *WorkspaceDeleteOne {
+	builder := c.Delete().Where(workspace.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkspaceDeleteOne{builder}
+}
+
+// Query returns a query builder for Workspace.
+func (c *WorkspaceClient) Query() *WorkspaceQuery {
+	return &WorkspaceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkspace},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Workspace entity by its id.
+func (c *WorkspaceClient) Get(ctx context.Context, id int) (*Workspace, error) {
+	return c.Query().Where(workspace.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkspaceClient) GetX(ctx context.Context, id int) *Workspace {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *WorkspaceClient) Hooks() []Hook {
+	return c.hooks.Workspace
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkspaceClient) Interceptors() []Interceptor {
+	return c.inters.Workspace
+}
+
+func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkspaceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkspaceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkspaceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Workspace mutation op: %q", m.Op())
+	}
+}
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
+		VerySecret, Workspace []ent.Hook
+	}
+	inters struct {
+		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
+		VerySecret, Workspace []ent.Interceptor
+	}
+)

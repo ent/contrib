@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
@@ -28,34 +27,7 @@ func (mwsd *MultiWordSchemaDelete) Where(ps ...predicate.MultiWordSchema) *Multi
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwsd *MultiWordSchemaDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwsd.hooks) == 0 {
-		affected, err = mwsd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MultiWordSchemaMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwsd.mutation = mutation
-			affected, err = mwsd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwsd.hooks) - 1; i >= 0; i-- {
-			if mwsd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwsd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwsd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MultiWordSchemaMutation](ctx, mwsd.sqlExec, mwsd.mutation, mwsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (mwsd *MultiWordSchemaDelete) ExecX(ctx context.Context) int {
 }
 
 func (mwsd *MultiWordSchemaDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: multiwordschema.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(multiwordschema.Table, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
 	if ps := mwsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (mwsd *MultiWordSchemaDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	mwsd.mutation.done = true
 	return affected, err
 }
 
 // MultiWordSchemaDeleteOne is the builder for deleting a single MultiWordSchema entity.
 type MultiWordSchemaDeleteOne struct {
 	mwsd *MultiWordSchemaDelete
+}
+
+// Where appends a list predicates to the MultiWordSchemaDelete builder.
+func (mwsdo *MultiWordSchemaDeleteOne) Where(ps ...predicate.MultiWordSchema) *MultiWordSchemaDeleteOne {
+	mwsdo.mwsd.mutation.Where(ps...)
+	return mwsdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (mwsdo *MultiWordSchemaDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mwsdo *MultiWordSchemaDeleteOne) ExecX(ctx context.Context) {
-	mwsdo.mwsd.ExecX(ctx)
+	if err := mwsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

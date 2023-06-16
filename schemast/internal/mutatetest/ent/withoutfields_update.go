@@ -34,34 +34,7 @@ func (wfu *WithoutFieldsUpdate) Mutation() *WithoutFieldsMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wfu *WithoutFieldsUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(wfu.hooks) == 0 {
-		affected, err = wfu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithoutFieldsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wfu.mutation = mutation
-			affected, err = wfu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(wfu.hooks) - 1; i >= 0; i-- {
-			if wfu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wfu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, wfu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, WithoutFieldsMutation](ctx, wfu.sqlSave, wfu.mutation, wfu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -87,16 +60,7 @@ func (wfu *WithoutFieldsUpdate) ExecX(ctx context.Context) {
 }
 
 func (wfu *WithoutFieldsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withoutfields.Table,
-			Columns: withoutfields.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withoutfields.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(withoutfields.Table, withoutfields.Columns, sqlgraph.NewFieldSpec(withoutfields.FieldID, field.TypeInt))
 	if ps := wfu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,6 +76,7 @@ func (wfu *WithoutFieldsUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		return 0, err
 	}
+	wfu.mutation.done = true
 	return n, nil
 }
 
@@ -128,6 +93,12 @@ func (wfuo *WithoutFieldsUpdateOne) Mutation() *WithoutFieldsMutation {
 	return wfuo.mutation
 }
 
+// Where appends a list predicates to the WithoutFieldsUpdate builder.
+func (wfuo *WithoutFieldsUpdateOne) Where(ps ...predicate.WithoutFields) *WithoutFieldsUpdateOne {
+	wfuo.mutation.Where(ps...)
+	return wfuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (wfuo *WithoutFieldsUpdateOne) Select(field string, fields ...string) *WithoutFieldsUpdateOne {
@@ -137,40 +108,7 @@ func (wfuo *WithoutFieldsUpdateOne) Select(field string, fields ...string) *With
 
 // Save executes the query and returns the updated WithoutFields entity.
 func (wfuo *WithoutFieldsUpdateOne) Save(ctx context.Context) (*WithoutFields, error) {
-	var (
-		err  error
-		node *WithoutFields
-	)
-	if len(wfuo.hooks) == 0 {
-		node, err = wfuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithoutFieldsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wfuo.mutation = mutation
-			node, err = wfuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(wfuo.hooks) - 1; i >= 0; i-- {
-			if wfuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wfuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, wfuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*WithoutFields)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from WithoutFieldsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*WithoutFields, WithoutFieldsMutation](ctx, wfuo.sqlSave, wfuo.mutation, wfuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +134,7 @@ func (wfuo *WithoutFieldsUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (wfuo *WithoutFieldsUpdateOne) sqlSave(ctx context.Context) (_node *WithoutFields, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withoutfields.Table,
-			Columns: withoutfields.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withoutfields.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(withoutfields.Table, withoutfields.Columns, sqlgraph.NewFieldSpec(withoutfields.FieldID, field.TypeInt))
 	id, ok := wfuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "WithoutFields.id" for update`)}
@@ -241,5 +170,6 @@ func (wfuo *WithoutFieldsUpdateOne) sqlSave(ctx context.Context) (_node *Without
 		}
 		return nil, err
 	}
+	wfuo.mutation.done = true
 	return _node, nil
 }

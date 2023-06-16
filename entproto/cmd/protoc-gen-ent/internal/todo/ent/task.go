@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/task"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -22,7 +23,8 @@ type Task struct {
 	// Complete holds the value of the "complete" field.
 	Complete bool `json:"complete,omitempty"`
 	// Signature holds the value of the "signature" field.
-	Signature string `json:"signature,omitempty"`
+	Signature    string `json:"signature,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,7 +39,7 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 		case task.FieldTitle, task.FieldDescription, task.FieldSignature:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Task", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -81,16 +83,24 @@ func (t *Task) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.Signature = value.String
 			}
+		default:
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Task.
+// This includes values selected through modifiers, order, etc.
+func (t *Task) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Task.
 // Note that you need to call Task.Unwrap() before calling this method if this Task
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Task) Update() *TaskUpdateOne {
-	return (&TaskClient{config: t.config}).UpdateOne(t)
+	return NewTaskClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Task entity that was returned from a transaction after it was closed,
@@ -126,9 +136,3 @@ func (t *Task) String() string {
 
 // Tasks is a parsable slice of Task.
 type Tasks []*Task
-
-func (t Tasks) config(cfg config) {
-	for _i := range t {
-		t[_i].config = cfg
-	}
-}

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,7 +17,8 @@ type MessageWithFieldOne struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// FieldOne holds the value of the "field_one" field.
-	FieldOne int32 `json:"field_one,omitempty"`
+	FieldOne     int32 `json:"field_one,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -27,7 +29,7 @@ func (*MessageWithFieldOne) scanValues(columns []string) ([]any, error) {
 		case messagewithfieldone.FieldID, messagewithfieldone.FieldFieldOne:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type MessageWithFieldOne", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -53,16 +55,24 @@ func (mwfo *MessageWithFieldOne) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				mwfo.FieldOne = int32(value.Int64)
 			}
+		default:
+			mwfo.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the MessageWithFieldOne.
+// This includes values selected through modifiers, order, etc.
+func (mwfo *MessageWithFieldOne) Value(name string) (ent.Value, error) {
+	return mwfo.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MessageWithFieldOne.
 // Note that you need to call MessageWithFieldOne.Unwrap() before calling this method if this MessageWithFieldOne
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mwfo *MessageWithFieldOne) Update() *MessageWithFieldOneUpdateOne {
-	return (&MessageWithFieldOneClient{config: mwfo.config}).UpdateOne(mwfo)
+	return NewMessageWithFieldOneClient(mwfo.config).UpdateOne(mwfo)
 }
 
 // Unwrap unwraps the MessageWithFieldOne entity that was returned from a transaction after it was closed,
@@ -89,9 +99,3 @@ func (mwfo *MessageWithFieldOne) String() string {
 
 // MessageWithFieldOnes is a parsable slice of MessageWithFieldOne.
 type MessageWithFieldOnes []*MessageWithFieldOne
-
-func (mwfo MessageWithFieldOnes) config(cfg config) {
-	for _i := range mwfo {
-		mwfo[_i].config = cfg
-	}
-}

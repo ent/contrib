@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,9 @@ package ent
 import (
 	"context"
 
+	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todofed/ent/category"
+	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -35,23 +38,65 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 	return c, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(category.Columns))
+		selectedFields = []string{category.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
 		case "todos":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: c.config}
+				query = (&TodoClient{config: c.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
 			c.WithNamedTodos(alias, func(wq *TodoQuery) {
 				*wq = *query
 			})
+		case "text":
+			if _, ok := fieldSeen[category.FieldText]; !ok {
+				selectedFields = append(selectedFields, category.FieldText)
+				fieldSeen[category.FieldText] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[category.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, category.FieldStatus)
+				fieldSeen[category.FieldStatus] = struct{}{}
+			}
+		case "config":
+			if _, ok := fieldSeen[category.FieldConfig]; !ok {
+				selectedFields = append(selectedFields, category.FieldConfig)
+				fieldSeen[category.FieldConfig] = struct{}{}
+			}
+		case "duration":
+			if _, ok := fieldSeen[category.FieldDuration]; !ok {
+				selectedFields = append(selectedFields, category.FieldDuration)
+				fieldSeen[category.FieldDuration] = struct{}{}
+			}
+		case "count":
+			if _, ok := fieldSeen[category.FieldCount]; !ok {
+				selectedFields = append(selectedFields, category.FieldCount)
+				fieldSeen[category.FieldCount] = struct{}{}
+			}
+		case "strings":
+			if _, ok := fieldSeen[category.FieldStrings]; !ok {
+				selectedFields = append(selectedFields, category.FieldStrings)
+				fieldSeen[category.FieldStrings] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
 		}
+	}
+	if !unknownSeen {
+		c.Select(selectedFields...)
 	}
 	return nil
 }
@@ -62,7 +107,7 @@ type categoryPaginateArgs struct {
 	opts          []CategoryPaginateOption
 }
 
-func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
+func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 	args := &categoryPaginateArgs{}
 	if rv == nil {
 		return args
@@ -81,10 +126,10 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
-				order      = &CategoryOrder{Field: &CategoryOrderField{}}
+				order      = &CategoryOrder{Field: &CategoryOrderField{}, Direction: entgql.OrderDirectionAsc}
 			)
 			if d, ok := v[directionField]; ok {
 				err1 = order.Direction.UnmarshalGQL(d)
@@ -116,17 +161,22 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 	return t, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
-	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(todo.Columns))
+		selectedFields = []string{todo.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
 		case "parent":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: t.config}
+				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
 			t.withParent = query
@@ -134,9 +184,9 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &TodoQuery{config: t.config}
+				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
 			t.WithNamedChildren(alias, func(wq *TodoQuery) {
@@ -146,13 +196,45 @@ func (t *TodoQuery) collectField(ctx context.Context, op *graphql.OperationConte
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = &CategoryQuery{config: t.config}
+				query = (&CategoryClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, categoryImplementors)...); err != nil {
 				return err
 			}
 			t.withCategory = query
+		case "createdAt":
+			if _, ok := fieldSeen[todo.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, todo.FieldCreatedAt)
+				fieldSeen[todo.FieldCreatedAt] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[todo.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, todo.FieldStatus)
+				fieldSeen[todo.FieldStatus] = struct{}{}
+			}
+		case "priority":
+			if _, ok := fieldSeen[todo.FieldPriority]; !ok {
+				selectedFields = append(selectedFields, todo.FieldPriority)
+				fieldSeen[todo.FieldPriority] = struct{}{}
+			}
+		case "text":
+			if _, ok := fieldSeen[todo.FieldText]; !ok {
+				selectedFields = append(selectedFields, todo.FieldText)
+				fieldSeen[todo.FieldText] = struct{}{}
+			}
+		case "blob":
+			if _, ok := fieldSeen[todo.FieldBlob]; !ok {
+				selectedFields = append(selectedFields, todo.FieldBlob)
+				fieldSeen[todo.FieldBlob] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
 		}
+	}
+	if !unknownSeen {
+		t.Select(selectedFields...)
 	}
 	return nil
 }
@@ -163,7 +245,7 @@ type todoPaginateArgs struct {
 	opts          []TodoPaginateOption
 }
 
-func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
+func newTodoPaginateArgs(rv map[string]any) *todoPaginateArgs {
 	args := &todoPaginateArgs{}
 	if rv == nil {
 		return args
@@ -182,10 +264,10 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
-				order      = &TodoOrder{Field: &TodoOrderField{}}
+				order      = &TodoOrder{Field: &TodoOrderField{}, Direction: entgql.OrderDirectionAsc}
 			)
 			if d, ok := v[directionField]; ok {
 				err1 = order.Direction.UnmarshalGQL(d)
@@ -216,35 +298,18 @@ const (
 	whereField     = "where"
 )
 
-func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[string]interface{} {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]any {
+	field := collectedField(ctx, path...)
+	if field == nil || field.Arguments == nil {
 		return nil
 	}
 	oc := graphql.GetOperationContext(ctx)
-	for _, name := range path {
-		var field *graphql.CollectedField
-		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Alias == name {
-				field = &f
-				break
-			}
-		}
-		if field == nil {
-			return nil
-		}
-		cf, err := fc.Child(ctx, *field)
-		if err != nil {
-			args := field.ArgumentMap(oc.Variables)
-			return unmarshalArgs(ctx, whereInput, args)
-		}
-		fc = cf
-	}
-	return fc.Args
+	args := field.ArgumentMap(oc.Variables)
+	return unmarshalArgs(ctx, whereInput, args)
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
-func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
+func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
 		if !ok {
@@ -295,4 +360,19 @@ func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sq
 			Where(sql.LTE(t.C("row_number"), limit)).
 			Prefix(with)
 	}
+}
+
+// mayAddCondition appends another type condition to the satisfies list
+// if it does not exist in the list.
+func mayAddCondition(satisfies []string, typeCond []string) []string {
+Cond:
+	for _, c := range typeCond {
+		for _, s := range satisfies {
+			if c == s {
+				continue Cond
+			}
+		}
+		satisfies = append(satisfies, c)
+	}
+	return satisfies
 }

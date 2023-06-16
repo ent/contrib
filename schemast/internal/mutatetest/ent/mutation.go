@@ -11,8 +11,8 @@ import (
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -146,9 +146,24 @@ func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (User).
@@ -432,9 +447,24 @@ func (m *WithFieldsMutation) Where(ps ...predicate.WithFields) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the WithFieldsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WithFieldsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WithFields, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *WithFieldsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WithFieldsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (WithFields).
@@ -784,9 +814,24 @@ func (m *WithModifiedFieldMutation) Where(ps ...predicate.WithModifiedField) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the WithModifiedFieldMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WithModifiedFieldMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WithModifiedField, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *WithModifiedFieldMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WithModifiedFieldMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (WithModifiedField).
@@ -1084,9 +1129,24 @@ func (m *WithNilFieldsMutation) Where(ps ...predicate.WithNilFields) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the WithNilFieldsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WithNilFieldsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WithNilFields, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *WithNilFieldsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WithNilFieldsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (WithNilFields).
@@ -1333,9 +1393,24 @@ func (m *WithoutFieldsMutation) Where(ps ...predicate.WithoutFields) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the WithoutFieldsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WithoutFieldsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WithoutFields, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *WithoutFieldsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WithoutFieldsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (WithoutFields).

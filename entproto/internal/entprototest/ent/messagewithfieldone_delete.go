@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (mwfod *MessageWithFieldOneDelete) Where(ps ...predicate.MessageWithFieldOn
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwfod *MessageWithFieldOneDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(mwfod.hooks) == 0 {
-		affected, err = mwfod.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*MessageWithFieldOneMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			mwfod.mutation = mutation
-			affected, err = mwfod.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(mwfod.hooks) - 1; i >= 0; i-- {
-			if mwfod.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = mwfod.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, mwfod.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, MessageWithFieldOneMutation](ctx, mwfod.sqlExec, mwfod.mutation, mwfod.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (mwfod *MessageWithFieldOneDelete) ExecX(ctx context.Context) int {
 }
 
 func (mwfod *MessageWithFieldOneDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: messagewithfieldone.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithfieldone.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(messagewithfieldone.Table, sqlgraph.NewFieldSpec(messagewithfieldone.FieldID, field.TypeInt))
 	if ps := mwfod.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (mwfod *MessageWithFieldOneDelete) sqlExec(ctx context.Context) (int, error
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	mwfod.mutation.done = true
 	return affected, err
 }
 
 // MessageWithFieldOneDeleteOne is the builder for deleting a single MessageWithFieldOne entity.
 type MessageWithFieldOneDeleteOne struct {
 	mwfod *MessageWithFieldOneDelete
+}
+
+// Where appends a list predicates to the MessageWithFieldOneDelete builder.
+func (mwfodo *MessageWithFieldOneDeleteOne) Where(ps ...predicate.MessageWithFieldOne) *MessageWithFieldOneDeleteOne {
+	mwfodo.mwfod.mutation.Where(ps...)
+	return mwfodo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (mwfodo *MessageWithFieldOneDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (mwfodo *MessageWithFieldOneDeleteOne) ExecX(ctx context.Context) {
-	mwfodo.mwfod.ExecX(ctx)
+	if err := mwfodo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

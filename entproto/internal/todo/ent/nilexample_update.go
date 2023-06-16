@@ -75,34 +75,7 @@ func (neu *NilExampleUpdate) Mutation() *NilExampleMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (neu *NilExampleUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(neu.hooks) == 0 {
-		affected, err = neu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NilExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			neu.mutation = mutation
-			affected, err = neu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(neu.hooks) - 1; i >= 0; i-- {
-			if neu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = neu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, neu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, NilExampleMutation](ctx, neu.sqlSave, neu.mutation, neu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -128,16 +101,7 @@ func (neu *NilExampleUpdate) ExecX(ctx context.Context) {
 }
 
 func (neu *NilExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nilexample.Table,
-			Columns: nilexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nilexample.Table, nilexample.Columns, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
 	if ps := neu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -146,30 +110,16 @@ func (neu *NilExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := neu.mutation.StrNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.SetField(nilexample.FieldStrNil, field.TypeString, value)
 	}
 	if neu.mutation.StrNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.ClearField(nilexample.FieldStrNil, field.TypeString)
 	}
 	if value, ok := neu.mutation.TimeNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.SetField(nilexample.FieldTimeNil, field.TypeTime, value)
 	}
 	if neu.mutation.TimeNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.ClearField(nilexample.FieldTimeNil, field.TypeTime)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, neu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -179,6 +129,7 @@ func (neu *NilExampleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	neu.mutation.done = true
 	return n, nil
 }
 
@@ -235,6 +186,12 @@ func (neuo *NilExampleUpdateOne) Mutation() *NilExampleMutation {
 	return neuo.mutation
 }
 
+// Where appends a list predicates to the NilExampleUpdate builder.
+func (neuo *NilExampleUpdateOne) Where(ps ...predicate.NilExample) *NilExampleUpdateOne {
+	neuo.mutation.Where(ps...)
+	return neuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (neuo *NilExampleUpdateOne) Select(field string, fields ...string) *NilExampleUpdateOne {
@@ -244,40 +201,7 @@ func (neuo *NilExampleUpdateOne) Select(field string, fields ...string) *NilExam
 
 // Save executes the query and returns the updated NilExample entity.
 func (neuo *NilExampleUpdateOne) Save(ctx context.Context) (*NilExample, error) {
-	var (
-		err  error
-		node *NilExample
-	)
-	if len(neuo.hooks) == 0 {
-		node, err = neuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*NilExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			neuo.mutation = mutation
-			node, err = neuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(neuo.hooks) - 1; i >= 0; i-- {
-			if neuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = neuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, neuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*NilExample)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from NilExampleMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*NilExample, NilExampleMutation](ctx, neuo.sqlSave, neuo.mutation, neuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -303,16 +227,7 @@ func (neuo *NilExampleUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (neuo *NilExampleUpdateOne) sqlSave(ctx context.Context) (_node *NilExample, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nilexample.Table,
-			Columns: nilexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(nilexample.Table, nilexample.Columns, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
 	id, ok := neuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "NilExample.id" for update`)}
@@ -338,30 +253,16 @@ func (neuo *NilExampleUpdateOne) sqlSave(ctx context.Context) (_node *NilExample
 		}
 	}
 	if value, ok := neuo.mutation.StrNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.SetField(nilexample.FieldStrNil, field.TypeString, value)
 	}
 	if neuo.mutation.StrNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: nilexample.FieldStrNil,
-		})
+		_spec.ClearField(nilexample.FieldStrNil, field.TypeString)
 	}
 	if value, ok := neuo.mutation.TimeNil(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.SetField(nilexample.FieldTimeNil, field.TypeTime, value)
 	}
 	if neuo.mutation.TimeNilCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Column: nilexample.FieldTimeNil,
-		})
+		_spec.ClearField(nilexample.FieldTimeNil, field.TypeTime)
 	}
 	_node = &NilExample{config: neuo.config}
 	_spec.Assign = _node.assignValues
@@ -374,5 +275,6 @@ func (neuo *NilExampleUpdateOne) sqlSave(ctx context.Context) (_node *NilExample
 		}
 		return nil, err
 	}
+	neuo.mutation.done = true
 	return _node, nil
 }

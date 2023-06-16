@@ -17,11 +17,9 @@ import (
 // AllMethodsServiceQuery is the builder for querying AllMethodsService entities.
 type AllMethodsServiceQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []allmethodsservice.OrderOption
+	inters     []Interceptor
 	predicates []predicate.AllMethodsService
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,27 +32,27 @@ func (amsq *AllMethodsServiceQuery) Where(ps ...predicate.AllMethodsService) *Al
 	return amsq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (amsq *AllMethodsServiceQuery) Limit(limit int) *AllMethodsServiceQuery {
-	amsq.limit = &limit
+	amsq.ctx.Limit = &limit
 	return amsq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (amsq *AllMethodsServiceQuery) Offset(offset int) *AllMethodsServiceQuery {
-	amsq.offset = &offset
+	amsq.ctx.Offset = &offset
 	return amsq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (amsq *AllMethodsServiceQuery) Unique(unique bool) *AllMethodsServiceQuery {
-	amsq.unique = &unique
+	amsq.ctx.Unique = &unique
 	return amsq
 }
 
-// Order adds an order step to the query.
-func (amsq *AllMethodsServiceQuery) Order(o ...OrderFunc) *AllMethodsServiceQuery {
+// Order specifies how the records should be ordered.
+func (amsq *AllMethodsServiceQuery) Order(o ...allmethodsservice.OrderOption) *AllMethodsServiceQuery {
 	amsq.order = append(amsq.order, o...)
 	return amsq
 }
@@ -62,7 +60,7 @@ func (amsq *AllMethodsServiceQuery) Order(o ...OrderFunc) *AllMethodsServiceQuer
 // First returns the first AllMethodsService entity from the query.
 // Returns a *NotFoundError when no AllMethodsService was found.
 func (amsq *AllMethodsServiceQuery) First(ctx context.Context) (*AllMethodsService, error) {
-	nodes, err := amsq.Limit(1).All(ctx)
+	nodes, err := amsq.Limit(1).All(setContextOp(ctx, amsq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (amsq *AllMethodsServiceQuery) FirstX(ctx context.Context) *AllMethodsServi
 // Returns a *NotFoundError when no AllMethodsService ID was found.
 func (amsq *AllMethodsServiceQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = amsq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = amsq.Limit(1).IDs(setContextOp(ctx, amsq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (amsq *AllMethodsServiceQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one AllMethodsService entity is found.
 // Returns a *NotFoundError when no AllMethodsService entities are found.
 func (amsq *AllMethodsServiceQuery) Only(ctx context.Context) (*AllMethodsService, error) {
-	nodes, err := amsq.Limit(2).All(ctx)
+	nodes, err := amsq.Limit(2).All(setContextOp(ctx, amsq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (amsq *AllMethodsServiceQuery) OnlyX(ctx context.Context) *AllMethodsServic
 // Returns a *NotFoundError when no entities are found.
 func (amsq *AllMethodsServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = amsq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = amsq.Limit(2).IDs(setContextOp(ctx, amsq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (amsq *AllMethodsServiceQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of AllMethodsServices.
 func (amsq *AllMethodsServiceQuery) All(ctx context.Context) ([]*AllMethodsService, error) {
+	ctx = setContextOp(ctx, amsq.ctx, "All")
 	if err := amsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return amsq.sqlAll(ctx)
+	qr := querierAll[[]*AllMethodsService, *AllMethodsServiceQuery]()
+	return withInterceptors[[]*AllMethodsService](ctx, amsq, qr, amsq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -177,9 +177,12 @@ func (amsq *AllMethodsServiceQuery) AllX(ctx context.Context) []*AllMethodsServi
 }
 
 // IDs executes the query and returns a list of AllMethodsService IDs.
-func (amsq *AllMethodsServiceQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := amsq.Select(allmethodsservice.FieldID).Scan(ctx, &ids); err != nil {
+func (amsq *AllMethodsServiceQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if amsq.ctx.Unique == nil && amsq.path != nil {
+		amsq.Unique(true)
+	}
+	ctx = setContextOp(ctx, amsq.ctx, "IDs")
+	if err = amsq.Select(allmethodsservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -196,10 +199,11 @@ func (amsq *AllMethodsServiceQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (amsq *AllMethodsServiceQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, amsq.ctx, "Count")
 	if err := amsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return amsq.sqlCount(ctx)
+	return withInterceptors[int](ctx, amsq, querierCount[*AllMethodsServiceQuery](), amsq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +217,15 @@ func (amsq *AllMethodsServiceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (amsq *AllMethodsServiceQuery) Exist(ctx context.Context) (bool, error) {
-	if err := amsq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, amsq.ctx, "Exist")
+	switch _, err := amsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return amsq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,45 +245,54 @@ func (amsq *AllMethodsServiceQuery) Clone() *AllMethodsServiceQuery {
 	}
 	return &AllMethodsServiceQuery{
 		config:     amsq.config,
-		limit:      amsq.limit,
-		offset:     amsq.offset,
-		order:      append([]OrderFunc{}, amsq.order...),
+		ctx:        amsq.ctx.Clone(),
+		order:      append([]allmethodsservice.OrderOption{}, amsq.order...),
+		inters:     append([]Interceptor{}, amsq.inters...),
 		predicates: append([]predicate.AllMethodsService{}, amsq.predicates...),
 		// clone intermediate query.
-		sql:    amsq.sql.Clone(),
-		path:   amsq.path,
-		unique: amsq.unique,
+		sql:  amsq.sql.Clone(),
+		path: amsq.path,
 	}
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (amsq *AllMethodsServiceQuery) GroupBy(field string, fields ...string) *AllMethodsServiceGroupBy {
-	grbuild := &AllMethodsServiceGroupBy{config: amsq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := amsq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return amsq.sqlQuery(ctx), nil
-	}
+	amsq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &AllMethodsServiceGroupBy{build: amsq}
+	grbuild.flds = &amsq.ctx.Fields
 	grbuild.label = allmethodsservice.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (amsq *AllMethodsServiceQuery) Select(fields ...string) *AllMethodsServiceSelect {
-	amsq.fields = append(amsq.fields, fields...)
-	selbuild := &AllMethodsServiceSelect{AllMethodsServiceQuery: amsq}
-	selbuild.label = allmethodsservice.Label
-	selbuild.flds, selbuild.scan = &amsq.fields, selbuild.Scan
-	return selbuild
+	amsq.ctx.Fields = append(amsq.ctx.Fields, fields...)
+	sbuild := &AllMethodsServiceSelect{AllMethodsServiceQuery: amsq}
+	sbuild.label = allmethodsservice.Label
+	sbuild.flds, sbuild.scan = &amsq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a AllMethodsServiceSelect configured with the given aggregations.
+func (amsq *AllMethodsServiceQuery) Aggregate(fns ...AggregateFunc) *AllMethodsServiceSelect {
+	return amsq.Select().Aggregate(fns...)
 }
 
 func (amsq *AllMethodsServiceQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range amsq.fields {
+	for _, inter := range amsq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, amsq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range amsq.ctx.Fields {
 		if !allmethodsservice.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -316,41 +334,22 @@ func (amsq *AllMethodsServiceQuery) sqlAll(ctx context.Context, hooks ...queryHo
 
 func (amsq *AllMethodsServiceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := amsq.querySpec()
-	_spec.Node.Columns = amsq.fields
-	if len(amsq.fields) > 0 {
-		_spec.Unique = amsq.unique != nil && *amsq.unique
+	_spec.Node.Columns = amsq.ctx.Fields
+	if len(amsq.ctx.Fields) > 0 {
+		_spec.Unique = amsq.ctx.Unique != nil && *amsq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, amsq.driver, _spec)
 }
 
-func (amsq *AllMethodsServiceQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := amsq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (amsq *AllMethodsServiceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allmethodsservice.Table,
-			Columns: allmethodsservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allmethodsservice.FieldID,
-			},
-		},
-		From:   amsq.sql,
-		Unique: true,
-	}
-	if unique := amsq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(allmethodsservice.Table, allmethodsservice.Columns, sqlgraph.NewFieldSpec(allmethodsservice.FieldID, field.TypeInt))
+	_spec.From = amsq.sql
+	if unique := amsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if amsq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := amsq.fields; len(fields) > 0 {
+	if fields := amsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, allmethodsservice.FieldID)
 		for i := range fields {
@@ -366,10 +365,10 @@ func (amsq *AllMethodsServiceQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := amsq.limit; limit != nil {
+	if limit := amsq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := amsq.offset; offset != nil {
+	if offset := amsq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := amsq.order; len(ps) > 0 {
@@ -385,7 +384,7 @@ func (amsq *AllMethodsServiceQuery) querySpec() *sqlgraph.QuerySpec {
 func (amsq *AllMethodsServiceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(amsq.driver.Dialect())
 	t1 := builder.Table(allmethodsservice.Table)
-	columns := amsq.fields
+	columns := amsq.ctx.Fields
 	if len(columns) == 0 {
 		columns = allmethodsservice.Columns
 	}
@@ -394,7 +393,7 @@ func (amsq *AllMethodsServiceQuery) sqlQuery(ctx context.Context) *sql.Selector 
 		selector = amsq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if amsq.unique != nil && *amsq.unique {
+	if amsq.ctx.Unique != nil && *amsq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range amsq.predicates {
@@ -403,12 +402,12 @@ func (amsq *AllMethodsServiceQuery) sqlQuery(ctx context.Context) *sql.Selector 
 	for _, p := range amsq.order {
 		p(selector)
 	}
-	if offset := amsq.offset; offset != nil {
+	if offset := amsq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := amsq.limit; limit != nil {
+	if limit := amsq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -416,13 +415,8 @@ func (amsq *AllMethodsServiceQuery) sqlQuery(ctx context.Context) *sql.Selector 
 
 // AllMethodsServiceGroupBy is the group-by builder for AllMethodsService entities.
 type AllMethodsServiceGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *AllMethodsServiceQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -431,74 +425,77 @@ func (amsgb *AllMethodsServiceGroupBy) Aggregate(fns ...AggregateFunc) *AllMetho
 	return amsgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (amsgb *AllMethodsServiceGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := amsgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, amsgb.build.ctx, "GroupBy")
+	if err := amsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	amsgb.sql = query
-	return amsgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*AllMethodsServiceQuery, *AllMethodsServiceGroupBy](ctx, amsgb.build, amsgb, amsgb.build.inters, v)
 }
 
-func (amsgb *AllMethodsServiceGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range amsgb.fields {
-		if !allmethodsservice.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (amsgb *AllMethodsServiceGroupBy) sqlScan(ctx context.Context, root *AllMethodsServiceQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(amsgb.fns))
+	for _, fn := range amsgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := amsgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*amsgb.flds)+len(amsgb.fns))
+		for _, f := range *amsgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*amsgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := amsgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := amsgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (amsgb *AllMethodsServiceGroupBy) sqlQuery() *sql.Selector {
-	selector := amsgb.sql.Select()
-	aggregation := make([]string, 0, len(amsgb.fns))
-	for _, fn := range amsgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(amsgb.fields)+len(amsgb.fns))
-		for _, f := range amsgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(amsgb.fields...)...)
-}
-
 // AllMethodsServiceSelect is the builder for selecting fields of AllMethodsService entities.
 type AllMethodsServiceSelect struct {
 	*AllMethodsServiceQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (amss *AllMethodsServiceSelect) Aggregate(fns ...AggregateFunc) *AllMethodsServiceSelect {
+	amss.fns = append(amss.fns, fns...)
+	return amss
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, amss.ctx, "Select")
 	if err := amss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	amss.sql = amss.AllMethodsServiceQuery.sqlQuery(ctx)
-	return amss.sqlScan(ctx, v)
+	return scanWithInterceptors[*AllMethodsServiceQuery, *AllMethodsServiceSelect](ctx, amss.AllMethodsServiceQuery, amss, amss.inters, v)
 }
 
-func (amss *AllMethodsServiceSelect) sqlScan(ctx context.Context, v any) error {
+func (amss *AllMethodsServiceSelect) sqlScan(ctx context.Context, root *AllMethodsServiceQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(amss.fns))
+	for _, fn := range amss.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*amss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := amss.sql.Query()
+	query, args := selector.Query()
 	if err := amss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

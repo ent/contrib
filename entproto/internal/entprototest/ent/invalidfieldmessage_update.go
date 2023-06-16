@@ -41,34 +41,7 @@ func (ifmu *InvalidFieldMessageUpdate) Mutation() *InvalidFieldMessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ifmu *InvalidFieldMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ifmu.hooks) == 0 {
-		affected, err = ifmu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ifmu.mutation = mutation
-			affected, err = ifmu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ifmu.hooks) - 1; i >= 0; i-- {
-			if ifmu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ifmu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, InvalidFieldMessageMutation](ctx, ifmu.sqlSave, ifmu.mutation, ifmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -94,16 +67,7 @@ func (ifmu *InvalidFieldMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   invalidfieldmessage.Table,
-			Columns: invalidfieldmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(invalidfieldmessage.Table, invalidfieldmessage.Columns, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	if ps := ifmu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,11 +76,7 @@ func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err 
 		}
 	}
 	if value, ok := ifmu.mutation.JSON(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: invalidfieldmessage.FieldJSON,
-		})
+		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ifmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -126,6 +86,7 @@ func (ifmu *InvalidFieldMessageUpdate) sqlSave(ctx context.Context) (n int, err 
 		}
 		return 0, err
 	}
+	ifmu.mutation.done = true
 	return n, nil
 }
 
@@ -148,6 +109,12 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Mutation() *InvalidFieldMessageMutati
 	return ifmuo.mutation
 }
 
+// Where appends a list predicates to the InvalidFieldMessageUpdate builder.
+func (ifmuo *InvalidFieldMessageUpdateOne) Where(ps ...predicate.InvalidFieldMessage) *InvalidFieldMessageUpdateOne {
+	ifmuo.mutation.Where(ps...)
+	return ifmuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ifmuo *InvalidFieldMessageUpdateOne) Select(field string, fields ...string) *InvalidFieldMessageUpdateOne {
@@ -157,40 +124,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Select(field string, fields ...string
 
 // Save executes the query and returns the updated InvalidFieldMessage entity.
 func (ifmuo *InvalidFieldMessageUpdateOne) Save(ctx context.Context) (*InvalidFieldMessage, error) {
-	var (
-		err  error
-		node *InvalidFieldMessage
-	)
-	if len(ifmuo.hooks) == 0 {
-		node, err = ifmuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ifmuo.mutation = mutation
-			node, err = ifmuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ifmuo.hooks) - 1; i >= 0; i-- {
-			if ifmuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ifmuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*InvalidFieldMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from InvalidFieldMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*InvalidFieldMessage, InvalidFieldMessageMutation](ctx, ifmuo.sqlSave, ifmuo.mutation, ifmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -216,16 +150,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *InvalidFieldMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   invalidfieldmessage.Table,
-			Columns: invalidfieldmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(invalidfieldmessage.Table, invalidfieldmessage.Columns, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	id, ok := ifmuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "InvalidFieldMessage.id" for update`)}
@@ -251,11 +176,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 		}
 	}
 	if value, ok := ifmuo.mutation.JSON(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: invalidfieldmessage.FieldJSON,
-		})
+		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
 	}
 	_node = &InvalidFieldMessage{config: ifmuo.config}
 	_spec.Assign = _node.assignValues
@@ -268,5 +189,6 @@ func (ifmuo *InvalidFieldMessageUpdateOne) sqlSave(ctx context.Context) (_node *
 		}
 		return nil, err
 	}
+	ifmuo.mutation.done = true
 	return _node, nil
 }

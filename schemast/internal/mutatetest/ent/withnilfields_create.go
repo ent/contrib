@@ -25,49 +25,7 @@ func (wnfc *WithNilFieldsCreate) Mutation() *WithNilFieldsMutation {
 
 // Save creates the WithNilFields in the database.
 func (wnfc *WithNilFieldsCreate) Save(ctx context.Context) (*WithNilFields, error) {
-	var (
-		err  error
-		node *WithNilFields
-	)
-	if len(wnfc.hooks) == 0 {
-		if err = wnfc.check(); err != nil {
-			return nil, err
-		}
-		node, err = wnfc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithNilFieldsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = wnfc.check(); err != nil {
-				return nil, err
-			}
-			wnfc.mutation = mutation
-			if node, err = wnfc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(wnfc.hooks) - 1; i >= 0; i-- {
-			if wnfc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wnfc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, wnfc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*WithNilFields)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from WithNilFieldsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*WithNilFields, WithNilFieldsMutation](ctx, wnfc.sqlSave, wnfc.mutation, wnfc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (wnfc *WithNilFieldsCreate) check() error {
 }
 
 func (wnfc *WithNilFieldsCreate) sqlSave(ctx context.Context) (*WithNilFields, error) {
+	if err := wnfc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := wnfc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, wnfc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,19 +68,15 @@ func (wnfc *WithNilFieldsCreate) sqlSave(ctx context.Context) (*WithNilFields, e
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	wnfc.mutation.id = &_node.ID
+	wnfc.mutation.done = true
 	return _node, nil
 }
 
 func (wnfc *WithNilFieldsCreate) createSpec() (*WithNilFields, *sqlgraph.CreateSpec) {
 	var (
 		_node = &WithNilFields{config: wnfc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: withnilfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withnilfields.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(withnilfields.Table, sqlgraph.NewFieldSpec(withnilfields.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -147,8 +104,8 @@ func (wnfcb *WithNilFieldsCreateBulk) Save(ctx context.Context) ([]*WithNilField
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wnfcb.builders[i+1].mutation)
 				} else {

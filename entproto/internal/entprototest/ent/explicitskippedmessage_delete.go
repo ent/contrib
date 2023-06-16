@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/explicitskippedmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (esmd *ExplicitSkippedMessageDelete) Where(ps ...predicate.ExplicitSkippedM
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (esmd *ExplicitSkippedMessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(esmd.hooks) == 0 {
-		affected, err = esmd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ExplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			esmd.mutation = mutation
-			affected, err = esmd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(esmd.hooks) - 1; i >= 0; i-- {
-			if esmd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = esmd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, esmd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ExplicitSkippedMessageMutation](ctx, esmd.sqlExec, esmd.mutation, esmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (esmd *ExplicitSkippedMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (esmd *ExplicitSkippedMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: explicitskippedmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: explicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(explicitskippedmessage.Table, sqlgraph.NewFieldSpec(explicitskippedmessage.FieldID, field.TypeInt))
 	if ps := esmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (esmd *ExplicitSkippedMessageDelete) sqlExec(ctx context.Context) (int, err
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	esmd.mutation.done = true
 	return affected, err
 }
 
 // ExplicitSkippedMessageDeleteOne is the builder for deleting a single ExplicitSkippedMessage entity.
 type ExplicitSkippedMessageDeleteOne struct {
 	esmd *ExplicitSkippedMessageDelete
+}
+
+// Where appends a list predicates to the ExplicitSkippedMessageDelete builder.
+func (esmdo *ExplicitSkippedMessageDeleteOne) Where(ps ...predicate.ExplicitSkippedMessage) *ExplicitSkippedMessageDeleteOne {
+	esmdo.esmd.mutation.Where(ps...)
+	return esmdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (esmdo *ExplicitSkippedMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (esmdo *ExplicitSkippedMessageDeleteOne) ExecX(ctx context.Context) {
-	esmdo.esmd.ExecX(ctx)
+	if err := esmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -9,13 +9,13 @@ import (
 	"log"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/migrate"
+	"entgo.io/ent"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/user"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withfields"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withnilfields"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withoutfields"
-
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -40,7 +40,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -54,6 +54,55 @@ func (c *Client) init() {
 	c.WithModifiedField = NewWithModifiedFieldClient(c.config)
 	c.WithNilFields = NewWithNilFieldsClient(c.config)
 	c.WithoutFields = NewWithoutFieldsClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -151,6 +200,34 @@ func (c *Client) Use(hooks ...Hook) {
 	c.WithoutFields.Use(hooks...)
 }
 
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.User.Intercept(interceptors...)
+	c.WithFields.Intercept(interceptors...)
+	c.WithModifiedField.Intercept(interceptors...)
+	c.WithNilFields.Intercept(interceptors...)
+	c.WithoutFields.Intercept(interceptors...)
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *UserMutation:
+		return c.User.mutate(ctx, m)
+	case *WithFieldsMutation:
+		return c.WithFields.mutate(ctx, m)
+	case *WithModifiedFieldMutation:
+		return c.WithModifiedField.mutate(ctx, m)
+	case *WithNilFieldsMutation:
+		return c.WithNilFields.mutate(ctx, m)
+	case *WithoutFieldsMutation:
+		return c.WithoutFields.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -165,6 +242,12 @@ func NewUserClient(c config) *UserClient {
 // A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
 func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
+func (c *UserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.User = append(c.inters.User, interceptors...)
 }
 
 // Create returns a builder for creating a User entity.
@@ -207,7 +290,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -219,6 +302,8 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -241,6 +326,26 @@ func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
 }
 
+// Interceptors returns the client interceptors.
+func (c *UserClient) Interceptors() []Interceptor {
+	return c.inters.User
+}
+
+func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
 // WithFieldsClient is a client for the WithFields schema.
 type WithFieldsClient struct {
 	config
@@ -255,6 +360,12 @@ func NewWithFieldsClient(c config) *WithFieldsClient {
 // A call to `Use(f, g, h)` equals to `withfields.Hooks(f(g(h())))`.
 func (c *WithFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithFields = append(c.hooks.WithFields, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `withfields.Intercept(f(g(h())))`.
+func (c *WithFieldsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WithFields = append(c.inters.WithFields, interceptors...)
 }
 
 // Create returns a builder for creating a WithFields entity.
@@ -297,7 +408,7 @@ func (c *WithFieldsClient) DeleteOne(wf *WithFields) *WithFieldsDeleteOne {
 	return c.DeleteOneID(wf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithFieldsClient) DeleteOneID(id int) *WithFieldsDeleteOne {
 	builder := c.Delete().Where(withfields.ID(id))
 	builder.mutation.id = &id
@@ -309,6 +420,8 @@ func (c *WithFieldsClient) DeleteOneID(id int) *WithFieldsDeleteOne {
 func (c *WithFieldsClient) Query() *WithFieldsQuery {
 	return &WithFieldsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeWithFields},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -331,6 +444,26 @@ func (c *WithFieldsClient) Hooks() []Hook {
 	return c.hooks.WithFields
 }
 
+// Interceptors returns the client interceptors.
+func (c *WithFieldsClient) Interceptors() []Interceptor {
+	return c.inters.WithFields
+}
+
+func (c *WithFieldsClient) mutate(ctx context.Context, m *WithFieldsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WithFieldsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WithFieldsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WithFieldsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WithFieldsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WithFields mutation op: %q", m.Op())
+	}
+}
+
 // WithModifiedFieldClient is a client for the WithModifiedField schema.
 type WithModifiedFieldClient struct {
 	config
@@ -345,6 +478,12 @@ func NewWithModifiedFieldClient(c config) *WithModifiedFieldClient {
 // A call to `Use(f, g, h)` equals to `withmodifiedfield.Hooks(f(g(h())))`.
 func (c *WithModifiedFieldClient) Use(hooks ...Hook) {
 	c.hooks.WithModifiedField = append(c.hooks.WithModifiedField, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `withmodifiedfield.Intercept(f(g(h())))`.
+func (c *WithModifiedFieldClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WithModifiedField = append(c.inters.WithModifiedField, interceptors...)
 }
 
 // Create returns a builder for creating a WithModifiedField entity.
@@ -387,7 +526,7 @@ func (c *WithModifiedFieldClient) DeleteOne(wmf *WithModifiedField) *WithModifie
 	return c.DeleteOneID(wmf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithModifiedFieldClient) DeleteOneID(id int) *WithModifiedFieldDeleteOne {
 	builder := c.Delete().Where(withmodifiedfield.ID(id))
 	builder.mutation.id = &id
@@ -399,6 +538,8 @@ func (c *WithModifiedFieldClient) DeleteOneID(id int) *WithModifiedFieldDeleteOn
 func (c *WithModifiedFieldClient) Query() *WithModifiedFieldQuery {
 	return &WithModifiedFieldQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeWithModifiedField},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -418,8 +559,8 @@ func (c *WithModifiedFieldClient) GetX(ctx context.Context, id int) *WithModifie
 
 // QueryOwner queries the owner edge of a WithModifiedField.
 func (c *WithModifiedFieldClient) QueryOwner(wmf *WithModifiedField) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := wmf.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(withmodifiedfield.Table, withmodifiedfield.FieldID, id),
@@ -437,6 +578,26 @@ func (c *WithModifiedFieldClient) Hooks() []Hook {
 	return c.hooks.WithModifiedField
 }
 
+// Interceptors returns the client interceptors.
+func (c *WithModifiedFieldClient) Interceptors() []Interceptor {
+	return c.inters.WithModifiedField
+}
+
+func (c *WithModifiedFieldClient) mutate(ctx context.Context, m *WithModifiedFieldMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WithModifiedFieldCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WithModifiedFieldUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WithModifiedFieldUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WithModifiedFieldDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WithModifiedField mutation op: %q", m.Op())
+	}
+}
+
 // WithNilFieldsClient is a client for the WithNilFields schema.
 type WithNilFieldsClient struct {
 	config
@@ -451,6 +612,12 @@ func NewWithNilFieldsClient(c config) *WithNilFieldsClient {
 // A call to `Use(f, g, h)` equals to `withnilfields.Hooks(f(g(h())))`.
 func (c *WithNilFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithNilFields = append(c.hooks.WithNilFields, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `withnilfields.Intercept(f(g(h())))`.
+func (c *WithNilFieldsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WithNilFields = append(c.inters.WithNilFields, interceptors...)
 }
 
 // Create returns a builder for creating a WithNilFields entity.
@@ -493,7 +660,7 @@ func (c *WithNilFieldsClient) DeleteOne(wnf *WithNilFields) *WithNilFieldsDelete
 	return c.DeleteOneID(wnf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithNilFieldsClient) DeleteOneID(id int) *WithNilFieldsDeleteOne {
 	builder := c.Delete().Where(withnilfields.ID(id))
 	builder.mutation.id = &id
@@ -505,6 +672,8 @@ func (c *WithNilFieldsClient) DeleteOneID(id int) *WithNilFieldsDeleteOne {
 func (c *WithNilFieldsClient) Query() *WithNilFieldsQuery {
 	return &WithNilFieldsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeWithNilFields},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -527,6 +696,26 @@ func (c *WithNilFieldsClient) Hooks() []Hook {
 	return c.hooks.WithNilFields
 }
 
+// Interceptors returns the client interceptors.
+func (c *WithNilFieldsClient) Interceptors() []Interceptor {
+	return c.inters.WithNilFields
+}
+
+func (c *WithNilFieldsClient) mutate(ctx context.Context, m *WithNilFieldsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WithNilFieldsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WithNilFieldsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WithNilFieldsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WithNilFieldsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WithNilFields mutation op: %q", m.Op())
+	}
+}
+
 // WithoutFieldsClient is a client for the WithoutFields schema.
 type WithoutFieldsClient struct {
 	config
@@ -541,6 +730,12 @@ func NewWithoutFieldsClient(c config) *WithoutFieldsClient {
 // A call to `Use(f, g, h)` equals to `withoutfields.Hooks(f(g(h())))`.
 func (c *WithoutFieldsClient) Use(hooks ...Hook) {
 	c.hooks.WithoutFields = append(c.hooks.WithoutFields, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `withoutfields.Intercept(f(g(h())))`.
+func (c *WithoutFieldsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WithoutFields = append(c.inters.WithoutFields, interceptors...)
 }
 
 // Create returns a builder for creating a WithoutFields entity.
@@ -583,7 +778,7 @@ func (c *WithoutFieldsClient) DeleteOne(wf *WithoutFields) *WithoutFieldsDeleteO
 	return c.DeleteOneID(wf.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *WithoutFieldsClient) DeleteOneID(id int) *WithoutFieldsDeleteOne {
 	builder := c.Delete().Where(withoutfields.ID(id))
 	builder.mutation.id = &id
@@ -595,6 +790,8 @@ func (c *WithoutFieldsClient) DeleteOneID(id int) *WithoutFieldsDeleteOne {
 func (c *WithoutFieldsClient) Query() *WithoutFieldsQuery {
 	return &WithoutFieldsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeWithoutFields},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -616,3 +813,34 @@ func (c *WithoutFieldsClient) GetX(ctx context.Context, id int) *WithoutFields {
 func (c *WithoutFieldsClient) Hooks() []Hook {
 	return c.hooks.WithoutFields
 }
+
+// Interceptors returns the client interceptors.
+func (c *WithoutFieldsClient) Interceptors() []Interceptor {
+	return c.inters.WithoutFields
+}
+
+func (c *WithoutFieldsClient) mutate(ctx context.Context, m *WithoutFieldsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WithoutFieldsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WithoutFieldsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WithoutFieldsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WithoutFieldsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WithoutFields mutation op: %q", m.Op())
+	}
+}
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		User, WithFields, WithModifiedField, WithNilFields, WithoutFields []ent.Hook
+	}
+	inters struct {
+		User, WithFields, WithModifiedField, WithNilFields,
+		WithoutFields []ent.Interceptor
+	}
+)

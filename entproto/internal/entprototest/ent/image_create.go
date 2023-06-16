@@ -55,49 +55,7 @@ func (ic *ImageCreate) Mutation() *ImageMutation {
 
 // Save creates the Image in the database.
 func (ic *ImageCreate) Save(ctx context.Context) (*Image, error) {
-	var (
-		err  error
-		node *Image
-	)
-	if len(ic.hooks) == 0 {
-		if err = ic.check(); err != nil {
-			return nil, err
-		}
-		node, err = ic.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ic.check(); err != nil {
-				return nil, err
-			}
-			ic.mutation = mutation
-			if node, err = ic.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ic.hooks) - 1; i >= 0; i-- {
-			if ic.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ic.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ic.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Image)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ImageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Image, ImageMutation](ctx, ic.sqlSave, ic.mutation, ic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -131,6 +89,9 @@ func (ic *ImageCreate) check() error {
 }
 
 func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
+	if err := ic.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ic.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ic.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -145,30 +106,22 @@ func (ic *ImageCreate) sqlSave(ctx context.Context) (*Image, error) {
 			return nil, err
 		}
 	}
+	ic.mutation.id = &_node.ID
+	ic.mutation.done = true
 	return _node, nil
 }
 
 func (ic *ImageCreate) createSpec() (*Image, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Image{config: ic.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: image.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: image.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(image.Table, sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID))
 	)
 	if id, ok := ic.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := ic.mutation.URLPath(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: image.FieldURLPath,
-		})
+		_spec.SetField(image.FieldURLPath, field.TypeString, value)
 		_node.URLPath = value
 	}
 	if nodes := ic.mutation.UserProfilePicIDs(); len(nodes) > 0 {
@@ -179,10 +132,7 @@ func (ic *ImageCreate) createSpec() (*Image, *sqlgraph.CreateSpec) {
 			Columns: []string{image.UserProfilePicColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -216,8 +166,8 @@ func (icb *ImageCreateBulk) Save(ctx context.Context) ([]*Image, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, icb.builders[i+1].mutation)
 				} else {

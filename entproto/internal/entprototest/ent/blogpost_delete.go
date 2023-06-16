@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (bpd *BlogPostDelete) Where(ps ...predicate.BlogPost) *BlogPostDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (bpd *BlogPostDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(bpd.hooks) == 0 {
-		affected, err = bpd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*BlogPostMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			bpd.mutation = mutation
-			affected, err = bpd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(bpd.hooks) - 1; i >= 0; i-- {
-			if bpd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = bpd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, bpd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, BlogPostMutation](ctx, bpd.sqlExec, bpd.mutation, bpd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (bpd *BlogPostDelete) ExecX(ctx context.Context) int {
 }
 
 func (bpd *BlogPostDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: blogpost.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: blogpost.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(blogpost.Table, sqlgraph.NewFieldSpec(blogpost.FieldID, field.TypeInt))
 	if ps := bpd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (bpd *BlogPostDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	bpd.mutation.done = true
 	return affected, err
 }
 
 // BlogPostDeleteOne is the builder for deleting a single BlogPost entity.
 type BlogPostDeleteOne struct {
 	bpd *BlogPostDelete
+}
+
+// Where appends a list predicates to the BlogPostDelete builder.
+func (bpdo *BlogPostDeleteOne) Where(ps ...predicate.BlogPost) *BlogPostDeleteOne {
+	bpdo.bpd.mutation.Where(ps...)
+	return bpdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (bpdo *BlogPostDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (bpdo *BlogPostDeleteOne) ExecX(ctx context.Context) {
-	bpdo.bpd.ExecX(ctx)
+	if err := bpdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

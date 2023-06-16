@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -30,7 +31,8 @@ type VerySecret struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Password holds the value of the "password" field.
-	Password string `json:"password,omitempty"`
+	Password     string `json:"password,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,7 +45,7 @@ func (*VerySecret) scanValues(columns []string) ([]any, error) {
 		case verysecret.FieldPassword:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type VerySecret", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -69,16 +71,24 @@ func (vs *VerySecret) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				vs.Password = value.String
 			}
+		default:
+			vs.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the VerySecret.
+// This includes values selected through modifiers, order, etc.
+func (vs *VerySecret) Value(name string) (ent.Value, error) {
+	return vs.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this VerySecret.
 // Note that you need to call VerySecret.Unwrap() before calling this method if this VerySecret
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (vs *VerySecret) Update() *VerySecretUpdateOne {
-	return (&VerySecretClient{config: vs.config}).UpdateOne(vs)
+	return NewVerySecretClient(vs.config).UpdateOne(vs)
 }
 
 // Unwrap unwraps the VerySecret entity that was returned from a transaction after it was closed,
@@ -105,9 +115,3 @@ func (vs *VerySecret) String() string {
 
 // VerySecrets is a parsable slice of VerySecret.
 type VerySecrets []*VerySecret
-
-func (vs VerySecrets) config(cfg config) {
-	for _i := range vs {
-		vs[_i].config = cfg
-	}
-}

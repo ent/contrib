@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -17,7 +18,8 @@ type NoBackref struct {
 	ID int `json:"id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NoBackrefQuery when eager-loading is set.
-	Edges NoBackrefEdges `json:"edges"`
+	Edges        NoBackrefEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // NoBackrefEdges holds the relations/edges for other nodes in the graph.
@@ -46,7 +48,7 @@ func (*NoBackref) scanValues(columns []string) ([]any, error) {
 		case nobackref.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type NoBackref", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -66,21 +68,29 @@ func (nb *NoBackref) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			nb.ID = int(value.Int64)
+		default:
+			nb.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the NoBackref.
+// This includes values selected through modifiers, order, etc.
+func (nb *NoBackref) Value(name string) (ent.Value, error) {
+	return nb.selectValues.Get(name)
+}
+
 // QueryImages queries the "images" edge of the NoBackref entity.
 func (nb *NoBackref) QueryImages() *ImageQuery {
-	return (&NoBackrefClient{config: nb.config}).QueryImages(nb)
+	return NewNoBackrefClient(nb.config).QueryImages(nb)
 }
 
 // Update returns a builder for updating this NoBackref.
 // Note that you need to call NoBackref.Unwrap() before calling this method if this NoBackref
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (nb *NoBackref) Update() *NoBackrefUpdateOne {
-	return (&NoBackrefClient{config: nb.config}).UpdateOne(nb)
+	return NewNoBackrefClient(nb.config).UpdateOne(nb)
 }
 
 // Unwrap unwraps the NoBackref entity that was returned from a transaction after it was closed,
@@ -105,9 +115,3 @@ func (nb *NoBackref) String() string {
 
 // NoBackrefs is a parsable slice of NoBackref.
 type NoBackrefs []*NoBackref
-
-func (nb NoBackrefs) config(cfg config) {
-	for _i := range nb {
-		nb[_i].config = cfg
-	}
-}

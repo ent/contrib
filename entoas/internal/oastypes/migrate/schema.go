@@ -37,6 +37,9 @@ var (
 		{Name: "json_slice", Type: field.TypeJSON},
 		{Name: "json_obj", Type: field.TypeJSON},
 		{Name: "other", Type: field.TypeOther, SchemaType: map[string]string{"postgres": "varchar"}},
+		{Name: "optional", Type: field.TypeInt, Nullable: true},
+		{Name: "nillable", Type: field.TypeInt},
+		{Name: "optional_and_nillable", Type: field.TypeInt, Nullable: true},
 	}
 	// OasTypesTable holds the schema information for the "oas_types" table.
 	OasTypesTable = &schema.Table{

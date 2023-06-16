@@ -34,34 +34,7 @@ func (esmu *ExplicitSkippedMessageUpdate) Mutation() *ExplicitSkippedMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (esmu *ExplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(esmu.hooks) == 0 {
-		affected, err = esmu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ExplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			esmu.mutation = mutation
-			affected, err = esmu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(esmu.hooks) - 1; i >= 0; i-- {
-			if esmu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = esmu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, esmu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ExplicitSkippedMessageMutation](ctx, esmu.sqlSave, esmu.mutation, esmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -87,16 +60,7 @@ func (esmu *ExplicitSkippedMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (esmu *ExplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   explicitskippedmessage.Table,
-			Columns: explicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: explicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(explicitskippedmessage.Table, explicitskippedmessage.Columns, sqlgraph.NewFieldSpec(explicitskippedmessage.FieldID, field.TypeInt))
 	if ps := esmu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,6 +76,7 @@ func (esmu *ExplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 		return 0, err
 	}
+	esmu.mutation.done = true
 	return n, nil
 }
 
@@ -128,6 +93,12 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) Mutation() *ExplicitSkippedMessage
 	return esmuo.mutation
 }
 
+// Where appends a list predicates to the ExplicitSkippedMessageUpdate builder.
+func (esmuo *ExplicitSkippedMessageUpdateOne) Where(ps ...predicate.ExplicitSkippedMessage) *ExplicitSkippedMessageUpdateOne {
+	esmuo.mutation.Where(ps...)
+	return esmuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (esmuo *ExplicitSkippedMessageUpdateOne) Select(field string, fields ...string) *ExplicitSkippedMessageUpdateOne {
@@ -137,40 +108,7 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated ExplicitSkippedMessage entity.
 func (esmuo *ExplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*ExplicitSkippedMessage, error) {
-	var (
-		err  error
-		node *ExplicitSkippedMessage
-	)
-	if len(esmuo.hooks) == 0 {
-		node, err = esmuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ExplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			esmuo.mutation = mutation
-			node, err = esmuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(esmuo.hooks) - 1; i >= 0; i-- {
-			if esmuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = esmuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, esmuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ExplicitSkippedMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ExplicitSkippedMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ExplicitSkippedMessage, ExplicitSkippedMessageMutation](ctx, esmuo.sqlSave, esmuo.mutation, esmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +134,7 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (esmuo *ExplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_node *ExplicitSkippedMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   explicitskippedmessage.Table,
-			Columns: explicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: explicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(explicitskippedmessage.Table, explicitskippedmessage.Columns, sqlgraph.NewFieldSpec(explicitskippedmessage.FieldID, field.TypeInt))
 	id, ok := esmuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ExplicitSkippedMessage.id" for update`)}
@@ -241,5 +170,6 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		}
 		return nil, err
 	}
+	esmuo.mutation.done = true
 	return _node, nil
 }

@@ -66,49 +66,7 @@ func (vmc *ValidMessageCreate) Mutation() *ValidMessageMutation {
 
 // Save creates the ValidMessage in the database.
 func (vmc *ValidMessageCreate) Save(ctx context.Context) (*ValidMessage, error) {
-	var (
-		err  error
-		node *ValidMessage
-	)
-	if len(vmc.hooks) == 0 {
-		if err = vmc.check(); err != nil {
-			return nil, err
-		}
-		node, err = vmc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ValidMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = vmc.check(); err != nil {
-				return nil, err
-			}
-			vmc.mutation = mutation
-			if node, err = vmc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(vmc.hooks) - 1; i >= 0; i-- {
-			if vmc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vmc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, vmc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ValidMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ValidMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ValidMessage, ValidMessageMutation](ctx, vmc.sqlSave, vmc.mutation, vmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -151,6 +109,9 @@ func (vmc *ValidMessageCreate) check() error {
 }
 
 func (vmc *ValidMessageCreate) sqlSave(ctx context.Context) (*ValidMessage, error) {
+	if err := vmc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := vmc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, vmc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -160,58 +121,34 @@ func (vmc *ValidMessageCreate) sqlSave(ctx context.Context) (*ValidMessage, erro
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	vmc.mutation.id = &_node.ID
+	vmc.mutation.done = true
 	return _node, nil
 }
 
 func (vmc *ValidMessageCreate) createSpec() (*ValidMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ValidMessage{config: vmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: validmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(validmessage.Table, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	)
 	if value, ok := vmc.mutation.Name(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: validmessage.FieldName,
-		})
+		_spec.SetField(validmessage.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := vmc.mutation.Ts(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: validmessage.FieldTs,
-		})
+		_spec.SetField(validmessage.FieldTs, field.TypeTime, value)
 		_node.Ts = value
 	}
 	if value, ok := vmc.mutation.UUID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: validmessage.FieldUUID,
-		})
+		_spec.SetField(validmessage.FieldUUID, field.TypeUUID, value)
 		_node.UUID = value
 	}
 	if value, ok := vmc.mutation.U8(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.SetField(validmessage.FieldU8, field.TypeUint8, value)
 		_node.U8 = value
 	}
 	if value, ok := vmc.mutation.Opti8(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.SetField(validmessage.FieldOpti8, field.TypeInt8, value)
 		_node.Opti8 = &value
 	}
 	return _node, _spec
@@ -240,8 +177,8 @@ func (vmcb *ValidMessageCreateBulk) Save(ctx context.Context) ([]*ValidMessage, 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vmcb.builders[i+1].mutation)
 				} else {

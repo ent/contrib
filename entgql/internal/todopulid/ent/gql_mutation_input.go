@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,24 +23,32 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"github.com/google/uuid"
 )
 
 // CreateCategoryInput represents a mutation input for creating categories.
 type CreateCategoryInput struct {
-	Text     string
-	Status   category.Status
-	Config   *schematype.CategoryConfig
-	Duration *time.Duration
-	Count    *uint64
-	Strings  *[]string
-	TodoIDs  []pulid.ID
+	Text           string
+	Status         category.Status
+	Config         *schematype.CategoryConfig
+	Types          *schematype.CategoryTypes
+	Duration       *time.Duration
+	Count          *uint64
+	Strings        []string
+	TodoIDs        []pulid.ID
+	SubCategoryIDs []pulid.ID
 }
 
 // Mutate applies the CreateCategoryInput on the CategoryMutation builder.
 func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetText(i.Text)
 	m.SetStatus(i.Status)
-	m.SetConfig(i.Config)
+	if v := i.Config; v != nil {
+		m.SetConfig(v)
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
+	}
 	if v := i.Duration; v != nil {
 		m.SetDuration(*v)
 	}
@@ -48,10 +56,13 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 		m.SetCount(*v)
 	}
 	if v := i.Strings; v != nil {
-		m.SetStrings(*v)
+		m.SetStrings(v)
 	}
 	if v := i.TodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
+	}
+	if v := i.SubCategoryIDs; len(v) > 0 {
+		m.AddSubCategoryIDs(v...)
 	}
 }
 
@@ -63,19 +74,25 @@ func (c *CategoryCreate) SetInput(i CreateCategoryInput) *CategoryCreate {
 
 // UpdateCategoryInput represents a mutation input for updating categories.
 type UpdateCategoryInput struct {
-	Text          *string
-	Status        *category.Status
-	ClearConfig   bool
-	Config        *schematype.CategoryConfig
-	ClearDuration bool
-	Duration      *time.Duration
-	ClearCount    bool
-	Count         *uint64
-	ClearStrings  bool
-	Strings       *[]string
-	AppendStrings *[]string
-	AddTodoIDs    []pulid.ID
-	RemoveTodoIDs []pulid.ID
+	Text                 *string
+	Status               *category.Status
+	ClearConfig          bool
+	Config               *schematype.CategoryConfig
+	ClearTypes           bool
+	Types                *schematype.CategoryTypes
+	ClearDuration        bool
+	Duration             *time.Duration
+	ClearCount           bool
+	Count                *uint64
+	ClearStrings         bool
+	Strings              []string
+	AppendStrings        []string
+	ClearTodos           bool
+	AddTodoIDs           []pulid.ID
+	RemoveTodoIDs        []pulid.ID
+	ClearSubCategories   bool
+	AddSubCategoryIDs    []pulid.ID
+	RemoveSubCategoryIDs []pulid.ID
 }
 
 // Mutate applies the UpdateCategoryInput on the CategoryMutation builder.
@@ -89,7 +106,15 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	if i.ClearConfig {
 		m.ClearConfig()
 	}
-	m.SetConfig(i.Config)
+	if v := i.Config; v != nil {
+		m.SetConfig(v)
+	}
+	if i.ClearTypes {
+		m.ClearTypes()
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
+	}
 	if i.ClearDuration {
 		m.ClearDuration()
 	}
@@ -106,16 +131,28 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 		m.ClearStrings()
 	}
 	if v := i.Strings; v != nil {
-		m.SetStrings(*v)
+		m.SetStrings(v)
 	}
 	if i.AppendStrings != nil {
-		m.AppendStrings(*i.Strings)
+		m.AppendStrings(i.Strings)
+	}
+	if i.ClearTodos {
+		m.ClearTodos()
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
 	}
 	if v := i.RemoveTodoIDs; len(v) > 0 {
 		m.RemoveTodoIDs(v...)
+	}
+	if i.ClearSubCategories {
+		m.ClearSubCategories()
+	}
+	if v := i.AddSubCategoryIDs; len(v) > 0 {
+		m.AddSubCategoryIDs(v...)
+	}
+	if v := i.RemoveSubCategoryIDs; len(v) > 0 {
+		m.RemoveSubCategoryIDs(v...)
 	}
 }
 
@@ -136,6 +173,7 @@ type CreateTodoInput struct {
 	Status     todo.Status
 	Priority   *int
 	Text       string
+	Init       map[string]interface{}
 	ParentID   *pulid.ID
 	ChildIDs   []pulid.ID
 	CategoryID *pulid.ID
@@ -149,6 +187,9 @@ func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 		m.SetPriority(*v)
 	}
 	m.SetText(i.Text)
+	if v := i.Init; v != nil {
+		m.SetInit(v)
+	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
 	}
@@ -174,8 +215,11 @@ type UpdateTodoInput struct {
 	Status         *todo.Status
 	Priority       *int
 	Text           *string
+	ClearInit      bool
+	Init           map[string]interface{}
 	ClearParent    bool
 	ParentID       *pulid.ID
+	ClearChildren  bool
 	AddChildIDs    []pulid.ID
 	RemoveChildIDs []pulid.ID
 	ClearSecret    bool
@@ -193,11 +237,20 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	if v := i.Text; v != nil {
 		m.SetText(*v)
 	}
+	if i.ClearInit {
+		m.ClearInit()
+	}
+	if v := i.Init; v != nil {
+		m.SetInit(v)
+	}
 	if i.ClearParent {
 		m.ClearParent()
 	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
+	}
+	if i.ClearChildren {
+		m.ClearChildren()
 	}
 	if v := i.AddChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)
@@ -227,10 +280,13 @@ func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
-	Name      *string
-	Password  *string
-	GroupIDs  []pulid.ID
-	FriendIDs []pulid.ID
+	Name             *string
+	Username         *uuid.UUID
+	Password         *string
+	RequiredMetadata map[string]interface{}
+	Metadata         map[string]interface{}
+	GroupIDs         []pulid.ID
+	FriendIDs        []pulid.ID
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -238,8 +294,17 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
+	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if v := i.RequiredMetadata; v != nil {
+		m.SetRequiredMetadata(v)
+	}
+	if v := i.Metadata; v != nil {
+		m.SetMetadata(v)
 	}
 	if v := i.GroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
@@ -257,13 +322,19 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
-	Name            *string
-	ClearPassword   bool
-	Password        *string
-	AddGroupIDs     []pulid.ID
-	RemoveGroupIDs  []pulid.ID
-	AddFriendIDs    []pulid.ID
-	RemoveFriendIDs []pulid.ID
+	Name             *string
+	Username         *uuid.UUID
+	ClearPassword    bool
+	Password         *string
+	RequiredMetadata map[string]interface{}
+	ClearMetadata    bool
+	Metadata         map[string]interface{}
+	ClearGroups      bool
+	AddGroupIDs      []pulid.ID
+	RemoveGroupIDs   []pulid.ID
+	ClearFriends     bool
+	AddFriendIDs     []pulid.ID
+	RemoveFriendIDs  []pulid.ID
 }
 
 // Mutate applies the UpdateUserInput on the UserMutation builder.
@@ -271,17 +342,35 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
+	}
 	if i.ClearPassword {
 		m.ClearPassword()
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
 	}
+	if v := i.RequiredMetadata; v != nil {
+		m.SetRequiredMetadata(v)
+	}
+	if i.ClearMetadata {
+		m.ClearMetadata()
+	}
+	if v := i.Metadata; v != nil {
+		m.SetMetadata(v)
+	}
+	if i.ClearGroups {
+		m.ClearGroups()
+	}
 	if v := i.AddGroupIDs; len(v) > 0 {
 		m.AddGroupIDs(v...)
 	}
 	if v := i.RemoveGroupIDs; len(v) > 0 {
 		m.RemoveGroupIDs(v...)
+	}
+	if i.ClearFriends {
+		m.ClearFriends()
 	}
 	if v := i.AddFriendIDs; len(v) > 0 {
 		m.AddFriendIDs(v...)

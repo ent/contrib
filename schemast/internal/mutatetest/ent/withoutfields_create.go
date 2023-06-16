@@ -25,49 +25,7 @@ func (wfc *WithoutFieldsCreate) Mutation() *WithoutFieldsMutation {
 
 // Save creates the WithoutFields in the database.
 func (wfc *WithoutFieldsCreate) Save(ctx context.Context) (*WithoutFields, error) {
-	var (
-		err  error
-		node *WithoutFields
-	)
-	if len(wfc.hooks) == 0 {
-		if err = wfc.check(); err != nil {
-			return nil, err
-		}
-		node, err = wfc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WithoutFieldsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = wfc.check(); err != nil {
-				return nil, err
-			}
-			wfc.mutation = mutation
-			if node, err = wfc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(wfc.hooks) - 1; i >= 0; i-- {
-			if wfc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = wfc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, wfc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*WithoutFields)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from WithoutFieldsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*WithoutFields, WithoutFieldsMutation](ctx, wfc.sqlSave, wfc.mutation, wfc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (wfc *WithoutFieldsCreate) check() error {
 }
 
 func (wfc *WithoutFieldsCreate) sqlSave(ctx context.Context) (*WithoutFields, error) {
+	if err := wfc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := wfc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, wfc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,19 +68,15 @@ func (wfc *WithoutFieldsCreate) sqlSave(ctx context.Context) (*WithoutFields, er
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	wfc.mutation.id = &_node.ID
+	wfc.mutation.done = true
 	return _node, nil
 }
 
 func (wfc *WithoutFieldsCreate) createSpec() (*WithoutFields, *sqlgraph.CreateSpec) {
 	var (
 		_node = &WithoutFields{config: wfc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: withoutfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withoutfields.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(withoutfields.Table, sqlgraph.NewFieldSpec(withoutfields.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -147,8 +104,8 @@ func (wfcb *WithoutFieldsCreateBulk) Save(ctx context.Context) ([]*WithoutFields
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wfcb.builders[i+1].mutation)
 				} else {

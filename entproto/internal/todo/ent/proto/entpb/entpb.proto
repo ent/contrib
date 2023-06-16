@@ -89,9 +89,9 @@ message MultiWordSchema {
   Unit unit = 2;
 
   enum Unit {
-    M = 0;
+    UNIT_M = 0;
 
-    FT = 1;
+    UNIT_FT = 1;
   }
 }
 
@@ -307,16 +307,16 @@ message Todo {
   User user = 4;
 
   enum Status {
-    PENDING = 0;
+    STATUS_PENDING = 0;
 
-    IN_PROGRESS = 1;
+    STATUS_IN_PROGRESS = 1;
 
-    DONE = 2;
+    STATUS_DONE = 2;
   }
 }
 
 message User {
-  int64 id = 1;
+  uint32 id = 1;
 
   string user_name = 2;
 
@@ -354,7 +354,19 @@ message User {
 
   repeated string labels = 24;
 
+  repeated int32 int32s = 25;
+
+  repeated int64 int64s = 26;
+
+  repeated uint32 uint32s = 27;
+
+  repeated uint64 uint64s = 28;
+
   DeviceType device_type = 100;
+
+  OmitPrefix omit_prefix = 103;
+
+  MimeType mime_type = 104;
 
   Group group = 7;
 
@@ -367,15 +379,31 @@ message User {
   enum Status {
     STATUS_UNSPECIFIED = 0;
 
-    PENDING = 1;
+    STATUS_PENDING = 1;
 
-    ACTIVE = 2;
+    STATUS_ACTIVE = 2;
   }
 
   enum DeviceType {
-    GLOWY9000 = 0;
+    DEVICE_TYPE_GLOWY9000 = 0;
 
-    SPEEDY300 = 1;
+    DEVICE_TYPE_SPEEDY300 = 1;
+  }
+
+  enum OmitPrefix {
+    OMIT_PREFIX_UNSPECIFIED = 0;
+
+    FOO = 1;
+
+    BAR = 2;
+  }
+
+  enum MimeType {
+    MIME_TYPE_UNSPECIFIED = 0;
+
+    MIME_TYPE_IMAGE_PNG = 1;
+
+    MIME_TYPE_IMAGE_XML_SVG = 2;
   }
 }
 
@@ -384,7 +412,7 @@ message CreateUserRequest {
 }
 
 message GetUserRequest {
-  int64 id = 1;
+  uint32 id = 1;
 
   View view = 2;
 
@@ -402,7 +430,7 @@ message UpdateUserRequest {
 }
 
 message DeleteUserRequest {
-  int64 id = 1;
+  uint32 id = 1;
 }
 
 message ListUserRequest {

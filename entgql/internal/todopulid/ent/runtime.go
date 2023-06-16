@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ package ent
 import (
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
@@ -27,12 +28,22 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	billproductMixin := schema.BillProduct{}.Mixin()
+	billproductMixinFields0 := billproductMixin[0].Fields()
+	_ = billproductMixinFields0
+	billproductFields := schema.BillProduct{}.Fields()
+	_ = billproductFields
+	// billproductDescID is the schema descriptor for id field.
+	billproductDescID := billproductMixinFields0[0].Descriptor()
+	// billproduct.DefaultID holds the default value on creation for the id field.
+	billproduct.DefaultID = billproductDescID.Default.(func() pulid.ID)
 	categoryMixin := schema.Category{}.Mixin()
 	categoryMixinFields0 := categoryMixin[0].Fields()
 	_ = categoryMixinFields0
@@ -41,11 +52,11 @@ func init() {
 	categoryFields := schema.Category{}.Fields()
 	_ = categoryFields
 	// categoryDescText is the schema descriptor for text field.
-	categoryDescText := categoryMixinFields1[0].Descriptor()
+	categoryDescText := categoryMixinFields0[1].Descriptor()
 	// category.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	category.TextValidator = categoryDescText.Validators[0].(func(string) error)
 	// categoryDescID is the schema descriptor for id field.
-	categoryDescID := categoryMixinFields0[0].Descriptor()
+	categoryDescID := categoryMixinFields1[0].Descriptor()
 	// category.DefaultID holds the default value on creation for the id field.
 	category.DefaultID = categoryDescID.Default.(func() pulid.ID)
 	friendshipMixin := schema.Friendship{}.Mixin()
@@ -110,6 +121,10 @@ func init() {
 	userDescName := userMixinFields1[0].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userMixinFields1[1].Descriptor()
+	// user.DefaultUsername holds the default value on creation for the username field.
+	user.DefaultUsername = userDescUsername.Default.(func() uuid.UUID)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userMixinFields0[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.

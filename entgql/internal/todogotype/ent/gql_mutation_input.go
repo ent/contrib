@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,20 +27,27 @@ import (
 
 // CreateCategoryInput represents a mutation input for creating categories.
 type CreateCategoryInput struct {
-	Text     string
-	Status   category.Status
-	Config   *schematype.CategoryConfig
-	Duration *time.Duration
-	Count    *uint64
-	Strings  *[]string
-	TodoIDs  []string
+	Text           string
+	Status         category.Status
+	Config         *schematype.CategoryConfig
+	Types          *schematype.CategoryTypes
+	Duration       *time.Duration
+	Count          *uint64
+	Strings        []string
+	TodoIDs        []string
+	SubCategoryIDs []bigintgql.BigInt
 }
 
 // Mutate applies the CreateCategoryInput on the CategoryMutation builder.
 func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetText(i.Text)
 	m.SetStatus(i.Status)
-	m.SetConfig(i.Config)
+	if v := i.Config; v != nil {
+		m.SetConfig(v)
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
+	}
 	if v := i.Duration; v != nil {
 		m.SetDuration(*v)
 	}
@@ -48,10 +55,13 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 		m.SetCount(*v)
 	}
 	if v := i.Strings; v != nil {
-		m.SetStrings(*v)
+		m.SetStrings(v)
 	}
 	if v := i.TodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
+	}
+	if v := i.SubCategoryIDs; len(v) > 0 {
+		m.AddSubCategoryIDs(v...)
 	}
 }
 
@@ -63,19 +73,25 @@ func (c *CategoryCreate) SetInput(i CreateCategoryInput) *CategoryCreate {
 
 // UpdateCategoryInput represents a mutation input for updating categories.
 type UpdateCategoryInput struct {
-	Text          *string
-	Status        *category.Status
-	ClearConfig   bool
-	Config        *schematype.CategoryConfig
-	ClearDuration bool
-	Duration      *time.Duration
-	ClearCount    bool
-	Count         *uint64
-	ClearStrings  bool
-	Strings       *[]string
-	AppendStrings *[]string
-	AddTodoIDs    []string
-	RemoveTodoIDs []string
+	Text                 *string
+	Status               *category.Status
+	ClearConfig          bool
+	Config               *schematype.CategoryConfig
+	ClearTypes           bool
+	Types                *schematype.CategoryTypes
+	ClearDuration        bool
+	Duration             *time.Duration
+	ClearCount           bool
+	Count                *uint64
+	ClearStrings         bool
+	Strings              []string
+	AppendStrings        []string
+	ClearTodos           bool
+	AddTodoIDs           []string
+	RemoveTodoIDs        []string
+	ClearSubCategories   bool
+	AddSubCategoryIDs    []bigintgql.BigInt
+	RemoveSubCategoryIDs []bigintgql.BigInt
 }
 
 // Mutate applies the UpdateCategoryInput on the CategoryMutation builder.
@@ -89,7 +105,15 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	if i.ClearConfig {
 		m.ClearConfig()
 	}
-	m.SetConfig(i.Config)
+	if v := i.Config; v != nil {
+		m.SetConfig(v)
+	}
+	if i.ClearTypes {
+		m.ClearTypes()
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
+	}
 	if i.ClearDuration {
 		m.ClearDuration()
 	}
@@ -106,16 +130,28 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 		m.ClearStrings()
 	}
 	if v := i.Strings; v != nil {
-		m.SetStrings(*v)
+		m.SetStrings(v)
 	}
 	if i.AppendStrings != nil {
-		m.AppendStrings(*i.Strings)
+		m.AppendStrings(i.Strings)
+	}
+	if i.ClearTodos {
+		m.ClearTodos()
 	}
 	if v := i.AddTodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
 	}
 	if v := i.RemoveTodoIDs; len(v) > 0 {
 		m.RemoveTodoIDs(v...)
+	}
+	if i.ClearSubCategories {
+		m.ClearSubCategories()
+	}
+	if v := i.AddSubCategoryIDs; len(v) > 0 {
+		m.AddSubCategoryIDs(v...)
+	}
+	if v := i.RemoveSubCategoryIDs; len(v) > 0 {
+		m.RemoveSubCategoryIDs(v...)
 	}
 }
 
@@ -136,6 +172,7 @@ type CreateTodoInput struct {
 	Status     todo.Status
 	Priority   *int
 	Text       string
+	Init       map[string]interface{}
 	ParentID   *string
 	ChildIDs   []string
 	CategoryID *bigintgql.BigInt
@@ -149,6 +186,9 @@ func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 		m.SetPriority(*v)
 	}
 	m.SetText(i.Text)
+	if v := i.Init; v != nil {
+		m.SetInit(v)
+	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
 	}
@@ -174,8 +214,11 @@ type UpdateTodoInput struct {
 	Status         *todo.Status
 	Priority       *int
 	Text           *string
+	ClearInit      bool
+	Init           map[string]interface{}
 	ClearParent    bool
 	ParentID       *string
+	ClearChildren  bool
 	AddChildIDs    []string
 	RemoveChildIDs []string
 	ClearSecret    bool
@@ -193,11 +236,20 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	if v := i.Text; v != nil {
 		m.SetText(*v)
 	}
+	if i.ClearInit {
+		m.ClearInit()
+	}
+	if v := i.Init; v != nil {
+		m.SetInit(v)
+	}
 	if i.ClearParent {
 		m.ClearParent()
 	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
+	}
+	if i.ClearChildren {
+		m.ClearChildren()
 	}
 	if v := i.AddChildIDs; len(v) > 0 {
 		m.AddChildIDs(v...)

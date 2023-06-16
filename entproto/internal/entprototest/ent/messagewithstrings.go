@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -17,7 +18,8 @@ type MessageWithStrings struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Strings holds the value of the "strings" field.
-	Strings []string `json:"strings,omitempty"`
+	Strings      []string `json:"strings,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -30,7 +32,7 @@ func (*MessageWithStrings) scanValues(columns []string) ([]any, error) {
 		case messagewithstrings.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type MessageWithStrings", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -58,16 +60,24 @@ func (mws *MessageWithStrings) assignValues(columns []string, values []any) erro
 					return fmt.Errorf("unmarshal field strings: %w", err)
 				}
 			}
+		default:
+			mws.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the MessageWithStrings.
+// This includes values selected through modifiers, order, etc.
+func (mws *MessageWithStrings) Value(name string) (ent.Value, error) {
+	return mws.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MessageWithStrings.
 // Note that you need to call MessageWithStrings.Unwrap() before calling this method if this MessageWithStrings
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (mws *MessageWithStrings) Update() *MessageWithStringsUpdateOne {
-	return (&MessageWithStringsClient{config: mws.config}).UpdateOne(mws)
+	return NewMessageWithStringsClient(mws.config).UpdateOne(mws)
 }
 
 // Unwrap unwraps the MessageWithStrings entity that was returned from a transaction after it was closed,
@@ -94,9 +104,3 @@ func (mws *MessageWithStrings) String() string {
 
 // MessageWithStringsSlice is a parsable slice of MessageWithStrings.
 type MessageWithStringsSlice []*MessageWithStrings
-
-func (mws MessageWithStringsSlice) config(cfg config) {
-	for _i := range mws {
-		mws[_i].config = cfg
-	}
-}

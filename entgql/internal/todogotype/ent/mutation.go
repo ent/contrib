@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,9 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/category"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
@@ -34,8 +36,8 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -47,37 +49,512 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCategory   = "Category"
-	TypeFriendship = "Friendship"
-	TypeGroup      = "Group"
-	TypePet        = "Pet"
-	TypeTodo       = "Todo"
-	TypeUser       = "User"
-	TypeVerySecret = "VerySecret"
+	TypeBillProduct = "BillProduct"
+	TypeCategory    = "Category"
+	TypeFriendship  = "Friendship"
+	TypeGroup       = "Group"
+	TypePet         = "Pet"
+	TypeTodo        = "Todo"
+	TypeUser        = "User"
+	TypeVerySecret  = "VerySecret"
 )
+
+// BillProductMutation represents an operation that mutates the BillProduct nodes in the graph.
+type BillProductMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *string
+	name          *string
+	sku           *string
+	quantity      *uint64
+	addquantity   *int64
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*BillProduct, error)
+	predicates    []predicate.BillProduct
+}
+
+var _ ent.Mutation = (*BillProductMutation)(nil)
+
+// billproductOption allows management of the mutation configuration using functional options.
+type billproductOption func(*BillProductMutation)
+
+// newBillProductMutation creates new mutation for the BillProduct entity.
+func newBillProductMutation(c config, op Op, opts ...billproductOption) *BillProductMutation {
+	m := &BillProductMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBillProduct,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBillProductID sets the ID field of the mutation.
+func withBillProductID(id string) billproductOption {
+	return func(m *BillProductMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *BillProduct
+		)
+		m.oldValue = func(ctx context.Context) (*BillProduct, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().BillProduct.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBillProduct sets the old BillProduct of the mutation.
+func withBillProduct(node *BillProduct) billproductOption {
+	return func(m *BillProductMutation) {
+		m.oldValue = func(context.Context) (*BillProduct, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BillProductMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BillProductMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BillProductMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BillProductMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().BillProduct.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *BillProductMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *BillProductMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the BillProduct entity.
+// If the BillProduct object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillProductMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *BillProductMutation) ResetName() {
+	m.name = nil
+}
+
+// SetSku sets the "sku" field.
+func (m *BillProductMutation) SetSku(s string) {
+	m.sku = &s
+}
+
+// Sku returns the value of the "sku" field in the mutation.
+func (m *BillProductMutation) Sku() (r string, exists bool) {
+	v := m.sku
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSku returns the old "sku" field's value of the BillProduct entity.
+// If the BillProduct object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillProductMutation) OldSku(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSku is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSku requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSku: %w", err)
+	}
+	return oldValue.Sku, nil
+}
+
+// ResetSku resets all changes to the "sku" field.
+func (m *BillProductMutation) ResetSku() {
+	m.sku = nil
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *BillProductMutation) SetQuantity(u uint64) {
+	m.quantity = &u
+	m.addquantity = nil
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *BillProductMutation) Quantity() (r uint64, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the BillProduct entity.
+// If the BillProduct object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillProductMutation) OldQuantity(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// AddQuantity adds u to the "quantity" field.
+func (m *BillProductMutation) AddQuantity(u int64) {
+	if m.addquantity != nil {
+		*m.addquantity += u
+	} else {
+		m.addquantity = &u
+	}
+}
+
+// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
+func (m *BillProductMutation) AddedQuantity() (r int64, exists bool) {
+	v := m.addquantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *BillProductMutation) ResetQuantity() {
+	m.quantity = nil
+	m.addquantity = nil
+}
+
+// Where appends a list predicates to the BillProductMutation builder.
+func (m *BillProductMutation) Where(ps ...predicate.BillProduct) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BillProductMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BillProductMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.BillProduct, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BillProductMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BillProductMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (BillProduct).
+func (m *BillProductMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BillProductMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.name != nil {
+		fields = append(fields, billproduct.FieldName)
+	}
+	if m.sku != nil {
+		fields = append(fields, billproduct.FieldSku)
+	}
+	if m.quantity != nil {
+		fields = append(fields, billproduct.FieldQuantity)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BillProductMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case billproduct.FieldName:
+		return m.Name()
+	case billproduct.FieldSku:
+		return m.Sku()
+	case billproduct.FieldQuantity:
+		return m.Quantity()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BillProductMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case billproduct.FieldName:
+		return m.OldName(ctx)
+	case billproduct.FieldSku:
+		return m.OldSku(ctx)
+	case billproduct.FieldQuantity:
+		return m.OldQuantity(ctx)
+	}
+	return nil, fmt.Errorf("unknown BillProduct field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BillProductMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case billproduct.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case billproduct.FieldSku:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSku(v)
+		return nil
+	case billproduct.FieldQuantity:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BillProduct field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BillProductMutation) AddedFields() []string {
+	var fields []string
+	if m.addquantity != nil {
+		fields = append(fields, billproduct.FieldQuantity)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BillProductMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case billproduct.FieldQuantity:
+		return m.AddedQuantity()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BillProductMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case billproduct.FieldQuantity:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BillProduct numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BillProductMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BillProductMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BillProductMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown BillProduct nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BillProductMutation) ResetField(name string) error {
+	switch name {
+	case billproduct.FieldName:
+		m.ResetName()
+		return nil
+	case billproduct.FieldSku:
+		m.ResetSku()
+		return nil
+	case billproduct.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	}
+	return fmt.Errorf("unknown BillProduct field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BillProductMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BillProductMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BillProductMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BillProductMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BillProductMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BillProductMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BillProductMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown BillProduct unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BillProductMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown BillProduct edge %s", name)
+}
 
 // CategoryMutation represents an operation that mutates the Category nodes in the graph.
 type CategoryMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *bigintgql.BigInt
-	text          *string
-	status        *category.Status
-	_config       **schematype.CategoryConfig
-	duration      *time.Duration
-	addduration   *time.Duration
-	count         *uint64
-	addcount      *int64
-	strings       *[]string
-	appendstrings []string
-	clearedFields map[string]struct{}
-	todos         map[string]struct{}
-	removedtodos  map[string]struct{}
-	clearedtodos  bool
-	done          bool
-	oldValue      func(context.Context) (*Category, error)
-	predicates    []predicate.Category
+	op                    Op
+	typ                   string
+	id                    *bigintgql.BigInt
+	text                  *string
+	status                *category.Status
+	_config               **schematype.CategoryConfig
+	types                 **schematype.CategoryTypes
+	duration              *time.Duration
+	addduration           *time.Duration
+	count                 *uint64
+	addcount              *int64
+	strings               *[]string
+	appendstrings         []string
+	clearedFields         map[string]struct{}
+	todos                 map[string]struct{}
+	removedtodos          map[string]struct{}
+	clearedtodos          bool
+	sub_categories        map[bigintgql.BigInt]struct{}
+	removedsub_categories map[bigintgql.BigInt]struct{}
+	clearedsub_categories bool
+	done                  bool
+	oldValue              func(context.Context) (*Category, error)
+	predicates            []predicate.Category
 }
 
 var _ ent.Mutation = (*CategoryMutation)(nil)
@@ -303,6 +780,55 @@ func (m *CategoryMutation) ConfigCleared() bool {
 func (m *CategoryMutation) ResetConfig() {
 	m._config = nil
 	delete(m.clearedFields, category.FieldConfig)
+}
+
+// SetTypes sets the "types" field.
+func (m *CategoryMutation) SetTypes(st *schematype.CategoryTypes) {
+	m.types = &st
+}
+
+// Types returns the value of the "types" field in the mutation.
+func (m *CategoryMutation) Types() (r *schematype.CategoryTypes, exists bool) {
+	v := m.types
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTypes returns the old "types" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldTypes(ctx context.Context) (v *schematype.CategoryTypes, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTypes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTypes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTypes: %w", err)
+	}
+	return oldValue.Types, nil
+}
+
+// ClearTypes clears the value of the "types" field.
+func (m *CategoryMutation) ClearTypes() {
+	m.types = nil
+	m.clearedFields[category.FieldTypes] = struct{}{}
+}
+
+// TypesCleared returns if the "types" field was cleared in this mutation.
+func (m *CategoryMutation) TypesCleared() bool {
+	_, ok := m.clearedFields[category.FieldTypes]
+	return ok
+}
+
+// ResetTypes resets all changes to the "types" field.
+func (m *CategoryMutation) ResetTypes() {
+	m.types = nil
+	delete(m.clearedFields, category.FieldTypes)
 }
 
 // SetDuration sets the "duration" field.
@@ -564,14 +1090,83 @@ func (m *CategoryMutation) ResetTodos() {
 	m.removedtodos = nil
 }
 
+// AddSubCategoryIDs adds the "sub_categories" edge to the Category entity by ids.
+func (m *CategoryMutation) AddSubCategoryIDs(ids ...bigintgql.BigInt) {
+	if m.sub_categories == nil {
+		m.sub_categories = make(map[bigintgql.BigInt]struct{})
+	}
+	for i := range ids {
+		m.sub_categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSubCategories clears the "sub_categories" edge to the Category entity.
+func (m *CategoryMutation) ClearSubCategories() {
+	m.clearedsub_categories = true
+}
+
+// SubCategoriesCleared reports if the "sub_categories" edge to the Category entity was cleared.
+func (m *CategoryMutation) SubCategoriesCleared() bool {
+	return m.clearedsub_categories
+}
+
+// RemoveSubCategoryIDs removes the "sub_categories" edge to the Category entity by IDs.
+func (m *CategoryMutation) RemoveSubCategoryIDs(ids ...bigintgql.BigInt) {
+	if m.removedsub_categories == nil {
+		m.removedsub_categories = make(map[bigintgql.BigInt]struct{})
+	}
+	for i := range ids {
+		delete(m.sub_categories, ids[i])
+		m.removedsub_categories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSubCategories returns the removed IDs of the "sub_categories" edge to the Category entity.
+func (m *CategoryMutation) RemovedSubCategoriesIDs() (ids []bigintgql.BigInt) {
+	for id := range m.removedsub_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SubCategoriesIDs returns the "sub_categories" edge IDs in the mutation.
+func (m *CategoryMutation) SubCategoriesIDs() (ids []bigintgql.BigInt) {
+	for id := range m.sub_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSubCategories resets all changes to the "sub_categories" edge.
+func (m *CategoryMutation) ResetSubCategories() {
+	m.sub_categories = nil
+	m.clearedsub_categories = false
+	m.removedsub_categories = nil
+}
+
 // Where appends a list predicates to the CategoryMutation builder.
 func (m *CategoryMutation) Where(ps ...predicate.Category) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the CategoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CategoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Category, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *CategoryMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CategoryMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Category).
@@ -583,7 +1178,7 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
 	}
@@ -592,6 +1187,9 @@ func (m *CategoryMutation) Fields() []string {
 	}
 	if m._config != nil {
 		fields = append(fields, category.FieldConfig)
+	}
+	if m.types != nil {
+		fields = append(fields, category.FieldTypes)
 	}
 	if m.duration != nil {
 		fields = append(fields, category.FieldDuration)
@@ -616,6 +1214,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case category.FieldConfig:
 		return m.Config()
+	case category.FieldTypes:
+		return m.Types()
 	case category.FieldDuration:
 		return m.Duration()
 	case category.FieldCount:
@@ -637,6 +1237,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldStatus(ctx)
 	case category.FieldConfig:
 		return m.OldConfig(ctx)
+	case category.FieldTypes:
+		return m.OldTypes(ctx)
 	case category.FieldDuration:
 		return m.OldDuration(ctx)
 	case category.FieldCount:
@@ -672,6 +1274,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetConfig(v)
+		return nil
+	case category.FieldTypes:
+		v, ok := value.(*schematype.CategoryTypes)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTypes(v)
 		return nil
 	case category.FieldDuration:
 		v, ok := value.(time.Duration)
@@ -754,6 +1363,9 @@ func (m *CategoryMutation) ClearedFields() []string {
 	if m.FieldCleared(category.FieldConfig) {
 		fields = append(fields, category.FieldConfig)
 	}
+	if m.FieldCleared(category.FieldTypes) {
+		fields = append(fields, category.FieldTypes)
+	}
 	if m.FieldCleared(category.FieldDuration) {
 		fields = append(fields, category.FieldDuration)
 	}
@@ -779,6 +1391,9 @@ func (m *CategoryMutation) ClearField(name string) error {
 	switch name {
 	case category.FieldConfig:
 		m.ClearConfig()
+		return nil
+	case category.FieldTypes:
+		m.ClearTypes()
 		return nil
 	case category.FieldDuration:
 		m.ClearDuration()
@@ -806,6 +1421,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 	case category.FieldConfig:
 		m.ResetConfig()
 		return nil
+	case category.FieldTypes:
+		m.ResetTypes()
+		return nil
 	case category.FieldDuration:
 		m.ResetDuration()
 		return nil
@@ -821,9 +1439,12 @@ func (m *CategoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.todos != nil {
 		edges = append(edges, category.EdgeTodos)
+	}
+	if m.sub_categories != nil {
+		edges = append(edges, category.EdgeSubCategories)
 	}
 	return edges
 }
@@ -838,15 +1459,24 @@ func (m *CategoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case category.EdgeSubCategories:
+		ids := make([]ent.Value, 0, len(m.sub_categories))
+		for id := range m.sub_categories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedtodos != nil {
 		edges = append(edges, category.EdgeTodos)
+	}
+	if m.removedsub_categories != nil {
+		edges = append(edges, category.EdgeSubCategories)
 	}
 	return edges
 }
@@ -861,15 +1491,24 @@ func (m *CategoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case category.EdgeSubCategories:
+		ids := make([]ent.Value, 0, len(m.removedsub_categories))
+		for id := range m.removedsub_categories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedtodos {
 		edges = append(edges, category.EdgeTodos)
+	}
+	if m.clearedsub_categories {
+		edges = append(edges, category.EdgeSubCategories)
 	}
 	return edges
 }
@@ -880,6 +1519,8 @@ func (m *CategoryMutation) EdgeCleared(name string) bool {
 	switch name {
 	case category.EdgeTodos:
 		return m.clearedtodos
+	case category.EdgeSubCategories:
+		return m.clearedsub_categories
 	}
 	return false
 }
@@ -898,6 +1539,9 @@ func (m *CategoryMutation) ResetEdge(name string) error {
 	switch name {
 	case category.EdgeTodos:
 		m.ResetTodos()
+		return nil
+	case category.EdgeSubCategories:
+		m.ResetSubCategories()
 		return nil
 	}
 	return fmt.Errorf("unknown Category edge %s", name)
@@ -1183,9 +1827,24 @@ func (m *FriendshipMutation) Where(ps ...predicate.Friendship) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the FriendshipMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FriendshipMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Friendship, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *FriendshipMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FriendshipMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Friendship).
@@ -1635,9 +2294,24 @@ func (m *GroupMutation) Where(ps ...predicate.Group) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the GroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Group, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *GroupMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GroupMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Group).
@@ -1988,9 +2662,24 @@ func (m *PetMutation) Where(ps ...predicate.Pet) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Pet, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PetMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PetMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Pet).
@@ -2159,6 +2848,11 @@ type TodoMutation struct {
 	addpriority     *int
 	text            *string
 	blob            *[]byte
+	init            *map[string]interface{}
+	custom          *[]customstruct.Custom
+	appendcustom    []customstruct.Custom
+	customp         *[]*customstruct.Custom
+	appendcustomp   []*customstruct.Custom
 	clearedFields   map[string]struct{}
 	parent          *string
 	clearedparent   bool
@@ -2491,6 +3185,185 @@ func (m *TodoMutation) ResetBlob() {
 	delete(m.clearedFields, todo.FieldBlob)
 }
 
+// SetInit sets the "init" field.
+func (m *TodoMutation) SetInit(value map[string]interface{}) {
+	m.init = &value
+}
+
+// Init returns the value of the "init" field in the mutation.
+func (m *TodoMutation) Init() (r map[string]interface{}, exists bool) {
+	v := m.init
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInit returns the old "init" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldInit(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInit: %w", err)
+	}
+	return oldValue.Init, nil
+}
+
+// ClearInit clears the value of the "init" field.
+func (m *TodoMutation) ClearInit() {
+	m.init = nil
+	m.clearedFields[todo.FieldInit] = struct{}{}
+}
+
+// InitCleared returns if the "init" field was cleared in this mutation.
+func (m *TodoMutation) InitCleared() bool {
+	_, ok := m.clearedFields[todo.FieldInit]
+	return ok
+}
+
+// ResetInit resets all changes to the "init" field.
+func (m *TodoMutation) ResetInit() {
+	m.init = nil
+	delete(m.clearedFields, todo.FieldInit)
+}
+
+// SetCustom sets the "custom" field.
+func (m *TodoMutation) SetCustom(c []customstruct.Custom) {
+	m.custom = &c
+	m.appendcustom = nil
+}
+
+// Custom returns the value of the "custom" field in the mutation.
+func (m *TodoMutation) Custom() (r []customstruct.Custom, exists bool) {
+	v := m.custom
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustom returns the old "custom" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldCustom(ctx context.Context) (v []customstruct.Custom, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustom: %w", err)
+	}
+	return oldValue.Custom, nil
+}
+
+// AppendCustom adds c to the "custom" field.
+func (m *TodoMutation) AppendCustom(c []customstruct.Custom) {
+	m.appendcustom = append(m.appendcustom, c...)
+}
+
+// AppendedCustom returns the list of values that were appended to the "custom" field in this mutation.
+func (m *TodoMutation) AppendedCustom() ([]customstruct.Custom, bool) {
+	if len(m.appendcustom) == 0 {
+		return nil, false
+	}
+	return m.appendcustom, true
+}
+
+// ClearCustom clears the value of the "custom" field.
+func (m *TodoMutation) ClearCustom() {
+	m.custom = nil
+	m.appendcustom = nil
+	m.clearedFields[todo.FieldCustom] = struct{}{}
+}
+
+// CustomCleared returns if the "custom" field was cleared in this mutation.
+func (m *TodoMutation) CustomCleared() bool {
+	_, ok := m.clearedFields[todo.FieldCustom]
+	return ok
+}
+
+// ResetCustom resets all changes to the "custom" field.
+func (m *TodoMutation) ResetCustom() {
+	m.custom = nil
+	m.appendcustom = nil
+	delete(m.clearedFields, todo.FieldCustom)
+}
+
+// SetCustomp sets the "customp" field.
+func (m *TodoMutation) SetCustomp(c []*customstruct.Custom) {
+	m.customp = &c
+	m.appendcustomp = nil
+}
+
+// Customp returns the value of the "customp" field in the mutation.
+func (m *TodoMutation) Customp() (r []*customstruct.Custom, exists bool) {
+	v := m.customp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomp returns the old "customp" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldCustomp(ctx context.Context) (v []*customstruct.Custom, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomp: %w", err)
+	}
+	return oldValue.Customp, nil
+}
+
+// AppendCustomp adds c to the "customp" field.
+func (m *TodoMutation) AppendCustomp(c []*customstruct.Custom) {
+	m.appendcustomp = append(m.appendcustomp, c...)
+}
+
+// AppendedCustomp returns the list of values that were appended to the "customp" field in this mutation.
+func (m *TodoMutation) AppendedCustomp() ([]*customstruct.Custom, bool) {
+	if len(m.appendcustomp) == 0 {
+		return nil, false
+	}
+	return m.appendcustomp, true
+}
+
+// ClearCustomp clears the value of the "customp" field.
+func (m *TodoMutation) ClearCustomp() {
+	m.customp = nil
+	m.appendcustomp = nil
+	m.clearedFields[todo.FieldCustomp] = struct{}{}
+}
+
+// CustompCleared returns if the "customp" field was cleared in this mutation.
+func (m *TodoMutation) CustompCleared() bool {
+	_, ok := m.clearedFields[todo.FieldCustomp]
+	return ok
+}
+
+// ResetCustomp resets all changes to the "customp" field.
+func (m *TodoMutation) ResetCustomp() {
+	m.customp = nil
+	m.appendcustomp = nil
+	delete(m.clearedFields, todo.FieldCustomp)
+}
+
 // SetCategoryID sets the "category_id" field.
 func (m *TodoMutation) SetCategoryID(bi bigintgql.BigInt) {
 	m.category = &bi
@@ -2703,9 +3576,24 @@ func (m *TodoMutation) Where(ps ...predicate.Todo) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TodoMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TodoMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Todo, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TodoMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TodoMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Todo).
@@ -2717,7 +3605,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -2732,6 +3620,15 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.blob != nil {
 		fields = append(fields, todo.FieldBlob)
+	}
+	if m.init != nil {
+		fields = append(fields, todo.FieldInit)
+	}
+	if m.custom != nil {
+		fields = append(fields, todo.FieldCustom)
+	}
+	if m.customp != nil {
+		fields = append(fields, todo.FieldCustomp)
 	}
 	if m.category != nil {
 		fields = append(fields, todo.FieldCategoryID)
@@ -2754,6 +3651,12 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	case todo.FieldBlob:
 		return m.Blob()
+	case todo.FieldInit:
+		return m.Init()
+	case todo.FieldCustom:
+		return m.Custom()
+	case todo.FieldCustomp:
+		return m.Customp()
 	case todo.FieldCategoryID:
 		return m.CategoryID()
 	}
@@ -2775,6 +3678,12 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldText(ctx)
 	case todo.FieldBlob:
 		return m.OldBlob(ctx)
+	case todo.FieldInit:
+		return m.OldInit(ctx)
+	case todo.FieldCustom:
+		return m.OldCustom(ctx)
+	case todo.FieldCustomp:
+		return m.OldCustomp(ctx)
 	case todo.FieldCategoryID:
 		return m.OldCategoryID(ctx)
 	}
@@ -2820,6 +3729,27 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBlob(v)
+		return nil
+	case todo.FieldInit:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInit(v)
+		return nil
+	case todo.FieldCustom:
+		v, ok := value.([]customstruct.Custom)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustom(v)
+		return nil
+	case todo.FieldCustomp:
+		v, ok := value.([]*customstruct.Custom)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomp(v)
 		return nil
 	case todo.FieldCategoryID:
 		v, ok := value.(bigintgql.BigInt)
@@ -2876,6 +3806,15 @@ func (m *TodoMutation) ClearedFields() []string {
 	if m.FieldCleared(todo.FieldBlob) {
 		fields = append(fields, todo.FieldBlob)
 	}
+	if m.FieldCleared(todo.FieldInit) {
+		fields = append(fields, todo.FieldInit)
+	}
+	if m.FieldCleared(todo.FieldCustom) {
+		fields = append(fields, todo.FieldCustom)
+	}
+	if m.FieldCleared(todo.FieldCustomp) {
+		fields = append(fields, todo.FieldCustomp)
+	}
 	if m.FieldCleared(todo.FieldCategoryID) {
 		fields = append(fields, todo.FieldCategoryID)
 	}
@@ -2895,6 +3834,15 @@ func (m *TodoMutation) ClearField(name string) error {
 	switch name {
 	case todo.FieldBlob:
 		m.ClearBlob()
+		return nil
+	case todo.FieldInit:
+		m.ClearInit()
+		return nil
+	case todo.FieldCustom:
+		m.ClearCustom()
+		return nil
+	case todo.FieldCustomp:
+		m.ClearCustomp()
 		return nil
 	case todo.FieldCategoryID:
 		m.ClearCategoryID()
@@ -2921,6 +3869,15 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldBlob:
 		m.ResetBlob()
+		return nil
+	case todo.FieldInit:
+		m.ResetInit()
+		return nil
+	case todo.FieldCustom:
+		m.ResetCustom()
+		return nil
+	case todo.FieldCustomp:
+		m.ResetCustomp()
 		return nil
 	case todo.FieldCategoryID:
 		m.ResetCategoryID()
@@ -3396,9 +4353,24 @@ func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (User).
@@ -3801,9 +4773,24 @@ func (m *VerySecretMutation) Where(ps ...predicate.VerySecret) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the VerySecretMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *VerySecretMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.VerySecret, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *VerySecretMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *VerySecretMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (VerySecret).

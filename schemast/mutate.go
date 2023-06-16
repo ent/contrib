@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,6 +64,12 @@ func (u *UpsertSchema) Mutate(ctx *Context) error {
 		}
 		if fld.Descriptor().Info.Type == field.TypeUUID {
 			ctx.appendImport(u.Name, "github.com/google/uuid")
+		}
+		// Append any imported struct for JSON fields
+		if fld.Descriptor().Info.Type == field.TypeJSON {
+			if fld.Descriptor().Info.RType != nil && fld.Descriptor().Info.RType.PkgPath != "" {
+				ctx.appendImport(u.Name, fld.Descriptor().Info.RType.PkgPath)
+			}
 		}
 	}
 	for _, edg := range u.Edges {

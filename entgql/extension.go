@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,8 +31,9 @@ type (
 	Extension struct {
 		schemaGenerator
 		entc.DefaultExtension
-		hooks     []gen.Hook
-		templates []*gen.Template
+		outputWriter func(*ast.Schema) error
+		hooks        []gen.Hook
+		templates    []*gen.Template
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -54,6 +55,14 @@ type (
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.path = path
+		return nil
+	}
+}
+
+// WithOutputWriter sets the function to write the generated schema.
+func WithOutputWriter(w func(*ast.Schema) error) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.outputWriter = w
 		return nil
 	}
 }
@@ -123,6 +132,25 @@ func WithWhereInputs(b bool) ExtensionOption {
 		i, exists := ex.hasTemplate(WhereTemplate)
 		if b && !exists {
 			ex.templates = append(ex.templates, WhereTemplate)
+		} else if !b && exists && len(ex.templates) > 0 {
+			ex.templates = append(ex.templates[:i], ex.templates[i+1:]...)
+		}
+		return nil
+	}
+}
+
+// WithNodeDescriptor configures the extension to either add or
+// remove the NodeDescriptorTemplate from the code generation templates.
+//
+// In case this option is enabled, EntGQL generates a `Node()` method for each
+// type that returns its representation in one standard way. A common use case for
+// this option is to develop an administrator tool on top of Ent as implemented in:
+// https://github.com/ent/ent/issues/1000#issuecomment-735663175.
+func WithNodeDescriptor(b bool) ExtensionOption {
+	return func(ex *Extension) error {
+		i, exists := ex.hasTemplate(NodeDescriptorTemplate)
+		if b && !exists {
+			ex.templates = append(ex.templates, NodeDescriptorTemplate)
 		} else if !b && exists && len(ex.templates) > 0 {
 			ex.templates = append(ex.templates[:i], ex.templates[i+1:]...)
 		}
@@ -216,14 +244,21 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			if err = next.Generate(g); err != nil {
 				return err
 			}
-			if e.path == "" || !(e.genSchema || e.genWhereInput || e.genMutations) {
+
+			if !(e.genSchema || e.genWhereInput || e.genMutations) {
 				return nil
 			}
 			schema, err := e.BuildSchema(g)
 			if err != nil {
 				return err
 			}
-			return os.WriteFile(e.path, []byte(printSchema(schema)), 0644)
+			if e.outputWriter == nil {
+				if e.path == "" {
+					return nil
+				}
+				return os.WriteFile(e.path, []byte(printSchema(schema)), 0644)
+			}
+			return e.outputWriter(schema)
 		})
 	}
 }

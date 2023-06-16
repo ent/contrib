@@ -15,11 +15,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // The WithFieldsFunc type is an adapter to allow the use of ordinary
@@ -28,11 +27,10 @@ type WithFieldsFunc func(context.Context, *ent.WithFieldsMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f WithFieldsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.WithFieldsMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithFieldsMutation", m)
+	if mv, ok := m.(*ent.WithFieldsMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithFieldsMutation", m)
 }
 
 // The WithModifiedFieldFunc type is an adapter to allow the use of ordinary
@@ -41,11 +39,10 @@ type WithModifiedFieldFunc func(context.Context, *ent.WithModifiedFieldMutation)
 
 // Mutate calls f(ctx, m).
 func (f WithModifiedFieldFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.WithModifiedFieldMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithModifiedFieldMutation", m)
+	if mv, ok := m.(*ent.WithModifiedFieldMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithModifiedFieldMutation", m)
 }
 
 // The WithNilFieldsFunc type is an adapter to allow the use of ordinary
@@ -54,11 +51,10 @@ type WithNilFieldsFunc func(context.Context, *ent.WithNilFieldsMutation) (ent.Va
 
 // Mutate calls f(ctx, m).
 func (f WithNilFieldsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.WithNilFieldsMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithNilFieldsMutation", m)
+	if mv, ok := m.(*ent.WithNilFieldsMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithNilFieldsMutation", m)
 }
 
 // The WithoutFieldsFunc type is an adapter to allow the use of ordinary
@@ -67,11 +63,10 @@ type WithoutFieldsFunc func(context.Context, *ent.WithoutFieldsMutation) (ent.Va
 
 // Mutate calls f(ctx, m).
 func (f WithoutFieldsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.WithoutFieldsMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithoutFieldsMutation", m)
+	if mv, ok := m.(*ent.WithoutFieldsMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WithoutFieldsMutation", m)
 }
 
 // Condition is a hook condition function.

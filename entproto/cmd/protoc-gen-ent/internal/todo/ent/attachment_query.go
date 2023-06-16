@@ -17,11 +17,9 @@ import (
 // AttachmentQuery is the builder for querying Attachment entities.
 type AttachmentQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []attachment.OrderOption
+	inters     []Interceptor
 	predicates []predicate.Attachment
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,27 +32,27 @@ func (aq *AttachmentQuery) Where(ps ...predicate.Attachment) *AttachmentQuery {
 	return aq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (aq *AttachmentQuery) Limit(limit int) *AttachmentQuery {
-	aq.limit = &limit
+	aq.ctx.Limit = &limit
 	return aq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (aq *AttachmentQuery) Offset(offset int) *AttachmentQuery {
-	aq.offset = &offset
+	aq.ctx.Offset = &offset
 	return aq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (aq *AttachmentQuery) Unique(unique bool) *AttachmentQuery {
-	aq.unique = &unique
+	aq.ctx.Unique = &unique
 	return aq
 }
 
-// Order adds an order step to the query.
-func (aq *AttachmentQuery) Order(o ...OrderFunc) *AttachmentQuery {
+// Order specifies how the records should be ordered.
+func (aq *AttachmentQuery) Order(o ...attachment.OrderOption) *AttachmentQuery {
 	aq.order = append(aq.order, o...)
 	return aq
 }
@@ -62,7 +60,7 @@ func (aq *AttachmentQuery) Order(o ...OrderFunc) *AttachmentQuery {
 // First returns the first Attachment entity from the query.
 // Returns a *NotFoundError when no Attachment was found.
 func (aq *AttachmentQuery) First(ctx context.Context) (*Attachment, error) {
-	nodes, err := aq.Limit(1).All(ctx)
+	nodes, err := aq.Limit(1).All(setContextOp(ctx, aq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (aq *AttachmentQuery) FirstX(ctx context.Context) *Attachment {
 // Returns a *NotFoundError when no Attachment ID was found.
 func (aq *AttachmentQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = aq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = aq.Limit(1).IDs(setContextOp(ctx, aq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (aq *AttachmentQuery) FirstIDX(ctx context.Context) string {
 // Returns a *NotSingularError when more than one Attachment entity is found.
 // Returns a *NotFoundError when no Attachment entities are found.
 func (aq *AttachmentQuery) Only(ctx context.Context) (*Attachment, error) {
-	nodes, err := aq.Limit(2).All(ctx)
+	nodes, err := aq.Limit(2).All(setContextOp(ctx, aq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (aq *AttachmentQuery) OnlyX(ctx context.Context) *Attachment {
 // Returns a *NotFoundError when no entities are found.
 func (aq *AttachmentQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = aq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = aq.Limit(2).IDs(setContextOp(ctx, aq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (aq *AttachmentQuery) OnlyIDX(ctx context.Context) string {
 
 // All executes the query and returns a list of Attachments.
 func (aq *AttachmentQuery) All(ctx context.Context) ([]*Attachment, error) {
+	ctx = setContextOp(ctx, aq.ctx, "All")
 	if err := aq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return aq.sqlAll(ctx)
+	qr := querierAll[[]*Attachment, *AttachmentQuery]()
+	return withInterceptors[[]*Attachment](ctx, aq, qr, aq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -177,9 +177,12 @@ func (aq *AttachmentQuery) AllX(ctx context.Context) []*Attachment {
 }
 
 // IDs executes the query and returns a list of Attachment IDs.
-func (aq *AttachmentQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
-	if err := aq.Select(attachment.FieldID).Scan(ctx, &ids); err != nil {
+func (aq *AttachmentQuery) IDs(ctx context.Context) (ids []string, err error) {
+	if aq.ctx.Unique == nil && aq.path != nil {
+		aq.Unique(true)
+	}
+	ctx = setContextOp(ctx, aq.ctx, "IDs")
+	if err = aq.Select(attachment.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -196,10 +199,11 @@ func (aq *AttachmentQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (aq *AttachmentQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, aq.ctx, "Count")
 	if err := aq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return aq.sqlCount(ctx)
+	return withInterceptors[int](ctx, aq, querierCount[*AttachmentQuery](), aq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +217,15 @@ func (aq *AttachmentQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (aq *AttachmentQuery) Exist(ctx context.Context) (bool, error) {
-	if err := aq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, aq.ctx, "Exist")
+	switch _, err := aq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return aq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +245,13 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 	}
 	return &AttachmentQuery{
 		config:     aq.config,
-		limit:      aq.limit,
-		offset:     aq.offset,
-		order:      append([]OrderFunc{}, aq.order...),
+		ctx:        aq.ctx.Clone(),
+		order:      append([]attachment.OrderOption{}, aq.order...),
+		inters:     append([]Interceptor{}, aq.inters...),
 		predicates: append([]predicate.Attachment{}, aq.predicates...),
 		// clone intermediate query.
-		sql:    aq.sql.Clone(),
-		path:   aq.path,
-		unique: aq.unique,
+		sql:  aq.sql.Clone(),
+		path: aq.path,
 	}
 }
 
@@ -262,16 +270,11 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGroupBy {
-	grbuild := &AttachmentGroupBy{config: aq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := aq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return aq.sqlQuery(ctx), nil
-	}
+	aq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &AttachmentGroupBy{build: aq}
+	grbuild.flds = &aq.ctx.Fields
 	grbuild.label = attachment.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +291,30 @@ func (aq *AttachmentQuery) GroupBy(field string, fields ...string) *AttachmentGr
 //		Select(attachment.FieldContents).
 //		Scan(ctx, &v)
 func (aq *AttachmentQuery) Select(fields ...string) *AttachmentSelect {
-	aq.fields = append(aq.fields, fields...)
-	selbuild := &AttachmentSelect{AttachmentQuery: aq}
-	selbuild.label = attachment.Label
-	selbuild.flds, selbuild.scan = &aq.fields, selbuild.Scan
-	return selbuild
+	aq.ctx.Fields = append(aq.ctx.Fields, fields...)
+	sbuild := &AttachmentSelect{AttachmentQuery: aq}
+	sbuild.label = attachment.Label
+	sbuild.flds, sbuild.scan = &aq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a AttachmentSelect configured with the given aggregations.
+func (aq *AttachmentQuery) Aggregate(fns ...AggregateFunc) *AttachmentSelect {
+	return aq.Select().Aggregate(fns...)
 }
 
 func (aq *AttachmentQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range aq.fields {
+	for _, inter := range aq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, aq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range aq.ctx.Fields {
 		if !attachment.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,41 +356,22 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 
 func (aq *AttachmentQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := aq.querySpec()
-	_spec.Node.Columns = aq.fields
-	if len(aq.fields) > 0 {
-		_spec.Unique = aq.unique != nil && *aq.unique
+	_spec.Node.Columns = aq.ctx.Fields
+	if len(aq.ctx.Fields) > 0 {
+		_spec.Unique = aq.ctx.Unique != nil && *aq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, aq.driver, _spec)
 }
 
-func (aq *AttachmentQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := aq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   attachment.Table,
-			Columns: attachment.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: attachment.FieldID,
-			},
-		},
-		From:   aq.sql,
-		Unique: true,
-	}
-	if unique := aq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(attachment.Table, attachment.Columns, sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeString))
+	_spec.From = aq.sql
+	if unique := aq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if aq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := aq.fields; len(fields) > 0 {
+	if fields := aq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, attachment.FieldID)
 		for i := range fields {
@@ -388,10 +387,10 @@ func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := aq.limit; limit != nil {
+	if limit := aq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := aq.offset; offset != nil {
+	if offset := aq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := aq.order; len(ps) > 0 {
@@ -407,7 +406,7 @@ func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
 func (aq *AttachmentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(aq.driver.Dialect())
 	t1 := builder.Table(attachment.Table)
-	columns := aq.fields
+	columns := aq.ctx.Fields
 	if len(columns) == 0 {
 		columns = attachment.Columns
 	}
@@ -416,7 +415,7 @@ func (aq *AttachmentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = aq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if aq.unique != nil && *aq.unique {
+	if aq.ctx.Unique != nil && *aq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range aq.predicates {
@@ -425,12 +424,12 @@ func (aq *AttachmentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range aq.order {
 		p(selector)
 	}
-	if offset := aq.offset; offset != nil {
+	if offset := aq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := aq.limit; limit != nil {
+	if limit := aq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +437,8 @@ func (aq *AttachmentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // AttachmentGroupBy is the group-by builder for Attachment entities.
 type AttachmentGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *AttachmentQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +447,77 @@ func (agb *AttachmentGroupBy) Aggregate(fns ...AggregateFunc) *AttachmentGroupBy
 	return agb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (agb *AttachmentGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := agb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, agb.build.ctx, "GroupBy")
+	if err := agb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	agb.sql = query
-	return agb.sqlScan(ctx, v)
+	return scanWithInterceptors[*AttachmentQuery, *AttachmentGroupBy](ctx, agb.build, agb, agb.build.inters, v)
 }
 
-func (agb *AttachmentGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range agb.fields {
-		if !attachment.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (agb *AttachmentGroupBy) sqlScan(ctx context.Context, root *AttachmentQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(agb.fns))
+	for _, fn := range agb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := agb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*agb.flds)+len(agb.fns))
+		for _, f := range *agb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*agb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := agb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := agb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (agb *AttachmentGroupBy) sqlQuery() *sql.Selector {
-	selector := agb.sql.Select()
-	aggregation := make([]string, 0, len(agb.fns))
-	for _, fn := range agb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(agb.fields)+len(agb.fns))
-		for _, f := range agb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(agb.fields...)...)
-}
-
 // AttachmentSelect is the builder for selecting fields of Attachment entities.
 type AttachmentSelect struct {
 	*AttachmentQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (as *AttachmentSelect) Aggregate(fns ...AggregateFunc) *AttachmentSelect {
+	as.fns = append(as.fns, fns...)
+	return as
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (as *AttachmentSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, as.ctx, "Select")
 	if err := as.prepareQuery(ctx); err != nil {
 		return err
 	}
-	as.sql = as.AttachmentQuery.sqlQuery(ctx)
-	return as.sqlScan(ctx, v)
+	return scanWithInterceptors[*AttachmentQuery, *AttachmentSelect](ctx, as.AttachmentQuery, as, as.inters, v)
 }
 
-func (as *AttachmentSelect) sqlScan(ctx context.Context, v any) error {
+func (as *AttachmentSelect) sqlScan(ctx context.Context, root *AttachmentQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(as.fns))
+	for _, fn := range as.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*as.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := as.sql.Query()
+	query, args := selector.Query()
 	if err := as.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

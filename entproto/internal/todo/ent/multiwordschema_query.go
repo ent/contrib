@@ -17,11 +17,9 @@ import (
 // MultiWordSchemaQuery is the builder for querying MultiWordSchema entities.
 type MultiWordSchemaQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []multiwordschema.OrderOption
+	inters     []Interceptor
 	predicates []predicate.MultiWordSchema
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -34,27 +32,27 @@ func (mwsq *MultiWordSchemaQuery) Where(ps ...predicate.MultiWordSchema) *MultiW
 	return mwsq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (mwsq *MultiWordSchemaQuery) Limit(limit int) *MultiWordSchemaQuery {
-	mwsq.limit = &limit
+	mwsq.ctx.Limit = &limit
 	return mwsq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (mwsq *MultiWordSchemaQuery) Offset(offset int) *MultiWordSchemaQuery {
-	mwsq.offset = &offset
+	mwsq.ctx.Offset = &offset
 	return mwsq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (mwsq *MultiWordSchemaQuery) Unique(unique bool) *MultiWordSchemaQuery {
-	mwsq.unique = &unique
+	mwsq.ctx.Unique = &unique
 	return mwsq
 }
 
-// Order adds an order step to the query.
-func (mwsq *MultiWordSchemaQuery) Order(o ...OrderFunc) *MultiWordSchemaQuery {
+// Order specifies how the records should be ordered.
+func (mwsq *MultiWordSchemaQuery) Order(o ...multiwordschema.OrderOption) *MultiWordSchemaQuery {
 	mwsq.order = append(mwsq.order, o...)
 	return mwsq
 }
@@ -62,7 +60,7 @@ func (mwsq *MultiWordSchemaQuery) Order(o ...OrderFunc) *MultiWordSchemaQuery {
 // First returns the first MultiWordSchema entity from the query.
 // Returns a *NotFoundError when no MultiWordSchema was found.
 func (mwsq *MultiWordSchemaQuery) First(ctx context.Context) (*MultiWordSchema, error) {
-	nodes, err := mwsq.Limit(1).All(ctx)
+	nodes, err := mwsq.Limit(1).All(setContextOp(ctx, mwsq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +83,7 @@ func (mwsq *MultiWordSchemaQuery) FirstX(ctx context.Context) *MultiWordSchema {
 // Returns a *NotFoundError when no MultiWordSchema ID was found.
 func (mwsq *MultiWordSchemaQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = mwsq.Limit(1).IDs(setContextOp(ctx, mwsq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -108,7 +106,7 @@ func (mwsq *MultiWordSchemaQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MultiWordSchema entity is found.
 // Returns a *NotFoundError when no MultiWordSchema entities are found.
 func (mwsq *MultiWordSchemaQuery) Only(ctx context.Context) (*MultiWordSchema, error) {
-	nodes, err := mwsq.Limit(2).All(ctx)
+	nodes, err := mwsq.Limit(2).All(setContextOp(ctx, mwsq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (mwsq *MultiWordSchemaQuery) OnlyX(ctx context.Context) *MultiWordSchema {
 // Returns a *NotFoundError when no entities are found.
 func (mwsq *MultiWordSchemaQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = mwsq.Limit(2).IDs(setContextOp(ctx, mwsq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -161,10 +159,12 @@ func (mwsq *MultiWordSchemaQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MultiWordSchemas.
 func (mwsq *MultiWordSchemaQuery) All(ctx context.Context) ([]*MultiWordSchema, error) {
+	ctx = setContextOp(ctx, mwsq.ctx, "All")
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return mwsq.sqlAll(ctx)
+	qr := querierAll[[]*MultiWordSchema, *MultiWordSchemaQuery]()
+	return withInterceptors[[]*MultiWordSchema](ctx, mwsq, qr, mwsq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -177,9 +177,12 @@ func (mwsq *MultiWordSchemaQuery) AllX(ctx context.Context) []*MultiWordSchema {
 }
 
 // IDs executes the query and returns a list of MultiWordSchema IDs.
-func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
+func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwsq.ctx.Unique == nil && mwsq.path != nil {
+		mwsq.Unique(true)
+	}
+	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
+	if err = mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -196,10 +199,11 @@ func (mwsq *MultiWordSchemaQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwsq *MultiWordSchemaQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, mwsq.ctx, "Count")
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return mwsq.sqlCount(ctx)
+	return withInterceptors[int](ctx, mwsq, querierCount[*MultiWordSchemaQuery](), mwsq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -213,10 +217,15 @@ func (mwsq *MultiWordSchemaQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwsq *MultiWordSchemaQuery) Exist(ctx context.Context) (bool, error) {
-	if err := mwsq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, mwsq.ctx, "Exist")
+	switch _, err := mwsq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return mwsq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -236,14 +245,13 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 	}
 	return &MultiWordSchemaQuery{
 		config:     mwsq.config,
-		limit:      mwsq.limit,
-		offset:     mwsq.offset,
-		order:      append([]OrderFunc{}, mwsq.order...),
+		ctx:        mwsq.ctx.Clone(),
+		order:      append([]multiwordschema.OrderOption{}, mwsq.order...),
+		inters:     append([]Interceptor{}, mwsq.inters...),
 		predicates: append([]predicate.MultiWordSchema{}, mwsq.predicates...),
 		// clone intermediate query.
-		sql:    mwsq.sql.Clone(),
-		path:   mwsq.path,
-		unique: mwsq.unique,
+		sql:  mwsq.sql.Clone(),
+		path: mwsq.path,
 	}
 }
 
@@ -262,16 +270,11 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *MultiWordSchemaGroupBy {
-	grbuild := &MultiWordSchemaGroupBy{config: mwsq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := mwsq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return mwsq.sqlQuery(ctx), nil
-	}
+	mwsq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MultiWordSchemaGroupBy{build: mwsq}
+	grbuild.flds = &mwsq.ctx.Fields
 	grbuild.label = multiwordschema.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -288,15 +291,30 @@ func (mwsq *MultiWordSchemaQuery) GroupBy(field string, fields ...string) *Multi
 //		Select(multiwordschema.FieldUnit).
 //		Scan(ctx, &v)
 func (mwsq *MultiWordSchemaQuery) Select(fields ...string) *MultiWordSchemaSelect {
-	mwsq.fields = append(mwsq.fields, fields...)
-	selbuild := &MultiWordSchemaSelect{MultiWordSchemaQuery: mwsq}
-	selbuild.label = multiwordschema.Label
-	selbuild.flds, selbuild.scan = &mwsq.fields, selbuild.Scan
-	return selbuild
+	mwsq.ctx.Fields = append(mwsq.ctx.Fields, fields...)
+	sbuild := &MultiWordSchemaSelect{MultiWordSchemaQuery: mwsq}
+	sbuild.label = multiwordschema.Label
+	sbuild.flds, sbuild.scan = &mwsq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a MultiWordSchemaSelect configured with the given aggregations.
+func (mwsq *MultiWordSchemaQuery) Aggregate(fns ...AggregateFunc) *MultiWordSchemaSelect {
+	return mwsq.Select().Aggregate(fns...)
 }
 
 func (mwsq *MultiWordSchemaQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range mwsq.fields {
+	for _, inter := range mwsq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, mwsq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range mwsq.ctx.Fields {
 		if !multiwordschema.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -338,41 +356,22 @@ func (mwsq *MultiWordSchemaQuery) sqlAll(ctx context.Context, hooks ...queryHook
 
 func (mwsq *MultiWordSchemaQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := mwsq.querySpec()
-	_spec.Node.Columns = mwsq.fields
-	if len(mwsq.fields) > 0 {
-		_spec.Unique = mwsq.unique != nil && *mwsq.unique
+	_spec.Node.Columns = mwsq.ctx.Fields
+	if len(mwsq.ctx.Fields) > 0 {
+		_spec.Unique = mwsq.ctx.Unique != nil && *mwsq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, mwsq.driver, _spec)
 }
 
-func (mwsq *MultiWordSchemaQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := mwsq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (mwsq *MultiWordSchemaQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   multiwordschema.Table,
-			Columns: multiwordschema.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-		From:   mwsq.sql,
-		Unique: true,
-	}
-	if unique := mwsq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(multiwordschema.Table, multiwordschema.Columns, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
+	_spec.From = mwsq.sql
+	if unique := mwsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwsq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := mwsq.fields; len(fields) > 0 {
+	if fields := mwsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, multiwordschema.FieldID)
 		for i := range fields {
@@ -388,10 +387,10 @@ func (mwsq *MultiWordSchemaQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := mwsq.limit; limit != nil {
+	if limit := mwsq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mwsq.offset; offset != nil {
+	if offset := mwsq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := mwsq.order; len(ps) > 0 {
@@ -407,7 +406,7 @@ func (mwsq *MultiWordSchemaQuery) querySpec() *sqlgraph.QuerySpec {
 func (mwsq *MultiWordSchemaQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(mwsq.driver.Dialect())
 	t1 := builder.Table(multiwordschema.Table)
-	columns := mwsq.fields
+	columns := mwsq.ctx.Fields
 	if len(columns) == 0 {
 		columns = multiwordschema.Columns
 	}
@@ -416,7 +415,7 @@ func (mwsq *MultiWordSchemaQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = mwsq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mwsq.unique != nil && *mwsq.unique {
+	if mwsq.ctx.Unique != nil && *mwsq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range mwsq.predicates {
@@ -425,12 +424,12 @@ func (mwsq *MultiWordSchemaQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range mwsq.order {
 		p(selector)
 	}
-	if offset := mwsq.offset; offset != nil {
+	if offset := mwsq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mwsq.limit; limit != nil {
+	if limit := mwsq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -438,13 +437,8 @@ func (mwsq *MultiWordSchemaQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // MultiWordSchemaGroupBy is the group-by builder for MultiWordSchema entities.
 type MultiWordSchemaGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *MultiWordSchemaQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -453,74 +447,77 @@ func (mwsgb *MultiWordSchemaGroupBy) Aggregate(fns ...AggregateFunc) *MultiWordS
 	return mwsgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (mwsgb *MultiWordSchemaGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := mwsgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, mwsgb.build.ctx, "GroupBy")
+	if err := mwsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwsgb.sql = query
-	return mwsgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*MultiWordSchemaQuery, *MultiWordSchemaGroupBy](ctx, mwsgb.build, mwsgb, mwsgb.build.inters, v)
 }
 
-func (mwsgb *MultiWordSchemaGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range mwsgb.fields {
-		if !multiwordschema.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (mwsgb *MultiWordSchemaGroupBy) sqlScan(ctx context.Context, root *MultiWordSchemaQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(mwsgb.fns))
+	for _, fn := range mwsgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := mwsgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*mwsgb.flds)+len(mwsgb.fns))
+		for _, f := range *mwsgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*mwsgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mwsgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := mwsgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (mwsgb *MultiWordSchemaGroupBy) sqlQuery() *sql.Selector {
-	selector := mwsgb.sql.Select()
-	aggregation := make([]string, 0, len(mwsgb.fns))
-	for _, fn := range mwsgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(mwsgb.fields)+len(mwsgb.fns))
-		for _, f := range mwsgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(mwsgb.fields...)...)
-}
-
 // MultiWordSchemaSelect is the builder for selecting fields of MultiWordSchema entities.
 type MultiWordSchemaSelect struct {
 	*MultiWordSchemaQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (mwss *MultiWordSchemaSelect) Aggregate(fns ...AggregateFunc) *MultiWordSchemaSelect {
+	mwss.fns = append(mwss.fns, fns...)
+	return mwss
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, mwss.ctx, "Select")
 	if err := mwss.prepareQuery(ctx); err != nil {
 		return err
 	}
-	mwss.sql = mwss.MultiWordSchemaQuery.sqlQuery(ctx)
-	return mwss.sqlScan(ctx, v)
+	return scanWithInterceptors[*MultiWordSchemaQuery, *MultiWordSchemaSelect](ctx, mwss.MultiWordSchemaQuery, mwss, mwss.inters, v)
 }
 
-func (mwss *MultiWordSchemaSelect) sqlScan(ctx context.Context, v any) error {
+func (mwss *MultiWordSchemaSelect) sqlScan(ctx context.Context, root *MultiWordSchemaQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(mwss.fns))
+	for _, fn := range mwss.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*mwss.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := mwss.sql.Query()
+	query, args := selector.Query()
 	if err := mwss.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

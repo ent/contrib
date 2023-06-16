@@ -220,6 +220,30 @@ func (uc *UserCreate) SetLabels(s []string) *UserCreate {
 	return uc
 }
 
+// SetInt32s sets the "int32s" field.
+func (uc *UserCreate) SetInt32s(i []int32) *UserCreate {
+	uc.mutation.SetInt32s(i)
+	return uc
+}
+
+// SetInt64s sets the "int64s" field.
+func (uc *UserCreate) SetInt64s(i []int64) *UserCreate {
+	uc.mutation.SetInt64s(i)
+	return uc
+}
+
+// SetUint32s sets the "uint32s" field.
+func (uc *UserCreate) SetUint32s(u []uint32) *UserCreate {
+	uc.mutation.SetUint32s(u)
+	return uc
+}
+
+// SetUint64s sets the "uint64s" field.
+func (uc *UserCreate) SetUint64s(u []uint64) *UserCreate {
+	uc.mutation.SetUint64s(u)
+	return uc
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uc *UserCreate) SetDeviceType(ut user.DeviceType) *UserCreate {
 	uc.mutation.SetDeviceType(ut)
@@ -231,6 +255,24 @@ func (uc *UserCreate) SetNillableDeviceType(ut *user.DeviceType) *UserCreate {
 	if ut != nil {
 		uc.SetDeviceType(*ut)
 	}
+	return uc
+}
+
+// SetOmitPrefix sets the "omit_prefix" field.
+func (uc *UserCreate) SetOmitPrefix(up user.OmitPrefix) *UserCreate {
+	uc.mutation.SetOmitPrefix(up)
+	return uc
+}
+
+// SetMimeType sets the "mime_type" field.
+func (uc *UserCreate) SetMimeType(ut user.MimeType) *UserCreate {
+	uc.mutation.SetMimeType(ut)
+	return uc
+}
+
+// SetID sets the "id" field.
+func (uc *UserCreate) SetID(u uint32) *UserCreate {
+	uc.mutation.SetID(u)
 	return uc
 }
 
@@ -332,50 +374,8 @@ func (uc *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
-	var (
-		err  error
-		node *User
-	)
 	uc.defaults()
-	if len(uc.hooks) == 0 {
-		if err = uc.check(); err != nil {
-			return nil, err
-		}
-		node, err = uc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = uc.check(); err != nil {
-				return nil, err
-			}
-			uc.mutation = mutation
-			if node, err = uc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(uc.hooks) - 1; i >= 0; i-- {
-			if uc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = uc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, uc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*User)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from UserMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*User, UserMutation](ctx, uc.sqlSave, uc.mutation, uc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -468,10 +468,29 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "device_type", err: fmt.Errorf(`ent: validator failed for field "User.device_type": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.OmitPrefix(); !ok {
+		return &ValidationError{Name: "omit_prefix", err: errors.New(`ent: missing required field "User.omit_prefix"`)}
+	}
+	if v, ok := uc.mutation.OmitPrefix(); ok {
+		if err := user.OmitPrefixValidator(v); err != nil {
+			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
+	if _, ok := uc.mutation.MimeType(); !ok {
+		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "User.mime_type"`)}
+	}
+	if v, ok := uc.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
 func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
+	if err := uc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := uc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, uc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -479,181 +498,127 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = uint32(id)
+	}
+	uc.mutation.id = &_node.ID
+	uc.mutation.done = true
 	return _node, nil
 }
 
 func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: uc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: user.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: user.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint32))
 	)
+	if id, ok := uc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := uc.mutation.UserName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUserName,
-		})
+		_spec.SetField(user.FieldUserName, field.TypeString, value)
 		_node.UserName = value
 	}
 	if value, ok := uc.mutation.Joined(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: user.FieldJoined,
-		})
+		_spec.SetField(user.FieldJoined, field.TypeTime, value)
 		_node.Joined = value
 	}
 	if value, ok := uc.mutation.Points(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint,
-			Value:  value,
-			Column: user.FieldPoints,
-		})
+		_spec.SetField(user.FieldPoints, field.TypeUint, value)
 		_node.Points = value
 	}
 	if value, ok := uc.mutation.Exp(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: user.FieldExp,
-		})
+		_spec.SetField(user.FieldExp, field.TypeUint64, value)
 		_node.Exp = value
 	}
 	if value, ok := uc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldStatus,
-		})
+		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := uc.mutation.ExternalID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldExternalID,
-		})
+		_spec.SetField(user.FieldExternalID, field.TypeInt, value)
 		_node.ExternalID = value
 	}
 	if value, ok := uc.mutation.CrmID(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: user.FieldCrmID,
-		})
+		_spec.SetField(user.FieldCrmID, field.TypeUUID, value)
 		_node.CrmID = value
 	}
 	if value, ok := uc.mutation.Banned(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: user.FieldBanned,
-		})
+		_spec.SetField(user.FieldBanned, field.TypeBool, value)
 		_node.Banned = value
 	}
 	if value, ok := uc.mutation.CustomPb(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: user.FieldCustomPb,
-		})
+		_spec.SetField(user.FieldCustomPb, field.TypeUint8, value)
 		_node.CustomPb = value
 	}
 	if value, ok := uc.mutation.OptNum(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldOptNum,
-		})
+		_spec.SetField(user.FieldOptNum, field.TypeInt, value)
 		_node.OptNum = value
 	}
 	if value, ok := uc.mutation.OptStr(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldOptStr,
-		})
+		_spec.SetField(user.FieldOptStr, field.TypeString, value)
 		_node.OptStr = value
 	}
 	if value, ok := uc.mutation.OptBool(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: user.FieldOptBool,
-		})
+		_spec.SetField(user.FieldOptBool, field.TypeBool, value)
 		_node.OptBool = value
 	}
 	if value, ok := uc.mutation.BigInt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldBigInt,
-		})
+		_spec.SetField(user.FieldBigInt, field.TypeInt, value)
 		_node.BigInt = value
 	}
 	if value, ok := uc.mutation.BUser1(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt,
-			Value:  value,
-			Column: user.FieldBUser1,
-		})
+		_spec.SetField(user.FieldBUser1, field.TypeInt, value)
 		_node.BUser1 = value
 	}
 	if value, ok := uc.mutation.HeightInCm(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
-			Value:  value,
-			Column: user.FieldHeightInCm,
-		})
+		_spec.SetField(user.FieldHeightInCm, field.TypeFloat32, value)
 		_node.HeightInCm = value
 	}
 	if value, ok := uc.mutation.AccountBalance(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat64,
-			Value:  value,
-			Column: user.FieldAccountBalance,
-		})
+		_spec.SetField(user.FieldAccountBalance, field.TypeFloat64, value)
 		_node.AccountBalance = value
 	}
 	if value, ok := uc.mutation.Unnecessary(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldUnnecessary,
-		})
+		_spec.SetField(user.FieldUnnecessary, field.TypeString, value)
 		_node.Unnecessary = value
 	}
 	if value, ok := uc.mutation.GetType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: user.FieldType,
-		})
+		_spec.SetField(user.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
 	if value, ok := uc.mutation.Labels(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: user.FieldLabels,
-		})
+		_spec.SetField(user.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
 	}
+	if value, ok := uc.mutation.Int32s(); ok {
+		_spec.SetField(user.FieldInt32s, field.TypeJSON, value)
+		_node.Int32s = value
+	}
+	if value, ok := uc.mutation.Int64s(); ok {
+		_spec.SetField(user.FieldInt64s, field.TypeJSON, value)
+		_node.Int64s = value
+	}
+	if value, ok := uc.mutation.Uint32s(); ok {
+		_spec.SetField(user.FieldUint32s, field.TypeJSON, value)
+		_node.Uint32s = value
+	}
+	if value, ok := uc.mutation.Uint64s(); ok {
+		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
+		_node.Uint64s = value
+	}
 	if value, ok := uc.mutation.DeviceType(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: user.FieldDeviceType,
-		})
+		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 		_node.DeviceType = value
+	}
+	if value, ok := uc.mutation.OmitPrefix(); ok {
+		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
+		_node.OmitPrefix = value
+	}
+	if value, ok := uc.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
+		_node.MimeType = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -663,10 +628,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.GroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -683,10 +645,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.AttachmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -702,10 +661,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -721,10 +677,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.PetColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -740,10 +693,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.SkipEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: skipedgeexample.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -778,8 +728,8 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
@@ -795,9 +745,9 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = uint32(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

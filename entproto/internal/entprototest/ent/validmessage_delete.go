@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
@@ -28,34 +27,7 @@ func (vmd *ValidMessageDelete) Where(ps ...predicate.ValidMessage) *ValidMessage
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (vmd *ValidMessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(vmd.hooks) == 0 {
-		affected, err = vmd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ValidMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vmd.mutation = mutation
-			affected, err = vmd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(vmd.hooks) - 1; i >= 0; i-- {
-			if vmd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vmd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, vmd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ValidMessageMutation](ctx, vmd.sqlExec, vmd.mutation, vmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (vmd *ValidMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (vmd *ValidMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: validmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(validmessage.Table, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	if ps := vmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (vmd *ValidMessageDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	vmd.mutation.done = true
 	return affected, err
 }
 
 // ValidMessageDeleteOne is the builder for deleting a single ValidMessage entity.
 type ValidMessageDeleteOne struct {
 	vmd *ValidMessageDelete
+}
+
+// Where appends a list predicates to the ValidMessageDelete builder.
+func (vmdo *ValidMessageDeleteOne) Where(ps ...predicate.ValidMessage) *ValidMessageDeleteOne {
+	vmdo.vmd.mutation.Where(ps...)
+	return vmdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (vmdo *ValidMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (vmdo *ValidMessageDeleteOne) ExecX(ctx context.Context) {
-	vmdo.vmd.ExecX(ctx)
+	if err := vmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

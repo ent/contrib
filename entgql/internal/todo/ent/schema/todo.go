@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
@@ -43,6 +44,7 @@ func (Todo) Fields() []ent.Field {
 			NamedValues(
 				"InProgress", "IN_PROGRESS",
 				"Completed", "COMPLETED",
+				"Pending", "PENDING",
 			).
 			Annotations(
 				entgql.OrderField("STATUS"),
@@ -69,6 +71,21 @@ func (Todo) Fields() []ent.Field {
 			Annotations(
 				entgql.MapsTo("categoryID", "category_id", "categoryX"),
 			),
+		field.JSON("init", map[string]any{}).
+			Optional().
+			Annotations(entgql.Type("Map")),
+		field.JSON("custom", []customstruct.Custom{}).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput),
+				entgql.Skip(entgql.SkipMutationUpdateInput),
+			).
+			Optional(),
+		field.JSON("customp", []*customstruct.Custom{}).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput),
+				entgql.Skip(entgql.SkipMutationUpdateInput),
+			).
+			Optional(),
 	}
 }
 
@@ -76,17 +93,27 @@ func (Todo) Fields() []ent.Field {
 func (Todo) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("children", Todo.Type).
-			//nolint SA1019 we keep this as the example.
-			Annotations(entgql.Bind(), entgql.RelayConnection()).
+			Annotations(
+				entgql.RelayConnection(),
+				// For non-unique edges, the order field can be only on edge count.
+				// The convention is "UPPER(<edge-name>)_COUNT".
+				entgql.OrderField("CHILDREN_COUNT"),
+			).
 			From("parent").
-			//nolint SA1019 we keep this as the example.
-			Annotations(entgql.Bind()).
+			Annotations(
+				// For unique edges, the order field can be on the edge field that is defined
+				// as entgql.OrderField. The convention is "UPPER(<edge-name>)_<gql-order-field>".
+				entgql.OrderField("PARENT_STATUS"),
+			).
 			Unique(),
 		edge.From("category", Category.Type).
 			Ref("todos").
 			Field("category_id").
 			Unique().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entgql.OrderField("CATEGORY_TEXT"),
+			),
 		edge.To("secret", VerySecret.Type).
 			Unique(),
 	}

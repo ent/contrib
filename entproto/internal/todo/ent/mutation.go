@@ -20,9 +20,9 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
-	"github.com/google/uuid"
-
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -52,10 +52,10 @@ type AttachmentMutation struct {
 	typ               string
 	id                *uuid.UUID
 	clearedFields     map[string]struct{}
-	user              *int
+	user              *uint32
 	cleareduser       bool
-	recipients        map[int]struct{}
-	removedrecipients map[int]struct{}
+	recipients        map[uint32]struct{}
+	removedrecipients map[uint32]struct{}
 	clearedrecipients bool
 	done              bool
 	oldValue          func(context.Context) (*Attachment, error)
@@ -167,7 +167,7 @@ func (m *AttachmentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *AttachmentMutation) SetUserID(id int) {
+func (m *AttachmentMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -182,7 +182,7 @@ func (m *AttachmentMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *AttachmentMutation) UserID() (id int, exists bool) {
+func (m *AttachmentMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -192,7 +192,7 @@ func (m *AttachmentMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) UserIDs() (ids []int) {
+func (m *AttachmentMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -206,9 +206,9 @@ func (m *AttachmentMutation) ResetUser() {
 }
 
 // AddRecipientIDs adds the "recipients" edge to the User entity by ids.
-func (m *AttachmentMutation) AddRecipientIDs(ids ...int) {
+func (m *AttachmentMutation) AddRecipientIDs(ids ...uint32) {
 	if m.recipients == nil {
-		m.recipients = make(map[int]struct{})
+		m.recipients = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		m.recipients[ids[i]] = struct{}{}
@@ -226,9 +226,9 @@ func (m *AttachmentMutation) RecipientsCleared() bool {
 }
 
 // RemoveRecipientIDs removes the "recipients" edge to the User entity by IDs.
-func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
+func (m *AttachmentMutation) RemoveRecipientIDs(ids ...uint32) {
 	if m.removedrecipients == nil {
-		m.removedrecipients = make(map[int]struct{})
+		m.removedrecipients = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		delete(m.recipients, ids[i])
@@ -237,7 +237,7 @@ func (m *AttachmentMutation) RemoveRecipientIDs(ids ...int) {
 }
 
 // RemovedRecipients returns the removed IDs of the "recipients" edge to the User entity.
-func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
+func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []uint32) {
 	for id := range m.removedrecipients {
 		ids = append(ids, id)
 	}
@@ -245,7 +245,7 @@ func (m *AttachmentMutation) RemovedRecipientsIDs() (ids []int) {
 }
 
 // RecipientsIDs returns the "recipients" edge IDs in the mutation.
-func (m *AttachmentMutation) RecipientsIDs() (ids []int) {
+func (m *AttachmentMutation) RecipientsIDs() (ids []uint32) {
 	for id := range m.recipients {
 		ids = append(ids, id)
 	}
@@ -264,9 +264,24 @@ func (m *AttachmentMutation) Where(ps ...predicate.Attachment) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the AttachmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AttachmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Attachment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *AttachmentMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AttachmentMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Attachment).
@@ -460,8 +475,8 @@ type GroupMutation struct {
 	id            *int
 	name          *string
 	clearedFields map[string]struct{}
-	users         map[int]struct{}
-	removedusers  map[int]struct{}
+	users         map[uint32]struct{}
+	removedusers  map[uint32]struct{}
 	clearedusers  bool
 	done          bool
 	oldValue      func(context.Context) (*Group, error)
@@ -603,9 +618,9 @@ func (m *GroupMutation) ResetName() {
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
-func (m *GroupMutation) AddUserIDs(ids ...int) {
+func (m *GroupMutation) AddUserIDs(ids ...uint32) {
 	if m.users == nil {
-		m.users = make(map[int]struct{})
+		m.users = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		m.users[ids[i]] = struct{}{}
@@ -623,9 +638,9 @@ func (m *GroupMutation) UsersCleared() bool {
 }
 
 // RemoveUserIDs removes the "users" edge to the User entity by IDs.
-func (m *GroupMutation) RemoveUserIDs(ids ...int) {
+func (m *GroupMutation) RemoveUserIDs(ids ...uint32) {
 	if m.removedusers == nil {
-		m.removedusers = make(map[int]struct{})
+		m.removedusers = make(map[uint32]struct{})
 	}
 	for i := range ids {
 		delete(m.users, ids[i])
@@ -634,7 +649,7 @@ func (m *GroupMutation) RemoveUserIDs(ids ...int) {
 }
 
 // RemovedUsers returns the removed IDs of the "users" edge to the User entity.
-func (m *GroupMutation) RemovedUsersIDs() (ids []int) {
+func (m *GroupMutation) RemovedUsersIDs() (ids []uint32) {
 	for id := range m.removedusers {
 		ids = append(ids, id)
 	}
@@ -642,7 +657,7 @@ func (m *GroupMutation) RemovedUsersIDs() (ids []int) {
 }
 
 // UsersIDs returns the "users" edge IDs in the mutation.
-func (m *GroupMutation) UsersIDs() (ids []int) {
+func (m *GroupMutation) UsersIDs() (ids []uint32) {
 	for id := range m.users {
 		ids = append(ids, id)
 	}
@@ -661,9 +676,24 @@ func (m *GroupMutation) Where(ps ...predicate.Group) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the GroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Group, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *GroupMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GroupMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Group).
@@ -1008,9 +1038,24 @@ func (m *MultiWordSchemaMutation) Where(ps ...predicate.MultiWordSchema) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the MultiWordSchemaMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MultiWordSchemaMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MultiWordSchema, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *MultiWordSchemaMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MultiWordSchemaMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (MultiWordSchema).
@@ -1382,9 +1427,24 @@ func (m *NilExampleMutation) Where(ps ...predicate.NilExample) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the NilExampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NilExampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NilExample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *NilExampleMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NilExampleMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (NilExample).
@@ -1580,7 +1640,7 @@ type PetMutation struct {
 	typ               string
 	id                *int
 	clearedFields     map[string]struct{}
-	owner             *int
+	owner             *uint32
 	clearedowner      bool
 	attachment        map[uuid.UUID]struct{}
 	removedattachment map[uuid.UUID]struct{}
@@ -1689,7 +1749,7 @@ func (m *PetMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetOwnerID sets the "owner" edge to the User entity by id.
-func (m *PetMutation) SetOwnerID(id int) {
+func (m *PetMutation) SetOwnerID(id uint32) {
 	m.owner = &id
 }
 
@@ -1704,7 +1764,7 @@ func (m *PetMutation) OwnerCleared() bool {
 }
 
 // OwnerID returns the "owner" edge ID in the mutation.
-func (m *PetMutation) OwnerID() (id int, exists bool) {
+func (m *PetMutation) OwnerID() (id uint32, exists bool) {
 	if m.owner != nil {
 		return *m.owner, true
 	}
@@ -1714,7 +1774,7 @@ func (m *PetMutation) OwnerID() (id int, exists bool) {
 // OwnerIDs returns the "owner" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // OwnerID instead. It exists only for internal usage by the builders.
-func (m *PetMutation) OwnerIDs() (ids []int) {
+func (m *PetMutation) OwnerIDs() (ids []uint32) {
 	if id := m.owner; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1786,9 +1846,24 @@ func (m *PetMutation) Where(ps ...predicate.Pet) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Pet, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PetMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PetMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Pet).
@@ -2126,9 +2201,24 @@ func (m *PonyMutation) Where(ps ...predicate.Pony) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PonyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PonyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Pony, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PonyMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PonyMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Pony).
@@ -2292,7 +2382,7 @@ type SkipEdgeExampleMutation struct {
 	typ           string
 	id            *int
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint32
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*SkipEdgeExample, error)
@@ -2398,7 +2488,7 @@ func (m *SkipEdgeExampleMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *SkipEdgeExampleMutation) SetUserID(id int) {
+func (m *SkipEdgeExampleMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -2413,7 +2503,7 @@ func (m *SkipEdgeExampleMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
+func (m *SkipEdgeExampleMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -2423,7 +2513,7 @@ func (m *SkipEdgeExampleMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *SkipEdgeExampleMutation) UserIDs() (ids []int) {
+func (m *SkipEdgeExampleMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2441,9 +2531,24 @@ func (m *SkipEdgeExampleMutation) Where(ps ...predicate.SkipEdgeExample) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the SkipEdgeExampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SkipEdgeExampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SkipEdgeExample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *SkipEdgeExampleMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SkipEdgeExampleMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (SkipEdgeExample).
@@ -2610,7 +2715,7 @@ type TodoMutation struct {
 	task          *string
 	status        *todo.Status
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint32
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*Todo, error)
@@ -2788,7 +2893,7 @@ func (m *TodoMutation) ResetStatus() {
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *TodoMutation) SetUserID(id int) {
+func (m *TodoMutation) SetUserID(id uint32) {
 	m.user = &id
 }
 
@@ -2803,7 +2908,7 @@ func (m *TodoMutation) UserCleared() bool {
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *TodoMutation) UserID() (id int, exists bool) {
+func (m *TodoMutation) UserID() (id uint32, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -2813,7 +2918,7 @@ func (m *TodoMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *TodoMutation) UserIDs() (ids []int) {
+func (m *TodoMutation) UserIDs() (ids []uint32) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2831,9 +2936,24 @@ func (m *TodoMutation) Where(ps ...predicate.Todo) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TodoMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TodoMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Todo, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TodoMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TodoMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Todo).
@@ -3038,7 +3158,7 @@ type UserMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
+	id                 *uint32
 	user_name          *string
 	joined             *time.Time
 	points             *uint
@@ -3067,7 +3187,17 @@ type UserMutation struct {
 	_type              *string
 	labels             *[]string
 	appendlabels       []string
+	int32s             *[]int32
+	appendint32s       []int32
+	int64s             *[]int64
+	appendint64s       []int64
+	uint32s            *[]uint32
+	appenduint32s      []uint32
+	uint64s            *[]uint64
+	appenduint64s      []uint64
 	device_type        *user.DeviceType
+	omit_prefix        *user.OmitPrefix
+	mime_type          *user.MimeType
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -3105,7 +3235,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uint32) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -3155,9 +3285,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id uint32) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uint32, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3168,12 +3304,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]uint32, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uint32{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4149,6 +4285,266 @@ func (m *UserMutation) ResetLabels() {
 	delete(m.clearedFields, user.FieldLabels)
 }
 
+// SetInt32s sets the "int32s" field.
+func (m *UserMutation) SetInt32s(i []int32) {
+	m.int32s = &i
+	m.appendint32s = nil
+}
+
+// Int32s returns the value of the "int32s" field in the mutation.
+func (m *UserMutation) Int32s() (r []int32, exists bool) {
+	v := m.int32s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInt32s returns the old "int32s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldInt32s(ctx context.Context) (v []int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInt32s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInt32s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInt32s: %w", err)
+	}
+	return oldValue.Int32s, nil
+}
+
+// AppendInt32s adds i to the "int32s" field.
+func (m *UserMutation) AppendInt32s(i []int32) {
+	m.appendint32s = append(m.appendint32s, i...)
+}
+
+// AppendedInt32s returns the list of values that were appended to the "int32s" field in this mutation.
+func (m *UserMutation) AppendedInt32s() ([]int32, bool) {
+	if len(m.appendint32s) == 0 {
+		return nil, false
+	}
+	return m.appendint32s, true
+}
+
+// ClearInt32s clears the value of the "int32s" field.
+func (m *UserMutation) ClearInt32s() {
+	m.int32s = nil
+	m.appendint32s = nil
+	m.clearedFields[user.FieldInt32s] = struct{}{}
+}
+
+// Int32sCleared returns if the "int32s" field was cleared in this mutation.
+func (m *UserMutation) Int32sCleared() bool {
+	_, ok := m.clearedFields[user.FieldInt32s]
+	return ok
+}
+
+// ResetInt32s resets all changes to the "int32s" field.
+func (m *UserMutation) ResetInt32s() {
+	m.int32s = nil
+	m.appendint32s = nil
+	delete(m.clearedFields, user.FieldInt32s)
+}
+
+// SetInt64s sets the "int64s" field.
+func (m *UserMutation) SetInt64s(i []int64) {
+	m.int64s = &i
+	m.appendint64s = nil
+}
+
+// Int64s returns the value of the "int64s" field in the mutation.
+func (m *UserMutation) Int64s() (r []int64, exists bool) {
+	v := m.int64s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInt64s returns the old "int64s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldInt64s(ctx context.Context) (v []int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInt64s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInt64s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInt64s: %w", err)
+	}
+	return oldValue.Int64s, nil
+}
+
+// AppendInt64s adds i to the "int64s" field.
+func (m *UserMutation) AppendInt64s(i []int64) {
+	m.appendint64s = append(m.appendint64s, i...)
+}
+
+// AppendedInt64s returns the list of values that were appended to the "int64s" field in this mutation.
+func (m *UserMutation) AppendedInt64s() ([]int64, bool) {
+	if len(m.appendint64s) == 0 {
+		return nil, false
+	}
+	return m.appendint64s, true
+}
+
+// ClearInt64s clears the value of the "int64s" field.
+func (m *UserMutation) ClearInt64s() {
+	m.int64s = nil
+	m.appendint64s = nil
+	m.clearedFields[user.FieldInt64s] = struct{}{}
+}
+
+// Int64sCleared returns if the "int64s" field was cleared in this mutation.
+func (m *UserMutation) Int64sCleared() bool {
+	_, ok := m.clearedFields[user.FieldInt64s]
+	return ok
+}
+
+// ResetInt64s resets all changes to the "int64s" field.
+func (m *UserMutation) ResetInt64s() {
+	m.int64s = nil
+	m.appendint64s = nil
+	delete(m.clearedFields, user.FieldInt64s)
+}
+
+// SetUint32s sets the "uint32s" field.
+func (m *UserMutation) SetUint32s(u []uint32) {
+	m.uint32s = &u
+	m.appenduint32s = nil
+}
+
+// Uint32s returns the value of the "uint32s" field in the mutation.
+func (m *UserMutation) Uint32s() (r []uint32, exists bool) {
+	v := m.uint32s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUint32s returns the old "uint32s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUint32s(ctx context.Context) (v []uint32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUint32s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUint32s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUint32s: %w", err)
+	}
+	return oldValue.Uint32s, nil
+}
+
+// AppendUint32s adds u to the "uint32s" field.
+func (m *UserMutation) AppendUint32s(u []uint32) {
+	m.appenduint32s = append(m.appenduint32s, u...)
+}
+
+// AppendedUint32s returns the list of values that were appended to the "uint32s" field in this mutation.
+func (m *UserMutation) AppendedUint32s() ([]uint32, bool) {
+	if len(m.appenduint32s) == 0 {
+		return nil, false
+	}
+	return m.appenduint32s, true
+}
+
+// ClearUint32s clears the value of the "uint32s" field.
+func (m *UserMutation) ClearUint32s() {
+	m.uint32s = nil
+	m.appenduint32s = nil
+	m.clearedFields[user.FieldUint32s] = struct{}{}
+}
+
+// Uint32sCleared returns if the "uint32s" field was cleared in this mutation.
+func (m *UserMutation) Uint32sCleared() bool {
+	_, ok := m.clearedFields[user.FieldUint32s]
+	return ok
+}
+
+// ResetUint32s resets all changes to the "uint32s" field.
+func (m *UserMutation) ResetUint32s() {
+	m.uint32s = nil
+	m.appenduint32s = nil
+	delete(m.clearedFields, user.FieldUint32s)
+}
+
+// SetUint64s sets the "uint64s" field.
+func (m *UserMutation) SetUint64s(u []uint64) {
+	m.uint64s = &u
+	m.appenduint64s = nil
+}
+
+// Uint64s returns the value of the "uint64s" field in the mutation.
+func (m *UserMutation) Uint64s() (r []uint64, exists bool) {
+	v := m.uint64s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUint64s returns the old "uint64s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUint64s(ctx context.Context) (v []uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUint64s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUint64s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUint64s: %w", err)
+	}
+	return oldValue.Uint64s, nil
+}
+
+// AppendUint64s adds u to the "uint64s" field.
+func (m *UserMutation) AppendUint64s(u []uint64) {
+	m.appenduint64s = append(m.appenduint64s, u...)
+}
+
+// AppendedUint64s returns the list of values that were appended to the "uint64s" field in this mutation.
+func (m *UserMutation) AppendedUint64s() ([]uint64, bool) {
+	if len(m.appenduint64s) == 0 {
+		return nil, false
+	}
+	return m.appenduint64s, true
+}
+
+// ClearUint64s clears the value of the "uint64s" field.
+func (m *UserMutation) ClearUint64s() {
+	m.uint64s = nil
+	m.appenduint64s = nil
+	m.clearedFields[user.FieldUint64s] = struct{}{}
+}
+
+// Uint64sCleared returns if the "uint64s" field was cleared in this mutation.
+func (m *UserMutation) Uint64sCleared() bool {
+	_, ok := m.clearedFields[user.FieldUint64s]
+	return ok
+}
+
+// ResetUint64s resets all changes to the "uint64s" field.
+func (m *UserMutation) ResetUint64s() {
+	m.uint64s = nil
+	m.appenduint64s = nil
+	delete(m.clearedFields, user.FieldUint64s)
+}
+
 // SetDeviceType sets the "device_type" field.
 func (m *UserMutation) SetDeviceType(ut user.DeviceType) {
 	m.device_type = &ut
@@ -4183,6 +4579,78 @@ func (m *UserMutation) OldDeviceType(ctx context.Context) (v user.DeviceType, er
 // ResetDeviceType resets all changes to the "device_type" field.
 func (m *UserMutation) ResetDeviceType() {
 	m.device_type = nil
+}
+
+// SetOmitPrefix sets the "omit_prefix" field.
+func (m *UserMutation) SetOmitPrefix(up user.OmitPrefix) {
+	m.omit_prefix = &up
+}
+
+// OmitPrefix returns the value of the "omit_prefix" field in the mutation.
+func (m *UserMutation) OmitPrefix() (r user.OmitPrefix, exists bool) {
+	v := m.omit_prefix
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOmitPrefix returns the old "omit_prefix" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldOmitPrefix(ctx context.Context) (v user.OmitPrefix, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOmitPrefix is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOmitPrefix requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOmitPrefix: %w", err)
+	}
+	return oldValue.OmitPrefix, nil
+}
+
+// ResetOmitPrefix resets all changes to the "omit_prefix" field.
+func (m *UserMutation) ResetOmitPrefix() {
+	m.omit_prefix = nil
+}
+
+// SetMimeType sets the "mime_type" field.
+func (m *UserMutation) SetMimeType(ut user.MimeType) {
+	m.mime_type = &ut
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *UserMutation) MimeType() (r user.MimeType, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldMimeType(ctx context.Context) (v user.MimeType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *UserMutation) ResetMimeType() {
+	m.mime_type = nil
 }
 
 // SetGroupID sets the "group" edge to the Group entity by id.
@@ -4400,9 +4868,24 @@ func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (User).
@@ -4414,7 +4897,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 26)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4472,8 +4955,26 @@ func (m *UserMutation) Fields() []string {
 	if m.labels != nil {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.int32s != nil {
+		fields = append(fields, user.FieldInt32s)
+	}
+	if m.int64s != nil {
+		fields = append(fields, user.FieldInt64s)
+	}
+	if m.uint32s != nil {
+		fields = append(fields, user.FieldUint32s)
+	}
+	if m.uint64s != nil {
+		fields = append(fields, user.FieldUint64s)
+	}
 	if m.device_type != nil {
 		fields = append(fields, user.FieldDeviceType)
+	}
+	if m.omit_prefix != nil {
+		fields = append(fields, user.FieldOmitPrefix)
+	}
+	if m.mime_type != nil {
+		fields = append(fields, user.FieldMimeType)
 	}
 	return fields
 }
@@ -4521,8 +5022,20 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case user.FieldLabels:
 		return m.Labels()
+	case user.FieldInt32s:
+		return m.Int32s()
+	case user.FieldInt64s:
+		return m.Int64s()
+	case user.FieldUint32s:
+		return m.Uint32s()
+	case user.FieldUint64s:
+		return m.Uint64s()
 	case user.FieldDeviceType:
 		return m.DeviceType()
+	case user.FieldOmitPrefix:
+		return m.OmitPrefix()
+	case user.FieldMimeType:
+		return m.MimeType()
 	}
 	return nil, false
 }
@@ -4570,8 +5083,20 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldType(ctx)
 	case user.FieldLabels:
 		return m.OldLabels(ctx)
+	case user.FieldInt32s:
+		return m.OldInt32s(ctx)
+	case user.FieldInt64s:
+		return m.OldInt64s(ctx)
+	case user.FieldUint32s:
+		return m.OldUint32s(ctx)
+	case user.FieldUint64s:
+		return m.OldUint64s(ctx)
 	case user.FieldDeviceType:
 		return m.OldDeviceType(ctx)
+	case user.FieldOmitPrefix:
+		return m.OldOmitPrefix(ctx)
+	case user.FieldMimeType:
+		return m.OldMimeType(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4714,12 +5239,54 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLabels(v)
 		return nil
+	case user.FieldInt32s:
+		v, ok := value.([]int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInt32s(v)
+		return nil
+	case user.FieldInt64s:
+		v, ok := value.([]int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInt64s(v)
+		return nil
+	case user.FieldUint32s:
+		v, ok := value.([]uint32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUint32s(v)
+		return nil
+	case user.FieldUint64s:
+		v, ok := value.([]uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUint64s(v)
+		return nil
 	case user.FieldDeviceType:
 		v, ok := value.(user.DeviceType)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeviceType(v)
+		return nil
+	case user.FieldOmitPrefix:
+		v, ok := value.(user.OmitPrefix)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOmitPrefix(v)
+		return nil
+	case user.FieldMimeType:
+		v, ok := value.(user.MimeType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -4874,6 +5441,18 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldLabels) {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.FieldCleared(user.FieldInt32s) {
+		fields = append(fields, user.FieldInt32s)
+	}
+	if m.FieldCleared(user.FieldInt64s) {
+		fields = append(fields, user.FieldInt64s)
+	}
+	if m.FieldCleared(user.FieldUint32s) {
+		fields = append(fields, user.FieldUint32s)
+	}
+	if m.FieldCleared(user.FieldUint64s) {
+		fields = append(fields, user.FieldUint64s)
+	}
 	return fields
 }
 
@@ -4911,6 +5490,18 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldLabels:
 		m.ClearLabels()
+		return nil
+	case user.FieldInt32s:
+		m.ClearInt32s()
+		return nil
+	case user.FieldInt64s:
+		m.ClearInt64s()
+		return nil
+	case user.FieldUint32s:
+		m.ClearUint32s()
+		return nil
+	case user.FieldUint64s:
+		m.ClearUint64s()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -4977,8 +5568,26 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldLabels:
 		m.ResetLabels()
 		return nil
+	case user.FieldInt32s:
+		m.ResetInt32s()
+		return nil
+	case user.FieldInt64s:
+		m.ResetInt64s()
+		return nil
+	case user.FieldUint32s:
+		m.ResetUint32s()
+		return nil
+	case user.FieldUint64s:
+		m.ResetUint64s()
+		return nil
 	case user.FieldDeviceType:
 		m.ResetDeviceType()
+		return nil
+	case user.FieldOmitPrefix:
+		m.ResetOmitPrefix()
+		return nil
+	case user.FieldMimeType:
+		m.ResetMimeType()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,6 +52,12 @@ func (cc *CategoryCreate) SetStatus(c category.Status) *CategoryCreate {
 // SetConfig sets the "config" field.
 func (cc *CategoryCreate) SetConfig(sc *schematype.CategoryConfig) *CategoryCreate {
 	cc.mutation.SetConfig(sc)
+	return cc
+}
+
+// SetTypes sets the "types" field.
+func (cc *CategoryCreate) SetTypes(st *schematype.CategoryTypes) *CategoryCreate {
+	cc.mutation.SetTypes(st)
 	return cc
 }
 
@@ -118,6 +124,21 @@ func (cc *CategoryCreate) AddTodos(t ...*Todo) *CategoryCreate {
 	return cc.AddTodoIDs(ids...)
 }
 
+// AddSubCategoryIDs adds the "sub_categories" edge to the Category entity by IDs.
+func (cc *CategoryCreate) AddSubCategoryIDs(ids ...uuid.UUID) *CategoryCreate {
+	cc.mutation.AddSubCategoryIDs(ids...)
+	return cc
+}
+
+// AddSubCategories adds the "sub_categories" edges to the Category entity.
+func (cc *CategoryCreate) AddSubCategories(c ...*Category) *CategoryCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddSubCategoryIDs(ids...)
+}
+
 // Mutation returns the CategoryMutation object of the builder.
 func (cc *CategoryCreate) Mutation() *CategoryMutation {
 	return cc.mutation
@@ -125,50 +146,8 @@ func (cc *CategoryCreate) Mutation() *CategoryMutation {
 
 // Save creates the Category in the database.
 func (cc *CategoryCreate) Save(ctx context.Context) (*Category, error) {
-	var (
-		err  error
-		node *Category
-	)
 	cc.defaults()
-	if len(cc.hooks) == 0 {
-		if err = cc.check(); err != nil {
-			return nil, err
-		}
-		node, err = cc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CategoryMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = cc.check(); err != nil {
-				return nil, err
-			}
-			cc.mutation = mutation
-			if node, err = cc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(cc.hooks) - 1; i >= 0; i-- {
-			if cc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = cc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, cc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Category)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from CategoryMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Category, CategoryMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -223,6 +202,9 @@ func (cc *CategoryCreate) check() error {
 }
 
 func (cc *CategoryCreate) sqlSave(ctx context.Context) (*Category, error) {
+	if err := cc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := cc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -237,70 +219,46 @@ func (cc *CategoryCreate) sqlSave(ctx context.Context) (*Category, error) {
 			return nil, err
 		}
 	}
+	cc.mutation.id = &_node.ID
+	cc.mutation.done = true
 	return _node, nil
 }
 
 func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Category{config: cc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: category.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: category.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(category.Table, sqlgraph.NewFieldSpec(category.FieldID, field.TypeUUID))
 	)
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := cc.mutation.Text(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: category.FieldText,
-		})
+		_spec.SetField(category.FieldText, field.TypeString, value)
 		_node.Text = value
 	}
 	if value, ok := cc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Value:  value,
-			Column: category.FieldStatus,
-		})
+		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := cc.mutation.Config(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeOther,
-			Value:  value,
-			Column: category.FieldConfig,
-		})
+		_spec.SetField(category.FieldConfig, field.TypeOther, value)
 		_node.Config = value
 	}
+	if value, ok := cc.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+		_node.Types = value
+	}
 	if value, ok := cc.mutation.Duration(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: category.FieldDuration,
-		})
+		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
 		_node.Duration = value
 	}
 	if value, ok := cc.mutation.Count(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint64,
-			Value:  value,
-			Column: category.FieldCount,
-		})
+		_spec.SetField(category.FieldCount, field.TypeUint64, value)
 		_node.Count = value
 	}
 	if value, ok := cc.mutation.Strings(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: category.FieldStrings,
-		})
+		_spec.SetField(category.FieldStrings, field.TypeJSON, value)
 		_node.Strings = value
 	}
 	if nodes := cc.mutation.TodosIDs(); len(nodes) > 0 {
@@ -311,10 +269,23 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Columns: []string{category.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: todo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.SubCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   category.SubCategoriesTable,
+			Columns: category.SubCategoriesPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -349,8 +320,8 @@ func (ccb *CategoryCreateBulk) Save(ctx context.Context) ([]*Category, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {

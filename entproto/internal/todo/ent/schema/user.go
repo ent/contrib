@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,6 +45,7 @@ func (User) Annotations() []schema.Annotation {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.Uint32("id").StorageKey("user_id").Annotations(entproto.Field(1)),
 		field.String("user_name").
 			Unique().
 			Annotations(entproto.Field(2)),
@@ -118,6 +119,26 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(24),
 			),
+		field.JSON("int32s", []int32{}).
+			Optional().
+			Annotations(
+				entproto.Field(25),
+			),
+		field.JSON("int64s", []int64{}).
+			Optional().
+			Annotations(
+				entproto.Field(26),
+			),
+		field.JSON("uint32s", []uint32{}).
+			Optional().
+			Annotations(
+				entproto.Field(27),
+			),
+		field.JSON("uint64s", []uint64{}).
+			Optional().
+			Annotations(
+				entproto.Field(28),
+			),
 		field.Enum("device_type").
 			Values("GLOWY9000", "SPEEDY300").
 			Default("GLOWY9000").
@@ -127,6 +148,32 @@ func (User) Fields() []ent.Field {
 					"GLOWY9000": 0,
 					"SPEEDY300": 1,
 				}),
+			),
+		field.Enum("omit_prefix").
+			Values("foo", "bar").
+			Annotations(
+				entproto.Field(103),
+				entproto.Enum(
+					map[string]int32{
+						"foo": 1,
+						"bar": 2,
+					},
+					entproto.OmitFieldPrefix(),
+				),
+			),
+		field.Enum("mime_type").
+			NamedValues(
+				"png", "image/png",
+				"svg", "image/xml+svg",
+			).
+			Annotations(
+				entproto.Field(104),
+				entproto.Enum(
+					map[string]int32{
+						"image/png":     1,
+						"image/xml+svg": 2,
+					},
+				),
 			),
 	}
 }

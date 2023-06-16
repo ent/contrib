@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,17 +23,28 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
+// The BillProductFunc type is an adapter to allow the use of ordinary
+// function as BillProduct mutator.
+type BillProductFunc func(context.Context, *ent.BillProductMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BillProductFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BillProductMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BillProductMutation", m)
+}
+
 // The CategoryFunc type is an adapter to allow the use of ordinary
 // function as Category mutator.
 type CategoryFunc func(context.Context, *ent.CategoryMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f CategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.CategoryMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
+	if mv, ok := m.(*ent.CategoryMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
 }
 
 // The FriendshipFunc type is an adapter to allow the use of ordinary
@@ -42,11 +53,10 @@ type FriendshipFunc func(context.Context, *ent.FriendshipMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f FriendshipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.FriendshipMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendshipMutation", m)
+	if mv, ok := m.(*ent.FriendshipMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FriendshipMutation", m)
 }
 
 // The GroupFunc type is an adapter to allow the use of ordinary
@@ -55,11 +65,10 @@ type GroupFunc func(context.Context, *ent.GroupMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.GroupMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
+	if mv, ok := m.(*ent.GroupMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
 }
 
 // The PetFunc type is an adapter to allow the use of ordinary
@@ -68,11 +77,10 @@ type PetFunc func(context.Context, *ent.PetMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f PetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PetMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PetMutation", m)
+	if mv, ok := m.(*ent.PetMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PetMutation", m)
 }
 
 // The TodoFunc type is an adapter to allow the use of ordinary
@@ -81,11 +89,10 @@ type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f TodoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TodoMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
+	if mv, ok := m.(*ent.TodoMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -94,11 +101,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // The VerySecretFunc type is an adapter to allow the use of ordinary
@@ -107,11 +113,10 @@ type VerySecretFunc func(context.Context, *ent.VerySecretMutation) (ent.Value, e
 
 // Mutate calls f(ctx, m).
 func (f VerySecretFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.VerySecretMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VerySecretMutation", m)
+	if mv, ok := m.(*ent.VerySecretMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VerySecretMutation", m)
 }
 
 // Condition is a hook condition function.

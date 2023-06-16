@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entoas/internal/oastypes/schema"
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
 
@@ -66,6 +67,12 @@ const (
 	FieldJSONObj = "json_obj"
 	// FieldOther holds the string denoting the other field in the database.
 	FieldOther = "other"
+	// FieldOptional holds the string denoting the optional field in the database.
+	FieldOptional = "optional"
+	// FieldNillable holds the string denoting the nillable field in the database.
+	FieldNillable = "nillable"
+	// FieldOptionalAndNillable holds the string denoting the optional_and_nillable field in the database.
+	FieldOptionalAndNillable = "optional_and_nillable"
 	// Table holds the table name of the oastypes in the database.
 	Table = "oas_types"
 )
@@ -99,6 +106,9 @@ var Columns = []string{
 	FieldJSONSlice,
 	FieldJSONObj,
 	FieldOther,
+	FieldOptional,
+	FieldNillable,
+	FieldOptionalAndNillable,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -139,4 +149,122 @@ func StateValidator(s State) error {
 	default:
 		return fmt.Errorf("oastypes: invalid enum value for state field: %q", s)
 	}
+}
+
+// OrderOption defines the ordering options for the OASTypes queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByInt orders the results by the int field.
+func ByInt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInt, opts...).ToFunc()
+}
+
+// ByInt8 orders the results by the int8 field.
+func ByInt8(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInt8, opts...).ToFunc()
+}
+
+// ByInt16 orders the results by the int16 field.
+func ByInt16(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInt16, opts...).ToFunc()
+}
+
+// ByInt32 orders the results by the int32 field.
+func ByInt32(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInt32, opts...).ToFunc()
+}
+
+// ByInt64 orders the results by the int64 field.
+func ByInt64(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInt64, opts...).ToFunc()
+}
+
+// ByUint orders the results by the uint field.
+func ByUint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUint, opts...).ToFunc()
+}
+
+// ByUint8 orders the results by the uint8 field.
+func ByUint8(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUint8, opts...).ToFunc()
+}
+
+// ByUint16 orders the results by the uint16 field.
+func ByUint16(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUint16, opts...).ToFunc()
+}
+
+// ByUint32 orders the results by the uint32 field.
+func ByUint32(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUint32, opts...).ToFunc()
+}
+
+// ByUint64 orders the results by the uint64 field.
+func ByUint64(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUint64, opts...).ToFunc()
+}
+
+// ByFloat32 orders the results by the float32 field.
+func ByFloat32(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFloat32, opts...).ToFunc()
+}
+
+// ByFloat64 orders the results by the float64 field.
+func ByFloat64(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFloat64, opts...).ToFunc()
+}
+
+// ByStringField orders the results by the string_field field.
+func ByStringField(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStringField, opts...).ToFunc()
+}
+
+// ByBool orders the results by the bool field.
+func ByBool(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBool, opts...).ToFunc()
+}
+
+// ByUUID orders the results by the uuid field.
+func ByUUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUUID, opts...).ToFunc()
+}
+
+// ByTime orders the results by the time field.
+func ByTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTime, opts...).ToFunc()
+}
+
+// ByText orders the results by the text field.
+func ByText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldText, opts...).ToFunc()
+}
+
+// ByState orders the results by the state field.
+func ByState(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldState, opts...).ToFunc()
+}
+
+// ByOther orders the results by the other field.
+func ByOther(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOther, opts...).ToFunc()
+}
+
+// ByOptional orders the results by the optional field.
+func ByOptional(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOptional, opts...).ToFunc()
+}
+
+// ByNillable orders the results by the nillable field.
+func ByNillable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNillable, opts...).ToFunc()
+}
+
+// ByOptionalAndNillable orders the results by the optional_and_nillable field.
+func ByOptionalAndNillable(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOptionalAndNillable, opts...).ToFunc()
 }

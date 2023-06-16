@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/skipedgeexample"
@@ -28,34 +27,7 @@ func (seed *SkipEdgeExampleDelete) Where(ps ...predicate.SkipEdgeExample) *SkipE
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (seed *SkipEdgeExampleDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(seed.hooks) == 0 {
-		affected, err = seed.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SkipEdgeExampleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			seed.mutation = mutation
-			affected, err = seed.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(seed.hooks) - 1; i >= 0; i-- {
-			if seed.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = seed.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, seed.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, SkipEdgeExampleMutation](ctx, seed.sqlExec, seed.mutation, seed.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (seed *SkipEdgeExampleDelete) ExecX(ctx context.Context) int {
 }
 
 func (seed *SkipEdgeExampleDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: skipedgeexample.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(skipedgeexample.Table, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
 	if ps := seed.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (seed *SkipEdgeExampleDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	seed.mutation.done = true
 	return affected, err
 }
 
 // SkipEdgeExampleDeleteOne is the builder for deleting a single SkipEdgeExample entity.
 type SkipEdgeExampleDeleteOne struct {
 	seed *SkipEdgeExampleDelete
+}
+
+// Where appends a list predicates to the SkipEdgeExampleDelete builder.
+func (seedo *SkipEdgeExampleDeleteOne) Where(ps ...predicate.SkipEdgeExample) *SkipEdgeExampleDeleteOne {
+	seedo.seed.mutation.Where(ps...)
+	return seedo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (seedo *SkipEdgeExampleDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (seedo *SkipEdgeExampleDeleteOne) ExecX(ctx context.Context) {
-	seedo.seed.ExecX(ctx)
+	if err := seedo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

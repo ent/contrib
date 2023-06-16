@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +17,17 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -43,6 +46,12 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 	// Blob holds the value of the "blob" field.
 	Blob []byte `json:"blob,omitempty"`
+	// Init holds the value of the "init" field.
+	Init map[string]interface{} `json:"init,omitempty"`
+	// Custom holds the value of the "custom" field.
+	Custom []customstruct.Custom `json:"custom,omitempty"`
+	// Customp holds the value of the "customp" field.
+	Customp []*customstruct.Custom `json:"customp,omitempty"`
 	// CategoryID holds the value of the "category_id" field.
 	CategoryID pulid.ID `json:"category_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -50,6 +59,7 @@ type Todo struct {
 	Edges         TodoEdges `json:"edges"`
 	todo_children *pulid.ID
 	todo_secret   *pulid.ID
+	selectValues  sql.SelectValues
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -124,7 +134,7 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case todo.FieldBlob:
+		case todo.FieldBlob, todo.FieldInit, todo.FieldCustom, todo.FieldCustomp:
 			values[i] = new([]byte)
 		case todo.FieldID, todo.FieldCategoryID:
 			values[i] = new(pulid.ID)
@@ -139,7 +149,7 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 		case todo.ForeignKeys[1]: // todo_secret
 			values[i] = &sql.NullScanner{S: new(pulid.ID)}
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -189,6 +199,30 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				t.Blob = *value
 			}
+		case todo.FieldInit:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field init", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Init); err != nil {
+					return fmt.Errorf("unmarshal field init: %w", err)
+				}
+			}
+		case todo.FieldCustom:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field custom", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Custom); err != nil {
+					return fmt.Errorf("unmarshal field custom: %w", err)
+				}
+			}
+		case todo.FieldCustomp:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field customp", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &t.Customp); err != nil {
+					return fmt.Errorf("unmarshal field customp: %w", err)
+				}
+			}
 		case todo.FieldCategoryID:
 			if value, ok := values[i].(*pulid.ID); !ok {
 				return fmt.Errorf("unexpected type %T for field category_id", values[i])
@@ -209,36 +243,44 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 				t.todo_secret = new(pulid.ID)
 				*t.todo_secret = *value.S.(*pulid.ID)
 			}
+		default:
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the Todo.
+// This includes values selected through modifiers, order, etc.
+func (t *Todo) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
+}
+
 // QueryParent queries the "parent" edge of the Todo entity.
 func (t *Todo) QueryParent() *TodoQuery {
-	return (&TodoClient{config: t.config}).QueryParent(t)
+	return NewTodoClient(t.config).QueryParent(t)
 }
 
 // QueryChildren queries the "children" edge of the Todo entity.
 func (t *Todo) QueryChildren() *TodoQuery {
-	return (&TodoClient{config: t.config}).QueryChildren(t)
+	return NewTodoClient(t.config).QueryChildren(t)
 }
 
 // QueryCategory queries the "category" edge of the Todo entity.
 func (t *Todo) QueryCategory() *CategoryQuery {
-	return (&TodoClient{config: t.config}).QueryCategory(t)
+	return NewTodoClient(t.config).QueryCategory(t)
 }
 
 // QuerySecret queries the "secret" edge of the Todo entity.
 func (t *Todo) QuerySecret() *VerySecretQuery {
-	return (&TodoClient{config: t.config}).QuerySecret(t)
+	return NewTodoClient(t.config).QuerySecret(t)
 }
 
 // Update returns a builder for updating this Todo.
 // Note that you need to call Todo.Unwrap() before calling this method if this Todo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Todo) Update() *TodoUpdateOne {
-	return (&TodoClient{config: t.config}).UpdateOne(t)
+	return NewTodoClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Todo entity that was returned from a transaction after it was closed,
@@ -272,6 +314,15 @@ func (t *Todo) String() string {
 	builder.WriteString("blob=")
 	builder.WriteString(fmt.Sprintf("%v", t.Blob))
 	builder.WriteString(", ")
+	builder.WriteString("init=")
+	builder.WriteString(fmt.Sprintf("%v", t.Init))
+	builder.WriteString(", ")
+	builder.WriteString("custom=")
+	builder.WriteString(fmt.Sprintf("%v", t.Custom))
+	builder.WriteString(", ")
+	builder.WriteString("customp=")
+	builder.WriteString(fmt.Sprintf("%v", t.Customp))
+	builder.WriteString(", ")
 	builder.WriteString("category_id=")
 	builder.WriteString(fmt.Sprintf("%v", t.CategoryID))
 	builder.WriteByte(')')
@@ -304,9 +355,3 @@ func (t *Todo) appendNamedChildren(name string, edges ...*Todo) {
 
 // Todos is a parsable slice of Todo.
 type Todos []*Todo
-
-func (t Todos) config(cfg config) {
-	for _i := range t {
-		t[_i].config = cfg
-	}
-}

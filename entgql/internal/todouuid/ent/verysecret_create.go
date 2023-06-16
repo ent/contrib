@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,50 +61,8 @@ func (vsc *VerySecretCreate) Mutation() *VerySecretMutation {
 
 // Save creates the VerySecret in the database.
 func (vsc *VerySecretCreate) Save(ctx context.Context) (*VerySecret, error) {
-	var (
-		err  error
-		node *VerySecret
-	)
 	vsc.defaults()
-	if len(vsc.hooks) == 0 {
-		if err = vsc.check(); err != nil {
-			return nil, err
-		}
-		node, err = vsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*VerySecretMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = vsc.check(); err != nil {
-				return nil, err
-			}
-			vsc.mutation = mutation
-			if node, err = vsc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(vsc.hooks) - 1; i >= 0; i-- {
-			if vsc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vsc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, vsc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*VerySecret)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from VerySecretMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*VerySecret, VerySecretMutation](ctx, vsc.sqlSave, vsc.mutation, vsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -146,6 +104,9 @@ func (vsc *VerySecretCreate) check() error {
 }
 
 func (vsc *VerySecretCreate) sqlSave(ctx context.Context) (*VerySecret, error) {
+	if err := vsc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := vsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, vsc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -160,30 +121,22 @@ func (vsc *VerySecretCreate) sqlSave(ctx context.Context) (*VerySecret, error) {
 			return nil, err
 		}
 	}
+	vsc.mutation.id = &_node.ID
+	vsc.mutation.done = true
 	return _node, nil
 }
 
 func (vsc *VerySecretCreate) createSpec() (*VerySecret, *sqlgraph.CreateSpec) {
 	var (
 		_node = &VerySecret{config: vsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: verysecret.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: verysecret.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(verysecret.Table, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeUUID))
 	)
 	if id, ok := vsc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := vsc.mutation.Password(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: verysecret.FieldPassword,
-		})
+		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 		_node.Password = value
 	}
 	return _node, _spec
@@ -213,8 +166,8 @@ func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vscb.builders[i+1].mutation)
 				} else {

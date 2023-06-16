@@ -9,285 +9,187 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldLTE(FieldID, id))
 }
 
 // Hello applies equality check predicate on the "hello" field. It's identical to HelloEQ.
 func Hello(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEQ(FieldHello, v))
 }
 
 // World applies equality check predicate on the "world" field. It's identical to WorldEQ.
 func World(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEQ(FieldWorld, v))
 }
 
 // HelloEQ applies the EQ predicate on the "hello" field.
 func HelloEQ(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEQ(FieldHello, v))
 }
 
 // HelloNEQ applies the NEQ predicate on the "hello" field.
 func HelloNEQ(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldNEQ(FieldHello, v))
 }
 
 // HelloIn applies the In predicate on the "hello" field.
 func HelloIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldHello), v...))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldIn(FieldHello, vs...))
 }
 
 // HelloNotIn applies the NotIn predicate on the "hello" field.
 func HelloNotIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldHello), v...))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldNotIn(FieldHello, vs...))
 }
 
 // HelloGT applies the GT predicate on the "hello" field.
 func HelloGT(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldGT(FieldHello, v))
 }
 
 // HelloGTE applies the GTE predicate on the "hello" field.
 func HelloGTE(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldGTE(FieldHello, v))
 }
 
 // HelloLT applies the LT predicate on the "hello" field.
 func HelloLT(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldLT(FieldHello, v))
 }
 
 // HelloLTE applies the LTE predicate on the "hello" field.
 func HelloLTE(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldLTE(FieldHello, v))
 }
 
 // HelloContains applies the Contains predicate on the "hello" field.
 func HelloContains(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldContains(FieldHello, v))
 }
 
 // HelloHasPrefix applies the HasPrefix predicate on the "hello" field.
 func HelloHasPrefix(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldHasPrefix(FieldHello, v))
 }
 
 // HelloHasSuffix applies the HasSuffix predicate on the "hello" field.
 func HelloHasSuffix(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldHasSuffix(FieldHello, v))
 }
 
 // HelloEqualFold applies the EqualFold predicate on the "hello" field.
 func HelloEqualFold(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEqualFold(FieldHello, v))
 }
 
 // HelloContainsFold applies the ContainsFold predicate on the "hello" field.
 func HelloContainsFold(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldHello), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldContainsFold(FieldHello, v))
 }
 
 // WorldEQ applies the EQ predicate on the "world" field.
 func WorldEQ(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEQ(FieldWorld, v))
 }
 
 // WorldNEQ applies the NEQ predicate on the "world" field.
 func WorldNEQ(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldNEQ(FieldWorld, v))
 }
 
 // WorldIn applies the In predicate on the "world" field.
 func WorldIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldWorld), v...))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldIn(FieldWorld, vs...))
 }
 
 // WorldNotIn applies the NotIn predicate on the "world" field.
 func WorldNotIn(vs ...string) predicate.DuplicateNumberMessage {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldWorld), v...))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldNotIn(FieldWorld, vs...))
 }
 
 // WorldGT applies the GT predicate on the "world" field.
 func WorldGT(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldGT(FieldWorld, v))
 }
 
 // WorldGTE applies the GTE predicate on the "world" field.
 func WorldGTE(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldGTE(FieldWorld, v))
 }
 
 // WorldLT applies the LT predicate on the "world" field.
 func WorldLT(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldLT(FieldWorld, v))
 }
 
 // WorldLTE applies the LTE predicate on the "world" field.
 func WorldLTE(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldLTE(FieldWorld, v))
 }
 
 // WorldContains applies the Contains predicate on the "world" field.
 func WorldContains(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldContains(FieldWorld, v))
 }
 
 // WorldHasPrefix applies the HasPrefix predicate on the "world" field.
 func WorldHasPrefix(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldHasPrefix(FieldWorld, v))
 }
 
 // WorldHasSuffix applies the HasSuffix predicate on the "world" field.
 func WorldHasSuffix(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldHasSuffix(FieldWorld, v))
 }
 
 // WorldEqualFold applies the EqualFold predicate on the "world" field.
 func WorldEqualFold(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldEqualFold(FieldWorld, v))
 }
 
 // WorldContainsFold applies the ContainsFold predicate on the "world" field.
 func WorldContainsFold(v string) predicate.DuplicateNumberMessage {
-	return predicate.DuplicateNumberMessage(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldWorld), v))
-	})
+	return predicate.DuplicateNumberMessage(sql.FieldContainsFold(FieldWorld, v))
 }
 
 // And groups predicates with the AND operator between them.

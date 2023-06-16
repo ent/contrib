@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/schemast/internal/loadtest/ent/message"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type Message struct {
 	config
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID           int `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*Message) scanValues(columns []string) ([]any, error) {
 		case message.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Message", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,16 +47,24 @@ func (m *Message) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			m.ID = int(value.Int64)
+		default:
+			m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Message.
+// This includes values selected through modifiers, order, etc.
+func (m *Message) Value(name string) (ent.Value, error) {
+	return m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Message.
 // Note that you need to call Message.Unwrap() before calling this method if this Message
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (m *Message) Update() *MessageUpdateOne {
-	return (&MessageClient{config: m.config}).UpdateOne(m)
+	return NewMessageClient(m.config).UpdateOne(m)
 }
 
 // Unwrap unwraps the Message entity that was returned from a transaction after it was closed,
@@ -79,9 +89,3 @@ func (m *Message) String() string {
 
 // Messages is a parsable slice of Message.
 type Messages []*Message
-
-func (m Messages) config(cfg config) {
-	for _i := range m {
-		m[_i].config = cfg
-	}
-}

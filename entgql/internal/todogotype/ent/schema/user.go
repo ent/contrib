@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,10 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("groups", Group.Type).
-			Annotations(entgql.RelayConnection()),
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.OrderField("GROUPS_COUNT"),
+			),
 		edge.To("friends", User.Type).
 			Through("friendships", Friendship.Type),
 	}

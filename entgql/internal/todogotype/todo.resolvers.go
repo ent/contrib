@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,19 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
+func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) UpdateTodo(ctx context.Context, id string, input ent.UpdateTodoInput) (*ent.Todo, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -32,7 +44,19 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *mutationResolver) UpdateFriendship(ctx context.Context, id string, input UpdateFriendshipInput) (*ent.Friendship, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	panic(fmt.Errorf("not implemented"))
 }
 

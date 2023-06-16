@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,179 +24,117 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.VerySecret(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.VerySecret(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id uuid.UUID) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.VerySecret(sql.FieldLTE(FieldID, id))
 }
 
 // Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
 func Password(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldEQ(FieldPassword, v))
 }
 
 // PasswordEQ applies the EQ predicate on the "password" field.
 func PasswordEQ(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldEQ(FieldPassword, v))
 }
 
 // PasswordNEQ applies the NEQ predicate on the "password" field.
 func PasswordNEQ(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldNEQ(FieldPassword, v))
 }
 
 // PasswordIn applies the In predicate on the "password" field.
 func PasswordIn(vs ...string) predicate.VerySecret {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldPassword), v...))
-	})
+	return predicate.VerySecret(sql.FieldIn(FieldPassword, vs...))
 }
 
 // PasswordNotIn applies the NotIn predicate on the "password" field.
 func PasswordNotIn(vs ...string) predicate.VerySecret {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldPassword), v...))
-	})
+	return predicate.VerySecret(sql.FieldNotIn(FieldPassword, vs...))
 }
 
 // PasswordGT applies the GT predicate on the "password" field.
 func PasswordGT(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldGT(FieldPassword, v))
 }
 
 // PasswordGTE applies the GTE predicate on the "password" field.
 func PasswordGTE(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldGTE(FieldPassword, v))
 }
 
 // PasswordLT applies the LT predicate on the "password" field.
 func PasswordLT(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldLT(FieldPassword, v))
 }
 
 // PasswordLTE applies the LTE predicate on the "password" field.
 func PasswordLTE(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldLTE(FieldPassword, v))
 }
 
 // PasswordContains applies the Contains predicate on the "password" field.
 func PasswordContains(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldContains(FieldPassword, v))
 }
 
 // PasswordHasPrefix applies the HasPrefix predicate on the "password" field.
 func PasswordHasPrefix(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldHasPrefix(FieldPassword, v))
 }
 
 // PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
 func PasswordHasSuffix(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldHasSuffix(FieldPassword, v))
 }
 
 // PasswordEqualFold applies the EqualFold predicate on the "password" field.
 func PasswordEqualFold(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldEqualFold(FieldPassword, v))
 }
 
 // PasswordContainsFold applies the ContainsFold predicate on the "password" field.
 func PasswordContainsFold(v string) predicate.VerySecret {
-	return predicate.VerySecret(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldPassword), v))
-	})
+	return predicate.VerySecret(sql.FieldContainsFold(FieldPassword, v))
 }
 
 // And groups predicates with the AND operator between them.

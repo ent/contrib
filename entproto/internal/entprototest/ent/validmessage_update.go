@@ -94,34 +94,7 @@ func (vmu *ValidMessageUpdate) Mutation() *ValidMessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vmu *ValidMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(vmu.hooks) == 0 {
-		affected, err = vmu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ValidMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vmu.mutation = mutation
-			affected, err = vmu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(vmu.hooks) - 1; i >= 0; i-- {
-			if vmu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vmu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, vmu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ValidMessageMutation](ctx, vmu.sqlSave, vmu.mutation, vmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -147,16 +120,7 @@ func (vmu *ValidMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   validmessage.Table,
-			Columns: validmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(validmessage.Table, validmessage.Columns, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	if ps := vmu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -165,59 +129,28 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := vmu.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: validmessage.FieldName,
-		})
+		_spec.SetField(validmessage.FieldName, field.TypeString, value)
 	}
 	if value, ok := vmu.mutation.Ts(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: validmessage.FieldTs,
-		})
+		_spec.SetField(validmessage.FieldTs, field.TypeTime, value)
 	}
 	if value, ok := vmu.mutation.UUID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: validmessage.FieldUUID,
-		})
+		_spec.SetField(validmessage.FieldUUID, field.TypeUUID, value)
 	}
 	if value, ok := vmu.mutation.U8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.SetField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmu.mutation.AddedU8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.AddField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmu.mutation.Opti8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.SetField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if value, ok := vmu.mutation.AddedOpti8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.AddField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if vmu.mutation.Opti8Cleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.ClearField(validmessage.FieldOpti8, field.TypeInt8)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, vmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -227,6 +160,7 @@ func (vmu *ValidMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	vmu.mutation.done = true
 	return n, nil
 }
 
@@ -301,6 +235,12 @@ func (vmuo *ValidMessageUpdateOne) Mutation() *ValidMessageMutation {
 	return vmuo.mutation
 }
 
+// Where appends a list predicates to the ValidMessageUpdate builder.
+func (vmuo *ValidMessageUpdateOne) Where(ps ...predicate.ValidMessage) *ValidMessageUpdateOne {
+	vmuo.mutation.Where(ps...)
+	return vmuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (vmuo *ValidMessageUpdateOne) Select(field string, fields ...string) *ValidMessageUpdateOne {
@@ -310,40 +250,7 @@ func (vmuo *ValidMessageUpdateOne) Select(field string, fields ...string) *Valid
 
 // Save executes the query and returns the updated ValidMessage entity.
 func (vmuo *ValidMessageUpdateOne) Save(ctx context.Context) (*ValidMessage, error) {
-	var (
-		err  error
-		node *ValidMessage
-	)
-	if len(vmuo.hooks) == 0 {
-		node, err = vmuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ValidMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vmuo.mutation = mutation
-			node, err = vmuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(vmuo.hooks) - 1; i >= 0; i-- {
-			if vmuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vmuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, vmuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ValidMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ValidMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ValidMessage, ValidMessageMutation](ctx, vmuo.sqlSave, vmuo.mutation, vmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -369,16 +276,7 @@ func (vmuo *ValidMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   validmessage.Table,
-			Columns: validmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(validmessage.Table, validmessage.Columns, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
 	id, ok := vmuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ValidMessage.id" for update`)}
@@ -404,59 +302,28 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 		}
 	}
 	if value, ok := vmuo.mutation.Name(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: validmessage.FieldName,
-		})
+		_spec.SetField(validmessage.FieldName, field.TypeString, value)
 	}
 	if value, ok := vmuo.mutation.Ts(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: validmessage.FieldTs,
-		})
+		_spec.SetField(validmessage.FieldTs, field.TypeTime, value)
 	}
 	if value, ok := vmuo.mutation.UUID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUUID,
-			Value:  value,
-			Column: validmessage.FieldUUID,
-		})
+		_spec.SetField(validmessage.FieldUUID, field.TypeUUID, value)
 	}
 	if value, ok := vmuo.mutation.U8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.SetField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmuo.mutation.AddedU8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeUint8,
-			Value:  value,
-			Column: validmessage.FieldU8,
-		})
+		_spec.AddField(validmessage.FieldU8, field.TypeUint8, value)
 	}
 	if value, ok := vmuo.mutation.Opti8(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.SetField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if value, ok := vmuo.mutation.AddedOpti8(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.AddField(validmessage.FieldOpti8, field.TypeInt8, value)
 	}
 	if vmuo.mutation.Opti8Cleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Column: validmessage.FieldOpti8,
-		})
+		_spec.ClearField(validmessage.FieldOpti8, field.TypeInt8)
 	}
 	_node = &ValidMessage{config: vmuo.config}
 	_spec.Assign = _node.assignValues
@@ -469,5 +336,6 @@ func (vmuo *ValidMessageUpdateOne) sqlSave(ctx context.Context) (_node *ValidMes
 		}
 		return nil, err
 	}
+	vmuo.mutation.done = true
 	return _node, nil
 }

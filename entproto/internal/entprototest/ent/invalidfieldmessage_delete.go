@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/invalidfieldmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (ifmd *InvalidFieldMessageDelete) Where(ps ...predicate.InvalidFieldMessage
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ifmd *InvalidFieldMessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ifmd.hooks) == 0 {
-		affected, err = ifmd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*InvalidFieldMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ifmd.mutation = mutation
-			affected, err = ifmd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ifmd.hooks) - 1; i >= 0; i-- {
-			if ifmd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ifmd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ifmd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, InvalidFieldMessageMutation](ctx, ifmd.sqlExec, ifmd.mutation, ifmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (ifmd *InvalidFieldMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (ifmd *InvalidFieldMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: invalidfieldmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(invalidfieldmessage.Table, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	if ps := ifmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (ifmd *InvalidFieldMessageDelete) sqlExec(ctx context.Context) (int, error)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	ifmd.mutation.done = true
 	return affected, err
 }
 
 // InvalidFieldMessageDeleteOne is the builder for deleting a single InvalidFieldMessage entity.
 type InvalidFieldMessageDeleteOne struct {
 	ifmd *InvalidFieldMessageDelete
+}
+
+// Where appends a list predicates to the InvalidFieldMessageDelete builder.
+func (ifmdo *InvalidFieldMessageDeleteOne) Where(ps ...predicate.InvalidFieldMessage) *InvalidFieldMessageDeleteOne {
+	ifmdo.ifmd.mutation.Where(ps...)
+	return ifmdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (ifmdo *InvalidFieldMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ifmdo *InvalidFieldMessageDeleteOne) ExecX(ctx context.Context) {
-	ifmdo.ifmd.ExecX(ctx)
+	if err := ifmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

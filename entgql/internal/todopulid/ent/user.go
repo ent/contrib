@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,12 +17,15 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
@@ -32,16 +35,23 @@ type User struct {
 	ID pulid.ID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Username holds the value of the "username" field.
+	Username uuid.UUID `json:"username,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
+	// RequiredMetadata holds the value of the "required_metadata" field.
+	RequiredMetadata map[string]interface{} `json:"required_metadata,omitempty"`
+	// Metadata holds the value of the "metadata" field.
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
+	Edges        UserEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Groups holds the value of the groups edge.
+	// The groups of the user
 	Groups []*Group `json:"groups,omitempty"`
 	// Friends holds the value of the friends edge.
 	Friends []*User `json:"friends,omitempty"`
@@ -90,12 +100,16 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldRequiredMetadata, user.FieldMetadata:
+			values[i] = new([]byte)
 		case user.FieldID:
 			values[i] = new(pulid.ID)
 		case user.FieldName, user.FieldPassword:
 			values[i] = new(sql.NullString)
+		case user.FieldUsername:
+			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -121,37 +135,67 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Name = value.String
 			}
+		case user.FieldUsername:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value != nil {
+				u.Username = *value
+			}
 		case user.FieldPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
 				u.Password = value.String
 			}
+		case user.FieldRequiredMetadata:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field required_metadata", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.RequiredMetadata); err != nil {
+					return fmt.Errorf("unmarshal field required_metadata: %w", err)
+				}
+			}
+		case user.FieldMetadata:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field metadata", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Metadata); err != nil {
+					return fmt.Errorf("unmarshal field metadata: %w", err)
+				}
+			}
+		default:
+			u.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the User.
+// This includes values selected through modifiers, order, etc.
+func (u *User) Value(name string) (ent.Value, error) {
+	return u.selectValues.Get(name)
+}
+
 // QueryGroups queries the "groups" edge of the User entity.
 func (u *User) QueryGroups() *GroupQuery {
-	return (&UserClient{config: u.config}).QueryGroups(u)
+	return NewUserClient(u.config).QueryGroups(u)
 }
 
 // QueryFriends queries the "friends" edge of the User entity.
 func (u *User) QueryFriends() *UserQuery {
-	return (&UserClient{config: u.config}).QueryFriends(u)
+	return NewUserClient(u.config).QueryFriends(u)
 }
 
 // QueryFriendships queries the "friendships" edge of the User entity.
 func (u *User) QueryFriendships() *FriendshipQuery {
-	return (&UserClient{config: u.config}).QueryFriendships(u)
+	return NewUserClient(u.config).QueryFriendships(u)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{config: u.config}).UpdateOne(u)
+	return NewUserClient(u.config).UpdateOne(u)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,
@@ -173,7 +217,16 @@ func (u *User) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(u.Name)
 	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(fmt.Sprintf("%v", u.Username))
+	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("required_metadata=")
+	builder.WriteString(fmt.Sprintf("%v", u.RequiredMetadata))
+	builder.WriteString(", ")
+	builder.WriteString("metadata=")
+	builder.WriteString(fmt.Sprintf("%v", u.Metadata))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -252,9 +305,3 @@ func (u *User) appendNamedFriendships(name string, edges ...*Friendship) {
 
 // Users is a parsable slice of User.
 type Users []*User
-
-func (u Users) config(cfg config) {
-	for _i := range u {
-		u[_i].config = cfg
-	}
-}

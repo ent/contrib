@@ -25,49 +25,7 @@ func (omsc *OneMethodServiceCreate) Mutation() *OneMethodServiceMutation {
 
 // Save creates the OneMethodService in the database.
 func (omsc *OneMethodServiceCreate) Save(ctx context.Context) (*OneMethodService, error) {
-	var (
-		err  error
-		node *OneMethodService
-	)
-	if len(omsc.hooks) == 0 {
-		if err = omsc.check(); err != nil {
-			return nil, err
-		}
-		node, err = omsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OneMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = omsc.check(); err != nil {
-				return nil, err
-			}
-			omsc.mutation = mutation
-			if node, err = omsc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(omsc.hooks) - 1; i >= 0; i-- {
-			if omsc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = omsc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, omsc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*OneMethodService)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from OneMethodServiceMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*OneMethodService, OneMethodServiceMutation](ctx, omsc.sqlSave, omsc.mutation, omsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,6 +56,9 @@ func (omsc *OneMethodServiceCreate) check() error {
 }
 
 func (omsc *OneMethodServiceCreate) sqlSave(ctx context.Context) (*OneMethodService, error) {
+	if err := omsc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := omsc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, omsc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -107,19 +68,15 @@ func (omsc *OneMethodServiceCreate) sqlSave(ctx context.Context) (*OneMethodServ
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	omsc.mutation.id = &_node.ID
+	omsc.mutation.done = true
 	return _node, nil
 }
 
 func (omsc *OneMethodServiceCreate) createSpec() (*OneMethodService, *sqlgraph.CreateSpec) {
 	var (
 		_node = &OneMethodService{config: omsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: onemethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(onemethodservice.Table, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -147,8 +104,8 @@ func (omscb *OneMethodServiceCreateBulk) Save(ctx context.Context) ([]*OneMethod
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, omscb.builders[i+1].mutation)
 				} else {

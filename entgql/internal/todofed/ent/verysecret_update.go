@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,34 +54,7 @@ func (vsu *VerySecretUpdate) Mutation() *VerySecretMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vsu *VerySecretUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(vsu.hooks) == 0 {
-		affected, err = vsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*VerySecretMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vsu.mutation = mutation
-			affected, err = vsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(vsu.hooks) - 1; i >= 0; i-- {
-			if vsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, vsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, VerySecretMutation](ctx, vsu.sqlSave, vsu.mutation, vsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -107,16 +80,7 @@ func (vsu *VerySecretUpdate) ExecX(ctx context.Context) {
 }
 
 func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: verysecret.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeInt))
 	if ps := vsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -125,11 +89,7 @@ func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := vsu.mutation.Password(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: verysecret.FieldPassword,
-		})
+		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, vsu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -139,6 +99,7 @@ func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	vsu.mutation.done = true
 	return n, nil
 }
 
@@ -161,6 +122,12 @@ func (vsuo *VerySecretUpdateOne) Mutation() *VerySecretMutation {
 	return vsuo.mutation
 }
 
+// Where appends a list predicates to the VerySecretUpdate builder.
+func (vsuo *VerySecretUpdateOne) Where(ps ...predicate.VerySecret) *VerySecretUpdateOne {
+	vsuo.mutation.Where(ps...)
+	return vsuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (vsuo *VerySecretUpdateOne) Select(field string, fields ...string) *VerySecretUpdateOne {
@@ -170,40 +137,7 @@ func (vsuo *VerySecretUpdateOne) Select(field string, fields ...string) *VerySec
 
 // Save executes the query and returns the updated VerySecret entity.
 func (vsuo *VerySecretUpdateOne) Save(ctx context.Context) (*VerySecret, error) {
-	var (
-		err  error
-		node *VerySecret
-	)
-	if len(vsuo.hooks) == 0 {
-		node, err = vsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*VerySecretMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			vsuo.mutation = mutation
-			node, err = vsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(vsuo.hooks) - 1; i >= 0; i-- {
-			if vsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = vsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, vsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*VerySecret)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from VerySecretMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*VerySecret, VerySecretMutation](ctx, vsuo.sqlSave, vsuo.mutation, vsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -229,16 +163,7 @@ func (vsuo *VerySecretUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: verysecret.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeInt))
 	id, ok := vsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "VerySecret.id" for update`)}
@@ -264,11 +189,7 @@ func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret
 		}
 	}
 	if value, ok := vsuo.mutation.Password(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: verysecret.FieldPassword,
-		})
+		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 	}
 	_node = &VerySecret{config: vsuo.config}
 	_spec.Assign = _node.assignValues
@@ -281,5 +202,6 @@ func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret
 		}
 		return nil, err
 	}
+	vsuo.mutation.done = true
 	return _node, nil
 }

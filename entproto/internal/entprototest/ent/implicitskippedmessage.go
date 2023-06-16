@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,6 +17,7 @@ type ImplicitSkippedMessage struct {
 	// ID of the ent.
 	ID                         int `json:"id,omitempty"`
 	depends_on_skipped_skipped *int
+	selectValues               sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -28,7 +30,7 @@ func (*ImplicitSkippedMessage) scanValues(columns []string) ([]any, error) {
 		case implicitskippedmessage.ForeignKeys[0]: // depends_on_skipped_skipped
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ImplicitSkippedMessage", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -55,16 +57,24 @@ func (ism *ImplicitSkippedMessage) assignValues(columns []string, values []any) 
 				ism.depends_on_skipped_skipped = new(int)
 				*ism.depends_on_skipped_skipped = int(value.Int64)
 			}
+		default:
+			ism.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ImplicitSkippedMessage.
+// This includes values selected through modifiers, order, etc.
+func (ism *ImplicitSkippedMessage) Value(name string) (ent.Value, error) {
+	return ism.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this ImplicitSkippedMessage.
 // Note that you need to call ImplicitSkippedMessage.Unwrap() before calling this method if this ImplicitSkippedMessage
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ism *ImplicitSkippedMessage) Update() *ImplicitSkippedMessageUpdateOne {
-	return (&ImplicitSkippedMessageClient{config: ism.config}).UpdateOne(ism)
+	return NewImplicitSkippedMessageClient(ism.config).UpdateOne(ism)
 }
 
 // Unwrap unwraps the ImplicitSkippedMessage entity that was returned from a transaction after it was closed,
@@ -89,9 +99,3 @@ func (ism *ImplicitSkippedMessage) String() string {
 
 // ImplicitSkippedMessages is a parsable slice of ImplicitSkippedMessage.
 type ImplicitSkippedMessages []*ImplicitSkippedMessage
-
-func (ism ImplicitSkippedMessages) config(cfg config) {
-	for _i := range ism {
-		ism[_i].config = cfg
-	}
-}

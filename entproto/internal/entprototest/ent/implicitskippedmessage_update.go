@@ -34,34 +34,7 @@ func (ismu *ImplicitSkippedMessageUpdate) Mutation() *ImplicitSkippedMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ismu *ImplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ismu.hooks) == 0 {
-		affected, err = ismu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ismu.mutation = mutation
-			affected, err = ismu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ismu.hooks) - 1; i >= 0; i-- {
-			if ismu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ismu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ismu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ImplicitSkippedMessageMutation](ctx, ismu.sqlSave, ismu.mutation, ismu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -87,16 +60,7 @@ func (ismu *ImplicitSkippedMessageUpdate) ExecX(ctx context.Context) {
 }
 
 func (ismu *ImplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   implicitskippedmessage.Table,
-			Columns: implicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(implicitskippedmessage.Table, implicitskippedmessage.Columns, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	if ps := ismu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,6 +76,7 @@ func (ismu *ImplicitSkippedMessageUpdate) sqlSave(ctx context.Context) (n int, e
 		}
 		return 0, err
 	}
+	ismu.mutation.done = true
 	return n, nil
 }
 
@@ -128,6 +93,12 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) Mutation() *ImplicitSkippedMessage
 	return ismuo.mutation
 }
 
+// Where appends a list predicates to the ImplicitSkippedMessageUpdate builder.
+func (ismuo *ImplicitSkippedMessageUpdateOne) Where(ps ...predicate.ImplicitSkippedMessage) *ImplicitSkippedMessageUpdateOne {
+	ismuo.mutation.Where(ps...)
+	return ismuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ismuo *ImplicitSkippedMessageUpdateOne) Select(field string, fields ...string) *ImplicitSkippedMessageUpdateOne {
@@ -137,40 +108,7 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated ImplicitSkippedMessage entity.
 func (ismuo *ImplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*ImplicitSkippedMessage, error) {
-	var (
-		err  error
-		node *ImplicitSkippedMessage
-	)
-	if len(ismuo.hooks) == 0 {
-		node, err = ismuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ImplicitSkippedMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ismuo.mutation = mutation
-			node, err = ismuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ismuo.hooks) - 1; i >= 0; i-- {
-			if ismuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ismuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ismuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ImplicitSkippedMessage)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ImplicitSkippedMessageMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ImplicitSkippedMessage, ImplicitSkippedMessageMutation](ctx, ismuo.sqlSave, ismuo.mutation, ismuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +134,7 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ismuo *ImplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_node *ImplicitSkippedMessage, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   implicitskippedmessage.Table,
-			Columns: implicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(implicitskippedmessage.Table, implicitskippedmessage.Columns, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	id, ok := ismuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ImplicitSkippedMessage.id" for update`)}
@@ -241,5 +170,6 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) sqlSave(ctx context.Context) (_nod
 		}
 		return nil, err
 	}
+	ismuo.mutation.done = true
 	return _node, nil
 }

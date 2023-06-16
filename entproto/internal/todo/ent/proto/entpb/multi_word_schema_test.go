@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,11 @@ package entpb
 
 import (
 	"context"
+	"testing"
+
 	"entgo.io/contrib/entproto/internal/todo/ent/enttest"
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMultiWordSchemaService_Get(t *testing.T) {
@@ -32,5 +33,5 @@ func TestMultiWordSchemaService_Get(t *testing.T) {
 		SaveX(ctx)
 	get, err := svc.Get(ctx, &GetMultiWordSchemaRequest{Id: int64(entry.ID)})
 	require.NoError(t, err)
-	require.EqualValues(t, MultiWordSchema_FT, get.GetUnit())
+	require.EqualValues(t, MultiWordSchema_UNIT_FT, get.GetUnit())
 }

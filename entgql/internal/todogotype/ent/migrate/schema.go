@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,26 @@ import (
 )
 
 var (
+	// BillProductsColumns holds the columns for the "bill_products" table.
+	BillProductsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "sku", Type: field.TypeString},
+		{Name: "quantity", Type: field.TypeUint64},
+	}
+	// BillProductsTable holds the schema information for the "bill_products" table.
+	BillProductsTable = &schema.Table{
+		Name:       "bill_products",
+		Columns:    BillProductsColumns,
+		PrimaryKey: []*schema.Column{BillProductsColumns[0]},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ENABLED", "DISABLED"}},
 		{Name: "config", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"sqlite3": "json"}},
+		{Name: "types", Type: field.TypeJSON, Nullable: true},
 		{Name: "duration", Type: field.TypeInt64, Nullable: true},
 		{Name: "count", Type: field.TypeUint64, Nullable: true},
 		{Name: "strings", Type: field.TypeJSON, Nullable: true},
@@ -98,10 +112,13 @@ var (
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED", "PENDING"}},
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
+		{Name: "init", Type: field.TypeJSON, Nullable: true},
+		{Name: "custom", Type: field.TypeJSON, Nullable: true},
+		{Name: "customp", Type: field.TypeJSON, Nullable: true},
 		{Name: "category_id", Type: field.TypeString, Nullable: true},
 		{Name: "todo_children", Type: field.TypeString, Nullable: true},
 		{Name: "todo_secret", Type: field.TypeString, Nullable: true},
@@ -114,19 +131,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "todos_categories_todos",
-				Columns:    []*schema.Column{TodosColumns[6]},
+				Columns:    []*schema.Column{TodosColumns[9]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_todos_children",
-				Columns:    []*schema.Column{TodosColumns[7]},
+				Columns:    []*schema.Column{TodosColumns[10]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_very_secrets_secret",
-				Columns:    []*schema.Column{TodosColumns[8]},
+				Columns:    []*schema.Column{TodosColumns[11]},
 				RefColumns: []*schema.Column{VerySecretsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -153,6 +170,31 @@ var (
 		Name:       "very_secrets",
 		Columns:    VerySecretsColumns,
 		PrimaryKey: []*schema.Column{VerySecretsColumns[0]},
+	}
+	// CategorySubCategoriesColumns holds the columns for the "category_sub_categories" table.
+	CategorySubCategoriesColumns = []*schema.Column{
+		{Name: "category_id", Type: field.TypeString},
+		{Name: "sub_category_id", Type: field.TypeString},
+	}
+	// CategorySubCategoriesTable holds the schema information for the "category_sub_categories" table.
+	CategorySubCategoriesTable = &schema.Table{
+		Name:       "category_sub_categories",
+		Columns:    CategorySubCategoriesColumns,
+		PrimaryKey: []*schema.Column{CategorySubCategoriesColumns[0], CategorySubCategoriesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "category_sub_categories_category_id",
+				Columns:    []*schema.Column{CategorySubCategoriesColumns[0]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "category_sub_categories_sub_category_id",
+				Columns:    []*schema.Column{CategorySubCategoriesColumns[1]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// UserGroupsColumns holds the columns for the "user_groups" table.
 	UserGroupsColumns = []*schema.Column{
@@ -181,6 +223,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BillProductsTable,
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,
@@ -188,6 +231,7 @@ var (
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,
+		CategorySubCategoriesTable,
 		UserGroupsTable,
 	}
 )
@@ -198,6 +242,8 @@ func init() {
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = TodosTable
 	TodosTable.ForeignKeys[2].RefTable = VerySecretsTable
+	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
+	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable
 	UserGroupsTable.ForeignKeys[1].RefTable = GroupsTable
 }

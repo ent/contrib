@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (dnmd *DuplicateNumberMessageDelete) Where(ps ...predicate.DuplicateNumberM
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (dnmd *DuplicateNumberMessageDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(dnmd.hooks) == 0 {
-		affected, err = dnmd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DuplicateNumberMessageMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			dnmd.mutation = mutation
-			affected, err = dnmd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(dnmd.hooks) - 1; i >= 0; i-- {
-			if dnmd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dnmd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, dnmd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, DuplicateNumberMessageMutation](ctx, dnmd.sqlExec, dnmd.mutation, dnmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (dnmd *DuplicateNumberMessageDelete) ExecX(ctx context.Context) int {
 }
 
 func (dnmd *DuplicateNumberMessageDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: duplicatenumbermessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: duplicatenumbermessage.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(duplicatenumbermessage.Table, sqlgraph.NewFieldSpec(duplicatenumbermessage.FieldID, field.TypeInt))
 	if ps := dnmd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (dnmd *DuplicateNumberMessageDelete) sqlExec(ctx context.Context) (int, err
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	dnmd.mutation.done = true
 	return affected, err
 }
 
 // DuplicateNumberMessageDeleteOne is the builder for deleting a single DuplicateNumberMessage entity.
 type DuplicateNumberMessageDeleteOne struct {
 	dnmd *DuplicateNumberMessageDelete
+}
+
+// Where appends a list predicates to the DuplicateNumberMessageDelete builder.
+func (dnmdo *DuplicateNumberMessageDeleteOne) Where(ps ...predicate.DuplicateNumberMessage) *DuplicateNumberMessageDeleteOne {
+	dnmdo.dnmd.mutation.Where(ps...)
+	return dnmdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (dnmdo *DuplicateNumberMessageDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (dnmdo *DuplicateNumberMessageDeleteOne) ExecX(ctx context.Context) {
-	dnmdo.dnmd.ExecX(ctx)
+	if err := dnmdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

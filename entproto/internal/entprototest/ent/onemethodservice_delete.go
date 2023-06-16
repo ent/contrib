@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
@@ -28,34 +27,7 @@ func (omsd *OneMethodServiceDelete) Where(ps ...predicate.OneMethodService) *One
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (omsd *OneMethodServiceDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(omsd.hooks) == 0 {
-		affected, err = omsd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OneMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			omsd.mutation = mutation
-			affected, err = omsd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(omsd.hooks) - 1; i >= 0; i-- {
-			if omsd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = omsd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, omsd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, OneMethodServiceMutation](ctx, omsd.sqlExec, omsd.mutation, omsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (omsd *OneMethodServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (omsd *OneMethodServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: onemethodservice.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(onemethodservice.Table, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	if ps := omsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (omsd *OneMethodServiceDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	omsd.mutation.done = true
 	return affected, err
 }
 
 // OneMethodServiceDeleteOne is the builder for deleting a single OneMethodService entity.
 type OneMethodServiceDeleteOne struct {
 	omsd *OneMethodServiceDelete
+}
+
+// Where appends a list predicates to the OneMethodServiceDelete builder.
+func (omsdo *OneMethodServiceDeleteOne) Where(ps ...predicate.OneMethodService) *OneMethodServiceDeleteOne {
+	omsdo.omsd.mutation.Where(ps...)
+	return omsdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (omsdo *OneMethodServiceDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (omsdo *OneMethodServiceDeleteOne) ExecX(ctx context.Context) {
-	omsdo.omsd.ExecX(ctx)
+	if err := omsdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

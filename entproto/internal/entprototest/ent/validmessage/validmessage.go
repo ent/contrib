@@ -2,6 +2,10 @@
 
 package validmessage
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the validmessage type in the database.
 	Label = "valid_message"
@@ -39,4 +43,37 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the ValidMessage queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByTs orders the results by the ts field.
+func ByTs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTs, opts...).ToFunc()
+}
+
+// ByUUID orders the results by the uuid field.
+func ByUUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUUID, opts...).ToFunc()
+}
+
+// ByU8 orders the results by the u8 field.
+func ByU8(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldU8, opts...).ToFunc()
+}
+
+// ByOpti8 orders the results by the opti8 field.
+func ByOpti8(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOpti8, opts...).ToFunc()
 }

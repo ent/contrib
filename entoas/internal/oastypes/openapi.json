@@ -20,7 +20,8 @@
             "in": "query",
             "description": "what page to render",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           },
           {
@@ -28,7 +29,9 @@
             "in": "query",
             "description": "item count to render per page",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "maximum": 255,
+              "minimum": 1
             }
           }
         ],
@@ -198,6 +201,15 @@
                   },
                   "other": {
                     "type": "string"
+                  },
+                  "optional": {
+                    "type": "integer"
+                  },
+                  "nillable": {
+                    "type": "integer"
+                  },
+                  "optional_and_nillable": {
+                    "type": "integer"
                   }
                 },
                 "required": [
@@ -226,7 +238,8 @@
                   "nicknames",
                   "json_slice",
                   "json_obj",
-                  "other"
+                  "other",
+                  "nillable"
                 ]
               }
             }
@@ -269,10 +282,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the OASTypes",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -312,10 +325,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the OASTypes",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "responses": {
@@ -348,10 +361,10 @@
             "name": "id",
             "in": "path",
             "description": "ID of the OASTypes",
+            "required": true,
             "schema": {
               "type": "integer"
-            },
-            "required": true
+            }
           }
         ],
         "requestBody": {
@@ -485,6 +498,15 @@
                   },
                   "other": {
                     "type": "string"
+                  },
+                  "optional": {
+                    "type": "integer"
+                  },
+                  "nillable": {
+                    "type": "integer"
+                  },
+                  "optional_and_nillable": {
+                    "type": "integer"
                   }
                 }
               }
@@ -651,6 +673,15 @@
           },
           "other": {
             "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "nillable": {
+            "type": "integer"
+          },
+          "optional_and_nillable": {
+            "type": "integer"
           }
         },
         "required": [

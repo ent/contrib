@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/migrate"
+	"entgo.io/ent"
 	"github.com/google/uuid"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
@@ -16,6 +17,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/category"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/enumwithconflictingvalue"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/explicitskippedmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/image"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
@@ -23,6 +25,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithints"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
@@ -33,7 +36,6 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/validmessage"
-
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -54,6 +56,8 @@ type Client struct {
 	DependsOnSkipped *DependsOnSkippedClient
 	// DuplicateNumberMessage is the client for interacting with the DuplicateNumberMessage builders.
 	DuplicateNumberMessage *DuplicateNumberMessageClient
+	// EnumWithConflictingValue is the client for interacting with the EnumWithConflictingValue builders.
+	EnumWithConflictingValue *EnumWithConflictingValueClient
 	// ExplicitSkippedMessage is the client for interacting with the ExplicitSkippedMessage builders.
 	ExplicitSkippedMessage *ExplicitSkippedMessageClient
 	// Image is the client for interacting with the Image builders.
@@ -68,6 +72,8 @@ type Client struct {
 	MessageWithFieldOne *MessageWithFieldOneClient
 	// MessageWithID is the client for interacting with the MessageWithID builders.
 	MessageWithID *MessageWithIDClient
+	// MessageWithInts is the client for interacting with the MessageWithInts builders.
+	MessageWithInts *MessageWithIntsClient
 	// MessageWithOptionals is the client for interacting with the MessageWithOptionals builders.
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
@@ -92,7 +98,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -106,6 +112,7 @@ func (c *Client) init() {
 	c.Category = NewCategoryClient(c.config)
 	c.DependsOnSkipped = NewDependsOnSkippedClient(c.config)
 	c.DuplicateNumberMessage = NewDuplicateNumberMessageClient(c.config)
+	c.EnumWithConflictingValue = NewEnumWithConflictingValueClient(c.config)
 	c.ExplicitSkippedMessage = NewExplicitSkippedMessageClient(c.config)
 	c.Image = NewImageClient(c.config)
 	c.ImplicitSkippedMessage = NewImplicitSkippedMessageClient(c.config)
@@ -113,6 +120,7 @@ func (c *Client) init() {
 	c.MessageWithEnum = NewMessageWithEnumClient(c.config)
 	c.MessageWithFieldOne = NewMessageWithFieldOneClient(c.config)
 	c.MessageWithID = NewMessageWithIDClient(c.config)
+	c.MessageWithInts = NewMessageWithIntsClient(c.config)
 	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
 	c.MessageWithStrings = NewMessageWithStringsClient(c.config)
@@ -123,6 +131,55 @@ func (c *Client) init() {
 	c.TwoMethodService = NewTwoMethodServiceClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.ValidMessage = NewValidMessageClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -154,30 +211,32 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                    ctx,
-		config:                 cfg,
-		AllMethodsService:      NewAllMethodsServiceClient(cfg),
-		BlogPost:               NewBlogPostClient(cfg),
-		Category:               NewCategoryClient(cfg),
-		DependsOnSkipped:       NewDependsOnSkippedClient(cfg),
-		DuplicateNumberMessage: NewDuplicateNumberMessageClient(cfg),
-		ExplicitSkippedMessage: NewExplicitSkippedMessageClient(cfg),
-		Image:                  NewImageClient(cfg),
-		ImplicitSkippedMessage: NewImplicitSkippedMessageClient(cfg),
-		InvalidFieldMessage:    NewInvalidFieldMessageClient(cfg),
-		MessageWithEnum:        NewMessageWithEnumClient(cfg),
-		MessageWithFieldOne:    NewMessageWithFieldOneClient(cfg),
-		MessageWithID:          NewMessageWithIDClient(cfg),
-		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
-		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
-		MessageWithStrings:     NewMessageWithStringsClient(cfg),
-		NoBackref:              NewNoBackrefClient(cfg),
-		OneMethodService:       NewOneMethodServiceClient(cfg),
-		Portal:                 NewPortalClient(cfg),
-		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
-		TwoMethodService:       NewTwoMethodServiceClient(cfg),
-		User:                   NewUserClient(cfg),
-		ValidMessage:           NewValidMessageClient(cfg),
+		ctx:                      ctx,
+		config:                   cfg,
+		AllMethodsService:        NewAllMethodsServiceClient(cfg),
+		BlogPost:                 NewBlogPostClient(cfg),
+		Category:                 NewCategoryClient(cfg),
+		DependsOnSkipped:         NewDependsOnSkippedClient(cfg),
+		DuplicateNumberMessage:   NewDuplicateNumberMessageClient(cfg),
+		EnumWithConflictingValue: NewEnumWithConflictingValueClient(cfg),
+		ExplicitSkippedMessage:   NewExplicitSkippedMessageClient(cfg),
+		Image:                    NewImageClient(cfg),
+		ImplicitSkippedMessage:   NewImplicitSkippedMessageClient(cfg),
+		InvalidFieldMessage:      NewInvalidFieldMessageClient(cfg),
+		MessageWithEnum:          NewMessageWithEnumClient(cfg),
+		MessageWithFieldOne:      NewMessageWithFieldOneClient(cfg),
+		MessageWithID:            NewMessageWithIDClient(cfg),
+		MessageWithInts:          NewMessageWithIntsClient(cfg),
+		MessageWithOptionals:     NewMessageWithOptionalsClient(cfg),
+		MessageWithPackageName:   NewMessageWithPackageNameClient(cfg),
+		MessageWithStrings:       NewMessageWithStringsClient(cfg),
+		NoBackref:                NewNoBackrefClient(cfg),
+		OneMethodService:         NewOneMethodServiceClient(cfg),
+		Portal:                   NewPortalClient(cfg),
+		SkipEdgeExample:          NewSkipEdgeExampleClient(cfg),
+		TwoMethodService:         NewTwoMethodServiceClient(cfg),
+		User:                     NewUserClient(cfg),
+		ValidMessage:             NewValidMessageClient(cfg),
 	}, nil
 }
 
@@ -195,30 +254,32 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                    ctx,
-		config:                 cfg,
-		AllMethodsService:      NewAllMethodsServiceClient(cfg),
-		BlogPost:               NewBlogPostClient(cfg),
-		Category:               NewCategoryClient(cfg),
-		DependsOnSkipped:       NewDependsOnSkippedClient(cfg),
-		DuplicateNumberMessage: NewDuplicateNumberMessageClient(cfg),
-		ExplicitSkippedMessage: NewExplicitSkippedMessageClient(cfg),
-		Image:                  NewImageClient(cfg),
-		ImplicitSkippedMessage: NewImplicitSkippedMessageClient(cfg),
-		InvalidFieldMessage:    NewInvalidFieldMessageClient(cfg),
-		MessageWithEnum:        NewMessageWithEnumClient(cfg),
-		MessageWithFieldOne:    NewMessageWithFieldOneClient(cfg),
-		MessageWithID:          NewMessageWithIDClient(cfg),
-		MessageWithOptionals:   NewMessageWithOptionalsClient(cfg),
-		MessageWithPackageName: NewMessageWithPackageNameClient(cfg),
-		MessageWithStrings:     NewMessageWithStringsClient(cfg),
-		NoBackref:              NewNoBackrefClient(cfg),
-		OneMethodService:       NewOneMethodServiceClient(cfg),
-		Portal:                 NewPortalClient(cfg),
-		SkipEdgeExample:        NewSkipEdgeExampleClient(cfg),
-		TwoMethodService:       NewTwoMethodServiceClient(cfg),
-		User:                   NewUserClient(cfg),
-		ValidMessage:           NewValidMessageClient(cfg),
+		ctx:                      ctx,
+		config:                   cfg,
+		AllMethodsService:        NewAllMethodsServiceClient(cfg),
+		BlogPost:                 NewBlogPostClient(cfg),
+		Category:                 NewCategoryClient(cfg),
+		DependsOnSkipped:         NewDependsOnSkippedClient(cfg),
+		DuplicateNumberMessage:   NewDuplicateNumberMessageClient(cfg),
+		EnumWithConflictingValue: NewEnumWithConflictingValueClient(cfg),
+		ExplicitSkippedMessage:   NewExplicitSkippedMessageClient(cfg),
+		Image:                    NewImageClient(cfg),
+		ImplicitSkippedMessage:   NewImplicitSkippedMessageClient(cfg),
+		InvalidFieldMessage:      NewInvalidFieldMessageClient(cfg),
+		MessageWithEnum:          NewMessageWithEnumClient(cfg),
+		MessageWithFieldOne:      NewMessageWithFieldOneClient(cfg),
+		MessageWithID:            NewMessageWithIDClient(cfg),
+		MessageWithInts:          NewMessageWithIntsClient(cfg),
+		MessageWithOptionals:     NewMessageWithOptionalsClient(cfg),
+		MessageWithPackageName:   NewMessageWithPackageNameClient(cfg),
+		MessageWithStrings:       NewMessageWithStringsClient(cfg),
+		NoBackref:                NewNoBackrefClient(cfg),
+		OneMethodService:         NewOneMethodServiceClient(cfg),
+		Portal:                   NewPortalClient(cfg),
+		SkipEdgeExample:          NewSkipEdgeExampleClient(cfg),
+		TwoMethodService:         NewTwoMethodServiceClient(cfg),
+		User:                     NewUserClient(cfg),
+		ValidMessage:             NewValidMessageClient(cfg),
 	}, nil
 }
 
@@ -247,28 +308,89 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.AllMethodsService.Use(hooks...)
-	c.BlogPost.Use(hooks...)
-	c.Category.Use(hooks...)
-	c.DependsOnSkipped.Use(hooks...)
-	c.DuplicateNumberMessage.Use(hooks...)
-	c.ExplicitSkippedMessage.Use(hooks...)
-	c.Image.Use(hooks...)
-	c.ImplicitSkippedMessage.Use(hooks...)
-	c.InvalidFieldMessage.Use(hooks...)
-	c.MessageWithEnum.Use(hooks...)
-	c.MessageWithFieldOne.Use(hooks...)
-	c.MessageWithID.Use(hooks...)
-	c.MessageWithOptionals.Use(hooks...)
-	c.MessageWithPackageName.Use(hooks...)
-	c.MessageWithStrings.Use(hooks...)
-	c.NoBackref.Use(hooks...)
-	c.OneMethodService.Use(hooks...)
-	c.Portal.Use(hooks...)
-	c.SkipEdgeExample.Use(hooks...)
-	c.TwoMethodService.Use(hooks...)
-	c.User.Use(hooks...)
-	c.ValidMessage.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.AllMethodsService, c.BlogPost, c.Category, c.DependsOnSkipped,
+		c.DuplicateNumberMessage, c.EnumWithConflictingValue, c.ExplicitSkippedMessage,
+		c.Image, c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
+		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithInts,
+		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithStrings,
+		c.NoBackref, c.OneMethodService, c.Portal, c.SkipEdgeExample,
+		c.TwoMethodService, c.User, c.ValidMessage,
+	} {
+		n.Use(hooks...)
+	}
+}
+
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.AllMethodsService, c.BlogPost, c.Category, c.DependsOnSkipped,
+		c.DuplicateNumberMessage, c.EnumWithConflictingValue, c.ExplicitSkippedMessage,
+		c.Image, c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
+		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithInts,
+		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithStrings,
+		c.NoBackref, c.OneMethodService, c.Portal, c.SkipEdgeExample,
+		c.TwoMethodService, c.User, c.ValidMessage,
+	} {
+		n.Intercept(interceptors...)
+	}
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *AllMethodsServiceMutation:
+		return c.AllMethodsService.mutate(ctx, m)
+	case *BlogPostMutation:
+		return c.BlogPost.mutate(ctx, m)
+	case *CategoryMutation:
+		return c.Category.mutate(ctx, m)
+	case *DependsOnSkippedMutation:
+		return c.DependsOnSkipped.mutate(ctx, m)
+	case *DuplicateNumberMessageMutation:
+		return c.DuplicateNumberMessage.mutate(ctx, m)
+	case *EnumWithConflictingValueMutation:
+		return c.EnumWithConflictingValue.mutate(ctx, m)
+	case *ExplicitSkippedMessageMutation:
+		return c.ExplicitSkippedMessage.mutate(ctx, m)
+	case *ImageMutation:
+		return c.Image.mutate(ctx, m)
+	case *ImplicitSkippedMessageMutation:
+		return c.ImplicitSkippedMessage.mutate(ctx, m)
+	case *InvalidFieldMessageMutation:
+		return c.InvalidFieldMessage.mutate(ctx, m)
+	case *MessageWithEnumMutation:
+		return c.MessageWithEnum.mutate(ctx, m)
+	case *MessageWithFieldOneMutation:
+		return c.MessageWithFieldOne.mutate(ctx, m)
+	case *MessageWithIDMutation:
+		return c.MessageWithID.mutate(ctx, m)
+	case *MessageWithIntsMutation:
+		return c.MessageWithInts.mutate(ctx, m)
+	case *MessageWithOptionalsMutation:
+		return c.MessageWithOptionals.mutate(ctx, m)
+	case *MessageWithPackageNameMutation:
+		return c.MessageWithPackageName.mutate(ctx, m)
+	case *MessageWithStringsMutation:
+		return c.MessageWithStrings.mutate(ctx, m)
+	case *NoBackrefMutation:
+		return c.NoBackref.mutate(ctx, m)
+	case *OneMethodServiceMutation:
+		return c.OneMethodService.mutate(ctx, m)
+	case *PortalMutation:
+		return c.Portal.mutate(ctx, m)
+	case *SkipEdgeExampleMutation:
+		return c.SkipEdgeExample.mutate(ctx, m)
+	case *TwoMethodServiceMutation:
+		return c.TwoMethodService.mutate(ctx, m)
+	case *UserMutation:
+		return c.User.mutate(ctx, m)
+	case *ValidMessageMutation:
+		return c.ValidMessage.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
 }
 
 // AllMethodsServiceClient is a client for the AllMethodsService schema.
@@ -285,6 +407,12 @@ func NewAllMethodsServiceClient(c config) *AllMethodsServiceClient {
 // A call to `Use(f, g, h)` equals to `allmethodsservice.Hooks(f(g(h())))`.
 func (c *AllMethodsServiceClient) Use(hooks ...Hook) {
 	c.hooks.AllMethodsService = append(c.hooks.AllMethodsService, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `allmethodsservice.Intercept(f(g(h())))`.
+func (c *AllMethodsServiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AllMethodsService = append(c.inters.AllMethodsService, interceptors...)
 }
 
 // Create returns a builder for creating a AllMethodsService entity.
@@ -327,7 +455,7 @@ func (c *AllMethodsServiceClient) DeleteOne(ams *AllMethodsService) *AllMethodsS
 	return c.DeleteOneID(ams.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *AllMethodsServiceClient) DeleteOneID(id int) *AllMethodsServiceDeleteOne {
 	builder := c.Delete().Where(allmethodsservice.ID(id))
 	builder.mutation.id = &id
@@ -339,6 +467,8 @@ func (c *AllMethodsServiceClient) DeleteOneID(id int) *AllMethodsServiceDeleteOn
 func (c *AllMethodsServiceClient) Query() *AllMethodsServiceQuery {
 	return &AllMethodsServiceQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeAllMethodsService},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -361,6 +491,26 @@ func (c *AllMethodsServiceClient) Hooks() []Hook {
 	return c.hooks.AllMethodsService
 }
 
+// Interceptors returns the client interceptors.
+func (c *AllMethodsServiceClient) Interceptors() []Interceptor {
+	return c.inters.AllMethodsService
+}
+
+func (c *AllMethodsServiceClient) mutate(ctx context.Context, m *AllMethodsServiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AllMethodsServiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AllMethodsServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AllMethodsServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AllMethodsServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AllMethodsService mutation op: %q", m.Op())
+	}
+}
+
 // BlogPostClient is a client for the BlogPost schema.
 type BlogPostClient struct {
 	config
@@ -375,6 +525,12 @@ func NewBlogPostClient(c config) *BlogPostClient {
 // A call to `Use(f, g, h)` equals to `blogpost.Hooks(f(g(h())))`.
 func (c *BlogPostClient) Use(hooks ...Hook) {
 	c.hooks.BlogPost = append(c.hooks.BlogPost, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `blogpost.Intercept(f(g(h())))`.
+func (c *BlogPostClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BlogPost = append(c.inters.BlogPost, interceptors...)
 }
 
 // Create returns a builder for creating a BlogPost entity.
@@ -417,7 +573,7 @@ func (c *BlogPostClient) DeleteOne(bp *BlogPost) *BlogPostDeleteOne {
 	return c.DeleteOneID(bp.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *BlogPostClient) DeleteOneID(id int) *BlogPostDeleteOne {
 	builder := c.Delete().Where(blogpost.ID(id))
 	builder.mutation.id = &id
@@ -429,6 +585,8 @@ func (c *BlogPostClient) DeleteOneID(id int) *BlogPostDeleteOne {
 func (c *BlogPostClient) Query() *BlogPostQuery {
 	return &BlogPostQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeBlogPost},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -448,8 +606,8 @@ func (c *BlogPostClient) GetX(ctx context.Context, id int) *BlogPost {
 
 // QueryAuthor queries the author edge of a BlogPost.
 func (c *BlogPostClient) QueryAuthor(bp *BlogPost) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := bp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(blogpost.Table, blogpost.FieldID, id),
@@ -464,8 +622,8 @@ func (c *BlogPostClient) QueryAuthor(bp *BlogPost) *UserQuery {
 
 // QueryCategories queries the categories edge of a BlogPost.
 func (c *BlogPostClient) QueryCategories(bp *BlogPost) *CategoryQuery {
-	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&CategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := bp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(blogpost.Table, blogpost.FieldID, id),
@@ -483,6 +641,26 @@ func (c *BlogPostClient) Hooks() []Hook {
 	return c.hooks.BlogPost
 }
 
+// Interceptors returns the client interceptors.
+func (c *BlogPostClient) Interceptors() []Interceptor {
+	return c.inters.BlogPost
+}
+
+func (c *BlogPostClient) mutate(ctx context.Context, m *BlogPostMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BlogPostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BlogPostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BlogPostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BlogPostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BlogPost mutation op: %q", m.Op())
+	}
+}
+
 // CategoryClient is a client for the Category schema.
 type CategoryClient struct {
 	config
@@ -497,6 +675,12 @@ func NewCategoryClient(c config) *CategoryClient {
 // A call to `Use(f, g, h)` equals to `category.Hooks(f(g(h())))`.
 func (c *CategoryClient) Use(hooks ...Hook) {
 	c.hooks.Category = append(c.hooks.Category, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `category.Intercept(f(g(h())))`.
+func (c *CategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Category = append(c.inters.Category, interceptors...)
 }
 
 // Create returns a builder for creating a Category entity.
@@ -539,7 +723,7 @@ func (c *CategoryClient) DeleteOne(ca *Category) *CategoryDeleteOne {
 	return c.DeleteOneID(ca.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 	builder := c.Delete().Where(category.ID(id))
 	builder.mutation.id = &id
@@ -551,6 +735,8 @@ func (c *CategoryClient) DeleteOneID(id int) *CategoryDeleteOne {
 func (c *CategoryClient) Query() *CategoryQuery {
 	return &CategoryQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeCategory},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -570,8 +756,8 @@ func (c *CategoryClient) GetX(ctx context.Context, id int) *Category {
 
 // QueryBlogPosts queries the blog_posts edge of a Category.
 func (c *CategoryClient) QueryBlogPosts(ca *Category) *BlogPostQuery {
-	query := &BlogPostQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&BlogPostClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ca.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(category.Table, category.FieldID, id),
@@ -589,6 +775,26 @@ func (c *CategoryClient) Hooks() []Hook {
 	return c.hooks.Category
 }
 
+// Interceptors returns the client interceptors.
+func (c *CategoryClient) Interceptors() []Interceptor {
+	return c.inters.Category
+}
+
+func (c *CategoryClient) mutate(ctx context.Context, m *CategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Category mutation op: %q", m.Op())
+	}
+}
+
 // DependsOnSkippedClient is a client for the DependsOnSkipped schema.
 type DependsOnSkippedClient struct {
 	config
@@ -603,6 +809,12 @@ func NewDependsOnSkippedClient(c config) *DependsOnSkippedClient {
 // A call to `Use(f, g, h)` equals to `dependsonskipped.Hooks(f(g(h())))`.
 func (c *DependsOnSkippedClient) Use(hooks ...Hook) {
 	c.hooks.DependsOnSkipped = append(c.hooks.DependsOnSkipped, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dependsonskipped.Intercept(f(g(h())))`.
+func (c *DependsOnSkippedClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DependsOnSkipped = append(c.inters.DependsOnSkipped, interceptors...)
 }
 
 // Create returns a builder for creating a DependsOnSkipped entity.
@@ -645,7 +857,7 @@ func (c *DependsOnSkippedClient) DeleteOne(dos *DependsOnSkipped) *DependsOnSkip
 	return c.DeleteOneID(dos.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *DependsOnSkippedClient) DeleteOneID(id int) *DependsOnSkippedDeleteOne {
 	builder := c.Delete().Where(dependsonskipped.ID(id))
 	builder.mutation.id = &id
@@ -657,6 +869,8 @@ func (c *DependsOnSkippedClient) DeleteOneID(id int) *DependsOnSkippedDeleteOne 
 func (c *DependsOnSkippedClient) Query() *DependsOnSkippedQuery {
 	return &DependsOnSkippedQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDependsOnSkipped},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -676,8 +890,8 @@ func (c *DependsOnSkippedClient) GetX(ctx context.Context, id int) *DependsOnSki
 
 // QuerySkipped queries the skipped edge of a DependsOnSkipped.
 func (c *DependsOnSkippedClient) QuerySkipped(dos *DependsOnSkipped) *ImplicitSkippedMessageQuery {
-	query := &ImplicitSkippedMessageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&ImplicitSkippedMessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := dos.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(dependsonskipped.Table, dependsonskipped.FieldID, id),
@@ -695,6 +909,26 @@ func (c *DependsOnSkippedClient) Hooks() []Hook {
 	return c.hooks.DependsOnSkipped
 }
 
+// Interceptors returns the client interceptors.
+func (c *DependsOnSkippedClient) Interceptors() []Interceptor {
+	return c.inters.DependsOnSkipped
+}
+
+func (c *DependsOnSkippedClient) mutate(ctx context.Context, m *DependsOnSkippedMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DependsOnSkippedCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DependsOnSkippedUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DependsOnSkippedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DependsOnSkippedDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DependsOnSkipped mutation op: %q", m.Op())
+	}
+}
+
 // DuplicateNumberMessageClient is a client for the DuplicateNumberMessage schema.
 type DuplicateNumberMessageClient struct {
 	config
@@ -709,6 +943,12 @@ func NewDuplicateNumberMessageClient(c config) *DuplicateNumberMessageClient {
 // A call to `Use(f, g, h)` equals to `duplicatenumbermessage.Hooks(f(g(h())))`.
 func (c *DuplicateNumberMessageClient) Use(hooks ...Hook) {
 	c.hooks.DuplicateNumberMessage = append(c.hooks.DuplicateNumberMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `duplicatenumbermessage.Intercept(f(g(h())))`.
+func (c *DuplicateNumberMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DuplicateNumberMessage = append(c.inters.DuplicateNumberMessage, interceptors...)
 }
 
 // Create returns a builder for creating a DuplicateNumberMessage entity.
@@ -751,7 +991,7 @@ func (c *DuplicateNumberMessageClient) DeleteOne(dnm *DuplicateNumberMessage) *D
 	return c.DeleteOneID(dnm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *DuplicateNumberMessageClient) DeleteOneID(id int) *DuplicateNumberMessageDeleteOne {
 	builder := c.Delete().Where(duplicatenumbermessage.ID(id))
 	builder.mutation.id = &id
@@ -763,6 +1003,8 @@ func (c *DuplicateNumberMessageClient) DeleteOneID(id int) *DuplicateNumberMessa
 func (c *DuplicateNumberMessageClient) Query() *DuplicateNumberMessageQuery {
 	return &DuplicateNumberMessageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDuplicateNumberMessage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -785,6 +1027,144 @@ func (c *DuplicateNumberMessageClient) Hooks() []Hook {
 	return c.hooks.DuplicateNumberMessage
 }
 
+// Interceptors returns the client interceptors.
+func (c *DuplicateNumberMessageClient) Interceptors() []Interceptor {
+	return c.inters.DuplicateNumberMessage
+}
+
+func (c *DuplicateNumberMessageClient) mutate(ctx context.Context, m *DuplicateNumberMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DuplicateNumberMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DuplicateNumberMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DuplicateNumberMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DuplicateNumberMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DuplicateNumberMessage mutation op: %q", m.Op())
+	}
+}
+
+// EnumWithConflictingValueClient is a client for the EnumWithConflictingValue schema.
+type EnumWithConflictingValueClient struct {
+	config
+}
+
+// NewEnumWithConflictingValueClient returns a client for the EnumWithConflictingValue from the given config.
+func NewEnumWithConflictingValueClient(c config) *EnumWithConflictingValueClient {
+	return &EnumWithConflictingValueClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `enumwithconflictingvalue.Hooks(f(g(h())))`.
+func (c *EnumWithConflictingValueClient) Use(hooks ...Hook) {
+	c.hooks.EnumWithConflictingValue = append(c.hooks.EnumWithConflictingValue, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `enumwithconflictingvalue.Intercept(f(g(h())))`.
+func (c *EnumWithConflictingValueClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EnumWithConflictingValue = append(c.inters.EnumWithConflictingValue, interceptors...)
+}
+
+// Create returns a builder for creating a EnumWithConflictingValue entity.
+func (c *EnumWithConflictingValueClient) Create() *EnumWithConflictingValueCreate {
+	mutation := newEnumWithConflictingValueMutation(c.config, OpCreate)
+	return &EnumWithConflictingValueCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EnumWithConflictingValue entities.
+func (c *EnumWithConflictingValueClient) CreateBulk(builders ...*EnumWithConflictingValueCreate) *EnumWithConflictingValueCreateBulk {
+	return &EnumWithConflictingValueCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EnumWithConflictingValue.
+func (c *EnumWithConflictingValueClient) Update() *EnumWithConflictingValueUpdate {
+	mutation := newEnumWithConflictingValueMutation(c.config, OpUpdate)
+	return &EnumWithConflictingValueUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EnumWithConflictingValueClient) UpdateOne(ewcv *EnumWithConflictingValue) *EnumWithConflictingValueUpdateOne {
+	mutation := newEnumWithConflictingValueMutation(c.config, OpUpdateOne, withEnumWithConflictingValue(ewcv))
+	return &EnumWithConflictingValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EnumWithConflictingValueClient) UpdateOneID(id int) *EnumWithConflictingValueUpdateOne {
+	mutation := newEnumWithConflictingValueMutation(c.config, OpUpdateOne, withEnumWithConflictingValueID(id))
+	return &EnumWithConflictingValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EnumWithConflictingValue.
+func (c *EnumWithConflictingValueClient) Delete() *EnumWithConflictingValueDelete {
+	mutation := newEnumWithConflictingValueMutation(c.config, OpDelete)
+	return &EnumWithConflictingValueDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EnumWithConflictingValueClient) DeleteOne(ewcv *EnumWithConflictingValue) *EnumWithConflictingValueDeleteOne {
+	return c.DeleteOneID(ewcv.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EnumWithConflictingValueClient) DeleteOneID(id int) *EnumWithConflictingValueDeleteOne {
+	builder := c.Delete().Where(enumwithconflictingvalue.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EnumWithConflictingValueDeleteOne{builder}
+}
+
+// Query returns a query builder for EnumWithConflictingValue.
+func (c *EnumWithConflictingValueClient) Query() *EnumWithConflictingValueQuery {
+	return &EnumWithConflictingValueQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEnumWithConflictingValue},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EnumWithConflictingValue entity by its id.
+func (c *EnumWithConflictingValueClient) Get(ctx context.Context, id int) (*EnumWithConflictingValue, error) {
+	return c.Query().Where(enumwithconflictingvalue.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EnumWithConflictingValueClient) GetX(ctx context.Context, id int) *EnumWithConflictingValue {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *EnumWithConflictingValueClient) Hooks() []Hook {
+	return c.hooks.EnumWithConflictingValue
+}
+
+// Interceptors returns the client interceptors.
+func (c *EnumWithConflictingValueClient) Interceptors() []Interceptor {
+	return c.inters.EnumWithConflictingValue
+}
+
+func (c *EnumWithConflictingValueClient) mutate(ctx context.Context, m *EnumWithConflictingValueMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EnumWithConflictingValueCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EnumWithConflictingValueUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EnumWithConflictingValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EnumWithConflictingValueDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EnumWithConflictingValue mutation op: %q", m.Op())
+	}
+}
+
 // ExplicitSkippedMessageClient is a client for the ExplicitSkippedMessage schema.
 type ExplicitSkippedMessageClient struct {
 	config
@@ -799,6 +1179,12 @@ func NewExplicitSkippedMessageClient(c config) *ExplicitSkippedMessageClient {
 // A call to `Use(f, g, h)` equals to `explicitskippedmessage.Hooks(f(g(h())))`.
 func (c *ExplicitSkippedMessageClient) Use(hooks ...Hook) {
 	c.hooks.ExplicitSkippedMessage = append(c.hooks.ExplicitSkippedMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `explicitskippedmessage.Intercept(f(g(h())))`.
+func (c *ExplicitSkippedMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExplicitSkippedMessage = append(c.inters.ExplicitSkippedMessage, interceptors...)
 }
 
 // Create returns a builder for creating a ExplicitSkippedMessage entity.
@@ -841,7 +1227,7 @@ func (c *ExplicitSkippedMessageClient) DeleteOne(esm *ExplicitSkippedMessage) *E
 	return c.DeleteOneID(esm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ExplicitSkippedMessageClient) DeleteOneID(id int) *ExplicitSkippedMessageDeleteOne {
 	builder := c.Delete().Where(explicitskippedmessage.ID(id))
 	builder.mutation.id = &id
@@ -853,6 +1239,8 @@ func (c *ExplicitSkippedMessageClient) DeleteOneID(id int) *ExplicitSkippedMessa
 func (c *ExplicitSkippedMessageClient) Query() *ExplicitSkippedMessageQuery {
 	return &ExplicitSkippedMessageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeExplicitSkippedMessage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -875,6 +1263,26 @@ func (c *ExplicitSkippedMessageClient) Hooks() []Hook {
 	return c.hooks.ExplicitSkippedMessage
 }
 
+// Interceptors returns the client interceptors.
+func (c *ExplicitSkippedMessageClient) Interceptors() []Interceptor {
+	return c.inters.ExplicitSkippedMessage
+}
+
+func (c *ExplicitSkippedMessageClient) mutate(ctx context.Context, m *ExplicitSkippedMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExplicitSkippedMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExplicitSkippedMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExplicitSkippedMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExplicitSkippedMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExplicitSkippedMessage mutation op: %q", m.Op())
+	}
+}
+
 // ImageClient is a client for the Image schema.
 type ImageClient struct {
 	config
@@ -889,6 +1297,12 @@ func NewImageClient(c config) *ImageClient {
 // A call to `Use(f, g, h)` equals to `image.Hooks(f(g(h())))`.
 func (c *ImageClient) Use(hooks ...Hook) {
 	c.hooks.Image = append(c.hooks.Image, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `image.Intercept(f(g(h())))`.
+func (c *ImageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Image = append(c.inters.Image, interceptors...)
 }
 
 // Create returns a builder for creating a Image entity.
@@ -931,7 +1345,7 @@ func (c *ImageClient) DeleteOne(i *Image) *ImageDeleteOne {
 	return c.DeleteOneID(i.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ImageClient) DeleteOneID(id uuid.UUID) *ImageDeleteOne {
 	builder := c.Delete().Where(image.ID(id))
 	builder.mutation.id = &id
@@ -943,6 +1357,8 @@ func (c *ImageClient) DeleteOneID(id uuid.UUID) *ImageDeleteOne {
 func (c *ImageClient) Query() *ImageQuery {
 	return &ImageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeImage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -962,8 +1378,8 @@ func (c *ImageClient) GetX(ctx context.Context, id uuid.UUID) *Image {
 
 // QueryUserProfilePic queries the user_profile_pic edge of a Image.
 func (c *ImageClient) QueryUserProfilePic(i *Image) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := i.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(image.Table, image.FieldID, id),
@@ -981,6 +1397,26 @@ func (c *ImageClient) Hooks() []Hook {
 	return c.hooks.Image
 }
 
+// Interceptors returns the client interceptors.
+func (c *ImageClient) Interceptors() []Interceptor {
+	return c.inters.Image
+}
+
+func (c *ImageClient) mutate(ctx context.Context, m *ImageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Image mutation op: %q", m.Op())
+	}
+}
+
 // ImplicitSkippedMessageClient is a client for the ImplicitSkippedMessage schema.
 type ImplicitSkippedMessageClient struct {
 	config
@@ -995,6 +1431,12 @@ func NewImplicitSkippedMessageClient(c config) *ImplicitSkippedMessageClient {
 // A call to `Use(f, g, h)` equals to `implicitskippedmessage.Hooks(f(g(h())))`.
 func (c *ImplicitSkippedMessageClient) Use(hooks ...Hook) {
 	c.hooks.ImplicitSkippedMessage = append(c.hooks.ImplicitSkippedMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `implicitskippedmessage.Intercept(f(g(h())))`.
+func (c *ImplicitSkippedMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ImplicitSkippedMessage = append(c.inters.ImplicitSkippedMessage, interceptors...)
 }
 
 // Create returns a builder for creating a ImplicitSkippedMessage entity.
@@ -1037,7 +1479,7 @@ func (c *ImplicitSkippedMessageClient) DeleteOne(ism *ImplicitSkippedMessage) *I
 	return c.DeleteOneID(ism.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ImplicitSkippedMessageClient) DeleteOneID(id int) *ImplicitSkippedMessageDeleteOne {
 	builder := c.Delete().Where(implicitskippedmessage.ID(id))
 	builder.mutation.id = &id
@@ -1049,6 +1491,8 @@ func (c *ImplicitSkippedMessageClient) DeleteOneID(id int) *ImplicitSkippedMessa
 func (c *ImplicitSkippedMessageClient) Query() *ImplicitSkippedMessageQuery {
 	return &ImplicitSkippedMessageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeImplicitSkippedMessage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1071,6 +1515,26 @@ func (c *ImplicitSkippedMessageClient) Hooks() []Hook {
 	return c.hooks.ImplicitSkippedMessage
 }
 
+// Interceptors returns the client interceptors.
+func (c *ImplicitSkippedMessageClient) Interceptors() []Interceptor {
+	return c.inters.ImplicitSkippedMessage
+}
+
+func (c *ImplicitSkippedMessageClient) mutate(ctx context.Context, m *ImplicitSkippedMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ImplicitSkippedMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ImplicitSkippedMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ImplicitSkippedMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ImplicitSkippedMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ImplicitSkippedMessage mutation op: %q", m.Op())
+	}
+}
+
 // InvalidFieldMessageClient is a client for the InvalidFieldMessage schema.
 type InvalidFieldMessageClient struct {
 	config
@@ -1085,6 +1549,12 @@ func NewInvalidFieldMessageClient(c config) *InvalidFieldMessageClient {
 // A call to `Use(f, g, h)` equals to `invalidfieldmessage.Hooks(f(g(h())))`.
 func (c *InvalidFieldMessageClient) Use(hooks ...Hook) {
 	c.hooks.InvalidFieldMessage = append(c.hooks.InvalidFieldMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `invalidfieldmessage.Intercept(f(g(h())))`.
+func (c *InvalidFieldMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InvalidFieldMessage = append(c.inters.InvalidFieldMessage, interceptors...)
 }
 
 // Create returns a builder for creating a InvalidFieldMessage entity.
@@ -1127,7 +1597,7 @@ func (c *InvalidFieldMessageClient) DeleteOne(ifm *InvalidFieldMessage) *Invalid
 	return c.DeleteOneID(ifm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *InvalidFieldMessageClient) DeleteOneID(id int) *InvalidFieldMessageDeleteOne {
 	builder := c.Delete().Where(invalidfieldmessage.ID(id))
 	builder.mutation.id = &id
@@ -1139,6 +1609,8 @@ func (c *InvalidFieldMessageClient) DeleteOneID(id int) *InvalidFieldMessageDele
 func (c *InvalidFieldMessageClient) Query() *InvalidFieldMessageQuery {
 	return &InvalidFieldMessageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeInvalidFieldMessage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1161,6 +1633,26 @@ func (c *InvalidFieldMessageClient) Hooks() []Hook {
 	return c.hooks.InvalidFieldMessage
 }
 
+// Interceptors returns the client interceptors.
+func (c *InvalidFieldMessageClient) Interceptors() []Interceptor {
+	return c.inters.InvalidFieldMessage
+}
+
+func (c *InvalidFieldMessageClient) mutate(ctx context.Context, m *InvalidFieldMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InvalidFieldMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InvalidFieldMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InvalidFieldMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InvalidFieldMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InvalidFieldMessage mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithEnumClient is a client for the MessageWithEnum schema.
 type MessageWithEnumClient struct {
 	config
@@ -1175,6 +1667,12 @@ func NewMessageWithEnumClient(c config) *MessageWithEnumClient {
 // A call to `Use(f, g, h)` equals to `messagewithenum.Hooks(f(g(h())))`.
 func (c *MessageWithEnumClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithEnum = append(c.hooks.MessageWithEnum, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithenum.Intercept(f(g(h())))`.
+func (c *MessageWithEnumClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithEnum = append(c.inters.MessageWithEnum, interceptors...)
 }
 
 // Create returns a builder for creating a MessageWithEnum entity.
@@ -1217,7 +1715,7 @@ func (c *MessageWithEnumClient) DeleteOne(mwe *MessageWithEnum) *MessageWithEnum
 	return c.DeleteOneID(mwe.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithEnumClient) DeleteOneID(id int) *MessageWithEnumDeleteOne {
 	builder := c.Delete().Where(messagewithenum.ID(id))
 	builder.mutation.id = &id
@@ -1229,6 +1727,8 @@ func (c *MessageWithEnumClient) DeleteOneID(id int) *MessageWithEnumDeleteOne {
 func (c *MessageWithEnumClient) Query() *MessageWithEnumQuery {
 	return &MessageWithEnumQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithEnum},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1251,6 +1751,26 @@ func (c *MessageWithEnumClient) Hooks() []Hook {
 	return c.hooks.MessageWithEnum
 }
 
+// Interceptors returns the client interceptors.
+func (c *MessageWithEnumClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithEnum
+}
+
+func (c *MessageWithEnumClient) mutate(ctx context.Context, m *MessageWithEnumMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithEnumCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithEnumUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithEnumUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithEnumDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithEnum mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithFieldOneClient is a client for the MessageWithFieldOne schema.
 type MessageWithFieldOneClient struct {
 	config
@@ -1265,6 +1785,12 @@ func NewMessageWithFieldOneClient(c config) *MessageWithFieldOneClient {
 // A call to `Use(f, g, h)` equals to `messagewithfieldone.Hooks(f(g(h())))`.
 func (c *MessageWithFieldOneClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithFieldOne = append(c.hooks.MessageWithFieldOne, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithfieldone.Intercept(f(g(h())))`.
+func (c *MessageWithFieldOneClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithFieldOne = append(c.inters.MessageWithFieldOne, interceptors...)
 }
 
 // Create returns a builder for creating a MessageWithFieldOne entity.
@@ -1307,7 +1833,7 @@ func (c *MessageWithFieldOneClient) DeleteOne(mwfo *MessageWithFieldOne) *Messag
 	return c.DeleteOneID(mwfo.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithFieldOneClient) DeleteOneID(id int) *MessageWithFieldOneDeleteOne {
 	builder := c.Delete().Where(messagewithfieldone.ID(id))
 	builder.mutation.id = &id
@@ -1319,6 +1845,8 @@ func (c *MessageWithFieldOneClient) DeleteOneID(id int) *MessageWithFieldOneDele
 func (c *MessageWithFieldOneClient) Query() *MessageWithFieldOneQuery {
 	return &MessageWithFieldOneQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithFieldOne},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1341,6 +1869,26 @@ func (c *MessageWithFieldOneClient) Hooks() []Hook {
 	return c.hooks.MessageWithFieldOne
 }
 
+// Interceptors returns the client interceptors.
+func (c *MessageWithFieldOneClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithFieldOne
+}
+
+func (c *MessageWithFieldOneClient) mutate(ctx context.Context, m *MessageWithFieldOneMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithFieldOneCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithFieldOneUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithFieldOneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithFieldOneDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithFieldOne mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithIDClient is a client for the MessageWithID schema.
 type MessageWithIDClient struct {
 	config
@@ -1355,6 +1903,12 @@ func NewMessageWithIDClient(c config) *MessageWithIDClient {
 // A call to `Use(f, g, h)` equals to `messagewithid.Hooks(f(g(h())))`.
 func (c *MessageWithIDClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithID = append(c.hooks.MessageWithID, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithid.Intercept(f(g(h())))`.
+func (c *MessageWithIDClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithID = append(c.inters.MessageWithID, interceptors...)
 }
 
 // Create returns a builder for creating a MessageWithID entity.
@@ -1397,7 +1951,7 @@ func (c *MessageWithIDClient) DeleteOne(mwi *MessageWithID) *MessageWithIDDelete
 	return c.DeleteOneID(mwi.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithIDClient) DeleteOneID(id int32) *MessageWithIDDeleteOne {
 	builder := c.Delete().Where(messagewithid.ID(id))
 	builder.mutation.id = &id
@@ -1409,6 +1963,8 @@ func (c *MessageWithIDClient) DeleteOneID(id int32) *MessageWithIDDeleteOne {
 func (c *MessageWithIDClient) Query() *MessageWithIDQuery {
 	return &MessageWithIDQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithID},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1431,6 +1987,144 @@ func (c *MessageWithIDClient) Hooks() []Hook {
 	return c.hooks.MessageWithID
 }
 
+// Interceptors returns the client interceptors.
+func (c *MessageWithIDClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithID
+}
+
+func (c *MessageWithIDClient) mutate(ctx context.Context, m *MessageWithIDMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithIDCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithIDUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithIDUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithIDDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithID mutation op: %q", m.Op())
+	}
+}
+
+// MessageWithIntsClient is a client for the MessageWithInts schema.
+type MessageWithIntsClient struct {
+	config
+}
+
+// NewMessageWithIntsClient returns a client for the MessageWithInts from the given config.
+func NewMessageWithIntsClient(c config) *MessageWithIntsClient {
+	return &MessageWithIntsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagewithints.Hooks(f(g(h())))`.
+func (c *MessageWithIntsClient) Use(hooks ...Hook) {
+	c.hooks.MessageWithInts = append(c.hooks.MessageWithInts, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithints.Intercept(f(g(h())))`.
+func (c *MessageWithIntsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithInts = append(c.inters.MessageWithInts, interceptors...)
+}
+
+// Create returns a builder for creating a MessageWithInts entity.
+func (c *MessageWithIntsClient) Create() *MessageWithIntsCreate {
+	mutation := newMessageWithIntsMutation(c.config, OpCreate)
+	return &MessageWithIntsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageWithInts entities.
+func (c *MessageWithIntsClient) CreateBulk(builders ...*MessageWithIntsCreate) *MessageWithIntsCreateBulk {
+	return &MessageWithIntsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageWithInts.
+func (c *MessageWithIntsClient) Update() *MessageWithIntsUpdate {
+	mutation := newMessageWithIntsMutation(c.config, OpUpdate)
+	return &MessageWithIntsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageWithIntsClient) UpdateOne(mwi *MessageWithInts) *MessageWithIntsUpdateOne {
+	mutation := newMessageWithIntsMutation(c.config, OpUpdateOne, withMessageWithInts(mwi))
+	return &MessageWithIntsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageWithIntsClient) UpdateOneID(id int) *MessageWithIntsUpdateOne {
+	mutation := newMessageWithIntsMutation(c.config, OpUpdateOne, withMessageWithIntsID(id))
+	return &MessageWithIntsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageWithInts.
+func (c *MessageWithIntsClient) Delete() *MessageWithIntsDelete {
+	mutation := newMessageWithIntsMutation(c.config, OpDelete)
+	return &MessageWithIntsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageWithIntsClient) DeleteOne(mwi *MessageWithInts) *MessageWithIntsDeleteOne {
+	return c.DeleteOneID(mwi.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageWithIntsClient) DeleteOneID(id int) *MessageWithIntsDeleteOne {
+	builder := c.Delete().Where(messagewithints.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageWithIntsDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageWithInts.
+func (c *MessageWithIntsClient) Query() *MessageWithIntsQuery {
+	return &MessageWithIntsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithInts},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageWithInts entity by its id.
+func (c *MessageWithIntsClient) Get(ctx context.Context, id int) (*MessageWithInts, error) {
+	return c.Query().Where(messagewithints.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageWithIntsClient) GetX(ctx context.Context, id int) *MessageWithInts {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MessageWithIntsClient) Hooks() []Hook {
+	return c.hooks.MessageWithInts
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageWithIntsClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithInts
+}
+
+func (c *MessageWithIntsClient) mutate(ctx context.Context, m *MessageWithIntsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithIntsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithIntsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithIntsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithIntsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithInts mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithOptionalsClient is a client for the MessageWithOptionals schema.
 type MessageWithOptionalsClient struct {
 	config
@@ -1445,6 +2139,12 @@ func NewMessageWithOptionalsClient(c config) *MessageWithOptionalsClient {
 // A call to `Use(f, g, h)` equals to `messagewithoptionals.Hooks(f(g(h())))`.
 func (c *MessageWithOptionalsClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithOptionals = append(c.hooks.MessageWithOptionals, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithoptionals.Intercept(f(g(h())))`.
+func (c *MessageWithOptionalsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithOptionals = append(c.inters.MessageWithOptionals, interceptors...)
 }
 
 // Create returns a builder for creating a MessageWithOptionals entity.
@@ -1487,7 +2187,7 @@ func (c *MessageWithOptionalsClient) DeleteOne(mwo *MessageWithOptionals) *Messa
 	return c.DeleteOneID(mwo.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithOptionalsClient) DeleteOneID(id int) *MessageWithOptionalsDeleteOne {
 	builder := c.Delete().Where(messagewithoptionals.ID(id))
 	builder.mutation.id = &id
@@ -1499,6 +2199,8 @@ func (c *MessageWithOptionalsClient) DeleteOneID(id int) *MessageWithOptionalsDe
 func (c *MessageWithOptionalsClient) Query() *MessageWithOptionalsQuery {
 	return &MessageWithOptionalsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithOptionals},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1521,6 +2223,26 @@ func (c *MessageWithOptionalsClient) Hooks() []Hook {
 	return c.hooks.MessageWithOptionals
 }
 
+// Interceptors returns the client interceptors.
+func (c *MessageWithOptionalsClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithOptionals
+}
+
+func (c *MessageWithOptionalsClient) mutate(ctx context.Context, m *MessageWithOptionalsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithOptionalsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithOptionalsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithOptionalsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithOptionalsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithOptionals mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithPackageNameClient is a client for the MessageWithPackageName schema.
 type MessageWithPackageNameClient struct {
 	config
@@ -1535,6 +2257,12 @@ func NewMessageWithPackageNameClient(c config) *MessageWithPackageNameClient {
 // A call to `Use(f, g, h)` equals to `messagewithpackagename.Hooks(f(g(h())))`.
 func (c *MessageWithPackageNameClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithPackageName = append(c.hooks.MessageWithPackageName, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithpackagename.Intercept(f(g(h())))`.
+func (c *MessageWithPackageNameClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithPackageName = append(c.inters.MessageWithPackageName, interceptors...)
 }
 
 // Create returns a builder for creating a MessageWithPackageName entity.
@@ -1577,7 +2305,7 @@ func (c *MessageWithPackageNameClient) DeleteOne(mwpn *MessageWithPackageName) *
 	return c.DeleteOneID(mwpn.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithPackageNameClient) DeleteOneID(id int) *MessageWithPackageNameDeleteOne {
 	builder := c.Delete().Where(messagewithpackagename.ID(id))
 	builder.mutation.id = &id
@@ -1589,6 +2317,8 @@ func (c *MessageWithPackageNameClient) DeleteOneID(id int) *MessageWithPackageNa
 func (c *MessageWithPackageNameClient) Query() *MessageWithPackageNameQuery {
 	return &MessageWithPackageNameQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithPackageName},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1611,6 +2341,26 @@ func (c *MessageWithPackageNameClient) Hooks() []Hook {
 	return c.hooks.MessageWithPackageName
 }
 
+// Interceptors returns the client interceptors.
+func (c *MessageWithPackageNameClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithPackageName
+}
+
+func (c *MessageWithPackageNameClient) mutate(ctx context.Context, m *MessageWithPackageNameMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithPackageNameCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithPackageNameUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithPackageNameUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithPackageNameDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithPackageName mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithStringsClient is a client for the MessageWithStrings schema.
 type MessageWithStringsClient struct {
 	config
@@ -1625,6 +2375,12 @@ func NewMessageWithStringsClient(c config) *MessageWithStringsClient {
 // A call to `Use(f, g, h)` equals to `messagewithstrings.Hooks(f(g(h())))`.
 func (c *MessageWithStringsClient) Use(hooks ...Hook) {
 	c.hooks.MessageWithStrings = append(c.hooks.MessageWithStrings, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithstrings.Intercept(f(g(h())))`.
+func (c *MessageWithStringsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithStrings = append(c.inters.MessageWithStrings, interceptors...)
 }
 
 // Create returns a builder for creating a MessageWithStrings entity.
@@ -1667,7 +2423,7 @@ func (c *MessageWithStringsClient) DeleteOne(mws *MessageWithStrings) *MessageWi
 	return c.DeleteOneID(mws.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *MessageWithStringsClient) DeleteOneID(id int) *MessageWithStringsDeleteOne {
 	builder := c.Delete().Where(messagewithstrings.ID(id))
 	builder.mutation.id = &id
@@ -1679,6 +2435,8 @@ func (c *MessageWithStringsClient) DeleteOneID(id int) *MessageWithStringsDelete
 func (c *MessageWithStringsClient) Query() *MessageWithStringsQuery {
 	return &MessageWithStringsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithStrings},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1701,6 +2459,26 @@ func (c *MessageWithStringsClient) Hooks() []Hook {
 	return c.hooks.MessageWithStrings
 }
 
+// Interceptors returns the client interceptors.
+func (c *MessageWithStringsClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithStrings
+}
+
+func (c *MessageWithStringsClient) mutate(ctx context.Context, m *MessageWithStringsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithStringsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithStringsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithStringsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithStringsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithStrings mutation op: %q", m.Op())
+	}
+}
+
 // NoBackrefClient is a client for the NoBackref schema.
 type NoBackrefClient struct {
 	config
@@ -1715,6 +2493,12 @@ func NewNoBackrefClient(c config) *NoBackrefClient {
 // A call to `Use(f, g, h)` equals to `nobackref.Hooks(f(g(h())))`.
 func (c *NoBackrefClient) Use(hooks ...Hook) {
 	c.hooks.NoBackref = append(c.hooks.NoBackref, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nobackref.Intercept(f(g(h())))`.
+func (c *NoBackrefClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NoBackref = append(c.inters.NoBackref, interceptors...)
 }
 
 // Create returns a builder for creating a NoBackref entity.
@@ -1757,7 +2541,7 @@ func (c *NoBackrefClient) DeleteOne(nb *NoBackref) *NoBackrefDeleteOne {
 	return c.DeleteOneID(nb.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *NoBackrefClient) DeleteOneID(id int) *NoBackrefDeleteOne {
 	builder := c.Delete().Where(nobackref.ID(id))
 	builder.mutation.id = &id
@@ -1769,6 +2553,8 @@ func (c *NoBackrefClient) DeleteOneID(id int) *NoBackrefDeleteOne {
 func (c *NoBackrefClient) Query() *NoBackrefQuery {
 	return &NoBackrefQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeNoBackref},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1788,8 +2574,8 @@ func (c *NoBackrefClient) GetX(ctx context.Context, id int) *NoBackref {
 
 // QueryImages queries the images edge of a NoBackref.
 func (c *NoBackrefClient) QueryImages(nb *NoBackref) *ImageQuery {
-	query := &ImageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&ImageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := nb.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(nobackref.Table, nobackref.FieldID, id),
@@ -1807,6 +2593,26 @@ func (c *NoBackrefClient) Hooks() []Hook {
 	return c.hooks.NoBackref
 }
 
+// Interceptors returns the client interceptors.
+func (c *NoBackrefClient) Interceptors() []Interceptor {
+	return c.inters.NoBackref
+}
+
+func (c *NoBackrefClient) mutate(ctx context.Context, m *NoBackrefMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NoBackrefCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NoBackrefUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NoBackrefUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NoBackrefDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NoBackref mutation op: %q", m.Op())
+	}
+}
+
 // OneMethodServiceClient is a client for the OneMethodService schema.
 type OneMethodServiceClient struct {
 	config
@@ -1821,6 +2627,12 @@ func NewOneMethodServiceClient(c config) *OneMethodServiceClient {
 // A call to `Use(f, g, h)` equals to `onemethodservice.Hooks(f(g(h())))`.
 func (c *OneMethodServiceClient) Use(hooks ...Hook) {
 	c.hooks.OneMethodService = append(c.hooks.OneMethodService, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `onemethodservice.Intercept(f(g(h())))`.
+func (c *OneMethodServiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OneMethodService = append(c.inters.OneMethodService, interceptors...)
 }
 
 // Create returns a builder for creating a OneMethodService entity.
@@ -1863,7 +2675,7 @@ func (c *OneMethodServiceClient) DeleteOne(oms *OneMethodService) *OneMethodServ
 	return c.DeleteOneID(oms.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *OneMethodServiceClient) DeleteOneID(id int) *OneMethodServiceDeleteOne {
 	builder := c.Delete().Where(onemethodservice.ID(id))
 	builder.mutation.id = &id
@@ -1875,6 +2687,8 @@ func (c *OneMethodServiceClient) DeleteOneID(id int) *OneMethodServiceDeleteOne 
 func (c *OneMethodServiceClient) Query() *OneMethodServiceQuery {
 	return &OneMethodServiceQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeOneMethodService},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1897,6 +2711,26 @@ func (c *OneMethodServiceClient) Hooks() []Hook {
 	return c.hooks.OneMethodService
 }
 
+// Interceptors returns the client interceptors.
+func (c *OneMethodServiceClient) Interceptors() []Interceptor {
+	return c.inters.OneMethodService
+}
+
+func (c *OneMethodServiceClient) mutate(ctx context.Context, m *OneMethodServiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OneMethodServiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OneMethodServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OneMethodServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OneMethodServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OneMethodService mutation op: %q", m.Op())
+	}
+}
+
 // PortalClient is a client for the Portal schema.
 type PortalClient struct {
 	config
@@ -1911,6 +2745,12 @@ func NewPortalClient(c config) *PortalClient {
 // A call to `Use(f, g, h)` equals to `portal.Hooks(f(g(h())))`.
 func (c *PortalClient) Use(hooks ...Hook) {
 	c.hooks.Portal = append(c.hooks.Portal, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `portal.Intercept(f(g(h())))`.
+func (c *PortalClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Portal = append(c.inters.Portal, interceptors...)
 }
 
 // Create returns a builder for creating a Portal entity.
@@ -1953,7 +2793,7 @@ func (c *PortalClient) DeleteOne(po *Portal) *PortalDeleteOne {
 	return c.DeleteOneID(po.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *PortalClient) DeleteOneID(id int) *PortalDeleteOne {
 	builder := c.Delete().Where(portal.ID(id))
 	builder.mutation.id = &id
@@ -1965,6 +2805,8 @@ func (c *PortalClient) DeleteOneID(id int) *PortalDeleteOne {
 func (c *PortalClient) Query() *PortalQuery {
 	return &PortalQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypePortal},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1984,8 +2826,8 @@ func (c *PortalClient) GetX(ctx context.Context, id int) *Portal {
 
 // QueryCategory queries the category edge of a Portal.
 func (c *PortalClient) QueryCategory(po *Portal) *CategoryQuery {
-	query := &CategoryQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&CategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := po.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(portal.Table, portal.FieldID, id),
@@ -2003,6 +2845,26 @@ func (c *PortalClient) Hooks() []Hook {
 	return c.hooks.Portal
 }
 
+// Interceptors returns the client interceptors.
+func (c *PortalClient) Interceptors() []Interceptor {
+	return c.inters.Portal
+}
+
+func (c *PortalClient) mutate(ctx context.Context, m *PortalMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PortalCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PortalUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PortalUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PortalDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Portal mutation op: %q", m.Op())
+	}
+}
+
 // SkipEdgeExampleClient is a client for the SkipEdgeExample schema.
 type SkipEdgeExampleClient struct {
 	config
@@ -2017,6 +2879,12 @@ func NewSkipEdgeExampleClient(c config) *SkipEdgeExampleClient {
 // A call to `Use(f, g, h)` equals to `skipedgeexample.Hooks(f(g(h())))`.
 func (c *SkipEdgeExampleClient) Use(hooks ...Hook) {
 	c.hooks.SkipEdgeExample = append(c.hooks.SkipEdgeExample, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `skipedgeexample.Intercept(f(g(h())))`.
+func (c *SkipEdgeExampleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SkipEdgeExample = append(c.inters.SkipEdgeExample, interceptors...)
 }
 
 // Create returns a builder for creating a SkipEdgeExample entity.
@@ -2059,7 +2927,7 @@ func (c *SkipEdgeExampleClient) DeleteOne(see *SkipEdgeExample) *SkipEdgeExample
 	return c.DeleteOneID(see.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *SkipEdgeExampleClient) DeleteOneID(id int) *SkipEdgeExampleDeleteOne {
 	builder := c.Delete().Where(skipedgeexample.ID(id))
 	builder.mutation.id = &id
@@ -2071,6 +2939,8 @@ func (c *SkipEdgeExampleClient) DeleteOneID(id int) *SkipEdgeExampleDeleteOne {
 func (c *SkipEdgeExampleClient) Query() *SkipEdgeExampleQuery {
 	return &SkipEdgeExampleQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeSkipEdgeExample},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -2090,8 +2960,8 @@ func (c *SkipEdgeExampleClient) GetX(ctx context.Context, id int) *SkipEdgeExamp
 
 // QueryUser queries the user edge of a SkipEdgeExample.
 func (c *SkipEdgeExampleClient) QueryUser(see *SkipEdgeExample) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := see.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(skipedgeexample.Table, skipedgeexample.FieldID, id),
@@ -2109,6 +2979,26 @@ func (c *SkipEdgeExampleClient) Hooks() []Hook {
 	return c.hooks.SkipEdgeExample
 }
 
+// Interceptors returns the client interceptors.
+func (c *SkipEdgeExampleClient) Interceptors() []Interceptor {
+	return c.inters.SkipEdgeExample
+}
+
+func (c *SkipEdgeExampleClient) mutate(ctx context.Context, m *SkipEdgeExampleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SkipEdgeExampleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SkipEdgeExampleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SkipEdgeExampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SkipEdgeExampleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SkipEdgeExample mutation op: %q", m.Op())
+	}
+}
+
 // TwoMethodServiceClient is a client for the TwoMethodService schema.
 type TwoMethodServiceClient struct {
 	config
@@ -2123,6 +3013,12 @@ func NewTwoMethodServiceClient(c config) *TwoMethodServiceClient {
 // A call to `Use(f, g, h)` equals to `twomethodservice.Hooks(f(g(h())))`.
 func (c *TwoMethodServiceClient) Use(hooks ...Hook) {
 	c.hooks.TwoMethodService = append(c.hooks.TwoMethodService, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `twomethodservice.Intercept(f(g(h())))`.
+func (c *TwoMethodServiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TwoMethodService = append(c.inters.TwoMethodService, interceptors...)
 }
 
 // Create returns a builder for creating a TwoMethodService entity.
@@ -2165,7 +3061,7 @@ func (c *TwoMethodServiceClient) DeleteOne(tms *TwoMethodService) *TwoMethodServ
 	return c.DeleteOneID(tms.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *TwoMethodServiceClient) DeleteOneID(id int) *TwoMethodServiceDeleteOne {
 	builder := c.Delete().Where(twomethodservice.ID(id))
 	builder.mutation.id = &id
@@ -2177,6 +3073,8 @@ func (c *TwoMethodServiceClient) DeleteOneID(id int) *TwoMethodServiceDeleteOne 
 func (c *TwoMethodServiceClient) Query() *TwoMethodServiceQuery {
 	return &TwoMethodServiceQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeTwoMethodService},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -2199,6 +3097,26 @@ func (c *TwoMethodServiceClient) Hooks() []Hook {
 	return c.hooks.TwoMethodService
 }
 
+// Interceptors returns the client interceptors.
+func (c *TwoMethodServiceClient) Interceptors() []Interceptor {
+	return c.inters.TwoMethodService
+}
+
+func (c *TwoMethodServiceClient) mutate(ctx context.Context, m *TwoMethodServiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TwoMethodServiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TwoMethodServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TwoMethodServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TwoMethodServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TwoMethodService mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -2213,6 +3131,12 @@ func NewUserClient(c config) *UserClient {
 // A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
 func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
+func (c *UserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.User = append(c.inters.User, interceptors...)
 }
 
 // Create returns a builder for creating a User entity.
@@ -2255,7 +3179,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 	return c.DeleteOneID(u.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
@@ -2267,6 +3191,8 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -2286,8 +3212,8 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 
 // QueryBlogPosts queries the blog_posts edge of a User.
 func (c *UserClient) QueryBlogPosts(u *User) *BlogPostQuery {
-	query := &BlogPostQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&BlogPostClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -2302,8 +3228,8 @@ func (c *UserClient) QueryBlogPosts(u *User) *BlogPostQuery {
 
 // QueryProfilePic queries the profile_pic edge of a User.
 func (c *UserClient) QueryProfilePic(u *User) *ImageQuery {
-	query := &ImageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&ImageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -2318,8 +3244,8 @@ func (c *UserClient) QueryProfilePic(u *User) *ImageQuery {
 
 // QuerySkipEdge queries the skip_edge edge of a User.
 func (c *UserClient) QuerySkipEdge(u *User) *SkipEdgeExampleQuery {
-	query := &SkipEdgeExampleQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+	query := (&SkipEdgeExampleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
@@ -2337,6 +3263,26 @@ func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
 }
 
+// Interceptors returns the client interceptors.
+func (c *UserClient) Interceptors() []Interceptor {
+	return c.inters.User
+}
+
+func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
 // ValidMessageClient is a client for the ValidMessage schema.
 type ValidMessageClient struct {
 	config
@@ -2351,6 +3297,12 @@ func NewValidMessageClient(c config) *ValidMessageClient {
 // A call to `Use(f, g, h)` equals to `validmessage.Hooks(f(g(h())))`.
 func (c *ValidMessageClient) Use(hooks ...Hook) {
 	c.hooks.ValidMessage = append(c.hooks.ValidMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `validmessage.Intercept(f(g(h())))`.
+func (c *ValidMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ValidMessage = append(c.inters.ValidMessage, interceptors...)
 }
 
 // Create returns a builder for creating a ValidMessage entity.
@@ -2393,7 +3345,7 @@ func (c *ValidMessageClient) DeleteOne(vm *ValidMessage) *ValidMessageDeleteOne 
 	return c.DeleteOneID(vm.ID)
 }
 
-// DeleteOne returns a builder for deleting the given entity by its id.
+// DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *ValidMessageClient) DeleteOneID(id int) *ValidMessageDeleteOne {
 	builder := c.Delete().Where(validmessage.ID(id))
 	builder.mutation.id = &id
@@ -2405,6 +3357,8 @@ func (c *ValidMessageClient) DeleteOneID(id int) *ValidMessageDeleteOne {
 func (c *ValidMessageClient) Query() *ValidMessageQuery {
 	return &ValidMessageQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeValidMessage},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -2426,3 +3380,43 @@ func (c *ValidMessageClient) GetX(ctx context.Context, id int) *ValidMessage {
 func (c *ValidMessageClient) Hooks() []Hook {
 	return c.hooks.ValidMessage
 }
+
+// Interceptors returns the client interceptors.
+func (c *ValidMessageClient) Interceptors() []Interceptor {
+	return c.inters.ValidMessage
+}
+
+func (c *ValidMessageClient) mutate(ctx context.Context, m *ValidMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ValidMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ValidMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ValidMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ValidMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ValidMessage mutation op: %q", m.Op())
+	}
+}
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
+		EnumWithConflictingValue, ExplicitSkippedMessage, Image,
+		ImplicitSkippedMessage, InvalidFieldMessage, MessageWithEnum,
+		MessageWithFieldOne, MessageWithID, MessageWithInts, MessageWithOptionals,
+		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
+		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Hook
+	}
+	inters struct {
+		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
+		EnumWithConflictingValue, ExplicitSkippedMessage, Image,
+		ImplicitSkippedMessage, InvalidFieldMessage, MessageWithEnum,
+		MessageWithFieldOne, MessageWithID, MessageWithInts, MessageWithOptionals,
+		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
+		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Interceptor
+	}
+)

@@ -330,29 +330,29 @@ message User {
 
 Field type mappings:
 
-| Ent Type    | Proto Type                | More considerations                                                                                                                                                         |
-| ----------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TypeBool    | bool                      |
-| TypeTime    | google.protobuf.Timestamp |
-| TypeJSON    | X                         |
-| TypeUUID    | bytes                     | When receiving an arbitrary byte slice as input, 16-byte length must be validated                                                                                           |
-| TypeBytes   | bytes                     |
-| TypeEnum    | Enum                      | Proto enums like proto fields require stable numbers to be assigned to each value. Therefore we will need to add an extra annotation to map from field value to tag number. |
-| TypeString  | string                    |
-| TypeOther   | X                         |
-| TypeInt8    | int32                     |
-| TypeInt16   | int32                     |
-| TypeInt32   | int32                     |
-| TypeInt     | int32                     |
-| TypeInt64   | int64                     |
-| TypeUint8   | uint32                    |
-| TypeUint16  | uint32                    |
-| TypeUint32  | uint32                    |
-| TypeUint    | uint32                    |
-| TypeUint64  | uint64                    |
-| TypeFloat32 | float                     |
-| TypeFloat64 | double                    |
-|             |
+| Ent Type       | Proto Type                | More considerations                                                                                                                                                         |
+|----------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| TypeBool       | bool                      |                                                                                                                                                                             |
+| TypeTime       | google.protobuf.Timestamp |                                                                                                                                                                             |
+| TypeJSON\[[]T] | repeated T                | T must be one of: `string`, `int32`, `int64`, `uint32`, `uint64`                                                                                                            |
+| TypeUUID       | bytes                     | When receiving an arbitrary byte slice as input, 16-byte length must be validated                                                                                           |
+| TypeBytes      | bytes                     |                                                                                                                                                                             |
+| TypeEnum       | Enum                      | Proto enums like proto fields require stable numbers to be assigned to each value. Therefore we will need to add an extra annotation to map from field value to tag number. |
+| TypeString     | string                    |                                                                                                                                                                             |
+| TypeOther      | X                         |                                                                                                                                                                             |
+| TypeInt8       | int32                     |                                                                                                                                                                             |
+| TypeInt16      | int32                     |                                                                                                                                                                             |
+| TypeInt32      | int32                     |                                                                                                                                                                             |
+| TypeInt        | int32                     |                                                                                                                                                                             |
+| TypeInt64      | int64                     |                                                                                                                                                                             |
+| TypeUint8      | uint32                    |                                                                                                                                                                             |
+| TypeUint16     | uint32                    |                                                                                                                                                                             |
+| TypeUint32     | uint32                    |                                                                                                                                                                             |
+| TypeUint       | uint32                    |                                                                                                                                                                             |
+| TypeUint64     | uint64                    |                                                                                                                                                                             |
+| TypeFloat32    | float                     |                                                                                                                                                                             |
+| TypeFloat64    | double                    |                                                                                                                                                                             |
+|                |                           |                                                                                                                                                                             |
 
 Validations:
 
@@ -429,6 +429,8 @@ The Proto Style Guide suggests that we use `CAPS_WITH_UNDERSCORES` for value nam
 
 - If no default value is defined for the enum, we generate a `<MessageName>_UNSPECIFIED = 0;` option on the enum and verify that no option received the 0 number in the enproto.Enum Options field.
 - If a default value is defined for the enum, we verify that it receives the 0 value on the Options field.
+
+Ent allows special characters in enum values. For such values, any special character is replaced by an underscore to preserve the `CAPS_WITH_UNDERSCORES` protobuf format.
 
 ## Edges
 

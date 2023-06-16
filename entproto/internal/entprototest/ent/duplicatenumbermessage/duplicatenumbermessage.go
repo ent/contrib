@@ -2,6 +2,10 @@
 
 package duplicatenumbermessage
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the duplicatenumbermessage type in the database.
 	Label = "duplicate_number_message"
@@ -30,4 +34,22 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the DuplicateNumberMessage queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByHello orders the results by the hello field.
+func ByHello(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHello, opts...).ToFunc()
+}
+
+// ByWorld orders the results by the world field.
+func ByWorld(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorld, opts...).ToFunc()
 }

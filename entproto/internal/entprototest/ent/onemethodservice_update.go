@@ -34,34 +34,7 @@ func (omsu *OneMethodServiceUpdate) Mutation() *OneMethodServiceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (omsu *OneMethodServiceUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(omsu.hooks) == 0 {
-		affected, err = omsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OneMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			omsu.mutation = mutation
-			affected, err = omsu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(omsu.hooks) - 1; i >= 0; i-- {
-			if omsu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = omsu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, omsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, OneMethodServiceMutation](ctx, omsu.sqlSave, omsu.mutation, omsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -87,16 +60,7 @@ func (omsu *OneMethodServiceUpdate) ExecX(ctx context.Context) {
 }
 
 func (omsu *OneMethodServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   onemethodservice.Table,
-			Columns: onemethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(onemethodservice.Table, onemethodservice.Columns, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	if ps := omsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -112,6 +76,7 @@ func (omsu *OneMethodServiceUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		return 0, err
 	}
+	omsu.mutation.done = true
 	return n, nil
 }
 
@@ -128,6 +93,12 @@ func (omsuo *OneMethodServiceUpdateOne) Mutation() *OneMethodServiceMutation {
 	return omsuo.mutation
 }
 
+// Where appends a list predicates to the OneMethodServiceUpdate builder.
+func (omsuo *OneMethodServiceUpdateOne) Where(ps ...predicate.OneMethodService) *OneMethodServiceUpdateOne {
+	omsuo.mutation.Where(ps...)
+	return omsuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (omsuo *OneMethodServiceUpdateOne) Select(field string, fields ...string) *OneMethodServiceUpdateOne {
@@ -137,40 +108,7 @@ func (omsuo *OneMethodServiceUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated OneMethodService entity.
 func (omsuo *OneMethodServiceUpdateOne) Save(ctx context.Context) (*OneMethodService, error) {
-	var (
-		err  error
-		node *OneMethodService
-	)
-	if len(omsuo.hooks) == 0 {
-		node, err = omsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*OneMethodServiceMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			omsuo.mutation = mutation
-			node, err = omsuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(omsuo.hooks) - 1; i >= 0; i-- {
-			if omsuo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = omsuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, omsuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*OneMethodService)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from OneMethodServiceMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*OneMethodService, OneMethodServiceMutation](ctx, omsuo.sqlSave, omsuo.mutation, omsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +134,7 @@ func (omsuo *OneMethodServiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (omsuo *OneMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *OneMethodService, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   onemethodservice.Table,
-			Columns: onemethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(onemethodservice.Table, onemethodservice.Columns, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
 	id, ok := omsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "OneMethodService.id" for update`)}
@@ -241,5 +170,6 @@ func (omsuo *OneMethodServiceUpdateOne) sqlSave(ctx context.Context) (_node *One
 		}
 		return nil, err
 	}
+	omsuo.mutation.done = true
 	return _node, nil
 }

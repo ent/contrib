@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ package todo
 import (
 	"context"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
 )
 
@@ -31,14 +32,33 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 	return r.client.Noders(ctx, ids)
 }
 
-func (r *queryResolver) Groups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
+func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, error) {
+	return r.client.BillProduct.Query().All(ctx)
+}
+
+func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
+	return r.client.Category.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithCategoryOrder(orderBy),
+			ent.WithCategoryFilter(where.Filter),
+		)
+}
+
+func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithGroupFilter(where.Filter),
 		)
 }
 
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+func (r *queryResolver) OneToMany(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.OneToManyOrder, where *ent.OneToManyWhereInput) (*ent.OneToManyConnection, error) {
+	return r.client.OneToMany.Query().
+		Paginate(ctx, after, first, before, last,
+			ent.WithOneToManyFilter(where.Filter),
+		)
+}
+
+func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithTodoOrder(orderBy),
@@ -46,18 +66,32 @@ func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int
 		)
 }
 
-func (r *queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	return r.client.User.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithUserFilter(where.Filter),
 		)
 }
 
+// Category returns CategoryResolver implementation.
+func (r *Resolver) Category() CategoryResolver { return &categoryResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+// Todo returns TodoResolver implementation.
+func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
+
+// CreateCategoryInput returns CreateCategoryInputResolver implementation.
+func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
+	return &createCategoryInputResolver{r}
+}
 
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
+type categoryResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type todoResolver struct{ *Resolver }
+type createCategoryInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }

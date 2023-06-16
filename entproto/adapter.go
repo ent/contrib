@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -426,31 +426,30 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 	if err != nil {
 		return nil, err
 	}
-
 	if err := enumAnnotation.Verify(fld); err != nil {
 		return nil, err
 	}
-
 	enumName := pascal(fld.Name)
 	dp := &descriptorpb.EnumDescriptorProto{
 		Name:  strptr(enumName),
 		Value: []*descriptorpb.EnumValueDescriptorProto{},
 	}
-
 	if !fld.Default {
 		dp.Value = append(dp.Value, &descriptorpb.EnumValueDescriptorProto{
 			Number: int32ptr(0),
 			Name:   strptr(strings.ToUpper(snake(fld.Name)) + "_UNSPECIFIED"),
 		})
 	}
-
 	for _, opt := range fld.Enums {
+		n := strings.ToUpper(snake(NormalizeEnumIdentifier(opt.Value)))
+		if !enumAnnotation.OmitFieldPrefix {
+			n = strings.ToUpper(snake(fld.Name)) + "_" + n
+		}
 		dp.Value = append(dp.Value, &descriptorpb.EnumValueDescriptorProto{
 			Number: int32ptr(enumAnnotation.Options[opt.Value]),
-			Name:   strptr(strings.ToUpper(snake(opt.Value))),
+			Name:   strptr(n),
 		})
 	}
-
 	return dp, nil
 }
 
@@ -516,9 +515,30 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 }
 
 func extractJSONDetails(f *gen.Field) (fieldType, error) {
-	if f.Type.Ident == "[]string" {
+	switch f.Type.Ident {
+	case "[]string":
 		return fieldType{
 			protoType: descriptorpb.FieldDescriptorProto_TYPE_STRING,
+			repeated:  true,
+		}, nil
+	case "[]int32":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_INT32,
+			repeated:  true,
+		}, nil
+	case "[]int64":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			repeated:  true,
+		}, nil
+	case "[]uint32":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT32,
+			repeated:  true,
+		}, nil
+	case "[]uint64":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT64,
 			repeated:  true,
 		}, nil
 	}

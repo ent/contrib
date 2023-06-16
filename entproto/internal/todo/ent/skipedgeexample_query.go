@@ -18,11 +18,9 @@ import (
 // SkipEdgeExampleQuery is the builder for querying SkipEdgeExample entities.
 type SkipEdgeExampleQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []skipedgeexample.OrderOption
+	inters     []Interceptor
 	predicates []predicate.SkipEdgeExample
 	withUser   *UserQuery
 	withFKs    bool
@@ -37,34 +35,34 @@ func (seeq *SkipEdgeExampleQuery) Where(ps ...predicate.SkipEdgeExample) *SkipEd
 	return seeq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (seeq *SkipEdgeExampleQuery) Limit(limit int) *SkipEdgeExampleQuery {
-	seeq.limit = &limit
+	seeq.ctx.Limit = &limit
 	return seeq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (seeq *SkipEdgeExampleQuery) Offset(offset int) *SkipEdgeExampleQuery {
-	seeq.offset = &offset
+	seeq.ctx.Offset = &offset
 	return seeq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (seeq *SkipEdgeExampleQuery) Unique(unique bool) *SkipEdgeExampleQuery {
-	seeq.unique = &unique
+	seeq.ctx.Unique = &unique
 	return seeq
 }
 
-// Order adds an order step to the query.
-func (seeq *SkipEdgeExampleQuery) Order(o ...OrderFunc) *SkipEdgeExampleQuery {
+// Order specifies how the records should be ordered.
+func (seeq *SkipEdgeExampleQuery) Order(o ...skipedgeexample.OrderOption) *SkipEdgeExampleQuery {
 	seeq.order = append(seeq.order, o...)
 	return seeq
 }
 
 // QueryUser chains the current query on the "user" edge.
 func (seeq *SkipEdgeExampleQuery) QueryUser() *UserQuery {
-	query := &UserQuery{config: seeq.config}
+	query := (&UserClient{config: seeq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := seeq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -87,7 +85,7 @@ func (seeq *SkipEdgeExampleQuery) QueryUser() *UserQuery {
 // First returns the first SkipEdgeExample entity from the query.
 // Returns a *NotFoundError when no SkipEdgeExample was found.
 func (seeq *SkipEdgeExampleQuery) First(ctx context.Context) (*SkipEdgeExample, error) {
-	nodes, err := seeq.Limit(1).All(ctx)
+	nodes, err := seeq.Limit(1).All(setContextOp(ctx, seeq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +108,7 @@ func (seeq *SkipEdgeExampleQuery) FirstX(ctx context.Context) *SkipEdgeExample {
 // Returns a *NotFoundError when no SkipEdgeExample ID was found.
 func (seeq *SkipEdgeExampleQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = seeq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = seeq.Limit(1).IDs(setContextOp(ctx, seeq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -133,7 +131,7 @@ func (seeq *SkipEdgeExampleQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one SkipEdgeExample entity is found.
 // Returns a *NotFoundError when no SkipEdgeExample entities are found.
 func (seeq *SkipEdgeExampleQuery) Only(ctx context.Context) (*SkipEdgeExample, error) {
-	nodes, err := seeq.Limit(2).All(ctx)
+	nodes, err := seeq.Limit(2).All(setContextOp(ctx, seeq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +159,7 @@ func (seeq *SkipEdgeExampleQuery) OnlyX(ctx context.Context) *SkipEdgeExample {
 // Returns a *NotFoundError when no entities are found.
 func (seeq *SkipEdgeExampleQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = seeq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = seeq.Limit(2).IDs(setContextOp(ctx, seeq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -186,10 +184,12 @@ func (seeq *SkipEdgeExampleQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of SkipEdgeExamples.
 func (seeq *SkipEdgeExampleQuery) All(ctx context.Context) ([]*SkipEdgeExample, error) {
+	ctx = setContextOp(ctx, seeq.ctx, "All")
 	if err := seeq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return seeq.sqlAll(ctx)
+	qr := querierAll[[]*SkipEdgeExample, *SkipEdgeExampleQuery]()
+	return withInterceptors[[]*SkipEdgeExample](ctx, seeq, qr, seeq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -202,9 +202,12 @@ func (seeq *SkipEdgeExampleQuery) AllX(ctx context.Context) []*SkipEdgeExample {
 }
 
 // IDs executes the query and returns a list of SkipEdgeExample IDs.
-func (seeq *SkipEdgeExampleQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := seeq.Select(skipedgeexample.FieldID).Scan(ctx, &ids); err != nil {
+func (seeq *SkipEdgeExampleQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if seeq.ctx.Unique == nil && seeq.path != nil {
+		seeq.Unique(true)
+	}
+	ctx = setContextOp(ctx, seeq.ctx, "IDs")
+	if err = seeq.Select(skipedgeexample.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -221,10 +224,11 @@ func (seeq *SkipEdgeExampleQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (seeq *SkipEdgeExampleQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, seeq.ctx, "Count")
 	if err := seeq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return seeq.sqlCount(ctx)
+	return withInterceptors[int](ctx, seeq, querierCount[*SkipEdgeExampleQuery](), seeq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -238,10 +242,15 @@ func (seeq *SkipEdgeExampleQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (seeq *SkipEdgeExampleQuery) Exist(ctx context.Context) (bool, error) {
-	if err := seeq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, seeq.ctx, "Exist")
+	switch _, err := seeq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return seeq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -261,22 +270,21 @@ func (seeq *SkipEdgeExampleQuery) Clone() *SkipEdgeExampleQuery {
 	}
 	return &SkipEdgeExampleQuery{
 		config:     seeq.config,
-		limit:      seeq.limit,
-		offset:     seeq.offset,
-		order:      append([]OrderFunc{}, seeq.order...),
+		ctx:        seeq.ctx.Clone(),
+		order:      append([]skipedgeexample.OrderOption{}, seeq.order...),
+		inters:     append([]Interceptor{}, seeq.inters...),
 		predicates: append([]predicate.SkipEdgeExample{}, seeq.predicates...),
 		withUser:   seeq.withUser.Clone(),
 		// clone intermediate query.
-		sql:    seeq.sql.Clone(),
-		path:   seeq.path,
-		unique: seeq.unique,
+		sql:  seeq.sql.Clone(),
+		path: seeq.path,
 	}
 }
 
 // WithUser tells the query-builder to eager-load the nodes that are connected to
 // the "user" edge. The optional arguments are used to configure the query builder of the edge.
 func (seeq *SkipEdgeExampleQuery) WithUser(opts ...func(*UserQuery)) *SkipEdgeExampleQuery {
-	query := &UserQuery{config: seeq.config}
+	query := (&UserClient{config: seeq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -287,31 +295,41 @@ func (seeq *SkipEdgeExampleQuery) WithUser(opts ...func(*UserQuery)) *SkipEdgeEx
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 func (seeq *SkipEdgeExampleQuery) GroupBy(field string, fields ...string) *SkipEdgeExampleGroupBy {
-	grbuild := &SkipEdgeExampleGroupBy{config: seeq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := seeq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return seeq.sqlQuery(ctx), nil
-	}
+	seeq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &SkipEdgeExampleGroupBy{build: seeq}
+	grbuild.flds = &seeq.ctx.Fields
 	grbuild.label = skipedgeexample.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
 func (seeq *SkipEdgeExampleQuery) Select(fields ...string) *SkipEdgeExampleSelect {
-	seeq.fields = append(seeq.fields, fields...)
-	selbuild := &SkipEdgeExampleSelect{SkipEdgeExampleQuery: seeq}
-	selbuild.label = skipedgeexample.Label
-	selbuild.flds, selbuild.scan = &seeq.fields, selbuild.Scan
-	return selbuild
+	seeq.ctx.Fields = append(seeq.ctx.Fields, fields...)
+	sbuild := &SkipEdgeExampleSelect{SkipEdgeExampleQuery: seeq}
+	sbuild.label = skipedgeexample.Label
+	sbuild.flds, sbuild.scan = &seeq.ctx.Fields, sbuild.Scan
+	return sbuild
+}
+
+// Aggregate returns a SkipEdgeExampleSelect configured with the given aggregations.
+func (seeq *SkipEdgeExampleQuery) Aggregate(fns ...AggregateFunc) *SkipEdgeExampleSelect {
+	return seeq.Select().Aggregate(fns...)
 }
 
 func (seeq *SkipEdgeExampleQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range seeq.fields {
+	for _, inter := range seeq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, seeq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range seeq.ctx.Fields {
 		if !skipedgeexample.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -369,8 +387,8 @@ func (seeq *SkipEdgeExampleQuery) sqlAll(ctx context.Context, hooks ...queryHook
 }
 
 func (seeq *SkipEdgeExampleQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*SkipEdgeExample, init func(*SkipEdgeExample), assign func(*SkipEdgeExample, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*SkipEdgeExample)
+	ids := make([]uint32, 0, len(nodes))
+	nodeids := make(map[uint32][]*SkipEdgeExample)
 	for i := range nodes {
 		if nodes[i].user_skip_edge == nil {
 			continue
@@ -380,6 +398,9 @@ func (seeq *SkipEdgeExampleQuery) loadUser(ctx context.Context, query *UserQuery
 			ids = append(ids, fk)
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
 	}
 	query.Where(user.IDIn(ids...))
 	neighbors, err := query.All(ctx)
@@ -400,41 +421,22 @@ func (seeq *SkipEdgeExampleQuery) loadUser(ctx context.Context, query *UserQuery
 
 func (seeq *SkipEdgeExampleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := seeq.querySpec()
-	_spec.Node.Columns = seeq.fields
-	if len(seeq.fields) > 0 {
-		_spec.Unique = seeq.unique != nil && *seeq.unique
+	_spec.Node.Columns = seeq.ctx.Fields
+	if len(seeq.ctx.Fields) > 0 {
+		_spec.Unique = seeq.ctx.Unique != nil && *seeq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, seeq.driver, _spec)
 }
 
-func (seeq *SkipEdgeExampleQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := seeq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (seeq *SkipEdgeExampleQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   skipedgeexample.Table,
-			Columns: skipedgeexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: skipedgeexample.FieldID,
-			},
-		},
-		From:   seeq.sql,
-		Unique: true,
-	}
-	if unique := seeq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(skipedgeexample.Table, skipedgeexample.Columns, sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt))
+	_spec.From = seeq.sql
+	if unique := seeq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if seeq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := seeq.fields; len(fields) > 0 {
+	if fields := seeq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, skipedgeexample.FieldID)
 		for i := range fields {
@@ -450,10 +452,10 @@ func (seeq *SkipEdgeExampleQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := seeq.limit; limit != nil {
+	if limit := seeq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := seeq.offset; offset != nil {
+	if offset := seeq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := seeq.order; len(ps) > 0 {
@@ -469,7 +471,7 @@ func (seeq *SkipEdgeExampleQuery) querySpec() *sqlgraph.QuerySpec {
 func (seeq *SkipEdgeExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(seeq.driver.Dialect())
 	t1 := builder.Table(skipedgeexample.Table)
-	columns := seeq.fields
+	columns := seeq.ctx.Fields
 	if len(columns) == 0 {
 		columns = skipedgeexample.Columns
 	}
@@ -478,7 +480,7 @@ func (seeq *SkipEdgeExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = seeq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if seeq.unique != nil && *seeq.unique {
+	if seeq.ctx.Unique != nil && *seeq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range seeq.predicates {
@@ -487,12 +489,12 @@ func (seeq *SkipEdgeExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range seeq.order {
 		p(selector)
 	}
-	if offset := seeq.offset; offset != nil {
+	if offset := seeq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := seeq.limit; limit != nil {
+	if limit := seeq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -500,13 +502,8 @@ func (seeq *SkipEdgeExampleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // SkipEdgeExampleGroupBy is the group-by builder for SkipEdgeExample entities.
 type SkipEdgeExampleGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *SkipEdgeExampleQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -515,74 +512,77 @@ func (seegb *SkipEdgeExampleGroupBy) Aggregate(fns ...AggregateFunc) *SkipEdgeEx
 	return seegb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (seegb *SkipEdgeExampleGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := seegb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, seegb.build.ctx, "GroupBy")
+	if err := seegb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	seegb.sql = query
-	return seegb.sqlScan(ctx, v)
+	return scanWithInterceptors[*SkipEdgeExampleQuery, *SkipEdgeExampleGroupBy](ctx, seegb.build, seegb, seegb.build.inters, v)
 }
 
-func (seegb *SkipEdgeExampleGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range seegb.fields {
-		if !skipedgeexample.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (seegb *SkipEdgeExampleGroupBy) sqlScan(ctx context.Context, root *SkipEdgeExampleQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(seegb.fns))
+	for _, fn := range seegb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := seegb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*seegb.flds)+len(seegb.fns))
+		for _, f := range *seegb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*seegb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := seegb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := seegb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (seegb *SkipEdgeExampleGroupBy) sqlQuery() *sql.Selector {
-	selector := seegb.sql.Select()
-	aggregation := make([]string, 0, len(seegb.fns))
-	for _, fn := range seegb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	// If no columns were selected in a custom aggregation function, the default
-	// selection is the fields used for "group-by", and the aggregation functions.
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(seegb.fields)+len(seegb.fns))
-		for _, f := range seegb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(seegb.fields...)...)
-}
-
 // SkipEdgeExampleSelect is the builder for selecting fields of SkipEdgeExample entities.
 type SkipEdgeExampleSelect struct {
 	*SkipEdgeExampleQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
+}
+
+// Aggregate adds the given aggregation functions to the selector query.
+func (sees *SkipEdgeExampleSelect) Aggregate(fns ...AggregateFunc) *SkipEdgeExampleSelect {
+	sees.fns = append(sees.fns, fns...)
+	return sees
 }
 
 // Scan applies the selector query and scans the result into the given value.
 func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, sees.ctx, "Select")
 	if err := sees.prepareQuery(ctx); err != nil {
 		return err
 	}
-	sees.sql = sees.SkipEdgeExampleQuery.sqlQuery(ctx)
-	return sees.sqlScan(ctx, v)
+	return scanWithInterceptors[*SkipEdgeExampleQuery, *SkipEdgeExampleSelect](ctx, sees.SkipEdgeExampleQuery, sees, sees.inters, v)
 }
 
-func (sees *SkipEdgeExampleSelect) sqlScan(ctx context.Context, v any) error {
+func (sees *SkipEdgeExampleSelect) sqlScan(ctx context.Context, root *SkipEdgeExampleQuery, v any) error {
+	selector := root.sqlQuery(ctx)
+	aggregation := make([]string, 0, len(sees.fns))
+	for _, fn := range sees.fns {
+		aggregation = append(aggregation, fn(selector))
+	}
+	switch n := len(*sees.selector.flds); {
+	case n == 0 && len(aggregation) > 0:
+		selector.Select(aggregation...)
+	case n != 0 && len(aggregation) > 0:
+		selector.AppendSelect(aggregation...)
+	}
 	rows := &sql.Rows{}
-	query, args := sees.sql.Query()
+	query, args := selector.Query()
 	if err := sees.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
