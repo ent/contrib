@@ -271,7 +271,7 @@ func (e *schemaGenerator) mayAddScalars(s *ast.Schema, def *ast.Definition) {
 	}
 	for _, f := range def.Fields {
 		switch name := f.Type.Name(); name {
-		case "Time", "Map", "Upload", "Any", "Int32", "Uint", "Uint32", "Uint64":
+		case "Time", "Map", "Upload", "Int32", "Uint", "Uint32", "Uint64":
 			// Skip adding it if it was added before, or it exists in other schemas.
 			if s.Types[name] == nil && e.externalType(name) {
 				break
