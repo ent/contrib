@@ -97,13 +97,17 @@ const (
 	// If defined on a field, the type will be generated without the field.
 	SkipMutationUpdateInput
 
+	// SkipTypeWithoutFields skips generating GraphQL types schema (but we still generate fields/edges for this type).
+	SkipTypeWithoutFields
+
 	// SkipAll is default mode to skip all.
 	SkipAll = SkipType |
 		SkipEnumField |
 		SkipOrderField |
 		SkipWhereInput |
 		SkipMutationCreateInput |
-		SkipMutationUpdateInput
+		SkipMutationUpdateInput |
+		SkipTypeWithoutFields
 )
 
 // Name implements ent.Annotation interface.
