@@ -147,7 +147,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 		}
 		names := paginationNames(gqlType)
 
-		if e.genSchema && !ant.Skip.Is(SkipType) {
+		if e.genSchema && !ant.Skip.Is(SkipType) && !ant.Skip.Is(SkipTypeWithoutFields) {
 			def, err := e.buildType(node, ant, gqlType, g.Package)
 			if err != nil {
 				return err
