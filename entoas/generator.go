@@ -705,6 +705,13 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		}
 	}
 	for _, e := range n.Edges {
+		a, err := EdgeOperations(e)
+		if err != nil {
+			return nil, err
+		}
+		if !contains(a, op) {
+			continue
+		}
 		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err
