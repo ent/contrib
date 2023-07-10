@@ -44,7 +44,7 @@ func Field(desc *field.Descriptor) (*ast.CallExpr, error) {
 					Sel: ast.NewIdent("UUID"),
 				},
 			))
-	case t == field.TypeJSON:
+	case t == field.TypeJSON, t == field.TypeOther:
 		expr := "struct{}{}"
 		if desc.Info != nil && desc.Info.RType != nil {
 			expr = desc.Info.RType.Ident + "{}"
