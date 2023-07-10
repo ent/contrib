@@ -15,6 +15,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ogen-go/ogen v0.56.1
 	github.com/oklog/ulid/v2 v2.0.2
+	github.com/paulmach/orb v0.9.2
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.8.2
 	github.com/vektah/gqlparser/v2 v2.4.3-0.20220508162109-d3d9eb001575
