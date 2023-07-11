@@ -1202,55 +1202,7 @@
           "name"
         ]
       },
-      "Category_PetsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
       "Category_PetsList": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "Category_PetsUpdate": {
         "type": "object",
         "properties": {
           "id": {
@@ -1427,21 +1379,6 @@
           "name"
         ]
       },
-      "Pet_CategoriesCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
       "Pet_CategoriesList": {
         "type": "object",
         "properties": {
@@ -1450,45 +1387,6 @@
           },
           "name": {
             "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "Pet_CategoriesUpdate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "Pet_FriendsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
           }
         },
         "required": [
@@ -1520,45 +1418,7 @@
           "name"
         ]
       },
-      "Pet_OwnerCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "age"
-        ]
-      },
       "Pet_OwnerRead": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "age"
-        ]
-      },
-      "Pet_OwnerUpdate": {
         "type": "object",
         "properties": {
           "id": {
@@ -1678,55 +1538,7 @@
           "age"
         ]
       },
-      "User_PetsCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
       "User_PetsList": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "nicknames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "age": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "User_PetsUpdate": {
         "type": "object",
         "properties": {
           "id": {
