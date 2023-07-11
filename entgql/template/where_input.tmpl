@@ -20,7 +20,7 @@ import (
     "{{ $.Config.Package }}/predicate"
 	{{- range $n := $gqlNodes }}
         {{- template "import/types" $n }}
-		"{{ $.Config.Package }}/{{ $n.Package }}"
+        {{ $n.PackageAlias }} "{{ $n.Config.Package }}/{{ $n.PackageDir }}"
 	{{- end }}
 )
 {{ template "import" $ }}
