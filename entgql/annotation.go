@@ -51,6 +51,10 @@ type (
 		QueryField *FieldConfig `json:"QueryField,omitempty"`
 		// MutationInputs defines the input types for the mutation.
 		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
+
+
+		CreateInputType string `json:"CreateInputType,omitempty"`
+		UpdateInputType string `json:"UpdateInputType,omitempty"`
 	}
 
 	// Directive to apply on the field/type.
