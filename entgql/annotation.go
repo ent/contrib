@@ -465,6 +465,12 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	if ant.Type != "" {
 		a.Type = ant.Type
 	}
+	if ant.CreateInputType != "" {
+		a.CreateInputType = ant.CreateInputType
+	}
+	if ant.UpdateInputType != "" {
+		a.UpdateInputType = ant.UpdateInputType
+	}
 	if ant.Skip.Any() {
 		a.Skip |= ant.Skip
 	}
