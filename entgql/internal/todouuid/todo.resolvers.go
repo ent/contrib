@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todouuid/ent"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"github.com/google/uuid"
@@ -58,6 +59,10 @@ func (r *mutationResolver) UpdateFriendship(ctx context.Context, id uuid.UUID, i
 }
 
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) TodosWithJoins(ctx context.Context, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

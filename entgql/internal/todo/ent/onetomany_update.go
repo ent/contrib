@@ -31,8 +31,9 @@ import (
 // OneToManyUpdate is the builder for updating OneToMany entities.
 type OneToManyUpdate struct {
 	config
-	hooks    []Hook
-	mutation *OneToManyMutation
+	hooks     []Hook
+	mutation  *OneToManyMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the OneToManyUpdate builder.
@@ -176,6 +177,12 @@ func (otmu *OneToManyUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (otmu *OneToManyUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *OneToManyUpdate {
+	otmu.modifiers = append(otmu.modifiers, modifiers...)
+	return otmu
+}
+
 func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := otmu.check(); err != nil {
 		return n, err
@@ -271,6 +278,7 @@ func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(otmu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, otmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{onetomany.Label}
@@ -286,9 +294,10 @@ func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // OneToManyUpdateOne is the builder for updating a single OneToMany entity.
 type OneToManyUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *OneToManyMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *OneToManyMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -439,6 +448,12 @@ func (otmuo *OneToManyUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (otmuo *OneToManyUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *OneToManyUpdateOne {
+	otmuo.modifiers = append(otmuo.modifiers, modifiers...)
+	return otmuo
+}
+
 func (otmuo *OneToManyUpdateOne) sqlSave(ctx context.Context) (_node *OneToMany, err error) {
 	if err := otmuo.check(); err != nil {
 		return _node, err
@@ -551,6 +566,7 @@ func (otmuo *OneToManyUpdateOne) sqlSave(ctx context.Context) (_node *OneToMany,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(otmuo.modifiers...)
 	_node = &OneToMany{config: otmuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

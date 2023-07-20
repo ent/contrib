@@ -33,8 +33,9 @@ import (
 // FriendshipUpdate is the builder for updating Friendship entities.
 type FriendshipUpdate struct {
 	config
-	hooks    []Hook
-	mutation *FriendshipMutation
+	hooks     []Hook
+	mutation  *FriendshipMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the FriendshipUpdate builder.
@@ -134,6 +135,12 @@ func (fu *FriendshipUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (fu *FriendshipUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *FriendshipUpdate {
+	fu.modifiers = append(fu.modifiers, modifiers...)
+	return fu
+}
+
 func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := fu.check(); err != nil {
 		return n, err
@@ -207,6 +214,7 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(fu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{friendship.Label}
@@ -222,9 +230,10 @@ func (fu *FriendshipUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FriendshipUpdateOne is the builder for updating a single Friendship entity.
 type FriendshipUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *FriendshipMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *FriendshipMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -331,6 +340,12 @@ func (fuo *FriendshipUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (fuo *FriendshipUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *FriendshipUpdateOne {
+	fuo.modifiers = append(fuo.modifiers, modifiers...)
+	return fuo
+}
+
 func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship, err error) {
 	if err := fuo.check(); err != nil {
 		return _node, err
@@ -421,6 +436,7 @@ func (fuo *FriendshipUpdateOne) sqlSave(ctx context.Context) (_node *Friendship,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(fuo.modifiers...)
 	_node = &Friendship{config: fuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

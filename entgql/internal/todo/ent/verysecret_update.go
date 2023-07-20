@@ -31,8 +31,9 @@ import (
 // VerySecretUpdate is the builder for updating VerySecret entities.
 type VerySecretUpdate struct {
 	config
-	hooks    []Hook
-	mutation *VerySecretMutation
+	hooks     []Hook
+	mutation  *VerySecretMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the VerySecretUpdate builder.
@@ -79,6 +80,12 @@ func (vsu *VerySecretUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (vsu *VerySecretUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *VerySecretUpdate {
+	vsu.modifiers = append(vsu.modifiers, modifiers...)
+	return vsu
+}
+
 func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeInt))
 	if ps := vsu.mutation.predicates; len(ps) > 0 {
@@ -91,6 +98,7 @@ func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := vsu.mutation.Password(); ok {
 		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 	}
+	_spec.AddModifiers(vsu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, vsu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{verysecret.Label}
@@ -106,9 +114,10 @@ func (vsu *VerySecretUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // VerySecretUpdateOne is the builder for updating a single VerySecret entity.
 type VerySecretUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *VerySecretMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *VerySecretMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetPassword sets the "password" field.
@@ -162,6 +171,12 @@ func (vsuo *VerySecretUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (vsuo *VerySecretUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *VerySecretUpdateOne {
+	vsuo.modifiers = append(vsuo.modifiers, modifiers...)
+	return vsuo
+}
+
 func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret, err error) {
 	_spec := sqlgraph.NewUpdateSpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeInt))
 	id, ok := vsuo.mutation.ID()
@@ -191,6 +206,7 @@ func (vsuo *VerySecretUpdateOne) sqlSave(ctx context.Context) (_node *VerySecret
 	if value, ok := vsuo.mutation.Password(); ok {
 		_spec.SetField(verysecret.FieldPassword, field.TypeString, value)
 	}
+	_spec.AddModifiers(vsuo.modifiers...)
 	_node = &VerySecret{config: vsuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

@@ -43,8 +43,8 @@ type TodoQuery struct {
 	withCategory      *CategoryQuery
 	withSecret        *VerySecretQuery
 	withFKs           bool
-	modifiers         []func(*sql.Selector)
 	loadTotal         []func(context.Context, []*Todo) error
+	modifiers         []func(*sql.Selector)
 	withNamedChildren map[string]*TodoQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -764,6 +764,9 @@ func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if tq.ctx.Unique != nil && *tq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range tq.modifiers {
+		m(selector)
+	}
 	for _, p := range tq.predicates {
 		p(selector)
 	}
@@ -779,6 +782,12 @@ func (tq *TodoQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (tq *TodoQuery) Modify(modifiers ...func(s *sql.Selector)) *TodoSelect {
+	tq.modifiers = append(tq.modifiers, modifiers...)
+	return tq.Select()
 }
 
 // WithNamedChildren tells the query-builder to eager-load the nodes that are connected to the "children"
@@ -883,4 +892,10 @@ func (ts *TodoSelect) sqlScan(ctx context.Context, root *TodoQuery, v any) error
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ts *TodoSelect) Modify(modifiers ...func(s *sql.Selector)) *TodoSelect {
+	ts.modifiers = append(ts.modifiers, modifiers...)
+	return ts
 }

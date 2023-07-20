@@ -35,8 +35,8 @@ type BillProductQuery struct {
 	order      []billproduct.OrderOption
 	inters     []Interceptor
 	predicates []predicate.BillProduct
-	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*BillProduct) error
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -445,6 +445,9 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if bpq.ctx.Unique != nil && *bpq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range bpq.modifiers {
+		m(selector)
+	}
 	for _, p := range bpq.predicates {
 		p(selector)
 	}
@@ -460,6 +463,12 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (bpq *BillProductQuery) Modify(modifiers ...func(s *sql.Selector)) *BillProductSelect {
+	bpq.modifiers = append(bpq.modifiers, modifiers...)
+	return bpq.Select()
 }
 
 // BillProductGroupBy is the group-by builder for BillProduct entities.
@@ -550,4 +559,10 @@ func (bps *BillProductSelect) sqlScan(ctx context.Context, root *BillProductQuer
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (bps *BillProductSelect) Modify(modifiers ...func(s *sql.Selector)) *BillProductSelect {
+	bps.modifiers = append(bps.modifiers, modifiers...)
+	return bps
 }

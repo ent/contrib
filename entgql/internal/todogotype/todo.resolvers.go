@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent"
 )
 
@@ -49,6 +50,10 @@ func (r *mutationResolver) UpdateFriendship(ctx context.Context, id string, inpu
 }
 
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) TodosWithJoins(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
