@@ -35,8 +35,9 @@ import (
 // CategoryUpdate is the builder for updating Category entities.
 type CategoryUpdate struct {
 	config
-	hooks    []Hook
-	mutation *CategoryMutation
+	hooks     []Hook
+	mutation  *CategoryMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the CategoryUpdate builder.
@@ -272,6 +273,12 @@ func (cu *CategoryUpdate) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (cu *CategoryUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *CategoryUpdate {
+	cu.modifiers = append(cu.modifiers, modifiers...)
+	return cu
+}
+
 func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := cu.check(); err != nil {
 		return n, err
@@ -421,6 +428,7 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(cu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{category.Label}
@@ -436,9 +444,10 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // CategoryUpdateOne is the builder for updating a single Category entity.
 type CategoryUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *CategoryMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *CategoryMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetText sets the "text" field.
@@ -681,6 +690,12 @@ func (cuo *CategoryUpdateOne) check() error {
 	return nil
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (cuo *CategoryUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *CategoryUpdateOne {
+	cuo.modifiers = append(cuo.modifiers, modifiers...)
+	return cuo
+}
+
 func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err error) {
 	if err := cuo.check(); err != nil {
 		return _node, err
@@ -847,6 +862,7 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(cuo.modifiers...)
 	_node = &Category{config: cuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

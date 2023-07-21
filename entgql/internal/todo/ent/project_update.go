@@ -32,8 +32,9 @@ import (
 // ProjectUpdate is the builder for updating Project entities.
 type ProjectUpdate struct {
 	config
-	hooks    []Hook
-	mutation *ProjectMutation
+	hooks     []Hook
+	mutation  *ProjectMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -110,6 +111,12 @@ func (pu *ProjectUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (pu *ProjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ProjectUpdate {
+	pu.modifiers = append(pu.modifiers, modifiers...)
+	return pu
+}
+
 func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
@@ -164,6 +171,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(pu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{project.Label}
@@ -179,9 +187,10 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ProjectUpdateOne is the builder for updating a single Project entity.
 type ProjectUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *ProjectMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *ProjectMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
@@ -265,6 +274,12 @@ func (puo *ProjectUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (puo *ProjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ProjectUpdateOne {
+	puo.modifiers = append(puo.modifiers, modifiers...)
+	return puo
+}
+
 func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err error) {
 	_spec := sqlgraph.NewUpdateSpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
@@ -336,6 +351,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(puo.modifiers...)
 	_node = &Project{config: puo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

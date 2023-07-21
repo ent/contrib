@@ -23,7 +23,7 @@ import (
 )
 
 func (c *Category) Todos(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
 		WithTodoOrder(orderBy),
@@ -122,7 +122,7 @@ func (otm *OneToMany) Children(ctx context.Context) (result []*OneToMany, err er
 }
 
 func (pr *Project) Todos(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
 		WithTodoOrder(orderBy),
@@ -151,7 +151,7 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 }
 
 func (t *Todo) Children(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
 		WithTodoOrder(orderBy),

@@ -38,8 +38,8 @@ type ProjectQuery struct {
 	inters         []Interceptor
 	predicates     []predicate.Project
 	withTodos      *TodoQuery
-	modifiers      []func(*sql.Selector)
 	loadTotal      []func(context.Context, []*Project) error
+	modifiers      []func(*sql.Selector)
 	withNamedTodos map[string]*TodoQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -511,6 +511,9 @@ func (pq *ProjectQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if pq.ctx.Unique != nil && *pq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range pq.modifiers {
+		m(selector)
+	}
 	for _, p := range pq.predicates {
 		p(selector)
 	}
@@ -526,6 +529,12 @@ func (pq *ProjectQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (pq *ProjectQuery) Modify(modifiers ...func(s *sql.Selector)) *ProjectSelect {
+	pq.modifiers = append(pq.modifiers, modifiers...)
+	return pq.Select()
 }
 
 // WithNamedTodos tells the query-builder to eager-load the nodes that are connected to the "todos"
@@ -630,4 +639,10 @@ func (ps *ProjectSelect) sqlScan(ctx context.Context, root *ProjectQuery, v any)
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ps *ProjectSelect) Modify(modifiers ...func(s *sql.Selector)) *ProjectSelect {
+	ps.modifiers = append(ps.modifiers, modifiers...)
+	return ps
 }

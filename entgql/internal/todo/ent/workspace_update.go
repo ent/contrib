@@ -31,8 +31,9 @@ import (
 // WorkspaceUpdate is the builder for updating Workspace entities.
 type WorkspaceUpdate struct {
 	config
-	hooks    []Hook
-	mutation *WorkspaceMutation
+	hooks     []Hook
+	mutation  *WorkspaceMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the WorkspaceUpdate builder.
@@ -79,6 +80,12 @@ func (wu *WorkspaceUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (wu *WorkspaceUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *WorkspaceUpdate {
+	wu.modifiers = append(wu.modifiers, modifiers...)
+	return wu
+}
+
 func (wu *WorkspaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(workspace.Table, workspace.Columns, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeInt))
 	if ps := wu.mutation.predicates; len(ps) > 0 {
@@ -91,6 +98,7 @@ func (wu *WorkspaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := wu.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
 	}
+	_spec.AddModifiers(wu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{workspace.Label}
@@ -106,9 +114,10 @@ func (wu *WorkspaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // WorkspaceUpdateOne is the builder for updating a single Workspace entity.
 type WorkspaceUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *WorkspaceMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *WorkspaceMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -162,6 +171,12 @@ func (wuo *WorkspaceUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (wuo *WorkspaceUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *WorkspaceUpdateOne {
+	wuo.modifiers = append(wuo.modifiers, modifiers...)
+	return wuo
+}
+
 func (wuo *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, err error) {
 	_spec := sqlgraph.NewUpdateSpec(workspace.Table, workspace.Columns, sqlgraph.NewFieldSpec(workspace.FieldID, field.TypeInt))
 	id, ok := wuo.mutation.ID()
@@ -191,6 +206,7 @@ func (wuo *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, e
 	if value, ok := wuo.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
 	}
+	_spec.AddModifiers(wuo.modifiers...)
 	_node = &Workspace{config: wuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

@@ -53,6 +53,7 @@ func (Category) Fields() []ent.Field {
 			).
 			Annotations(
 				entgql.Type("CategoryStatus"),
+				entgql.OrderField("STATUS"),
 			),
 		field.Other("config", &schematype.CategoryConfig{}).
 			SchemaType(map[string]string{

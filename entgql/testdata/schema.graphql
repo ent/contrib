@@ -27,6 +27,7 @@ input CategoryOrder {
 enum CategoryOrderField {
   ID
   TEXT
+  STATUS
   DURATION
   COUNT
   TODOS_COUNT

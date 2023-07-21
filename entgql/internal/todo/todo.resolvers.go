@@ -21,8 +21,11 @@ import (
 	"context"
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/ent/dialect/sql"
 )
 
 func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*int, error) {
@@ -73,6 +76,21 @@ func (r *mutationResolver) UpdateFriendship(ctx context.Context, id int, input e
 
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	return "pong", nil
+}
+
+func (r *queryResolver) TodosWithJoins(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+	return r.client.Todo.Query().
+		Modify(func(s *sql.Selector) {
+			cats := sql.Table(category.Table)
+			s.
+				LeftJoin(cats).
+				On(s.C(todo.FieldCategoryID), cats.C(category.FieldID)).
+				GroupBy(s.C(category.FieldID))
+		}).
+		Paginate(ctx, after, first, before, last,
+			ent.WithTodoOrder(orderBy),
+			ent.WithTodoFilter(where.Filter),
+		)
 }
 
 func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
