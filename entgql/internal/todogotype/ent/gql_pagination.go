@@ -474,8 +474,8 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 
 func (p *categoryPager) toCursor(c *Category) Cursor {
 	cs := make([]any, 0, len(p.order))
-	for _, o := range p.order {
-		cs = append(cs, o.Field.toCursor(c).Value)
+	for _, po := range p.order {
+		cs = append(cs, po.Field.toCursor(c).Value)
 	}
 	return Cursor{ID: c.marshalID(), Value: cs}
 }
@@ -1639,8 +1639,8 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 
 func (p *todoPager) toCursor(t *Todo) Cursor {
 	cs := make([]any, 0, len(p.order))
-	for _, o := range p.order {
-		cs = append(cs, o.Field.toCursor(t).Value)
+	for _, po := range p.order {
+		cs = append(cs, po.Field.toCursor(t).Value)
 	}
 	return Cursor{ID: t.ID, Value: cs}
 }
