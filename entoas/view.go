@@ -126,7 +126,7 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 func view(n *gen.Type, gs serialization.Groups) (*View, error) {
 	v := &View{Type: n}
 	for _, f := range append([]*gen.Field{n.ID}, n.Fields...) {
-		ok, err := serializeField(f, gs)
+		ok, err := serializeField(f, gs, true)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,8 @@ func view(n *gen.Type, gs serialization.Groups) (*View, error) {
 		}
 	}
 	for _, e := range n.Edges {
-		ok, err := serializeEdge(e, gs)
+		// Don't include edges without groups in the view.
+		ok, err := serializeEdge(e, gs, false)
 		if err != nil {
 			return nil, err
 		}
@@ -147,9 +148,9 @@ func view(n *gen.Type, gs serialization.Groups) (*View, error) {
 }
 
 // serializeField checks if a gen.Field is to be serialized for the requested groups.
-func serializeField(f *gen.Field, g serialization.Groups) (bool, error) {
+func serializeField(f *gen.Field, g serialization.Groups, sensitiveExcluded bool) (bool, error) {
 	// If the field is sensitive, don't serialize it.
-	if f.Sensitive() {
+	if sensitiveExcluded && f.Sensitive() {
 		return false, nil
 	}
 	// If no groups are requested or the field has no groups defined render the field.
@@ -170,10 +171,10 @@ func serializeField(f *gen.Field, g serialization.Groups) (bool, error) {
 }
 
 // serializeEdge checks if an edge is to be serialized according to its annotations and the requested groups.
-func serializeEdge(e *gen.Edge, g serialization.Groups) (bool, error) {
+func serializeEdge(e *gen.Edge, g serialization.Groups, includeNoGroup bool) (bool, error) {
 	// If no groups are requested or the edge has no groups defined do not render the edge.
 	if e.Annotations == nil || len(g) == 0 {
-		return false, nil
+		return includeNoGroup, nil
 	}
 	// Extract the Groups defined on the edge.
 	ant, err := EdgeAnnotation(e)
@@ -208,6 +209,30 @@ func GroupsForOperation(a gen.Annotations, op Operation) (serialization.Groups, 
 		return ant.Update.Groups, nil
 	case OpList:
 		return ant.List.Groups, nil
+	}
+	return nil, fmt.Errorf("unknown operation %q", op)
+}
+
+// RequestGroupsForOperation returns the request groups as defined on the given Annotations for the Operation.
+func RequestGroupsForOperation(a gen.Annotations, op Operation) (serialization.Groups, error) {
+	// If there are no annotations given do not load any groups.
+	ant := &Annotation{}
+	if a == nil || a[ant.Name()] == nil {
+		return nil, nil
+	}
+	// Decode the types annotation and extract the groups requested for the given operation.
+	if err := ant.Decode(a[ant.Name()]); err != nil {
+		return nil, err
+	}
+	switch op {
+	case OpCreate:
+		return ant.Create.RequestGroups, nil
+	case OpRead:
+		return ant.Read.RequestGroups, nil
+	case OpUpdate:
+		return ant.Update.RequestGroups, nil
+	case OpList:
+		return ant.List.RequestGroups, nil
 	}
 	return nil, fmt.Errorf("unknown operation %q", op)
 }

@@ -678,6 +678,10 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 
 // reqBody returns the request body for the given node and operation.
 func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
+	gs, err := RequestGroupsForOperation(n.Annotations, op)
+	if err != nil {
+		return nil, err
+	}
 	req := ogen.NewRequestBody().SetRequired(true)
 	switch op {
 	case OpCreate:
@@ -689,6 +693,14 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 	}
 	c := ogen.NewSchema()
 	for _, f := range n.Fields {
+		// Check if the field should be included in the request body.
+		ok, err := serializeField(f, gs, false)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			continue
+		}
 		a, err := FieldAnnotation(f)
 		if err != nil {
 			return nil, err
@@ -705,6 +717,15 @@ func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
 		}
 	}
 	for _, e := range n.Edges {
+		// Check if the edge should be included in the request body.
+		// Include edges without groups.
+		ok, err := serializeEdge(e, gs, true)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			continue
+		}
 		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err

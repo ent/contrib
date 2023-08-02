@@ -49,8 +49,9 @@ type (
 	}
 	// OperationConfig holds meta information about a REST operation.
 	OperationConfig struct {
-		Policy Policy
-		Groups serialization.Groups
+		Policy        Policy
+		Groups        serialization.Groups
+		RequestGroups serialization.Groups
 	}
 	// OperationConfigOption allows managing OperationConfig using functional arguments.
 	OperationConfigOption func(*OperationConfig)
@@ -64,6 +65,11 @@ func Groups(gs ...string) Annotation {
 // OperationGroups returns a OperationConfigOption that adds the given serialization groups to a OperationConfig.
 func OperationGroups(gs ...string) OperationConfigOption {
 	return func(c *OperationConfig) { c.Groups = gs }
+}
+
+// OperationRequestGroups returns a OperationConfigOption that adds the given request serialization groups to a OperationConfig.
+func OperationRequestGroups(gs ...string) OperationConfigOption {
+	return func(c *OperationConfig) { c.RequestGroups = gs }
 }
 
 // OperationPolicy returns a OperationConfigOption that sets the Policy of a OperationConfig to the given one.
@@ -162,6 +168,9 @@ func (op *OperationConfig) merge(other OperationConfig) {
 	}
 	if other.Groups != nil {
 		op.Groups = other.Groups
+	}
+	if other.RequestGroups != nil {
+		op.RequestGroups = other.RequestGroups
 	}
 }
 
