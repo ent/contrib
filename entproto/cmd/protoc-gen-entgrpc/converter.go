@@ -103,6 +103,8 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 			out.ToEntScannerConversion = "string"
 		}
 	case efld.Type.Numeric() && efld.HasGoType():
+		// Ident returned from ent already has the packagename prefixed. Strip it since `g.QualifiedGoIdent`
+		// adds it back.
 		split := strings.Split(efld.Type.Ident, ".")
 		out.ToEntConstructor = protogen.GoImportPath(efld.Type.PkgPath).Ident(split[1])
 	case efld.IsBool(), efld.IsBytes(), efld.IsString():
