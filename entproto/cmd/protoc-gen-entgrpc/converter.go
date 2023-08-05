@@ -102,6 +102,9 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		case efld.IsString():
 			out.ToEntScannerConversion = "string"
 		}
+	case efld.Type.Numeric() && efld.HasGoType():
+		split := strings.Split(efld.Type.Ident, ".")
+		out.ToEntConstructor = protogen.GoImportPath(efld.Type.PkgPath).Ident(split[1])
 	case efld.IsBool(), efld.IsBytes(), efld.IsString():
 	case efld.Type.Numeric():
 		out.ToEntConversion = efld.Type.String()
