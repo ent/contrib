@@ -17,12 +17,13 @@ package schema
 import (
 	"time"
 
-	"entgo.io/contrib/entgql"
-	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+
+	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 )
 
 // Todo defines the todo type schema.
@@ -49,6 +50,11 @@ func (Todo) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("STATUS"),
 			),
+		field.String("old_status").Annotations(
+			entgql.Directives(
+				entgql.Deprecated("use new 'status' field").
+				OnCreateInput().
+				OnUpdateInput())),
 		field.Int("priority").
 			Default(0).
 			Annotations(

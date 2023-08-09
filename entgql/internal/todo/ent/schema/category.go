@@ -17,13 +17,13 @@ package schema
 import (
 	"time"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 )
 
@@ -77,6 +77,12 @@ func (Category) Fields() []ent.Field {
 			),
 		field.Strings("strings").
 			Optional(),
+		field.String("key").
+			Annotations(
+				entgql.Directives(
+					entgql.Deprecated("this field is no longer used"),
+				),
+			),
 	}
 }
 

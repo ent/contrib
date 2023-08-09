@@ -213,7 +213,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 
 					def := names.ConnectionField(name, hasOrderBy, ant.MultiOrder, hasWhereInput)
 					def.Description = ant.QueryField.Description
-					def.Directives = e.buildDirectives(ant.QueryField.Directives)
+					def.Directives = e.buildDirectives(nil, ant.QueryField.Directives)
 					queryFields = append(queryFields, def)
 				}
 			} else if ant.QueryField != nil {
@@ -223,7 +223,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					Description: ant.QueryField.Description,
 					Type:        listNamedType(gqlType, false),
 				}
-				def.Directives = e.buildDirectives(ant.QueryField.Directives)
+				def.Directives = e.buildDirectives(nil, ant.QueryField.Directives)
 				queryFields = append(queryFields, def)
 			}
 		}
@@ -301,7 +301,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 	def := &ast.Definition{
 		Name:       gqlType,
 		Kind:       ast.Object,
-		Directives: e.buildDirectives(ant.Directives),
+		Directives: e.buildDirectives(nil, ant.Directives),
 	}
 	if t.Name != gqlType {
 		def.Directives = append(def.Directives, goModel(entGoType(t.Name, pkg)))
@@ -356,9 +356,21 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 	return def, nil
 }
 
-func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveList {
+func (e *schemaGenerator) buildDirectives(mc *MutationConfig, directives []Directive) ast.DirectiveList {
 	list := make(ast.DirectiveList, 0, len(directives))
 	for _, d := range directives {
+		// This checks if the mutationinput is create or update and seeing if that is skipped on the directive or not.
+		if mc != nil {
+			if mc.IsCreate && !d.CreateMutationGen {
+				continue
+			} else if !mc.IsCreate && !d.UpdateMutaionGen {
+				continue
+			}
+		}
+		if d.SkipTypeGen {
+			continue
+		}
+
 		list = append(list, &ast.Directive{
 			Name:      d.Name,
 			Arguments: d.Arguments,
@@ -454,7 +466,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		}
 
-		fieldDef.Directives = e.buildDirectives(edgeAnt.Directives)
+		fieldDef.Directives = e.buildDirectives(nil, edgeAnt.Directives)
 		if goFieldName != templates.ToGo(name) {
 			fieldDef.Directives = append(fieldDef.Directives, goField(structField))
 		}
@@ -579,6 +591,7 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				Name:        camel(f.Name),
 				Type:        namedType(scalar, f.Nullable),
 				Description: f.Comment(),
+				Directives:  e.buildDirectives(&i, ant.Directives),
 			})
 			if f.AppendOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
@@ -647,7 +660,7 @@ func (e *schemaGenerator) fieldDefinitions(gqlType string, f *gen.Field, ant *An
 			Name:        name,
 			Type:        ft,
 			Description: f.Comment(),
-			Directives:  e.buildDirectives(ant.Directives),
+			Directives:  e.buildDirectives(nil, ant.Directives),
 		}
 		// We check the field name with gqlgen's naming convention.
 		// To avoid unnecessary @goField directives
