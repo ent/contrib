@@ -87,13 +87,7 @@ func (ifmc *InvalidFieldMessageCreate) sqlSave(ctx context.Context) (*InvalidFie
 func (ifmc *InvalidFieldMessageCreate) createSpec() (*InvalidFieldMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &InvalidFieldMessage{config: ifmc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: invalidfieldmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(invalidfieldmessage.Table, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
 	)
 	if value, ok := ifmc.mutation.JSON(); ok {
 		_spec.SetField(invalidfieldmessage.FieldJSON, field.TypeJSON, value)
@@ -125,8 +119,8 @@ func (ifmcb *InvalidFieldMessageCreateBulk) Save(ctx context.Context) ([]*Invali
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ifmcb.builders[i+1].mutation)
 				} else {

@@ -21,7 +21,7 @@ import (
 type PetQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []pet.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Pet
 	withCategories *CategoryQuery
@@ -59,7 +59,7 @@ func (pq *PetQuery) Unique(unique bool) *PetQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PetQuery) Order(o ...OrderFunc) *PetQuery {
+func (pq *PetQuery) Order(o ...pet.OrderOption) *PetQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -250,10 +250,12 @@ func (pq *PetQuery) AllX(ctx context.Context) []*Pet {
 }
 
 // IDs executes the query and returns a list of Pet IDs.
-func (pq *PetQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (pq *PetQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if pq.ctx.Unique == nil && pq.path != nil {
+		pq.Unique(true)
+	}
 	ctx = setContextOp(ctx, pq.ctx, "IDs")
-	if err := pq.Select(pet.FieldID).Scan(ctx, &ids); err != nil {
+	if err = pq.Select(pet.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -317,7 +319,7 @@ func (pq *PetQuery) Clone() *PetQuery {
 	return &PetQuery{
 		config:         pq.config,
 		ctx:            pq.ctx.Clone(),
-		order:          append([]OrderFunc{}, pq.order...),
+		order:          append([]pet.OrderOption{}, pq.order...),
 		inters:         append([]Interceptor{}, pq.inters...),
 		predicates:     append([]predicate.Pet{}, pq.predicates...),
 		withCategories: pq.withCategories.Clone(),
@@ -517,27 +519,30 @@ func (pq *PetQuery) loadCategories(ctx context.Context, query *CategoryQuery, no
 	if err := query.prepareQuery(ctx); err != nil {
 		return err
 	}
-	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-		assign := spec.Assign
-		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]any, error) {
-			values, err := values(columns[1:])
-			if err != nil {
-				return nil, err
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
-			return append([]any{new(sql.NullInt64)}, values...), nil
-		}
-		spec.Assign = func(columns []string, values []any) error {
-			outValue := int(values[0].(*sql.NullInt64).Int64)
-			inValue := int(values[1].(*sql.NullInt64).Int64)
-			if nids[inValue] == nil {
-				nids[inValue] = map[*Pet]struct{}{byID[outValue]: {}}
-				return assign(columns[1:], values[1:])
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Pet]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
 			}
-			nids[inValue][byID[outValue]] = struct{}{}
-			return nil
-		}
+		})
 	})
+	neighbors, err := withInterceptors[[]*Category](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
@@ -607,27 +612,30 @@ func (pq *PetQuery) loadFriends(ctx context.Context, query *PetQuery, nodes []*P
 	if err := query.prepareQuery(ctx); err != nil {
 		return err
 	}
-	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-		assign := spec.Assign
-		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]any, error) {
-			values, err := values(columns[1:])
-			if err != nil {
-				return nil, err
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
-			return append([]any{new(sql.NullInt64)}, values...), nil
-		}
-		spec.Assign = func(columns []string, values []any) error {
-			outValue := int(values[0].(*sql.NullInt64).Int64)
-			inValue := int(values[1].(*sql.NullInt64).Int64)
-			if nids[inValue] == nil {
-				nids[inValue] = map[*Pet]struct{}{byID[outValue]: {}}
-				return assign(columns[1:], values[1:])
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Pet]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
 			}
-			nids[inValue][byID[outValue]] = struct{}{}
-			return nil
-		}
+		})
 	})
+	neighbors, err := withInterceptors[[]*Pet](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
@@ -653,20 +661,12 @@ func (pq *PetQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PetQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pet.Table,
-			Columns: pet.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pet.FieldID,
-			},
-		},
-		From:   pq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(pet.Table, pet.Columns, sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt))
+	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

@@ -41,6 +41,7 @@ var (
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ENABLED", "DISABLED"}},
 		{Name: "config", Type: field.TypeOther, Nullable: true, SchemaType: map[string]string{"sqlite3": "json"}},
+		{Name: "types", Type: field.TypeJSON, Nullable: true},
 		{Name: "duration", Type: field.TypeInt64, Nullable: true},
 		{Name: "count", Type: field.TypeUint64, Nullable: true},
 		{Name: "strings", Type: field.TypeJSON, Nullable: true},
@@ -96,11 +97,42 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
+	// OneToManiesColumns holds the columns for the "one_to_manies" table.
+	OneToManiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "field2", Type: field.TypeString, Nullable: true},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
+	}
+	// OneToManiesTable holds the schema information for the "one_to_manies" table.
+	OneToManiesTable = &schema.Table{
+		Name:       "one_to_manies",
+		Columns:    OneToManiesColumns,
+		PrimaryKey: []*schema.Column{OneToManiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "one_to_manies_one_to_manies_children",
+				Columns:    []*schema.Column{OneToManiesColumns[3]},
+				RefColumns: []*schema.Column{OneToManiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ProjectsColumns holds the columns for the "projects" table.
+	ProjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// ProjectsTable holds the schema information for the "projects" table.
+	ProjectsTable = &schema.Table{
+		Name:       "projects",
+		Columns:    ProjectsColumns,
+		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"IN_PROGRESS", "COMPLETED", "PENDING"}},
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "text", Type: field.TypeString, Size: 2147483647},
 		{Name: "blob", Type: field.TypeBytes, Nullable: true},
@@ -108,6 +140,7 @@ var (
 		{Name: "custom", Type: field.TypeJSON, Nullable: true},
 		{Name: "customp", Type: field.TypeJSON, Nullable: true},
 		{Name: "category_id", Type: field.TypeInt, Nullable: true},
+		{Name: "project_todos", Type: field.TypeInt, Nullable: true},
 		{Name: "todo_children", Type: field.TypeInt, Nullable: true},
 		{Name: "todo_secret", Type: field.TypeInt, Nullable: true},
 	}
@@ -124,14 +157,20 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "todos_todos_children",
+				Symbol:     "todos_projects_todos",
 				Columns:    []*schema.Column{TodosColumns[10]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "todos_todos_children",
+				Columns:    []*schema.Column{TodosColumns[11]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_very_secrets_secret",
-				Columns:    []*schema.Column{TodosColumns[11]},
+				Columns:    []*schema.Column{TodosColumns[12]},
 				RefColumns: []*schema.Column{VerySecretsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -143,6 +182,8 @@ var (
 		{Name: "name", Type: field.TypeString, Default: "Anonymous"},
 		{Name: "username", Type: field.TypeUUID},
 		{Name: "password", Type: field.TypeString, Nullable: true},
+		{Name: "required_metadata", Type: field.TypeJSON},
+		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -160,6 +201,17 @@ var (
 		Name:       "very_secrets",
 		Columns:    VerySecretsColumns,
 		PrimaryKey: []*schema.Column{VerySecretsColumns[0]},
+	}
+	// WorkspacesColumns holds the columns for the "workspaces" table.
+	WorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// WorkspacesTable holds the schema information for the "workspaces" table.
+	WorkspacesTable = &schema.Table{
+		Name:       "workspaces",
+		Columns:    WorkspacesColumns,
+		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
 	}
 	// CategorySubCategoriesColumns holds the columns for the "category_sub_categories" table.
 	CategorySubCategoriesColumns = []*schema.Column{
@@ -217,9 +269,12 @@ var (
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,
+		OneToManiesTable,
+		ProjectsTable,
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,
+		WorkspacesTable,
 		CategorySubCategoriesTable,
 		UserGroupsTable,
 	}
@@ -228,9 +283,11 @@ var (
 func init() {
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
+	OneToManiesTable.ForeignKeys[0].RefTable = OneToManiesTable
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
-	TodosTable.ForeignKeys[1].RefTable = TodosTable
-	TodosTable.ForeignKeys[2].RefTable = VerySecretsTable
+	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
+	TodosTable.ForeignKeys[2].RefTable = TodosTable
+	TodosTable.ForeignKeys[3].RefTable = VerySecretsTable
 	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable

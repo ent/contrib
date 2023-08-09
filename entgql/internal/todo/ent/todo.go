@@ -26,6 +26,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -55,8 +56,10 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
+	project_todos *int
 	todo_children *int
 	todo_secret   *int
+	selectValues  sql.SelectValues
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -139,12 +142,14 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case todo.ForeignKeys[0]: // todo_children
+		case todo.ForeignKeys[0]: // project_todos
 			values[i] = new(sql.NullInt64)
-		case todo.ForeignKeys[1]: // todo_secret
+		case todo.ForeignKeys[1]: // todo_children
+			values[i] = new(sql.NullInt64)
+		case todo.ForeignKeys[2]: // todo_secret
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Todo", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -226,21 +231,36 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 			}
 		case todo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field project_todos", value)
+			} else if value.Valid {
+				t.project_todos = new(int)
+				*t.project_todos = int(value.Int64)
+			}
+		case todo.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field todo_children", value)
 			} else if value.Valid {
 				t.todo_children = new(int)
 				*t.todo_children = int(value.Int64)
 			}
-		case todo.ForeignKeys[1]:
+		case todo.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field todo_secret", value)
 			} else if value.Valid {
 				t.todo_secret = new(int)
 				*t.todo_secret = int(value.Int64)
 			}
+		default:
+			t.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Todo.
+// This includes values selected through modifiers, order, etc.
+func (t *Todo) Value(name string) (ent.Value, error) {
+	return t.selectValues.Get(name)
 }
 
 // QueryParent queries the "parent" edge of the Todo entity.
@@ -342,9 +362,3 @@ func (t *Todo) appendNamedChildren(name string, edges ...*Todo) {
 
 // Todos is a parsable slice of Todo.
 type Todos []*Todo
-
-func (t Todos) config(cfg config) {
-	for _i := range t {
-		t[_i].config = cfg
-	}
-}

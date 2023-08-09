@@ -66,16 +66,7 @@ func (mwpnu *MessageWithPackageNameUpdate) ExecX(ctx context.Context) {
 }
 
 func (mwpnu *MessageWithPackageNameUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithpackagename.Table,
-			Columns: messagewithpackagename.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithpackagename.Table, messagewithpackagename.Columns, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
 	if ps := mwpnu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -117,6 +108,12 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Mutation() *MessageWithPackageNam
 	return mwpnuo.mutation
 }
 
+// Where appends a list predicates to the MessageWithPackageNameUpdate builder.
+func (mwpnuo *MessageWithPackageNameUpdateOne) Where(ps ...predicate.MessageWithPackageName) *MessageWithPackageNameUpdateOne {
+	mwpnuo.mutation.Where(ps...)
+	return mwpnuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (mwpnuo *MessageWithPackageNameUpdateOne) Select(field string, fields ...string) *MessageWithPackageNameUpdateOne {
@@ -152,16 +149,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (mwpnuo *MessageWithPackageNameUpdateOne) sqlSave(ctx context.Context) (_node *MessageWithPackageName, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithpackagename.Table,
-			Columns: messagewithpackagename.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithpackagename.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithpackagename.Table, messagewithpackagename.Columns, sqlgraph.NewFieldSpec(messagewithpackagename.FieldID, field.TypeInt))
 	id, ok := mwpnuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithPackageName.id" for update`)}

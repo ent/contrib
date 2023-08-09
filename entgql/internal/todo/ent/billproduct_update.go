@@ -31,8 +31,9 @@ import (
 // BillProductUpdate is the builder for updating BillProduct entities.
 type BillProductUpdate struct {
 	config
-	hooks    []Hook
-	mutation *BillProductMutation
+	hooks     []Hook
+	mutation  *BillProductMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the BillProductUpdate builder.
@@ -98,17 +99,14 @@ func (bpu *BillProductUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (bpu *BillProductUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *BillProductUpdate {
+	bpu.modifiers = append(bpu.modifiers, modifiers...)
+	return bpu
+}
+
 func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   billproduct.Table,
-			Columns: billproduct.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: billproduct.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeInt))
 	if ps := bpu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -128,6 +126,7 @@ func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := bpu.mutation.AddedQuantity(); ok {
 		_spec.AddField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
+	_spec.AddModifiers(bpu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, bpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{billproduct.Label}
@@ -143,9 +142,10 @@ func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // BillProductUpdateOne is the builder for updating a single BillProduct entity.
 type BillProductUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *BillProductMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *BillProductMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -176,6 +176,12 @@ func (bpuo *BillProductUpdateOne) AddQuantity(u int64) *BillProductUpdateOne {
 // Mutation returns the BillProductMutation object of the builder.
 func (bpuo *BillProductUpdateOne) Mutation() *BillProductMutation {
 	return bpuo.mutation
+}
+
+// Where appends a list predicates to the BillProductUpdate builder.
+func (bpuo *BillProductUpdateOne) Where(ps ...predicate.BillProduct) *BillProductUpdateOne {
+	bpuo.mutation.Where(ps...)
+	return bpuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -212,17 +218,14 @@ func (bpuo *BillProductUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (bpuo *BillProductUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *BillProductUpdateOne {
+	bpuo.modifiers = append(bpuo.modifiers, modifiers...)
+	return bpuo
+}
+
 func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProduct, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   billproduct.Table,
-			Columns: billproduct.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: billproduct.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeInt))
 	id, ok := bpuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "BillProduct.id" for update`)}
@@ -259,6 +262,7 @@ func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProdu
 	if value, ok := bpuo.mutation.AddedQuantity(); ok {
 		_spec.AddField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
+	_spec.AddModifiers(bpuo.modifiers...)
 	_node = &BillProduct{config: bpuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

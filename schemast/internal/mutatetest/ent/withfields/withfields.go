@@ -2,6 +2,10 @@
 
 package withfields
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the withfields type in the database.
 	Label = "with_fields"
@@ -27,4 +31,17 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// OrderOption defines the ordering options for the WithFields queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByExisting orders the results by the existing field.
+func ByExisting(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExisting, opts...).ToFunc()
 }

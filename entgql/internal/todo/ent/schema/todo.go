@@ -44,6 +44,7 @@ func (Todo) Fields() []ent.Field {
 			NamedValues(
 				"InProgress", "IN_PROGRESS",
 				"Completed", "COMPLETED",
+				"Pending", "PENDING",
 			).
 			Annotations(
 				entgql.OrderField("STATUS"),
@@ -92,17 +93,27 @@ func (Todo) Fields() []ent.Field {
 func (Todo) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("children", Todo.Type).
-			//nolint SA1019 we keep this as the example.
-			Annotations(entgql.Bind(), entgql.RelayConnection()).
+			Annotations(
+				entgql.RelayConnection(),
+				// For non-unique edges, the order field can be only on edge count.
+				// The convention is "UPPER(<edge-name>)_COUNT".
+				entgql.OrderField("CHILDREN_COUNT"),
+			).
 			From("parent").
-			//nolint SA1019 we keep this as the example.
-			Annotations(entgql.Bind()).
+			Annotations(
+				// For unique edges, the order field can be on the edge field that is defined
+				// as entgql.OrderField. The convention is "UPPER(<edge-name>)_<gql-order-field>".
+				entgql.OrderField("PARENT_STATUS"),
+			).
 			Unique(),
 		edge.From("category", Category.Type).
 			Ref("todos").
 			Field("category_id").
 			Unique().
-			Immutable(),
+			Immutable().
+			Annotations(
+				entgql.OrderField("CATEGORY_TEXT"),
+			),
 		edge.To("secret", VerySecret.Type).
 			Unique(),
 	}
@@ -114,5 +125,6 @@ func (Todo) Annotations() []schema.Annotation {
 		entgql.RelayConnection(),
 		entgql.QueryField().Description("This is the todo item"),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+		entgql.MultiOrder(),
 	}
 }

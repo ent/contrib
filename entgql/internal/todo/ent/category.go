@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -38,6 +39,8 @@ type Category struct {
 	Status category.Status `json:"status,omitempty"`
 	// Config holds the value of the "config" field.
 	Config *schematype.CategoryConfig `json:"config,omitempty"`
+	// Types holds the value of the "types" field.
+	Types *schematype.CategoryTypes `json:"types,omitempty"`
 	// Duration holds the value of the "duration" field.
 	Duration time.Duration `json:"duration,omitempty"`
 	// Count holds the value of the "count" field.
@@ -46,7 +49,8 @@ type Category struct {
 	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
-	Edges CategoryEdges `json:"edges"`
+	Edges        CategoryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
@@ -88,7 +92,7 @@ func (*Category) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case category.FieldStrings:
+		case category.FieldTypes, category.FieldStrings:
 			values[i] = new([]byte)
 		case category.FieldConfig:
 			values[i] = new(schematype.CategoryConfig)
@@ -97,7 +101,7 @@ func (*Category) scanValues(columns []string) ([]any, error) {
 		case category.FieldText, category.FieldStatus:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -135,6 +139,14 @@ func (c *Category) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				c.Config = value
 			}
+		case category.FieldTypes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field types", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Types); err != nil {
+					return fmt.Errorf("unmarshal field types: %w", err)
+				}
+			}
 		case category.FieldDuration:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field duration", values[i])
@@ -155,9 +167,17 @@ func (c *Category) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field strings: %w", err)
 				}
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Category.
+// This includes values selected through modifiers, order, etc.
+func (c *Category) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // QueryTodos queries the "todos" edge of the Category entity.
@@ -201,6 +221,9 @@ func (c *Category) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("config=")
 	builder.WriteString(fmt.Sprintf("%v", c.Config))
+	builder.WriteString(", ")
+	builder.WriteString("types=")
+	builder.WriteString(fmt.Sprintf("%v", c.Types))
 	builder.WriteString(", ")
 	builder.WriteString("duration=")
 	builder.WriteString(fmt.Sprintf("%v", c.Duration))
@@ -264,9 +287,3 @@ func (c *Category) appendNamedSubCategories(name string, edges ...*Category) {
 
 // Categories is a parsable slice of Category.
 type Categories []*Category
-
-func (c Categories) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

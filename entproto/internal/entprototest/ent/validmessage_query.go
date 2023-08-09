@@ -18,7 +18,7 @@ import (
 type ValidMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []validmessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ValidMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (vmq *ValidMessageQuery) Unique(unique bool) *ValidMessageQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vmq *ValidMessageQuery) Order(o ...OrderFunc) *ValidMessageQuery {
+func (vmq *ValidMessageQuery) Order(o ...validmessage.OrderOption) *ValidMessageQuery {
 	vmq.order = append(vmq.order, o...)
 	return vmq
 }
@@ -177,10 +177,12 @@ func (vmq *ValidMessageQuery) AllX(ctx context.Context) []*ValidMessage {
 }
 
 // IDs executes the query and returns a list of ValidMessage IDs.
-func (vmq *ValidMessageQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (vmq *ValidMessageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if vmq.ctx.Unique == nil && vmq.path != nil {
+		vmq.Unique(true)
+	}
 	ctx = setContextOp(ctx, vmq.ctx, "IDs")
-	if err := vmq.Select(validmessage.FieldID).Scan(ctx, &ids); err != nil {
+	if err = vmq.Select(validmessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (vmq *ValidMessageQuery) Clone() *ValidMessageQuery {
 	return &ValidMessageQuery{
 		config:     vmq.config,
 		ctx:        vmq.ctx.Clone(),
-		order:      append([]OrderFunc{}, vmq.order...),
+		order:      append([]validmessage.OrderOption{}, vmq.order...),
 		inters:     append([]Interceptor{}, vmq.inters...),
 		predicates: append([]predicate.ValidMessage{}, vmq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (vmq *ValidMessageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vmq *ValidMessageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   validmessage.Table,
-			Columns: validmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: validmessage.FieldID,
-			},
-		},
-		From:   vmq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(validmessage.Table, validmessage.Columns, sqlgraph.NewFieldSpec(validmessage.FieldID, field.TypeInt))
+	_spec.From = vmq.sql
 	if unique := vmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vmq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := vmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

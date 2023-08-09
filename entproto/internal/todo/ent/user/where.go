@@ -962,6 +962,46 @@ func LabelsNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldLabels))
 }
 
+// Int32sIsNil applies the IsNil predicate on the "int32s" field.
+func Int32sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInt32s))
+}
+
+// Int32sNotNil applies the NotNil predicate on the "int32s" field.
+func Int32sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInt32s))
+}
+
+// Int64sIsNil applies the IsNil predicate on the "int64s" field.
+func Int64sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInt64s))
+}
+
+// Int64sNotNil applies the NotNil predicate on the "int64s" field.
+func Int64sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInt64s))
+}
+
+// Uint32sIsNil applies the IsNil predicate on the "uint32s" field.
+func Uint32sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUint32s))
+}
+
+// Uint32sNotNil applies the NotNil predicate on the "uint32s" field.
+func Uint32sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUint32s))
+}
+
+// Uint64sIsNil applies the IsNil predicate on the "uint64s" field.
+func Uint64sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUint64s))
+}
+
+// Uint64sNotNil applies the NotNil predicate on the "uint64s" field.
+func Uint64sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUint64s))
+}
+
 // DeviceTypeEQ applies the EQ predicate on the "device_type" field.
 func DeviceTypeEQ(v DeviceType) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDeviceType, v))
@@ -1002,6 +1042,26 @@ func OmitPrefixNotIn(vs ...OmitPrefix) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldOmitPrefix, vs...))
 }
 
+// MimeTypeEQ applies the EQ predicate on the "mime_type" field.
+func MimeTypeEQ(v MimeType) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldMimeType, v))
+}
+
+// MimeTypeNEQ applies the NEQ predicate on the "mime_type" field.
+func MimeTypeNEQ(v MimeType) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldMimeType, v))
+}
+
+// MimeTypeIn applies the In predicate on the "mime_type" field.
+func MimeTypeIn(vs ...MimeType) predicate.User {
+	return predicate.User(sql.FieldIn(FieldMimeType, vs...))
+}
+
+// MimeTypeNotIn applies the NotIn predicate on the "mime_type" field.
+func MimeTypeNotIn(vs ...MimeType) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldMimeType, vs...))
+}
+
 // HasGroup applies the HasEdge predicate on the "group" edge.
 func HasGroup() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -1016,11 +1076,7 @@ func HasGroup() predicate.User {
 // HasGroupWith applies the HasEdge predicate on the "group" edge with a given conditions (other predicates).
 func HasGroupWith(preds ...predicate.Group) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(GroupInverseTable, GroupFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, GroupTable, GroupColumn),
-		)
+		step := newGroupStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1043,11 +1099,7 @@ func HasAttachment() predicate.User {
 // HasAttachmentWith applies the HasEdge predicate on the "attachment" edge with a given conditions (other predicates).
 func HasAttachmentWith(preds ...predicate.Attachment) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AttachmentInverseTable, AttachmentFieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, AttachmentTable, AttachmentColumn),
-		)
+		step := newAttachmentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1070,11 +1122,7 @@ func HasReceived1() predicate.User {
 // HasReceived1With applies the HasEdge predicate on the "received_1" edge with a given conditions (other predicates).
 func HasReceived1With(preds ...predicate.Attachment) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Received1InverseTable, AttachmentFieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, Received1Table, Received1PrimaryKey...),
-		)
+		step := newReceived1Step()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1097,11 +1145,7 @@ func HasPet() predicate.User {
 // HasPetWith applies the HasEdge predicate on the "pet" edge with a given conditions (other predicates).
 func HasPetWith(preds ...predicate.Pet) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PetInverseTable, PetFieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, PetTable, PetColumn),
-		)
+		step := newPetStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -1124,11 +1168,7 @@ func HasSkipEdge() predicate.User {
 // HasSkipEdgeWith applies the HasEdge predicate on the "skip_edge" edge with a given conditions (other predicates).
 func HasSkipEdgeWith(preds ...predicate.SkipEdgeExample) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SkipEdgeInverseTable, SkipEdgeExampleFieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, SkipEdgeTable, SkipEdgeColumn),
-		)
+		step := newSkipEdgeStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

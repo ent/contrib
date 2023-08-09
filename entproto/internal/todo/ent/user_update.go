@@ -332,6 +332,78 @@ func (uu *UserUpdate) ClearLabels() *UserUpdate {
 	return uu
 }
 
+// SetInt32s sets the "int32s" field.
+func (uu *UserUpdate) SetInt32s(i []int32) *UserUpdate {
+	uu.mutation.SetInt32s(i)
+	return uu
+}
+
+// AppendInt32s appends i to the "int32s" field.
+func (uu *UserUpdate) AppendInt32s(i []int32) *UserUpdate {
+	uu.mutation.AppendInt32s(i)
+	return uu
+}
+
+// ClearInt32s clears the value of the "int32s" field.
+func (uu *UserUpdate) ClearInt32s() *UserUpdate {
+	uu.mutation.ClearInt32s()
+	return uu
+}
+
+// SetInt64s sets the "int64s" field.
+func (uu *UserUpdate) SetInt64s(i []int64) *UserUpdate {
+	uu.mutation.SetInt64s(i)
+	return uu
+}
+
+// AppendInt64s appends i to the "int64s" field.
+func (uu *UserUpdate) AppendInt64s(i []int64) *UserUpdate {
+	uu.mutation.AppendInt64s(i)
+	return uu
+}
+
+// ClearInt64s clears the value of the "int64s" field.
+func (uu *UserUpdate) ClearInt64s() *UserUpdate {
+	uu.mutation.ClearInt64s()
+	return uu
+}
+
+// SetUint32s sets the "uint32s" field.
+func (uu *UserUpdate) SetUint32s(u []uint32) *UserUpdate {
+	uu.mutation.SetUint32s(u)
+	return uu
+}
+
+// AppendUint32s appends u to the "uint32s" field.
+func (uu *UserUpdate) AppendUint32s(u []uint32) *UserUpdate {
+	uu.mutation.AppendUint32s(u)
+	return uu
+}
+
+// ClearUint32s clears the value of the "uint32s" field.
+func (uu *UserUpdate) ClearUint32s() *UserUpdate {
+	uu.mutation.ClearUint32s()
+	return uu
+}
+
+// SetUint64s sets the "uint64s" field.
+func (uu *UserUpdate) SetUint64s(u []uint64) *UserUpdate {
+	uu.mutation.SetUint64s(u)
+	return uu
+}
+
+// AppendUint64s appends u to the "uint64s" field.
+func (uu *UserUpdate) AppendUint64s(u []uint64) *UserUpdate {
+	uu.mutation.AppendUint64s(u)
+	return uu
+}
+
+// ClearUint64s clears the value of the "uint64s" field.
+func (uu *UserUpdate) ClearUint64s() *UserUpdate {
+	uu.mutation.ClearUint64s()
+	return uu
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uu *UserUpdate) SetDeviceType(ut user.DeviceType) *UserUpdate {
 	uu.mutation.SetDeviceType(ut)
@@ -349,6 +421,12 @@ func (uu *UserUpdate) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate {
 // SetOmitPrefix sets the "omit_prefix" field.
 func (uu *UserUpdate) SetOmitPrefix(up user.OmitPrefix) *UserUpdate {
 	uu.mutation.SetOmitPrefix(up)
+	return uu
+}
+
+// SetMimeType sets the "mime_type" field.
+func (uu *UserUpdate) SetMimeType(ut user.MimeType) *UserUpdate {
+	uu.mutation.SetMimeType(ut)
 	return uu
 }
 
@@ -537,6 +615,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -544,16 +627,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint32,
-				Column: user.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint32))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -668,11 +742,58 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.LabelsCleared() {
 		_spec.ClearField(user.FieldLabels, field.TypeJSON)
 	}
+	if value, ok := uu.mutation.Int32s(); ok {
+		_spec.SetField(user.FieldInt32s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedInt32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt32s, value)
+		})
+	}
+	if uu.mutation.Int32sCleared() {
+		_spec.ClearField(user.FieldInt32s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.Int64s(); ok {
+		_spec.SetField(user.FieldInt64s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedInt64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt64s, value)
+		})
+	}
+	if uu.mutation.Int64sCleared() {
+		_spec.ClearField(user.FieldInt64s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.Uint32s(); ok {
+		_spec.SetField(user.FieldUint32s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedUint32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint32s, value)
+		})
+	}
+	if uu.mutation.Uint32sCleared() {
+		_spec.ClearField(user.FieldUint32s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.Uint64s(); ok {
+		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedUint64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint64s, value)
+		})
+	}
+	if uu.mutation.Uint64sCleared() {
+		_spec.ClearField(user.FieldUint64s, field.TypeJSON)
+	}
 	if value, ok := uu.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.OmitPrefix(); ok {
 		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
+	}
+	if value, ok := uu.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
 	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -682,10 +803,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.GroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -698,10 +816,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.GroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -717,10 +832,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.AttachmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -733,10 +845,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.AttachmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -752,10 +861,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -768,10 +874,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -787,10 +890,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -806,10 +906,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.PetColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -822,10 +919,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.PetColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -841,10 +935,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.SkipEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: skipedgeexample.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -857,10 +948,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.SkipEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: skipedgeexample.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1186,6 +1274,78 @@ func (uuo *UserUpdateOne) ClearLabels() *UserUpdateOne {
 	return uuo
 }
 
+// SetInt32s sets the "int32s" field.
+func (uuo *UserUpdateOne) SetInt32s(i []int32) *UserUpdateOne {
+	uuo.mutation.SetInt32s(i)
+	return uuo
+}
+
+// AppendInt32s appends i to the "int32s" field.
+func (uuo *UserUpdateOne) AppendInt32s(i []int32) *UserUpdateOne {
+	uuo.mutation.AppendInt32s(i)
+	return uuo
+}
+
+// ClearInt32s clears the value of the "int32s" field.
+func (uuo *UserUpdateOne) ClearInt32s() *UserUpdateOne {
+	uuo.mutation.ClearInt32s()
+	return uuo
+}
+
+// SetInt64s sets the "int64s" field.
+func (uuo *UserUpdateOne) SetInt64s(i []int64) *UserUpdateOne {
+	uuo.mutation.SetInt64s(i)
+	return uuo
+}
+
+// AppendInt64s appends i to the "int64s" field.
+func (uuo *UserUpdateOne) AppendInt64s(i []int64) *UserUpdateOne {
+	uuo.mutation.AppendInt64s(i)
+	return uuo
+}
+
+// ClearInt64s clears the value of the "int64s" field.
+func (uuo *UserUpdateOne) ClearInt64s() *UserUpdateOne {
+	uuo.mutation.ClearInt64s()
+	return uuo
+}
+
+// SetUint32s sets the "uint32s" field.
+func (uuo *UserUpdateOne) SetUint32s(u []uint32) *UserUpdateOne {
+	uuo.mutation.SetUint32s(u)
+	return uuo
+}
+
+// AppendUint32s appends u to the "uint32s" field.
+func (uuo *UserUpdateOne) AppendUint32s(u []uint32) *UserUpdateOne {
+	uuo.mutation.AppendUint32s(u)
+	return uuo
+}
+
+// ClearUint32s clears the value of the "uint32s" field.
+func (uuo *UserUpdateOne) ClearUint32s() *UserUpdateOne {
+	uuo.mutation.ClearUint32s()
+	return uuo
+}
+
+// SetUint64s sets the "uint64s" field.
+func (uuo *UserUpdateOne) SetUint64s(u []uint64) *UserUpdateOne {
+	uuo.mutation.SetUint64s(u)
+	return uuo
+}
+
+// AppendUint64s appends u to the "uint64s" field.
+func (uuo *UserUpdateOne) AppendUint64s(u []uint64) *UserUpdateOne {
+	uuo.mutation.AppendUint64s(u)
+	return uuo
+}
+
+// ClearUint64s clears the value of the "uint64s" field.
+func (uuo *UserUpdateOne) ClearUint64s() *UserUpdateOne {
+	uuo.mutation.ClearUint64s()
+	return uuo
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uuo *UserUpdateOne) SetDeviceType(ut user.DeviceType) *UserUpdateOne {
 	uuo.mutation.SetDeviceType(ut)
@@ -1203,6 +1363,12 @@ func (uuo *UserUpdateOne) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate
 // SetOmitPrefix sets the "omit_prefix" field.
 func (uuo *UserUpdateOne) SetOmitPrefix(up user.OmitPrefix) *UserUpdateOne {
 	uuo.mutation.SetOmitPrefix(up)
+	return uuo
+}
+
+// SetMimeType sets the "mime_type" field.
+func (uuo *UserUpdateOne) SetMimeType(ut user.MimeType) *UserUpdateOne {
+	uuo.mutation.SetMimeType(ut)
 	return uuo
 }
 
@@ -1347,6 +1513,12 @@ func (uuo *UserUpdateOne) ClearSkipEdge() *UserUpdateOne {
 	return uuo
 }
 
+// Where appends a list predicates to the UserUpdate builder.
+func (uuo *UserUpdateOne) Where(ps ...predicate.User) *UserUpdateOne {
+	uuo.mutation.Where(ps...)
+	return uuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne {
@@ -1398,6 +1570,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1405,16 +1582,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUint32,
-				Column: user.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint32))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -1546,11 +1714,58 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if uuo.mutation.LabelsCleared() {
 		_spec.ClearField(user.FieldLabels, field.TypeJSON)
 	}
+	if value, ok := uuo.mutation.Int32s(); ok {
+		_spec.SetField(user.FieldInt32s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedInt32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt32s, value)
+		})
+	}
+	if uuo.mutation.Int32sCleared() {
+		_spec.ClearField(user.FieldInt32s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.Int64s(); ok {
+		_spec.SetField(user.FieldInt64s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedInt64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt64s, value)
+		})
+	}
+	if uuo.mutation.Int64sCleared() {
+		_spec.ClearField(user.FieldInt64s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.Uint32s(); ok {
+		_spec.SetField(user.FieldUint32s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedUint32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint32s, value)
+		})
+	}
+	if uuo.mutation.Uint32sCleared() {
+		_spec.ClearField(user.FieldUint32s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.Uint64s(); ok {
+		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedUint64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint64s, value)
+		})
+	}
+	if uuo.mutation.Uint64sCleared() {
+		_spec.ClearField(user.FieldUint64s, field.TypeJSON)
+	}
 	if value, ok := uuo.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.OmitPrefix(); ok {
 		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
+	}
+	if value, ok := uuo.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
 	}
 	if uuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1560,10 +1775,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.GroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1576,10 +1788,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.GroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1595,10 +1804,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.AttachmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1611,10 +1817,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.AttachmentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1630,10 +1833,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1646,10 +1846,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1665,10 +1862,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: user.Received1PrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: attachment.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1684,10 +1878,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.PetColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1700,10 +1891,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.PetColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1719,10 +1907,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.SkipEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: skipedgeexample.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1735,10 +1920,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.SkipEdgeColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: skipedgeexample.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(skipedgeexample.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

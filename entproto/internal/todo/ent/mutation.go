@@ -20,10 +20,9 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/todo"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-
-	"entgo.io/ent"
 )
 
 const (
@@ -3188,8 +3187,17 @@ type UserMutation struct {
 	_type              *string
 	labels             *[]string
 	appendlabels       []string
+	int32s             *[]int32
+	appendint32s       []int32
+	int64s             *[]int64
+	appendint64s       []int64
+	uint32s            *[]uint32
+	appenduint32s      []uint32
+	uint64s            *[]uint64
+	appenduint64s      []uint64
 	device_type        *user.DeviceType
 	omit_prefix        *user.OmitPrefix
+	mime_type          *user.MimeType
 	clearedFields      map[string]struct{}
 	group              *int
 	clearedgroup       bool
@@ -4277,6 +4285,266 @@ func (m *UserMutation) ResetLabels() {
 	delete(m.clearedFields, user.FieldLabels)
 }
 
+// SetInt32s sets the "int32s" field.
+func (m *UserMutation) SetInt32s(i []int32) {
+	m.int32s = &i
+	m.appendint32s = nil
+}
+
+// Int32s returns the value of the "int32s" field in the mutation.
+func (m *UserMutation) Int32s() (r []int32, exists bool) {
+	v := m.int32s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInt32s returns the old "int32s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldInt32s(ctx context.Context) (v []int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInt32s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInt32s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInt32s: %w", err)
+	}
+	return oldValue.Int32s, nil
+}
+
+// AppendInt32s adds i to the "int32s" field.
+func (m *UserMutation) AppendInt32s(i []int32) {
+	m.appendint32s = append(m.appendint32s, i...)
+}
+
+// AppendedInt32s returns the list of values that were appended to the "int32s" field in this mutation.
+func (m *UserMutation) AppendedInt32s() ([]int32, bool) {
+	if len(m.appendint32s) == 0 {
+		return nil, false
+	}
+	return m.appendint32s, true
+}
+
+// ClearInt32s clears the value of the "int32s" field.
+func (m *UserMutation) ClearInt32s() {
+	m.int32s = nil
+	m.appendint32s = nil
+	m.clearedFields[user.FieldInt32s] = struct{}{}
+}
+
+// Int32sCleared returns if the "int32s" field was cleared in this mutation.
+func (m *UserMutation) Int32sCleared() bool {
+	_, ok := m.clearedFields[user.FieldInt32s]
+	return ok
+}
+
+// ResetInt32s resets all changes to the "int32s" field.
+func (m *UserMutation) ResetInt32s() {
+	m.int32s = nil
+	m.appendint32s = nil
+	delete(m.clearedFields, user.FieldInt32s)
+}
+
+// SetInt64s sets the "int64s" field.
+func (m *UserMutation) SetInt64s(i []int64) {
+	m.int64s = &i
+	m.appendint64s = nil
+}
+
+// Int64s returns the value of the "int64s" field in the mutation.
+func (m *UserMutation) Int64s() (r []int64, exists bool) {
+	v := m.int64s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInt64s returns the old "int64s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldInt64s(ctx context.Context) (v []int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInt64s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInt64s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInt64s: %w", err)
+	}
+	return oldValue.Int64s, nil
+}
+
+// AppendInt64s adds i to the "int64s" field.
+func (m *UserMutation) AppendInt64s(i []int64) {
+	m.appendint64s = append(m.appendint64s, i...)
+}
+
+// AppendedInt64s returns the list of values that were appended to the "int64s" field in this mutation.
+func (m *UserMutation) AppendedInt64s() ([]int64, bool) {
+	if len(m.appendint64s) == 0 {
+		return nil, false
+	}
+	return m.appendint64s, true
+}
+
+// ClearInt64s clears the value of the "int64s" field.
+func (m *UserMutation) ClearInt64s() {
+	m.int64s = nil
+	m.appendint64s = nil
+	m.clearedFields[user.FieldInt64s] = struct{}{}
+}
+
+// Int64sCleared returns if the "int64s" field was cleared in this mutation.
+func (m *UserMutation) Int64sCleared() bool {
+	_, ok := m.clearedFields[user.FieldInt64s]
+	return ok
+}
+
+// ResetInt64s resets all changes to the "int64s" field.
+func (m *UserMutation) ResetInt64s() {
+	m.int64s = nil
+	m.appendint64s = nil
+	delete(m.clearedFields, user.FieldInt64s)
+}
+
+// SetUint32s sets the "uint32s" field.
+func (m *UserMutation) SetUint32s(u []uint32) {
+	m.uint32s = &u
+	m.appenduint32s = nil
+}
+
+// Uint32s returns the value of the "uint32s" field in the mutation.
+func (m *UserMutation) Uint32s() (r []uint32, exists bool) {
+	v := m.uint32s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUint32s returns the old "uint32s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUint32s(ctx context.Context) (v []uint32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUint32s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUint32s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUint32s: %w", err)
+	}
+	return oldValue.Uint32s, nil
+}
+
+// AppendUint32s adds u to the "uint32s" field.
+func (m *UserMutation) AppendUint32s(u []uint32) {
+	m.appenduint32s = append(m.appenduint32s, u...)
+}
+
+// AppendedUint32s returns the list of values that were appended to the "uint32s" field in this mutation.
+func (m *UserMutation) AppendedUint32s() ([]uint32, bool) {
+	if len(m.appenduint32s) == 0 {
+		return nil, false
+	}
+	return m.appenduint32s, true
+}
+
+// ClearUint32s clears the value of the "uint32s" field.
+func (m *UserMutation) ClearUint32s() {
+	m.uint32s = nil
+	m.appenduint32s = nil
+	m.clearedFields[user.FieldUint32s] = struct{}{}
+}
+
+// Uint32sCleared returns if the "uint32s" field was cleared in this mutation.
+func (m *UserMutation) Uint32sCleared() bool {
+	_, ok := m.clearedFields[user.FieldUint32s]
+	return ok
+}
+
+// ResetUint32s resets all changes to the "uint32s" field.
+func (m *UserMutation) ResetUint32s() {
+	m.uint32s = nil
+	m.appenduint32s = nil
+	delete(m.clearedFields, user.FieldUint32s)
+}
+
+// SetUint64s sets the "uint64s" field.
+func (m *UserMutation) SetUint64s(u []uint64) {
+	m.uint64s = &u
+	m.appenduint64s = nil
+}
+
+// Uint64s returns the value of the "uint64s" field in the mutation.
+func (m *UserMutation) Uint64s() (r []uint64, exists bool) {
+	v := m.uint64s
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUint64s returns the old "uint64s" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUint64s(ctx context.Context) (v []uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUint64s is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUint64s requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUint64s: %w", err)
+	}
+	return oldValue.Uint64s, nil
+}
+
+// AppendUint64s adds u to the "uint64s" field.
+func (m *UserMutation) AppendUint64s(u []uint64) {
+	m.appenduint64s = append(m.appenduint64s, u...)
+}
+
+// AppendedUint64s returns the list of values that were appended to the "uint64s" field in this mutation.
+func (m *UserMutation) AppendedUint64s() ([]uint64, bool) {
+	if len(m.appenduint64s) == 0 {
+		return nil, false
+	}
+	return m.appenduint64s, true
+}
+
+// ClearUint64s clears the value of the "uint64s" field.
+func (m *UserMutation) ClearUint64s() {
+	m.uint64s = nil
+	m.appenduint64s = nil
+	m.clearedFields[user.FieldUint64s] = struct{}{}
+}
+
+// Uint64sCleared returns if the "uint64s" field was cleared in this mutation.
+func (m *UserMutation) Uint64sCleared() bool {
+	_, ok := m.clearedFields[user.FieldUint64s]
+	return ok
+}
+
+// ResetUint64s resets all changes to the "uint64s" field.
+func (m *UserMutation) ResetUint64s() {
+	m.uint64s = nil
+	m.appenduint64s = nil
+	delete(m.clearedFields, user.FieldUint64s)
+}
+
 // SetDeviceType sets the "device_type" field.
 func (m *UserMutation) SetDeviceType(ut user.DeviceType) {
 	m.device_type = &ut
@@ -4347,6 +4615,42 @@ func (m *UserMutation) OldOmitPrefix(ctx context.Context) (v user.OmitPrefix, er
 // ResetOmitPrefix resets all changes to the "omit_prefix" field.
 func (m *UserMutation) ResetOmitPrefix() {
 	m.omit_prefix = nil
+}
+
+// SetMimeType sets the "mime_type" field.
+func (m *UserMutation) SetMimeType(ut user.MimeType) {
+	m.mime_type = &ut
+}
+
+// MimeType returns the value of the "mime_type" field in the mutation.
+func (m *UserMutation) MimeType() (r user.MimeType, exists bool) {
+	v := m.mime_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMimeType returns the old "mime_type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldMimeType(ctx context.Context) (v user.MimeType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMimeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMimeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMimeType: %w", err)
+	}
+	return oldValue.MimeType, nil
+}
+
+// ResetMimeType resets all changes to the "mime_type" field.
+func (m *UserMutation) ResetMimeType() {
+	m.mime_type = nil
 }
 
 // SetGroupID sets the "group" edge to the Group entity by id.
@@ -4593,7 +4897,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 26)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4651,11 +4955,26 @@ func (m *UserMutation) Fields() []string {
 	if m.labels != nil {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.int32s != nil {
+		fields = append(fields, user.FieldInt32s)
+	}
+	if m.int64s != nil {
+		fields = append(fields, user.FieldInt64s)
+	}
+	if m.uint32s != nil {
+		fields = append(fields, user.FieldUint32s)
+	}
+	if m.uint64s != nil {
+		fields = append(fields, user.FieldUint64s)
+	}
 	if m.device_type != nil {
 		fields = append(fields, user.FieldDeviceType)
 	}
 	if m.omit_prefix != nil {
 		fields = append(fields, user.FieldOmitPrefix)
+	}
+	if m.mime_type != nil {
+		fields = append(fields, user.FieldMimeType)
 	}
 	return fields
 }
@@ -4703,10 +5022,20 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case user.FieldLabels:
 		return m.Labels()
+	case user.FieldInt32s:
+		return m.Int32s()
+	case user.FieldInt64s:
+		return m.Int64s()
+	case user.FieldUint32s:
+		return m.Uint32s()
+	case user.FieldUint64s:
+		return m.Uint64s()
 	case user.FieldDeviceType:
 		return m.DeviceType()
 	case user.FieldOmitPrefix:
 		return m.OmitPrefix()
+	case user.FieldMimeType:
+		return m.MimeType()
 	}
 	return nil, false
 }
@@ -4754,10 +5083,20 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldType(ctx)
 	case user.FieldLabels:
 		return m.OldLabels(ctx)
+	case user.FieldInt32s:
+		return m.OldInt32s(ctx)
+	case user.FieldInt64s:
+		return m.OldInt64s(ctx)
+	case user.FieldUint32s:
+		return m.OldUint32s(ctx)
+	case user.FieldUint64s:
+		return m.OldUint64s(ctx)
 	case user.FieldDeviceType:
 		return m.OldDeviceType(ctx)
 	case user.FieldOmitPrefix:
 		return m.OldOmitPrefix(ctx)
+	case user.FieldMimeType:
+		return m.OldMimeType(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4900,6 +5239,34 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLabels(v)
 		return nil
+	case user.FieldInt32s:
+		v, ok := value.([]int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInt32s(v)
+		return nil
+	case user.FieldInt64s:
+		v, ok := value.([]int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInt64s(v)
+		return nil
+	case user.FieldUint32s:
+		v, ok := value.([]uint32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUint32s(v)
+		return nil
+	case user.FieldUint64s:
+		v, ok := value.([]uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUint64s(v)
+		return nil
 	case user.FieldDeviceType:
 		v, ok := value.(user.DeviceType)
 		if !ok {
@@ -4913,6 +5280,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOmitPrefix(v)
+		return nil
+	case user.FieldMimeType:
+		v, ok := value.(user.MimeType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMimeType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -5067,6 +5441,18 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldLabels) {
 		fields = append(fields, user.FieldLabels)
 	}
+	if m.FieldCleared(user.FieldInt32s) {
+		fields = append(fields, user.FieldInt32s)
+	}
+	if m.FieldCleared(user.FieldInt64s) {
+		fields = append(fields, user.FieldInt64s)
+	}
+	if m.FieldCleared(user.FieldUint32s) {
+		fields = append(fields, user.FieldUint32s)
+	}
+	if m.FieldCleared(user.FieldUint64s) {
+		fields = append(fields, user.FieldUint64s)
+	}
 	return fields
 }
 
@@ -5104,6 +5490,18 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldLabels:
 		m.ClearLabels()
+		return nil
+	case user.FieldInt32s:
+		m.ClearInt32s()
+		return nil
+	case user.FieldInt64s:
+		m.ClearInt64s()
+		return nil
+	case user.FieldUint32s:
+		m.ClearUint32s()
+		return nil
+	case user.FieldUint64s:
+		m.ClearUint64s()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -5170,11 +5568,26 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldLabels:
 		m.ResetLabels()
 		return nil
+	case user.FieldInt32s:
+		m.ResetInt32s()
+		return nil
+	case user.FieldInt64s:
+		m.ResetInt64s()
+		return nil
+	case user.FieldUint32s:
+		m.ResetUint32s()
+		return nil
+	case user.FieldUint64s:
+		m.ResetUint64s()
+		return nil
 	case user.FieldDeviceType:
 		m.ResetDeviceType()
 		return nil
 	case user.FieldOmitPrefix:
 		m.ResetOmitPrefix()
+		return nil
+	case user.FieldMimeType:
+		m.ResetMimeType()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

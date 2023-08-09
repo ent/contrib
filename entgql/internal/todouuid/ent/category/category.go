@@ -21,6 +21,8 @@ import (
 	"io"
 	"strconv"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -35,6 +37,8 @@ const (
 	FieldStatus = "status"
 	// FieldConfig holds the string denoting the config field in the database.
 	FieldConfig = "config"
+	// FieldTypes holds the string denoting the types field in the database.
+	FieldTypes = "types"
 	// FieldDuration holds the string denoting the duration field in the database.
 	FieldDuration = "duration"
 	// FieldCount holds the string denoting the count field in the database.
@@ -64,6 +68,7 @@ var Columns = []string{
 	FieldText,
 	FieldStatus,
 	FieldConfig,
+	FieldTypes,
 	FieldDuration,
 	FieldCount,
 	FieldStrings,
@@ -113,6 +118,81 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("category: invalid enum value for status field: %q", s)
 	}
+}
+
+// OrderOption defines the ordering options for the Category queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByText orders the results by the text field.
+func ByText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldText, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByConfig orders the results by the config field.
+func ByConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfig, opts...).ToFunc()
+}
+
+// ByDuration orders the results by the duration field.
+func ByDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDuration, opts...).ToFunc()
+}
+
+// ByCount orders the results by the count field.
+func ByCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCount, opts...).ToFunc()
+}
+
+// ByTodosCount orders the results by todos count.
+func ByTodosCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTodosStep(), opts...)
+	}
+}
+
+// ByTodos orders the results by todos terms.
+func ByTodos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTodosStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySubCategoriesCount orders the results by sub_categories count.
+func BySubCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubCategoriesStep(), opts...)
+	}
+}
+
+// BySubCategories orders the results by sub_categories terms.
+func BySubCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newTodosStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TodosInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TodosTable, TodosColumn),
+	)
+}
+func newSubCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, SubCategoriesTable, SubCategoriesPrimaryKey...),
+	)
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

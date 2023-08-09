@@ -20,7 +20,7 @@ import (
 type UserQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []user.OrderOption
 	inters     []Interceptor
 	predicates []predicate.User
 	withPets   *PetQuery
@@ -55,7 +55,7 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
+func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
 }
@@ -202,10 +202,12 @@ func (uq *UserQuery) AllX(ctx context.Context) []*User {
 }
 
 // IDs executes the query and returns a list of User IDs.
-func (uq *UserQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (uq *UserQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if uq.ctx.Unique == nil && uq.path != nil {
+		uq.Unique(true)
+	}
 	ctx = setContextOp(ctx, uq.ctx, "IDs")
-	if err := uq.Select(user.FieldID).Scan(ctx, &ids); err != nil {
+	if err = uq.Select(user.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -269,7 +271,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 	return &UserQuery{
 		config:     uq.config,
 		ctx:        uq.ctx.Clone(),
-		order:      append([]OrderFunc{}, uq.order...),
+		order:      append([]user.OrderOption{}, uq.order...),
 		inters:     append([]Interceptor{}, uq.inters...),
 		predicates: append([]predicate.User{}, uq.predicates...),
 		withPets:   uq.withPets.Clone(),
@@ -412,7 +414,7 @@ func (uq *UserQuery) loadPets(ctx context.Context, query *PetQuery, nodes []*Use
 	}
 	query.withFKs = true
 	query.Where(predicate.Pet(func(s *sql.Selector) {
-		s.Where(sql.InValues(user.PetsColumn, fks...))
+		s.Where(sql.InValues(s.C(user.PetsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -425,7 +427,7 @@ func (uq *UserQuery) loadPets(ctx context.Context, query *PetQuery, nodes []*Use
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_pets" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_pets" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -442,20 +444,12 @@ func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: user.FieldID,
-			},
-		},
-		From:   uq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec.From = uq.sql
 	if unique := uq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if uq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := uq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

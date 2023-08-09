@@ -53,6 +53,14 @@ func (o OrderDirection) String() string {
 	return string(o)
 }
 
+// OrderTermOption returns the OrderTermOption for setting the order direction.
+func (o OrderDirection) OrderTermOption() sql.OrderTermOption {
+	if o == OrderDirectionAsc {
+		return sql.OrderAsc()
+	}
+	return sql.OrderDesc()
+}
+
 // MarshalGQL implements graphql.Marshaler interface.
 func (o OrderDirection) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(o.String()))
@@ -135,9 +143,16 @@ func CursorsPredicate[T any](after, before *Cursor[T], idField, field string, di
 			// because it will be used in the closure.
 			cursor := cursor
 			predicates = append(predicates, func(s *sql.Selector) {
-				s.Where(
-					predicate(s.Columns(field, idField), cursor.Value, cursor.ID),
-				)
+				s.Where(sql.P(func(b *sql.Builder) {
+					// The predicate function is executed on query generation time.
+					column := s.C(field)
+					// If there is a non-ambiguis match, we use it. That is because
+					// some order terms may append joined information to query selection.
+					if matches := s.FindSelection(field); len(matches) == 1 {
+						column = matches[0]
+					}
+					b.Join(predicate([]string{column, s.C(idField)}, cursor.Value, cursor.ID))
+				}))
 			})
 		} else {
 			if direction == OrderDirectionAsc {
@@ -200,20 +215,22 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 		opts.Fields = append(opts.Fields, opts.FieldID)
 		opts.Directions = append(opts.Directions, opts.DirectionID)
 	}
-	// Given the following terms: x DESC, y ASC, etc. The following predicate will be
-	// generated: (x < x1 OR (x = x1 AND y > y1) OR (x = x1 AND y = y1 AND id > last)).
-	var or []*sql.Predicate
-	for i := range opts.Fields {
-		var ands []*sql.Predicate
-		for j := 0; j < i; j++ {
-			ands = append(ands, sql.EQ(opts.Fields[j], values[j]))
+	return func(s *sql.Selector) {
+		// Given the following terms: x DESC, y ASC, etc. The following predicate will be
+		// generated: (x < x1 OR (x = x1 AND y > y1) OR (x = x1 AND y = y1 AND id > last)).
+		var or []*sql.Predicate
+		for i := range opts.Fields {
+			var ands []*sql.Predicate
+			for j := 0; j < i; j++ {
+				ands = append(ands, sql.EQ(s.C(opts.Fields[j]), values[j]))
+			}
+			if opts.Directions[i] == OrderDirectionAsc {
+				ands = append(ands, sql.GT(s.C(opts.Fields[i]), values[i]))
+			} else {
+				ands = append(ands, sql.LT(s.C(opts.Fields[i]), values[i]))
+			}
+			or = append(or, sql.And(ands...))
 		}
-		if opts.Directions[i] == OrderDirectionAsc {
-			ands = append(ands, sql.GT(opts.Fields[i], values[i]))
-		} else {
-			ands = append(ands, sql.LT(opts.Fields[i], values[i]))
-		}
-		or = append(or, sql.And(ands...))
-	}
-	return func(s *sql.Selector) { s.Where(sql.Or(or...)) }, nil
+		s.Where(sql.Or(or...))
+	}, nil
 }

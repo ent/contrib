@@ -18,7 +18,7 @@ import (
 type WithFieldsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []withfields.OrderOption
 	inters     []Interceptor
 	predicates []predicate.WithFields
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (wfq *WithFieldsQuery) Unique(unique bool) *WithFieldsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (wfq *WithFieldsQuery) Order(o ...OrderFunc) *WithFieldsQuery {
+func (wfq *WithFieldsQuery) Order(o ...withfields.OrderOption) *WithFieldsQuery {
 	wfq.order = append(wfq.order, o...)
 	return wfq
 }
@@ -177,10 +177,12 @@ func (wfq *WithFieldsQuery) AllX(ctx context.Context) []*WithFields {
 }
 
 // IDs executes the query and returns a list of WithFields IDs.
-func (wfq *WithFieldsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (wfq *WithFieldsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if wfq.ctx.Unique == nil && wfq.path != nil {
+		wfq.Unique(true)
+	}
 	ctx = setContextOp(ctx, wfq.ctx, "IDs")
-	if err := wfq.Select(withfields.FieldID).Scan(ctx, &ids); err != nil {
+	if err = wfq.Select(withfields.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (wfq *WithFieldsQuery) Clone() *WithFieldsQuery {
 	return &WithFieldsQuery{
 		config:     wfq.config,
 		ctx:        wfq.ctx.Clone(),
-		order:      append([]OrderFunc{}, wfq.order...),
+		order:      append([]withfields.OrderOption{}, wfq.order...),
 		inters:     append([]Interceptor{}, wfq.inters...),
 		predicates: append([]predicate.WithFields{}, wfq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (wfq *WithFieldsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wfq *WithFieldsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   withfields.Table,
-			Columns: withfields.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withfields.FieldID,
-			},
-		},
-		From:   wfq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(withfields.Table, withfields.Columns, sqlgraph.NewFieldSpec(withfields.FieldID, field.TypeInt))
+	_spec.From = wfq.sql
 	if unique := wfq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if wfq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := wfq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

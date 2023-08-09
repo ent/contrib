@@ -98,16 +98,7 @@ func (pu *PortalUpdate) ExecX(ctx context.Context) {
 }
 
 func (pu *PortalUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   portal.Table,
-			Columns: portal.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: portal.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(portal.Table, portal.Columns, sqlgraph.NewFieldSpec(portal.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -129,10 +120,7 @@ func (pu *PortalUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{portal.CategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -145,10 +133,7 @@ func (pu *PortalUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{portal.CategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -218,6 +203,12 @@ func (puo *PortalUpdateOne) ClearCategory() *PortalUpdateOne {
 	return puo
 }
 
+// Where appends a list predicates to the PortalUpdate builder.
+func (puo *PortalUpdateOne) Where(ps ...predicate.Portal) *PortalUpdateOne {
+	puo.mutation.Where(ps...)
+	return puo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (puo *PortalUpdateOne) Select(field string, fields ...string) *PortalUpdateOne {
@@ -253,16 +244,7 @@ func (puo *PortalUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (puo *PortalUpdateOne) sqlSave(ctx context.Context) (_node *Portal, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   portal.Table,
-			Columns: portal.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: portal.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(portal.Table, portal.Columns, sqlgraph.NewFieldSpec(portal.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Portal.id" for update`)}
@@ -301,10 +283,7 @@ func (puo *PortalUpdateOne) sqlSave(ctx context.Context) (_node *Portal, err err
 			Columns: []string{portal.CategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -317,10 +296,7 @@ func (puo *PortalUpdateOne) sqlSave(ctx context.Context) (_node *Portal, err err
 			Columns: []string{portal.CategoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

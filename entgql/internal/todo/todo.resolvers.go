@@ -21,9 +21,26 @@ import (
 	"context"
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/ent/dialect/sql"
 )
+
+func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*int, error) {
+	v, err := ent.CategoryOrderFieldTodosCount.Value(obj)
+	if err != nil {
+		return nil, err
+	}
+	// We expect to beautify this API in the future.
+	i, ok := v.(int64)
+	if !ok {
+		return nil, nil
+	}
+	vi := int(i)
+	return &vi, nil
+}
 
 func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
 	return ent.FromContext(ctx).Category.Create().SetInput(input).Save(ctx)
@@ -50,8 +67,34 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 		Exec(ctx)
 }
 
+func (r *mutationResolver) UpdateFriendship(ctx context.Context, id int, input ent.UpdateFriendshipInput) (*ent.Friendship, error) {
+	return r.client.Friendship.
+		UpdateOneID(id).
+		SetInput(input).
+		Save(ctx)
+}
+
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 	return "pong", nil
+}
+
+func (r *queryResolver) TodosWithJoins(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+	return r.client.Todo.Query().
+		Modify(func(s *sql.Selector) {
+			cats := sql.Table(category.Table)
+			s.
+				LeftJoin(cats).
+				On(s.C(todo.FieldCategoryID), cats.C(category.FieldID)).
+				GroupBy(s.C(category.FieldID))
+		}).
+		Paginate(ctx, after, first, before, last,
+			ent.WithTodoOrder(orderBy),
+			ent.WithTodoFilter(where.Filter),
+		)
+}
+
+func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
+	return &obj.Text, nil
 }
 
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {

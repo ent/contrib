@@ -67,11 +67,7 @@ func HasImages() predicate.NoBackref {
 // HasImagesWith applies the HasEdge predicate on the "images" edge with a given conditions (other predicates).
 func HasImagesWith(preds ...predicate.Image) predicate.NoBackref {
 	return predicate.NoBackref(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ImagesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ImagesTable, ImagesColumn),
-		)
+		step := newImagesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

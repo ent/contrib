@@ -35,7 +35,7 @@ import (
 type TodoQuery struct {
 	config
 	ctx               *QueryContext
-	order             []OrderFunc
+	order             []todo.OrderOption
 	inters            []Interceptor
 	predicates        []predicate.Todo
 	withParent        *TodoQuery
@@ -77,7 +77,7 @@ func (tq *TodoQuery) Unique(unique bool) *TodoQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (tq *TodoQuery) Order(o ...OrderFunc) *TodoQuery {
+func (tq *TodoQuery) Order(o ...todo.OrderOption) *TodoQuery {
 	tq.order = append(tq.order, o...)
 	return tq
 }
@@ -290,10 +290,12 @@ func (tq *TodoQuery) AllX(ctx context.Context) []*Todo {
 }
 
 // IDs executes the query and returns a list of Todo IDs.
-func (tq *TodoQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (tq *TodoQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if tq.ctx.Unique == nil && tq.path != nil {
+		tq.Unique(true)
+	}
 	ctx = setContextOp(ctx, tq.ctx, "IDs")
-	if err := tq.Select(todo.FieldID).Scan(ctx, &ids); err != nil {
+	if err = tq.Select(todo.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -357,7 +359,7 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 	return &TodoQuery{
 		config:       tq.config,
 		ctx:          tq.ctx.Clone(),
-		order:        append([]OrderFunc{}, tq.order...),
+		order:        append([]todo.OrderOption{}, tq.order...),
 		inters:       append([]Interceptor{}, tq.inters...),
 		predicates:   append([]predicate.Todo{}, tq.predicates...),
 		withParent:   tq.withParent.Clone(),
@@ -611,7 +613,7 @@ func (tq *TodoQuery) loadChildren(ctx context.Context, query *TodoQuery, nodes [
 	}
 	query.withFKs = true
 	query.Where(predicate.Todo(func(s *sql.Selector) {
-		s.Where(sql.InValues(todo.ChildrenColumn, fks...))
+		s.Where(sql.InValues(s.C(todo.ChildrenColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -624,7 +626,7 @@ func (tq *TodoQuery) loadChildren(ctx context.Context, query *TodoQuery, nodes [
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "todo_children" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "todo_children" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -708,20 +710,12 @@ func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   todo.Table,
-			Columns: todo.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: todo.FieldID,
-			},
-		},
-		From:   tq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(todo.Table, todo.Columns, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt))
+	_spec.From = tq.sql
 	if unique := tq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if tq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := tq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

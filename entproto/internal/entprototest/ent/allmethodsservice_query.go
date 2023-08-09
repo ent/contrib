@@ -18,7 +18,7 @@ import (
 type AllMethodsServiceQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []allmethodsservice.OrderOption
 	inters     []Interceptor
 	predicates []predicate.AllMethodsService
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (amsq *AllMethodsServiceQuery) Unique(unique bool) *AllMethodsServiceQuery 
 }
 
 // Order specifies how the records should be ordered.
-func (amsq *AllMethodsServiceQuery) Order(o ...OrderFunc) *AllMethodsServiceQuery {
+func (amsq *AllMethodsServiceQuery) Order(o ...allmethodsservice.OrderOption) *AllMethodsServiceQuery {
 	amsq.order = append(amsq.order, o...)
 	return amsq
 }
@@ -177,10 +177,12 @@ func (amsq *AllMethodsServiceQuery) AllX(ctx context.Context) []*AllMethodsServi
 }
 
 // IDs executes the query and returns a list of AllMethodsService IDs.
-func (amsq *AllMethodsServiceQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (amsq *AllMethodsServiceQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if amsq.ctx.Unique == nil && amsq.path != nil {
+		amsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, amsq.ctx, "IDs")
-	if err := amsq.Select(allmethodsservice.FieldID).Scan(ctx, &ids); err != nil {
+	if err = amsq.Select(allmethodsservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (amsq *AllMethodsServiceQuery) Clone() *AllMethodsServiceQuery {
 	return &AllMethodsServiceQuery{
 		config:     amsq.config,
 		ctx:        amsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, amsq.order...),
+		order:      append([]allmethodsservice.OrderOption{}, amsq.order...),
 		inters:     append([]Interceptor{}, amsq.inters...),
 		predicates: append([]predicate.AllMethodsService{}, amsq.predicates...),
 		// clone intermediate query.
@@ -340,20 +342,12 @@ func (amsq *AllMethodsServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (amsq *AllMethodsServiceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   allmethodsservice.Table,
-			Columns: allmethodsservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: allmethodsservice.FieldID,
-			},
-		},
-		From:   amsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(allmethodsservice.Table, allmethodsservice.Columns, sqlgraph.NewFieldSpec(allmethodsservice.FieldID, field.TypeInt))
+	_spec.From = amsq.sql
 	if unique := amsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if amsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := amsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

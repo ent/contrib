@@ -40,15 +40,7 @@ func (ned *NilExampleDelete) ExecX(ctx context.Context) int {
 }
 
 func (ned *NilExampleDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: nilexample.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(nilexample.Table, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
 	if ps := ned.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type NilExampleDeleteOne struct {
 	ned *NilExampleDelete
 }
 
+// Where appends a list predicates to the NilExampleDelete builder.
+func (nedo *NilExampleDeleteOne) Where(ps ...predicate.NilExample) *NilExampleDeleteOne {
+	nedo.ned.mutation.Where(ps...)
+	return nedo
+}
+
 // Exec executes the deletion query.
 func (nedo *NilExampleDeleteOne) Exec(ctx context.Context) error {
 	n, err := nedo.ned.Exec(ctx)
@@ -84,5 +82,7 @@ func (nedo *NilExampleDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (nedo *NilExampleDeleteOne) ExecX(ctx context.Context) {
-	nedo.ned.ExecX(ctx)
+	if err := nedo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

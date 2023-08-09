@@ -4,6 +4,8 @@ package messagewithenum
 
 import (
 	"fmt"
+
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -15,6 +17,8 @@ const (
 	FieldEnumType = "enum_type"
 	// FieldEnumWithoutDefault holds the string denoting the enum_without_default field in the database.
 	FieldEnumWithoutDefault = "enum_without_default"
+	// FieldEnumWithSpecialCharacters holds the string denoting the enum_with_special_characters field in the database.
+	FieldEnumWithSpecialCharacters = "enum_with_special_characters"
 	// Table holds the table name of the messagewithenum in the database.
 	Table = "message_with_enums"
 )
@@ -24,6 +28,7 @@ var Columns = []string{
 	FieldID,
 	FieldEnumType,
 	FieldEnumWithoutDefault,
+	FieldEnumWithSpecialCharacters,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -85,4 +90,50 @@ func EnumWithoutDefaultValidator(ewd EnumWithoutDefault) error {
 	default:
 		return fmt.Errorf("messagewithenum: invalid enum value for enum_without_default field: %q", ewd)
 	}
+}
+
+// EnumWithSpecialCharacters defines the type for the "enum_with_special_characters" enum field.
+type EnumWithSpecialCharacters string
+
+// EnumWithSpecialCharacters values.
+const (
+	EnumWithSpecialCharactersJpeg EnumWithSpecialCharacters = "image/jpeg"
+	EnumWithSpecialCharactersPng  EnumWithSpecialCharacters = "image/png"
+)
+
+func (ewsc EnumWithSpecialCharacters) String() string {
+	return string(ewsc)
+}
+
+// EnumWithSpecialCharactersValidator is a validator for the "enum_with_special_characters" field enum values. It is called by the builders before save.
+func EnumWithSpecialCharactersValidator(ewsc EnumWithSpecialCharacters) error {
+	switch ewsc {
+	case EnumWithSpecialCharactersJpeg, EnumWithSpecialCharactersPng:
+		return nil
+	default:
+		return fmt.Errorf("messagewithenum: invalid enum value for enum_with_special_characters field: %q", ewsc)
+	}
+}
+
+// OrderOption defines the ordering options for the MessageWithEnum queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByEnumType orders the results by the enum_type field.
+func ByEnumType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnumType, opts...).ToFunc()
+}
+
+// ByEnumWithoutDefault orders the results by the enum_without_default field.
+func ByEnumWithoutDefault(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnumWithoutDefault, opts...).ToFunc()
+}
+
+// ByEnumWithSpecialCharacters orders the results by the enum_with_special_characters field.
+func ByEnumWithSpecialCharacters(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEnumWithSpecialCharacters, opts...).ToFunc()
 }

@@ -18,7 +18,7 @@ import (
 type NilExampleQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []nilexample.OrderOption
 	inters     []Interceptor
 	predicates []predicate.NilExample
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (neq *NilExampleQuery) Unique(unique bool) *NilExampleQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (neq *NilExampleQuery) Order(o ...OrderFunc) *NilExampleQuery {
+func (neq *NilExampleQuery) Order(o ...nilexample.OrderOption) *NilExampleQuery {
 	neq.order = append(neq.order, o...)
 	return neq
 }
@@ -177,10 +177,12 @@ func (neq *NilExampleQuery) AllX(ctx context.Context) []*NilExample {
 }
 
 // IDs executes the query and returns a list of NilExample IDs.
-func (neq *NilExampleQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (neq *NilExampleQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if neq.ctx.Unique == nil && neq.path != nil {
+		neq.Unique(true)
+	}
 	ctx = setContextOp(ctx, neq.ctx, "IDs")
-	if err := neq.Select(nilexample.FieldID).Scan(ctx, &ids); err != nil {
+	if err = neq.Select(nilexample.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (neq *NilExampleQuery) Clone() *NilExampleQuery {
 	return &NilExampleQuery{
 		config:     neq.config,
 		ctx:        neq.ctx.Clone(),
-		order:      append([]OrderFunc{}, neq.order...),
+		order:      append([]nilexample.OrderOption{}, neq.order...),
 		inters:     append([]Interceptor{}, neq.inters...),
 		predicates: append([]predicate.NilExample{}, neq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (neq *NilExampleQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (neq *NilExampleQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nilexample.Table,
-			Columns: nilexample.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		},
-		From:   neq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(nilexample.Table, nilexample.Columns, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
+	_spec.From = neq.sql
 	if unique := neq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if neq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := neq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

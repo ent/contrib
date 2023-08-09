@@ -34,10 +34,9 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-
-	"entgo.io/ent"
 )
 
 const (
@@ -543,6 +542,7 @@ type CategoryMutation struct {
 	text                  *string
 	status                *category.Status
 	_config               **schematype.CategoryConfig
+	types                 **schematype.CategoryTypes
 	duration              *time.Duration
 	addduration           *time.Duration
 	count                 *uint64
@@ -784,6 +784,55 @@ func (m *CategoryMutation) ConfigCleared() bool {
 func (m *CategoryMutation) ResetConfig() {
 	m._config = nil
 	delete(m.clearedFields, category.FieldConfig)
+}
+
+// SetTypes sets the "types" field.
+func (m *CategoryMutation) SetTypes(st *schematype.CategoryTypes) {
+	m.types = &st
+}
+
+// Types returns the value of the "types" field in the mutation.
+func (m *CategoryMutation) Types() (r *schematype.CategoryTypes, exists bool) {
+	v := m.types
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTypes returns the old "types" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldTypes(ctx context.Context) (v *schematype.CategoryTypes, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTypes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTypes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTypes: %w", err)
+	}
+	return oldValue.Types, nil
+}
+
+// ClearTypes clears the value of the "types" field.
+func (m *CategoryMutation) ClearTypes() {
+	m.types = nil
+	m.clearedFields[category.FieldTypes] = struct{}{}
+}
+
+// TypesCleared returns if the "types" field was cleared in this mutation.
+func (m *CategoryMutation) TypesCleared() bool {
+	_, ok := m.clearedFields[category.FieldTypes]
+	return ok
+}
+
+// ResetTypes resets all changes to the "types" field.
+func (m *CategoryMutation) ResetTypes() {
+	m.types = nil
+	delete(m.clearedFields, category.FieldTypes)
 }
 
 // SetDuration sets the "duration" field.
@@ -1133,7 +1182,7 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
 	}
@@ -1142,6 +1191,9 @@ func (m *CategoryMutation) Fields() []string {
 	}
 	if m._config != nil {
 		fields = append(fields, category.FieldConfig)
+	}
+	if m.types != nil {
+		fields = append(fields, category.FieldTypes)
 	}
 	if m.duration != nil {
 		fields = append(fields, category.FieldDuration)
@@ -1166,6 +1218,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case category.FieldConfig:
 		return m.Config()
+	case category.FieldTypes:
+		return m.Types()
 	case category.FieldDuration:
 		return m.Duration()
 	case category.FieldCount:
@@ -1187,6 +1241,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldStatus(ctx)
 	case category.FieldConfig:
 		return m.OldConfig(ctx)
+	case category.FieldTypes:
+		return m.OldTypes(ctx)
 	case category.FieldDuration:
 		return m.OldDuration(ctx)
 	case category.FieldCount:
@@ -1222,6 +1278,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetConfig(v)
+		return nil
+	case category.FieldTypes:
+		v, ok := value.(*schematype.CategoryTypes)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTypes(v)
 		return nil
 	case category.FieldDuration:
 		v, ok := value.(time.Duration)
@@ -1304,6 +1367,9 @@ func (m *CategoryMutation) ClearedFields() []string {
 	if m.FieldCleared(category.FieldConfig) {
 		fields = append(fields, category.FieldConfig)
 	}
+	if m.FieldCleared(category.FieldTypes) {
+		fields = append(fields, category.FieldTypes)
+	}
 	if m.FieldCleared(category.FieldDuration) {
 		fields = append(fields, category.FieldDuration)
 	}
@@ -1330,6 +1396,9 @@ func (m *CategoryMutation) ClearField(name string) error {
 	case category.FieldConfig:
 		m.ClearConfig()
 		return nil
+	case category.FieldTypes:
+		m.ClearTypes()
+		return nil
 	case category.FieldDuration:
 		m.ClearDuration()
 		return nil
@@ -1355,6 +1424,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 		return nil
 	case category.FieldConfig:
 		m.ResetConfig()
+		return nil
+	case category.FieldTypes:
+		m.ResetTypes()
 		return nil
 	case category.FieldDuration:
 		m.ResetDuration()
@@ -3639,6 +3711,8 @@ type UserMutation struct {
 	name               *string
 	username           *uuid.UUID
 	password           *string
+	required_metadata  *map[string]interface{}
+	metadata           *map[string]interface{}
 	clearedFields      map[string]struct{}
 	groups             map[pulid.ID]struct{}
 	removedgroups      map[pulid.ID]struct{}
@@ -3879,6 +3953,91 @@ func (m *UserMutation) ResetPassword() {
 	delete(m.clearedFields, user.FieldPassword)
 }
 
+// SetRequiredMetadata sets the "required_metadata" field.
+func (m *UserMutation) SetRequiredMetadata(value map[string]interface{}) {
+	m.required_metadata = &value
+}
+
+// RequiredMetadata returns the value of the "required_metadata" field in the mutation.
+func (m *UserMutation) RequiredMetadata() (r map[string]interface{}, exists bool) {
+	v := m.required_metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequiredMetadata returns the old "required_metadata" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldRequiredMetadata(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequiredMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequiredMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequiredMetadata: %w", err)
+	}
+	return oldValue.RequiredMetadata, nil
+}
+
+// ResetRequiredMetadata resets all changes to the "required_metadata" field.
+func (m *UserMutation) ResetRequiredMetadata() {
+	m.required_metadata = nil
+}
+
+// SetMetadata sets the "metadata" field.
+func (m *UserMutation) SetMetadata(value map[string]interface{}) {
+	m.metadata = &value
+}
+
+// Metadata returns the value of the "metadata" field in the mutation.
+func (m *UserMutation) Metadata() (r map[string]interface{}, exists bool) {
+	v := m.metadata
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetadata returns the old "metadata" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldMetadata(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetadata is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetadata requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetadata: %w", err)
+	}
+	return oldValue.Metadata, nil
+}
+
+// ClearMetadata clears the value of the "metadata" field.
+func (m *UserMutation) ClearMetadata() {
+	m.metadata = nil
+	m.clearedFields[user.FieldMetadata] = struct{}{}
+}
+
+// MetadataCleared returns if the "metadata" field was cleared in this mutation.
+func (m *UserMutation) MetadataCleared() bool {
+	_, ok := m.clearedFields[user.FieldMetadata]
+	return ok
+}
+
+// ResetMetadata resets all changes to the "metadata" field.
+func (m *UserMutation) ResetMetadata() {
+	m.metadata = nil
+	delete(m.clearedFields, user.FieldMetadata)
+}
+
 // AddGroupIDs adds the "groups" edge to the Group entity by ids.
 func (m *UserMutation) AddGroupIDs(ids ...pulid.ID) {
 	if m.groups == nil {
@@ -4075,7 +4234,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -4084,6 +4243,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
+	}
+	if m.required_metadata != nil {
+		fields = append(fields, user.FieldRequiredMetadata)
+	}
+	if m.metadata != nil {
+		fields = append(fields, user.FieldMetadata)
 	}
 	return fields
 }
@@ -4099,6 +4264,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldPassword:
 		return m.Password()
+	case user.FieldRequiredMetadata:
+		return m.RequiredMetadata()
+	case user.FieldMetadata:
+		return m.Metadata()
 	}
 	return nil, false
 }
@@ -4114,6 +4283,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
+	case user.FieldRequiredMetadata:
+		return m.OldRequiredMetadata(ctx)
+	case user.FieldMetadata:
+		return m.OldMetadata(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -4143,6 +4316,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPassword(v)
+		return nil
+	case user.FieldRequiredMetadata:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequiredMetadata(v)
+		return nil
+	case user.FieldMetadata:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetadata(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -4177,6 +4364,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldPassword) {
 		fields = append(fields, user.FieldPassword)
 	}
+	if m.FieldCleared(user.FieldMetadata) {
+		fields = append(fields, user.FieldMetadata)
+	}
 	return fields
 }
 
@@ -4194,6 +4384,9 @@ func (m *UserMutation) ClearField(name string) error {
 	case user.FieldPassword:
 		m.ClearPassword()
 		return nil
+	case user.FieldMetadata:
+		m.ClearMetadata()
+		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
@@ -4210,6 +4403,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ResetPassword()
+		return nil
+	case user.FieldRequiredMetadata:
+		m.ResetRequiredMetadata()
+		return nil
+	case user.FieldMetadata:
+		m.ResetMetadata()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

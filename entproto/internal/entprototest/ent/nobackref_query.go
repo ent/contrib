@@ -20,7 +20,7 @@ import (
 type NoBackrefQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []nobackref.OrderOption
 	inters     []Interceptor
 	predicates []predicate.NoBackref
 	withImages *ImageQuery
@@ -55,7 +55,7 @@ func (nbq *NoBackrefQuery) Unique(unique bool) *NoBackrefQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (nbq *NoBackrefQuery) Order(o ...OrderFunc) *NoBackrefQuery {
+func (nbq *NoBackrefQuery) Order(o ...nobackref.OrderOption) *NoBackrefQuery {
 	nbq.order = append(nbq.order, o...)
 	return nbq
 }
@@ -202,10 +202,12 @@ func (nbq *NoBackrefQuery) AllX(ctx context.Context) []*NoBackref {
 }
 
 // IDs executes the query and returns a list of NoBackref IDs.
-func (nbq *NoBackrefQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (nbq *NoBackrefQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if nbq.ctx.Unique == nil && nbq.path != nil {
+		nbq.Unique(true)
+	}
 	ctx = setContextOp(ctx, nbq.ctx, "IDs")
-	if err := nbq.Select(nobackref.FieldID).Scan(ctx, &ids); err != nil {
+	if err = nbq.Select(nobackref.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -269,7 +271,7 @@ func (nbq *NoBackrefQuery) Clone() *NoBackrefQuery {
 	return &NoBackrefQuery{
 		config:     nbq.config,
 		ctx:        nbq.ctx.Clone(),
-		order:      append([]OrderFunc{}, nbq.order...),
+		order:      append([]nobackref.OrderOption{}, nbq.order...),
 		inters:     append([]Interceptor{}, nbq.inters...),
 		predicates: append([]predicate.NoBackref{}, nbq.predicates...),
 		withImages: nbq.withImages.Clone(),
@@ -390,7 +392,7 @@ func (nbq *NoBackrefQuery) loadImages(ctx context.Context, query *ImageQuery, no
 	}
 	query.withFKs = true
 	query.Where(predicate.Image(func(s *sql.Selector) {
-		s.Where(sql.InValues(nobackref.ImagesColumn, fks...))
+		s.Where(sql.InValues(s.C(nobackref.ImagesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -403,7 +405,7 @@ func (nbq *NoBackrefQuery) loadImages(ctx context.Context, query *ImageQuery, no
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "no_backref_images" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "no_backref_images" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -420,20 +422,12 @@ func (nbq *NoBackrefQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (nbq *NoBackrefQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   nobackref.Table,
-			Columns: nobackref.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nobackref.FieldID,
-			},
-		},
-		From:   nbq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(nobackref.Table, nobackref.Columns, sqlgraph.NewFieldSpec(nobackref.FieldID, field.TypeInt))
+	_spec.From = nbq.sql
 	if unique := nbq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if nbq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := nbq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

@@ -86,13 +86,7 @@ func (pc *PonyCreate) sqlSave(ctx context.Context) (*Pony, error) {
 func (pc *PonyCreate) createSpec() (*Pony, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Pony{config: pc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: pony.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(pony.Table, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
 	)
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(pony.FieldName, field.TypeString, value)
@@ -124,8 +118,8 @@ func (pcb *PonyCreateBulk) Save(ctx context.Context) ([]*Pony, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pcb.builders[i+1].mutation)
 				} else {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/cmd/protoc-gen-ent/internal/todo/ent/file"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,7 +17,8 @@ type File struct {
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
 	// Contents holds the value of the "contents" field.
-	Contents string `json:"contents,omitempty"`
+	Contents     string `json:"contents,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -27,7 +29,7 @@ func (*File) scanValues(columns []string) ([]any, error) {
 		case file.FieldID, file.FieldContents:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type File", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -53,9 +55,17 @@ func (f *File) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				f.Contents = value.String
 			}
+		default:
+			f.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the File.
+// This includes values selected through modifiers, order, etc.
+func (f *File) Value(name string) (ent.Value, error) {
+	return f.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this File.
@@ -89,9 +99,3 @@ func (f *File) String() string {
 
 // Files is a parsable slice of File.
 type Files []*File
-
-func (f Files) config(cfg config) {
-	for _i := range f {
-		f[_i].config = cfg
-	}
-}

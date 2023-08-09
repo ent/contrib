@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
@@ -50,6 +51,12 @@ func init() {
 	groupDescName := groupFields[0].Descriptor()
 	// group.DefaultName holds the default value on creation for the name field.
 	group.DefaultName = groupDescName.Default.(string)
+	onetomanyFields := schema.OneToMany{}.Fields()
+	_ = onetomanyFields
+	// onetomanyDescName is the schema descriptor for name field.
+	onetomanyDescName := onetomanyFields[0].Descriptor()
+	// onetomany.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	onetomany.NameValidator = onetomanyDescName.Validators[0].(func(string) error)
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescCreatedAt is the schema descriptor for created_at field.

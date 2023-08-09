@@ -18,7 +18,7 @@ import (
 type MessageWithEnumQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []messagewithenum.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithEnum
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mweq *MessageWithEnumQuery) Unique(unique bool) *MessageWithEnumQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mweq *MessageWithEnumQuery) Order(o ...OrderFunc) *MessageWithEnumQuery {
+func (mweq *MessageWithEnumQuery) Order(o ...messagewithenum.OrderOption) *MessageWithEnumQuery {
 	mweq.order = append(mweq.order, o...)
 	return mweq
 }
@@ -177,10 +177,12 @@ func (mweq *MessageWithEnumQuery) AllX(ctx context.Context) []*MessageWithEnum {
 }
 
 // IDs executes the query and returns a list of MessageWithEnum IDs.
-func (mweq *MessageWithEnumQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mweq *MessageWithEnumQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mweq.ctx.Unique == nil && mweq.path != nil {
+		mweq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mweq.ctx, "IDs")
-	if err := mweq.Select(messagewithenum.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mweq.Select(messagewithenum.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (mweq *MessageWithEnumQuery) Clone() *MessageWithEnumQuery {
 	return &MessageWithEnumQuery{
 		config:     mweq.config,
 		ctx:        mweq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mweq.order...),
+		order:      append([]messagewithenum.OrderOption{}, mweq.order...),
 		inters:     append([]Interceptor{}, mweq.inters...),
 		predicates: append([]predicate.MessageWithEnum{}, mweq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (mweq *MessageWithEnumQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mweq *MessageWithEnumQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithenum.Table,
-			Columns: messagewithenum.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		},
-		From:   mweq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(messagewithenum.Table, messagewithenum.Columns, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
+	_spec.From = mweq.sql
 	if unique := mweq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mweq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mweq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

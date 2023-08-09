@@ -32,11 +32,11 @@ import (
 type BillProductQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []billproduct.OrderOption
 	inters     []Interceptor
 	predicates []predicate.BillProduct
-	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*BillProduct) error
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -68,7 +68,7 @@ func (bpq *BillProductQuery) Unique(unique bool) *BillProductQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (bpq *BillProductQuery) Order(o ...OrderFunc) *BillProductQuery {
+func (bpq *BillProductQuery) Order(o ...billproduct.OrderOption) *BillProductQuery {
 	bpq.order = append(bpq.order, o...)
 	return bpq
 }
@@ -193,10 +193,12 @@ func (bpq *BillProductQuery) AllX(ctx context.Context) []*BillProduct {
 }
 
 // IDs executes the query and returns a list of BillProduct IDs.
-func (bpq *BillProductQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (bpq *BillProductQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if bpq.ctx.Unique == nil && bpq.path != nil {
+		bpq.Unique(true)
+	}
 	ctx = setContextOp(ctx, bpq.ctx, "IDs")
-	if err := bpq.Select(billproduct.FieldID).Scan(ctx, &ids); err != nil {
+	if err = bpq.Select(billproduct.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -260,7 +262,7 @@ func (bpq *BillProductQuery) Clone() *BillProductQuery {
 	return &BillProductQuery{
 		config:     bpq.config,
 		ctx:        bpq.ctx.Clone(),
-		order:      append([]OrderFunc{}, bpq.order...),
+		order:      append([]billproduct.OrderOption{}, bpq.order...),
 		inters:     append([]Interceptor{}, bpq.inters...),
 		predicates: append([]predicate.BillProduct{}, bpq.predicates...),
 		// clone intermediate query.
@@ -389,20 +391,12 @@ func (bpq *BillProductQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (bpq *BillProductQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   billproduct.Table,
-			Columns: billproduct.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: billproduct.FieldID,
-			},
-		},
-		From:   bpq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeInt))
+	_spec.From = bpq.sql
 	if unique := bpq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if bpq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := bpq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -451,6 +445,9 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if bpq.ctx.Unique != nil && *bpq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range bpq.modifiers {
+		m(selector)
+	}
 	for _, p := range bpq.predicates {
 		p(selector)
 	}
@@ -466,6 +463,12 @@ func (bpq *BillProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (bpq *BillProductQuery) Modify(modifiers ...func(s *sql.Selector)) *BillProductSelect {
+	bpq.modifiers = append(bpq.modifiers, modifiers...)
+	return bpq.Select()
 }
 
 // BillProductGroupBy is the group-by builder for BillProduct entities.
@@ -556,4 +559,10 @@ func (bps *BillProductSelect) sqlScan(ctx context.Context, root *BillProductQuer
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (bps *BillProductSelect) Modify(modifiers ...func(s *sql.Selector)) *BillProductSelect {
+	bps.modifiers = append(bps.modifiers, modifiers...)
+	return bps
 }

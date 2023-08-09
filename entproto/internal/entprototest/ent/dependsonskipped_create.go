@@ -102,13 +102,7 @@ func (dosc *DependsOnSkippedCreate) sqlSave(ctx context.Context) (*DependsOnSkip
 func (dosc *DependsOnSkippedCreate) createSpec() (*DependsOnSkipped, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DependsOnSkipped{config: dosc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: dependsonskipped.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dependsonskipped.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(dependsonskipped.Table, sqlgraph.NewFieldSpec(dependsonskipped.FieldID, field.TypeInt))
 	)
 	if value, ok := dosc.mutation.Name(); ok {
 		_spec.SetField(dependsonskipped.FieldName, field.TypeString, value)
@@ -122,10 +116,7 @@ func (dosc *DependsOnSkippedCreate) createSpec() (*DependsOnSkipped, *sqlgraph.C
 			Columns: []string{dependsonskipped.SkippedColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: implicitskippedmessage.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -159,8 +150,8 @@ func (doscb *DependsOnSkippedCreateBulk) Save(ctx context.Context) ([]*DependsOn
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, doscb.builders[i+1].mutation)
 				} else {

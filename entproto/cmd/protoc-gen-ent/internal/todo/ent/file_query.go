@@ -18,7 +18,7 @@ import (
 type FileQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []file.OrderOption
 	inters     []Interceptor
 	predicates []predicate.File
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (fq *FileQuery) Unique(unique bool) *FileQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (fq *FileQuery) Order(o ...OrderFunc) *FileQuery {
+func (fq *FileQuery) Order(o ...file.OrderOption) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
 }
@@ -177,10 +177,12 @@ func (fq *FileQuery) AllX(ctx context.Context) []*File {
 }
 
 // IDs executes the query and returns a list of File IDs.
-func (fq *FileQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fq *FileQuery) IDs(ctx context.Context) (ids []string, err error) {
+	if fq.ctx.Unique == nil && fq.path != nil {
+		fq.Unique(true)
+	}
 	ctx = setContextOp(ctx, fq.ctx, "IDs")
-	if err := fq.Select(file.FieldID).Scan(ctx, &ids); err != nil {
+	if err = fq.Select(file.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (fq *FileQuery) Clone() *FileQuery {
 	return &FileQuery{
 		config:     fq.config,
 		ctx:        fq.ctx.Clone(),
-		order:      append([]OrderFunc{}, fq.order...),
+		order:      append([]file.OrderOption{}, fq.order...),
 		inters:     append([]Interceptor{}, fq.inters...),
 		predicates: append([]predicate.File{}, fq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   file.Table,
-			Columns: file.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: file.FieldID,
-			},
-		},
-		From:   fq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(file.Table, file.Columns, sqlgraph.NewFieldSpec(file.FieldID, field.TypeString))
+	_spec.From = fq.sql
 	if unique := fq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if fq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := fq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

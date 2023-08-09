@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 )
@@ -90,7 +91,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Category",
-		Fields: make([]*Field, 6),
+		Fields: make([]*Field, 7),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
@@ -118,10 +119,18 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "config",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Duration); err != nil {
+	if buf, err = json.Marshal(c.Types); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
+		Type:  "*schematype.CategoryTypes",
+		Name:  "types",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Duration); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
 		Type:  "time.Duration",
 		Name:  "duration",
 		Value: string(buf),
@@ -129,7 +138,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Count); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "uint64",
 		Name:  "count",
 		Value: string(buf),
@@ -137,7 +146,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(c.Strings); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "[]string",
 		Name:  "strings",
 		Value: string(buf),
@@ -244,6 +253,75 @@ func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 	}
 	err = gr.QueryUsers().
 		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
+func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     otm.ID,
+		Type:   "OneToMany",
+		Fields: make([]*Field, 2),
+		Edges:  make([]*Edge, 2),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(otm.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(otm.Field2); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "field2",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "OneToMany",
+		Name: "parent",
+	}
+	err = otm.QueryParent().
+		Select(onetomany.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "OneToMany",
+		Name: "children",
+	}
+	err = otm.QueryChildren().
+		Select(onetomany.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
+func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     pr.ID,
+		Type:   "Project",
+		Fields: make([]*Field, 0),
+		Edges:  make([]*Edge, 1),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Todo",
+		Name: "todos",
+	}
+	err = pr.QueryTodos().
+		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
@@ -362,7 +440,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     u.ID,
 		Type:   "User",
-		Fields: make([]*Field, 3),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -388,6 +466,22 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[2] = &Field{
 		Type:  "string",
 		Name:  "password",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.RequiredMetadata); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "map[string]interface {}",
+		Name:  "required_metadata",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(u.Metadata); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "map[string]interface {}",
+		Name:  "metadata",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -419,6 +513,26 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
+func (w *Workspace) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     w.ID,
+		Type:   "Workspace",
+		Fields: make([]*Field, 1),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(w.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
 	}
 	return node, nil
 }

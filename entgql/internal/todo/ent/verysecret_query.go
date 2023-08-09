@@ -32,11 +32,11 @@ import (
 type VerySecretQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []verysecret.OrderOption
 	inters     []Interceptor
 	predicates []predicate.VerySecret
-	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*VerySecret) error
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -68,7 +68,7 @@ func (vsq *VerySecretQuery) Unique(unique bool) *VerySecretQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vsq *VerySecretQuery) Order(o ...OrderFunc) *VerySecretQuery {
+func (vsq *VerySecretQuery) Order(o ...verysecret.OrderOption) *VerySecretQuery {
 	vsq.order = append(vsq.order, o...)
 	return vsq
 }
@@ -193,10 +193,12 @@ func (vsq *VerySecretQuery) AllX(ctx context.Context) []*VerySecret {
 }
 
 // IDs executes the query and returns a list of VerySecret IDs.
-func (vsq *VerySecretQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (vsq *VerySecretQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if vsq.ctx.Unique == nil && vsq.path != nil {
+		vsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, vsq.ctx, "IDs")
-	if err := vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
+	if err = vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -260,7 +262,7 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 	return &VerySecretQuery{
 		config:     vsq.config,
 		ctx:        vsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, vsq.order...),
+		order:      append([]verysecret.OrderOption{}, vsq.order...),
 		inters:     append([]Interceptor{}, vsq.inters...),
 		predicates: append([]predicate.VerySecret{}, vsq.predicates...),
 		// clone intermediate query.
@@ -389,20 +391,12 @@ func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: verysecret.FieldID,
-			},
-		},
-		From:   vsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeInt))
+	_spec.From = vsq.sql
 	if unique := vsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := vsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -451,6 +445,9 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if vsq.ctx.Unique != nil && *vsq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range vsq.modifiers {
+		m(selector)
+	}
 	for _, p := range vsq.predicates {
 		p(selector)
 	}
@@ -466,6 +463,12 @@ func (vsq *VerySecretQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (vsq *VerySecretQuery) Modify(modifiers ...func(s *sql.Selector)) *VerySecretSelect {
+	vsq.modifiers = append(vsq.modifiers, modifiers...)
+	return vsq.Select()
 }
 
 // VerySecretGroupBy is the group-by builder for VerySecret entities.
@@ -556,4 +559,10 @@ func (vss *VerySecretSelect) sqlScan(ctx context.Context, root *VerySecretQuery,
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (vss *VerySecretSelect) Modify(modifiers ...func(s *sql.Selector)) *VerySecretSelect {
+	vss.modifiers = append(vss.modifiers, modifiers...)
+	return vss
 }

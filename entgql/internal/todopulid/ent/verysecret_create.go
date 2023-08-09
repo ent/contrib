@@ -129,13 +129,7 @@ func (vsc *VerySecretCreate) sqlSave(ctx context.Context) (*VerySecret, error) {
 func (vsc *VerySecretCreate) createSpec() (*VerySecret, *sqlgraph.CreateSpec) {
 	var (
 		_node = &VerySecret{config: vsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: verysecret.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: verysecret.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(verysecret.Table, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeString))
 	)
 	if id, ok := vsc.mutation.ID(); ok {
 		_node.ID = id
@@ -172,8 +166,8 @@ func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, vscb.builders[i+1].mutation)
 				} else {

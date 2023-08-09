@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/blogpost"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -26,6 +27,7 @@ type BlogPost struct {
 	// The values are being populated by the BlogPostQuery when eager-loading is set.
 	Edges            BlogPostEdges `json:"edges"`
 	blog_post_author *int
+	selectValues     sql.SelectValues
 }
 
 // BlogPostEdges holds the relations/edges for other nodes in the graph.
@@ -73,7 +75,7 @@ func (*BlogPost) scanValues(columns []string) ([]any, error) {
 		case blogpost.ForeignKeys[0]: // blog_post_author
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type BlogPost", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -118,9 +120,17 @@ func (bp *BlogPost) assignValues(columns []string, values []any) error {
 				bp.blog_post_author = new(int)
 				*bp.blog_post_author = int(value.Int64)
 			}
+		default:
+			bp.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the BlogPost.
+// This includes values selected through modifiers, order, etc.
+func (bp *BlogPost) Value(name string) (ent.Value, error) {
+	return bp.selectValues.Get(name)
 }
 
 // QueryAuthor queries the "author" edge of the BlogPost entity.
@@ -170,9 +180,3 @@ func (bp *BlogPost) String() string {
 
 // BlogPosts is a parsable slice of BlogPost.
 type BlogPosts []*BlogPost
-
-func (bp BlogPosts) config(cfg config) {
-	for _i := range bp {
-		bp[_i].config = cfg
-	}
-}

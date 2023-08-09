@@ -21,7 +21,7 @@ import (
 type BlogPostQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []blogpost.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.BlogPost
 	withAuthor     *UserQuery
@@ -58,7 +58,7 @@ func (bpq *BlogPostQuery) Unique(unique bool) *BlogPostQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (bpq *BlogPostQuery) Order(o ...OrderFunc) *BlogPostQuery {
+func (bpq *BlogPostQuery) Order(o ...blogpost.OrderOption) *BlogPostQuery {
 	bpq.order = append(bpq.order, o...)
 	return bpq
 }
@@ -227,10 +227,12 @@ func (bpq *BlogPostQuery) AllX(ctx context.Context) []*BlogPost {
 }
 
 // IDs executes the query and returns a list of BlogPost IDs.
-func (bpq *BlogPostQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (bpq *BlogPostQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if bpq.ctx.Unique == nil && bpq.path != nil {
+		bpq.Unique(true)
+	}
 	ctx = setContextOp(ctx, bpq.ctx, "IDs")
-	if err := bpq.Select(blogpost.FieldID).Scan(ctx, &ids); err != nil {
+	if err = bpq.Select(blogpost.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -294,7 +296,7 @@ func (bpq *BlogPostQuery) Clone() *BlogPostQuery {
 	return &BlogPostQuery{
 		config:         bpq.config,
 		ctx:            bpq.ctx.Clone(),
-		order:          append([]OrderFunc{}, bpq.order...),
+		order:          append([]blogpost.OrderOption{}, bpq.order...),
 		inters:         append([]Interceptor{}, bpq.inters...),
 		predicates:     append([]predicate.BlogPost{}, bpq.predicates...),
 		withAuthor:     bpq.withAuthor.Clone(),
@@ -506,27 +508,30 @@ func (bpq *BlogPostQuery) loadCategories(ctx context.Context, query *CategoryQue
 	if err := query.prepareQuery(ctx); err != nil {
 		return err
 	}
-	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-		assign := spec.Assign
-		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]any, error) {
-			values, err := values(columns[1:])
-			if err != nil {
-				return nil, err
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
-			return append([]any{new(sql.NullInt64)}, values...), nil
-		}
-		spec.Assign = func(columns []string, values []any) error {
-			outValue := int(values[0].(*sql.NullInt64).Int64)
-			inValue := int(values[1].(*sql.NullInt64).Int64)
-			if nids[inValue] == nil {
-				nids[inValue] = map[*BlogPost]struct{}{byID[outValue]: {}}
-				return assign(columns[1:], values[1:])
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*BlogPost]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
 			}
-			nids[inValue][byID[outValue]] = struct{}{}
-			return nil
-		}
+		})
 	})
+	neighbors, err := withInterceptors[[]*Category](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
@@ -552,20 +557,12 @@ func (bpq *BlogPostQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (bpq *BlogPostQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   blogpost.Table,
-			Columns: blogpost.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: blogpost.FieldID,
-			},
-		},
-		From:   bpq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(blogpost.Table, blogpost.Columns, sqlgraph.NewFieldSpec(blogpost.FieldID, field.TypeInt))
+	_spec.From = bpq.sql
 	if unique := bpq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if bpq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := bpq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

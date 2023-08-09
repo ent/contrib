@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type OneMethodService struct {
 	config
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID           int `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*OneMethodService) scanValues(columns []string) ([]any, error) {
 		case onemethodservice.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type OneMethodService", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,9 +47,17 @@ func (oms *OneMethodService) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			oms.ID = int(value.Int64)
+		default:
+			oms.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the OneMethodService.
+// This includes values selected through modifiers, order, etc.
+func (oms *OneMethodService) Value(name string) (ent.Value, error) {
+	return oms.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this OneMethodService.
@@ -79,9 +89,3 @@ func (oms *OneMethodService) String() string {
 
 // OneMethodServices is a parsable slice of OneMethodService.
 type OneMethodServices []*OneMethodService
-
-func (oms OneMethodServices) config(cfg config) {
-	for _i := range oms {
-		oms[_i].config = cfg
-	}
-}

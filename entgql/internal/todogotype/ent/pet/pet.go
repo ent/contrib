@@ -16,6 +16,10 @@
 
 package pet
 
+import (
+	"entgo.io/ent/dialect/sql"
+)
+
 const (
 	// Label holds the string label denoting the pet type in the database.
 	Label = "pet"
@@ -47,3 +51,16 @@ var (
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
 )
+
+// OrderOption defines the ordering options for the Pet queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}

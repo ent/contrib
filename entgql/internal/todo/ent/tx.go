@@ -34,12 +34,18 @@ type Tx struct {
 	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
+	// OneToMany is the client for interacting with the OneToMany builders.
+	OneToMany *OneToManyClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// VerySecret is the client for interacting with the VerySecret builders.
 	VerySecret *VerySecretClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
 
 	// lazily loaded.
 	client     *Client
@@ -175,9 +181,12 @@ func (tx *Tx) init() {
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
+	tx.OneToMany = NewOneToManyClient(tx.config)
+	tx.Project = NewProjectClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.VerySecret = NewVerySecretClient(tx.config)
+	tx.Workspace = NewWorkspaceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

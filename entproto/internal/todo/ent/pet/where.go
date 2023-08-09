@@ -67,11 +67,7 @@ func HasOwner() predicate.Pet {
 // HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
 func HasOwnerWith(preds ...predicate.User) predicate.Pet {
 	return predicate.Pet(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(OwnerInverseTable, UserFieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, OwnerTable, OwnerColumn),
-		)
+		step := newOwnerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -94,11 +90,7 @@ func HasAttachment() predicate.Pet {
 // HasAttachmentWith applies the HasEdge predicate on the "attachment" edge with a given conditions (other predicates).
 func HasAttachmentWith(preds ...predicate.Attachment) predicate.Pet {
 	return predicate.Pet(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(AttachmentInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AttachmentTable, AttachmentColumn),
-		)
+		step := newAttachmentStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

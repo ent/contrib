@@ -20,6 +20,9 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -99,6 +102,60 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("category: invalid enum value for status field: %q", s)
 	}
+}
+
+// OrderOption defines the ordering options for the Category queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByText orders the results by the text field.
+func ByText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldText, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByConfig orders the results by the config field.
+func ByConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfig, opts...).ToFunc()
+}
+
+// ByDuration orders the results by the duration field.
+func ByDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDuration, opts...).ToFunc()
+}
+
+// ByCount orders the results by the count field.
+func ByCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCount, opts...).ToFunc()
+}
+
+// ByTodosCount orders the results by todos count.
+func ByTodosCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTodosStep(), opts...)
+	}
+}
+
+// ByTodos orders the results by todos terms.
+func ByTodos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTodosStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newTodosStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TodosInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TodosTable, TodosColumn),
+	)
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

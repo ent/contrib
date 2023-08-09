@@ -23,7 +23,7 @@ import (
 )
 
 func (c *Category) Todos(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
 		WithTodoOrder(orderBy),
@@ -81,9 +81,10 @@ func (f *Friendship) Friend(ctx context.Context) (*User, error) {
 }
 
 func (gr *Group) Users(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *UserWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
+		WithUserOrder(orderBy),
 		WithUserFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
@@ -109,7 +110,7 @@ func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 }
 
 func (t *Todo) Children(
-	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *TodoOrder, where *TodoWhereInput,
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
 		WithTodoOrder(orderBy),

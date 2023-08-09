@@ -21,7 +21,7 @@ import (
 type ImageQuery struct {
 	config
 	ctx                *QueryContext
-	order              []OrderFunc
+	order              []image.OrderOption
 	inters             []Interceptor
 	predicates         []predicate.Image
 	withUserProfilePic *UserQuery
@@ -57,7 +57,7 @@ func (iq *ImageQuery) Unique(unique bool) *ImageQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (iq *ImageQuery) Order(o ...OrderFunc) *ImageQuery {
+func (iq *ImageQuery) Order(o ...image.OrderOption) *ImageQuery {
 	iq.order = append(iq.order, o...)
 	return iq
 }
@@ -204,10 +204,12 @@ func (iq *ImageQuery) AllX(ctx context.Context) []*Image {
 }
 
 // IDs executes the query and returns a list of Image IDs.
-func (iq *ImageQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (iq *ImageQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if iq.ctx.Unique == nil && iq.path != nil {
+		iq.Unique(true)
+	}
 	ctx = setContextOp(ctx, iq.ctx, "IDs")
-	if err := iq.Select(image.FieldID).Scan(ctx, &ids); err != nil {
+	if err = iq.Select(image.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -271,7 +273,7 @@ func (iq *ImageQuery) Clone() *ImageQuery {
 	return &ImageQuery{
 		config:             iq.config,
 		ctx:                iq.ctx.Clone(),
-		order:              append([]OrderFunc{}, iq.order...),
+		order:              append([]image.OrderOption{}, iq.order...),
 		inters:             append([]Interceptor{}, iq.inters...),
 		predicates:         append([]predicate.Image{}, iq.predicates...),
 		withUserProfilePic: iq.withUserProfilePic.Clone(),
@@ -418,7 +420,7 @@ func (iq *ImageQuery) loadUserProfilePic(ctx context.Context, query *UserQuery, 
 	}
 	query.withFKs = true
 	query.Where(predicate.User(func(s *sql.Selector) {
-		s.Where(sql.InValues(image.UserProfilePicColumn, fks...))
+		s.Where(sql.InValues(s.C(image.UserProfilePicColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -431,7 +433,7 @@ func (iq *ImageQuery) loadUserProfilePic(ctx context.Context, query *UserQuery, 
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_profile_pic" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_profile_pic" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -448,20 +450,12 @@ func (iq *ImageQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (iq *ImageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   image.Table,
-			Columns: image.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: image.FieldID,
-			},
-		},
-		From:   iq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(image.Table, image.Columns, sqlgraph.NewFieldSpec(image.FieldID, field.TypeUUID))
+	_spec.From = iq.sql
 	if unique := iq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if iq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := iq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

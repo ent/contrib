@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/explicitskippedmessage"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type ExplicitSkippedMessage struct {
 	config
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID           int `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*ExplicitSkippedMessage) scanValues(columns []string) ([]any, error) {
 		case explicitskippedmessage.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ExplicitSkippedMessage", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,9 +47,17 @@ func (esm *ExplicitSkippedMessage) assignValues(columns []string, values []any) 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			esm.ID = int(value.Int64)
+		default:
+			esm.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ExplicitSkippedMessage.
+// This includes values selected through modifiers, order, etc.
+func (esm *ExplicitSkippedMessage) Value(name string) (ent.Value, error) {
+	return esm.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this ExplicitSkippedMessage.
@@ -79,9 +89,3 @@ func (esm *ExplicitSkippedMessage) String() string {
 
 // ExplicitSkippedMessages is a parsable slice of ExplicitSkippedMessage.
 type ExplicitSkippedMessages []*ExplicitSkippedMessage
-
-func (esm ExplicitSkippedMessages) config(cfg config) {
-	for _i := range esm {
-		esm[_i].config = cfg
-	}
-}

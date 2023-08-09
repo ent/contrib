@@ -18,7 +18,7 @@ import (
 type MultiWordSchemaQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []multiwordschema.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MultiWordSchema
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwsq *MultiWordSchemaQuery) Unique(unique bool) *MultiWordSchemaQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (mwsq *MultiWordSchemaQuery) Order(o ...OrderFunc) *MultiWordSchemaQuery {
+func (mwsq *MultiWordSchemaQuery) Order(o ...multiwordschema.OrderOption) *MultiWordSchemaQuery {
 	mwsq.order = append(mwsq.order, o...)
 	return mwsq
 }
@@ -177,10 +177,12 @@ func (mwsq *MultiWordSchemaQuery) AllX(ctx context.Context) []*MultiWordSchema {
 }
 
 // IDs executes the query and returns a list of MultiWordSchema IDs.
-func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwsq.ctx.Unique == nil && mwsq.path != nil {
+		mwsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
-	if err := mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (mwsq *MultiWordSchemaQuery) Clone() *MultiWordSchemaQuery {
 	return &MultiWordSchemaQuery{
 		config:     mwsq.config,
 		ctx:        mwsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mwsq.order...),
+		order:      append([]multiwordschema.OrderOption{}, mwsq.order...),
 		inters:     append([]Interceptor{}, mwsq.inters...),
 		predicates: append([]predicate.MultiWordSchema{}, mwsq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (mwsq *MultiWordSchemaQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (mwsq *MultiWordSchemaQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   multiwordschema.Table,
-			Columns: multiwordschema.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: multiwordschema.FieldID,
-			},
-		},
-		From:   mwsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(multiwordschema.Table, multiwordschema.Columns, sqlgraph.NewFieldSpec(multiwordschema.FieldID, field.TypeInt))
+	_spec.From = mwsq.sql
 	if unique := mwsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mwsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

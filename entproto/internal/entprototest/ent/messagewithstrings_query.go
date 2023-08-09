@@ -18,7 +18,7 @@ import (
 type MessageWithStringsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []messagewithstrings.OrderOption
 	inters     []Interceptor
 	predicates []predicate.MessageWithStrings
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (mwsq *MessageWithStringsQuery) Unique(unique bool) *MessageWithStringsQuer
 }
 
 // Order specifies how the records should be ordered.
-func (mwsq *MessageWithStringsQuery) Order(o ...OrderFunc) *MessageWithStringsQuery {
+func (mwsq *MessageWithStringsQuery) Order(o ...messagewithstrings.OrderOption) *MessageWithStringsQuery {
 	mwsq.order = append(mwsq.order, o...)
 	return mwsq
 }
@@ -177,10 +177,12 @@ func (mwsq *MessageWithStringsQuery) AllX(ctx context.Context) []*MessageWithStr
 }
 
 // IDs executes the query and returns a list of MessageWithStrings IDs.
-func (mwsq *MessageWithStringsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (mwsq *MessageWithStringsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if mwsq.ctx.Unique == nil && mwsq.path != nil {
+		mwsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
-	if err := mwsq.Select(messagewithstrings.FieldID).Scan(ctx, &ids); err != nil {
+	if err = mwsq.Select(messagewithstrings.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (mwsq *MessageWithStringsQuery) Clone() *MessageWithStringsQuery {
 	return &MessageWithStringsQuery{
 		config:     mwsq.config,
 		ctx:        mwsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, mwsq.order...),
+		order:      append([]messagewithstrings.OrderOption{}, mwsq.order...),
 		inters:     append([]Interceptor{}, mwsq.inters...),
 		predicates: append([]predicate.MessageWithStrings{}, mwsq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (mwsq *MessageWithStringsQuery) sqlCount(ctx context.Context) (int, error) 
 }
 
 func (mwsq *MessageWithStringsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithstrings.Table,
-			Columns: messagewithstrings.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithstrings.FieldID,
-			},
-		},
-		From:   mwsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(messagewithstrings.Table, messagewithstrings.Columns, sqlgraph.NewFieldSpec(messagewithstrings.FieldID, field.TypeInt))
+	_spec.From = mwsq.sql
 	if unique := mwsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if mwsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := mwsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

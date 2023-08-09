@@ -18,7 +18,7 @@ import (
 type PonyQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []pony.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Pony
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (pq *PonyQuery) Unique(unique bool) *PonyQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PonyQuery) Order(o ...OrderFunc) *PonyQuery {
+func (pq *PonyQuery) Order(o ...pony.OrderOption) *PonyQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -177,10 +177,12 @@ func (pq *PonyQuery) AllX(ctx context.Context) []*Pony {
 }
 
 // IDs executes the query and returns a list of Pony IDs.
-func (pq *PonyQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (pq *PonyQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if pq.ctx.Unique == nil && pq.path != nil {
+		pq.Unique(true)
+	}
 	ctx = setContextOp(ctx, pq.ctx, "IDs")
-	if err := pq.Select(pony.FieldID).Scan(ctx, &ids); err != nil {
+	if err = pq.Select(pony.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (pq *PonyQuery) Clone() *PonyQuery {
 	return &PonyQuery{
 		config:     pq.config,
 		ctx:        pq.ctx.Clone(),
-		order:      append([]OrderFunc{}, pq.order...),
+		order:      append([]pony.OrderOption{}, pq.order...),
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Pony{}, pq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (pq *PonyQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PonyQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pony.Table,
-			Columns: pony.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pony.FieldID,
-			},
-		},
-		From:   pq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(pony.Table, pony.Columns, sqlgraph.NewFieldSpec(pony.FieldID, field.TypeInt))
+	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

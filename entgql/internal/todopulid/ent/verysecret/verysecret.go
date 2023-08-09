@@ -18,6 +18,7 @@ package verysecret
 
 import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -51,3 +52,16 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() pulid.ID
 )
+
+// OrderOption defines the ordering options for the VerySecret queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByPassword orders the results by the password field.
+func ByPassword(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPassword, opts...).ToFunc()
+}

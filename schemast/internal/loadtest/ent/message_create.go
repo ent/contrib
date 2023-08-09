@@ -76,13 +76,7 @@ func (mc *MessageCreate) sqlSave(ctx context.Context) (*Message, error) {
 func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Message{config: mc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: message.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: message.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(message.Table, sqlgraph.NewFieldSpec(message.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -110,8 +104,8 @@ func (mcb *MessageCreateBulk) Save(ctx context.Context) ([]*Message, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mcb.builders[i+1].mutation)
 				} else {

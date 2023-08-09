@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/pony"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -16,7 +17,8 @@ type Pony struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	Name         string `json:"name,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -29,7 +31,7 @@ func (*Pony) scanValues(columns []string) ([]any, error) {
 		case pony.FieldName:
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Pony", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -55,9 +57,17 @@ func (po *Pony) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				po.Name = value.String
 			}
+		default:
+			po.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Pony.
+// This includes values selected through modifiers, order, etc.
+func (po *Pony) Value(name string) (ent.Value, error) {
+	return po.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Pony.
@@ -91,9 +101,3 @@ func (po *Pony) String() string {
 
 // Ponies is a parsable slice of Pony.
 type Ponies []*Pony
-
-func (po Ponies) config(cfg config) {
-	for _i := range po {
-		po[_i].config = cfg
-	}
-}

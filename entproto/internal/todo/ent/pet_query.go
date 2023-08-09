@@ -21,7 +21,7 @@ import (
 type PetQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []pet.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Pet
 	withOwner      *UserQuery
@@ -58,7 +58,7 @@ func (pq *PetQuery) Unique(unique bool) *PetQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pq *PetQuery) Order(o ...OrderFunc) *PetQuery {
+func (pq *PetQuery) Order(o ...pet.OrderOption) *PetQuery {
 	pq.order = append(pq.order, o...)
 	return pq
 }
@@ -227,10 +227,12 @@ func (pq *PetQuery) AllX(ctx context.Context) []*Pet {
 }
 
 // IDs executes the query and returns a list of Pet IDs.
-func (pq *PetQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (pq *PetQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if pq.ctx.Unique == nil && pq.path != nil {
+		pq.Unique(true)
+	}
 	ctx = setContextOp(ctx, pq.ctx, "IDs")
-	if err := pq.Select(pet.FieldID).Scan(ctx, &ids); err != nil {
+	if err = pq.Select(pet.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -294,7 +296,7 @@ func (pq *PetQuery) Clone() *PetQuery {
 	return &PetQuery{
 		config:         pq.config,
 		ctx:            pq.ctx.Clone(),
-		order:          append([]OrderFunc{}, pq.order...),
+		order:          append([]pet.OrderOption{}, pq.order...),
 		inters:         append([]Interceptor{}, pq.inters...),
 		predicates:     append([]predicate.Pet{}, pq.predicates...),
 		withOwner:      pq.withOwner.Clone(),
@@ -473,7 +475,7 @@ func (pq *PetQuery) loadAttachment(ctx context.Context, query *AttachmentQuery, 
 	}
 	query.withFKs = true
 	query.Where(predicate.Attachment(func(s *sql.Selector) {
-		s.Where(sql.InValues(pet.AttachmentColumn, fks...))
+		s.Where(sql.InValues(s.C(pet.AttachmentColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -486,7 +488,7 @@ func (pq *PetQuery) loadAttachment(ctx context.Context, query *AttachmentQuery, 
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "pet_attachment" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "pet_attachment" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -503,20 +505,12 @@ func (pq *PetQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pq *PetQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pet.Table,
-			Columns: pet.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pet.FieldID,
-			},
-		},
-		From:   pq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(pet.Table, pet.Columns, sqlgraph.NewFieldSpec(pet.FieldID, field.TypeInt))
+	_spec.From = pq.sql
 	if unique := pq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

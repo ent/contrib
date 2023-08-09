@@ -86,13 +86,7 @@ func (mwsc *MessageWithStringsCreate) sqlSave(ctx context.Context) (*MessageWith
 func (mwsc *MessageWithStringsCreate) createSpec() (*MessageWithStrings, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MessageWithStrings{config: mwsc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: messagewithstrings.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithstrings.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(messagewithstrings.Table, sqlgraph.NewFieldSpec(messagewithstrings.FieldID, field.TypeInt))
 	)
 	if value, ok := mwsc.mutation.Strings(); ok {
 		_spec.SetField(messagewithstrings.FieldStrings, field.TypeJSON, value)
@@ -124,8 +118,8 @@ func (mwscb *MessageWithStringsCreateBulk) Save(ctx context.Context) ([]*Message
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, mwscb.builders[i+1].mutation)
 				} else {

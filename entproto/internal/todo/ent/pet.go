@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -18,8 +19,9 @@ type Pet struct {
 	ID int `json:"id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PetQuery when eager-loading is set.
-	Edges    PetEdges `json:"edges"`
-	user_pet *uint32
+	Edges        PetEdges `json:"edges"`
+	user_pet     *uint32
+	selectValues sql.SelectValues
 }
 
 // PetEdges holds the relations/edges for other nodes in the graph.
@@ -65,7 +67,7 @@ func (*Pet) scanValues(columns []string) ([]any, error) {
 		case pet.ForeignKeys[0]: // user_pet
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Pet", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -92,9 +94,17 @@ func (pe *Pet) assignValues(columns []string, values []any) error {
 				pe.user_pet = new(uint32)
 				*pe.user_pet = uint32(value.Int64)
 			}
+		default:
+			pe.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Pet.
+// This includes values selected through modifiers, order, etc.
+func (pe *Pet) Value(name string) (ent.Value, error) {
+	return pe.selectValues.Get(name)
 }
 
 // QueryOwner queries the "owner" edge of the Pet entity.
@@ -136,9 +146,3 @@ func (pe *Pet) String() string {
 
 // Pets is a parsable slice of Pet.
 type Pets []*Pet
-
-func (pe Pets) config(cfg config) {
-	for _i := range pe {
-		pe[_i].config = cfg
-	}
-}

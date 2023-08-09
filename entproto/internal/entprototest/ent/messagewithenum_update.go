@@ -47,6 +47,12 @@ func (mweu *MessageWithEnumUpdate) SetEnumWithoutDefault(mwd messagewithenum.Enu
 	return mweu
 }
 
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (mweu *MessageWithEnumUpdate) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdate {
+	mweu.mutation.SetEnumWithSpecialCharacters(mwsc)
+	return mweu
+}
+
 // Mutation returns the MessageWithEnumMutation object of the builder.
 func (mweu *MessageWithEnumUpdate) Mutation() *MessageWithEnumMutation {
 	return mweu.mutation
@@ -91,6 +97,11 @@ func (mweu *MessageWithEnumUpdate) check() error {
 			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
+	if v, ok := mweu.mutation.EnumWithSpecialCharacters(); ok {
+		if err := messagewithenum.EnumWithSpecialCharactersValidator(v); err != nil {
+			return &ValidationError{Name: "enum_with_special_characters", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_with_special_characters": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -98,16 +109,7 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := mweu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithenum.Table,
-			Columns: messagewithenum.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithenum.Table, messagewithenum.Columns, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	if ps := mweu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -120,6 +122,9 @@ func (mweu *MessageWithEnumUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := mweu.mutation.EnumWithoutDefault(); ok {
 		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
+	}
+	if value, ok := mweu.mutation.EnumWithSpecialCharacters(); ok {
+		_spec.SetField(messagewithenum.FieldEnumWithSpecialCharacters, field.TypeEnum, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mweu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -161,9 +166,21 @@ func (mweuo *MessageWithEnumUpdateOne) SetEnumWithoutDefault(mwd messagewithenum
 	return mweuo
 }
 
+// SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
+func (mweuo *MessageWithEnumUpdateOne) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdateOne {
+	mweuo.mutation.SetEnumWithSpecialCharacters(mwsc)
+	return mweuo
+}
+
 // Mutation returns the MessageWithEnumMutation object of the builder.
 func (mweuo *MessageWithEnumUpdateOne) Mutation() *MessageWithEnumMutation {
 	return mweuo.mutation
+}
+
+// Where appends a list predicates to the MessageWithEnumUpdate builder.
+func (mweuo *MessageWithEnumUpdateOne) Where(ps ...predicate.MessageWithEnum) *MessageWithEnumUpdateOne {
+	mweuo.mutation.Where(ps...)
+	return mweuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -212,6 +229,11 @@ func (mweuo *MessageWithEnumUpdateOne) check() error {
 			return &ValidationError{Name: "enum_without_default", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_without_default": %w`, err)}
 		}
 	}
+	if v, ok := mweuo.mutation.EnumWithSpecialCharacters(); ok {
+		if err := messagewithenum.EnumWithSpecialCharactersValidator(v); err != nil {
+			return &ValidationError{Name: "enum_with_special_characters", err: fmt.Errorf(`ent: validator failed for field "MessageWithEnum.enum_with_special_characters": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -219,16 +241,7 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 	if err := mweuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   messagewithenum.Table,
-			Columns: messagewithenum.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: messagewithenum.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(messagewithenum.Table, messagewithenum.Columns, sqlgraph.NewFieldSpec(messagewithenum.FieldID, field.TypeInt))
 	id, ok := mweuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MessageWithEnum.id" for update`)}
@@ -258,6 +271,9 @@ func (mweuo *MessageWithEnumUpdateOne) sqlSave(ctx context.Context) (_node *Mess
 	}
 	if value, ok := mweuo.mutation.EnumWithoutDefault(); ok {
 		_spec.SetField(messagewithenum.FieldEnumWithoutDefault, field.TypeEnum, value)
+	}
+	if value, ok := mweuo.mutation.EnumWithSpecialCharacters(); ok {
+		_spec.SetField(messagewithenum.FieldEnumWithSpecialCharacters, field.TypeEnum, value)
 	}
 	_node = &MessageWithEnum{config: mweuo.config}
 	_spec.Assign = _node.assignValues

@@ -33,7 +33,7 @@ import (
 type VerySecretQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []verysecret.OrderOption
 	inters     []Interceptor
 	predicates []predicate.VerySecret
 	modifiers  []func(*sql.Selector)
@@ -69,7 +69,7 @@ func (vsq *VerySecretQuery) Unique(unique bool) *VerySecretQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (vsq *VerySecretQuery) Order(o ...OrderFunc) *VerySecretQuery {
+func (vsq *VerySecretQuery) Order(o ...verysecret.OrderOption) *VerySecretQuery {
 	vsq.order = append(vsq.order, o...)
 	return vsq
 }
@@ -194,10 +194,12 @@ func (vsq *VerySecretQuery) AllX(ctx context.Context) []*VerySecret {
 }
 
 // IDs executes the query and returns a list of VerySecret IDs.
-func (vsq *VerySecretQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (vsq *VerySecretQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if vsq.ctx.Unique == nil && vsq.path != nil {
+		vsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, vsq.ctx, "IDs")
-	if err := vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
+	if err = vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -261,7 +263,7 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 	return &VerySecretQuery{
 		config:     vsq.config,
 		ctx:        vsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, vsq.order...),
+		order:      append([]verysecret.OrderOption{}, vsq.order...),
 		inters:     append([]Interceptor{}, vsq.inters...),
 		predicates: append([]predicate.VerySecret{}, vsq.predicates...),
 		// clone intermediate query.
@@ -390,20 +392,12 @@ func (vsq *VerySecretQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (vsq *VerySecretQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   verysecret.Table,
-			Columns: verysecret.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: verysecret.FieldID,
-			},
-		},
-		From:   vsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(verysecret.Table, verysecret.Columns, sqlgraph.NewFieldSpec(verysecret.FieldID, field.TypeUUID))
+	_spec.From = vsq.sql
 	if unique := vsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if vsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := vsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

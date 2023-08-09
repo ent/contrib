@@ -54,15 +54,7 @@ func (gd *GroupDelete) ExecX(ctx context.Context) int {
 }
 
 func (gd *GroupDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: group.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: group.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(group.Table, sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt))
 	if ps := gd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -83,6 +75,12 @@ type GroupDeleteOne struct {
 	gd *GroupDelete
 }
 
+// Where appends a list predicates to the GroupDelete builder.
+func (gdo *GroupDeleteOne) Where(ps ...predicate.Group) *GroupDeleteOne {
+	gdo.gd.mutation.Where(ps...)
+	return gdo
+}
+
 // Exec executes the deletion query.
 func (gdo *GroupDeleteOne) Exec(ctx context.Context) error {
 	n, err := gdo.gd.Exec(ctx)
@@ -98,5 +96,7 @@ func (gdo *GroupDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (gdo *GroupDeleteOne) ExecX(ctx context.Context) {
-	gdo.gd.ExecX(ctx)
+	if err := gdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

@@ -227,6 +227,16 @@ func ConfigNotNil() predicate.Category {
 	return predicate.Category(sql.FieldNotNull(FieldConfig))
 }
 
+// TypesIsNil applies the IsNil predicate on the "types" field.
+func TypesIsNil() predicate.Category {
+	return predicate.Category(sql.FieldIsNull(FieldTypes))
+}
+
+// TypesNotNil applies the NotNil predicate on the "types" field.
+func TypesNotNil() predicate.Category {
+	return predicate.Category(sql.FieldNotNull(FieldTypes))
+}
+
 // DurationEQ applies the EQ predicate on the "duration" field.
 func DurationEQ(v time.Duration) predicate.Category {
 	vc := int64(v)
@@ -365,11 +375,7 @@ func HasTodos() predicate.Category {
 // HasTodosWith applies the HasEdge predicate on the "todos" edge with a given conditions (other predicates).
 func HasTodosWith(preds ...predicate.Todo) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TodosInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TodosTable, TodosColumn),
-		)
+		step := newTodosStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -392,11 +398,7 @@ func HasSubCategories() predicate.Category {
 // HasSubCategoriesWith applies the HasEdge predicate on the "sub_categories" edge with a given conditions (other predicates).
 func HasSubCategoriesWith(preds ...predicate.Category) predicate.Category {
 	return predicate.Category(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, SubCategoriesTable, SubCategoriesPrimaryKey...),
-		)
+		step := newSubCategoriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

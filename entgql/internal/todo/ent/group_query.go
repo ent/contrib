@@ -34,12 +34,12 @@ import (
 type GroupQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []group.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Group
 	withUsers      *UserQuery
-	modifiers      []func(*sql.Selector)
 	loadTotal      []func(context.Context, []*Group) error
+	modifiers      []func(*sql.Selector)
 	withNamedUsers map[string]*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -72,7 +72,7 @@ func (gq *GroupQuery) Unique(unique bool) *GroupQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (gq *GroupQuery) Order(o ...OrderFunc) *GroupQuery {
+func (gq *GroupQuery) Order(o ...group.OrderOption) *GroupQuery {
 	gq.order = append(gq.order, o...)
 	return gq
 }
@@ -219,10 +219,12 @@ func (gq *GroupQuery) AllX(ctx context.Context) []*Group {
 }
 
 // IDs executes the query and returns a list of Group IDs.
-func (gq *GroupQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (gq *GroupQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if gq.ctx.Unique == nil && gq.path != nil {
+		gq.Unique(true)
+	}
 	ctx = setContextOp(ctx, gq.ctx, "IDs")
-	if err := gq.Select(group.FieldID).Scan(ctx, &ids); err != nil {
+	if err = gq.Select(group.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -286,7 +288,7 @@ func (gq *GroupQuery) Clone() *GroupQuery {
 	return &GroupQuery{
 		config:     gq.config,
 		ctx:        gq.ctx.Clone(),
-		order:      append([]OrderFunc{}, gq.order...),
+		order:      append([]group.OrderOption{}, gq.order...),
 		inters:     append([]Interceptor{}, gq.inters...),
 		predicates: append([]predicate.Group{}, gq.predicates...),
 		withUsers:  gq.withUsers.Clone(),
@@ -455,27 +457,30 @@ func (gq *GroupQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*
 	if err := query.prepareQuery(ctx); err != nil {
 		return err
 	}
-	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-		assign := spec.Assign
-		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]any, error) {
-			values, err := values(columns[1:])
-			if err != nil {
-				return nil, err
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
-			return append([]any{new(sql.NullInt64)}, values...), nil
-		}
-		spec.Assign = func(columns []string, values []any) error {
-			outValue := int(values[0].(*sql.NullInt64).Int64)
-			inValue := int(values[1].(*sql.NullInt64).Int64)
-			if nids[inValue] == nil {
-				nids[inValue] = map[*Group]struct{}{byID[outValue]: {}}
-				return assign(columns[1:], values[1:])
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Group]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
 			}
-			nids[inValue][byID[outValue]] = struct{}{}
-			return nil
-		}
+		})
 	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
@@ -504,20 +509,12 @@ func (gq *GroupQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (gq *GroupQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   group.Table,
-			Columns: group.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: group.FieldID,
-			},
-		},
-		From:   gq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(group.Table, group.Columns, sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt))
+	_spec.From = gq.sql
 	if unique := gq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if gq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := gq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -566,6 +563,9 @@ func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if gq.ctx.Unique != nil && *gq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range gq.modifiers {
+		m(selector)
+	}
 	for _, p := range gq.predicates {
 		p(selector)
 	}
@@ -581,6 +581,12 @@ func (gq *GroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gq *GroupQuery) Modify(modifiers ...func(s *sql.Selector)) *GroupSelect {
+	gq.modifiers = append(gq.modifiers, modifiers...)
+	return gq.Select()
 }
 
 // WithNamedUsers tells the query-builder to eager-load the nodes that are connected to the "users"
@@ -685,4 +691,10 @@ func (gs *GroupSelect) sqlScan(ctx context.Context, root *GroupQuery, v any) err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (gs *GroupSelect) Modify(modifiers ...func(s *sql.Selector)) *GroupSelect {
+	gs.modifiers = append(gs.modifiers, modifiers...)
+	return gs
 }

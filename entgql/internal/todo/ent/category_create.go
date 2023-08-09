@@ -54,6 +54,12 @@ func (cc *CategoryCreate) SetConfig(sc *schematype.CategoryConfig) *CategoryCrea
 	return cc
 }
 
+// SetTypes sets the "types" field.
+func (cc *CategoryCreate) SetTypes(st *schematype.CategoryTypes) *CategoryCreate {
+	cc.mutation.SetTypes(st)
+	return cc
+}
+
 // SetDuration sets the "duration" field.
 func (cc *CategoryCreate) SetDuration(t time.Duration) *CategoryCreate {
 	cc.mutation.SetDuration(t)
@@ -200,13 +206,7 @@ func (cc *CategoryCreate) sqlSave(ctx context.Context) (*Category, error) {
 func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Category{config: cc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: category.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: category.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(category.Table, sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt))
 	)
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
@@ -223,6 +223,10 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Config(); ok {
 		_spec.SetField(category.FieldConfig, field.TypeOther, value)
 		_node.Config = value
+	}
+	if value, ok := cc.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+		_node.Types = value
 	}
 	if value, ok := cc.mutation.Duration(); ok {
 		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
@@ -244,10 +248,7 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Columns: []string{category.TodosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: todo.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -263,10 +264,7 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Columns: category.SubCategoriesPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -300,8 +298,8 @@ func (ccb *CategoryCreateBulk) Save(ctx context.Context) ([]*Category, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {

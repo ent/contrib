@@ -441,7 +441,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 		})
 	}
 	for _, opt := range fld.Enums {
-		n := strings.ToUpper(snake(opt.Value))
+		n := strings.ToUpper(snake(NormalizeEnumIdentifier(opt.Value)))
 		if !enumAnnotation.OmitFieldPrefix {
 			n = strings.ToUpper(snake(fld.Name)) + "_" + n
 		}
@@ -515,9 +515,30 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 }
 
 func extractJSONDetails(f *gen.Field) (fieldType, error) {
-	if f.Type.Ident == "[]string" {
+	switch f.Type.Ident {
+	case "[]string":
 		return fieldType{
 			protoType: descriptorpb.FieldDescriptorProto_TYPE_STRING,
+			repeated:  true,
+		}, nil
+	case "[]int32":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_INT32,
+			repeated:  true,
+		}, nil
+	case "[]int64":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_INT64,
+			repeated:  true,
+		}, nil
+	case "[]uint32":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT32,
+			repeated:  true,
+		}, nil
+	case "[]uint64":
+		return fieldType{
+			protoType: descriptorpb.FieldDescriptorProto_TYPE_UINT64,
 			repeated:  true,
 		}, nil
 	}

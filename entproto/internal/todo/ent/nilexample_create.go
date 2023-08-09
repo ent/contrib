@@ -105,13 +105,7 @@ func (nec *NilExampleCreate) sqlSave(ctx context.Context) (*NilExample, error) {
 func (nec *NilExampleCreate) createSpec() (*NilExample, *sqlgraph.CreateSpec) {
 	var (
 		_node = &NilExample{config: nec.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: nilexample.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: nilexample.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(nilexample.Table, sqlgraph.NewFieldSpec(nilexample.FieldID, field.TypeInt))
 	)
 	if value, ok := nec.mutation.StrNil(); ok {
 		_spec.SetField(nilexample.FieldStrNil, field.TypeString, value)
@@ -147,8 +141,8 @@ func (necb *NilExampleCreateBulk) Save(ctx context.Context) ([]*NilExample, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, necb.builders[i+1].mutation)
 				} else {

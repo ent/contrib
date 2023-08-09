@@ -52,6 +52,16 @@ func IDLTE(id string) predicate.File {
 	return predicate.File(sql.FieldLTE(FieldID, id))
 }
 
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldID, id))
+}
+
 // Contents applies equality check predicate on the "contents" field. It's identical to ContentsEQ.
 func Contents(v string) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldContents, v))

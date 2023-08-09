@@ -76,13 +76,7 @@ func (ismc *ImplicitSkippedMessageCreate) sqlSave(ctx context.Context) (*Implici
 func (ismc *ImplicitSkippedMessageCreate) createSpec() (*ImplicitSkippedMessage, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ImplicitSkippedMessage{config: ismc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: implicitskippedmessage.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: implicitskippedmessage.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(implicitskippedmessage.Table, sqlgraph.NewFieldSpec(implicitskippedmessage.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -110,8 +104,8 @@ func (ismcb *ImplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*Imp
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ismcb.builders[i+1].mutation)
 				} else {

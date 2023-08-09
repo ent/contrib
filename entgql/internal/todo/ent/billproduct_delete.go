@@ -54,15 +54,7 @@ func (bpd *BillProductDelete) ExecX(ctx context.Context) int {
 }
 
 func (bpd *BillProductDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: billproduct.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: billproduct.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(billproduct.Table, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeInt))
 	if ps := bpd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -83,6 +75,12 @@ type BillProductDeleteOne struct {
 	bpd *BillProductDelete
 }
 
+// Where appends a list predicates to the BillProductDelete builder.
+func (bpdo *BillProductDeleteOne) Where(ps ...predicate.BillProduct) *BillProductDeleteOne {
+	bpdo.bpd.mutation.Where(ps...)
+	return bpdo
+}
+
 // Exec executes the deletion query.
 func (bpdo *BillProductDeleteOne) Exec(ctx context.Context) error {
 	n, err := bpdo.bpd.Exec(ctx)
@@ -98,5 +96,7 @@ func (bpdo *BillProductDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (bpdo *BillProductDeleteOne) ExecX(ctx context.Context) {
-	bpdo.bpd.ExecX(ctx)
+	if err := bpdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

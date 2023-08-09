@@ -89,7 +89,6 @@ var (
 			},
 		},
 	}
-
 	inputObjectFilter    = func(t string) bool { return strings.HasSuffix(t, "Input") }
 	nonInputObjectFilter = func(t string) bool { return !inputObjectFilter(t) }
 )
@@ -369,21 +368,14 @@ func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveL
 }
 
 func (e *schemaGenerator) enumOrderByValues(t *gen.Type, gqlType string) (*ast.Definition, error) {
-	fields, err := orderFields(t)
+	terms, err := orderFields(t)
 	if err != nil {
 		return nil, err
 	}
-	enumValues := make(ast.EnumValueList, 0, len(fields))
-	for _, f := range fields {
-		ant, err := annotation(f.Annotations)
-		if err != nil {
-			return nil, err
-		}
-		if ant.Skip.Is(SkipOrderField) || ant.OrderField == "" {
-			continue
-		}
+	enumValues := make(ast.EnumValueList, 0, len(terms))
+	for _, f := range terms {
 		enumValues = append(enumValues, &ast.EnumValueDefinition{
-			Name: ant.OrderField,
+			Name: f.GQL,
 		})
 	}
 	if len(enumValues) == 0 {
@@ -624,7 +616,7 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 					Type: namedType("[ID!]", true),
 				})
 			}
-			if !i.IsCreate {
+			if !i.IsCreate && e.Optional {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
 					Name: camel(snake(e.MutationClear())),
 					Type: namedType("Boolean", true),
@@ -713,7 +705,7 @@ func (e *schemaGenerator) typeFromField(gqlType string, f *gen.Field, ant *Annot
 
 	switch t := f.Type.Type; {
 	case t == field.TypeJSON:
-		return nil, fmt.Errorf("entgql: json type not implemented")
+		return nil, fmt.Errorf("entgql: json type not implemented without setting an entgql.Type() annotation")
 	case t == field.TypeOther:
 		return nil, fmt.Errorf("entgql: other type must have typed defined")
 	default:
@@ -773,6 +765,10 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 					scalar = "[Int!]"
 				case "[]string":
 					scalar = "[String!]"
+				}
+			case reflect.Map:
+				if f.Type.RType.Ident == "map[string]interface {}" {
+					scalar = "Map"
 				}
 			}
 		}

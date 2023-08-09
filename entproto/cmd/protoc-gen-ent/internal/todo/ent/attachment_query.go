@@ -18,7 +18,7 @@ import (
 type AttachmentQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []attachment.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Attachment
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (aq *AttachmentQuery) Unique(unique bool) *AttachmentQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (aq *AttachmentQuery) Order(o ...OrderFunc) *AttachmentQuery {
+func (aq *AttachmentQuery) Order(o ...attachment.OrderOption) *AttachmentQuery {
 	aq.order = append(aq.order, o...)
 	return aq
 }
@@ -177,10 +177,12 @@ func (aq *AttachmentQuery) AllX(ctx context.Context) []*Attachment {
 }
 
 // IDs executes the query and returns a list of Attachment IDs.
-func (aq *AttachmentQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (aq *AttachmentQuery) IDs(ctx context.Context) (ids []string, err error) {
+	if aq.ctx.Unique == nil && aq.path != nil {
+		aq.Unique(true)
+	}
 	ctx = setContextOp(ctx, aq.ctx, "IDs")
-	if err := aq.Select(attachment.FieldID).Scan(ctx, &ids); err != nil {
+	if err = aq.Select(attachment.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 	return &AttachmentQuery{
 		config:     aq.config,
 		ctx:        aq.ctx.Clone(),
-		order:      append([]OrderFunc{}, aq.order...),
+		order:      append([]attachment.OrderOption{}, aq.order...),
 		inters:     append([]Interceptor{}, aq.inters...),
 		predicates: append([]predicate.Attachment{}, aq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (aq *AttachmentQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   attachment.Table,
-			Columns: attachment.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: attachment.FieldID,
-			},
-		},
-		From:   aq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(attachment.Table, attachment.Columns, sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeString))
+	_spec.From = aq.sql
 	if unique := aq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if aq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := aq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

@@ -48,8 +48,13 @@ type Noder interface {
 
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
-	// IsNode implements the Node interface check for GQLGen.
-	func (n *{{ $n.Name }}) IsNode() {}
+	{{ $names := nodePaginationNames $n -}}
+	var {{ nodeImplementorsVar $n }} = []string{"{{ $names.Node }}" {{ range $iface := nodeImplementors $n }},"{{ $iface }}"{{ end }} }
+	{{- range $iface := nodeImplementors $n }}
+		{{- $method := print "Is" $iface }}
+		// {{ $method }} implements the {{ $iface }} interface check for GQLGen.
+		func (*{{ $n.Name }}) {{ $method }}() {}
+	{{- end }}
 
 	{{- if and $idType.Mixed (gqlMarshaler $n.ID) }}
 		{{ $receiver := $n.Receiver }}
@@ -136,7 +141,7 @@ func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Nod
 			query := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.ID({{ if $unmarshalID }}u{{ end }}id))
 			{{- if hasTemplate "gql_collection" }}
-				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
+				query, err := query.CollectFields(ctx, {{ nodeImplementorsVar $n }}...)
 				if err != nil {
 					return nil, err
 				}
@@ -235,7 +240,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 			query := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.IDIn({{ if $unmarshalID }}u{{ end }}ids...))
 			{{- if hasTemplate "gql_collection" }}
-				query, err := query.CollectFields(ctx, "{{ $n.Name }}")
+				query, err := query.CollectFields(ctx, {{ nodeImplementorsVar $n }}...)
 				if err != nil {
 					return nil, err
 				}

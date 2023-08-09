@@ -21,7 +21,7 @@ import (
 type AttachmentQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []attachment.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.Attachment
 	withUser       *UserQuery
@@ -58,7 +58,7 @@ func (aq *AttachmentQuery) Unique(unique bool) *AttachmentQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (aq *AttachmentQuery) Order(o ...OrderFunc) *AttachmentQuery {
+func (aq *AttachmentQuery) Order(o ...attachment.OrderOption) *AttachmentQuery {
 	aq.order = append(aq.order, o...)
 	return aq
 }
@@ -227,10 +227,12 @@ func (aq *AttachmentQuery) AllX(ctx context.Context) []*Attachment {
 }
 
 // IDs executes the query and returns a list of Attachment IDs.
-func (aq *AttachmentQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (aq *AttachmentQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if aq.ctx.Unique == nil && aq.path != nil {
+		aq.Unique(true)
+	}
 	ctx = setContextOp(ctx, aq.ctx, "IDs")
-	if err := aq.Select(attachment.FieldID).Scan(ctx, &ids); err != nil {
+	if err = aq.Select(attachment.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -294,7 +296,7 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 	return &AttachmentQuery{
 		config:         aq.config,
 		ctx:            aq.ctx.Clone(),
-		order:          append([]OrderFunc{}, aq.order...),
+		order:          append([]attachment.OrderOption{}, aq.order...),
 		inters:         append([]Interceptor{}, aq.inters...),
 		predicates:     append([]predicate.Attachment{}, aq.predicates...),
 		withUser:       aq.withUser.Clone(),
@@ -484,27 +486,30 @@ func (aq *AttachmentQuery) loadRecipients(ctx context.Context, query *UserQuery,
 	if err := query.prepareQuery(ctx); err != nil {
 		return err
 	}
-	neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-		assign := spec.Assign
-		values := spec.ScanValues
-		spec.ScanValues = func(columns []string) ([]any, error) {
-			values, err := values(columns[1:])
-			if err != nil {
-				return nil, err
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
 			}
-			return append([]any{new(uuid.UUID)}, values...), nil
-		}
-		spec.Assign = func(columns []string, values []any) error {
-			outValue := *values[0].(*uuid.UUID)
-			inValue := uint32(values[1].(*sql.NullInt64).Int64)
-			if nids[inValue] == nil {
-				nids[inValue] = map[*Attachment]struct{}{byID[outValue]: {}}
-				return assign(columns[1:], values[1:])
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := uint32(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Attachment]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
 			}
-			nids[inValue][byID[outValue]] = struct{}{}
-			return nil
-		}
+		})
 	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
@@ -530,20 +535,12 @@ func (aq *AttachmentQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (aq *AttachmentQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   attachment.Table,
-			Columns: attachment.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: attachment.FieldID,
-			},
-		},
-		From:   aq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(attachment.Table, attachment.Columns, sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID))
+	_spec.From = aq.sql
 	if unique := aq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if aq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := aq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

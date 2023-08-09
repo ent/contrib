@@ -76,13 +76,7 @@ func (wnfc *WithNilFieldsCreate) sqlSave(ctx context.Context) (*WithNilFields, e
 func (wnfc *WithNilFieldsCreate) createSpec() (*WithNilFields, *sqlgraph.CreateSpec) {
 	var (
 		_node = &WithNilFields{config: wnfc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: withnilfields.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: withnilfields.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(withnilfields.Table, sqlgraph.NewFieldSpec(withnilfields.FieldID, field.TypeInt))
 	)
 	return _node, _spec
 }
@@ -110,8 +104,8 @@ func (wnfcb *WithNilFieldsCreateBulk) Save(ctx context.Context) ([]*WithNilField
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wnfcb.builders[i+1].mutation)
 				} else {

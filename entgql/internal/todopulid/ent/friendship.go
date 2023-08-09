@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -40,7 +41,8 @@ type Friendship struct {
 	FriendID pulid.ID `json:"friend_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FriendshipQuery when eager-loading is set.
-	Edges FriendshipEdges `json:"edges"`
+	Edges        FriendshipEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // FriendshipEdges holds the relations/edges for other nodes in the graph.
@@ -92,7 +94,7 @@ func (*Friendship) scanValues(columns []string) ([]any, error) {
 		case friendship.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Friendship", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -130,9 +132,17 @@ func (f *Friendship) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				f.FriendID = *value
 			}
+		default:
+			f.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Friendship.
+// This includes values selected through modifiers, order, etc.
+func (f *Friendship) Value(name string) (ent.Value, error) {
+	return f.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the Friendship entity.
@@ -182,9 +192,3 @@ func (f *Friendship) String() string {
 
 // Friendships is a parsable slice of Friendship.
 type Friendships []*Friendship
-
-func (f Friendships) config(cfg config) {
-	for _i := range f {
-		f[_i].config = cfg
-	}
-}

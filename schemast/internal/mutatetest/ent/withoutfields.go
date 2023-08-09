@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withoutfields"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -14,7 +15,8 @@ import (
 type WithoutFields struct {
 	config
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID           int `json:"id,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -25,7 +27,7 @@ func (*WithoutFields) scanValues(columns []string) ([]any, error) {
 		case withoutfields.FieldID:
 			values[i] = new(sql.NullInt64)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type WithoutFields", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -45,9 +47,17 @@ func (wf *WithoutFields) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			wf.ID = int(value.Int64)
+		default:
+			wf.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the WithoutFields.
+// This includes values selected through modifiers, order, etc.
+func (wf *WithoutFields) Value(name string) (ent.Value, error) {
+	return wf.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this WithoutFields.
@@ -79,9 +89,3 @@ func (wf *WithoutFields) String() string {
 
 // WithoutFieldsSlice is a parsable slice of WithoutFields.
 type WithoutFieldsSlice []*WithoutFields
-
-func (wf WithoutFieldsSlice) config(cfg config) {
-	for _i := range wf {
-		wf[_i].config = cfg
-	}
-}

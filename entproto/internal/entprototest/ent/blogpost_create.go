@@ -140,13 +140,7 @@ func (bpc *BlogPostCreate) sqlSave(ctx context.Context) (*BlogPost, error) {
 func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 	var (
 		_node = &BlogPost{config: bpc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: blogpost.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: blogpost.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(blogpost.Table, sqlgraph.NewFieldSpec(blogpost.FieldID, field.TypeInt))
 	)
 	if value, ok := bpc.mutation.Title(); ok {
 		_spec.SetField(blogpost.FieldTitle, field.TypeString, value)
@@ -168,10 +162,7 @@ func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 			Columns: []string{blogpost.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -188,10 +179,7 @@ func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 			Columns: blogpost.CategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: category.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -225,8 +213,8 @@ func (bpcb *BlogPostCreateBulk) Save(ctx context.Context) ([]*BlogPost, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, bpcb.builders[i+1].mutation)
 				} else {

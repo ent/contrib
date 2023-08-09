@@ -18,7 +18,7 @@ import (
 type InvalidFieldMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []invalidfieldmessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.InvalidFieldMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (ifmq *InvalidFieldMessageQuery) Unique(unique bool) *InvalidFieldMessageQu
 }
 
 // Order specifies how the records should be ordered.
-func (ifmq *InvalidFieldMessageQuery) Order(o ...OrderFunc) *InvalidFieldMessageQuery {
+func (ifmq *InvalidFieldMessageQuery) Order(o ...invalidfieldmessage.OrderOption) *InvalidFieldMessageQuery {
 	ifmq.order = append(ifmq.order, o...)
 	return ifmq
 }
@@ -177,10 +177,12 @@ func (ifmq *InvalidFieldMessageQuery) AllX(ctx context.Context) []*InvalidFieldM
 }
 
 // IDs executes the query and returns a list of InvalidFieldMessage IDs.
-func (ifmq *InvalidFieldMessageQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (ifmq *InvalidFieldMessageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ifmq.ctx.Unique == nil && ifmq.path != nil {
+		ifmq.Unique(true)
+	}
 	ctx = setContextOp(ctx, ifmq.ctx, "IDs")
-	if err := ifmq.Select(invalidfieldmessage.FieldID).Scan(ctx, &ids); err != nil {
+	if err = ifmq.Select(invalidfieldmessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (ifmq *InvalidFieldMessageQuery) Clone() *InvalidFieldMessageQuery {
 	return &InvalidFieldMessageQuery{
 		config:     ifmq.config,
 		ctx:        ifmq.ctx.Clone(),
-		order:      append([]OrderFunc{}, ifmq.order...),
+		order:      append([]invalidfieldmessage.OrderOption{}, ifmq.order...),
 		inters:     append([]Interceptor{}, ifmq.inters...),
 		predicates: append([]predicate.InvalidFieldMessage{}, ifmq.predicates...),
 		// clone intermediate query.
@@ -362,20 +364,12 @@ func (ifmq *InvalidFieldMessageQuery) sqlCount(ctx context.Context) (int, error)
 }
 
 func (ifmq *InvalidFieldMessageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   invalidfieldmessage.Table,
-			Columns: invalidfieldmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: invalidfieldmessage.FieldID,
-			},
-		},
-		From:   ifmq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(invalidfieldmessage.Table, invalidfieldmessage.Columns, sqlgraph.NewFieldSpec(invalidfieldmessage.FieldID, field.TypeInt))
+	_spec.From = ifmq.sql
 	if unique := ifmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ifmq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := ifmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

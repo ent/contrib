@@ -18,7 +18,7 @@ import (
 type OneMethodServiceQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []onemethodservice.OrderOption
 	inters     []Interceptor
 	predicates []predicate.OneMethodService
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (omsq *OneMethodServiceQuery) Unique(unique bool) *OneMethodServiceQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (omsq *OneMethodServiceQuery) Order(o ...OrderFunc) *OneMethodServiceQuery {
+func (omsq *OneMethodServiceQuery) Order(o ...onemethodservice.OrderOption) *OneMethodServiceQuery {
 	omsq.order = append(omsq.order, o...)
 	return omsq
 }
@@ -177,10 +177,12 @@ func (omsq *OneMethodServiceQuery) AllX(ctx context.Context) []*OneMethodService
 }
 
 // IDs executes the query and returns a list of OneMethodService IDs.
-func (omsq *OneMethodServiceQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (omsq *OneMethodServiceQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if omsq.ctx.Unique == nil && omsq.path != nil {
+		omsq.Unique(true)
+	}
 	ctx = setContextOp(ctx, omsq.ctx, "IDs")
-	if err := omsq.Select(onemethodservice.FieldID).Scan(ctx, &ids); err != nil {
+	if err = omsq.Select(onemethodservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (omsq *OneMethodServiceQuery) Clone() *OneMethodServiceQuery {
 	return &OneMethodServiceQuery{
 		config:     omsq.config,
 		ctx:        omsq.ctx.Clone(),
-		order:      append([]OrderFunc{}, omsq.order...),
+		order:      append([]onemethodservice.OrderOption{}, omsq.order...),
 		inters:     append([]Interceptor{}, omsq.inters...),
 		predicates: append([]predicate.OneMethodService{}, omsq.predicates...),
 		// clone intermediate query.
@@ -340,20 +342,12 @@ func (omsq *OneMethodServiceQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (omsq *OneMethodServiceQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   onemethodservice.Table,
-			Columns: onemethodservice.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: onemethodservice.FieldID,
-			},
-		},
-		From:   omsq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(onemethodservice.Table, onemethodservice.Columns, sqlgraph.NewFieldSpec(onemethodservice.FieldID, field.TypeInt))
+	_spec.From = omsq.sql
 	if unique := omsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if omsq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := omsq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

@@ -22,10 +22,19 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql"
+	ent1 "entgo.io/contrib/entgql/internal/todo/ent"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 )
+
+func (r *categoryResolver) Types(ctx context.Context, obj *ent.Category) (*CategoryTypes, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *organizationResolver) ID(ctx context.Context, obj *ent1.Workspace) (pulid.ID, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
 	return r.client.Noder(ctx, id, ent.WithNodeType(ent.IDToType))
@@ -50,7 +59,11 @@ func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[pulid.I
 		)
 }
 
-func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+func (r *queryResolver) OneToMany(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *OneToManyOrder, where *OneToManyWhereInput) (*OneToManyConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
 	return r.client.Todo.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithTodoOrder(orderBy),
@@ -58,7 +71,7 @@ func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[pulid.ID
 		)
 }
 
-func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	return r.client.User.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithUserFilter(where.Filter),
@@ -73,11 +86,15 @@ func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, err
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *createCategoryInputResolver) Types(ctx context.Context, obj *ent.CreateCategoryInput, data *CategoryTypesInput) error {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -102,6 +119,10 @@ func (r *todoWhereInputResolver) StatusIn(ctx context.Context, obj *ent.TodoWher
 }
 
 func (r *todoWhereInputResolver) StatusNotIn(ctx context.Context, obj *ent.TodoWhereInput, data []todo.Status) error {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *updateCategoryInputResolver) Types(ctx context.Context, obj *ent.UpdateCategoryInput, data *CategoryTypesInput) error {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -145,6 +166,12 @@ func (r *userWhereInputResolver) UsernameLte(ctx context.Context, obj *ent.UserW
 	panic(fmt.Errorf("not implemented"))
 }
 
+// Category returns CategoryResolver implementation.
+func (r *Resolver) Category() CategoryResolver { return &categoryResolver{r} }
+
+// Organization returns OrganizationResolver implementation.
+func (r *Resolver) Organization() OrganizationResolver { return &organizationResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -168,6 +195,11 @@ func (r *Resolver) CreateUserInput() CreateUserInputResolver { return &createUse
 // TodoWhereInput returns TodoWhereInputResolver implementation.
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
+// UpdateCategoryInput returns UpdateCategoryInputResolver implementation.
+func (r *Resolver) UpdateCategoryInput() UpdateCategoryInputResolver {
+	return &updateCategoryInputResolver{r}
+}
+
 // UpdateTodoInput returns UpdateTodoInputResolver implementation.
 func (r *Resolver) UpdateTodoInput() UpdateTodoInputResolver { return &updateTodoInputResolver{r} }
 
@@ -177,6 +209,8 @@ func (r *Resolver) UpdateUserInput() UpdateUserInputResolver { return &updateUse
 // UserWhereInput returns UserWhereInputResolver implementation.
 func (r *Resolver) UserWhereInput() UserWhereInputResolver { return &userWhereInputResolver{r} }
 
+type categoryResolver struct{ *Resolver }
+type organizationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
@@ -184,6 +218,7 @@ type createCategoryInputResolver struct{ *Resolver }
 type createTodoInputResolver struct{ *Resolver }
 type createUserInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }
+type updateCategoryInputResolver struct{ *Resolver }
 type updateTodoInputResolver struct{ *Resolver }
 type updateUserInputResolver struct{ *Resolver }
 type userWhereInputResolver struct{ *Resolver }

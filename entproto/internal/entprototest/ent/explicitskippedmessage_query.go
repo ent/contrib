@@ -18,7 +18,7 @@ import (
 type ExplicitSkippedMessageQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []explicitskippedmessage.OrderOption
 	inters     []Interceptor
 	predicates []predicate.ExplicitSkippedMessage
 	// intermediate query (i.e. traversal path).
@@ -52,7 +52,7 @@ func (esmq *ExplicitSkippedMessageQuery) Unique(unique bool) *ExplicitSkippedMes
 }
 
 // Order specifies how the records should be ordered.
-func (esmq *ExplicitSkippedMessageQuery) Order(o ...OrderFunc) *ExplicitSkippedMessageQuery {
+func (esmq *ExplicitSkippedMessageQuery) Order(o ...explicitskippedmessage.OrderOption) *ExplicitSkippedMessageQuery {
 	esmq.order = append(esmq.order, o...)
 	return esmq
 }
@@ -177,10 +177,12 @@ func (esmq *ExplicitSkippedMessageQuery) AllX(ctx context.Context) []*ExplicitSk
 }
 
 // IDs executes the query and returns a list of ExplicitSkippedMessage IDs.
-func (esmq *ExplicitSkippedMessageQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (esmq *ExplicitSkippedMessageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if esmq.ctx.Unique == nil && esmq.path != nil {
+		esmq.Unique(true)
+	}
 	ctx = setContextOp(ctx, esmq.ctx, "IDs")
-	if err := esmq.Select(explicitskippedmessage.FieldID).Scan(ctx, &ids); err != nil {
+	if err = esmq.Select(explicitskippedmessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -244,7 +246,7 @@ func (esmq *ExplicitSkippedMessageQuery) Clone() *ExplicitSkippedMessageQuery {
 	return &ExplicitSkippedMessageQuery{
 		config:     esmq.config,
 		ctx:        esmq.ctx.Clone(),
-		order:      append([]OrderFunc{}, esmq.order...),
+		order:      append([]explicitskippedmessage.OrderOption{}, esmq.order...),
 		inters:     append([]Interceptor{}, esmq.inters...),
 		predicates: append([]predicate.ExplicitSkippedMessage{}, esmq.predicates...),
 		// clone intermediate query.
@@ -340,20 +342,12 @@ func (esmq *ExplicitSkippedMessageQuery) sqlCount(ctx context.Context) (int, err
 }
 
 func (esmq *ExplicitSkippedMessageQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   explicitskippedmessage.Table,
-			Columns: explicitskippedmessage.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: explicitskippedmessage.FieldID,
-			},
-		},
-		From:   esmq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(explicitskippedmessage.Table, explicitskippedmessage.Columns, sqlgraph.NewFieldSpec(explicitskippedmessage.FieldID, field.TypeInt))
+	_spec.From = esmq.sql
 	if unique := esmq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if esmq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := esmq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))

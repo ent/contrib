@@ -97,13 +97,7 @@ func (ac *AttachmentCreate) sqlSave(ctx context.Context) (*Attachment, error) {
 func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Attachment{config: ac.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: attachment.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: attachment.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(attachment.Table, sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeString))
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
@@ -139,8 +133,8 @@ func (acb *AttachmentCreateBulk) Save(ctx context.Context) ([]*Attachment, error
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
 				} else {

@@ -22,6 +22,8 @@ type Tx struct {
 	DependsOnSkipped *DependsOnSkippedClient
 	// DuplicateNumberMessage is the client for interacting with the DuplicateNumberMessage builders.
 	DuplicateNumberMessage *DuplicateNumberMessageClient
+	// EnumWithConflictingValue is the client for interacting with the EnumWithConflictingValue builders.
+	EnumWithConflictingValue *EnumWithConflictingValueClient
 	// ExplicitSkippedMessage is the client for interacting with the ExplicitSkippedMessage builders.
 	ExplicitSkippedMessage *ExplicitSkippedMessageClient
 	// Image is the client for interacting with the Image builders.
@@ -36,6 +38,8 @@ type Tx struct {
 	MessageWithFieldOne *MessageWithFieldOneClient
 	// MessageWithID is the client for interacting with the MessageWithID builders.
 	MessageWithID *MessageWithIDClient
+	// MessageWithInts is the client for interacting with the MessageWithInts builders.
+	MessageWithInts *MessageWithIntsClient
 	// MessageWithOptionals is the client for interacting with the MessageWithOptionals builders.
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
@@ -192,6 +196,7 @@ func (tx *Tx) init() {
 	tx.Category = NewCategoryClient(tx.config)
 	tx.DependsOnSkipped = NewDependsOnSkippedClient(tx.config)
 	tx.DuplicateNumberMessage = NewDuplicateNumberMessageClient(tx.config)
+	tx.EnumWithConflictingValue = NewEnumWithConflictingValueClient(tx.config)
 	tx.ExplicitSkippedMessage = NewExplicitSkippedMessageClient(tx.config)
 	tx.Image = NewImageClient(tx.config)
 	tx.ImplicitSkippedMessage = NewImplicitSkippedMessageClient(tx.config)
@@ -199,6 +204,7 @@ func (tx *Tx) init() {
 	tx.MessageWithEnum = NewMessageWithEnumClient(tx.config)
 	tx.MessageWithFieldOne = NewMessageWithFieldOneClient(tx.config)
 	tx.MessageWithID = NewMessageWithIDClient(tx.config)
+	tx.MessageWithInts = NewMessageWithIntsClient(tx.config)
 	tx.MessageWithOptionals = NewMessageWithOptionalsClient(tx.config)
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
 	tx.MessageWithStrings = NewMessageWithStringsClient(tx.config)

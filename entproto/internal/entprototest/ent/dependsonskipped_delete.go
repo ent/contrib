@@ -40,15 +40,7 @@ func (dosd *DependsOnSkippedDelete) ExecX(ctx context.Context) int {
 }
 
 func (dosd *DependsOnSkippedDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: dependsonskipped.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dependsonskipped.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(dependsonskipped.Table, sqlgraph.NewFieldSpec(dependsonskipped.FieldID, field.TypeInt))
 	if ps := dosd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -69,6 +61,12 @@ type DependsOnSkippedDeleteOne struct {
 	dosd *DependsOnSkippedDelete
 }
 
+// Where appends a list predicates to the DependsOnSkippedDelete builder.
+func (dosdo *DependsOnSkippedDeleteOne) Where(ps ...predicate.DependsOnSkipped) *DependsOnSkippedDeleteOne {
+	dosdo.dosd.mutation.Where(ps...)
+	return dosdo
+}
+
 // Exec executes the deletion query.
 func (dosdo *DependsOnSkippedDeleteOne) Exec(ctx context.Context) error {
 	n, err := dosdo.dosd.Exec(ctx)
@@ -84,5 +82,7 @@ func (dosdo *DependsOnSkippedDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (dosdo *DependsOnSkippedDeleteOne) ExecX(ctx context.Context) {
-	dosdo.dosd.ExecX(ctx)
+	if err := dosdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }
