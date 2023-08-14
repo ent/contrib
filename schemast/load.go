@@ -105,6 +105,7 @@ func (c *Context) returnStmt(typeName, method string) (*ast.ReturnStmt, error) {
 func Load(path string) (*Context, error) {
 	pkgs, err := packages.Load(&packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedSyntax,
+		Dir:  path,
 	}, path)
 	if err != nil {
 		return nil, fmt.Errorf("loading package: %w", err)
