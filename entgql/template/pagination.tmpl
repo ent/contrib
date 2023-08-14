@@ -461,7 +461,9 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 // Paginate executes the query and returns a relay based cursor connection to {{ $name }}.
 func ({{ $r }} *{{ $query }}) Paginate(
 	ctx context.Context, after *Cursor, first *int,
-	before *Cursor, last *int, opts ...{{ $opt }},
+	before *Cursor, last *int, 
+	offset *int, limit *int,
+	opts ...{{ $opt }},
 ) (*{{ $conn }}, error) {
 	{{- with extend $ "Node" $node "Query" $r -}}
 		{{ template "gql_pagination/helper/paginate" . }}
@@ -648,8 +650,13 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if {{ $r }}, err = pager.applyCursors({{ $r }}, after, before); err != nil {
 		return nil, err
 	}
-	limit := paginateLimit(first, last)
-	if limit != 0 {
+	if offset != nil && *offset != 0 {
+		{{ $r }}.Offset(*offset)
+	}
+	if limit != nil && *limit != 0 {
+		{{ $r }}.Limit(*limit)
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
 		{{ $r }}.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {

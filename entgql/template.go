@@ -657,6 +657,16 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, h
 				Type:        ast.NamedType("Int", nil),
 				Description: "Returns the last _n_ elements from the list.",
 			},
+			{
+				Name:        "offset",
+				Type:        ast.NamedType("Int", nil),
+				Description: "Offset-based pagination",
+			},
+			{
+				Name:        "limit",
+				Type:        ast.NamedType("Int", nil),
+				Description: "Offset-based pagination",
+			},
 		},
 	}
 	if hasOrderBy {
