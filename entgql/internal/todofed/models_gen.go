@@ -8,8 +8,8 @@ import (
 
 type TodoInput struct {
 	Status     todo.Status `json:"status"`
-	Priority   *int        `json:"priority"`
+	Priority   *int        `json:"priority,omitempty"`
 	Text       string      `json:"text"`
-	Parent     *int        `json:"parent"`
-	CategoryID *int        `json:"category_id"`
+	Parent     *int        `json:"parent,omitempty"`
+	CategoryID *int        `json:"category_id,omitempty"`
 }
