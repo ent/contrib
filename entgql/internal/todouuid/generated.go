@@ -2781,6 +2781,7 @@ Properties by which User connections can be ordered.
 """
 enum UserOrderField {
   GROUPS_COUNT
+  FRIENDS_COUNT
 }
 """
 UserWhereInput is used for filtering User objects.
