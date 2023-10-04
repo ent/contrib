@@ -39,6 +39,9 @@ func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
 	if desc.Field != "" {
 		builder.method("Field", strLit(desc.Field))
 	}
+	if desc.Comment != "" {
+		builder.method("Comment", strLit(desc.Comment))
+	}
 	if desc.StorageKey != nil {
 		tbl := fnCall(selectorLit("edge", "Table"), strLit(desc.StorageKey.Table))
 		col := fnCall(selectorLit("edge", "Column"), strLit(desc.StorageKey.Columns[0]))
