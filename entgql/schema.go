@@ -580,6 +580,7 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				Name:        camel(f.Name),
 				Type:        namedType(scalar, f.Nullable),
 				Description: f.Comment(),
+				Directives:  e.buildDirectives(ant.Directives),
 			})
 			if f.AppendOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{

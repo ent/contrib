@@ -15,10 +15,11 @@
 package schemast
 
 import (
-	"entgo.io/contrib/entgql"
 	"fmt"
 	"go/ast"
 	"sort"
+
+	"entgo.io/contrib/entgql"
 
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/dialect/entsql"
@@ -250,6 +251,24 @@ func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
 	if m.OrderField != "" {
 		c = fnCall(selectorLit("entgql", "OrderField"), strLit(m.OrderField))
 		return c, true, nil
+	}
+
+	if len(m.Directives) > 0 {
+		for _, d := range m.Directives {
+			if d.Name == "deprecated" {
+				reason := ""
+				if len(d.Arguments) > 0 {
+					for _, a := range d.Arguments {
+						if a.Name == "reason" {
+							reason = a.Value.Raw
+							break
+						}
+					}
+				}
+				c = fnCall(selectorLit("entgql", "Directives"), fnCall(selectorLit("entgql", "Deprecated"), strLit(reason)))
+				return c, true, nil
+			}
+		}
 	}
 
 	return nil, false, fmt.Errorf("schemast: unknown entgql annotation")
