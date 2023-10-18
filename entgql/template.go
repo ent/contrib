@@ -580,6 +580,11 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 					Type:        ast.ListType(ast.NamedType(p.Edge, nil), nil),
 					Description: "A list of edges.",
 				},
+				{
+					Name:        "nodes",
+					Type:        ast.ListType(ast.NamedType(p.Node, nil), nil),
+					Description: "A list of nodes.",
+				},
 				/*{
 					Name:        "pageInfo",
 					Type:        ast.NonNullNamedType(RelayPageInfo, nil),
