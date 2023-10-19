@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/entc/gen"
+	"entgo.io/ent/schema/field"
 	"github.com/go-openapi/inflect"
 	"github.com/ogen-go/ogen"
 	"github.com/stoewer/go-strcase"
@@ -181,6 +182,11 @@ var rules = inflect.NewDefaultRuleset()
 
 // paths adds all operations to the spec paths.
 func paths(g *gen.Graph, spec *ogen.Spec) error {
+	cfg, err := GetConfig(g.Config)
+	if err != nil {
+		return err
+	}
+
 	for _, n := range g.Nodes {
 		// Add schema operations.
 		ops, err := NodeOperations(n)
@@ -191,7 +197,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 		root := "/" + rules.Pluralize(strcase.KebabCase(n.Name))
 		// Create operation.
 		if contains(ops, OpCreate) {
-			path(spec, root).Post, err = createOp(spec, n)
+			path(spec, root).Post, err = createOp(spec, n, cfg.AllowClientUUIDs)
 			if err != nil {
 				return err
 			}
@@ -262,8 +268,8 @@ func path(s *ogen.Spec, root string) *ogen.PathItem {
 }
 
 // createOp returns an ogen.Operation for a create operation on the given node.
-func createOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
-	req, err := reqBody(n, OpCreate)
+func createOp(spec *ogen.Spec, n *gen.Type, allowClientUUIDs bool) (*ogen.Operation, error) {
+	req, err := reqBody(n, OpCreate, allowClientUUIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +364,7 @@ func readEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 
 // updateOp returns a spec.OperationConfig for an update operation on the given node.
 func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
-	req, err := reqBody(n, OpUpdate)
+	req, err := reqBody(n, OpUpdate, false)
 	if err != nil {
 		return nil, err
 	}
@@ -677,17 +683,26 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 }
 
 // reqBody returns the request body for the given node and operation.
-func reqBody(n *gen.Type, op Operation) (*ogen.RequestBody, error) {
+func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBody, error) {
 	req := ogen.NewRequestBody().SetRequired(true)
+	c := ogen.NewSchema()
 	switch op {
 	case OpCreate:
+		// add the ID field as client setable if it is a UUID.
+		if allowClientUUIDs && n.ID.Type.Type == field.TypeUUID {
+			p, err := property(n.ID)
+			if err != nil {
+				return nil, err
+			}
+			addProperty(c, p, !n.ID.Default)
+		}
+
 		req.SetDescription(fmt.Sprintf("%s to create", n.Name))
 	case OpUpdate:
 		req.SetDescription(fmt.Sprintf("%s properties to update", n.Name))
 	default:
 		return nil, fmt.Errorf("requestBody: unsupported operation %q", op)
 	}
-	c := ogen.NewSchema()
 	for _, f := range n.Fields {
 		a, err := FieldAnnotation(f)
 		if err != nil {
