@@ -748,8 +748,8 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 			return nil, err
 		}
 	}
-	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+	if field := collectedField(ctx, nodesField); field != nil {
+		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{nodesField}); err != nil {
 			return nil, err
 		}
 	}
