@@ -578,7 +578,12 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 				{
 					Name:        "edges",
 					Type:        ast.ListType(ast.NamedType(p.Edge, nil), nil),
-					Description: "A list of edges.",
+					Description: "The list of edges where each edge holds a data node and possibly metadata.",
+				},
+				{
+					Name:        "nodes",
+					Type:        ast.ListType(ast.NamedType(p.Node, nil), nil),
+					Description: "Shortcut to the data nodes of all edges.",
 				},
 				/*{
 					Name:        "pageInfo",
@@ -628,11 +633,19 @@ func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, h
 				Name:        "limit",
 				Type:        ast.NamedType("Int", nil),
 				Description: "Pagination limit.",
+				DefaultValue: &ast.Value{
+					Raw:  "100",
+					Kind: ast.IntValue,
+				},
 			},
 			{
 				Name:        "offset",
 				Type:        ast.NamedType("Int", nil),
 				Description: "Pagination offset.",
+				DefaultValue: &ast.Value{
+					Raw:  "0",
+					Kind: ast.IntValue,
+				},
 			},
 			/*{
 				Name:        "after",
