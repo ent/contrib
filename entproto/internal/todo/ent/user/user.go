@@ -60,6 +60,34 @@ const (
 	FieldUint32s = "uint32s"
 	// FieldUint64s holds the string denoting the uint64s field in the database.
 	FieldUint64s = "uint64s"
+	// FieldCustomInt holds the string denoting the custom_int field in the database.
+	FieldCustomInt = "custom_int"
+	// FieldCustomInt8 holds the string denoting the custom_int8 field in the database.
+	FieldCustomInt8 = "custom_int8"
+	// FieldCustomInt16 holds the string denoting the custom_int16 field in the database.
+	FieldCustomInt16 = "custom_int16"
+	// FieldCustomInt32 holds the string denoting the custom_int32 field in the database.
+	FieldCustomInt32 = "custom_int32"
+	// FieldCustomInt64 holds the string denoting the custom_int64 field in the database.
+	FieldCustomInt64 = "custom_int64"
+	// FieldCustomUint holds the string denoting the custom_uint field in the database.
+	FieldCustomUint = "custom_uint"
+	// FieldCustomUint8 holds the string denoting the custom_uint8 field in the database.
+	FieldCustomUint8 = "custom_uint8"
+	// FieldCustomUint16 holds the string denoting the custom_uint16 field in the database.
+	FieldCustomUint16 = "custom_uint16"
+	// FieldCustomUint32 holds the string denoting the custom_uint32 field in the database.
+	FieldCustomUint32 = "custom_uint32"
+	// FieldCustomUint64 holds the string denoting the custom_uint64 field in the database.
+	FieldCustomUint64 = "custom_uint64"
+	// FieldCustomFloat32 holds the string denoting the custom_float32 field in the database.
+	FieldCustomFloat32 = "custom_float32"
+	// FieldCustomFloat64 holds the string denoting the custom_float64 field in the database.
+	FieldCustomFloat64 = "custom_float64"
+	// FieldCustomString holds the string denoting the custom_string field in the database.
+	FieldCustomString = "custom_string"
+	// FieldCustomBool holds the string denoting the custom_bool field in the database.
+	FieldCustomBool = "custom_bool"
 	// FieldDeviceType holds the string denoting the device_type field in the database.
 	FieldDeviceType = "device_type"
 	// FieldOmitPrefix holds the string denoting the omit_prefix field in the database.
@@ -147,6 +175,20 @@ var Columns = []string{
 	FieldInt64s,
 	FieldUint32s,
 	FieldUint64s,
+	FieldCustomInt,
+	FieldCustomInt8,
+	FieldCustomInt16,
+	FieldCustomInt32,
+	FieldCustomInt64,
+	FieldCustomUint,
+	FieldCustomUint8,
+	FieldCustomUint16,
+	FieldCustomUint32,
+	FieldCustomUint64,
+	FieldCustomFloat32,
+	FieldCustomFloat64,
+	FieldCustomString,
+	FieldCustomBool,
 	FieldDeviceType,
 	FieldOmitPrefix,
 	FieldMimeType,
@@ -379,6 +421,76 @@ func ByUnnecessary(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByCustomInt orders the results by the custom_int field.
+func ByCustomInt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomInt, opts...).ToFunc()
+}
+
+// ByCustomInt8 orders the results by the custom_int8 field.
+func ByCustomInt8(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomInt8, opts...).ToFunc()
+}
+
+// ByCustomInt16 orders the results by the custom_int16 field.
+func ByCustomInt16(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomInt16, opts...).ToFunc()
+}
+
+// ByCustomInt32 orders the results by the custom_int32 field.
+func ByCustomInt32(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomInt32, opts...).ToFunc()
+}
+
+// ByCustomInt64 orders the results by the custom_int64 field.
+func ByCustomInt64(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomInt64, opts...).ToFunc()
+}
+
+// ByCustomUint orders the results by the custom_uint field.
+func ByCustomUint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomUint, opts...).ToFunc()
+}
+
+// ByCustomUint8 orders the results by the custom_uint8 field.
+func ByCustomUint8(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomUint8, opts...).ToFunc()
+}
+
+// ByCustomUint16 orders the results by the custom_uint16 field.
+func ByCustomUint16(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomUint16, opts...).ToFunc()
+}
+
+// ByCustomUint32 orders the results by the custom_uint32 field.
+func ByCustomUint32(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomUint32, opts...).ToFunc()
+}
+
+// ByCustomUint64 orders the results by the custom_uint64 field.
+func ByCustomUint64(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomUint64, opts...).ToFunc()
+}
+
+// ByCustomFloat32 orders the results by the custom_float32 field.
+func ByCustomFloat32(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomFloat32, opts...).ToFunc()
+}
+
+// ByCustomFloat64 orders the results by the custom_float64 field.
+func ByCustomFloat64(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomFloat64, opts...).ToFunc()
+}
+
+// ByCustomString orders the results by the custom_string field.
+func ByCustomString(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomString, opts...).ToFunc()
+}
+
+// ByCustomBool orders the results by the custom_bool field.
+func ByCustomBool(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCustomBool, opts...).ToFunc()
 }
 
 // ByDeviceType orders the results by the device_type field.

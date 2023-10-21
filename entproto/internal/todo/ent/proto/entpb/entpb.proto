@@ -362,6 +362,34 @@ message User {
 
   repeated uint64 uint64s = 28;
 
+  google.protobuf.Int64Value custom_int = 29;
+
+  google.protobuf.Int32Value custom_int8 = 30;
+
+  google.protobuf.Int32Value custom_int16 = 31;
+
+  google.protobuf.Int32Value custom_int32 = 32;
+
+  google.protobuf.Int64Value custom_int64 = 33;
+
+  google.protobuf.UInt32Value custom_uint = 34;
+
+  google.protobuf.UInt32Value custom_uint8 = 35;
+
+  google.protobuf.UInt32Value custom_uint16 = 36;
+
+  google.protobuf.UInt32Value custom_uint32 = 37;
+
+  google.protobuf.UInt64Value custom_uint64 = 38;
+
+  google.protobuf.FloatValue custom_float32 = 39;
+
+  google.protobuf.DoubleValue custom_float64 = 40;
+
+  google.protobuf.StringValue custom_string = 41;
+
+  google.protobuf.BoolValue custom_bool = 42;
+
   DeviceType device_type = 100;
 
   OmitPrefix omit_prefix = 103;

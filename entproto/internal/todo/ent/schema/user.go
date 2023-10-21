@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entproto"
+	"entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
@@ -138,6 +139,90 @@ func (User) Fields() []ent.Field {
 			Optional().
 			Annotations(
 				entproto.Field(28),
+			),
+		field.Int("custom_int").
+			Optional().
+			GoType(gotypes.CustomInt(0)).
+			Annotations(
+				entproto.Field(29),
+			),
+		field.Int8("custom_int8").
+			Optional().
+			GoType(gotypes.CustomInt8(0)).
+			Annotations(
+				entproto.Field(30),
+			),
+		field.Int16("custom_int16").
+			Optional().
+			GoType(gotypes.CustomInt16(0)).
+			Annotations(
+				entproto.Field(31),
+			),
+		field.Int32("custom_int32").
+			Optional().
+			GoType(gotypes.CustomInt32(0)).
+			Annotations(
+				entproto.Field(32),
+			),
+		field.Int64("custom_int64").
+			Optional().
+			GoType(gotypes.CustomInt64(0)).
+			Annotations(
+				entproto.Field(33),
+			),
+		field.Uint("custom_uint").
+			Optional().
+			GoType(gotypes.CustomUInt(0)).
+			Annotations(
+				entproto.Field(34),
+			),
+		field.Uint8("custom_uint8").
+			Optional().
+			GoType(gotypes.CustomUInt8(0)).
+			Annotations(
+				entproto.Field(35),
+			),
+		field.Uint16("custom_uint16").
+			Optional().
+			GoType(gotypes.CustomUInt16(0)).
+			Annotations(
+				entproto.Field(36),
+			),
+		field.Uint32("custom_uint32").
+			Optional().
+			GoType(gotypes.CustomUInt32(0)).
+			Annotations(
+				entproto.Field(37),
+			),
+		field.Uint64("custom_uint64").
+			Optional().
+			GoType(gotypes.CustomUInt64(0)).
+			Annotations(
+				entproto.Field(38),
+			),
+		field.Float32("custom_float32").
+			Optional().
+			GoType(gotypes.CustomFloat32(0)).
+			Annotations(
+				entproto.Field(39),
+			),
+		field.Float("custom_float64").
+			Optional().
+			GoType(gotypes.CustomFloat64(0)).
+			Annotations(
+				entproto.Field(40),
+			),
+		field.String("custom_string").
+			Optional().
+			GoType(gotypes.CustomString("")).
+			Annotations(
+				entproto.Field(41),
+			),
+		field.Bool("custom_bool").
+			Optional().
+			GoType(gotypes.CustomBool(false)).
+			Annotations(
+				entproto.Field(42),
 			),
 		field.Enum("device_type").
 			Values("GLOWY9000", "SPEEDY300").

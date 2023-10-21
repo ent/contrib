@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	"entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
@@ -241,6 +242,202 @@ func (uc *UserCreate) SetUint32s(u []uint32) *UserCreate {
 // SetUint64s sets the "uint64s" field.
 func (uc *UserCreate) SetUint64s(u []uint64) *UserCreate {
 	uc.mutation.SetUint64s(u)
+	return uc
+}
+
+// SetCustomInt sets the "custom_int" field.
+func (uc *UserCreate) SetCustomInt(gi gotypes.CustomInt) *UserCreate {
+	uc.mutation.SetCustomInt(gi)
+	return uc
+}
+
+// SetNillableCustomInt sets the "custom_int" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomInt(gi *gotypes.CustomInt) *UserCreate {
+	if gi != nil {
+		uc.SetCustomInt(*gi)
+	}
+	return uc
+}
+
+// SetCustomInt8 sets the "custom_int8" field.
+func (uc *UserCreate) SetCustomInt8(gi gotypes.CustomInt8) *UserCreate {
+	uc.mutation.SetCustomInt8(gi)
+	return uc
+}
+
+// SetNillableCustomInt8 sets the "custom_int8" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomInt8(gi *gotypes.CustomInt8) *UserCreate {
+	if gi != nil {
+		uc.SetCustomInt8(*gi)
+	}
+	return uc
+}
+
+// SetCustomInt16 sets the "custom_int16" field.
+func (uc *UserCreate) SetCustomInt16(gi gotypes.CustomInt16) *UserCreate {
+	uc.mutation.SetCustomInt16(gi)
+	return uc
+}
+
+// SetNillableCustomInt16 sets the "custom_int16" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomInt16(gi *gotypes.CustomInt16) *UserCreate {
+	if gi != nil {
+		uc.SetCustomInt16(*gi)
+	}
+	return uc
+}
+
+// SetCustomInt32 sets the "custom_int32" field.
+func (uc *UserCreate) SetCustomInt32(gi gotypes.CustomInt32) *UserCreate {
+	uc.mutation.SetCustomInt32(gi)
+	return uc
+}
+
+// SetNillableCustomInt32 sets the "custom_int32" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomInt32(gi *gotypes.CustomInt32) *UserCreate {
+	if gi != nil {
+		uc.SetCustomInt32(*gi)
+	}
+	return uc
+}
+
+// SetCustomInt64 sets the "custom_int64" field.
+func (uc *UserCreate) SetCustomInt64(gi gotypes.CustomInt64) *UserCreate {
+	uc.mutation.SetCustomInt64(gi)
+	return uc
+}
+
+// SetNillableCustomInt64 sets the "custom_int64" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomInt64(gi *gotypes.CustomInt64) *UserCreate {
+	if gi != nil {
+		uc.SetCustomInt64(*gi)
+	}
+	return uc
+}
+
+// SetCustomUint sets the "custom_uint" field.
+func (uc *UserCreate) SetCustomUint(gu gotypes.CustomUInt) *UserCreate {
+	uc.mutation.SetCustomUint(gu)
+	return uc
+}
+
+// SetNillableCustomUint sets the "custom_uint" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomUint(gu *gotypes.CustomUInt) *UserCreate {
+	if gu != nil {
+		uc.SetCustomUint(*gu)
+	}
+	return uc
+}
+
+// SetCustomUint8 sets the "custom_uint8" field.
+func (uc *UserCreate) SetCustomUint8(gu gotypes.CustomUInt8) *UserCreate {
+	uc.mutation.SetCustomUint8(gu)
+	return uc
+}
+
+// SetNillableCustomUint8 sets the "custom_uint8" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomUint8(gu *gotypes.CustomUInt8) *UserCreate {
+	if gu != nil {
+		uc.SetCustomUint8(*gu)
+	}
+	return uc
+}
+
+// SetCustomUint16 sets the "custom_uint16" field.
+func (uc *UserCreate) SetCustomUint16(gu gotypes.CustomUInt16) *UserCreate {
+	uc.mutation.SetCustomUint16(gu)
+	return uc
+}
+
+// SetNillableCustomUint16 sets the "custom_uint16" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomUint16(gu *gotypes.CustomUInt16) *UserCreate {
+	if gu != nil {
+		uc.SetCustomUint16(*gu)
+	}
+	return uc
+}
+
+// SetCustomUint32 sets the "custom_uint32" field.
+func (uc *UserCreate) SetCustomUint32(gu gotypes.CustomUInt32) *UserCreate {
+	uc.mutation.SetCustomUint32(gu)
+	return uc
+}
+
+// SetNillableCustomUint32 sets the "custom_uint32" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomUint32(gu *gotypes.CustomUInt32) *UserCreate {
+	if gu != nil {
+		uc.SetCustomUint32(*gu)
+	}
+	return uc
+}
+
+// SetCustomUint64 sets the "custom_uint64" field.
+func (uc *UserCreate) SetCustomUint64(gu gotypes.CustomUInt64) *UserCreate {
+	uc.mutation.SetCustomUint64(gu)
+	return uc
+}
+
+// SetNillableCustomUint64 sets the "custom_uint64" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomUint64(gu *gotypes.CustomUInt64) *UserCreate {
+	if gu != nil {
+		uc.SetCustomUint64(*gu)
+	}
+	return uc
+}
+
+// SetCustomFloat32 sets the "custom_float32" field.
+func (uc *UserCreate) SetCustomFloat32(gf gotypes.CustomFloat32) *UserCreate {
+	uc.mutation.SetCustomFloat32(gf)
+	return uc
+}
+
+// SetNillableCustomFloat32 sets the "custom_float32" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomFloat32(gf *gotypes.CustomFloat32) *UserCreate {
+	if gf != nil {
+		uc.SetCustomFloat32(*gf)
+	}
+	return uc
+}
+
+// SetCustomFloat64 sets the "custom_float64" field.
+func (uc *UserCreate) SetCustomFloat64(gf gotypes.CustomFloat64) *UserCreate {
+	uc.mutation.SetCustomFloat64(gf)
+	return uc
+}
+
+// SetNillableCustomFloat64 sets the "custom_float64" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomFloat64(gf *gotypes.CustomFloat64) *UserCreate {
+	if gf != nil {
+		uc.SetCustomFloat64(*gf)
+	}
+	return uc
+}
+
+// SetCustomString sets the "custom_string" field.
+func (uc *UserCreate) SetCustomString(gs gotypes.CustomString) *UserCreate {
+	uc.mutation.SetCustomString(gs)
+	return uc
+}
+
+// SetNillableCustomString sets the "custom_string" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomString(gs *gotypes.CustomString) *UserCreate {
+	if gs != nil {
+		uc.SetCustomString(*gs)
+	}
+	return uc
+}
+
+// SetCustomBool sets the "custom_bool" field.
+func (uc *UserCreate) SetCustomBool(gb gotypes.CustomBool) *UserCreate {
+	uc.mutation.SetCustomBool(gb)
+	return uc
+}
+
+// SetNillableCustomBool sets the "custom_bool" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomBool(gb *gotypes.CustomBool) *UserCreate {
+	if gb != nil {
+		uc.SetCustomBool(*gb)
+	}
 	return uc
 }
 
@@ -607,6 +804,62 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Uint64s(); ok {
 		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
 		_node.Uint64s = value
+	}
+	if value, ok := uc.mutation.CustomInt(); ok {
+		_spec.SetField(user.FieldCustomInt, field.TypeInt, value)
+		_node.CustomInt = value
+	}
+	if value, ok := uc.mutation.CustomInt8(); ok {
+		_spec.SetField(user.FieldCustomInt8, field.TypeInt8, value)
+		_node.CustomInt8 = value
+	}
+	if value, ok := uc.mutation.CustomInt16(); ok {
+		_spec.SetField(user.FieldCustomInt16, field.TypeInt16, value)
+		_node.CustomInt16 = value
+	}
+	if value, ok := uc.mutation.CustomInt32(); ok {
+		_spec.SetField(user.FieldCustomInt32, field.TypeInt32, value)
+		_node.CustomInt32 = value
+	}
+	if value, ok := uc.mutation.CustomInt64(); ok {
+		_spec.SetField(user.FieldCustomInt64, field.TypeInt64, value)
+		_node.CustomInt64 = value
+	}
+	if value, ok := uc.mutation.CustomUint(); ok {
+		_spec.SetField(user.FieldCustomUint, field.TypeUint, value)
+		_node.CustomUint = value
+	}
+	if value, ok := uc.mutation.CustomUint8(); ok {
+		_spec.SetField(user.FieldCustomUint8, field.TypeUint8, value)
+		_node.CustomUint8 = value
+	}
+	if value, ok := uc.mutation.CustomUint16(); ok {
+		_spec.SetField(user.FieldCustomUint16, field.TypeUint16, value)
+		_node.CustomUint16 = value
+	}
+	if value, ok := uc.mutation.CustomUint32(); ok {
+		_spec.SetField(user.FieldCustomUint32, field.TypeUint32, value)
+		_node.CustomUint32 = value
+	}
+	if value, ok := uc.mutation.CustomUint64(); ok {
+		_spec.SetField(user.FieldCustomUint64, field.TypeUint64, value)
+		_node.CustomUint64 = value
+	}
+	if value, ok := uc.mutation.CustomFloat32(); ok {
+		_spec.SetField(user.FieldCustomFloat32, field.TypeFloat32, value)
+		_node.CustomFloat32 = value
+	}
+	if value, ok := uc.mutation.CustomFloat64(); ok {
+		_spec.SetField(user.FieldCustomFloat64, field.TypeFloat64, value)
+		_node.CustomFloat64 = value
+	}
+	if value, ok := uc.mutation.CustomString(); ok {
+		_spec.SetField(user.FieldCustomString, field.TypeString, value)
+		_node.CustomString = value
+	}
+	if value, ok := uc.mutation.CustomBool(); ok {
+		_spec.SetField(user.FieldCustomBool, field.TypeBool, value)
+		_node.CustomBool = value
 	}
 	if value, ok := uc.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)

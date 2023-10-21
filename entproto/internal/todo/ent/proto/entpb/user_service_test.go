@@ -33,6 +33,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestUserService_Create(t *testing.T) {
@@ -67,6 +68,20 @@ func TestUserService_Create(t *testing.T) {
 		MimeType:       User_MIME_TYPE_IMAGE_XML_SVG,
 		Int32S:         []int32{1, 2, 3},
 		Int64S:         []int64{1, 2, 3},
+		CustomInt:      wrapperspb.Int64(29),
+		CustomInt8:     wrapperspb.Int32(30),
+		CustomInt16:    wrapperspb.Int32(31),
+		CustomInt32:    wrapperspb.Int32(32),
+		CustomInt64:    wrapperspb.Int64(33),
+		CustomUint:     wrapperspb.UInt32(34),
+		CustomUint8:    wrapperspb.UInt32(35),
+		CustomUint16:   wrapperspb.UInt32(36),
+		CustomUint32:   wrapperspb.UInt32(37),
+		CustomUint64:   wrapperspb.UInt64(38),
+		CustomFloat32:  wrapperspb.Float(39),
+		CustomFloat64:  wrapperspb.Double(40),
+		CustomString:   wrapperspb.String("41"),
+		CustomBool:     wrapperspb.Bool(true),
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -87,6 +102,20 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.Int64S, fromDB.Int64s)
 	require.EqualValues(t, inputUser.Int32S, fromDB.Int32s)
 	require.EqualValues(t, inputUser.MimeType.String(), strings.ToUpper("MIME_TYPE_"+regexp.MustCompile("[^a-zA-Z0-9_]+").ReplaceAllString(string(fromDB.MimeType), "_")))
+	require.EqualValues(t, inputUser.CustomInt.Value, fromDB.CustomInt)
+	require.EqualValues(t, inputUser.CustomInt8.Value, fromDB.CustomInt8)
+	require.EqualValues(t, inputUser.CustomInt16.Value, fromDB.CustomInt16)
+	require.EqualValues(t, inputUser.CustomInt32.Value, fromDB.CustomInt32)
+	require.EqualValues(t, inputUser.CustomInt64.Value, fromDB.CustomInt64)
+	require.EqualValues(t, inputUser.CustomUint.Value, fromDB.CustomUint)
+	require.EqualValues(t, inputUser.CustomUint8.Value, fromDB.CustomUint8)
+	require.EqualValues(t, inputUser.CustomUint16.Value, fromDB.CustomUint16)
+	require.EqualValues(t, inputUser.CustomUint32.Value, fromDB.CustomUint32)
+	require.EqualValues(t, inputUser.CustomUint64.Value, fromDB.CustomUint64)
+	require.EqualValues(t, inputUser.CustomFloat32.Value, fromDB.CustomFloat32)
+	require.EqualValues(t, inputUser.CustomFloat64.Value, fromDB.CustomFloat64)
+	require.EqualValues(t, inputUser.CustomString.Value, fromDB.CustomString)
+	require.EqualValues(t, inputUser.CustomBool.Value, fromDB.CustomBool)
 
 	// preexisting user
 	_, err = svc.Create(ctx, &CreateUserRequest{

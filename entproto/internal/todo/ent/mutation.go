@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	"entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/nilexample"
@@ -3195,6 +3196,32 @@ type UserMutation struct {
 	appenduint32s      []uint32
 	uint64s            *[]uint64
 	appenduint64s      []uint64
+	custom_int         *gotypes.CustomInt
+	addcustom_int      *gotypes.CustomInt
+	custom_int8        *gotypes.CustomInt8
+	addcustom_int8     *gotypes.CustomInt8
+	custom_int16       *gotypes.CustomInt16
+	addcustom_int16    *gotypes.CustomInt16
+	custom_int32       *gotypes.CustomInt32
+	addcustom_int32    *gotypes.CustomInt32
+	custom_int64       *gotypes.CustomInt64
+	addcustom_int64    *gotypes.CustomInt64
+	custom_uint        *gotypes.CustomUInt
+	addcustom_uint     *gotypes.CustomUInt
+	custom_uint8       *gotypes.CustomUInt8
+	addcustom_uint8    *gotypes.CustomUInt8
+	custom_uint16      *gotypes.CustomUInt16
+	addcustom_uint16   *gotypes.CustomUInt16
+	custom_uint32      *gotypes.CustomUInt32
+	addcustom_uint32   *gotypes.CustomUInt32
+	custom_uint64      *gotypes.CustomUInt64
+	addcustom_uint64   *gotypes.CustomUInt64
+	custom_float32     *gotypes.CustomFloat32
+	addcustom_float32  *gotypes.CustomFloat32
+	custom_float64     *gotypes.CustomFloat64
+	addcustom_float64  *gotypes.CustomFloat64
+	custom_string      *gotypes.CustomString
+	custom_bool        *gotypes.CustomBool
 	device_type        *user.DeviceType
 	omit_prefix        *user.OmitPrefix
 	mime_type          *user.MimeType
@@ -4545,6 +4572,944 @@ func (m *UserMutation) ResetUint64s() {
 	delete(m.clearedFields, user.FieldUint64s)
 }
 
+// SetCustomInt sets the "custom_int" field.
+func (m *UserMutation) SetCustomInt(gi gotypes.CustomInt) {
+	m.custom_int = &gi
+	m.addcustom_int = nil
+}
+
+// CustomInt returns the value of the "custom_int" field in the mutation.
+func (m *UserMutation) CustomInt() (r gotypes.CustomInt, exists bool) {
+	v := m.custom_int
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomInt returns the old "custom_int" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomInt(ctx context.Context) (v gotypes.CustomInt, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomInt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomInt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomInt: %w", err)
+	}
+	return oldValue.CustomInt, nil
+}
+
+// AddCustomInt adds gi to the "custom_int" field.
+func (m *UserMutation) AddCustomInt(gi gotypes.CustomInt) {
+	if m.addcustom_int != nil {
+		*m.addcustom_int += gi
+	} else {
+		m.addcustom_int = &gi
+	}
+}
+
+// AddedCustomInt returns the value that was added to the "custom_int" field in this mutation.
+func (m *UserMutation) AddedCustomInt() (r gotypes.CustomInt, exists bool) {
+	v := m.addcustom_int
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomInt clears the value of the "custom_int" field.
+func (m *UserMutation) ClearCustomInt() {
+	m.custom_int = nil
+	m.addcustom_int = nil
+	m.clearedFields[user.FieldCustomInt] = struct{}{}
+}
+
+// CustomIntCleared returns if the "custom_int" field was cleared in this mutation.
+func (m *UserMutation) CustomIntCleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomInt]
+	return ok
+}
+
+// ResetCustomInt resets all changes to the "custom_int" field.
+func (m *UserMutation) ResetCustomInt() {
+	m.custom_int = nil
+	m.addcustom_int = nil
+	delete(m.clearedFields, user.FieldCustomInt)
+}
+
+// SetCustomInt8 sets the "custom_int8" field.
+func (m *UserMutation) SetCustomInt8(gi gotypes.CustomInt8) {
+	m.custom_int8 = &gi
+	m.addcustom_int8 = nil
+}
+
+// CustomInt8 returns the value of the "custom_int8" field in the mutation.
+func (m *UserMutation) CustomInt8() (r gotypes.CustomInt8, exists bool) {
+	v := m.custom_int8
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomInt8 returns the old "custom_int8" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomInt8(ctx context.Context) (v gotypes.CustomInt8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomInt8 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomInt8 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomInt8: %w", err)
+	}
+	return oldValue.CustomInt8, nil
+}
+
+// AddCustomInt8 adds gi to the "custom_int8" field.
+func (m *UserMutation) AddCustomInt8(gi gotypes.CustomInt8) {
+	if m.addcustom_int8 != nil {
+		*m.addcustom_int8 += gi
+	} else {
+		m.addcustom_int8 = &gi
+	}
+}
+
+// AddedCustomInt8 returns the value that was added to the "custom_int8" field in this mutation.
+func (m *UserMutation) AddedCustomInt8() (r gotypes.CustomInt8, exists bool) {
+	v := m.addcustom_int8
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomInt8 clears the value of the "custom_int8" field.
+func (m *UserMutation) ClearCustomInt8() {
+	m.custom_int8 = nil
+	m.addcustom_int8 = nil
+	m.clearedFields[user.FieldCustomInt8] = struct{}{}
+}
+
+// CustomInt8Cleared returns if the "custom_int8" field was cleared in this mutation.
+func (m *UserMutation) CustomInt8Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomInt8]
+	return ok
+}
+
+// ResetCustomInt8 resets all changes to the "custom_int8" field.
+func (m *UserMutation) ResetCustomInt8() {
+	m.custom_int8 = nil
+	m.addcustom_int8 = nil
+	delete(m.clearedFields, user.FieldCustomInt8)
+}
+
+// SetCustomInt16 sets the "custom_int16" field.
+func (m *UserMutation) SetCustomInt16(gi gotypes.CustomInt16) {
+	m.custom_int16 = &gi
+	m.addcustom_int16 = nil
+}
+
+// CustomInt16 returns the value of the "custom_int16" field in the mutation.
+func (m *UserMutation) CustomInt16() (r gotypes.CustomInt16, exists bool) {
+	v := m.custom_int16
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomInt16 returns the old "custom_int16" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomInt16(ctx context.Context) (v gotypes.CustomInt16, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomInt16 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomInt16 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomInt16: %w", err)
+	}
+	return oldValue.CustomInt16, nil
+}
+
+// AddCustomInt16 adds gi to the "custom_int16" field.
+func (m *UserMutation) AddCustomInt16(gi gotypes.CustomInt16) {
+	if m.addcustom_int16 != nil {
+		*m.addcustom_int16 += gi
+	} else {
+		m.addcustom_int16 = &gi
+	}
+}
+
+// AddedCustomInt16 returns the value that was added to the "custom_int16" field in this mutation.
+func (m *UserMutation) AddedCustomInt16() (r gotypes.CustomInt16, exists bool) {
+	v := m.addcustom_int16
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomInt16 clears the value of the "custom_int16" field.
+func (m *UserMutation) ClearCustomInt16() {
+	m.custom_int16 = nil
+	m.addcustom_int16 = nil
+	m.clearedFields[user.FieldCustomInt16] = struct{}{}
+}
+
+// CustomInt16Cleared returns if the "custom_int16" field was cleared in this mutation.
+func (m *UserMutation) CustomInt16Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomInt16]
+	return ok
+}
+
+// ResetCustomInt16 resets all changes to the "custom_int16" field.
+func (m *UserMutation) ResetCustomInt16() {
+	m.custom_int16 = nil
+	m.addcustom_int16 = nil
+	delete(m.clearedFields, user.FieldCustomInt16)
+}
+
+// SetCustomInt32 sets the "custom_int32" field.
+func (m *UserMutation) SetCustomInt32(gi gotypes.CustomInt32) {
+	m.custom_int32 = &gi
+	m.addcustom_int32 = nil
+}
+
+// CustomInt32 returns the value of the "custom_int32" field in the mutation.
+func (m *UserMutation) CustomInt32() (r gotypes.CustomInt32, exists bool) {
+	v := m.custom_int32
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomInt32 returns the old "custom_int32" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomInt32(ctx context.Context) (v gotypes.CustomInt32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomInt32 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomInt32 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomInt32: %w", err)
+	}
+	return oldValue.CustomInt32, nil
+}
+
+// AddCustomInt32 adds gi to the "custom_int32" field.
+func (m *UserMutation) AddCustomInt32(gi gotypes.CustomInt32) {
+	if m.addcustom_int32 != nil {
+		*m.addcustom_int32 += gi
+	} else {
+		m.addcustom_int32 = &gi
+	}
+}
+
+// AddedCustomInt32 returns the value that was added to the "custom_int32" field in this mutation.
+func (m *UserMutation) AddedCustomInt32() (r gotypes.CustomInt32, exists bool) {
+	v := m.addcustom_int32
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomInt32 clears the value of the "custom_int32" field.
+func (m *UserMutation) ClearCustomInt32() {
+	m.custom_int32 = nil
+	m.addcustom_int32 = nil
+	m.clearedFields[user.FieldCustomInt32] = struct{}{}
+}
+
+// CustomInt32Cleared returns if the "custom_int32" field was cleared in this mutation.
+func (m *UserMutation) CustomInt32Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomInt32]
+	return ok
+}
+
+// ResetCustomInt32 resets all changes to the "custom_int32" field.
+func (m *UserMutation) ResetCustomInt32() {
+	m.custom_int32 = nil
+	m.addcustom_int32 = nil
+	delete(m.clearedFields, user.FieldCustomInt32)
+}
+
+// SetCustomInt64 sets the "custom_int64" field.
+func (m *UserMutation) SetCustomInt64(gi gotypes.CustomInt64) {
+	m.custom_int64 = &gi
+	m.addcustom_int64 = nil
+}
+
+// CustomInt64 returns the value of the "custom_int64" field in the mutation.
+func (m *UserMutation) CustomInt64() (r gotypes.CustomInt64, exists bool) {
+	v := m.custom_int64
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomInt64 returns the old "custom_int64" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomInt64(ctx context.Context) (v gotypes.CustomInt64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomInt64 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomInt64 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomInt64: %w", err)
+	}
+	return oldValue.CustomInt64, nil
+}
+
+// AddCustomInt64 adds gi to the "custom_int64" field.
+func (m *UserMutation) AddCustomInt64(gi gotypes.CustomInt64) {
+	if m.addcustom_int64 != nil {
+		*m.addcustom_int64 += gi
+	} else {
+		m.addcustom_int64 = &gi
+	}
+}
+
+// AddedCustomInt64 returns the value that was added to the "custom_int64" field in this mutation.
+func (m *UserMutation) AddedCustomInt64() (r gotypes.CustomInt64, exists bool) {
+	v := m.addcustom_int64
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomInt64 clears the value of the "custom_int64" field.
+func (m *UserMutation) ClearCustomInt64() {
+	m.custom_int64 = nil
+	m.addcustom_int64 = nil
+	m.clearedFields[user.FieldCustomInt64] = struct{}{}
+}
+
+// CustomInt64Cleared returns if the "custom_int64" field was cleared in this mutation.
+func (m *UserMutation) CustomInt64Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomInt64]
+	return ok
+}
+
+// ResetCustomInt64 resets all changes to the "custom_int64" field.
+func (m *UserMutation) ResetCustomInt64() {
+	m.custom_int64 = nil
+	m.addcustom_int64 = nil
+	delete(m.clearedFields, user.FieldCustomInt64)
+}
+
+// SetCustomUint sets the "custom_uint" field.
+func (m *UserMutation) SetCustomUint(gu gotypes.CustomUInt) {
+	m.custom_uint = &gu
+	m.addcustom_uint = nil
+}
+
+// CustomUint returns the value of the "custom_uint" field in the mutation.
+func (m *UserMutation) CustomUint() (r gotypes.CustomUInt, exists bool) {
+	v := m.custom_uint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomUint returns the old "custom_uint" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomUint(ctx context.Context) (v gotypes.CustomUInt, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomUint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomUint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomUint: %w", err)
+	}
+	return oldValue.CustomUint, nil
+}
+
+// AddCustomUint adds gu to the "custom_uint" field.
+func (m *UserMutation) AddCustomUint(gu gotypes.CustomUInt) {
+	if m.addcustom_uint != nil {
+		*m.addcustom_uint += gu
+	} else {
+		m.addcustom_uint = &gu
+	}
+}
+
+// AddedCustomUint returns the value that was added to the "custom_uint" field in this mutation.
+func (m *UserMutation) AddedCustomUint() (r gotypes.CustomUInt, exists bool) {
+	v := m.addcustom_uint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomUint clears the value of the "custom_uint" field.
+func (m *UserMutation) ClearCustomUint() {
+	m.custom_uint = nil
+	m.addcustom_uint = nil
+	m.clearedFields[user.FieldCustomUint] = struct{}{}
+}
+
+// CustomUintCleared returns if the "custom_uint" field was cleared in this mutation.
+func (m *UserMutation) CustomUintCleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomUint]
+	return ok
+}
+
+// ResetCustomUint resets all changes to the "custom_uint" field.
+func (m *UserMutation) ResetCustomUint() {
+	m.custom_uint = nil
+	m.addcustom_uint = nil
+	delete(m.clearedFields, user.FieldCustomUint)
+}
+
+// SetCustomUint8 sets the "custom_uint8" field.
+func (m *UserMutation) SetCustomUint8(gu gotypes.CustomUInt8) {
+	m.custom_uint8 = &gu
+	m.addcustom_uint8 = nil
+}
+
+// CustomUint8 returns the value of the "custom_uint8" field in the mutation.
+func (m *UserMutation) CustomUint8() (r gotypes.CustomUInt8, exists bool) {
+	v := m.custom_uint8
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomUint8 returns the old "custom_uint8" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomUint8(ctx context.Context) (v gotypes.CustomUInt8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomUint8 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomUint8 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomUint8: %w", err)
+	}
+	return oldValue.CustomUint8, nil
+}
+
+// AddCustomUint8 adds gu to the "custom_uint8" field.
+func (m *UserMutation) AddCustomUint8(gu gotypes.CustomUInt8) {
+	if m.addcustom_uint8 != nil {
+		*m.addcustom_uint8 += gu
+	} else {
+		m.addcustom_uint8 = &gu
+	}
+}
+
+// AddedCustomUint8 returns the value that was added to the "custom_uint8" field in this mutation.
+func (m *UserMutation) AddedCustomUint8() (r gotypes.CustomUInt8, exists bool) {
+	v := m.addcustom_uint8
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomUint8 clears the value of the "custom_uint8" field.
+func (m *UserMutation) ClearCustomUint8() {
+	m.custom_uint8 = nil
+	m.addcustom_uint8 = nil
+	m.clearedFields[user.FieldCustomUint8] = struct{}{}
+}
+
+// CustomUint8Cleared returns if the "custom_uint8" field was cleared in this mutation.
+func (m *UserMutation) CustomUint8Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomUint8]
+	return ok
+}
+
+// ResetCustomUint8 resets all changes to the "custom_uint8" field.
+func (m *UserMutation) ResetCustomUint8() {
+	m.custom_uint8 = nil
+	m.addcustom_uint8 = nil
+	delete(m.clearedFields, user.FieldCustomUint8)
+}
+
+// SetCustomUint16 sets the "custom_uint16" field.
+func (m *UserMutation) SetCustomUint16(gu gotypes.CustomUInt16) {
+	m.custom_uint16 = &gu
+	m.addcustom_uint16 = nil
+}
+
+// CustomUint16 returns the value of the "custom_uint16" field in the mutation.
+func (m *UserMutation) CustomUint16() (r gotypes.CustomUInt16, exists bool) {
+	v := m.custom_uint16
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomUint16 returns the old "custom_uint16" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomUint16(ctx context.Context) (v gotypes.CustomUInt16, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomUint16 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomUint16 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomUint16: %w", err)
+	}
+	return oldValue.CustomUint16, nil
+}
+
+// AddCustomUint16 adds gu to the "custom_uint16" field.
+func (m *UserMutation) AddCustomUint16(gu gotypes.CustomUInt16) {
+	if m.addcustom_uint16 != nil {
+		*m.addcustom_uint16 += gu
+	} else {
+		m.addcustom_uint16 = &gu
+	}
+}
+
+// AddedCustomUint16 returns the value that was added to the "custom_uint16" field in this mutation.
+func (m *UserMutation) AddedCustomUint16() (r gotypes.CustomUInt16, exists bool) {
+	v := m.addcustom_uint16
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomUint16 clears the value of the "custom_uint16" field.
+func (m *UserMutation) ClearCustomUint16() {
+	m.custom_uint16 = nil
+	m.addcustom_uint16 = nil
+	m.clearedFields[user.FieldCustomUint16] = struct{}{}
+}
+
+// CustomUint16Cleared returns if the "custom_uint16" field was cleared in this mutation.
+func (m *UserMutation) CustomUint16Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomUint16]
+	return ok
+}
+
+// ResetCustomUint16 resets all changes to the "custom_uint16" field.
+func (m *UserMutation) ResetCustomUint16() {
+	m.custom_uint16 = nil
+	m.addcustom_uint16 = nil
+	delete(m.clearedFields, user.FieldCustomUint16)
+}
+
+// SetCustomUint32 sets the "custom_uint32" field.
+func (m *UserMutation) SetCustomUint32(gu gotypes.CustomUInt32) {
+	m.custom_uint32 = &gu
+	m.addcustom_uint32 = nil
+}
+
+// CustomUint32 returns the value of the "custom_uint32" field in the mutation.
+func (m *UserMutation) CustomUint32() (r gotypes.CustomUInt32, exists bool) {
+	v := m.custom_uint32
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomUint32 returns the old "custom_uint32" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomUint32(ctx context.Context) (v gotypes.CustomUInt32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomUint32 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomUint32 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomUint32: %w", err)
+	}
+	return oldValue.CustomUint32, nil
+}
+
+// AddCustomUint32 adds gu to the "custom_uint32" field.
+func (m *UserMutation) AddCustomUint32(gu gotypes.CustomUInt32) {
+	if m.addcustom_uint32 != nil {
+		*m.addcustom_uint32 += gu
+	} else {
+		m.addcustom_uint32 = &gu
+	}
+}
+
+// AddedCustomUint32 returns the value that was added to the "custom_uint32" field in this mutation.
+func (m *UserMutation) AddedCustomUint32() (r gotypes.CustomUInt32, exists bool) {
+	v := m.addcustom_uint32
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomUint32 clears the value of the "custom_uint32" field.
+func (m *UserMutation) ClearCustomUint32() {
+	m.custom_uint32 = nil
+	m.addcustom_uint32 = nil
+	m.clearedFields[user.FieldCustomUint32] = struct{}{}
+}
+
+// CustomUint32Cleared returns if the "custom_uint32" field was cleared in this mutation.
+func (m *UserMutation) CustomUint32Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomUint32]
+	return ok
+}
+
+// ResetCustomUint32 resets all changes to the "custom_uint32" field.
+func (m *UserMutation) ResetCustomUint32() {
+	m.custom_uint32 = nil
+	m.addcustom_uint32 = nil
+	delete(m.clearedFields, user.FieldCustomUint32)
+}
+
+// SetCustomUint64 sets the "custom_uint64" field.
+func (m *UserMutation) SetCustomUint64(gu gotypes.CustomUInt64) {
+	m.custom_uint64 = &gu
+	m.addcustom_uint64 = nil
+}
+
+// CustomUint64 returns the value of the "custom_uint64" field in the mutation.
+func (m *UserMutation) CustomUint64() (r gotypes.CustomUInt64, exists bool) {
+	v := m.custom_uint64
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomUint64 returns the old "custom_uint64" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomUint64(ctx context.Context) (v gotypes.CustomUInt64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomUint64 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomUint64 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomUint64: %w", err)
+	}
+	return oldValue.CustomUint64, nil
+}
+
+// AddCustomUint64 adds gu to the "custom_uint64" field.
+func (m *UserMutation) AddCustomUint64(gu gotypes.CustomUInt64) {
+	if m.addcustom_uint64 != nil {
+		*m.addcustom_uint64 += gu
+	} else {
+		m.addcustom_uint64 = &gu
+	}
+}
+
+// AddedCustomUint64 returns the value that was added to the "custom_uint64" field in this mutation.
+func (m *UserMutation) AddedCustomUint64() (r gotypes.CustomUInt64, exists bool) {
+	v := m.addcustom_uint64
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomUint64 clears the value of the "custom_uint64" field.
+func (m *UserMutation) ClearCustomUint64() {
+	m.custom_uint64 = nil
+	m.addcustom_uint64 = nil
+	m.clearedFields[user.FieldCustomUint64] = struct{}{}
+}
+
+// CustomUint64Cleared returns if the "custom_uint64" field was cleared in this mutation.
+func (m *UserMutation) CustomUint64Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomUint64]
+	return ok
+}
+
+// ResetCustomUint64 resets all changes to the "custom_uint64" field.
+func (m *UserMutation) ResetCustomUint64() {
+	m.custom_uint64 = nil
+	m.addcustom_uint64 = nil
+	delete(m.clearedFields, user.FieldCustomUint64)
+}
+
+// SetCustomFloat32 sets the "custom_float32" field.
+func (m *UserMutation) SetCustomFloat32(gf gotypes.CustomFloat32) {
+	m.custom_float32 = &gf
+	m.addcustom_float32 = nil
+}
+
+// CustomFloat32 returns the value of the "custom_float32" field in the mutation.
+func (m *UserMutation) CustomFloat32() (r gotypes.CustomFloat32, exists bool) {
+	v := m.custom_float32
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomFloat32 returns the old "custom_float32" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomFloat32(ctx context.Context) (v gotypes.CustomFloat32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomFloat32 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomFloat32 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomFloat32: %w", err)
+	}
+	return oldValue.CustomFloat32, nil
+}
+
+// AddCustomFloat32 adds gf to the "custom_float32" field.
+func (m *UserMutation) AddCustomFloat32(gf gotypes.CustomFloat32) {
+	if m.addcustom_float32 != nil {
+		*m.addcustom_float32 += gf
+	} else {
+		m.addcustom_float32 = &gf
+	}
+}
+
+// AddedCustomFloat32 returns the value that was added to the "custom_float32" field in this mutation.
+func (m *UserMutation) AddedCustomFloat32() (r gotypes.CustomFloat32, exists bool) {
+	v := m.addcustom_float32
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomFloat32 clears the value of the "custom_float32" field.
+func (m *UserMutation) ClearCustomFloat32() {
+	m.custom_float32 = nil
+	m.addcustom_float32 = nil
+	m.clearedFields[user.FieldCustomFloat32] = struct{}{}
+}
+
+// CustomFloat32Cleared returns if the "custom_float32" field was cleared in this mutation.
+func (m *UserMutation) CustomFloat32Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomFloat32]
+	return ok
+}
+
+// ResetCustomFloat32 resets all changes to the "custom_float32" field.
+func (m *UserMutation) ResetCustomFloat32() {
+	m.custom_float32 = nil
+	m.addcustom_float32 = nil
+	delete(m.clearedFields, user.FieldCustomFloat32)
+}
+
+// SetCustomFloat64 sets the "custom_float64" field.
+func (m *UserMutation) SetCustomFloat64(gf gotypes.CustomFloat64) {
+	m.custom_float64 = &gf
+	m.addcustom_float64 = nil
+}
+
+// CustomFloat64 returns the value of the "custom_float64" field in the mutation.
+func (m *UserMutation) CustomFloat64() (r gotypes.CustomFloat64, exists bool) {
+	v := m.custom_float64
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomFloat64 returns the old "custom_float64" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomFloat64(ctx context.Context) (v gotypes.CustomFloat64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomFloat64 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomFloat64 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomFloat64: %w", err)
+	}
+	return oldValue.CustomFloat64, nil
+}
+
+// AddCustomFloat64 adds gf to the "custom_float64" field.
+func (m *UserMutation) AddCustomFloat64(gf gotypes.CustomFloat64) {
+	if m.addcustom_float64 != nil {
+		*m.addcustom_float64 += gf
+	} else {
+		m.addcustom_float64 = &gf
+	}
+}
+
+// AddedCustomFloat64 returns the value that was added to the "custom_float64" field in this mutation.
+func (m *UserMutation) AddedCustomFloat64() (r gotypes.CustomFloat64, exists bool) {
+	v := m.addcustom_float64
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCustomFloat64 clears the value of the "custom_float64" field.
+func (m *UserMutation) ClearCustomFloat64() {
+	m.custom_float64 = nil
+	m.addcustom_float64 = nil
+	m.clearedFields[user.FieldCustomFloat64] = struct{}{}
+}
+
+// CustomFloat64Cleared returns if the "custom_float64" field was cleared in this mutation.
+func (m *UserMutation) CustomFloat64Cleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomFloat64]
+	return ok
+}
+
+// ResetCustomFloat64 resets all changes to the "custom_float64" field.
+func (m *UserMutation) ResetCustomFloat64() {
+	m.custom_float64 = nil
+	m.addcustom_float64 = nil
+	delete(m.clearedFields, user.FieldCustomFloat64)
+}
+
+// SetCustomString sets the "custom_string" field.
+func (m *UserMutation) SetCustomString(gs gotypes.CustomString) {
+	m.custom_string = &gs
+}
+
+// CustomString returns the value of the "custom_string" field in the mutation.
+func (m *UserMutation) CustomString() (r gotypes.CustomString, exists bool) {
+	v := m.custom_string
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomString returns the old "custom_string" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomString(ctx context.Context) (v gotypes.CustomString, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomString is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomString requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomString: %w", err)
+	}
+	return oldValue.CustomString, nil
+}
+
+// ClearCustomString clears the value of the "custom_string" field.
+func (m *UserMutation) ClearCustomString() {
+	m.custom_string = nil
+	m.clearedFields[user.FieldCustomString] = struct{}{}
+}
+
+// CustomStringCleared returns if the "custom_string" field was cleared in this mutation.
+func (m *UserMutation) CustomStringCleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomString]
+	return ok
+}
+
+// ResetCustomString resets all changes to the "custom_string" field.
+func (m *UserMutation) ResetCustomString() {
+	m.custom_string = nil
+	delete(m.clearedFields, user.FieldCustomString)
+}
+
+// SetCustomBool sets the "custom_bool" field.
+func (m *UserMutation) SetCustomBool(gb gotypes.CustomBool) {
+	m.custom_bool = &gb
+}
+
+// CustomBool returns the value of the "custom_bool" field in the mutation.
+func (m *UserMutation) CustomBool() (r gotypes.CustomBool, exists bool) {
+	v := m.custom_bool
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomBool returns the old "custom_bool" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCustomBool(ctx context.Context) (v gotypes.CustomBool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomBool is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomBool requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomBool: %w", err)
+	}
+	return oldValue.CustomBool, nil
+}
+
+// ClearCustomBool clears the value of the "custom_bool" field.
+func (m *UserMutation) ClearCustomBool() {
+	m.custom_bool = nil
+	m.clearedFields[user.FieldCustomBool] = struct{}{}
+}
+
+// CustomBoolCleared returns if the "custom_bool" field was cleared in this mutation.
+func (m *UserMutation) CustomBoolCleared() bool {
+	_, ok := m.clearedFields[user.FieldCustomBool]
+	return ok
+}
+
+// ResetCustomBool resets all changes to the "custom_bool" field.
+func (m *UserMutation) ResetCustomBool() {
+	m.custom_bool = nil
+	delete(m.clearedFields, user.FieldCustomBool)
+}
+
 // SetDeviceType sets the "device_type" field.
 func (m *UserMutation) SetDeviceType(ut user.DeviceType) {
 	m.device_type = &ut
@@ -4897,7 +5862,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 40)
 	if m.user_name != nil {
 		fields = append(fields, user.FieldUserName)
 	}
@@ -4967,6 +5932,48 @@ func (m *UserMutation) Fields() []string {
 	if m.uint64s != nil {
 		fields = append(fields, user.FieldUint64s)
 	}
+	if m.custom_int != nil {
+		fields = append(fields, user.FieldCustomInt)
+	}
+	if m.custom_int8 != nil {
+		fields = append(fields, user.FieldCustomInt8)
+	}
+	if m.custom_int16 != nil {
+		fields = append(fields, user.FieldCustomInt16)
+	}
+	if m.custom_int32 != nil {
+		fields = append(fields, user.FieldCustomInt32)
+	}
+	if m.custom_int64 != nil {
+		fields = append(fields, user.FieldCustomInt64)
+	}
+	if m.custom_uint != nil {
+		fields = append(fields, user.FieldCustomUint)
+	}
+	if m.custom_uint8 != nil {
+		fields = append(fields, user.FieldCustomUint8)
+	}
+	if m.custom_uint16 != nil {
+		fields = append(fields, user.FieldCustomUint16)
+	}
+	if m.custom_uint32 != nil {
+		fields = append(fields, user.FieldCustomUint32)
+	}
+	if m.custom_uint64 != nil {
+		fields = append(fields, user.FieldCustomUint64)
+	}
+	if m.custom_float32 != nil {
+		fields = append(fields, user.FieldCustomFloat32)
+	}
+	if m.custom_float64 != nil {
+		fields = append(fields, user.FieldCustomFloat64)
+	}
+	if m.custom_string != nil {
+		fields = append(fields, user.FieldCustomString)
+	}
+	if m.custom_bool != nil {
+		fields = append(fields, user.FieldCustomBool)
+	}
 	if m.device_type != nil {
 		fields = append(fields, user.FieldDeviceType)
 	}
@@ -5030,6 +6037,34 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Uint32s()
 	case user.FieldUint64s:
 		return m.Uint64s()
+	case user.FieldCustomInt:
+		return m.CustomInt()
+	case user.FieldCustomInt8:
+		return m.CustomInt8()
+	case user.FieldCustomInt16:
+		return m.CustomInt16()
+	case user.FieldCustomInt32:
+		return m.CustomInt32()
+	case user.FieldCustomInt64:
+		return m.CustomInt64()
+	case user.FieldCustomUint:
+		return m.CustomUint()
+	case user.FieldCustomUint8:
+		return m.CustomUint8()
+	case user.FieldCustomUint16:
+		return m.CustomUint16()
+	case user.FieldCustomUint32:
+		return m.CustomUint32()
+	case user.FieldCustomUint64:
+		return m.CustomUint64()
+	case user.FieldCustomFloat32:
+		return m.CustomFloat32()
+	case user.FieldCustomFloat64:
+		return m.CustomFloat64()
+	case user.FieldCustomString:
+		return m.CustomString()
+	case user.FieldCustomBool:
+		return m.CustomBool()
 	case user.FieldDeviceType:
 		return m.DeviceType()
 	case user.FieldOmitPrefix:
@@ -5091,6 +6126,34 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUint32s(ctx)
 	case user.FieldUint64s:
 		return m.OldUint64s(ctx)
+	case user.FieldCustomInt:
+		return m.OldCustomInt(ctx)
+	case user.FieldCustomInt8:
+		return m.OldCustomInt8(ctx)
+	case user.FieldCustomInt16:
+		return m.OldCustomInt16(ctx)
+	case user.FieldCustomInt32:
+		return m.OldCustomInt32(ctx)
+	case user.FieldCustomInt64:
+		return m.OldCustomInt64(ctx)
+	case user.FieldCustomUint:
+		return m.OldCustomUint(ctx)
+	case user.FieldCustomUint8:
+		return m.OldCustomUint8(ctx)
+	case user.FieldCustomUint16:
+		return m.OldCustomUint16(ctx)
+	case user.FieldCustomUint32:
+		return m.OldCustomUint32(ctx)
+	case user.FieldCustomUint64:
+		return m.OldCustomUint64(ctx)
+	case user.FieldCustomFloat32:
+		return m.OldCustomFloat32(ctx)
+	case user.FieldCustomFloat64:
+		return m.OldCustomFloat64(ctx)
+	case user.FieldCustomString:
+		return m.OldCustomString(ctx)
+	case user.FieldCustomBool:
+		return m.OldCustomBool(ctx)
 	case user.FieldDeviceType:
 		return m.OldDeviceType(ctx)
 	case user.FieldOmitPrefix:
@@ -5267,6 +6330,104 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUint64s(v)
 		return nil
+	case user.FieldCustomInt:
+		v, ok := value.(gotypes.CustomInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomInt(v)
+		return nil
+	case user.FieldCustomInt8:
+		v, ok := value.(gotypes.CustomInt8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomInt8(v)
+		return nil
+	case user.FieldCustomInt16:
+		v, ok := value.(gotypes.CustomInt16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomInt16(v)
+		return nil
+	case user.FieldCustomInt32:
+		v, ok := value.(gotypes.CustomInt32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomInt32(v)
+		return nil
+	case user.FieldCustomInt64:
+		v, ok := value.(gotypes.CustomInt64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomInt64(v)
+		return nil
+	case user.FieldCustomUint:
+		v, ok := value.(gotypes.CustomUInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomUint(v)
+		return nil
+	case user.FieldCustomUint8:
+		v, ok := value.(gotypes.CustomUInt8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomUint8(v)
+		return nil
+	case user.FieldCustomUint16:
+		v, ok := value.(gotypes.CustomUInt16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomUint16(v)
+		return nil
+	case user.FieldCustomUint32:
+		v, ok := value.(gotypes.CustomUInt32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomUint32(v)
+		return nil
+	case user.FieldCustomUint64:
+		v, ok := value.(gotypes.CustomUInt64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomUint64(v)
+		return nil
+	case user.FieldCustomFloat32:
+		v, ok := value.(gotypes.CustomFloat32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomFloat32(v)
+		return nil
+	case user.FieldCustomFloat64:
+		v, ok := value.(gotypes.CustomFloat64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomFloat64(v)
+		return nil
+	case user.FieldCustomString:
+		v, ok := value.(gotypes.CustomString)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomString(v)
+		return nil
+	case user.FieldCustomBool:
+		v, ok := value.(gotypes.CustomBool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomBool(v)
+		return nil
 	case user.FieldDeviceType:
 		v, ok := value.(user.DeviceType)
 		if !ok {
@@ -5320,6 +6481,42 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addaccount_balance != nil {
 		fields = append(fields, user.FieldAccountBalance)
 	}
+	if m.addcustom_int != nil {
+		fields = append(fields, user.FieldCustomInt)
+	}
+	if m.addcustom_int8 != nil {
+		fields = append(fields, user.FieldCustomInt8)
+	}
+	if m.addcustom_int16 != nil {
+		fields = append(fields, user.FieldCustomInt16)
+	}
+	if m.addcustom_int32 != nil {
+		fields = append(fields, user.FieldCustomInt32)
+	}
+	if m.addcustom_int64 != nil {
+		fields = append(fields, user.FieldCustomInt64)
+	}
+	if m.addcustom_uint != nil {
+		fields = append(fields, user.FieldCustomUint)
+	}
+	if m.addcustom_uint8 != nil {
+		fields = append(fields, user.FieldCustomUint8)
+	}
+	if m.addcustom_uint16 != nil {
+		fields = append(fields, user.FieldCustomUint16)
+	}
+	if m.addcustom_uint32 != nil {
+		fields = append(fields, user.FieldCustomUint32)
+	}
+	if m.addcustom_uint64 != nil {
+		fields = append(fields, user.FieldCustomUint64)
+	}
+	if m.addcustom_float32 != nil {
+		fields = append(fields, user.FieldCustomFloat32)
+	}
+	if m.addcustom_float64 != nil {
+		fields = append(fields, user.FieldCustomFloat64)
+	}
 	return fields
 }
 
@@ -5344,6 +6541,30 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedHeightInCm()
 	case user.FieldAccountBalance:
 		return m.AddedAccountBalance()
+	case user.FieldCustomInt:
+		return m.AddedCustomInt()
+	case user.FieldCustomInt8:
+		return m.AddedCustomInt8()
+	case user.FieldCustomInt16:
+		return m.AddedCustomInt16()
+	case user.FieldCustomInt32:
+		return m.AddedCustomInt32()
+	case user.FieldCustomInt64:
+		return m.AddedCustomInt64()
+	case user.FieldCustomUint:
+		return m.AddedCustomUint()
+	case user.FieldCustomUint8:
+		return m.AddedCustomUint8()
+	case user.FieldCustomUint16:
+		return m.AddedCustomUint16()
+	case user.FieldCustomUint32:
+		return m.AddedCustomUint32()
+	case user.FieldCustomUint64:
+		return m.AddedCustomUint64()
+	case user.FieldCustomFloat32:
+		return m.AddedCustomFloat32()
+	case user.FieldCustomFloat64:
+		return m.AddedCustomFloat64()
 	}
 	return nil, false
 }
@@ -5409,6 +6630,90 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddAccountBalance(v)
 		return nil
+	case user.FieldCustomInt:
+		v, ok := value.(gotypes.CustomInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomInt(v)
+		return nil
+	case user.FieldCustomInt8:
+		v, ok := value.(gotypes.CustomInt8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomInt8(v)
+		return nil
+	case user.FieldCustomInt16:
+		v, ok := value.(gotypes.CustomInt16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomInt16(v)
+		return nil
+	case user.FieldCustomInt32:
+		v, ok := value.(gotypes.CustomInt32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomInt32(v)
+		return nil
+	case user.FieldCustomInt64:
+		v, ok := value.(gotypes.CustomInt64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomInt64(v)
+		return nil
+	case user.FieldCustomUint:
+		v, ok := value.(gotypes.CustomUInt)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomUint(v)
+		return nil
+	case user.FieldCustomUint8:
+		v, ok := value.(gotypes.CustomUInt8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomUint8(v)
+		return nil
+	case user.FieldCustomUint16:
+		v, ok := value.(gotypes.CustomUInt16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomUint16(v)
+		return nil
+	case user.FieldCustomUint32:
+		v, ok := value.(gotypes.CustomUInt32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomUint32(v)
+		return nil
+	case user.FieldCustomUint64:
+		v, ok := value.(gotypes.CustomUInt64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomUint64(v)
+		return nil
+	case user.FieldCustomFloat32:
+		v, ok := value.(gotypes.CustomFloat32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomFloat32(v)
+		return nil
+	case user.FieldCustomFloat64:
+		v, ok := value.(gotypes.CustomFloat64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCustomFloat64(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -5452,6 +6757,48 @@ func (m *UserMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(user.FieldUint64s) {
 		fields = append(fields, user.FieldUint64s)
+	}
+	if m.FieldCleared(user.FieldCustomInt) {
+		fields = append(fields, user.FieldCustomInt)
+	}
+	if m.FieldCleared(user.FieldCustomInt8) {
+		fields = append(fields, user.FieldCustomInt8)
+	}
+	if m.FieldCleared(user.FieldCustomInt16) {
+		fields = append(fields, user.FieldCustomInt16)
+	}
+	if m.FieldCleared(user.FieldCustomInt32) {
+		fields = append(fields, user.FieldCustomInt32)
+	}
+	if m.FieldCleared(user.FieldCustomInt64) {
+		fields = append(fields, user.FieldCustomInt64)
+	}
+	if m.FieldCleared(user.FieldCustomUint) {
+		fields = append(fields, user.FieldCustomUint)
+	}
+	if m.FieldCleared(user.FieldCustomUint8) {
+		fields = append(fields, user.FieldCustomUint8)
+	}
+	if m.FieldCleared(user.FieldCustomUint16) {
+		fields = append(fields, user.FieldCustomUint16)
+	}
+	if m.FieldCleared(user.FieldCustomUint32) {
+		fields = append(fields, user.FieldCustomUint32)
+	}
+	if m.FieldCleared(user.FieldCustomUint64) {
+		fields = append(fields, user.FieldCustomUint64)
+	}
+	if m.FieldCleared(user.FieldCustomFloat32) {
+		fields = append(fields, user.FieldCustomFloat32)
+	}
+	if m.FieldCleared(user.FieldCustomFloat64) {
+		fields = append(fields, user.FieldCustomFloat64)
+	}
+	if m.FieldCleared(user.FieldCustomString) {
+		fields = append(fields, user.FieldCustomString)
+	}
+	if m.FieldCleared(user.FieldCustomBool) {
+		fields = append(fields, user.FieldCustomBool)
 	}
 	return fields
 }
@@ -5502,6 +6849,48 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldUint64s:
 		m.ClearUint64s()
+		return nil
+	case user.FieldCustomInt:
+		m.ClearCustomInt()
+		return nil
+	case user.FieldCustomInt8:
+		m.ClearCustomInt8()
+		return nil
+	case user.FieldCustomInt16:
+		m.ClearCustomInt16()
+		return nil
+	case user.FieldCustomInt32:
+		m.ClearCustomInt32()
+		return nil
+	case user.FieldCustomInt64:
+		m.ClearCustomInt64()
+		return nil
+	case user.FieldCustomUint:
+		m.ClearCustomUint()
+		return nil
+	case user.FieldCustomUint8:
+		m.ClearCustomUint8()
+		return nil
+	case user.FieldCustomUint16:
+		m.ClearCustomUint16()
+		return nil
+	case user.FieldCustomUint32:
+		m.ClearCustomUint32()
+		return nil
+	case user.FieldCustomUint64:
+		m.ClearCustomUint64()
+		return nil
+	case user.FieldCustomFloat32:
+		m.ClearCustomFloat32()
+		return nil
+	case user.FieldCustomFloat64:
+		m.ClearCustomFloat64()
+		return nil
+	case user.FieldCustomString:
+		m.ClearCustomString()
+		return nil
+	case user.FieldCustomBool:
+		m.ClearCustomBool()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -5579,6 +6968,48 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUint64s:
 		m.ResetUint64s()
+		return nil
+	case user.FieldCustomInt:
+		m.ResetCustomInt()
+		return nil
+	case user.FieldCustomInt8:
+		m.ResetCustomInt8()
+		return nil
+	case user.FieldCustomInt16:
+		m.ResetCustomInt16()
+		return nil
+	case user.FieldCustomInt32:
+		m.ResetCustomInt32()
+		return nil
+	case user.FieldCustomInt64:
+		m.ResetCustomInt64()
+		return nil
+	case user.FieldCustomUint:
+		m.ResetCustomUint()
+		return nil
+	case user.FieldCustomUint8:
+		m.ResetCustomUint8()
+		return nil
+	case user.FieldCustomUint16:
+		m.ResetCustomUint16()
+		return nil
+	case user.FieldCustomUint32:
+		m.ResetCustomUint32()
+		return nil
+	case user.FieldCustomUint64:
+		m.ResetCustomUint64()
+		return nil
+	case user.FieldCustomFloat32:
+		m.ResetCustomFloat32()
+		return nil
+	case user.FieldCustomFloat64:
+		m.ResetCustomFloat64()
+		return nil
+	case user.FieldCustomString:
+		m.ResetCustomString()
+		return nil
+	case user.FieldCustomBool:
+		m.ResetCustomBool()
 		return nil
 	case user.FieldDeviceType:
 		m.ResetDeviceType()

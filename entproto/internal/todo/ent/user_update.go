@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	"entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
@@ -404,6 +405,370 @@ func (uu *UserUpdate) ClearUint64s() *UserUpdate {
 	return uu
 }
 
+// SetCustomInt sets the "custom_int" field.
+func (uu *UserUpdate) SetCustomInt(gi gotypes.CustomInt) *UserUpdate {
+	uu.mutation.ResetCustomInt()
+	uu.mutation.SetCustomInt(gi)
+	return uu
+}
+
+// SetNillableCustomInt sets the "custom_int" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomInt(gi *gotypes.CustomInt) *UserUpdate {
+	if gi != nil {
+		uu.SetCustomInt(*gi)
+	}
+	return uu
+}
+
+// AddCustomInt adds gi to the "custom_int" field.
+func (uu *UserUpdate) AddCustomInt(gi gotypes.CustomInt) *UserUpdate {
+	uu.mutation.AddCustomInt(gi)
+	return uu
+}
+
+// ClearCustomInt clears the value of the "custom_int" field.
+func (uu *UserUpdate) ClearCustomInt() *UserUpdate {
+	uu.mutation.ClearCustomInt()
+	return uu
+}
+
+// SetCustomInt8 sets the "custom_int8" field.
+func (uu *UserUpdate) SetCustomInt8(gi gotypes.CustomInt8) *UserUpdate {
+	uu.mutation.ResetCustomInt8()
+	uu.mutation.SetCustomInt8(gi)
+	return uu
+}
+
+// SetNillableCustomInt8 sets the "custom_int8" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomInt8(gi *gotypes.CustomInt8) *UserUpdate {
+	if gi != nil {
+		uu.SetCustomInt8(*gi)
+	}
+	return uu
+}
+
+// AddCustomInt8 adds gi to the "custom_int8" field.
+func (uu *UserUpdate) AddCustomInt8(gi gotypes.CustomInt8) *UserUpdate {
+	uu.mutation.AddCustomInt8(gi)
+	return uu
+}
+
+// ClearCustomInt8 clears the value of the "custom_int8" field.
+func (uu *UserUpdate) ClearCustomInt8() *UserUpdate {
+	uu.mutation.ClearCustomInt8()
+	return uu
+}
+
+// SetCustomInt16 sets the "custom_int16" field.
+func (uu *UserUpdate) SetCustomInt16(gi gotypes.CustomInt16) *UserUpdate {
+	uu.mutation.ResetCustomInt16()
+	uu.mutation.SetCustomInt16(gi)
+	return uu
+}
+
+// SetNillableCustomInt16 sets the "custom_int16" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomInt16(gi *gotypes.CustomInt16) *UserUpdate {
+	if gi != nil {
+		uu.SetCustomInt16(*gi)
+	}
+	return uu
+}
+
+// AddCustomInt16 adds gi to the "custom_int16" field.
+func (uu *UserUpdate) AddCustomInt16(gi gotypes.CustomInt16) *UserUpdate {
+	uu.mutation.AddCustomInt16(gi)
+	return uu
+}
+
+// ClearCustomInt16 clears the value of the "custom_int16" field.
+func (uu *UserUpdate) ClearCustomInt16() *UserUpdate {
+	uu.mutation.ClearCustomInt16()
+	return uu
+}
+
+// SetCustomInt32 sets the "custom_int32" field.
+func (uu *UserUpdate) SetCustomInt32(gi gotypes.CustomInt32) *UserUpdate {
+	uu.mutation.ResetCustomInt32()
+	uu.mutation.SetCustomInt32(gi)
+	return uu
+}
+
+// SetNillableCustomInt32 sets the "custom_int32" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomInt32(gi *gotypes.CustomInt32) *UserUpdate {
+	if gi != nil {
+		uu.SetCustomInt32(*gi)
+	}
+	return uu
+}
+
+// AddCustomInt32 adds gi to the "custom_int32" field.
+func (uu *UserUpdate) AddCustomInt32(gi gotypes.CustomInt32) *UserUpdate {
+	uu.mutation.AddCustomInt32(gi)
+	return uu
+}
+
+// ClearCustomInt32 clears the value of the "custom_int32" field.
+func (uu *UserUpdate) ClearCustomInt32() *UserUpdate {
+	uu.mutation.ClearCustomInt32()
+	return uu
+}
+
+// SetCustomInt64 sets the "custom_int64" field.
+func (uu *UserUpdate) SetCustomInt64(gi gotypes.CustomInt64) *UserUpdate {
+	uu.mutation.ResetCustomInt64()
+	uu.mutation.SetCustomInt64(gi)
+	return uu
+}
+
+// SetNillableCustomInt64 sets the "custom_int64" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomInt64(gi *gotypes.CustomInt64) *UserUpdate {
+	if gi != nil {
+		uu.SetCustomInt64(*gi)
+	}
+	return uu
+}
+
+// AddCustomInt64 adds gi to the "custom_int64" field.
+func (uu *UserUpdate) AddCustomInt64(gi gotypes.CustomInt64) *UserUpdate {
+	uu.mutation.AddCustomInt64(gi)
+	return uu
+}
+
+// ClearCustomInt64 clears the value of the "custom_int64" field.
+func (uu *UserUpdate) ClearCustomInt64() *UserUpdate {
+	uu.mutation.ClearCustomInt64()
+	return uu
+}
+
+// SetCustomUint sets the "custom_uint" field.
+func (uu *UserUpdate) SetCustomUint(gu gotypes.CustomUInt) *UserUpdate {
+	uu.mutation.ResetCustomUint()
+	uu.mutation.SetCustomUint(gu)
+	return uu
+}
+
+// SetNillableCustomUint sets the "custom_uint" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomUint(gu *gotypes.CustomUInt) *UserUpdate {
+	if gu != nil {
+		uu.SetCustomUint(*gu)
+	}
+	return uu
+}
+
+// AddCustomUint adds gu to the "custom_uint" field.
+func (uu *UserUpdate) AddCustomUint(gu gotypes.CustomUInt) *UserUpdate {
+	uu.mutation.AddCustomUint(gu)
+	return uu
+}
+
+// ClearCustomUint clears the value of the "custom_uint" field.
+func (uu *UserUpdate) ClearCustomUint() *UserUpdate {
+	uu.mutation.ClearCustomUint()
+	return uu
+}
+
+// SetCustomUint8 sets the "custom_uint8" field.
+func (uu *UserUpdate) SetCustomUint8(gu gotypes.CustomUInt8) *UserUpdate {
+	uu.mutation.ResetCustomUint8()
+	uu.mutation.SetCustomUint8(gu)
+	return uu
+}
+
+// SetNillableCustomUint8 sets the "custom_uint8" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomUint8(gu *gotypes.CustomUInt8) *UserUpdate {
+	if gu != nil {
+		uu.SetCustomUint8(*gu)
+	}
+	return uu
+}
+
+// AddCustomUint8 adds gu to the "custom_uint8" field.
+func (uu *UserUpdate) AddCustomUint8(gu gotypes.CustomUInt8) *UserUpdate {
+	uu.mutation.AddCustomUint8(gu)
+	return uu
+}
+
+// ClearCustomUint8 clears the value of the "custom_uint8" field.
+func (uu *UserUpdate) ClearCustomUint8() *UserUpdate {
+	uu.mutation.ClearCustomUint8()
+	return uu
+}
+
+// SetCustomUint16 sets the "custom_uint16" field.
+func (uu *UserUpdate) SetCustomUint16(gu gotypes.CustomUInt16) *UserUpdate {
+	uu.mutation.ResetCustomUint16()
+	uu.mutation.SetCustomUint16(gu)
+	return uu
+}
+
+// SetNillableCustomUint16 sets the "custom_uint16" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomUint16(gu *gotypes.CustomUInt16) *UserUpdate {
+	if gu != nil {
+		uu.SetCustomUint16(*gu)
+	}
+	return uu
+}
+
+// AddCustomUint16 adds gu to the "custom_uint16" field.
+func (uu *UserUpdate) AddCustomUint16(gu gotypes.CustomUInt16) *UserUpdate {
+	uu.mutation.AddCustomUint16(gu)
+	return uu
+}
+
+// ClearCustomUint16 clears the value of the "custom_uint16" field.
+func (uu *UserUpdate) ClearCustomUint16() *UserUpdate {
+	uu.mutation.ClearCustomUint16()
+	return uu
+}
+
+// SetCustomUint32 sets the "custom_uint32" field.
+func (uu *UserUpdate) SetCustomUint32(gu gotypes.CustomUInt32) *UserUpdate {
+	uu.mutation.ResetCustomUint32()
+	uu.mutation.SetCustomUint32(gu)
+	return uu
+}
+
+// SetNillableCustomUint32 sets the "custom_uint32" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomUint32(gu *gotypes.CustomUInt32) *UserUpdate {
+	if gu != nil {
+		uu.SetCustomUint32(*gu)
+	}
+	return uu
+}
+
+// AddCustomUint32 adds gu to the "custom_uint32" field.
+func (uu *UserUpdate) AddCustomUint32(gu gotypes.CustomUInt32) *UserUpdate {
+	uu.mutation.AddCustomUint32(gu)
+	return uu
+}
+
+// ClearCustomUint32 clears the value of the "custom_uint32" field.
+func (uu *UserUpdate) ClearCustomUint32() *UserUpdate {
+	uu.mutation.ClearCustomUint32()
+	return uu
+}
+
+// SetCustomUint64 sets the "custom_uint64" field.
+func (uu *UserUpdate) SetCustomUint64(gu gotypes.CustomUInt64) *UserUpdate {
+	uu.mutation.ResetCustomUint64()
+	uu.mutation.SetCustomUint64(gu)
+	return uu
+}
+
+// SetNillableCustomUint64 sets the "custom_uint64" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomUint64(gu *gotypes.CustomUInt64) *UserUpdate {
+	if gu != nil {
+		uu.SetCustomUint64(*gu)
+	}
+	return uu
+}
+
+// AddCustomUint64 adds gu to the "custom_uint64" field.
+func (uu *UserUpdate) AddCustomUint64(gu gotypes.CustomUInt64) *UserUpdate {
+	uu.mutation.AddCustomUint64(gu)
+	return uu
+}
+
+// ClearCustomUint64 clears the value of the "custom_uint64" field.
+func (uu *UserUpdate) ClearCustomUint64() *UserUpdate {
+	uu.mutation.ClearCustomUint64()
+	return uu
+}
+
+// SetCustomFloat32 sets the "custom_float32" field.
+func (uu *UserUpdate) SetCustomFloat32(gf gotypes.CustomFloat32) *UserUpdate {
+	uu.mutation.ResetCustomFloat32()
+	uu.mutation.SetCustomFloat32(gf)
+	return uu
+}
+
+// SetNillableCustomFloat32 sets the "custom_float32" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomFloat32(gf *gotypes.CustomFloat32) *UserUpdate {
+	if gf != nil {
+		uu.SetCustomFloat32(*gf)
+	}
+	return uu
+}
+
+// AddCustomFloat32 adds gf to the "custom_float32" field.
+func (uu *UserUpdate) AddCustomFloat32(gf gotypes.CustomFloat32) *UserUpdate {
+	uu.mutation.AddCustomFloat32(gf)
+	return uu
+}
+
+// ClearCustomFloat32 clears the value of the "custom_float32" field.
+func (uu *UserUpdate) ClearCustomFloat32() *UserUpdate {
+	uu.mutation.ClearCustomFloat32()
+	return uu
+}
+
+// SetCustomFloat64 sets the "custom_float64" field.
+func (uu *UserUpdate) SetCustomFloat64(gf gotypes.CustomFloat64) *UserUpdate {
+	uu.mutation.ResetCustomFloat64()
+	uu.mutation.SetCustomFloat64(gf)
+	return uu
+}
+
+// SetNillableCustomFloat64 sets the "custom_float64" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomFloat64(gf *gotypes.CustomFloat64) *UserUpdate {
+	if gf != nil {
+		uu.SetCustomFloat64(*gf)
+	}
+	return uu
+}
+
+// AddCustomFloat64 adds gf to the "custom_float64" field.
+func (uu *UserUpdate) AddCustomFloat64(gf gotypes.CustomFloat64) *UserUpdate {
+	uu.mutation.AddCustomFloat64(gf)
+	return uu
+}
+
+// ClearCustomFloat64 clears the value of the "custom_float64" field.
+func (uu *UserUpdate) ClearCustomFloat64() *UserUpdate {
+	uu.mutation.ClearCustomFloat64()
+	return uu
+}
+
+// SetCustomString sets the "custom_string" field.
+func (uu *UserUpdate) SetCustomString(gs gotypes.CustomString) *UserUpdate {
+	uu.mutation.SetCustomString(gs)
+	return uu
+}
+
+// SetNillableCustomString sets the "custom_string" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomString(gs *gotypes.CustomString) *UserUpdate {
+	if gs != nil {
+		uu.SetCustomString(*gs)
+	}
+	return uu
+}
+
+// ClearCustomString clears the value of the "custom_string" field.
+func (uu *UserUpdate) ClearCustomString() *UserUpdate {
+	uu.mutation.ClearCustomString()
+	return uu
+}
+
+// SetCustomBool sets the "custom_bool" field.
+func (uu *UserUpdate) SetCustomBool(gb gotypes.CustomBool) *UserUpdate {
+	uu.mutation.SetCustomBool(gb)
+	return uu
+}
+
+// SetNillableCustomBool sets the "custom_bool" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomBool(gb *gotypes.CustomBool) *UserUpdate {
+	if gb != nil {
+		uu.SetCustomBool(*gb)
+	}
+	return uu
+}
+
+// ClearCustomBool clears the value of the "custom_bool" field.
+func (uu *UserUpdate) ClearCustomBool() *UserUpdate {
+	uu.mutation.ClearCustomBool()
+	return uu
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uu *UserUpdate) SetDeviceType(ut user.DeviceType) *UserUpdate {
 	uu.mutation.SetDeviceType(ut)
@@ -785,6 +1150,126 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.Uint64sCleared() {
 		_spec.ClearField(user.FieldUint64s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.CustomInt(); ok {
+		_spec.SetField(user.FieldCustomInt, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.AddedCustomInt(); ok {
+		_spec.AddField(user.FieldCustomInt, field.TypeInt, value)
+	}
+	if uu.mutation.CustomIntCleared() {
+		_spec.ClearField(user.FieldCustomInt, field.TypeInt)
+	}
+	if value, ok := uu.mutation.CustomInt8(); ok {
+		_spec.SetField(user.FieldCustomInt8, field.TypeInt8, value)
+	}
+	if value, ok := uu.mutation.AddedCustomInt8(); ok {
+		_spec.AddField(user.FieldCustomInt8, field.TypeInt8, value)
+	}
+	if uu.mutation.CustomInt8Cleared() {
+		_spec.ClearField(user.FieldCustomInt8, field.TypeInt8)
+	}
+	if value, ok := uu.mutation.CustomInt16(); ok {
+		_spec.SetField(user.FieldCustomInt16, field.TypeInt16, value)
+	}
+	if value, ok := uu.mutation.AddedCustomInt16(); ok {
+		_spec.AddField(user.FieldCustomInt16, field.TypeInt16, value)
+	}
+	if uu.mutation.CustomInt16Cleared() {
+		_spec.ClearField(user.FieldCustomInt16, field.TypeInt16)
+	}
+	if value, ok := uu.mutation.CustomInt32(); ok {
+		_spec.SetField(user.FieldCustomInt32, field.TypeInt32, value)
+	}
+	if value, ok := uu.mutation.AddedCustomInt32(); ok {
+		_spec.AddField(user.FieldCustomInt32, field.TypeInt32, value)
+	}
+	if uu.mutation.CustomInt32Cleared() {
+		_spec.ClearField(user.FieldCustomInt32, field.TypeInt32)
+	}
+	if value, ok := uu.mutation.CustomInt64(); ok {
+		_spec.SetField(user.FieldCustomInt64, field.TypeInt64, value)
+	}
+	if value, ok := uu.mutation.AddedCustomInt64(); ok {
+		_spec.AddField(user.FieldCustomInt64, field.TypeInt64, value)
+	}
+	if uu.mutation.CustomInt64Cleared() {
+		_spec.ClearField(user.FieldCustomInt64, field.TypeInt64)
+	}
+	if value, ok := uu.mutation.CustomUint(); ok {
+		_spec.SetField(user.FieldCustomUint, field.TypeUint, value)
+	}
+	if value, ok := uu.mutation.AddedCustomUint(); ok {
+		_spec.AddField(user.FieldCustomUint, field.TypeUint, value)
+	}
+	if uu.mutation.CustomUintCleared() {
+		_spec.ClearField(user.FieldCustomUint, field.TypeUint)
+	}
+	if value, ok := uu.mutation.CustomUint8(); ok {
+		_spec.SetField(user.FieldCustomUint8, field.TypeUint8, value)
+	}
+	if value, ok := uu.mutation.AddedCustomUint8(); ok {
+		_spec.AddField(user.FieldCustomUint8, field.TypeUint8, value)
+	}
+	if uu.mutation.CustomUint8Cleared() {
+		_spec.ClearField(user.FieldCustomUint8, field.TypeUint8)
+	}
+	if value, ok := uu.mutation.CustomUint16(); ok {
+		_spec.SetField(user.FieldCustomUint16, field.TypeUint16, value)
+	}
+	if value, ok := uu.mutation.AddedCustomUint16(); ok {
+		_spec.AddField(user.FieldCustomUint16, field.TypeUint16, value)
+	}
+	if uu.mutation.CustomUint16Cleared() {
+		_spec.ClearField(user.FieldCustomUint16, field.TypeUint16)
+	}
+	if value, ok := uu.mutation.CustomUint32(); ok {
+		_spec.SetField(user.FieldCustomUint32, field.TypeUint32, value)
+	}
+	if value, ok := uu.mutation.AddedCustomUint32(); ok {
+		_spec.AddField(user.FieldCustomUint32, field.TypeUint32, value)
+	}
+	if uu.mutation.CustomUint32Cleared() {
+		_spec.ClearField(user.FieldCustomUint32, field.TypeUint32)
+	}
+	if value, ok := uu.mutation.CustomUint64(); ok {
+		_spec.SetField(user.FieldCustomUint64, field.TypeUint64, value)
+	}
+	if value, ok := uu.mutation.AddedCustomUint64(); ok {
+		_spec.AddField(user.FieldCustomUint64, field.TypeUint64, value)
+	}
+	if uu.mutation.CustomUint64Cleared() {
+		_spec.ClearField(user.FieldCustomUint64, field.TypeUint64)
+	}
+	if value, ok := uu.mutation.CustomFloat32(); ok {
+		_spec.SetField(user.FieldCustomFloat32, field.TypeFloat32, value)
+	}
+	if value, ok := uu.mutation.AddedCustomFloat32(); ok {
+		_spec.AddField(user.FieldCustomFloat32, field.TypeFloat32, value)
+	}
+	if uu.mutation.CustomFloat32Cleared() {
+		_spec.ClearField(user.FieldCustomFloat32, field.TypeFloat32)
+	}
+	if value, ok := uu.mutation.CustomFloat64(); ok {
+		_spec.SetField(user.FieldCustomFloat64, field.TypeFloat64, value)
+	}
+	if value, ok := uu.mutation.AddedCustomFloat64(); ok {
+		_spec.AddField(user.FieldCustomFloat64, field.TypeFloat64, value)
+	}
+	if uu.mutation.CustomFloat64Cleared() {
+		_spec.ClearField(user.FieldCustomFloat64, field.TypeFloat64)
+	}
+	if value, ok := uu.mutation.CustomString(); ok {
+		_spec.SetField(user.FieldCustomString, field.TypeString, value)
+	}
+	if uu.mutation.CustomStringCleared() {
+		_spec.ClearField(user.FieldCustomString, field.TypeString)
+	}
+	if value, ok := uu.mutation.CustomBool(); ok {
+		_spec.SetField(user.FieldCustomBool, field.TypeBool, value)
+	}
+	if uu.mutation.CustomBoolCleared() {
+		_spec.ClearField(user.FieldCustomBool, field.TypeBool)
 	}
 	if value, ok := uu.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
@@ -1346,6 +1831,370 @@ func (uuo *UserUpdateOne) ClearUint64s() *UserUpdateOne {
 	return uuo
 }
 
+// SetCustomInt sets the "custom_int" field.
+func (uuo *UserUpdateOne) SetCustomInt(gi gotypes.CustomInt) *UserUpdateOne {
+	uuo.mutation.ResetCustomInt()
+	uuo.mutation.SetCustomInt(gi)
+	return uuo
+}
+
+// SetNillableCustomInt sets the "custom_int" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomInt(gi *gotypes.CustomInt) *UserUpdateOne {
+	if gi != nil {
+		uuo.SetCustomInt(*gi)
+	}
+	return uuo
+}
+
+// AddCustomInt adds gi to the "custom_int" field.
+func (uuo *UserUpdateOne) AddCustomInt(gi gotypes.CustomInt) *UserUpdateOne {
+	uuo.mutation.AddCustomInt(gi)
+	return uuo
+}
+
+// ClearCustomInt clears the value of the "custom_int" field.
+func (uuo *UserUpdateOne) ClearCustomInt() *UserUpdateOne {
+	uuo.mutation.ClearCustomInt()
+	return uuo
+}
+
+// SetCustomInt8 sets the "custom_int8" field.
+func (uuo *UserUpdateOne) SetCustomInt8(gi gotypes.CustomInt8) *UserUpdateOne {
+	uuo.mutation.ResetCustomInt8()
+	uuo.mutation.SetCustomInt8(gi)
+	return uuo
+}
+
+// SetNillableCustomInt8 sets the "custom_int8" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomInt8(gi *gotypes.CustomInt8) *UserUpdateOne {
+	if gi != nil {
+		uuo.SetCustomInt8(*gi)
+	}
+	return uuo
+}
+
+// AddCustomInt8 adds gi to the "custom_int8" field.
+func (uuo *UserUpdateOne) AddCustomInt8(gi gotypes.CustomInt8) *UserUpdateOne {
+	uuo.mutation.AddCustomInt8(gi)
+	return uuo
+}
+
+// ClearCustomInt8 clears the value of the "custom_int8" field.
+func (uuo *UserUpdateOne) ClearCustomInt8() *UserUpdateOne {
+	uuo.mutation.ClearCustomInt8()
+	return uuo
+}
+
+// SetCustomInt16 sets the "custom_int16" field.
+func (uuo *UserUpdateOne) SetCustomInt16(gi gotypes.CustomInt16) *UserUpdateOne {
+	uuo.mutation.ResetCustomInt16()
+	uuo.mutation.SetCustomInt16(gi)
+	return uuo
+}
+
+// SetNillableCustomInt16 sets the "custom_int16" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomInt16(gi *gotypes.CustomInt16) *UserUpdateOne {
+	if gi != nil {
+		uuo.SetCustomInt16(*gi)
+	}
+	return uuo
+}
+
+// AddCustomInt16 adds gi to the "custom_int16" field.
+func (uuo *UserUpdateOne) AddCustomInt16(gi gotypes.CustomInt16) *UserUpdateOne {
+	uuo.mutation.AddCustomInt16(gi)
+	return uuo
+}
+
+// ClearCustomInt16 clears the value of the "custom_int16" field.
+func (uuo *UserUpdateOne) ClearCustomInt16() *UserUpdateOne {
+	uuo.mutation.ClearCustomInt16()
+	return uuo
+}
+
+// SetCustomInt32 sets the "custom_int32" field.
+func (uuo *UserUpdateOne) SetCustomInt32(gi gotypes.CustomInt32) *UserUpdateOne {
+	uuo.mutation.ResetCustomInt32()
+	uuo.mutation.SetCustomInt32(gi)
+	return uuo
+}
+
+// SetNillableCustomInt32 sets the "custom_int32" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomInt32(gi *gotypes.CustomInt32) *UserUpdateOne {
+	if gi != nil {
+		uuo.SetCustomInt32(*gi)
+	}
+	return uuo
+}
+
+// AddCustomInt32 adds gi to the "custom_int32" field.
+func (uuo *UserUpdateOne) AddCustomInt32(gi gotypes.CustomInt32) *UserUpdateOne {
+	uuo.mutation.AddCustomInt32(gi)
+	return uuo
+}
+
+// ClearCustomInt32 clears the value of the "custom_int32" field.
+func (uuo *UserUpdateOne) ClearCustomInt32() *UserUpdateOne {
+	uuo.mutation.ClearCustomInt32()
+	return uuo
+}
+
+// SetCustomInt64 sets the "custom_int64" field.
+func (uuo *UserUpdateOne) SetCustomInt64(gi gotypes.CustomInt64) *UserUpdateOne {
+	uuo.mutation.ResetCustomInt64()
+	uuo.mutation.SetCustomInt64(gi)
+	return uuo
+}
+
+// SetNillableCustomInt64 sets the "custom_int64" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomInt64(gi *gotypes.CustomInt64) *UserUpdateOne {
+	if gi != nil {
+		uuo.SetCustomInt64(*gi)
+	}
+	return uuo
+}
+
+// AddCustomInt64 adds gi to the "custom_int64" field.
+func (uuo *UserUpdateOne) AddCustomInt64(gi gotypes.CustomInt64) *UserUpdateOne {
+	uuo.mutation.AddCustomInt64(gi)
+	return uuo
+}
+
+// ClearCustomInt64 clears the value of the "custom_int64" field.
+func (uuo *UserUpdateOne) ClearCustomInt64() *UserUpdateOne {
+	uuo.mutation.ClearCustomInt64()
+	return uuo
+}
+
+// SetCustomUint sets the "custom_uint" field.
+func (uuo *UserUpdateOne) SetCustomUint(gu gotypes.CustomUInt) *UserUpdateOne {
+	uuo.mutation.ResetCustomUint()
+	uuo.mutation.SetCustomUint(gu)
+	return uuo
+}
+
+// SetNillableCustomUint sets the "custom_uint" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomUint(gu *gotypes.CustomUInt) *UserUpdateOne {
+	if gu != nil {
+		uuo.SetCustomUint(*gu)
+	}
+	return uuo
+}
+
+// AddCustomUint adds gu to the "custom_uint" field.
+func (uuo *UserUpdateOne) AddCustomUint(gu gotypes.CustomUInt) *UserUpdateOne {
+	uuo.mutation.AddCustomUint(gu)
+	return uuo
+}
+
+// ClearCustomUint clears the value of the "custom_uint" field.
+func (uuo *UserUpdateOne) ClearCustomUint() *UserUpdateOne {
+	uuo.mutation.ClearCustomUint()
+	return uuo
+}
+
+// SetCustomUint8 sets the "custom_uint8" field.
+func (uuo *UserUpdateOne) SetCustomUint8(gu gotypes.CustomUInt8) *UserUpdateOne {
+	uuo.mutation.ResetCustomUint8()
+	uuo.mutation.SetCustomUint8(gu)
+	return uuo
+}
+
+// SetNillableCustomUint8 sets the "custom_uint8" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomUint8(gu *gotypes.CustomUInt8) *UserUpdateOne {
+	if gu != nil {
+		uuo.SetCustomUint8(*gu)
+	}
+	return uuo
+}
+
+// AddCustomUint8 adds gu to the "custom_uint8" field.
+func (uuo *UserUpdateOne) AddCustomUint8(gu gotypes.CustomUInt8) *UserUpdateOne {
+	uuo.mutation.AddCustomUint8(gu)
+	return uuo
+}
+
+// ClearCustomUint8 clears the value of the "custom_uint8" field.
+func (uuo *UserUpdateOne) ClearCustomUint8() *UserUpdateOne {
+	uuo.mutation.ClearCustomUint8()
+	return uuo
+}
+
+// SetCustomUint16 sets the "custom_uint16" field.
+func (uuo *UserUpdateOne) SetCustomUint16(gu gotypes.CustomUInt16) *UserUpdateOne {
+	uuo.mutation.ResetCustomUint16()
+	uuo.mutation.SetCustomUint16(gu)
+	return uuo
+}
+
+// SetNillableCustomUint16 sets the "custom_uint16" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomUint16(gu *gotypes.CustomUInt16) *UserUpdateOne {
+	if gu != nil {
+		uuo.SetCustomUint16(*gu)
+	}
+	return uuo
+}
+
+// AddCustomUint16 adds gu to the "custom_uint16" field.
+func (uuo *UserUpdateOne) AddCustomUint16(gu gotypes.CustomUInt16) *UserUpdateOne {
+	uuo.mutation.AddCustomUint16(gu)
+	return uuo
+}
+
+// ClearCustomUint16 clears the value of the "custom_uint16" field.
+func (uuo *UserUpdateOne) ClearCustomUint16() *UserUpdateOne {
+	uuo.mutation.ClearCustomUint16()
+	return uuo
+}
+
+// SetCustomUint32 sets the "custom_uint32" field.
+func (uuo *UserUpdateOne) SetCustomUint32(gu gotypes.CustomUInt32) *UserUpdateOne {
+	uuo.mutation.ResetCustomUint32()
+	uuo.mutation.SetCustomUint32(gu)
+	return uuo
+}
+
+// SetNillableCustomUint32 sets the "custom_uint32" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomUint32(gu *gotypes.CustomUInt32) *UserUpdateOne {
+	if gu != nil {
+		uuo.SetCustomUint32(*gu)
+	}
+	return uuo
+}
+
+// AddCustomUint32 adds gu to the "custom_uint32" field.
+func (uuo *UserUpdateOne) AddCustomUint32(gu gotypes.CustomUInt32) *UserUpdateOne {
+	uuo.mutation.AddCustomUint32(gu)
+	return uuo
+}
+
+// ClearCustomUint32 clears the value of the "custom_uint32" field.
+func (uuo *UserUpdateOne) ClearCustomUint32() *UserUpdateOne {
+	uuo.mutation.ClearCustomUint32()
+	return uuo
+}
+
+// SetCustomUint64 sets the "custom_uint64" field.
+func (uuo *UserUpdateOne) SetCustomUint64(gu gotypes.CustomUInt64) *UserUpdateOne {
+	uuo.mutation.ResetCustomUint64()
+	uuo.mutation.SetCustomUint64(gu)
+	return uuo
+}
+
+// SetNillableCustomUint64 sets the "custom_uint64" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomUint64(gu *gotypes.CustomUInt64) *UserUpdateOne {
+	if gu != nil {
+		uuo.SetCustomUint64(*gu)
+	}
+	return uuo
+}
+
+// AddCustomUint64 adds gu to the "custom_uint64" field.
+func (uuo *UserUpdateOne) AddCustomUint64(gu gotypes.CustomUInt64) *UserUpdateOne {
+	uuo.mutation.AddCustomUint64(gu)
+	return uuo
+}
+
+// ClearCustomUint64 clears the value of the "custom_uint64" field.
+func (uuo *UserUpdateOne) ClearCustomUint64() *UserUpdateOne {
+	uuo.mutation.ClearCustomUint64()
+	return uuo
+}
+
+// SetCustomFloat32 sets the "custom_float32" field.
+func (uuo *UserUpdateOne) SetCustomFloat32(gf gotypes.CustomFloat32) *UserUpdateOne {
+	uuo.mutation.ResetCustomFloat32()
+	uuo.mutation.SetCustomFloat32(gf)
+	return uuo
+}
+
+// SetNillableCustomFloat32 sets the "custom_float32" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomFloat32(gf *gotypes.CustomFloat32) *UserUpdateOne {
+	if gf != nil {
+		uuo.SetCustomFloat32(*gf)
+	}
+	return uuo
+}
+
+// AddCustomFloat32 adds gf to the "custom_float32" field.
+func (uuo *UserUpdateOne) AddCustomFloat32(gf gotypes.CustomFloat32) *UserUpdateOne {
+	uuo.mutation.AddCustomFloat32(gf)
+	return uuo
+}
+
+// ClearCustomFloat32 clears the value of the "custom_float32" field.
+func (uuo *UserUpdateOne) ClearCustomFloat32() *UserUpdateOne {
+	uuo.mutation.ClearCustomFloat32()
+	return uuo
+}
+
+// SetCustomFloat64 sets the "custom_float64" field.
+func (uuo *UserUpdateOne) SetCustomFloat64(gf gotypes.CustomFloat64) *UserUpdateOne {
+	uuo.mutation.ResetCustomFloat64()
+	uuo.mutation.SetCustomFloat64(gf)
+	return uuo
+}
+
+// SetNillableCustomFloat64 sets the "custom_float64" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomFloat64(gf *gotypes.CustomFloat64) *UserUpdateOne {
+	if gf != nil {
+		uuo.SetCustomFloat64(*gf)
+	}
+	return uuo
+}
+
+// AddCustomFloat64 adds gf to the "custom_float64" field.
+func (uuo *UserUpdateOne) AddCustomFloat64(gf gotypes.CustomFloat64) *UserUpdateOne {
+	uuo.mutation.AddCustomFloat64(gf)
+	return uuo
+}
+
+// ClearCustomFloat64 clears the value of the "custom_float64" field.
+func (uuo *UserUpdateOne) ClearCustomFloat64() *UserUpdateOne {
+	uuo.mutation.ClearCustomFloat64()
+	return uuo
+}
+
+// SetCustomString sets the "custom_string" field.
+func (uuo *UserUpdateOne) SetCustomString(gs gotypes.CustomString) *UserUpdateOne {
+	uuo.mutation.SetCustomString(gs)
+	return uuo
+}
+
+// SetNillableCustomString sets the "custom_string" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomString(gs *gotypes.CustomString) *UserUpdateOne {
+	if gs != nil {
+		uuo.SetCustomString(*gs)
+	}
+	return uuo
+}
+
+// ClearCustomString clears the value of the "custom_string" field.
+func (uuo *UserUpdateOne) ClearCustomString() *UserUpdateOne {
+	uuo.mutation.ClearCustomString()
+	return uuo
+}
+
+// SetCustomBool sets the "custom_bool" field.
+func (uuo *UserUpdateOne) SetCustomBool(gb gotypes.CustomBool) *UserUpdateOne {
+	uuo.mutation.SetCustomBool(gb)
+	return uuo
+}
+
+// SetNillableCustomBool sets the "custom_bool" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomBool(gb *gotypes.CustomBool) *UserUpdateOne {
+	if gb != nil {
+		uuo.SetCustomBool(*gb)
+	}
+	return uuo
+}
+
+// ClearCustomBool clears the value of the "custom_bool" field.
+func (uuo *UserUpdateOne) ClearCustomBool() *UserUpdateOne {
+	uuo.mutation.ClearCustomBool()
+	return uuo
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uuo *UserUpdateOne) SetDeviceType(ut user.DeviceType) *UserUpdateOne {
 	uuo.mutation.SetDeviceType(ut)
@@ -1757,6 +2606,126 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.Uint64sCleared() {
 		_spec.ClearField(user.FieldUint64s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.CustomInt(); ok {
+		_spec.SetField(user.FieldCustomInt, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomInt(); ok {
+		_spec.AddField(user.FieldCustomInt, field.TypeInt, value)
+	}
+	if uuo.mutation.CustomIntCleared() {
+		_spec.ClearField(user.FieldCustomInt, field.TypeInt)
+	}
+	if value, ok := uuo.mutation.CustomInt8(); ok {
+		_spec.SetField(user.FieldCustomInt8, field.TypeInt8, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomInt8(); ok {
+		_spec.AddField(user.FieldCustomInt8, field.TypeInt8, value)
+	}
+	if uuo.mutation.CustomInt8Cleared() {
+		_spec.ClearField(user.FieldCustomInt8, field.TypeInt8)
+	}
+	if value, ok := uuo.mutation.CustomInt16(); ok {
+		_spec.SetField(user.FieldCustomInt16, field.TypeInt16, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomInt16(); ok {
+		_spec.AddField(user.FieldCustomInt16, field.TypeInt16, value)
+	}
+	if uuo.mutation.CustomInt16Cleared() {
+		_spec.ClearField(user.FieldCustomInt16, field.TypeInt16)
+	}
+	if value, ok := uuo.mutation.CustomInt32(); ok {
+		_spec.SetField(user.FieldCustomInt32, field.TypeInt32, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomInt32(); ok {
+		_spec.AddField(user.FieldCustomInt32, field.TypeInt32, value)
+	}
+	if uuo.mutation.CustomInt32Cleared() {
+		_spec.ClearField(user.FieldCustomInt32, field.TypeInt32)
+	}
+	if value, ok := uuo.mutation.CustomInt64(); ok {
+		_spec.SetField(user.FieldCustomInt64, field.TypeInt64, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomInt64(); ok {
+		_spec.AddField(user.FieldCustomInt64, field.TypeInt64, value)
+	}
+	if uuo.mutation.CustomInt64Cleared() {
+		_spec.ClearField(user.FieldCustomInt64, field.TypeInt64)
+	}
+	if value, ok := uuo.mutation.CustomUint(); ok {
+		_spec.SetField(user.FieldCustomUint, field.TypeUint, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomUint(); ok {
+		_spec.AddField(user.FieldCustomUint, field.TypeUint, value)
+	}
+	if uuo.mutation.CustomUintCleared() {
+		_spec.ClearField(user.FieldCustomUint, field.TypeUint)
+	}
+	if value, ok := uuo.mutation.CustomUint8(); ok {
+		_spec.SetField(user.FieldCustomUint8, field.TypeUint8, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomUint8(); ok {
+		_spec.AddField(user.FieldCustomUint8, field.TypeUint8, value)
+	}
+	if uuo.mutation.CustomUint8Cleared() {
+		_spec.ClearField(user.FieldCustomUint8, field.TypeUint8)
+	}
+	if value, ok := uuo.mutation.CustomUint16(); ok {
+		_spec.SetField(user.FieldCustomUint16, field.TypeUint16, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomUint16(); ok {
+		_spec.AddField(user.FieldCustomUint16, field.TypeUint16, value)
+	}
+	if uuo.mutation.CustomUint16Cleared() {
+		_spec.ClearField(user.FieldCustomUint16, field.TypeUint16)
+	}
+	if value, ok := uuo.mutation.CustomUint32(); ok {
+		_spec.SetField(user.FieldCustomUint32, field.TypeUint32, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomUint32(); ok {
+		_spec.AddField(user.FieldCustomUint32, field.TypeUint32, value)
+	}
+	if uuo.mutation.CustomUint32Cleared() {
+		_spec.ClearField(user.FieldCustomUint32, field.TypeUint32)
+	}
+	if value, ok := uuo.mutation.CustomUint64(); ok {
+		_spec.SetField(user.FieldCustomUint64, field.TypeUint64, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomUint64(); ok {
+		_spec.AddField(user.FieldCustomUint64, field.TypeUint64, value)
+	}
+	if uuo.mutation.CustomUint64Cleared() {
+		_spec.ClearField(user.FieldCustomUint64, field.TypeUint64)
+	}
+	if value, ok := uuo.mutation.CustomFloat32(); ok {
+		_spec.SetField(user.FieldCustomFloat32, field.TypeFloat32, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomFloat32(); ok {
+		_spec.AddField(user.FieldCustomFloat32, field.TypeFloat32, value)
+	}
+	if uuo.mutation.CustomFloat32Cleared() {
+		_spec.ClearField(user.FieldCustomFloat32, field.TypeFloat32)
+	}
+	if value, ok := uuo.mutation.CustomFloat64(); ok {
+		_spec.SetField(user.FieldCustomFloat64, field.TypeFloat64, value)
+	}
+	if value, ok := uuo.mutation.AddedCustomFloat64(); ok {
+		_spec.AddField(user.FieldCustomFloat64, field.TypeFloat64, value)
+	}
+	if uuo.mutation.CustomFloat64Cleared() {
+		_spec.ClearField(user.FieldCustomFloat64, field.TypeFloat64)
+	}
+	if value, ok := uuo.mutation.CustomString(); ok {
+		_spec.SetField(user.FieldCustomString, field.TypeString, value)
+	}
+	if uuo.mutation.CustomStringCleared() {
+		_spec.ClearField(user.FieldCustomString, field.TypeString)
+	}
+	if value, ok := uuo.mutation.CustomBool(); ok {
+		_spec.SetField(user.FieldCustomBool, field.TypeBool, value)
+	}
+	if uuo.mutation.CustomBoolCleared() {
+		_spec.ClearField(user.FieldCustomBool, field.TypeBool)
 	}
 	if value, ok := uuo.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)

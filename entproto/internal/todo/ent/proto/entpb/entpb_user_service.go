@@ -7,6 +7,7 @@ import (
 	entproto "entgo.io/contrib/entproto"
 	ent "entgo.io/contrib/entproto/internal/todo/ent"
 	attachment "entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	gotypes "entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	group "entgo.io/contrib/entproto/internal/todo/ent/group"
 	pet "entgo.io/contrib/entproto/internal/todo/ent/pet"
 	schema "entgo.io/contrib/entproto/internal/todo/ent/schema"
@@ -159,8 +160,36 @@ func toProtoUser(e *ent.User) (*User, error) {
 		return nil, err
 	}
 	v.CrmId = crm_id
+	custom_bool := wrapperspb.Bool(bool(e.CustomBool))
+	v.CustomBool = custom_bool
+	custom_float32 := wrapperspb.Float(float32(e.CustomFloat32))
+	v.CustomFloat32 = custom_float32
+	custom_float64 := wrapperspb.Double(float64(e.CustomFloat64))
+	v.CustomFloat64 = custom_float64
+	custom_int := wrapperspb.Int64(int64(e.CustomInt))
+	v.CustomInt = custom_int
+	custom_int16 := wrapperspb.Int32(int32(e.CustomInt16))
+	v.CustomInt16 = custom_int16
+	custom_int32 := wrapperspb.Int32(int32(e.CustomInt32))
+	v.CustomInt32 = custom_int32
+	custom_int64 := wrapperspb.Int64(int64(e.CustomInt64))
+	v.CustomInt64 = custom_int64
+	custom_int8 := wrapperspb.Int32(int32(e.CustomInt8))
+	v.CustomInt8 = custom_int8
 	custom_pb := uint64(e.CustomPb)
 	v.CustomPb = custom_pb
+	custom_string := wrapperspb.String(string(e.CustomString))
+	v.CustomString = custom_string
+	custom_uint := wrapperspb.UInt32(uint32(e.CustomUint))
+	v.CustomUint = custom_uint
+	custom_uint16 := wrapperspb.UInt32(uint32(e.CustomUint16))
+	v.CustomUint16 = custom_uint16
+	custom_uint32 := wrapperspb.UInt32(uint32(e.CustomUint32))
+	v.CustomUint32 = custom_uint32
+	custom_uint64 := wrapperspb.UInt64(uint64(e.CustomUint64))
+	v.CustomUint64 = custom_uint64
+	custom_uint8 := wrapperspb.UInt32(uint32(e.CustomUint8))
+	v.CustomUint8 = custom_uint8
 	device_type := toProtoUser_DeviceType(e.DeviceType)
 	v.DeviceType = device_type
 	exp := e.Exp
@@ -337,8 +366,64 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m.SetCrmID(userCrmID)
+	if user.GetCustomBool() != nil {
+		userCustomBool := gotypes.CustomBool(user.GetCustomBool().GetValue())
+		m.SetCustomBool(userCustomBool)
+	}
+	if user.GetCustomFloat32() != nil {
+		userCustomFloat32 := gotypes.CustomFloat32(user.GetCustomFloat32().GetValue())
+		m.SetCustomFloat32(userCustomFloat32)
+	}
+	if user.GetCustomFloat64() != nil {
+		userCustomFloat64 := gotypes.CustomFloat64(user.GetCustomFloat64().GetValue())
+		m.SetCustomFloat64(userCustomFloat64)
+	}
+	if user.GetCustomInt() != nil {
+		userCustomInt := gotypes.CustomInt(user.GetCustomInt().GetValue())
+		m.SetCustomInt(userCustomInt)
+	}
+	if user.GetCustomInt16() != nil {
+		userCustomInt16 := gotypes.CustomInt16(user.GetCustomInt16().GetValue())
+		m.SetCustomInt16(userCustomInt16)
+	}
+	if user.GetCustomInt32() != nil {
+		userCustomInt32 := gotypes.CustomInt32(user.GetCustomInt32().GetValue())
+		m.SetCustomInt32(userCustomInt32)
+	}
+	if user.GetCustomInt64() != nil {
+		userCustomInt64 := gotypes.CustomInt64(user.GetCustomInt64().GetValue())
+		m.SetCustomInt64(userCustomInt64)
+	}
+	if user.GetCustomInt8() != nil {
+		userCustomInt8 := gotypes.CustomInt8(user.GetCustomInt8().GetValue())
+		m.SetCustomInt8(userCustomInt8)
+	}
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
+	if user.GetCustomString() != nil {
+		userCustomString := gotypes.CustomString(user.GetCustomString().GetValue())
+		m.SetCustomString(userCustomString)
+	}
+	if user.GetCustomUint() != nil {
+		userCustomUint := gotypes.CustomUInt(user.GetCustomUint().GetValue())
+		m.SetCustomUint(userCustomUint)
+	}
+	if user.GetCustomUint16() != nil {
+		userCustomUint16 := gotypes.CustomUInt16(user.GetCustomUint16().GetValue())
+		m.SetCustomUint16(userCustomUint16)
+	}
+	if user.GetCustomUint32() != nil {
+		userCustomUint32 := gotypes.CustomUInt32(user.GetCustomUint32().GetValue())
+		m.SetCustomUint32(userCustomUint32)
+	}
+	if user.GetCustomUint64() != nil {
+		userCustomUint64 := gotypes.CustomUInt64(user.GetCustomUint64().GetValue())
+		m.SetCustomUint64(userCustomUint64)
+	}
+	if user.GetCustomUint8() != nil {
+		userCustomUint8 := gotypes.CustomUInt8(user.GetCustomUint8().GetValue())
+		m.SetCustomUint8(userCustomUint8)
+	}
 	userDeviceType := toEntUser_DeviceType(user.GetDeviceType())
 	m.SetDeviceType(userDeviceType)
 	userExp := uint64(user.GetExp())
@@ -578,8 +663,64 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid argument: %s", err)
 	}
 	m.SetCrmID(userCrmID)
+	if user.GetCustomBool() != nil {
+		userCustomBool := gotypes.CustomBool(user.GetCustomBool().GetValue())
+		m.SetCustomBool(userCustomBool)
+	}
+	if user.GetCustomFloat32() != nil {
+		userCustomFloat32 := gotypes.CustomFloat32(user.GetCustomFloat32().GetValue())
+		m.SetCustomFloat32(userCustomFloat32)
+	}
+	if user.GetCustomFloat64() != nil {
+		userCustomFloat64 := gotypes.CustomFloat64(user.GetCustomFloat64().GetValue())
+		m.SetCustomFloat64(userCustomFloat64)
+	}
+	if user.GetCustomInt() != nil {
+		userCustomInt := gotypes.CustomInt(user.GetCustomInt().GetValue())
+		m.SetCustomInt(userCustomInt)
+	}
+	if user.GetCustomInt16() != nil {
+		userCustomInt16 := gotypes.CustomInt16(user.GetCustomInt16().GetValue())
+		m.SetCustomInt16(userCustomInt16)
+	}
+	if user.GetCustomInt32() != nil {
+		userCustomInt32 := gotypes.CustomInt32(user.GetCustomInt32().GetValue())
+		m.SetCustomInt32(userCustomInt32)
+	}
+	if user.GetCustomInt64() != nil {
+		userCustomInt64 := gotypes.CustomInt64(user.GetCustomInt64().GetValue())
+		m.SetCustomInt64(userCustomInt64)
+	}
+	if user.GetCustomInt8() != nil {
+		userCustomInt8 := gotypes.CustomInt8(user.GetCustomInt8().GetValue())
+		m.SetCustomInt8(userCustomInt8)
+	}
 	userCustomPb := uint8(user.GetCustomPb())
 	m.SetCustomPb(userCustomPb)
+	if user.GetCustomString() != nil {
+		userCustomString := gotypes.CustomString(user.GetCustomString().GetValue())
+		m.SetCustomString(userCustomString)
+	}
+	if user.GetCustomUint() != nil {
+		userCustomUint := gotypes.CustomUInt(user.GetCustomUint().GetValue())
+		m.SetCustomUint(userCustomUint)
+	}
+	if user.GetCustomUint16() != nil {
+		userCustomUint16 := gotypes.CustomUInt16(user.GetCustomUint16().GetValue())
+		m.SetCustomUint16(userCustomUint16)
+	}
+	if user.GetCustomUint32() != nil {
+		userCustomUint32 := gotypes.CustomUInt32(user.GetCustomUint32().GetValue())
+		m.SetCustomUint32(userCustomUint32)
+	}
+	if user.GetCustomUint64() != nil {
+		userCustomUint64 := gotypes.CustomUInt64(user.GetCustomUint64().GetValue())
+		m.SetCustomUint64(userCustomUint64)
+	}
+	if user.GetCustomUint8() != nil {
+		userCustomUint8 := gotypes.CustomUInt8(user.GetCustomUint8().GetValue())
+		m.SetCustomUint8(userCustomUint8)
+	}
 	userDeviceType := toEntUser_DeviceType(user.GetDeviceType())
 	m.SetDeviceType(userDeviceType)
 	userExp := uint64(user.GetExp())

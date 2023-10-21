@@ -5,6 +5,7 @@ package user
 import (
 	"time"
 
+	"entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
 	"entgo.io/ent/dialect/sql"
@@ -140,6 +141,90 @@ func Unnecessary(v string) predicate.User {
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
 func Type(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldType, v))
+}
+
+// CustomInt applies equality check predicate on the "custom_int" field. It's identical to CustomIntEQ.
+func CustomInt(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt, vc))
+}
+
+// CustomInt8 applies equality check predicate on the "custom_int8" field. It's identical to CustomInt8EQ.
+func CustomInt8(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt8, vc))
+}
+
+// CustomInt16 applies equality check predicate on the "custom_int16" field. It's identical to CustomInt16EQ.
+func CustomInt16(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt16, vc))
+}
+
+// CustomInt32 applies equality check predicate on the "custom_int32" field. It's identical to CustomInt32EQ.
+func CustomInt32(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt32, vc))
+}
+
+// CustomInt64 applies equality check predicate on the "custom_int64" field. It's identical to CustomInt64EQ.
+func CustomInt64(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt64, vc))
+}
+
+// CustomUint applies equality check predicate on the "custom_uint" field. It's identical to CustomUintEQ.
+func CustomUint(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint, vc))
+}
+
+// CustomUint8 applies equality check predicate on the "custom_uint8" field. It's identical to CustomUint8EQ.
+func CustomUint8(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint8, vc))
+}
+
+// CustomUint16 applies equality check predicate on the "custom_uint16" field. It's identical to CustomUint16EQ.
+func CustomUint16(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint16, vc))
+}
+
+// CustomUint32 applies equality check predicate on the "custom_uint32" field. It's identical to CustomUint32EQ.
+func CustomUint32(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint32, vc))
+}
+
+// CustomUint64 applies equality check predicate on the "custom_uint64" field. It's identical to CustomUint64EQ.
+func CustomUint64(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint64, vc))
+}
+
+// CustomFloat32 applies equality check predicate on the "custom_float32" field. It's identical to CustomFloat32EQ.
+func CustomFloat32(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldEQ(FieldCustomFloat32, vc))
+}
+
+// CustomFloat64 applies equality check predicate on the "custom_float64" field. It's identical to CustomFloat64EQ.
+func CustomFloat64(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldEQ(FieldCustomFloat64, vc))
+}
+
+// CustomString applies equality check predicate on the "custom_string" field. It's identical to CustomStringEQ.
+func CustomString(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldEQ(FieldCustomString, vc))
+}
+
+// CustomBool applies equality check predicate on the "custom_bool" field. It's identical to CustomBoolEQ.
+func CustomBool(v gotypes.CustomBool) predicate.User {
+	vc := bool(v)
+	return predicate.User(sql.FieldEQ(FieldCustomBool, vc))
 }
 
 // UserNameEQ applies the EQ predicate on the "user_name" field.
@@ -1000,6 +1085,890 @@ func Uint64sIsNil() predicate.User {
 // Uint64sNotNil applies the NotNil predicate on the "uint64s" field.
 func Uint64sNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldUint64s))
+}
+
+// CustomIntEQ applies the EQ predicate on the "custom_int" field.
+func CustomIntEQ(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt, vc))
+}
+
+// CustomIntNEQ applies the NEQ predicate on the "custom_int" field.
+func CustomIntNEQ(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomInt, vc))
+}
+
+// CustomIntIn applies the In predicate on the "custom_int" field.
+func CustomIntIn(vs ...gotypes.CustomInt) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomInt, v...))
+}
+
+// CustomIntNotIn applies the NotIn predicate on the "custom_int" field.
+func CustomIntNotIn(vs ...gotypes.CustomInt) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomInt, v...))
+}
+
+// CustomIntGT applies the GT predicate on the "custom_int" field.
+func CustomIntGT(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldGT(FieldCustomInt, vc))
+}
+
+// CustomIntGTE applies the GTE predicate on the "custom_int" field.
+func CustomIntGTE(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldGTE(FieldCustomInt, vc))
+}
+
+// CustomIntLT applies the LT predicate on the "custom_int" field.
+func CustomIntLT(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldLT(FieldCustomInt, vc))
+}
+
+// CustomIntLTE applies the LTE predicate on the "custom_int" field.
+func CustomIntLTE(v gotypes.CustomInt) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldLTE(FieldCustomInt, vc))
+}
+
+// CustomIntIsNil applies the IsNil predicate on the "custom_int" field.
+func CustomIntIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomInt))
+}
+
+// CustomIntNotNil applies the NotNil predicate on the "custom_int" field.
+func CustomIntNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomInt))
+}
+
+// CustomInt8EQ applies the EQ predicate on the "custom_int8" field.
+func CustomInt8EQ(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt8, vc))
+}
+
+// CustomInt8NEQ applies the NEQ predicate on the "custom_int8" field.
+func CustomInt8NEQ(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomInt8, vc))
+}
+
+// CustomInt8In applies the In predicate on the "custom_int8" field.
+func CustomInt8In(vs ...gotypes.CustomInt8) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int8(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomInt8, v...))
+}
+
+// CustomInt8NotIn applies the NotIn predicate on the "custom_int8" field.
+func CustomInt8NotIn(vs ...gotypes.CustomInt8) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int8(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomInt8, v...))
+}
+
+// CustomInt8GT applies the GT predicate on the "custom_int8" field.
+func CustomInt8GT(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldGT(FieldCustomInt8, vc))
+}
+
+// CustomInt8GTE applies the GTE predicate on the "custom_int8" field.
+func CustomInt8GTE(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldGTE(FieldCustomInt8, vc))
+}
+
+// CustomInt8LT applies the LT predicate on the "custom_int8" field.
+func CustomInt8LT(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldLT(FieldCustomInt8, vc))
+}
+
+// CustomInt8LTE applies the LTE predicate on the "custom_int8" field.
+func CustomInt8LTE(v gotypes.CustomInt8) predicate.User {
+	vc := int8(v)
+	return predicate.User(sql.FieldLTE(FieldCustomInt8, vc))
+}
+
+// CustomInt8IsNil applies the IsNil predicate on the "custom_int8" field.
+func CustomInt8IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomInt8))
+}
+
+// CustomInt8NotNil applies the NotNil predicate on the "custom_int8" field.
+func CustomInt8NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomInt8))
+}
+
+// CustomInt16EQ applies the EQ predicate on the "custom_int16" field.
+func CustomInt16EQ(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt16, vc))
+}
+
+// CustomInt16NEQ applies the NEQ predicate on the "custom_int16" field.
+func CustomInt16NEQ(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomInt16, vc))
+}
+
+// CustomInt16In applies the In predicate on the "custom_int16" field.
+func CustomInt16In(vs ...gotypes.CustomInt16) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int16(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomInt16, v...))
+}
+
+// CustomInt16NotIn applies the NotIn predicate on the "custom_int16" field.
+func CustomInt16NotIn(vs ...gotypes.CustomInt16) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int16(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomInt16, v...))
+}
+
+// CustomInt16GT applies the GT predicate on the "custom_int16" field.
+func CustomInt16GT(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldGT(FieldCustomInt16, vc))
+}
+
+// CustomInt16GTE applies the GTE predicate on the "custom_int16" field.
+func CustomInt16GTE(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldGTE(FieldCustomInt16, vc))
+}
+
+// CustomInt16LT applies the LT predicate on the "custom_int16" field.
+func CustomInt16LT(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldLT(FieldCustomInt16, vc))
+}
+
+// CustomInt16LTE applies the LTE predicate on the "custom_int16" field.
+func CustomInt16LTE(v gotypes.CustomInt16) predicate.User {
+	vc := int16(v)
+	return predicate.User(sql.FieldLTE(FieldCustomInt16, vc))
+}
+
+// CustomInt16IsNil applies the IsNil predicate on the "custom_int16" field.
+func CustomInt16IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomInt16))
+}
+
+// CustomInt16NotNil applies the NotNil predicate on the "custom_int16" field.
+func CustomInt16NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomInt16))
+}
+
+// CustomInt32EQ applies the EQ predicate on the "custom_int32" field.
+func CustomInt32EQ(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt32, vc))
+}
+
+// CustomInt32NEQ applies the NEQ predicate on the "custom_int32" field.
+func CustomInt32NEQ(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomInt32, vc))
+}
+
+// CustomInt32In applies the In predicate on the "custom_int32" field.
+func CustomInt32In(vs ...gotypes.CustomInt32) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int32(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomInt32, v...))
+}
+
+// CustomInt32NotIn applies the NotIn predicate on the "custom_int32" field.
+func CustomInt32NotIn(vs ...gotypes.CustomInt32) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int32(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomInt32, v...))
+}
+
+// CustomInt32GT applies the GT predicate on the "custom_int32" field.
+func CustomInt32GT(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldGT(FieldCustomInt32, vc))
+}
+
+// CustomInt32GTE applies the GTE predicate on the "custom_int32" field.
+func CustomInt32GTE(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldGTE(FieldCustomInt32, vc))
+}
+
+// CustomInt32LT applies the LT predicate on the "custom_int32" field.
+func CustomInt32LT(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldLT(FieldCustomInt32, vc))
+}
+
+// CustomInt32LTE applies the LTE predicate on the "custom_int32" field.
+func CustomInt32LTE(v gotypes.CustomInt32) predicate.User {
+	vc := int32(v)
+	return predicate.User(sql.FieldLTE(FieldCustomInt32, vc))
+}
+
+// CustomInt32IsNil applies the IsNil predicate on the "custom_int32" field.
+func CustomInt32IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomInt32))
+}
+
+// CustomInt32NotNil applies the NotNil predicate on the "custom_int32" field.
+func CustomInt32NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomInt32))
+}
+
+// CustomInt64EQ applies the EQ predicate on the "custom_int64" field.
+func CustomInt64EQ(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldEQ(FieldCustomInt64, vc))
+}
+
+// CustomInt64NEQ applies the NEQ predicate on the "custom_int64" field.
+func CustomInt64NEQ(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomInt64, vc))
+}
+
+// CustomInt64In applies the In predicate on the "custom_int64" field.
+func CustomInt64In(vs ...gotypes.CustomInt64) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int64(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomInt64, v...))
+}
+
+// CustomInt64NotIn applies the NotIn predicate on the "custom_int64" field.
+func CustomInt64NotIn(vs ...gotypes.CustomInt64) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int64(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomInt64, v...))
+}
+
+// CustomInt64GT applies the GT predicate on the "custom_int64" field.
+func CustomInt64GT(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldGT(FieldCustomInt64, vc))
+}
+
+// CustomInt64GTE applies the GTE predicate on the "custom_int64" field.
+func CustomInt64GTE(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldGTE(FieldCustomInt64, vc))
+}
+
+// CustomInt64LT applies the LT predicate on the "custom_int64" field.
+func CustomInt64LT(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldLT(FieldCustomInt64, vc))
+}
+
+// CustomInt64LTE applies the LTE predicate on the "custom_int64" field.
+func CustomInt64LTE(v gotypes.CustomInt64) predicate.User {
+	vc := int64(v)
+	return predicate.User(sql.FieldLTE(FieldCustomInt64, vc))
+}
+
+// CustomInt64IsNil applies the IsNil predicate on the "custom_int64" field.
+func CustomInt64IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomInt64))
+}
+
+// CustomInt64NotNil applies the NotNil predicate on the "custom_int64" field.
+func CustomInt64NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomInt64))
+}
+
+// CustomUintEQ applies the EQ predicate on the "custom_uint" field.
+func CustomUintEQ(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint, vc))
+}
+
+// CustomUintNEQ applies the NEQ predicate on the "custom_uint" field.
+func CustomUintNEQ(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomUint, vc))
+}
+
+// CustomUintIn applies the In predicate on the "custom_uint" field.
+func CustomUintIn(vs ...gotypes.CustomUInt) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomUint, v...))
+}
+
+// CustomUintNotIn applies the NotIn predicate on the "custom_uint" field.
+func CustomUintNotIn(vs ...gotypes.CustomUInt) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomUint, v...))
+}
+
+// CustomUintGT applies the GT predicate on the "custom_uint" field.
+func CustomUintGT(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldGT(FieldCustomUint, vc))
+}
+
+// CustomUintGTE applies the GTE predicate on the "custom_uint" field.
+func CustomUintGTE(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldGTE(FieldCustomUint, vc))
+}
+
+// CustomUintLT applies the LT predicate on the "custom_uint" field.
+func CustomUintLT(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldLT(FieldCustomUint, vc))
+}
+
+// CustomUintLTE applies the LTE predicate on the "custom_uint" field.
+func CustomUintLTE(v gotypes.CustomUInt) predicate.User {
+	vc := uint(v)
+	return predicate.User(sql.FieldLTE(FieldCustomUint, vc))
+}
+
+// CustomUintIsNil applies the IsNil predicate on the "custom_uint" field.
+func CustomUintIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomUint))
+}
+
+// CustomUintNotNil applies the NotNil predicate on the "custom_uint" field.
+func CustomUintNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomUint))
+}
+
+// CustomUint8EQ applies the EQ predicate on the "custom_uint8" field.
+func CustomUint8EQ(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint8, vc))
+}
+
+// CustomUint8NEQ applies the NEQ predicate on the "custom_uint8" field.
+func CustomUint8NEQ(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomUint8, vc))
+}
+
+// CustomUint8In applies the In predicate on the "custom_uint8" field.
+func CustomUint8In(vs ...gotypes.CustomUInt8) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint8(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomUint8, v...))
+}
+
+// CustomUint8NotIn applies the NotIn predicate on the "custom_uint8" field.
+func CustomUint8NotIn(vs ...gotypes.CustomUInt8) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint8(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomUint8, v...))
+}
+
+// CustomUint8GT applies the GT predicate on the "custom_uint8" field.
+func CustomUint8GT(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldGT(FieldCustomUint8, vc))
+}
+
+// CustomUint8GTE applies the GTE predicate on the "custom_uint8" field.
+func CustomUint8GTE(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldGTE(FieldCustomUint8, vc))
+}
+
+// CustomUint8LT applies the LT predicate on the "custom_uint8" field.
+func CustomUint8LT(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldLT(FieldCustomUint8, vc))
+}
+
+// CustomUint8LTE applies the LTE predicate on the "custom_uint8" field.
+func CustomUint8LTE(v gotypes.CustomUInt8) predicate.User {
+	vc := uint8(v)
+	return predicate.User(sql.FieldLTE(FieldCustomUint8, vc))
+}
+
+// CustomUint8IsNil applies the IsNil predicate on the "custom_uint8" field.
+func CustomUint8IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomUint8))
+}
+
+// CustomUint8NotNil applies the NotNil predicate on the "custom_uint8" field.
+func CustomUint8NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomUint8))
+}
+
+// CustomUint16EQ applies the EQ predicate on the "custom_uint16" field.
+func CustomUint16EQ(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint16, vc))
+}
+
+// CustomUint16NEQ applies the NEQ predicate on the "custom_uint16" field.
+func CustomUint16NEQ(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomUint16, vc))
+}
+
+// CustomUint16In applies the In predicate on the "custom_uint16" field.
+func CustomUint16In(vs ...gotypes.CustomUInt16) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint16(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomUint16, v...))
+}
+
+// CustomUint16NotIn applies the NotIn predicate on the "custom_uint16" field.
+func CustomUint16NotIn(vs ...gotypes.CustomUInt16) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint16(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomUint16, v...))
+}
+
+// CustomUint16GT applies the GT predicate on the "custom_uint16" field.
+func CustomUint16GT(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldGT(FieldCustomUint16, vc))
+}
+
+// CustomUint16GTE applies the GTE predicate on the "custom_uint16" field.
+func CustomUint16GTE(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldGTE(FieldCustomUint16, vc))
+}
+
+// CustomUint16LT applies the LT predicate on the "custom_uint16" field.
+func CustomUint16LT(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldLT(FieldCustomUint16, vc))
+}
+
+// CustomUint16LTE applies the LTE predicate on the "custom_uint16" field.
+func CustomUint16LTE(v gotypes.CustomUInt16) predicate.User {
+	vc := uint16(v)
+	return predicate.User(sql.FieldLTE(FieldCustomUint16, vc))
+}
+
+// CustomUint16IsNil applies the IsNil predicate on the "custom_uint16" field.
+func CustomUint16IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomUint16))
+}
+
+// CustomUint16NotNil applies the NotNil predicate on the "custom_uint16" field.
+func CustomUint16NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomUint16))
+}
+
+// CustomUint32EQ applies the EQ predicate on the "custom_uint32" field.
+func CustomUint32EQ(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint32, vc))
+}
+
+// CustomUint32NEQ applies the NEQ predicate on the "custom_uint32" field.
+func CustomUint32NEQ(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomUint32, vc))
+}
+
+// CustomUint32In applies the In predicate on the "custom_uint32" field.
+func CustomUint32In(vs ...gotypes.CustomUInt32) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint32(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomUint32, v...))
+}
+
+// CustomUint32NotIn applies the NotIn predicate on the "custom_uint32" field.
+func CustomUint32NotIn(vs ...gotypes.CustomUInt32) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint32(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomUint32, v...))
+}
+
+// CustomUint32GT applies the GT predicate on the "custom_uint32" field.
+func CustomUint32GT(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldGT(FieldCustomUint32, vc))
+}
+
+// CustomUint32GTE applies the GTE predicate on the "custom_uint32" field.
+func CustomUint32GTE(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldGTE(FieldCustomUint32, vc))
+}
+
+// CustomUint32LT applies the LT predicate on the "custom_uint32" field.
+func CustomUint32LT(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldLT(FieldCustomUint32, vc))
+}
+
+// CustomUint32LTE applies the LTE predicate on the "custom_uint32" field.
+func CustomUint32LTE(v gotypes.CustomUInt32) predicate.User {
+	vc := uint32(v)
+	return predicate.User(sql.FieldLTE(FieldCustomUint32, vc))
+}
+
+// CustomUint32IsNil applies the IsNil predicate on the "custom_uint32" field.
+func CustomUint32IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomUint32))
+}
+
+// CustomUint32NotNil applies the NotNil predicate on the "custom_uint32" field.
+func CustomUint32NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomUint32))
+}
+
+// CustomUint64EQ applies the EQ predicate on the "custom_uint64" field.
+func CustomUint64EQ(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldEQ(FieldCustomUint64, vc))
+}
+
+// CustomUint64NEQ applies the NEQ predicate on the "custom_uint64" field.
+func CustomUint64NEQ(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomUint64, vc))
+}
+
+// CustomUint64In applies the In predicate on the "custom_uint64" field.
+func CustomUint64In(vs ...gotypes.CustomUInt64) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint64(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomUint64, v...))
+}
+
+// CustomUint64NotIn applies the NotIn predicate on the "custom_uint64" field.
+func CustomUint64NotIn(vs ...gotypes.CustomUInt64) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = uint64(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomUint64, v...))
+}
+
+// CustomUint64GT applies the GT predicate on the "custom_uint64" field.
+func CustomUint64GT(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldGT(FieldCustomUint64, vc))
+}
+
+// CustomUint64GTE applies the GTE predicate on the "custom_uint64" field.
+func CustomUint64GTE(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldGTE(FieldCustomUint64, vc))
+}
+
+// CustomUint64LT applies the LT predicate on the "custom_uint64" field.
+func CustomUint64LT(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldLT(FieldCustomUint64, vc))
+}
+
+// CustomUint64LTE applies the LTE predicate on the "custom_uint64" field.
+func CustomUint64LTE(v gotypes.CustomUInt64) predicate.User {
+	vc := uint64(v)
+	return predicate.User(sql.FieldLTE(FieldCustomUint64, vc))
+}
+
+// CustomUint64IsNil applies the IsNil predicate on the "custom_uint64" field.
+func CustomUint64IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomUint64))
+}
+
+// CustomUint64NotNil applies the NotNil predicate on the "custom_uint64" field.
+func CustomUint64NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomUint64))
+}
+
+// CustomFloat32EQ applies the EQ predicate on the "custom_float32" field.
+func CustomFloat32EQ(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldEQ(FieldCustomFloat32, vc))
+}
+
+// CustomFloat32NEQ applies the NEQ predicate on the "custom_float32" field.
+func CustomFloat32NEQ(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomFloat32, vc))
+}
+
+// CustomFloat32In applies the In predicate on the "custom_float32" field.
+func CustomFloat32In(vs ...gotypes.CustomFloat32) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = float32(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomFloat32, v...))
+}
+
+// CustomFloat32NotIn applies the NotIn predicate on the "custom_float32" field.
+func CustomFloat32NotIn(vs ...gotypes.CustomFloat32) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = float32(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomFloat32, v...))
+}
+
+// CustomFloat32GT applies the GT predicate on the "custom_float32" field.
+func CustomFloat32GT(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldGT(FieldCustomFloat32, vc))
+}
+
+// CustomFloat32GTE applies the GTE predicate on the "custom_float32" field.
+func CustomFloat32GTE(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldGTE(FieldCustomFloat32, vc))
+}
+
+// CustomFloat32LT applies the LT predicate on the "custom_float32" field.
+func CustomFloat32LT(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldLT(FieldCustomFloat32, vc))
+}
+
+// CustomFloat32LTE applies the LTE predicate on the "custom_float32" field.
+func CustomFloat32LTE(v gotypes.CustomFloat32) predicate.User {
+	vc := float32(v)
+	return predicate.User(sql.FieldLTE(FieldCustomFloat32, vc))
+}
+
+// CustomFloat32IsNil applies the IsNil predicate on the "custom_float32" field.
+func CustomFloat32IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomFloat32))
+}
+
+// CustomFloat32NotNil applies the NotNil predicate on the "custom_float32" field.
+func CustomFloat32NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomFloat32))
+}
+
+// CustomFloat64EQ applies the EQ predicate on the "custom_float64" field.
+func CustomFloat64EQ(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldEQ(FieldCustomFloat64, vc))
+}
+
+// CustomFloat64NEQ applies the NEQ predicate on the "custom_float64" field.
+func CustomFloat64NEQ(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomFloat64, vc))
+}
+
+// CustomFloat64In applies the In predicate on the "custom_float64" field.
+func CustomFloat64In(vs ...gotypes.CustomFloat64) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = float64(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomFloat64, v...))
+}
+
+// CustomFloat64NotIn applies the NotIn predicate on the "custom_float64" field.
+func CustomFloat64NotIn(vs ...gotypes.CustomFloat64) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = float64(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomFloat64, v...))
+}
+
+// CustomFloat64GT applies the GT predicate on the "custom_float64" field.
+func CustomFloat64GT(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldGT(FieldCustomFloat64, vc))
+}
+
+// CustomFloat64GTE applies the GTE predicate on the "custom_float64" field.
+func CustomFloat64GTE(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldGTE(FieldCustomFloat64, vc))
+}
+
+// CustomFloat64LT applies the LT predicate on the "custom_float64" field.
+func CustomFloat64LT(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldLT(FieldCustomFloat64, vc))
+}
+
+// CustomFloat64LTE applies the LTE predicate on the "custom_float64" field.
+func CustomFloat64LTE(v gotypes.CustomFloat64) predicate.User {
+	vc := float64(v)
+	return predicate.User(sql.FieldLTE(FieldCustomFloat64, vc))
+}
+
+// CustomFloat64IsNil applies the IsNil predicate on the "custom_float64" field.
+func CustomFloat64IsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomFloat64))
+}
+
+// CustomFloat64NotNil applies the NotNil predicate on the "custom_float64" field.
+func CustomFloat64NotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomFloat64))
+}
+
+// CustomStringEQ applies the EQ predicate on the "custom_string" field.
+func CustomStringEQ(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldEQ(FieldCustomString, vc))
+}
+
+// CustomStringNEQ applies the NEQ predicate on the "custom_string" field.
+func CustomStringNEQ(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomString, vc))
+}
+
+// CustomStringIn applies the In predicate on the "custom_string" field.
+func CustomStringIn(vs ...gotypes.CustomString) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldCustomString, v...))
+}
+
+// CustomStringNotIn applies the NotIn predicate on the "custom_string" field.
+func CustomStringNotIn(vs ...gotypes.CustomString) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldCustomString, v...))
+}
+
+// CustomStringGT applies the GT predicate on the "custom_string" field.
+func CustomStringGT(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldGT(FieldCustomString, vc))
+}
+
+// CustomStringGTE applies the GTE predicate on the "custom_string" field.
+func CustomStringGTE(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldGTE(FieldCustomString, vc))
+}
+
+// CustomStringLT applies the LT predicate on the "custom_string" field.
+func CustomStringLT(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldLT(FieldCustomString, vc))
+}
+
+// CustomStringLTE applies the LTE predicate on the "custom_string" field.
+func CustomStringLTE(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldLTE(FieldCustomString, vc))
+}
+
+// CustomStringContains applies the Contains predicate on the "custom_string" field.
+func CustomStringContains(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldContains(FieldCustomString, vc))
+}
+
+// CustomStringHasPrefix applies the HasPrefix predicate on the "custom_string" field.
+func CustomStringHasPrefix(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldHasPrefix(FieldCustomString, vc))
+}
+
+// CustomStringHasSuffix applies the HasSuffix predicate on the "custom_string" field.
+func CustomStringHasSuffix(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldHasSuffix(FieldCustomString, vc))
+}
+
+// CustomStringIsNil applies the IsNil predicate on the "custom_string" field.
+func CustomStringIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomString))
+}
+
+// CustomStringNotNil applies the NotNil predicate on the "custom_string" field.
+func CustomStringNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomString))
+}
+
+// CustomStringEqualFold applies the EqualFold predicate on the "custom_string" field.
+func CustomStringEqualFold(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldEqualFold(FieldCustomString, vc))
+}
+
+// CustomStringContainsFold applies the ContainsFold predicate on the "custom_string" field.
+func CustomStringContainsFold(v gotypes.CustomString) predicate.User {
+	vc := string(v)
+	return predicate.User(sql.FieldContainsFold(FieldCustomString, vc))
+}
+
+// CustomBoolEQ applies the EQ predicate on the "custom_bool" field.
+func CustomBoolEQ(v gotypes.CustomBool) predicate.User {
+	vc := bool(v)
+	return predicate.User(sql.FieldEQ(FieldCustomBool, vc))
+}
+
+// CustomBoolNEQ applies the NEQ predicate on the "custom_bool" field.
+func CustomBoolNEQ(v gotypes.CustomBool) predicate.User {
+	vc := bool(v)
+	return predicate.User(sql.FieldNEQ(FieldCustomBool, vc))
+}
+
+// CustomBoolIsNil applies the IsNil predicate on the "custom_bool" field.
+func CustomBoolIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldCustomBool))
+}
+
+// CustomBoolNotNil applies the NotNil predicate on the "custom_bool" field.
+func CustomBoolNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldCustomBool))
 }
 
 // DeviceTypeEQ applies the EQ predicate on the "device_type" field.

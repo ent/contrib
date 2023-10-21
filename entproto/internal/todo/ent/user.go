@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entproto/internal/todo/ent/attachment"
+	"entgo.io/contrib/entproto/internal/todo/ent/gotypes"
 	"entgo.io/contrib/entproto/internal/todo/ent/group"
 	"entgo.io/contrib/entproto/internal/todo/ent/pet"
 	"entgo.io/contrib/entproto/internal/todo/ent/schema"
@@ -70,6 +71,34 @@ type User struct {
 	Uint32s []uint32 `json:"uint32s,omitempty"`
 	// Uint64s holds the value of the "uint64s" field.
 	Uint64s []uint64 `json:"uint64s,omitempty"`
+	// CustomInt holds the value of the "custom_int" field.
+	CustomInt gotypes.CustomInt `json:"custom_int,omitempty"`
+	// CustomInt8 holds the value of the "custom_int8" field.
+	CustomInt8 gotypes.CustomInt8 `json:"custom_int8,omitempty"`
+	// CustomInt16 holds the value of the "custom_int16" field.
+	CustomInt16 gotypes.CustomInt16 `json:"custom_int16,omitempty"`
+	// CustomInt32 holds the value of the "custom_int32" field.
+	CustomInt32 gotypes.CustomInt32 `json:"custom_int32,omitempty"`
+	// CustomInt64 holds the value of the "custom_int64" field.
+	CustomInt64 gotypes.CustomInt64 `json:"custom_int64,omitempty"`
+	// CustomUint holds the value of the "custom_uint" field.
+	CustomUint gotypes.CustomUInt `json:"custom_uint,omitempty"`
+	// CustomUint8 holds the value of the "custom_uint8" field.
+	CustomUint8 gotypes.CustomUInt8 `json:"custom_uint8,omitempty"`
+	// CustomUint16 holds the value of the "custom_uint16" field.
+	CustomUint16 gotypes.CustomUInt16 `json:"custom_uint16,omitempty"`
+	// CustomUint32 holds the value of the "custom_uint32" field.
+	CustomUint32 gotypes.CustomUInt32 `json:"custom_uint32,omitempty"`
+	// CustomUint64 holds the value of the "custom_uint64" field.
+	CustomUint64 gotypes.CustomUInt64 `json:"custom_uint64,omitempty"`
+	// CustomFloat32 holds the value of the "custom_float32" field.
+	CustomFloat32 gotypes.CustomFloat32 `json:"custom_float32,omitempty"`
+	// CustomFloat64 holds the value of the "custom_float64" field.
+	CustomFloat64 gotypes.CustomFloat64 `json:"custom_float64,omitempty"`
+	// CustomString holds the value of the "custom_string" field.
+	CustomString gotypes.CustomString `json:"custom_string,omitempty"`
+	// CustomBool holds the value of the "custom_bool" field.
+	CustomBool gotypes.CustomBool `json:"custom_bool,omitempty"`
 	// DeviceType holds the value of the "device_type" field.
 	DeviceType user.DeviceType `json:"device_type,omitempty"`
 	// OmitPrefix holds the value of the "omit_prefix" field.
@@ -170,13 +199,13 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
-		case user.FieldBanned, user.FieldOptBool:
+		case user.FieldBanned, user.FieldOptBool, user.FieldCustomBool:
 			values[i] = new(sql.NullBool)
-		case user.FieldHeightInCm, user.FieldAccountBalance:
+		case user.FieldHeightInCm, user.FieldAccountBalance, user.FieldCustomFloat32, user.FieldCustomFloat64:
 			values[i] = new(sql.NullFloat64)
-		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1:
+		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1, user.FieldCustomInt, user.FieldCustomInt8, user.FieldCustomInt16, user.FieldCustomInt32, user.FieldCustomInt64, user.FieldCustomUint, user.FieldCustomUint8, user.FieldCustomUint16, user.FieldCustomUint32, user.FieldCustomUint64:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType, user.FieldOmitPrefix, user.FieldMimeType:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldCustomString, user.FieldDeviceType, user.FieldOmitPrefix, user.FieldMimeType:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -353,6 +382,90 @@ func (u *User) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field uint64s: %w", err)
 				}
 			}
+		case user.FieldCustomInt:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_int", values[i])
+			} else if value.Valid {
+				u.CustomInt = gotypes.CustomInt(value.Int64)
+			}
+		case user.FieldCustomInt8:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_int8", values[i])
+			} else if value.Valid {
+				u.CustomInt8 = gotypes.CustomInt8(value.Int64)
+			}
+		case user.FieldCustomInt16:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_int16", values[i])
+			} else if value.Valid {
+				u.CustomInt16 = gotypes.CustomInt16(value.Int64)
+			}
+		case user.FieldCustomInt32:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_int32", values[i])
+			} else if value.Valid {
+				u.CustomInt32 = gotypes.CustomInt32(value.Int64)
+			}
+		case user.FieldCustomInt64:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_int64", values[i])
+			} else if value.Valid {
+				u.CustomInt64 = gotypes.CustomInt64(value.Int64)
+			}
+		case user.FieldCustomUint:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_uint", values[i])
+			} else if value.Valid {
+				u.CustomUint = gotypes.CustomUInt(value.Int64)
+			}
+		case user.FieldCustomUint8:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_uint8", values[i])
+			} else if value.Valid {
+				u.CustomUint8 = gotypes.CustomUInt8(value.Int64)
+			}
+		case user.FieldCustomUint16:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_uint16", values[i])
+			} else if value.Valid {
+				u.CustomUint16 = gotypes.CustomUInt16(value.Int64)
+			}
+		case user.FieldCustomUint32:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_uint32", values[i])
+			} else if value.Valid {
+				u.CustomUint32 = gotypes.CustomUInt32(value.Int64)
+			}
+		case user.FieldCustomUint64:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_uint64", values[i])
+			} else if value.Valid {
+				u.CustomUint64 = gotypes.CustomUInt64(value.Int64)
+			}
+		case user.FieldCustomFloat32:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_float32", values[i])
+			} else if value.Valid {
+				u.CustomFloat32 = gotypes.CustomFloat32(value.Float64)
+			}
+		case user.FieldCustomFloat64:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_float64", values[i])
+			} else if value.Valid {
+				u.CustomFloat64 = gotypes.CustomFloat64(value.Float64)
+			}
+		case user.FieldCustomString:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_string", values[i])
+			} else if value.Valid {
+				u.CustomString = gotypes.CustomString(value.String)
+			}
+		case user.FieldCustomBool:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field custom_bool", values[i])
+			} else if value.Valid {
+				u.CustomBool = gotypes.CustomBool(value.Bool)
+			}
 		case user.FieldDeviceType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field device_type", values[i])
@@ -507,6 +620,48 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("uint64s=")
 	builder.WriteString(fmt.Sprintf("%v", u.Uint64s))
+	builder.WriteString(", ")
+	builder.WriteString("custom_int=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomInt))
+	builder.WriteString(", ")
+	builder.WriteString("custom_int8=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomInt8))
+	builder.WriteString(", ")
+	builder.WriteString("custom_int16=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomInt16))
+	builder.WriteString(", ")
+	builder.WriteString("custom_int32=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomInt32))
+	builder.WriteString(", ")
+	builder.WriteString("custom_int64=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomInt64))
+	builder.WriteString(", ")
+	builder.WriteString("custom_uint=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomUint))
+	builder.WriteString(", ")
+	builder.WriteString("custom_uint8=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomUint8))
+	builder.WriteString(", ")
+	builder.WriteString("custom_uint16=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomUint16))
+	builder.WriteString(", ")
+	builder.WriteString("custom_uint32=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomUint32))
+	builder.WriteString(", ")
+	builder.WriteString("custom_uint64=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomUint64))
+	builder.WriteString(", ")
+	builder.WriteString("custom_float32=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomFloat32))
+	builder.WriteString(", ")
+	builder.WriteString("custom_float64=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomFloat64))
+	builder.WriteString(", ")
+	builder.WriteString("custom_string=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomString))
+	builder.WriteString(", ")
+	builder.WriteString("custom_bool=")
+	builder.WriteString(fmt.Sprintf("%v", u.CustomBool))
 	builder.WriteString(", ")
 	builder.WriteString("device_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceType))
