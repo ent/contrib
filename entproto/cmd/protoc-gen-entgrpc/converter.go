@@ -102,7 +102,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		case efld.IsString():
 			out.ToEntScannerConversion = "string"
 		}
-	case efld.Type.Numeric() && efld.HasGoType():
+	case efld.HasGoType() && (efld.Type.Numeric() || efld.Type.Type == field.TypeBool || efld.Type.Type == field.TypeString):
 		// Ident returned from ent already has the packagename prefixed. Strip it since `g.QualifiedGoIdent`
 		// adds it back.
 		split := strings.Split(efld.Type.Ident, ".")
