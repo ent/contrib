@@ -18,7 +18,7 @@ import (
 )
 
 {{- range $n := mutationInputs $.Nodes }}
-    {{- $names := nodePaginationNames $n.Type }}
+    {{- $names := nodePaginationNames $n.Type true }}
     {{- $input := $n.Input }}
     {{- $fields := $n.InputFields }}
     {{- $edges := $n.InputEdges }}

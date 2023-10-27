@@ -113,7 +113,7 @@ func hasCollectedField(ctx context.Context, path ...string) bool {
 }
 
 const (
-	{{- range $field := list "edges" "nodes" "node" "pageInfo" "totalCount" }}
+	{{- range $field := list "edges" "items" "node" "pageInfo" "totalCount" }}
 		{{ $field }}Field = "{{ $field }}"
 	{{- end }}
 )
@@ -131,7 +131,7 @@ func paginateLimit(first, last *int) int {
 {{ range $node := $gqlNodes -}}
 {{ $orderFields := orderFields $node }}
 
-{{ $names := nodePaginationNames $node -}}
+{{ $names := nodePaginationNames $node true -}}
 {{ $name := $names.Node -}}
 
 {{- if not (eq $name $node.Name) }}
@@ -150,7 +150,7 @@ type {{ $edge }} struct {
 // {{ $conn }} is the connection containing edges to {{ $name }}.
 type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
-	Nodes []*{{ $name }} `json:"nodes"`
+	Items []*{{ $name }} `json:"items"`
 	PageInfo PageInfo    `json:"pageInfo"`
 	TotalCount int       `json:"totalCount"`
 }
@@ -159,7 +159,7 @@ type {{ $conn }} struct {
 {{ $multiOrder := $node.Annotations.EntGQL.MultiOrder }}
 
 func (c *{{ $conn }}) build(nodes []*{{ $name }}, pager *{{ $pager }}, after *Cursor, first *int, before *Cursor, last *int, withPageInfo bool) {
-	c.Nodes = nodes
+	c.Items = nodes
 	c.Edges = make([]*{{ $edge }}, len(nodes))
 	if withPageInfo {
 		c.PageInfo.HasNextPage = before != nil
@@ -643,7 +643,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 {{ define "gql_pagination/helper/paginate" }}
 	{{- $node := $.Scope.Node }}
 	{{- $r := $.Scope.Query }}
-	{{- $names := nodePaginationNames $node }}
+	{{- $names := nodePaginationNames $node true }}
 	{{- $name := $names.Node }}
 	{{- $order := $names.Order }}
 	{{- $edge := $names.Edge }}
@@ -688,8 +688,8 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 			return nil, err
 		}
 	}
-	if field := collectedField(ctx, nodesField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{nodesField}); err != nil {
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -705,7 +705,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 {{ define "gql_pagination/helper/paginate_limit_offset" }}
 	{{- $node := $.Scope.Node }}
 	{{- $r := $.Scope.Query }}
-	{{- $names := nodePaginationNames $node }}
+	{{- $names := nodePaginationNames $node true }}
 	{{- $name := $names.Node }}
 	{{- $order := $names.Order }}
 	{{- $edge := $names.Edge }}
@@ -724,7 +724,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	}
 	{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
 	conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
-	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, nodesField)
+	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
 	if hasCollectedField(ctx, totalCountField) {
 		hasPagination := limit != nil || offset != nil
 		if hasPagination || ignoredEdges {
@@ -748,8 +748,8 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 			return nil, err
 		}
 	}
-	if field := collectedField(ctx, nodesField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{nodesField}); err != nil {
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}

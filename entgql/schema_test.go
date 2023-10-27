@@ -38,7 +38,7 @@ func TestEntGQL_buildTypes(t *testing.T) {
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
-	err = plugin.buildTypes(graph, schema)
+	err = plugin.buildTypes(graph, schema, true)
 	require.NoError(t, err)
 	schemaExpect, err := os.ReadFile("./testdata/schema.graphql")
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
-	err = plugin.buildTypes(graph, schema)
+	err = plugin.buildTypes(graph, schema, true)
 	require.NoError(t, err)
 	schemaExpect, err := os.ReadFile("./testdata/schema_relay.graphql")
 	require.NoError(t, err)

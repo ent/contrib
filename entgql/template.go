@@ -393,7 +393,7 @@ func (o *OrderTerm) IsEdgeCountTerm() bool {
 
 // VarName returns the name of the variable holding the order term.
 func (o *OrderTerm) VarName() (string, error) {
-	switch prefix := paginationNames(o.Type.Name).OrderField; {
+	switch prefix := paginationNames(o.Type.Name, false).OrderField; {
 	case o.IsFieldTerm():
 		return prefix + o.Field.StructField(), nil
 	case o.IsEdgeFieldTerm():
@@ -549,11 +549,40 @@ type PaginationNames struct {
 	Order      string
 	OrderField string
 	WhereInput string
+	GenEdges   bool
 }
 
 func (p *PaginationNames) TypeDefs() []*ast.Definition {
-	return []*ast.Definition{
+	listFields := []*ast.FieldDefinition{
 		{
+			Name:        "totalCount",
+			Type:        ast.NonNullNamedType("Int", nil),
+			Description: "Identifies the total count of data items.",
+		},
+		{
+			Name:        "items",
+			Type:        ast.NonNullListType(ast.NamedType(p.Node, nil), nil),
+			Description: "The list of data items.",
+		},
+	}
+	if p.GenEdges {
+		listFields = append(listFields, &ast.FieldDefinition{
+			Name:        "edges",
+			Type:        ast.ListType(ast.NamedType(p.Edge, nil), nil),
+			Description: "The list of edges where each edge holds a data node and possibly metadata.",
+		})
+	}
+
+	res := []*ast.Definition{
+		{
+			Name:        p.Connection,
+			Kind:        ast.Object,
+			Description: "A connection to a list of items.",
+			Fields:      listFields,
+		},
+	}
+	if p.GenEdges {
+		res = append(res, &ast.Definition{
 			Name:        p.Edge,
 			Kind:        ast.Object,
 			Description: "An edge in a connection.",
@@ -563,41 +592,11 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 					Type:        ast.NamedType(p.Node, nil),
 					Description: "The item at the end of the edge.",
 				},
-				/*{
-					Name:        "cursor",
-					Type:        ast.NonNullNamedType(RelayCursor, nil),
-					Description: "A cursor for use in pagination.",
-				},*/
 			},
-		},
-		{
-			Name:        p.Connection,
-			Kind:        ast.Object,
-			Description: "A connection to a list of items.",
-			Fields: []*ast.FieldDefinition{
-				{
-					Name:        "edges",
-					Type:        ast.ListType(ast.NamedType(p.Edge, nil), nil),
-					Description: "The list of edges where each edge holds a data node and possibly metadata.",
-				},
-				{
-					Name:        "nodes",
-					Type:        ast.ListType(ast.NamedType(p.Node, nil), nil),
-					Description: "Shortcut to the data nodes of all edges.",
-				},
-				/*{
-					Name:        "pageInfo",
-					Type:        ast.NonNullNamedType(RelayPageInfo, nil),
-					Description: "Information to aid in pagination.",
-				},*/
-				{
-					Name:        "totalCount",
-					Type:        ast.NonNullNamedType("Int", nil),
-					Description: "Identifies the total count of items in the connection.",
-				},
-			},
-		},
+		})
 	}
+
+	return res
 }
 
 func (p *PaginationNames) OrderInputDef() *ast.Definition {
@@ -627,7 +626,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, hasWhereInput bool) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
 		Name: name,
-		Type: ast.NonNullNamedType(p.Connection, nil),
+		Type: ast.NamedType(p.Connection, nil),
 		Arguments: ast.ArgumentDefinitionList{
 			{
 				Name:        "limit",
@@ -703,23 +702,24 @@ func gqlTypeFromNode(t *gen.Type) (gqlType string, ant *Annotation, err error) {
 }
 
 // nodePaginationNames returns the names of the pagination types for the node.
-func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
+func nodePaginationNames(t *gen.Type, genEdges bool) (*PaginationNames, error) {
 	node, _, err := gqlTypeFromNode(t)
 	if err != nil {
 		return nil, err
 	}
 
-	return paginationNames(node), nil
+	return paginationNames(node, genEdges), nil
 }
 
-func paginationNames(node string) *PaginationNames {
+func paginationNames(node string, genEdges bool) *PaginationNames {
 	return &PaginationNames{
-		Connection: fmt.Sprintf("%sConnection", node),
+		Connection: fmt.Sprintf("%sList", node),
 		Edge:       fmt.Sprintf("%sEdge", node),
 		Node:       node,
 		Order:      fmt.Sprintf("%sOrder", node),
 		OrderField: fmt.Sprintf("%sOrderField", node),
 		WhereInput: fmt.Sprintf("%sWhereInput", node),
+		GenEdges:   genEdges,
 	}
 }
 

@@ -100,6 +100,7 @@ type schemaGenerator struct {
 	genSchema     bool
 	genWhereInput bool
 	genMutations  bool
+	genEdges      bool
 
 	cfg         *config.Config
 	scalarFunc  func(*gen.Field, gen.Op) string
@@ -119,7 +120,7 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 			s.Directives[name] = d
 		}
 	}
-	if err := e.buildTypes(g, s); err != nil {
+	if err := e.buildTypes(g, s, e.genEdges); err != nil {
 		return nil, err
 	}
 
@@ -131,7 +132,7 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 	return s, nil
 }
 
-func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
+func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema, genEdges bool) error {
 	var queryFields ast.FieldList
 	if e.relaySpec {
 		queryFields = relayBuiltinQueryFields()
@@ -145,7 +146,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 		if err != nil {
 			return err
 		}
-		names := paginationNames(gqlType)
+		names := paginationNames(gqlType, genEdges)
 
 		if e.genSchema && !ant.Skip.Is(SkipType) && !ant.Skip.Is(SkipTypeWithoutFields) {
 			def, err := e.buildType(node, ant, gqlType, g.Package)
@@ -230,7 +231,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 		}
 
 		if e.genWhereInput && !ant.Skip.Is(SkipWhereInput) {
-			def, err := e.buildWhereInput(node, gqlType, names.WhereInput)
+			def, err := e.buildWhereInput(node, gqlType, names.WhereInput, genEdges)
 			if err != nil {
 				return err
 			}
@@ -447,7 +448,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 				return nil, fmt.Errorf("entgql.RelayConnection() must be set on entity %q in order to define %q.%q as Relay Connection", edge.Type.Name, node.Name, edge.Name)
 			}
 
-			fieldDef = paginationNames(gqlType).
+			fieldDef = paginationNames(gqlType, e.genEdges).
 				ConnectionField(name, len(orderFields) > 0, ant.MultiOrder,
 					e.genWhereInput && !edgeAnt.Skip.Is(SkipWhereInput) && !ant.Skip.Is(SkipWhereInput),
 				)
@@ -466,7 +467,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 }
 
 // buildWhereInput returns the <T>WhereInput to the given schema type (e.g. User -> UserWhereInput).
-func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType string) (*ast.Definition, error) {
+func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType string, genEdges bool) (*ast.Definition, error) {
 	def := &ast.Definition{
 		Name:        gqlType,
 		Kind:        ast.InputObject,
@@ -515,7 +516,7 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 		return nil, err
 	}
 	for _, e := range edges {
-		names, err := nodePaginationNames(e.Type)
+		names, err := nodePaginationNames(e.Type, genEdges)
 		if err != nil {
 			return nil, err
 		}
@@ -953,7 +954,7 @@ https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo`,
 }
 
 func relayConnectionTypes(t *gen.Type) ([]*ast.Definition, error) {
-	pagination, err := nodePaginationNames(t)
+	pagination, err := nodePaginationNames(t, true)
 	if err != nil {
 		return nil, err
 	}

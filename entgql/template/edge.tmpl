@@ -53,7 +53,7 @@ import (
 	{{ $n := $.Scope.Node }}
 	{{ $e := $.Scope.Edge }}
 	{{ $i := $.Scope.Index }}
-	{{ $names := nodePaginationNames $e.Type }}
+	{{ $names := nodePaginationNames $e.Type true }}
 	{{ $order := $names.Order }}
 	{{ $multiOrder := $e.Type.Annotations.EntGQL.MultiOrder }}
 	{{ $whereInput := $names.WhereInput }}
