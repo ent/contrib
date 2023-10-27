@@ -131,7 +131,7 @@ func paginateLimit(first, last *int) int {
 {{ range $node := $gqlNodes -}}
 {{ $orderFields := orderFields $node }}
 
-{{ $names := nodePaginationNames $node true -}}
+{{ $names := nodePaginationNames $node false -}}
 {{ $name := $names.Node -}}
 
 {{- if not (eq $name $node.Name) }}
@@ -643,7 +643,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 {{ define "gql_pagination/helper/paginate" }}
 	{{- $node := $.Scope.Node }}
 	{{- $r := $.Scope.Query }}
-	{{- $names := nodePaginationNames $node true }}
+	{{- $names := nodePaginationNames $node false }}
 	{{- $name := $names.Node }}
 	{{- $order := $names.Order }}
 	{{- $edge := $names.Edge }}
@@ -705,7 +705,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 {{ define "gql_pagination/helper/paginate_limit_offset" }}
 	{{- $node := $.Scope.Node }}
 	{{- $r := $.Scope.Query }}
-	{{- $names := nodePaginationNames $node true }}
+	{{- $names := nodePaginationNames $node false }}
 	{{- $name := $names.Node }}
 	{{- $order := $names.Order }}
 	{{- $edge := $names.Edge }}
