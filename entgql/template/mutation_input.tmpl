@@ -30,27 +30,27 @@ import (
     type {{ $input }} struct {
         {{- range $f := $fields }}
             {{- if $f.ClearOp }}
-                {{ print "Clear" $f.StructField }} bool
+                {{ print "Clear" $f.StructField }} bool `json:clear{{ $f.Name | pascal }}`
             {{- end }}
-            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:{{ $f.Name | camel }}`
             {{- if $f.AppendOp }}
-                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:append{{ $f.Name | pascal }}`
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
             {{- if and (not $n.IsCreate) $e.Optional }}
-                {{ $e.MutationClear }} bool
+                {{ $e.MutationClear }} bool `json:clear{{ $e.Name | pascal }}`
             {{- end }}
             {{- if $e.Unique }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
-                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} `json:{{ $e.Name | camel }}ID`
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
-                    {{ $structField }} []{{ $e.Type.ID.Type }}
+                    {{ $structField }} []{{ $e.Type.ID.Type }} `json:{{ singular $e.Name | camel }}IDs`
                 {{- else }}
-                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }}
-                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }}
+                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} `json:{{ $e.MutationAdd | decap }}`
+                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} `json:{{ $e.MutationRemove | decap }}`
                 {{- end }}
             {{- end }}
         {{- end }}
