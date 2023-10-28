@@ -178,8 +178,6 @@ type fieldCollection struct {
 //
 //	FullName  => fullName
 //	ID  => iD
-//	user_id    => userID
-//	full-admin => fullAdmin
 func decap(s string) string {
 	var (
 		b strings.Builder
