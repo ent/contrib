@@ -77,8 +77,8 @@ var (
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"fieldNamesForField":               fieldNamesForField,
-		"fieldNamesForEdge":               fieldNamesForEdge,
+		"fieldNamesForField":  fieldNamesForField,
+		"fieldNamesForEdge":   fieldNamesForEdge,
 		"fieldCollections":    fieldCollections,
 		"fieldMapping":        fieldMapping,
 		"filterEdges":         filterEdges,
