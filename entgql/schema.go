@@ -99,7 +99,6 @@ type schemaGenerator struct {
 	genSchema     bool
 	genWhereInput bool
 	genMutations  bool
-	genJsonTags   bool
 
 	cfg         *config.Config
 	scalarFunc  func(*gen.Field, gen.Op) string
@@ -536,34 +535,34 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 }
 
 type FieldFieldNames struct {
-	Field string
+	Field  string
 	Append string
-	Clear string
+	Clear  string
 }
 
 func fieldNamesForField(f *InputFieldDescriptor) FieldFieldNames {
-	return FieldFieldNames {
-		Field: camel(f.Name),
+	return FieldFieldNames{
+		Field:  camel(f.Name),
 		Append: "append" + f.StructField(),
-		Clear: "clear" + f.StructField() ,
+		Clear:  "clear" + f.StructField(),
 	}
 }
 
 type EdgeFieldNames struct {
-	Clear string
-	Add string
+	Clear  string
+	Add    string
 	Remove string
 	Create string
 	Unique string
 }
 
 func fieldNamesForEdge(e *gen.Edge) EdgeFieldNames {
-	return EdgeFieldNames {
+	return EdgeFieldNames{
 		Unique: camel(e.Name) + "ID",
 		Create: camel(singular(e.Name)) + "IDs",
-		Add: "add" + pascal(singular(e.Name)) + "IDs",
+		Add:    "add" + pascal(singular(e.Name)) + "IDs",
 		Remove: "remove" + pascal(singular(e.Name)) + "IDs",
-		Clear: camel(snake(e.MutationClear())),
+		Clear:  camel(snake(e.MutationClear())),
 	}
 }
 
