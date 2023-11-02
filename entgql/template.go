@@ -25,7 +25,6 @@ import (
 	"strings"
 	"text/template"
 	"text/template/parse"
-	"unicode"
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
@@ -173,25 +172,6 @@ func gqlUnmarshaler(f *gen.Field) bool {
 type fieldCollection struct {
 	Edge    *gen.Edge
 	Mapping []string
-}
-
-// decap takes a string and decapitalizes the first letter
-//
-//	FullName  => fullName
-//	ID  => iD
-func decap(s string) string {
-	var (
-		b strings.Builder
-	)
-	for i := 0; i < len(s); i++ {
-		r := rune(s[i])
-		if i == 0 {
-			b.WriteRune(unicode.ToLower(r))
-		} else {
-			b.WriteRune(r)
-		}
-	}
-	return b.String()
 }
 
 func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
