@@ -29,28 +29,30 @@ import (
     {{- end }}
     type {{ $input }} struct {
         {{- range $f := $fields }}
+            {{- $fieldNames := fieldNamesForField $f }}
             {{- if $f.ClearOp }}
-                {{ print "Clear" $f.StructField }} bool `json:clear{{ $f.Name | pascal }}`
+                {{ print "Clear" $f.StructField }} bool `json:{{ $fieldNames.Clear }}`
             {{- end }}
-            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:{{ $f.Name | camel }}`
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:{{ $fieldNames.Field }}`
             {{- if $f.AppendOp }}
-                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:append{{ $f.Name | pascal }}`
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:{{ $fieldNames.Append }}`
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
+            {{- $fieldNames := fieldNamesForEdge $e }}
             {{- if and (not $n.IsCreate) $e.Optional }}
-                {{ $e.MutationClear }} bool `json:clear{{ $e.Name | pascal }}`
+                {{ $e.MutationClear }} bool `json:{{ $fieldNames.Clear }}`
             {{- end }}
             {{- if $e.Unique }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
-                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} `json:{{ $e.Name | camel }}ID`
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Unique }}`
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
-                    {{ $structField }} []{{ $e.Type.ID.Type }} `json:{{ singular $e.Name | camel }}IDs`
+                    {{ $structField }} []{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Create }}`
                 {{- else }}
-                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} `json:{{ $e.MutationAdd | decap }}`
-                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} `json:{{ $e.MutationRemove | decap }}`
+                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Add }}`
+                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Remove }}`
                 {{- end }}
             {{- end }}
         {{- end }}

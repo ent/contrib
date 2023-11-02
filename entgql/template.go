@@ -78,7 +78,8 @@ var (
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"decap":               decap,
+		"fieldNamesForField":               fieldNamesForField,
+		"fieldNamesForEdge":               fieldNamesForEdge,
 		"fieldCollections":    fieldCollections,
 		"fieldMapping":        fieldMapping,
 		"filterEdges":         filterEdges,
@@ -252,6 +253,14 @@ type InputFieldDescriptor struct {
 	ClearOp bool
 	// Nullable indicates if the field is nullable.
 	Nullable bool
+}
+
+type OperationNames struct {
+
+}
+
+func (f *InputFieldDescriptor) GetOperationNames() OperationNames {
+	return f.Nullable
 }
 
 // IsPointer returns true if the Go type should be a pointer
@@ -711,6 +720,8 @@ func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 
 	return paginationNames(node), nil
 }
+
+func operationNames()
 
 func paginationNames(node string) *PaginationNames {
 	return &PaginationNames{

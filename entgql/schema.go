@@ -534,6 +534,38 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 	return def, nil
 }
 
+type FieldFieldNames struct {
+	Field string
+	Append string
+	Clear string
+}
+
+func fieldNamesForField(f *InputFieldDescriptor) FieldFieldNames {
+	return FieldFieldNames {
+		Field: camel(f.Name),
+		Append: "append" + f.StructField(),
+		Clear: "clear" + f.StructField() ,
+	}
+}
+
+type EdgeFieldNames struct {
+	Clear string
+	Add string
+	Remove string
+	Create string
+	Unique string
+}
+
+func fieldNamesForEdge(e *gen.Edge) EdgeFieldNames {
+	return EdgeFieldNames {
+		Unique: camel(e.Name) + "ID",
+		Create: camel(singular(e.Name)) + "IDs",
+		Add: "add" + pascal(singular(e.Name)) + "IDs",
+		Remove: "remove" + pascal(singular(e.Name)) + "IDs",
+		Clear: camel(snake(e.MutationClear())),
+	}
+}
+
 func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlType string) ([]*ast.Definition, error) {
 	var defs []*ast.Definition
 
@@ -575,49 +607,51 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
+			fieldNames := fieldNamesForField(f)
 			def.Fields = append(def.Fields, &ast.FieldDefinition{
-				Name:        camel(f.Name),
+				Name:        fieldNames.Field,
 				Type:        namedType(scalar, f.Nullable),
 				Description: f.Comment(),
 			})
 			if f.AppendOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "append" + f.StructField(),
+					Name: fieldNames.Append,
 					Type: namedType(scalar, true),
 				})
 			}
 			if f.ClearOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "clear" + f.StructField(),
+					Name: fieldNames.Clear,
 					Type: namedType("Boolean", true),
 				})
 			}
 		}
 
 		for _, e := range edges {
+			fieldNames := fieldNamesForEdge(e)
 			switch {
 			case e.Unique:
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: camel(e.Name) + "ID",
+					Name: fieldNames.Unique,
 					Type: namedType("ID", !i.IsCreate || e.Optional),
 				})
 			case i.IsCreate:
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: camel(singular(e.Name)) + "IDs",
+					Name: fieldNames.Create,
 					Type: namedType("[ID!]", e.Optional),
 				})
 			default:
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "add" + pascal(singular(e.Name)) + "IDs",
+					Name: fieldNames.Add,
 					Type: namedType("[ID!]", true),
 				}, &ast.FieldDefinition{
-					Name: "remove" + pascal(singular(e.Name)) + "IDs",
+					Name: fieldNames.Remove,
 					Type: namedType("[ID!]", true),
 				})
 			}
 			if !i.IsCreate && e.Optional {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: camel(snake(e.MutationClear())),
+					Name: fieldNames.Clear,
 					Type: namedType("Boolean", true),
 				})
 			}
