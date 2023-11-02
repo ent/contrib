@@ -31,28 +31,28 @@ import (
         {{- range $f := $fields }}
             {{- $fieldNames := fieldNamesForField $f }}
             {{- if $f.ClearOp }}
-                {{ print "Clear" $f.StructField }} bool {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Clear }}`{{ end }}
+                {{ print "Clear" $f.StructField }} bool {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Clear }}`{{ end }}
             {{- end }}
-            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Field }}`{{ end }}
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Field }}`{{ end }}
             {{- if $f.AppendOp }}
-                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Append }}`{{ end }}
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Append }}`{{ end }}
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
             {{- $fieldNames := fieldNamesForEdge $e }}
             {{- if and (not $n.IsCreate) $e.Optional }}
-                {{ $e.MutationClear }} bool `json:{{ $fieldNames.Clear }}`
+                {{ $e.MutationClear }} bool {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Clear }}`{{ end }}
             {{- end }}
             {{- if $e.Unique }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
-                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Unique }}`{{ end }}
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Unique }}`{{ end }}
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
-                    {{ $structField }} []{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Create }}`{{ end }}
+                    {{ $structField }} []{{ $e.Type.ID.Type }} {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Create }}`{{ end }}
                 {{- else }}
-                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Add }}`{{ end }}
-                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Remove }}`{{ end }}
+                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Add }}`{{ end }}
+                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} {{- if $.FeatureEnabled "jsontags" }} `json:{{ $fieldNames.Remove }}`{{ end }}
                 {{- end }}
             {{- end }}
         {{- end }}
