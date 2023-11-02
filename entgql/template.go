@@ -235,14 +235,6 @@ type InputFieldDescriptor struct {
 	Nullable bool
 }
 
-type OperationNames struct {
-
-}
-
-func (f *InputFieldDescriptor) GetOperationNames() OperationNames {
-	return f.Nullable
-}
-
 // IsPointer returns true if the Go type should be a pointer
 func (f *InputFieldDescriptor) IsPointer() bool {
 	if f.Type.Nillable || f.Type.RType.IsPtr() {
@@ -700,8 +692,6 @@ func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 
 	return paginationNames(node), nil
 }
-
-func operationNames()
 
 func paginationNames(node string) *PaginationNames {
 	return &PaginationNames{
