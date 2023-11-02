@@ -31,11 +31,11 @@ import (
         {{- range $f := $fields }}
             {{- $fieldNames := fieldNamesForField $f }}
             {{- if $f.ClearOp }}
-                {{ print "Clear" $f.StructField }} bool `json:{{ $fieldNames.Clear }}`
+                {{ print "Clear" $f.StructField }} bool {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Clear }}`{{ end }}
             {{- end }}
-            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:{{ $fieldNames.Field }}`
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Field }}`{{ end }}
             {{- if $f.AppendOp }}
-                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} `json:{{ $fieldNames.Append }}`
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Append }}`{{ end }}
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
@@ -45,14 +45,14 @@ import (
             {{- end }}
             {{- if $e.Unique }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
-                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Unique }}`
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Unique }}`{{ end }}
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
-                    {{ $structField }} []{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Create }}`
+                    {{ $structField }} []{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Create }}`{{ end }}
                 {{- else }}
-                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Add }}`
-                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} `json:{{ $fieldNames.Remove }}`
+                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Add }}`{{ end }}
+                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} {{- if shouldGenJsonTags }} `json:{{ $fieldNames.Remove }}`{{ end }}
                 {{- end }}
             {{- end }}
         {{- end }}

@@ -99,6 +99,7 @@ type schemaGenerator struct {
 	genSchema     bool
 	genWhereInput bool
 	genMutations  bool
+	genJsonTags   bool
 
 	cfg         *config.Config
 	scalarFunc  func(*gen.Field, gen.Op) string

@@ -139,6 +139,17 @@ func WithWhereInputs(b bool) ExtensionOption {
 	}
 }
 
+// WithJsonTags configures the extension to either add or
+// remove the `json:` tags from the code generation templates.
+//
+// The WhereTemplate generates GraphQL filters to all types in the ent/schema.
+func WithJsonTags(b bool) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.genJsonTags = b
+		return nil
+	}
+}
+
 // WithNodeDescriptor configures the extension to either add or
 // remove the NodeDescriptorTemplate from the code generation templates.
 //
@@ -272,6 +283,12 @@ func (e *Extension) hasTemplate(tem *gen.Template) (int, bool) {
 		}
 	}
 	return -1, false
+}
+
+// shouldGenJsonTags reports if JSON tags have
+// been configured for output.
+func (e *Extension) shouldGenJsonTags() (bool) {
+	return e.genJsonTags
 }
 
 var (
