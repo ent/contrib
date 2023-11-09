@@ -38,6 +38,8 @@ type (
 		Mapping []string `json:"Mapping,omitempty"`
 		// Type is the underlying GraphQL type name (e.g. Boolean).
 		Type string `json:"Type,omitempty"`
+		// TypeDescription is the description of the Type object.
+		TypeDescription string `json:"TypeDescription,omitempty"`
 		// Skip exclude the type
 		Skip SkipMode `json:"Skip,omitempty"`
 		// RelayConnection enables the Relay Connection specification for the entity.
@@ -209,6 +211,20 @@ func MapsTo(names ...string) Annotation {
 //		)
 func Type(name string) Annotation {
 	return Annotation{Type: name}
+}
+
+// TypeDescription returns a type description annotation.
+// The TypeDescription() annotation is used to add a description for the GraphQL type.
+//
+// # To add a description for a type
+//
+//	func (ProcessPlan) Annotations() []schema.Annotation {
+//	   return []schema.Annotation{
+//	      entgql.TypeComment("This comment should appear in the generated ent.graphqls"),
+//	   }
+//	}
+func TypeDescription(description string) Annotation {
+	return Annotation{TypeDescription: description}
 }
 
 // Skip returns a skip annotation.
@@ -464,6 +480,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.Type != "" {
 		a.Type = ant.Type
+	}
+	if ant.TypeDescription != "" {
+		a.TypeDescription = ant.TypeDescription
 	}
 	if ant.Skip.Any() {
 		a.Skip |= ant.Skip
