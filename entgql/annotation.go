@@ -214,13 +214,14 @@ func Type(name string) Annotation {
 }
 
 // TypeDescription returns a type description annotation.
-// The TypeDescription() annotation is used to add a description for the GraphQL type.
+// TypeDescription annotation is used to add a descriptive comment to a GraphQL type.
 //
-// # To add a description for a type
+// The below example adds a description to the 'ProcessPlan' type in the GraphQL schema.
+// Example:
 //
 //	func (ProcessPlan) Annotations() []schema.Annotation {
 //	   return []schema.Annotation{
-//	      entgql.TypeComment("This comment should appear in the generated ent.graphqls"),
+//	      entgql.TypeDescription("ProcessPlan represents the planning phase of a processing pipeline."),
 //	   }
 //	}
 func TypeDescription(description string) Annotation {
