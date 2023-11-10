@@ -1,17 +1,3 @@
-// Copyright 2019-present Facebook
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package todo
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
@@ -20,7 +6,6 @@ package todo
 import (
 	"context"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
 )
 
@@ -36,39 +21,41 @@ func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, e
 	return r.client.BillProduct.Query().All(ctx)
 }
 
-func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
+func (r *queryResolver) Categories(ctx context.Context, limit *int, offset *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryList, error) {
 	return r.client.Category.Query().
-		Paginate(ctx, after, first, before, last,
+		PaginateLimitOffset(ctx, limit, offset,
 			ent.WithCategoryOrder(orderBy),
 			ent.WithCategoryFilter(where.Filter),
 		)
 }
 
-func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
+func (r *queryResolver) Groups(ctx context.Context, limit *int, offset *int, where *ent.GroupWhereInput) (*ent.GroupList, error) {
 	return r.client.Group.Query().
-		Paginate(ctx, after, first, before, last,
+		PaginateLimitOffset(ctx, limit, offset,
 			ent.WithGroupFilter(where.Filter),
 		)
 }
 
-func (r *queryResolver) OneToMany(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.OneToManyOrder, where *ent.OneToManyWhereInput) (*ent.OneToManyConnection, error) {
+func (r *queryResolver) OneToMany(ctx context.Context, limit *int, offset *int, orderBy *ent.OneToManyOrder, where *ent.OneToManyWhereInput) (*ent.OneToManyList, error) {
 	return r.client.OneToMany.Query().
-		Paginate(ctx, after, first, before, last,
+		PaginateLimitOffset(ctx, limit, offset,
+			ent.WithOneToManyOrder(orderBy),
 			ent.WithOneToManyFilter(where.Filter),
 		)
 }
 
-func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+func (r *queryResolver) Todos(ctx context.Context, limit *int, offset *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoList, error) {
 	return r.client.Todo.Query().
-		Paginate(ctx, after, first, before, last,
+		PaginateLimitOffset(ctx, limit, offset,
 			ent.WithTodoOrder(orderBy),
 			ent.WithTodoFilter(where.Filter),
 		)
 }
 
-func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+func (r *queryResolver) Users(ctx context.Context, limit *int, offset *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserList, error) {
 	return r.client.User.Query().
-		Paginate(ctx, after, first, before, last,
+		PaginateLimitOffset(ctx, limit, offset,
+			ent.WithUserOrder(orderBy),
 			ent.WithUserFilter(where.Filter),
 		)
 }
