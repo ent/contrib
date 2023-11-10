@@ -89,21 +89,19 @@ func TestSchema_relayConnectionTypes(t *testing.T) {
 					Name: "Todo",
 				},
 			},
-			want: `"""A connection to a list of items."""
-type TodoConnection {
-  """A list of edges."""
-  edges: [TodoEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
-  totalCount: Int!
-}
-"""An edge in a connection."""
+			want: `"""An edge in a connection."""
 type TodoEdge {
   """The item at the end of the edge."""
   node: Todo
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+}
+"""A connection to a list of items."""
+type TodoList {
+  """Identifies the total count of data items."""
+  totalCount: Int!
+  """The list of data items."""
+  items: [Todo]!
+  """The list of edges where each edge holds a data node and possibly metadata."""
+  edges: [TodoEdge]
 }
 `,
 		},
@@ -119,21 +117,19 @@ type TodoEdge {
 					},
 				},
 			},
-			want: `"""A connection to a list of items."""
-type SuperTodoConnection {
-  """A list of edges."""
-  edges: [SuperTodoEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
-  totalCount: Int!
-}
-"""An edge in a connection."""
+			want: `"""An edge in a connection."""
 type SuperTodoEdge {
   """The item at the end of the edge."""
   node: SuperTodo
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+}
+"""A connection to a list of items."""
+type SuperTodoList {
+  """Identifies the total count of data items."""
+  totalCount: Int!
+  """The list of data items."""
+  items: [SuperTodo]!
+  """The list of edges where each edge holds a data node and possibly metadata."""
+  edges: [SuperTodoEdge]
 }
 `,
 		},

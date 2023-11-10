@@ -1,9 +1,11 @@
+"""Represents BillProduct object"""
 type BillProduct {
   id: ID!
   name: String!
   sku: String!
   quantity: Uint64!
 }
+"""Represents Category object"""
 type Category {
   id: ID!
   text: String!
