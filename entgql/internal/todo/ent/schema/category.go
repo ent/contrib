@@ -97,5 +97,6 @@ func (Category) Annotations() []schema.Annotation {
 		entgql.RelayConnection(),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 		entgql.MultiOrder(),
+		entgql.TypeDescription("Represents Category object"),
 	}
 }

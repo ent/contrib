@@ -1,5 +1,6 @@
 directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+"""Represents BillProduct object"""
 type BillProduct implements Node {
   id: ID!
   name: String!
@@ -61,6 +62,7 @@ input BillProductWhereInput {
   quantityLT: Uint64
   quantityLTE: Uint64
 }
+"""Represents Category object"""
 type Category implements Node {
   id: ID!
   text: String!
@@ -70,59 +72,38 @@ type Category implements Node {
   count: Uint64
   strings: [String!]
   todos(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
-  ): TodoConnection!
+  ): TodoList
   subCategories(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Categories returned from the connection."""
     orderBy: [CategoryOrder!]
 
     """Filtering options for Categories returned from the connection."""
     where: CategoryWhereInput
-  ): CategoryConnection!
+  ): CategoryList
 }
 """A connection to a list of items."""
-type CategoryConnection {
-  """A list of edges."""
-  edges: [CategoryEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+type CategoryList {
+  """Identifies the total count of data items."""
   totalCount: Int!
-}
-"""An edge in a connection."""
-type CategoryEdge {
-  """The item at the end of the edge."""
-  node: Category
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  """The list of data items."""
+  items: [Category]!
 }
 """Ordering options for Category connections"""
 input CategoryOrder {
@@ -274,20 +255,11 @@ type Friendship implements Node {
   friend: User!
 }
 """A connection to a list of items."""
-type FriendshipConnection {
-  """A list of edges."""
-  edges: [FriendshipEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+type FriendshipList {
+  """Identifies the total count of data items."""
   totalCount: Int!
-}
-"""An edge in a connection."""
-type FriendshipEdge {
-  """The item at the end of the edge."""
-  node: Friendship
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  """The list of data items."""
+  items: [Friendship]!
 }
 """
 FriendshipWhereInput is used for filtering Friendship objects.
@@ -320,40 +292,25 @@ type Group implements Node @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Users returned from the connection."""
     orderBy: UserOrder
 
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
-  ): UserConnection!
+  ): UserList
 }
 """A connection to a list of items."""
-type GroupConnection {
-  """A list of edges."""
-  edges: [GroupEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+type GroupList {
+  """Identifies the total count of data items."""
   totalCount: Int!
-}
-"""An edge in a connection."""
-type GroupEdge {
-  """The item at the end of the edge."""
-  node: Group
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  """The list of data items."""
+  items: [Group]!
 }
 """
 GroupWhereInput is used for filtering Group objects.
@@ -408,20 +365,11 @@ type OneToMany implements Node {
   children: [OneToMany!]
 }
 """A connection to a list of items."""
-type OneToManyConnection {
-  """A list of edges."""
-  edges: [OneToManyEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+type OneToManyList {
+  """Identifies the total count of data items."""
   totalCount: Int!
-}
-"""An edge in a connection."""
-type OneToManyEdge {
-  """The item at the end of the edge."""
-  node: OneToMany
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  """The list of data items."""
+  items: [OneToMany]!
 }
 """Ordering options for OneToMany connections"""
 input OneToManyOrder {
@@ -512,24 +460,18 @@ type PageInfo {
 type Project implements Node {
   id: ID!
   todos(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
-  ): TodoConnection!
+  ): TodoList
 }
 """
 ProjectWhereInput is used for filtering Project objects.
@@ -565,98 +507,68 @@ type Query {
   ): [Node]!
   billProducts: [BillProduct!]!
   categories(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Categories returned from the connection."""
     orderBy: [CategoryOrder!]
 
     """Filtering options for Categories returned from the connection."""
     where: CategoryWhereInput
-  ): CategoryConnection!
+  ): CategoryList
   groups(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
-  ): GroupConnection!
+  ): GroupList
   oneToMany(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for OneToManies returned from the connection."""
     orderBy: OneToManyOrder
 
     """Filtering options for OneToManies returned from the connection."""
     where: OneToManyWhereInput
-  ): OneToManyConnection!
+  ): OneToManyList
   """This is the todo item"""
   todos(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
-  ): TodoConnection!
+  ): TodoList
   users(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Users returned from the connection."""
     orderBy: UserOrder
 
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
-  ): UserConnection!
+  ): UserList
 }
 """The builtin Time type"""
 scalar Time
@@ -674,41 +586,26 @@ type Todo implements Node {
   customp: [Custom]
   parent: Todo
   children(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Todos returned from the connection."""
     orderBy: TodoOrder
 
     """Filtering options for Todos returned from the connection."""
     where: TodoWhereInput
-  ): TodoConnection!
+  ): TodoList
   category: Category
 }
 """A connection to a list of items."""
-type TodoConnection {
-  """A list of edges."""
-  edges: [TodoEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+type TodoList {
+  """Identifies the total count of data items."""
   totalCount: Int!
-}
-"""An edge in a connection."""
-type TodoEdge {
-  """The item at the end of the edge."""
-  node: Todo
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  """The list of data items."""
+  items: [Todo]!
 }
 """Ordering options for Todo connections"""
 input TodoOrder {
@@ -880,72 +777,45 @@ type User implements Node {
   username: UUID!
   metadata: Map
   groups(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Filtering options for Groups returned from the connection."""
     where: GroupWhereInput
-  ): GroupConnection!
+  ): GroupList
   friends(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Ordering options for Users returned from the connection."""
     orderBy: UserOrder
 
     """Filtering options for Users returned from the connection."""
     where: UserWhereInput
-  ): UserConnection!
+  ): UserList
   friendships(
-    """Returns the elements in the list that come after the specified cursor."""
-    after: Cursor
+    """Pagination limit."""
+    limit: Int = 100
 
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the elements in the list that come before the specified cursor."""
-    before: Cursor
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
+    """Pagination offset."""
+    offset: Int = 0
 
     """Filtering options for Friendships returned from the connection."""
     where: FriendshipWhereInput
-  ): FriendshipConnection!
+  ): FriendshipList
 }
 """A connection to a list of items."""
-type UserConnection {
-  """A list of edges."""
-  edges: [UserEdge]
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+type UserList {
+  """Identifies the total count of data items."""
   totalCount: Int!
-}
-"""An edge in a connection."""
-type UserEdge {
-  """The item at the end of the edge."""
-  node: User
-  """A cursor for use in pagination."""
-  cursor: Cursor!
+  """The list of data items."""
+  items: [User]!
 }
 """Ordering options for User connections"""
 input UserOrder {

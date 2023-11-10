@@ -305,6 +305,9 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 		Kind:       ast.Object,
 		Directives: e.buildDirectives(ant.Directives),
 	}
+	if ant.TypeDescription != "" {
+		def.Description = ant.TypeDescription
+	}
 	if t.Name != gqlType {
 		def.Directives = append(def.Directives, goModel(entGoType(t.Name, pkg)))
 	}
