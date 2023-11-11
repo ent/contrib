@@ -25,7 +25,7 @@ func (tmsc *TwoMethodServiceCreate) Mutation() *TwoMethodServiceMutation {
 
 // Save creates the TwoMethodService in the database.
 func (tmsc *TwoMethodServiceCreate) Save(ctx context.Context) (*TwoMethodService, error) {
-	return withHooks[*TwoMethodService, TwoMethodServiceMutation](ctx, tmsc.sqlSave, tmsc.mutation, tmsc.hooks)
+	return withHooks(ctx, tmsc.sqlSave, tmsc.mutation, tmsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -84,11 +84,15 @@ func (tmsc *TwoMethodServiceCreate) createSpec() (*TwoMethodService, *sqlgraph.C
 // TwoMethodServiceCreateBulk is the builder for creating many TwoMethodService entities in bulk.
 type TwoMethodServiceCreateBulk struct {
 	config
+	err      error
 	builders []*TwoMethodServiceCreate
 }
 
 // Save creates the TwoMethodService entities in the database.
 func (tmscb *TwoMethodServiceCreateBulk) Save(ctx context.Context) ([]*TwoMethodService, error) {
+	if tmscb.err != nil {
+		return nil, tmscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tmscb.builders))
 	nodes := make([]*TwoMethodService, len(tmscb.builders))
 	mutators := make([]Mutator, len(tmscb.builders))

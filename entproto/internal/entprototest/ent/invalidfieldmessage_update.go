@@ -41,7 +41,7 @@ func (ifmu *InvalidFieldMessageUpdate) Mutation() *InvalidFieldMessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ifmu *InvalidFieldMessageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, InvalidFieldMessageMutation](ctx, ifmu.sqlSave, ifmu.mutation, ifmu.hooks)
+	return withHooks(ctx, ifmu.sqlSave, ifmu.mutation, ifmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -124,7 +124,7 @@ func (ifmuo *InvalidFieldMessageUpdateOne) Select(field string, fields ...string
 
 // Save executes the query and returns the updated InvalidFieldMessage entity.
 func (ifmuo *InvalidFieldMessageUpdateOne) Save(ctx context.Context) (*InvalidFieldMessage, error) {
-	return withHooks[*InvalidFieldMessage, InvalidFieldMessageMutation](ctx, ifmuo.sqlSave, ifmuo.mutation, ifmuo.hooks)
+	return withHooks(ctx, ifmuo.sqlSave, ifmuo.mutation, ifmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

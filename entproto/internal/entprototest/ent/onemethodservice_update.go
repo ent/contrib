@@ -34,7 +34,7 @@ func (omsu *OneMethodServiceUpdate) Mutation() *OneMethodServiceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (omsu *OneMethodServiceUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, OneMethodServiceMutation](ctx, omsu.sqlSave, omsu.mutation, omsu.hooks)
+	return withHooks(ctx, omsu.sqlSave, omsu.mutation, omsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (omsuo *OneMethodServiceUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated OneMethodService entity.
 func (omsuo *OneMethodServiceUpdateOne) Save(ctx context.Context) (*OneMethodService, error) {
-	return withHooks[*OneMethodService, OneMethodServiceMutation](ctx, omsuo.sqlSave, omsuo.mutation, omsuo.hooks)
+	return withHooks(ctx, omsuo.sqlSave, omsuo.mutation, omsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

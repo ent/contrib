@@ -80,7 +80,7 @@ func (bpc *BlogPostCreate) Mutation() *BlogPostMutation {
 
 // Save creates the BlogPost in the database.
 func (bpc *BlogPostCreate) Save(ctx context.Context) (*BlogPost, error) {
-	return withHooks[*BlogPost, BlogPostMutation](ctx, bpc.sqlSave, bpc.mutation, bpc.hooks)
+	return withHooks(ctx, bpc.sqlSave, bpc.mutation, bpc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -193,11 +193,15 @@ func (bpc *BlogPostCreate) createSpec() (*BlogPost, *sqlgraph.CreateSpec) {
 // BlogPostCreateBulk is the builder for creating many BlogPost entities in bulk.
 type BlogPostCreateBulk struct {
 	config
+	err      error
 	builders []*BlogPostCreate
 }
 
 // Save creates the BlogPost entities in the database.
 func (bpcb *BlogPostCreateBulk) Save(ctx context.Context) ([]*BlogPost, error) {
+	if bpcb.err != nil {
+		return nil, bpcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(bpcb.builders))
 	nodes := make([]*BlogPost, len(bpcb.builders))
 	mutators := make([]Mutator, len(bpcb.builders))

@@ -46,7 +46,7 @@ func (wc *WorkspaceCreate) Mutation() *WorkspaceMutation {
 
 // Save creates the Workspace in the database.
 func (wc *WorkspaceCreate) Save(ctx context.Context) (*Workspace, error) {
-	return withHooks[*Workspace, WorkspaceMutation](ctx, wc.sqlSave, wc.mutation, wc.hooks)
+	return withHooks(ctx, wc.sqlSave, wc.mutation, wc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -112,11 +112,15 @@ func (wc *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 // WorkspaceCreateBulk is the builder for creating many Workspace entities in bulk.
 type WorkspaceCreateBulk struct {
 	config
+	err      error
 	builders []*WorkspaceCreate
 }
 
 // Save creates the Workspace entities in the database.
 func (wcb *WorkspaceCreateBulk) Save(ctx context.Context) ([]*Workspace, error) {
+	if wcb.err != nil {
+		return nil, wcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wcb.builders))
 	nodes := make([]*Workspace, len(wcb.builders))
 	mutators := make([]Mutator, len(wcb.builders))

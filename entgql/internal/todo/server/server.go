@@ -16,6 +16,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo"
@@ -65,7 +66,11 @@ func main() {
 	http.Handle("/query", srv)
 
 	log.Info("listening on", zap.String("address", cli.Addr))
-	if err := http.ListenAndServe(cli.Addr, nil); err != nil {
+	server := &http.Server{
+		Addr:              cli.Addr,
+		ReadHeaderTimeout: 30 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		log.Error("http server terminated", zap.Error(err))
 	}
 }

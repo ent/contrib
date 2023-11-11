@@ -34,7 +34,7 @@ func (ismu *ImplicitSkippedMessageUpdate) Mutation() *ImplicitSkippedMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ismu *ImplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ImplicitSkippedMessageMutation](ctx, ismu.sqlSave, ismu.mutation, ismu.hooks)
+	return withHooks(ctx, ismu.sqlSave, ismu.mutation, ismu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (ismuo *ImplicitSkippedMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated ImplicitSkippedMessage entity.
 func (ismuo *ImplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*ImplicitSkippedMessage, error) {
-	return withHooks[*ImplicitSkippedMessage, ImplicitSkippedMessageMutation](ctx, ismuo.sqlSave, ismuo.mutation, ismuo.hooks)
+	return withHooks(ctx, ismuo.sqlSave, ismuo.mutation, ismuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

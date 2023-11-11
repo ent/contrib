@@ -34,6 +34,14 @@ func (dosu *DependsOnSkippedUpdate) SetName(s string) *DependsOnSkippedUpdate {
 	return dosu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (dosu *DependsOnSkippedUpdate) SetNillableName(s *string) *DependsOnSkippedUpdate {
+	if s != nil {
+		dosu.SetName(*s)
+	}
+	return dosu
+}
+
 // AddSkippedIDs adds the "skipped" edge to the ImplicitSkippedMessage entity by IDs.
 func (dosu *DependsOnSkippedUpdate) AddSkippedIDs(ids ...int) *DependsOnSkippedUpdate {
 	dosu.mutation.AddSkippedIDs(ids...)
@@ -77,7 +85,7 @@ func (dosu *DependsOnSkippedUpdate) RemoveSkipped(i ...*ImplicitSkippedMessage) 
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (dosu *DependsOnSkippedUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, DependsOnSkippedMutation](ctx, dosu.sqlSave, dosu.mutation, dosu.hooks)
+	return withHooks(ctx, dosu.sqlSave, dosu.mutation, dosu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -185,6 +193,14 @@ func (dosuo *DependsOnSkippedUpdateOne) SetName(s string) *DependsOnSkippedUpdat
 	return dosuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (dosuo *DependsOnSkippedUpdateOne) SetNillableName(s *string) *DependsOnSkippedUpdateOne {
+	if s != nil {
+		dosuo.SetName(*s)
+	}
+	return dosuo
+}
+
 // AddSkippedIDs adds the "skipped" edge to the ImplicitSkippedMessage entity by IDs.
 func (dosuo *DependsOnSkippedUpdateOne) AddSkippedIDs(ids ...int) *DependsOnSkippedUpdateOne {
 	dosuo.mutation.AddSkippedIDs(ids...)
@@ -241,7 +257,7 @@ func (dosuo *DependsOnSkippedUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated DependsOnSkipped entity.
 func (dosuo *DependsOnSkippedUpdateOne) Save(ctx context.Context) (*DependsOnSkipped, error) {
-	return withHooks[*DependsOnSkipped, DependsOnSkippedMutation](ctx, dosuo.sqlSave, dosuo.mutation, dosuo.hooks)
+	return withHooks(ctx, dosuo.sqlSave, dosuo.mutation, dosuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

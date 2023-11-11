@@ -72,7 +72,7 @@ func (nbu *NoBackrefUpdate) RemoveImages(i ...*Image) *NoBackrefUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (nbu *NoBackrefUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, NoBackrefMutation](ctx, nbu.sqlSave, nbu.mutation, nbu.hooks)
+	return withHooks(ctx, nbu.sqlSave, nbu.mutation, nbu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -227,7 +227,7 @@ func (nbuo *NoBackrefUpdateOne) Select(field string, fields ...string) *NoBackre
 
 // Save executes the query and returns the updated NoBackref entity.
 func (nbuo *NoBackrefUpdateOne) Save(ctx context.Context) (*NoBackref, error) {
-	return withHooks[*NoBackref, NoBackrefMutation](ctx, nbuo.sqlSave, nbuo.mutation, nbuo.hooks)
+	return withHooks(ctx, nbuo.sqlSave, nbuo.mutation, nbuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

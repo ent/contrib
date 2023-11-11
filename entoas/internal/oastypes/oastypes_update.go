@@ -40,6 +40,14 @@ func (otu *OASTypesUpdate) SetInt(i int) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableInt sets the "int" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableInt(i *int) *OASTypesUpdate {
+	if i != nil {
+		otu.SetInt(*i)
+	}
+	return otu
+}
+
 // AddInt adds i to the "int" field.
 func (otu *OASTypesUpdate) AddInt(i int) *OASTypesUpdate {
 	otu.mutation.AddInt(i)
@@ -50,6 +58,14 @@ func (otu *OASTypesUpdate) AddInt(i int) *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetInt8(i int8) *OASTypesUpdate {
 	otu.mutation.ResetInt8()
 	otu.mutation.SetInt8(i)
+	return otu
+}
+
+// SetNillableInt8 sets the "int8" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableInt8(i *int8) *OASTypesUpdate {
+	if i != nil {
+		otu.SetInt8(*i)
+	}
 	return otu
 }
 
@@ -66,6 +82,14 @@ func (otu *OASTypesUpdate) SetInt16(i int16) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableInt16 sets the "int16" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableInt16(i *int16) *OASTypesUpdate {
+	if i != nil {
+		otu.SetInt16(*i)
+	}
+	return otu
+}
+
 // AddInt16 adds i to the "int16" field.
 func (otu *OASTypesUpdate) AddInt16(i int16) *OASTypesUpdate {
 	otu.mutation.AddInt16(i)
@@ -76,6 +100,14 @@ func (otu *OASTypesUpdate) AddInt16(i int16) *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetInt32(i int32) *OASTypesUpdate {
 	otu.mutation.ResetInt32()
 	otu.mutation.SetInt32(i)
+	return otu
+}
+
+// SetNillableInt32 sets the "int32" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableInt32(i *int32) *OASTypesUpdate {
+	if i != nil {
+		otu.SetInt32(*i)
+	}
 	return otu
 }
 
@@ -92,6 +124,14 @@ func (otu *OASTypesUpdate) SetInt64(i int64) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableInt64 sets the "int64" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableInt64(i *int64) *OASTypesUpdate {
+	if i != nil {
+		otu.SetInt64(*i)
+	}
+	return otu
+}
+
 // AddInt64 adds i to the "int64" field.
 func (otu *OASTypesUpdate) AddInt64(i int64) *OASTypesUpdate {
 	otu.mutation.AddInt64(i)
@@ -102,6 +142,14 @@ func (otu *OASTypesUpdate) AddInt64(i int64) *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetUint(u uint) *OASTypesUpdate {
 	otu.mutation.ResetUint()
 	otu.mutation.SetUint(u)
+	return otu
+}
+
+// SetNillableUint sets the "uint" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableUint(u *uint) *OASTypesUpdate {
+	if u != nil {
+		otu.SetUint(*u)
+	}
 	return otu
 }
 
@@ -118,6 +166,14 @@ func (otu *OASTypesUpdate) SetUint8(u uint8) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableUint8 sets the "uint8" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableUint8(u *uint8) *OASTypesUpdate {
+	if u != nil {
+		otu.SetUint8(*u)
+	}
+	return otu
+}
+
 // AddUint8 adds u to the "uint8" field.
 func (otu *OASTypesUpdate) AddUint8(u int8) *OASTypesUpdate {
 	otu.mutation.AddUint8(u)
@@ -128,6 +184,14 @@ func (otu *OASTypesUpdate) AddUint8(u int8) *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetUint16(u uint16) *OASTypesUpdate {
 	otu.mutation.ResetUint16()
 	otu.mutation.SetUint16(u)
+	return otu
+}
+
+// SetNillableUint16 sets the "uint16" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableUint16(u *uint16) *OASTypesUpdate {
+	if u != nil {
+		otu.SetUint16(*u)
+	}
 	return otu
 }
 
@@ -144,6 +208,14 @@ func (otu *OASTypesUpdate) SetUint32(u uint32) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableUint32 sets the "uint32" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableUint32(u *uint32) *OASTypesUpdate {
+	if u != nil {
+		otu.SetUint32(*u)
+	}
+	return otu
+}
+
 // AddUint32 adds u to the "uint32" field.
 func (otu *OASTypesUpdate) AddUint32(u int32) *OASTypesUpdate {
 	otu.mutation.AddUint32(u)
@@ -154,6 +226,14 @@ func (otu *OASTypesUpdate) AddUint32(u int32) *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetUint64(u uint64) *OASTypesUpdate {
 	otu.mutation.ResetUint64()
 	otu.mutation.SetUint64(u)
+	return otu
+}
+
+// SetNillableUint64 sets the "uint64" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableUint64(u *uint64) *OASTypesUpdate {
+	if u != nil {
+		otu.SetUint64(*u)
+	}
 	return otu
 }
 
@@ -170,6 +250,14 @@ func (otu *OASTypesUpdate) SetFloat32(f float32) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableFloat32 sets the "float32" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableFloat32(f *float32) *OASTypesUpdate {
+	if f != nil {
+		otu.SetFloat32(*f)
+	}
+	return otu
+}
+
 // AddFloat32 adds f to the "float32" field.
 func (otu *OASTypesUpdate) AddFloat32(f float32) *OASTypesUpdate {
 	otu.mutation.AddFloat32(f)
@@ -180,6 +268,14 @@ func (otu *OASTypesUpdate) AddFloat32(f float32) *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetFloat64(f float64) *OASTypesUpdate {
 	otu.mutation.ResetFloat64()
 	otu.mutation.SetFloat64(f)
+	return otu
+}
+
+// SetNillableFloat64 sets the "float64" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableFloat64(f *float64) *OASTypesUpdate {
+	if f != nil {
+		otu.SetFloat64(*f)
+	}
 	return otu
 }
 
@@ -195,9 +291,25 @@ func (otu *OASTypesUpdate) SetStringField(s string) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableStringField sets the "string_field" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableStringField(s *string) *OASTypesUpdate {
+	if s != nil {
+		otu.SetStringField(*s)
+	}
+	return otu
+}
+
 // SetBool sets the "bool" field.
 func (otu *OASTypesUpdate) SetBool(b bool) *OASTypesUpdate {
 	otu.mutation.SetBool(b)
+	return otu
+}
+
+// SetNillableBool sets the "bool" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableBool(b *bool) *OASTypesUpdate {
+	if b != nil {
+		otu.SetBool(*b)
+	}
 	return otu
 }
 
@@ -221,15 +333,39 @@ func (otu *OASTypesUpdate) SetTime(t time.Time) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableTime sets the "time" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableTime(t *time.Time) *OASTypesUpdate {
+	if t != nil {
+		otu.SetTime(*t)
+	}
+	return otu
+}
+
 // SetText sets the "text" field.
 func (otu *OASTypesUpdate) SetText(s string) *OASTypesUpdate {
 	otu.mutation.SetText(s)
 	return otu
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableText(s *string) *OASTypesUpdate {
+	if s != nil {
+		otu.SetText(*s)
+	}
+	return otu
+}
+
 // SetState sets the "state" field.
 func (otu *OASTypesUpdate) SetState(o oastypes.State) *OASTypesUpdate {
 	otu.mutation.SetState(o)
+	return otu
+}
+
+// SetNillableState sets the "state" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableState(o *oastypes.State) *OASTypesUpdate {
+	if o != nil {
+		otu.SetState(*o)
+	}
 	return otu
 }
 
@@ -305,6 +441,14 @@ func (otu *OASTypesUpdate) SetJSONObj(u url.URL) *OASTypesUpdate {
 	return otu
 }
 
+// SetNillableJSONObj sets the "json_obj" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableJSONObj(u *url.URL) *OASTypesUpdate {
+	if u != nil {
+		otu.SetJSONObj(*u)
+	}
+	return otu
+}
+
 // SetOther sets the "other" field.
 func (otu *OASTypesUpdate) SetOther(s *schema.Link) *OASTypesUpdate {
 	otu.mutation.SetOther(s)
@@ -342,6 +486,14 @@ func (otu *OASTypesUpdate) ClearOptional() *OASTypesUpdate {
 func (otu *OASTypesUpdate) SetNillable(i int) *OASTypesUpdate {
 	otu.mutation.ResetNillable()
 	otu.mutation.SetNillable(i)
+	return otu
+}
+
+// SetNillableNillable sets the "nillable" field if the given value is not nil.
+func (otu *OASTypesUpdate) SetNillableNillable(i *int) *OASTypesUpdate {
+	if i != nil {
+		otu.SetNillable(*i)
+	}
 	return otu
 }
 
@@ -385,7 +537,7 @@ func (otu *OASTypesUpdate) Mutation() *OASTypesMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (otu *OASTypesUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, OASTypesMutation](ctx, otu.sqlSave, otu.mutation, otu.hooks)
+	return withHooks(ctx, otu.sqlSave, otu.mutation, otu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -622,6 +774,14 @@ func (otuo *OASTypesUpdateOne) SetInt(i int) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableInt sets the "int" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableInt(i *int) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetInt(*i)
+	}
+	return otuo
+}
+
 // AddInt adds i to the "int" field.
 func (otuo *OASTypesUpdateOne) AddInt(i int) *OASTypesUpdateOne {
 	otuo.mutation.AddInt(i)
@@ -632,6 +792,14 @@ func (otuo *OASTypesUpdateOne) AddInt(i int) *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetInt8(i int8) *OASTypesUpdateOne {
 	otuo.mutation.ResetInt8()
 	otuo.mutation.SetInt8(i)
+	return otuo
+}
+
+// SetNillableInt8 sets the "int8" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableInt8(i *int8) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetInt8(*i)
+	}
 	return otuo
 }
 
@@ -648,6 +816,14 @@ func (otuo *OASTypesUpdateOne) SetInt16(i int16) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableInt16 sets the "int16" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableInt16(i *int16) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetInt16(*i)
+	}
+	return otuo
+}
+
 // AddInt16 adds i to the "int16" field.
 func (otuo *OASTypesUpdateOne) AddInt16(i int16) *OASTypesUpdateOne {
 	otuo.mutation.AddInt16(i)
@@ -658,6 +834,14 @@ func (otuo *OASTypesUpdateOne) AddInt16(i int16) *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetInt32(i int32) *OASTypesUpdateOne {
 	otuo.mutation.ResetInt32()
 	otuo.mutation.SetInt32(i)
+	return otuo
+}
+
+// SetNillableInt32 sets the "int32" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableInt32(i *int32) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetInt32(*i)
+	}
 	return otuo
 }
 
@@ -674,6 +858,14 @@ func (otuo *OASTypesUpdateOne) SetInt64(i int64) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableInt64 sets the "int64" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableInt64(i *int64) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetInt64(*i)
+	}
+	return otuo
+}
+
 // AddInt64 adds i to the "int64" field.
 func (otuo *OASTypesUpdateOne) AddInt64(i int64) *OASTypesUpdateOne {
 	otuo.mutation.AddInt64(i)
@@ -684,6 +876,14 @@ func (otuo *OASTypesUpdateOne) AddInt64(i int64) *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetUint(u uint) *OASTypesUpdateOne {
 	otuo.mutation.ResetUint()
 	otuo.mutation.SetUint(u)
+	return otuo
+}
+
+// SetNillableUint sets the "uint" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableUint(u *uint) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetUint(*u)
+	}
 	return otuo
 }
 
@@ -700,6 +900,14 @@ func (otuo *OASTypesUpdateOne) SetUint8(u uint8) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableUint8 sets the "uint8" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableUint8(u *uint8) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetUint8(*u)
+	}
+	return otuo
+}
+
 // AddUint8 adds u to the "uint8" field.
 func (otuo *OASTypesUpdateOne) AddUint8(u int8) *OASTypesUpdateOne {
 	otuo.mutation.AddUint8(u)
@@ -710,6 +918,14 @@ func (otuo *OASTypesUpdateOne) AddUint8(u int8) *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetUint16(u uint16) *OASTypesUpdateOne {
 	otuo.mutation.ResetUint16()
 	otuo.mutation.SetUint16(u)
+	return otuo
+}
+
+// SetNillableUint16 sets the "uint16" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableUint16(u *uint16) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetUint16(*u)
+	}
 	return otuo
 }
 
@@ -726,6 +942,14 @@ func (otuo *OASTypesUpdateOne) SetUint32(u uint32) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableUint32 sets the "uint32" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableUint32(u *uint32) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetUint32(*u)
+	}
+	return otuo
+}
+
 // AddUint32 adds u to the "uint32" field.
 func (otuo *OASTypesUpdateOne) AddUint32(u int32) *OASTypesUpdateOne {
 	otuo.mutation.AddUint32(u)
@@ -736,6 +960,14 @@ func (otuo *OASTypesUpdateOne) AddUint32(u int32) *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetUint64(u uint64) *OASTypesUpdateOne {
 	otuo.mutation.ResetUint64()
 	otuo.mutation.SetUint64(u)
+	return otuo
+}
+
+// SetNillableUint64 sets the "uint64" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableUint64(u *uint64) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetUint64(*u)
+	}
 	return otuo
 }
 
@@ -752,6 +984,14 @@ func (otuo *OASTypesUpdateOne) SetFloat32(f float32) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableFloat32 sets the "float32" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableFloat32(f *float32) *OASTypesUpdateOne {
+	if f != nil {
+		otuo.SetFloat32(*f)
+	}
+	return otuo
+}
+
 // AddFloat32 adds f to the "float32" field.
 func (otuo *OASTypesUpdateOne) AddFloat32(f float32) *OASTypesUpdateOne {
 	otuo.mutation.AddFloat32(f)
@@ -762,6 +1002,14 @@ func (otuo *OASTypesUpdateOne) AddFloat32(f float32) *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetFloat64(f float64) *OASTypesUpdateOne {
 	otuo.mutation.ResetFloat64()
 	otuo.mutation.SetFloat64(f)
+	return otuo
+}
+
+// SetNillableFloat64 sets the "float64" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableFloat64(f *float64) *OASTypesUpdateOne {
+	if f != nil {
+		otuo.SetFloat64(*f)
+	}
 	return otuo
 }
 
@@ -777,9 +1025,25 @@ func (otuo *OASTypesUpdateOne) SetStringField(s string) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableStringField sets the "string_field" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableStringField(s *string) *OASTypesUpdateOne {
+	if s != nil {
+		otuo.SetStringField(*s)
+	}
+	return otuo
+}
+
 // SetBool sets the "bool" field.
 func (otuo *OASTypesUpdateOne) SetBool(b bool) *OASTypesUpdateOne {
 	otuo.mutation.SetBool(b)
+	return otuo
+}
+
+// SetNillableBool sets the "bool" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableBool(b *bool) *OASTypesUpdateOne {
+	if b != nil {
+		otuo.SetBool(*b)
+	}
 	return otuo
 }
 
@@ -803,15 +1067,39 @@ func (otuo *OASTypesUpdateOne) SetTime(t time.Time) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableTime sets the "time" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableTime(t *time.Time) *OASTypesUpdateOne {
+	if t != nil {
+		otuo.SetTime(*t)
+	}
+	return otuo
+}
+
 // SetText sets the "text" field.
 func (otuo *OASTypesUpdateOne) SetText(s string) *OASTypesUpdateOne {
 	otuo.mutation.SetText(s)
 	return otuo
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableText(s *string) *OASTypesUpdateOne {
+	if s != nil {
+		otuo.SetText(*s)
+	}
+	return otuo
+}
+
 // SetState sets the "state" field.
 func (otuo *OASTypesUpdateOne) SetState(o oastypes.State) *OASTypesUpdateOne {
 	otuo.mutation.SetState(o)
+	return otuo
+}
+
+// SetNillableState sets the "state" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableState(o *oastypes.State) *OASTypesUpdateOne {
+	if o != nil {
+		otuo.SetState(*o)
+	}
 	return otuo
 }
 
@@ -887,6 +1175,14 @@ func (otuo *OASTypesUpdateOne) SetJSONObj(u url.URL) *OASTypesUpdateOne {
 	return otuo
 }
 
+// SetNillableJSONObj sets the "json_obj" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableJSONObj(u *url.URL) *OASTypesUpdateOne {
+	if u != nil {
+		otuo.SetJSONObj(*u)
+	}
+	return otuo
+}
+
 // SetOther sets the "other" field.
 func (otuo *OASTypesUpdateOne) SetOther(s *schema.Link) *OASTypesUpdateOne {
 	otuo.mutation.SetOther(s)
@@ -924,6 +1220,14 @@ func (otuo *OASTypesUpdateOne) ClearOptional() *OASTypesUpdateOne {
 func (otuo *OASTypesUpdateOne) SetNillable(i int) *OASTypesUpdateOne {
 	otuo.mutation.ResetNillable()
 	otuo.mutation.SetNillable(i)
+	return otuo
+}
+
+// SetNillableNillable sets the "nillable" field if the given value is not nil.
+func (otuo *OASTypesUpdateOne) SetNillableNillable(i *int) *OASTypesUpdateOne {
+	if i != nil {
+		otuo.SetNillable(*i)
+	}
 	return otuo
 }
 
@@ -980,7 +1284,7 @@ func (otuo *OASTypesUpdateOne) Select(field string, fields ...string) *OASTypesU
 
 // Save executes the query and returns the updated OASTypes entity.
 func (otuo *OASTypesUpdateOne) Save(ctx context.Context) (*OASTypes, error) {
-	return withHooks[*OASTypes, OASTypesMutation](ctx, otuo.sqlSave, otuo.mutation, otuo.hooks)
+	return withHooks(ctx, otuo.sqlSave, otuo.mutation, otuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

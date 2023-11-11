@@ -55,7 +55,7 @@ func (ic *ImageCreate) Mutation() *ImageMutation {
 
 // Save creates the Image in the database.
 func (ic *ImageCreate) Save(ctx context.Context) (*Image, error) {
-	return withHooks[*Image, ImageMutation](ctx, ic.sqlSave, ic.mutation, ic.hooks)
+	return withHooks(ctx, ic.sqlSave, ic.mutation, ic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -146,11 +146,15 @@ func (ic *ImageCreate) createSpec() (*Image, *sqlgraph.CreateSpec) {
 // ImageCreateBulk is the builder for creating many Image entities in bulk.
 type ImageCreateBulk struct {
 	config
+	err      error
 	builders []*ImageCreate
 }
 
 // Save creates the Image entities in the database.
 func (icb *ImageCreateBulk) Save(ctx context.Context) ([]*Image, error) {
+	if icb.err != nil {
+		return nil, icb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(icb.builders))
 	nodes := make([]*Image, len(icb.builders))
 	mutators := make([]Mutator, len(icb.builders))

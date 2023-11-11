@@ -54,7 +54,7 @@ func (nec *NilExampleCreate) Mutation() *NilExampleMutation {
 
 // Save creates the NilExample in the database.
 func (nec *NilExampleCreate) Save(ctx context.Context) (*NilExample, error) {
-	return withHooks[*NilExample, NilExampleMutation](ctx, nec.sqlSave, nec.mutation, nec.hooks)
+	return withHooks(ctx, nec.sqlSave, nec.mutation, nec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -121,11 +121,15 @@ func (nec *NilExampleCreate) createSpec() (*NilExample, *sqlgraph.CreateSpec) {
 // NilExampleCreateBulk is the builder for creating many NilExample entities in bulk.
 type NilExampleCreateBulk struct {
 	config
+	err      error
 	builders []*NilExampleCreate
 }
 
 // Save creates the NilExample entities in the database.
 func (necb *NilExampleCreateBulk) Save(ctx context.Context) ([]*NilExample, error) {
+	if necb.err != nil {
+		return nil, necb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(necb.builders))
 	nodes := make([]*NilExample, len(necb.builders))
 	mutators := make([]Mutator, len(necb.builders))

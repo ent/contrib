@@ -34,7 +34,7 @@ func (tmsu *TwoMethodServiceUpdate) Mutation() *TwoMethodServiceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tmsu *TwoMethodServiceUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, TwoMethodServiceMutation](ctx, tmsu.sqlSave, tmsu.mutation, tmsu.hooks)
+	return withHooks(ctx, tmsu.sqlSave, tmsu.mutation, tmsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (tmsuo *TwoMethodServiceUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated TwoMethodService entity.
 func (tmsuo *TwoMethodServiceUpdateOne) Save(ctx context.Context) (*TwoMethodService, error) {
-	return withHooks[*TwoMethodService, TwoMethodServiceMutation](ctx, tmsuo.sqlSave, tmsuo.mutation, tmsuo.hooks)
+	return withHooks(ctx, tmsuo.sqlSave, tmsuo.mutation, tmsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

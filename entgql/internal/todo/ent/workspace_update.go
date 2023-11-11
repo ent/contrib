@@ -48,6 +48,14 @@ func (wu *WorkspaceUpdate) SetName(s string) *WorkspaceUpdate {
 	return wu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (wu *WorkspaceUpdate) SetNillableName(s *string) *WorkspaceUpdate {
+	if s != nil {
+		wu.SetName(*s)
+	}
+	return wu
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (wu *WorkspaceUpdate) Mutation() *WorkspaceMutation {
 	return wu.mutation
@@ -55,7 +63,7 @@ func (wu *WorkspaceUpdate) Mutation() *WorkspaceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wu *WorkspaceUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, WorkspaceMutation](ctx, wu.sqlSave, wu.mutation, wu.hooks)
+	return withHooks(ctx, wu.sqlSave, wu.mutation, wu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -126,6 +134,14 @@ func (wuo *WorkspaceUpdateOne) SetName(s string) *WorkspaceUpdateOne {
 	return wuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (wuo *WorkspaceUpdateOne) SetNillableName(s *string) *WorkspaceUpdateOne {
+	if s != nil {
+		wuo.SetName(*s)
+	}
+	return wuo
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (wuo *WorkspaceUpdateOne) Mutation() *WorkspaceMutation {
 	return wuo.mutation
@@ -146,7 +162,7 @@ func (wuo *WorkspaceUpdateOne) Select(field string, fields ...string) *Workspace
 
 // Save executes the query and returns the updated Workspace entity.
 func (wuo *WorkspaceUpdateOne) Save(ctx context.Context) (*Workspace, error) {
-	return withHooks[*Workspace, WorkspaceMutation](ctx, wuo.sqlSave, wuo.mutation, wuo.hooks)
+	return withHooks(ctx, wuo.sqlSave, wuo.mutation, wuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -33,6 +33,14 @@ func (wfu *WithFieldsUpdate) SetExisting(s string) *WithFieldsUpdate {
 	return wfu
 }
 
+// SetNillableExisting sets the "existing" field if the given value is not nil.
+func (wfu *WithFieldsUpdate) SetNillableExisting(s *string) *WithFieldsUpdate {
+	if s != nil {
+		wfu.SetExisting(*s)
+	}
+	return wfu
+}
+
 // Mutation returns the WithFieldsMutation object of the builder.
 func (wfu *WithFieldsUpdate) Mutation() *WithFieldsMutation {
 	return wfu.mutation
@@ -40,7 +48,7 @@ func (wfu *WithFieldsUpdate) Mutation() *WithFieldsMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wfu *WithFieldsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, WithFieldsMutation](ctx, wfu.sqlSave, wfu.mutation, wfu.hooks)
+	return withHooks(ctx, wfu.sqlSave, wfu.mutation, wfu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -103,6 +111,14 @@ func (wfuo *WithFieldsUpdateOne) SetExisting(s string) *WithFieldsUpdateOne {
 	return wfuo
 }
 
+// SetNillableExisting sets the "existing" field if the given value is not nil.
+func (wfuo *WithFieldsUpdateOne) SetNillableExisting(s *string) *WithFieldsUpdateOne {
+	if s != nil {
+		wfuo.SetExisting(*s)
+	}
+	return wfuo
+}
+
 // Mutation returns the WithFieldsMutation object of the builder.
 func (wfuo *WithFieldsUpdateOne) Mutation() *WithFieldsMutation {
 	return wfuo.mutation
@@ -123,7 +139,7 @@ func (wfuo *WithFieldsUpdateOne) Select(field string, fields ...string) *WithFie
 
 // Save executes the query and returns the updated WithFields entity.
 func (wfuo *WithFieldsUpdateOne) Save(ctx context.Context) (*WithFields, error) {
-	return withHooks[*WithFields, WithFieldsMutation](ctx, wfuo.sqlSave, wfuo.mutation, wfuo.hooks)
+	return withHooks(ctx, wfuo.sqlSave, wfuo.mutation, wfuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

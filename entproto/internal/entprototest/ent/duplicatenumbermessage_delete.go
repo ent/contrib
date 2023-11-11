@@ -27,7 +27,7 @@ func (dnmd *DuplicateNumberMessageDelete) Where(ps ...predicate.DuplicateNumberM
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (dnmd *DuplicateNumberMessageDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, DuplicateNumberMessageMutation](ctx, dnmd.sqlExec, dnmd.mutation, dnmd.hooks)
+	return withHooks(ctx, dnmd.sqlExec, dnmd.mutation, dnmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

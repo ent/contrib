@@ -46,7 +46,7 @@ func (vsc *VerySecretCreate) Mutation() *VerySecretMutation {
 
 // Save creates the VerySecret in the database.
 func (vsc *VerySecretCreate) Save(ctx context.Context) (*VerySecret, error) {
-	return withHooks[*VerySecret, VerySecretMutation](ctx, vsc.sqlSave, vsc.mutation, vsc.hooks)
+	return withHooks(ctx, vsc.sqlSave, vsc.mutation, vsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -112,11 +112,15 @@ func (vsc *VerySecretCreate) createSpec() (*VerySecret, *sqlgraph.CreateSpec) {
 // VerySecretCreateBulk is the builder for creating many VerySecret entities in bulk.
 type VerySecretCreateBulk struct {
 	config
+	err      error
 	builders []*VerySecretCreate
 }
 
 // Save creates the VerySecret entities in the database.
 func (vscb *VerySecretCreateBulk) Save(ctx context.Context) ([]*VerySecret, error) {
+	if vscb.err != nil {
+		return nil, vscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(vscb.builders))
 	nodes := make([]*VerySecret, len(vscb.builders))
 	mutators := make([]Mutator, len(vscb.builders))

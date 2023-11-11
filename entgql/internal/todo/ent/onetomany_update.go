@@ -48,6 +48,14 @@ func (otmu *OneToManyUpdate) SetName(s string) *OneToManyUpdate {
 	return otmu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (otmu *OneToManyUpdate) SetNillableName(s *string) *OneToManyUpdate {
+	if s != nil {
+		otmu.SetName(*s)
+	}
+	return otmu
+}
+
 // SetField2 sets the "field2" field.
 func (otmu *OneToManyUpdate) SetField2(s string) *OneToManyUpdate {
 	otmu.mutation.SetField2(s)
@@ -142,7 +150,7 @@ func (otmu *OneToManyUpdate) RemoveChildren(o ...*OneToMany) *OneToManyUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (otmu *OneToManyUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, OneToManyMutation](ctx, otmu.sqlSave, otmu.mutation, otmu.hooks)
+	return withHooks(ctx, otmu.sqlSave, otmu.mutation, otmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -306,6 +314,14 @@ func (otmuo *OneToManyUpdateOne) SetName(s string) *OneToManyUpdateOne {
 	return otmuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (otmuo *OneToManyUpdateOne) SetNillableName(s *string) *OneToManyUpdateOne {
+	if s != nil {
+		otmuo.SetName(*s)
+	}
+	return otmuo
+}
+
 // SetField2 sets the "field2" field.
 func (otmuo *OneToManyUpdateOne) SetField2(s string) *OneToManyUpdateOne {
 	otmuo.mutation.SetField2(s)
@@ -413,7 +429,7 @@ func (otmuo *OneToManyUpdateOne) Select(field string, fields ...string) *OneToMa
 
 // Save executes the query and returns the updated OneToMany entity.
 func (otmuo *OneToManyUpdateOne) Save(ctx context.Context) (*OneToMany, error) {
-	return withHooks[*OneToMany, OneToManyMutation](ctx, otmuo.sqlSave, otmuo.mutation, otmuo.hooks)
+	return withHooks(ctx, otmuo.sqlSave, otmuo.mutation, otmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

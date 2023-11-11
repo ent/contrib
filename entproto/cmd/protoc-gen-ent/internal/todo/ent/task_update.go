@@ -53,9 +53,25 @@ func (tu *TaskUpdate) SetComplete(b bool) *TaskUpdate {
 	return tu
 }
 
+// SetNillableComplete sets the "complete" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillableComplete(b *bool) *TaskUpdate {
+	if b != nil {
+		tu.SetComplete(*b)
+	}
+	return tu
+}
+
 // SetSignature sets the "signature" field.
 func (tu *TaskUpdate) SetSignature(s string) *TaskUpdate {
 	tu.mutation.SetSignature(s)
+	return tu
+}
+
+// SetNillableSignature sets the "signature" field if the given value is not nil.
+func (tu *TaskUpdate) SetNillableSignature(s *string) *TaskUpdate {
+	if s != nil {
+		tu.SetSignature(*s)
+	}
 	return tu
 }
 
@@ -66,7 +82,7 @@ func (tu *TaskUpdate) Mutation() *TaskMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TaskUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, TaskMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
+	return withHooks(ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -158,9 +174,25 @@ func (tuo *TaskUpdateOne) SetComplete(b bool) *TaskUpdateOne {
 	return tuo
 }
 
+// SetNillableComplete sets the "complete" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillableComplete(b *bool) *TaskUpdateOne {
+	if b != nil {
+		tuo.SetComplete(*b)
+	}
+	return tuo
+}
+
 // SetSignature sets the "signature" field.
 func (tuo *TaskUpdateOne) SetSignature(s string) *TaskUpdateOne {
 	tuo.mutation.SetSignature(s)
+	return tuo
+}
+
+// SetNillableSignature sets the "signature" field if the given value is not nil.
+func (tuo *TaskUpdateOne) SetNillableSignature(s *string) *TaskUpdateOne {
+	if s != nil {
+		tuo.SetSignature(*s)
+	}
 	return tuo
 }
 
@@ -184,7 +216,7 @@ func (tuo *TaskUpdateOne) Select(field string, fields ...string) *TaskUpdateOne 
 
 // Save executes the query and returns the updated Task entity.
 func (tuo *TaskUpdateOne) Save(ctx context.Context) (*Task, error) {
-	return withHooks[*Task, TaskMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
+	return withHooks(ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
