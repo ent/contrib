@@ -27,7 +27,7 @@ func (esmd *ExplicitSkippedMessageDelete) Where(ps ...predicate.ExplicitSkippedM
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (esmd *ExplicitSkippedMessageDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, ExplicitSkippedMessageMutation](ctx, esmd.sqlExec, esmd.mutation, esmd.hooks)
+	return withHooks(ctx, esmd.sqlExec, esmd.mutation, esmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

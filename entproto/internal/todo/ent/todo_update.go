@@ -34,6 +34,14 @@ func (tu *TodoUpdate) SetTask(s string) *TodoUpdate {
 	return tu
 }
 
+// SetNillableTask sets the "task" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableTask(s *string) *TodoUpdate {
+	if s != nil {
+		tu.SetTask(*s)
+	}
+	return tu
+}
+
 // SetStatus sets the "status" field.
 func (tu *TodoUpdate) SetStatus(t todo.Status) *TodoUpdate {
 	tu.mutation.SetStatus(t)
@@ -80,7 +88,7 @@ func (tu *TodoUpdate) ClearUser() *TodoUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, TodoMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
+	return withHooks(ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -188,6 +196,14 @@ func (tuo *TodoUpdateOne) SetTask(s string) *TodoUpdateOne {
 	return tuo
 }
 
+// SetNillableTask sets the "task" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableTask(s *string) *TodoUpdateOne {
+	if s != nil {
+		tuo.SetTask(*s)
+	}
+	return tuo
+}
+
 // SetStatus sets the "status" field.
 func (tuo *TodoUpdateOne) SetStatus(t todo.Status) *TodoUpdateOne {
 	tuo.mutation.SetStatus(t)
@@ -247,7 +263,7 @@ func (tuo *TodoUpdateOne) Select(field string, fields ...string) *TodoUpdateOne 
 
 // Save executes the query and returns the updated Todo entity.
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
-	return withHooks[*Todo, TodoMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
+	return withHooks(ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

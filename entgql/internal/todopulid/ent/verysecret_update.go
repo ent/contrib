@@ -47,6 +47,14 @@ func (vsu *VerySecretUpdate) SetPassword(s string) *VerySecretUpdate {
 	return vsu
 }
 
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (vsu *VerySecretUpdate) SetNillablePassword(s *string) *VerySecretUpdate {
+	if s != nil {
+		vsu.SetPassword(*s)
+	}
+	return vsu
+}
+
 // Mutation returns the VerySecretMutation object of the builder.
 func (vsu *VerySecretUpdate) Mutation() *VerySecretMutation {
 	return vsu.mutation
@@ -54,7 +62,7 @@ func (vsu *VerySecretUpdate) Mutation() *VerySecretMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vsu *VerySecretUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, VerySecretMutation](ctx, vsu.sqlSave, vsu.mutation, vsu.hooks)
+	return withHooks(ctx, vsu.sqlSave, vsu.mutation, vsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -117,6 +125,14 @@ func (vsuo *VerySecretUpdateOne) SetPassword(s string) *VerySecretUpdateOne {
 	return vsuo
 }
 
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (vsuo *VerySecretUpdateOne) SetNillablePassword(s *string) *VerySecretUpdateOne {
+	if s != nil {
+		vsuo.SetPassword(*s)
+	}
+	return vsuo
+}
+
 // Mutation returns the VerySecretMutation object of the builder.
 func (vsuo *VerySecretUpdateOne) Mutation() *VerySecretMutation {
 	return vsuo.mutation
@@ -137,7 +153,7 @@ func (vsuo *VerySecretUpdateOne) Select(field string, fields ...string) *VerySec
 
 // Save executes the query and returns the updated VerySecret entity.
 func (vsuo *VerySecretUpdateOne) Save(ctx context.Context) (*VerySecret, error) {
-	return withHooks[*VerySecret, VerySecretMutation](ctx, vsuo.sqlSave, vsuo.mutation, vsuo.hooks)
+	return withHooks(ctx, vsuo.sqlSave, vsuo.mutation, vsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

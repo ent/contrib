@@ -33,6 +33,14 @@ func (ewcvu *EnumWithConflictingValueUpdate) SetEnum(e enumwithconflictingvalue.
 	return ewcvu
 }
 
+// SetNillableEnum sets the "enum" field if the given value is not nil.
+func (ewcvu *EnumWithConflictingValueUpdate) SetNillableEnum(e *enumwithconflictingvalue.Enum) *EnumWithConflictingValueUpdate {
+	if e != nil {
+		ewcvu.SetEnum(*e)
+	}
+	return ewcvu
+}
+
 // Mutation returns the EnumWithConflictingValueMutation object of the builder.
 func (ewcvu *EnumWithConflictingValueUpdate) Mutation() *EnumWithConflictingValueMutation {
 	return ewcvu.mutation
@@ -40,7 +48,7 @@ func (ewcvu *EnumWithConflictingValueUpdate) Mutation() *EnumWithConflictingValu
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ewcvu *EnumWithConflictingValueUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, EnumWithConflictingValueMutation](ctx, ewcvu.sqlSave, ewcvu.mutation, ewcvu.hooks)
+	return withHooks(ctx, ewcvu.sqlSave, ewcvu.mutation, ewcvu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -116,6 +124,14 @@ func (ewcvuo *EnumWithConflictingValueUpdateOne) SetEnum(e enumwithconflictingva
 	return ewcvuo
 }
 
+// SetNillableEnum sets the "enum" field if the given value is not nil.
+func (ewcvuo *EnumWithConflictingValueUpdateOne) SetNillableEnum(e *enumwithconflictingvalue.Enum) *EnumWithConflictingValueUpdateOne {
+	if e != nil {
+		ewcvuo.SetEnum(*e)
+	}
+	return ewcvuo
+}
+
 // Mutation returns the EnumWithConflictingValueMutation object of the builder.
 func (ewcvuo *EnumWithConflictingValueUpdateOne) Mutation() *EnumWithConflictingValueMutation {
 	return ewcvuo.mutation
@@ -136,7 +152,7 @@ func (ewcvuo *EnumWithConflictingValueUpdateOne) Select(field string, fields ...
 
 // Save executes the query and returns the updated EnumWithConflictingValue entity.
 func (ewcvuo *EnumWithConflictingValueUpdateOne) Save(ctx context.Context) (*EnumWithConflictingValue, error) {
-	return withHooks[*EnumWithConflictingValue, EnumWithConflictingValueMutation](ctx, ewcvuo.sqlSave, ewcvuo.mutation, ewcvuo.hooks)
+	return withHooks(ctx, ewcvuo.sqlSave, ewcvuo.mutation, ewcvuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

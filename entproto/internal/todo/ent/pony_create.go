@@ -32,7 +32,7 @@ func (pc *PonyCreate) Mutation() *PonyMutation {
 
 // Save creates the Pony in the database.
 func (pc *PonyCreate) Save(ctx context.Context) (*Pony, error) {
-	return withHooks[*Pony, PonyMutation](ctx, pc.sqlSave, pc.mutation, pc.hooks)
+	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,11 +98,15 @@ func (pc *PonyCreate) createSpec() (*Pony, *sqlgraph.CreateSpec) {
 // PonyCreateBulk is the builder for creating many Pony entities in bulk.
 type PonyCreateBulk struct {
 	config
+	err      error
 	builders []*PonyCreate
 }
 
 // Save creates the Pony entities in the database.
 func (pcb *PonyCreateBulk) Save(ctx context.Context) ([]*Pony, error) {
+	if pcb.err != nil {
+		return nil, pcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
 	nodes := make([]*Pony, len(pcb.builders))
 	mutators := make([]Mutator, len(pcb.builders))

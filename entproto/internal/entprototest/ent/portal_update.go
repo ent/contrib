@@ -34,9 +34,25 @@ func (pu *PortalUpdate) SetName(s string) *PortalUpdate {
 	return pu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pu *PortalUpdate) SetNillableName(s *string) *PortalUpdate {
+	if s != nil {
+		pu.SetName(*s)
+	}
+	return pu
+}
+
 // SetDescription sets the "description" field.
 func (pu *PortalUpdate) SetDescription(s string) *PortalUpdate {
 	pu.mutation.SetDescription(s)
+	return pu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pu *PortalUpdate) SetNillableDescription(s *string) *PortalUpdate {
+	if s != nil {
+		pu.SetDescription(*s)
+	}
 	return pu
 }
 
@@ -72,7 +88,7 @@ func (pu *PortalUpdate) ClearCategory() *PortalUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *PortalUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, PortalMutation](ctx, pu.sqlSave, pu.mutation, pu.hooks)
+	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -167,9 +183,25 @@ func (puo *PortalUpdateOne) SetName(s string) *PortalUpdateOne {
 	return puo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (puo *PortalUpdateOne) SetNillableName(s *string) *PortalUpdateOne {
+	if s != nil {
+		puo.SetName(*s)
+	}
+	return puo
+}
+
 // SetDescription sets the "description" field.
 func (puo *PortalUpdateOne) SetDescription(s string) *PortalUpdateOne {
 	puo.mutation.SetDescription(s)
+	return puo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (puo *PortalUpdateOne) SetNillableDescription(s *string) *PortalUpdateOne {
+	if s != nil {
+		puo.SetDescription(*s)
+	}
 	return puo
 }
 
@@ -218,7 +250,7 @@ func (puo *PortalUpdateOne) Select(field string, fields ...string) *PortalUpdate
 
 // Save executes the query and returns the updated Portal entity.
 func (puo *PortalUpdateOne) Save(ctx context.Context) (*Portal, error) {
-	return withHooks[*Portal, PortalMutation](ctx, puo.sqlSave, puo.mutation, puo.hooks)
+	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

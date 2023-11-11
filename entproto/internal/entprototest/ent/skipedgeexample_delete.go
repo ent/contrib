@@ -27,7 +27,7 @@ func (seed *SkipEdgeExampleDelete) Where(ps ...predicate.SkipEdgeExample) *SkipE
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (seed *SkipEdgeExampleDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, SkipEdgeExampleMutation](ctx, seed.sqlExec, seed.mutation, seed.hooks)
+	return withHooks(ctx, seed.sqlExec, seed.mutation, seed.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

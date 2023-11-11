@@ -64,9 +64,25 @@ func (fu *FriendshipUpdate) SetUserID(u uuid.UUID) *FriendshipUpdate {
 	return fu
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (fu *FriendshipUpdate) SetNillableUserID(u *uuid.UUID) *FriendshipUpdate {
+	if u != nil {
+		fu.SetUserID(*u)
+	}
+	return fu
+}
+
 // SetFriendID sets the "friend_id" field.
 func (fu *FriendshipUpdate) SetFriendID(u uuid.UUID) *FriendshipUpdate {
 	fu.mutation.SetFriendID(u)
+	return fu
+}
+
+// SetNillableFriendID sets the "friend_id" field if the given value is not nil.
+func (fu *FriendshipUpdate) SetNillableFriendID(u *uuid.UUID) *FriendshipUpdate {
+	if u != nil {
+		fu.SetFriendID(*u)
+	}
 	return fu
 }
 
@@ -99,7 +115,7 @@ func (fu *FriendshipUpdate) ClearFriend() *FriendshipUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FriendshipUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, FriendshipMutation](ctx, fu.sqlSave, fu.mutation, fu.hooks)
+	return withHooks(ctx, fu.sqlSave, fu.mutation, fu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -248,9 +264,25 @@ func (fuo *FriendshipUpdateOne) SetUserID(u uuid.UUID) *FriendshipUpdateOne {
 	return fuo
 }
 
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (fuo *FriendshipUpdateOne) SetNillableUserID(u *uuid.UUID) *FriendshipUpdateOne {
+	if u != nil {
+		fuo.SetUserID(*u)
+	}
+	return fuo
+}
+
 // SetFriendID sets the "friend_id" field.
 func (fuo *FriendshipUpdateOne) SetFriendID(u uuid.UUID) *FriendshipUpdateOne {
 	fuo.mutation.SetFriendID(u)
+	return fuo
+}
+
+// SetNillableFriendID sets the "friend_id" field if the given value is not nil.
+func (fuo *FriendshipUpdateOne) SetNillableFriendID(u *uuid.UUID) *FriendshipUpdateOne {
+	if u != nil {
+		fuo.SetFriendID(*u)
+	}
 	return fuo
 }
 
@@ -296,7 +328,7 @@ func (fuo *FriendshipUpdateOne) Select(field string, fields ...string) *Friendsh
 
 // Save executes the query and returns the updated Friendship entity.
 func (fuo *FriendshipUpdateOne) Save(ctx context.Context) (*Friendship, error) {
-	return withHooks[*Friendship, FriendshipMutation](ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
+	return withHooks(ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

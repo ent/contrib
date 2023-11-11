@@ -38,7 +38,7 @@ func (fc *FileCreate) Mutation() *FileMutation {
 
 // Save creates the File in the database.
 func (fc *FileCreate) Save(ctx context.Context) (*File, error) {
-	return withHooks[*File, FileMutation](ctx, fc.sqlSave, fc.mutation, fc.hooks)
+	return withHooks(ctx, fc.sqlSave, fc.mutation, fc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -113,11 +113,15 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 // FileCreateBulk is the builder for creating many File entities in bulk.
 type FileCreateBulk struct {
 	config
+	err      error
 	builders []*FileCreate
 }
 
 // Save creates the File entities in the database.
 func (fcb *FileCreateBulk) Save(ctx context.Context) ([]*File, error) {
+	if fcb.err != nil {
+		return nil, fcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(fcb.builders))
 	nodes := make([]*File, len(fcb.builders))
 	mutators := make([]Mutator, len(fcb.builders))

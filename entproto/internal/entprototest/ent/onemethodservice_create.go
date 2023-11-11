@@ -25,7 +25,7 @@ func (omsc *OneMethodServiceCreate) Mutation() *OneMethodServiceMutation {
 
 // Save creates the OneMethodService in the database.
 func (omsc *OneMethodServiceCreate) Save(ctx context.Context) (*OneMethodService, error) {
-	return withHooks[*OneMethodService, OneMethodServiceMutation](ctx, omsc.sqlSave, omsc.mutation, omsc.hooks)
+	return withHooks(ctx, omsc.sqlSave, omsc.mutation, omsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -84,11 +84,15 @@ func (omsc *OneMethodServiceCreate) createSpec() (*OneMethodService, *sqlgraph.C
 // OneMethodServiceCreateBulk is the builder for creating many OneMethodService entities in bulk.
 type OneMethodServiceCreateBulk struct {
 	config
+	err      error
 	builders []*OneMethodServiceCreate
 }
 
 // Save creates the OneMethodService entities in the database.
 func (omscb *OneMethodServiceCreateBulk) Save(ctx context.Context) ([]*OneMethodService, error) {
+	if omscb.err != nil {
+		return nil, omscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(omscb.builders))
 	nodes := make([]*OneMethodService, len(omscb.builders))
 	mutators := make([]Mutator, len(omscb.builders))

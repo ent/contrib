@@ -27,7 +27,7 @@ func (amsd *AllMethodsServiceDelete) Where(ps ...predicate.AllMethodsService) *A
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (amsd *AllMethodsServiceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, AllMethodsServiceMutation](ctx, amsd.sqlExec, amsd.mutation, amsd.hooks)
+	return withHooks(ctx, amsd.sqlExec, amsd.mutation, amsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -58,7 +58,7 @@ func (bpc *BillProductCreate) Mutation() *BillProductMutation {
 
 // Save creates the BillProduct in the database.
 func (bpc *BillProductCreate) Save(ctx context.Context) (*BillProduct, error) {
-	return withHooks[*BillProduct, BillProductMutation](ctx, bpc.sqlSave, bpc.mutation, bpc.hooks)
+	return withHooks(ctx, bpc.sqlSave, bpc.mutation, bpc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -143,11 +143,15 @@ func (bpc *BillProductCreate) createSpec() (*BillProduct, *sqlgraph.CreateSpec) 
 // BillProductCreateBulk is the builder for creating many BillProduct entities in bulk.
 type BillProductCreateBulk struct {
 	config
+	err      error
 	builders []*BillProductCreate
 }
 
 // Save creates the BillProduct entities in the database.
 func (bpcb *BillProductCreateBulk) Save(ctx context.Context) ([]*BillProduct, error) {
+	if bpcb.err != nil {
+		return nil, bpcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(bpcb.builders))
 	nodes := make([]*BillProduct, len(bpcb.builders))
 	mutators := make([]Mutator, len(bpcb.builders))

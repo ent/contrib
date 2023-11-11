@@ -27,7 +27,7 @@ func (nbd *NoBackrefDelete) Where(ps ...predicate.NoBackref) *NoBackrefDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (nbd *NoBackrefDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, NoBackrefMutation](ctx, nbd.sqlExec, nbd.mutation, nbd.hooks)
+	return withHooks(ctx, nbd.sqlExec, nbd.mutation, nbd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

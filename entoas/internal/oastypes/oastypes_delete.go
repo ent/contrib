@@ -27,7 +27,7 @@ func (otd *OASTypesDelete) Where(ps ...predicate.OASTypes) *OASTypesDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (otd *OASTypesDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, OASTypesMutation](ctx, otd.sqlExec, otd.mutation, otd.hooks)
+	return withHooks(ctx, otd.sqlExec, otd.mutation, otd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

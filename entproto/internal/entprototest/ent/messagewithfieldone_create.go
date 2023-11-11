@@ -32,7 +32,7 @@ func (mwfoc *MessageWithFieldOneCreate) Mutation() *MessageWithFieldOneMutation 
 
 // Save creates the MessageWithFieldOne in the database.
 func (mwfoc *MessageWithFieldOneCreate) Save(ctx context.Context) (*MessageWithFieldOne, error) {
-	return withHooks[*MessageWithFieldOne, MessageWithFieldOneMutation](ctx, mwfoc.sqlSave, mwfoc.mutation, mwfoc.hooks)
+	return withHooks(ctx, mwfoc.sqlSave, mwfoc.mutation, mwfoc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,11 +98,15 @@ func (mwfoc *MessageWithFieldOneCreate) createSpec() (*MessageWithFieldOne, *sql
 // MessageWithFieldOneCreateBulk is the builder for creating many MessageWithFieldOne entities in bulk.
 type MessageWithFieldOneCreateBulk struct {
 	config
+	err      error
 	builders []*MessageWithFieldOneCreate
 }
 
 // Save creates the MessageWithFieldOne entities in the database.
 func (mwfocb *MessageWithFieldOneCreateBulk) Save(ctx context.Context) ([]*MessageWithFieldOne, error) {
+	if mwfocb.err != nil {
+		return nil, mwfocb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwfocb.builders))
 	nodes := make([]*MessageWithFieldOne, len(mwfocb.builders))
 	mutators := make([]Mutator, len(mwfocb.builders))

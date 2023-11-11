@@ -35,9 +35,25 @@ func (vmu *ValidMessageUpdate) SetName(s string) *ValidMessageUpdate {
 	return vmu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (vmu *ValidMessageUpdate) SetNillableName(s *string) *ValidMessageUpdate {
+	if s != nil {
+		vmu.SetName(*s)
+	}
+	return vmu
+}
+
 // SetTs sets the "ts" field.
 func (vmu *ValidMessageUpdate) SetTs(t time.Time) *ValidMessageUpdate {
 	vmu.mutation.SetTs(t)
+	return vmu
+}
+
+// SetNillableTs sets the "ts" field if the given value is not nil.
+func (vmu *ValidMessageUpdate) SetNillableTs(t *time.Time) *ValidMessageUpdate {
+	if t != nil {
+		vmu.SetTs(*t)
+	}
 	return vmu
 }
 
@@ -47,10 +63,26 @@ func (vmu *ValidMessageUpdate) SetUUID(u uuid.UUID) *ValidMessageUpdate {
 	return vmu
 }
 
+// SetNillableUUID sets the "uuid" field if the given value is not nil.
+func (vmu *ValidMessageUpdate) SetNillableUUID(u *uuid.UUID) *ValidMessageUpdate {
+	if u != nil {
+		vmu.SetUUID(*u)
+	}
+	return vmu
+}
+
 // SetU8 sets the "u8" field.
 func (vmu *ValidMessageUpdate) SetU8(u uint8) *ValidMessageUpdate {
 	vmu.mutation.ResetU8()
 	vmu.mutation.SetU8(u)
+	return vmu
+}
+
+// SetNillableU8 sets the "u8" field if the given value is not nil.
+func (vmu *ValidMessageUpdate) SetNillableU8(u *uint8) *ValidMessageUpdate {
+	if u != nil {
+		vmu.SetU8(*u)
+	}
 	return vmu
 }
 
@@ -94,7 +126,7 @@ func (vmu *ValidMessageUpdate) Mutation() *ValidMessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (vmu *ValidMessageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ValidMessageMutation](ctx, vmu.sqlSave, vmu.mutation, vmu.hooks)
+	return withHooks(ctx, vmu.sqlSave, vmu.mutation, vmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -178,9 +210,25 @@ func (vmuo *ValidMessageUpdateOne) SetName(s string) *ValidMessageUpdateOne {
 	return vmuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (vmuo *ValidMessageUpdateOne) SetNillableName(s *string) *ValidMessageUpdateOne {
+	if s != nil {
+		vmuo.SetName(*s)
+	}
+	return vmuo
+}
+
 // SetTs sets the "ts" field.
 func (vmuo *ValidMessageUpdateOne) SetTs(t time.Time) *ValidMessageUpdateOne {
 	vmuo.mutation.SetTs(t)
+	return vmuo
+}
+
+// SetNillableTs sets the "ts" field if the given value is not nil.
+func (vmuo *ValidMessageUpdateOne) SetNillableTs(t *time.Time) *ValidMessageUpdateOne {
+	if t != nil {
+		vmuo.SetTs(*t)
+	}
 	return vmuo
 }
 
@@ -190,10 +238,26 @@ func (vmuo *ValidMessageUpdateOne) SetUUID(u uuid.UUID) *ValidMessageUpdateOne {
 	return vmuo
 }
 
+// SetNillableUUID sets the "uuid" field if the given value is not nil.
+func (vmuo *ValidMessageUpdateOne) SetNillableUUID(u *uuid.UUID) *ValidMessageUpdateOne {
+	if u != nil {
+		vmuo.SetUUID(*u)
+	}
+	return vmuo
+}
+
 // SetU8 sets the "u8" field.
 func (vmuo *ValidMessageUpdateOne) SetU8(u uint8) *ValidMessageUpdateOne {
 	vmuo.mutation.ResetU8()
 	vmuo.mutation.SetU8(u)
+	return vmuo
+}
+
+// SetNillableU8 sets the "u8" field if the given value is not nil.
+func (vmuo *ValidMessageUpdateOne) SetNillableU8(u *uint8) *ValidMessageUpdateOne {
+	if u != nil {
+		vmuo.SetU8(*u)
+	}
 	return vmuo
 }
 
@@ -250,7 +314,7 @@ func (vmuo *ValidMessageUpdateOne) Select(field string, fields ...string) *Valid
 
 // Save executes the query and returns the updated ValidMessage entity.
 func (vmuo *ValidMessageUpdateOne) Save(ctx context.Context) (*ValidMessage, error) {
-	return withHooks[*ValidMessage, ValidMessageMutation](ctx, vmuo.sqlSave, vmuo.mutation, vmuo.hooks)
+	return withHooks(ctx, vmuo.sqlSave, vmuo.mutation, vmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

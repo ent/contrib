@@ -40,10 +40,26 @@ func (uu *UserUpdate) SetUserName(s string) *UserUpdate {
 	return uu
 }
 
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserName(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetUserName(*s)
+	}
+	return uu
+}
+
 // SetPoints sets the "points" field.
 func (uu *UserUpdate) SetPoints(u uint) *UserUpdate {
 	uu.mutation.ResetPoints()
 	uu.mutation.SetPoints(u)
+	return uu
+}
+
+// SetNillablePoints sets the "points" field if the given value is not nil.
+func (uu *UserUpdate) SetNillablePoints(u *uint) *UserUpdate {
+	if u != nil {
+		uu.SetPoints(*u)
+	}
 	return uu
 }
 
@@ -60,6 +76,14 @@ func (uu *UserUpdate) SetExp(u uint64) *UserUpdate {
 	return uu
 }
 
+// SetNillableExp sets the "exp" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableExp(u *uint64) *UserUpdate {
+	if u != nil {
+		uu.SetExp(*u)
+	}
+	return uu
+}
+
 // AddExp adds u to the "exp" field.
 func (uu *UserUpdate) AddExp(u int64) *UserUpdate {
 	uu.mutation.AddExp(u)
@@ -72,10 +96,26 @@ func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
 	return uu
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStatus(u *user.Status) *UserUpdate {
+	if u != nil {
+		uu.SetStatus(*u)
+	}
+	return uu
+}
+
 // SetExternalID sets the "external_id" field.
 func (uu *UserUpdate) SetExternalID(i int) *UserUpdate {
 	uu.mutation.ResetExternalID()
 	uu.mutation.SetExternalID(i)
+	return uu
+}
+
+// SetNillableExternalID sets the "external_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableExternalID(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetExternalID(*i)
+	}
 	return uu
 }
 
@@ -88,6 +128,14 @@ func (uu *UserUpdate) AddExternalID(i int) *UserUpdate {
 // SetCrmID sets the "crm_id" field.
 func (uu *UserUpdate) SetCrmID(u uuid.UUID) *UserUpdate {
 	uu.mutation.SetCrmID(u)
+	return uu
+}
+
+// SetNillableCrmID sets the "crm_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCrmID(u *uuid.UUID) *UserUpdate {
+	if u != nil {
+		uu.SetCrmID(*u)
+	}
 	return uu
 }
 
@@ -109,6 +157,14 @@ func (uu *UserUpdate) SetNillableBanned(b *bool) *UserUpdate {
 func (uu *UserUpdate) SetCustomPb(u uint8) *UserUpdate {
 	uu.mutation.ResetCustomPb()
 	uu.mutation.SetCustomPb(u)
+	return uu
+}
+
+// SetNillableCustomPb sets the "custom_pb" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomPb(u *uint8) *UserUpdate {
+	if u != nil {
+		uu.SetCustomPb(*u)
+	}
 	return uu
 }
 
@@ -424,9 +480,25 @@ func (uu *UserUpdate) SetOmitPrefix(up user.OmitPrefix) *UserUpdate {
 	return uu
 }
 
+// SetNillableOmitPrefix sets the "omit_prefix" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableOmitPrefix(up *user.OmitPrefix) *UserUpdate {
+	if up != nil {
+		uu.SetOmitPrefix(*up)
+	}
+	return uu
+}
+
 // SetMimeType sets the "mime_type" field.
 func (uu *UserUpdate) SetMimeType(ut user.MimeType) *UserUpdate {
 	uu.mutation.SetMimeType(ut)
+	return uu
+}
+
+// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableMimeType(ut *user.MimeType) *UserUpdate {
+	if ut != nil {
+		uu.SetMimeType(*ut)
+	}
 	return uu
 }
 
@@ -573,7 +645,7 @@ func (uu *UserUpdate) ClearSkipEdge() *UserUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, UserMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -982,10 +1054,26 @@ func (uuo *UserUpdateOne) SetUserName(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserName(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetUserName(*s)
+	}
+	return uuo
+}
+
 // SetPoints sets the "points" field.
 func (uuo *UserUpdateOne) SetPoints(u uint) *UserUpdateOne {
 	uuo.mutation.ResetPoints()
 	uuo.mutation.SetPoints(u)
+	return uuo
+}
+
+// SetNillablePoints sets the "points" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePoints(u *uint) *UserUpdateOne {
+	if u != nil {
+		uuo.SetPoints(*u)
+	}
 	return uuo
 }
 
@@ -1002,6 +1090,14 @@ func (uuo *UserUpdateOne) SetExp(u uint64) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableExp sets the "exp" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableExp(u *uint64) *UserUpdateOne {
+	if u != nil {
+		uuo.SetExp(*u)
+	}
+	return uuo
+}
+
 // AddExp adds u to the "exp" field.
 func (uuo *UserUpdateOne) AddExp(u int64) *UserUpdateOne {
 	uuo.mutation.AddExp(u)
@@ -1014,10 +1110,26 @@ func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStatus(u *user.Status) *UserUpdateOne {
+	if u != nil {
+		uuo.SetStatus(*u)
+	}
+	return uuo
+}
+
 // SetExternalID sets the "external_id" field.
 func (uuo *UserUpdateOne) SetExternalID(i int) *UserUpdateOne {
 	uuo.mutation.ResetExternalID()
 	uuo.mutation.SetExternalID(i)
+	return uuo
+}
+
+// SetNillableExternalID sets the "external_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableExternalID(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetExternalID(*i)
+	}
 	return uuo
 }
 
@@ -1030,6 +1142,14 @@ func (uuo *UserUpdateOne) AddExternalID(i int) *UserUpdateOne {
 // SetCrmID sets the "crm_id" field.
 func (uuo *UserUpdateOne) SetCrmID(u uuid.UUID) *UserUpdateOne {
 	uuo.mutation.SetCrmID(u)
+	return uuo
+}
+
+// SetNillableCrmID sets the "crm_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCrmID(u *uuid.UUID) *UserUpdateOne {
+	if u != nil {
+		uuo.SetCrmID(*u)
+	}
 	return uuo
 }
 
@@ -1051,6 +1171,14 @@ func (uuo *UserUpdateOne) SetNillableBanned(b *bool) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetCustomPb(u uint8) *UserUpdateOne {
 	uuo.mutation.ResetCustomPb()
 	uuo.mutation.SetCustomPb(u)
+	return uuo
+}
+
+// SetNillableCustomPb sets the "custom_pb" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomPb(u *uint8) *UserUpdateOne {
+	if u != nil {
+		uuo.SetCustomPb(*u)
+	}
 	return uuo
 }
 
@@ -1366,9 +1494,25 @@ func (uuo *UserUpdateOne) SetOmitPrefix(up user.OmitPrefix) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableOmitPrefix sets the "omit_prefix" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableOmitPrefix(up *user.OmitPrefix) *UserUpdateOne {
+	if up != nil {
+		uuo.SetOmitPrefix(*up)
+	}
+	return uuo
+}
+
 // SetMimeType sets the "mime_type" field.
 func (uuo *UserUpdateOne) SetMimeType(ut user.MimeType) *UserUpdateOne {
 	uuo.mutation.SetMimeType(ut)
+	return uuo
+}
+
+// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableMimeType(ut *user.MimeType) *UserUpdateOne {
+	if ut != nil {
+		uuo.SetMimeType(*ut)
+	}
 	return uuo
 }
 
@@ -1528,7 +1672,7 @@ func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne 
 
 // Save executes the query and returns the updated User entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks[*User, UserMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

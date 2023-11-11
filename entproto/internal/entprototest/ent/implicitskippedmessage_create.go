@@ -25,7 +25,7 @@ func (ismc *ImplicitSkippedMessageCreate) Mutation() *ImplicitSkippedMessageMuta
 
 // Save creates the ImplicitSkippedMessage in the database.
 func (ismc *ImplicitSkippedMessageCreate) Save(ctx context.Context) (*ImplicitSkippedMessage, error) {
-	return withHooks[*ImplicitSkippedMessage, ImplicitSkippedMessageMutation](ctx, ismc.sqlSave, ismc.mutation, ismc.hooks)
+	return withHooks(ctx, ismc.sqlSave, ismc.mutation, ismc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -84,11 +84,15 @@ func (ismc *ImplicitSkippedMessageCreate) createSpec() (*ImplicitSkippedMessage,
 // ImplicitSkippedMessageCreateBulk is the builder for creating many ImplicitSkippedMessage entities in bulk.
 type ImplicitSkippedMessageCreateBulk struct {
 	config
+	err      error
 	builders []*ImplicitSkippedMessageCreate
 }
 
 // Save creates the ImplicitSkippedMessage entities in the database.
 func (ismcb *ImplicitSkippedMessageCreateBulk) Save(ctx context.Context) ([]*ImplicitSkippedMessage, error) {
+	if ismcb.err != nil {
+		return nil, ismcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ismcb.builders))
 	nodes := make([]*ImplicitSkippedMessage, len(ismcb.builders))
 	mutators := make([]Mutator, len(ismcb.builders))

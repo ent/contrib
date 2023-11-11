@@ -34,7 +34,7 @@ func (amsu *AllMethodsServiceUpdate) Mutation() *AllMethodsServiceMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (amsu *AllMethodsServiceUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, AllMethodsServiceMutation](ctx, amsu.sqlSave, amsu.mutation, amsu.hooks)
+	return withHooks(ctx, amsu.sqlSave, amsu.mutation, amsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (amsuo *AllMethodsServiceUpdateOne) Select(field string, fields ...string) 
 
 // Save executes the query and returns the updated AllMethodsService entity.
 func (amsuo *AllMethodsServiceUpdateOne) Save(ctx context.Context) (*AllMethodsService, error) {
-	return withHooks[*AllMethodsService, AllMethodsServiceMutation](ctx, amsuo.sqlSave, amsuo.mutation, amsuo.hooks)
+	return withHooks(ctx, amsuo.sqlSave, amsuo.mutation, amsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

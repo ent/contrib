@@ -47,9 +47,25 @@ func (mweu *MessageWithEnumUpdate) SetEnumWithoutDefault(mwd messagewithenum.Enu
 	return mweu
 }
 
+// SetNillableEnumWithoutDefault sets the "enum_without_default" field if the given value is not nil.
+func (mweu *MessageWithEnumUpdate) SetNillableEnumWithoutDefault(mwd *messagewithenum.EnumWithoutDefault) *MessageWithEnumUpdate {
+	if mwd != nil {
+		mweu.SetEnumWithoutDefault(*mwd)
+	}
+	return mweu
+}
+
 // SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
 func (mweu *MessageWithEnumUpdate) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdate {
 	mweu.mutation.SetEnumWithSpecialCharacters(mwsc)
+	return mweu
+}
+
+// SetNillableEnumWithSpecialCharacters sets the "enum_with_special_characters" field if the given value is not nil.
+func (mweu *MessageWithEnumUpdate) SetNillableEnumWithSpecialCharacters(mwsc *messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdate {
+	if mwsc != nil {
+		mweu.SetEnumWithSpecialCharacters(*mwsc)
+	}
 	return mweu
 }
 
@@ -60,7 +76,7 @@ func (mweu *MessageWithEnumUpdate) Mutation() *MessageWithEnumMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mweu *MessageWithEnumUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithEnumMutation](ctx, mweu.sqlSave, mweu.mutation, mweu.hooks)
+	return withHooks(ctx, mweu.sqlSave, mweu.mutation, mweu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -166,9 +182,25 @@ func (mweuo *MessageWithEnumUpdateOne) SetEnumWithoutDefault(mwd messagewithenum
 	return mweuo
 }
 
+// SetNillableEnumWithoutDefault sets the "enum_without_default" field if the given value is not nil.
+func (mweuo *MessageWithEnumUpdateOne) SetNillableEnumWithoutDefault(mwd *messagewithenum.EnumWithoutDefault) *MessageWithEnumUpdateOne {
+	if mwd != nil {
+		mweuo.SetEnumWithoutDefault(*mwd)
+	}
+	return mweuo
+}
+
 // SetEnumWithSpecialCharacters sets the "enum_with_special_characters" field.
 func (mweuo *MessageWithEnumUpdateOne) SetEnumWithSpecialCharacters(mwsc messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdateOne {
 	mweuo.mutation.SetEnumWithSpecialCharacters(mwsc)
+	return mweuo
+}
+
+// SetNillableEnumWithSpecialCharacters sets the "enum_with_special_characters" field if the given value is not nil.
+func (mweuo *MessageWithEnumUpdateOne) SetNillableEnumWithSpecialCharacters(mwsc *messagewithenum.EnumWithSpecialCharacters) *MessageWithEnumUpdateOne {
+	if mwsc != nil {
+		mweuo.SetEnumWithSpecialCharacters(*mwsc)
+	}
 	return mweuo
 }
 
@@ -192,7 +224,7 @@ func (mweuo *MessageWithEnumUpdateOne) Select(field string, fields ...string) *M
 
 // Save executes the query and returns the updated MessageWithEnum entity.
 func (mweuo *MessageWithEnumUpdateOne) Save(ctx context.Context) (*MessageWithEnum, error) {
-	return withHooks[*MessageWithEnum, MessageWithEnumMutation](ctx, mweuo.sqlSave, mweuo.mutation, mweuo.hooks)
+	return withHooks(ctx, mweuo.sqlSave, mweuo.mutation, mweuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

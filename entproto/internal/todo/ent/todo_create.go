@@ -67,7 +67,7 @@ func (tc *TodoCreate) Mutation() *TodoMutation {
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
 	tc.defaults()
-	return withHooks[*Todo, TodoMutation](ctx, tc.sqlSave, tc.mutation, tc.hooks)
+	return withHooks(ctx, tc.sqlSave, tc.mutation, tc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -170,11 +170,15 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 // TodoCreateBulk is the builder for creating many Todo entities in bulk.
 type TodoCreateBulk struct {
 	config
+	err      error
 	builders []*TodoCreate
 }
 
 // Save creates the Todo entities in the database.
 func (tcb *TodoCreateBulk) Save(ctx context.Context) ([]*Todo, error) {
+	if tcb.err != nil {
+		return nil, tcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tcb.builders))
 	nodes := make([]*Todo, len(tcb.builders))
 	mutators := make([]Mutator, len(tcb.builders))

@@ -25,7 +25,7 @@ func (wfc *WithoutFieldsCreate) Mutation() *WithoutFieldsMutation {
 
 // Save creates the WithoutFields in the database.
 func (wfc *WithoutFieldsCreate) Save(ctx context.Context) (*WithoutFields, error) {
-	return withHooks[*WithoutFields, WithoutFieldsMutation](ctx, wfc.sqlSave, wfc.mutation, wfc.hooks)
+	return withHooks(ctx, wfc.sqlSave, wfc.mutation, wfc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -84,11 +84,15 @@ func (wfc *WithoutFieldsCreate) createSpec() (*WithoutFields, *sqlgraph.CreateSp
 // WithoutFieldsCreateBulk is the builder for creating many WithoutFields entities in bulk.
 type WithoutFieldsCreateBulk struct {
 	config
+	err      error
 	builders []*WithoutFieldsCreate
 }
 
 // Save creates the WithoutFields entities in the database.
 func (wfcb *WithoutFieldsCreateBulk) Save(ctx context.Context) ([]*WithoutFields, error) {
+	if wfcb.err != nil {
+		return nil, wfcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wfcb.builders))
 	nodes := make([]*WithoutFields, len(wfcb.builders))
 	mutators := make([]Mutator, len(wfcb.builders))

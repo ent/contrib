@@ -32,7 +32,7 @@ func (mwsc *MessageWithStringsCreate) Mutation() *MessageWithStringsMutation {
 
 // Save creates the MessageWithStrings in the database.
 func (mwsc *MessageWithStringsCreate) Save(ctx context.Context) (*MessageWithStrings, error) {
-	return withHooks[*MessageWithStrings, MessageWithStringsMutation](ctx, mwsc.sqlSave, mwsc.mutation, mwsc.hooks)
+	return withHooks(ctx, mwsc.sqlSave, mwsc.mutation, mwsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,11 +98,15 @@ func (mwsc *MessageWithStringsCreate) createSpec() (*MessageWithStrings, *sqlgra
 // MessageWithStringsCreateBulk is the builder for creating many MessageWithStrings entities in bulk.
 type MessageWithStringsCreateBulk struct {
 	config
+	err      error
 	builders []*MessageWithStringsCreate
 }
 
 // Save creates the MessageWithStrings entities in the database.
 func (mwscb *MessageWithStringsCreateBulk) Save(ctx context.Context) ([]*MessageWithStrings, error) {
+	if mwscb.err != nil {
+		return nil, mwscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwscb.builders))
 	nodes := make([]*MessageWithStrings, len(mwscb.builders))
 	mutators := make([]Mutator, len(mwscb.builders))

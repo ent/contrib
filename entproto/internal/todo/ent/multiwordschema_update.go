@@ -48,7 +48,7 @@ func (mwsu *MultiWordSchemaUpdate) Mutation() *MultiWordSchemaMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwsu *MultiWordSchemaUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, MultiWordSchemaMutation](ctx, mwsu.sqlSave, mwsu.mutation, mwsu.hooks)
+	return withHooks(ctx, mwsu.sqlSave, mwsu.mutation, mwsu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -152,7 +152,7 @@ func (mwsuo *MultiWordSchemaUpdateOne) Select(field string, fields ...string) *M
 
 // Save executes the query and returns the updated MultiWordSchema entity.
 func (mwsuo *MultiWordSchemaUpdateOne) Save(ctx context.Context) (*MultiWordSchema, error) {
-	return withHooks[*MultiWordSchema, MultiWordSchemaMutation](ctx, mwsuo.sqlSave, mwsuo.mutation, mwsuo.hooks)
+	return withHooks(ctx, mwsuo.sqlSave, mwsuo.mutation, mwsuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
