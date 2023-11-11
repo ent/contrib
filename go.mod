@@ -1,6 +1,6 @@
 module entgo.io/contrib
 
-go 1.18
+go 1.20
 
 require (
 	entgo.io/ent v0.12.5-0.20231110085726-c2ff3ff3bca9
