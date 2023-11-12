@@ -55,8 +55,11 @@ type (
 
 	// Directive to apply on the field/type.
 	Directive struct {
-		Name      string          `json:"name,omitempty"`
+		Name string `json:"name,omitempty"`
 		Arguments []*ast.Argument `json:"arguments,omitempty"`
+		SkipTypeGen bool `json:"SkipType,omitempty"`
+		CreateMutationGen bool `json:"OnCreate,omitempty"`
+		UpdateMutaionGen bool `json:"OnUpdate,omitempty"`
 	}
 
 	// SkipMode is a bit flag for the Skip annotation.
@@ -547,6 +550,21 @@ func NewDirective(name string, args ...*ast.Argument) Directive {
 		Name:      name,
 		Arguments: args,
 	}
+}
+
+func(d Directive) SkipType() Directive {
+	d.SkipTypeGen = true
+	return d
+}
+
+func(d Directive) OnCreateInput() Directive {
+	d.CreateMutationGen = true
+	return d
+}
+
+func(d Directive) OnUpdateInput() Directive {
+	d.UpdateMutaionGen = true
+	return d
 }
 
 // Deprecated create `@deprecated` directive to apply on the field/type
