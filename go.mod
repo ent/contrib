@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.12.5-0.20231110085726-c2ff3ff3bca9
 	github.com/99designs/gqlgen v0.17.36
 	github.com/AlekSi/pointer v1.1.0
-	github.com/alecthomas/kong v0.7.0
+	github.com/alecthomas/kong v0.8.0
 	github.com/go-openapi/inflect v0.19.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
