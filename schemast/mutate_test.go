@@ -60,6 +60,23 @@ func TestUpsert(t *testing.T) {
 				index.Fields("name"),
 			},
 		},
+		&UpsertSchema{
+			Name: "Group", // A new schema
+			Fields: []ent.Field{
+				field.String("name"),
+			},
+			Edges: []ent.Edge{},
+			Annotations: []schema.Annotation{
+				entproto.Message(),
+			},
+			Indexes: []ent.Index{
+				index.Fields("name"),
+			},
+			BaseConfig: &BaseSchemaConfig{
+				BasePkg:        "entgo.io/contrib/schemast/internal/mutatetest",
+				BaseSchemaType: "mutatetest.TestBaseSchema",
+			},
+		},
 	}
 	err = Mutate(tt.ctx, mutations...)
 	require.NoError(t, err)

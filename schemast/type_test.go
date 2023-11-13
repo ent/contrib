@@ -16,6 +16,7 @@ package schemast
 
 import (
 	"bytes"
+	"go/ast"
 	"go/printer"
 	"os"
 	"path"
@@ -40,6 +41,31 @@ func TestContext_AddType(t *testing.T) {
 	require.EqualValues(t, `func (Cat) Fields() []ent.Field {
 	return []ent.Field{field.String("name")}
 }`, buf.String())
+
+	file, _, ok := ctx.lookupTypeDecl("Cat")
+	require.True(t, ok)
+	require.Len(t, file.Imports, 2)
+}
+
+func TestContext_AddTypeWithBase(t *testing.T) {
+	ctx, err := Load("./internal/printtest/ent/schema")
+	require.NoError(t, err)
+	err = ctx.AddTypeWithBase("Kitten", "mutatetest.TestBaseSchema", "entgo.io/contrib/schemast/internal/mutatetest")
+	require.NoError(t, err)
+
+	file, _, ok := ctx.lookupTypeDecl("Kitten")
+	require.True(t, ok)
+	require.Len(t, file.Decls, 5)
+	require.Len(t, file.Imports, 3)
+
+	structDef, ok := ctx.lookupBaseStruct("Kitten")
+	require.True(t, ok)
+	require.Len(t, structDef.Fields.List, 1)
+
+	fieldDef, ok := structDef.Fields.List[0].Type.(*ast.SelectorExpr)
+	require.True(t, ok)
+	require.Equal(t, "mutatetest", fieldDef.X.(*ast.Ident).Name)
+	require.Equal(t, "TestBaseSchema", fieldDef.Sel.Name)
 }
 
 func TestContext_RemoveType(t *testing.T) {
