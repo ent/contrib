@@ -58,10 +58,9 @@ type PageInfo {
   endCursor: Cursor
 }
 
-type TodoConnection {
+type TodoList {
   totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TodoEdge]
+  items: [Todo]!
 }
 
 type TodoEdge {
@@ -89,7 +88,7 @@ input TodoOrder {
 type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoConnection
+  todos(after: Cursor, first: Int, before: Cursor, last: Int, orderBy: TodoOrder): TodoList
 }
 
 type Mutation {

@@ -49,6 +49,22 @@ func orderFunc(o OrderDirection, field string) func(*sql.Selector) {
 
 const errInvalidPagination = "INVALID_PAGINATION"
 
+func validateLimitOffset(limit, offset *int) (err *gqlerror.Error) {
+	switch {
+	case limit != nil && *limit < 0:
+		err = &gqlerror.Error{
+			Message: "`limit` on a connection cannot be less than zero.",
+		}
+		errcode.Set(err, errInvalidPagination)
+	case offset != nil && *offset < 0:
+		err = &gqlerror.Error{
+			Message: "`offset` on a connection cannot be less than zero.",
+		}
+		errcode.Set(err, errInvalidPagination)
+	}
+	return err
+}
+
 func validateFirstLast(first, last *int) (err *gqlerror.Error) {
 	switch {
 	case first != nil && last != nil:
@@ -98,6 +114,7 @@ func hasCollectedField(ctx context.Context, path ...string) bool {
 
 const (
 	edgesField      = "edges"
+	itemsField      = "items"
 	nodeField       = "node"
 	pageInfoField   = "pageInfo"
 	totalCountField = "totalCount"
@@ -119,46 +136,59 @@ type CategoryEdge struct {
 	Cursor Cursor    `json:"cursor"`
 }
 
-// CategoryConnection is the connection containing edges to Category.
-type CategoryConnection struct {
+// CategoryList is the connection containing edges to Category.
+type CategoryList struct {
 	Edges      []*CategoryEdge `json:"edges"`
+	Items      []*Category     `json:"items"`
 	PageInfo   PageInfo        `json:"pageInfo"`
 	TotalCount int             `json:"totalCount"`
 }
 
-func (c *CategoryConnection) build(nodes []*Category, pager *categoryPager, after *Cursor, first *int, before *Cursor, last *int) {
-	c.PageInfo.HasNextPage = before != nil
-	c.PageInfo.HasPreviousPage = after != nil
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *Category
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *Category {
-			return nodes[n-i]
+func (c *CategoryList) build(nodes []*Category, pager *categoryPager, after *Cursor, first *int, before *Cursor, last *int, withPageInfo bool) {
+	c.Items = nodes
+	c.Edges = make([]*CategoryEdge, len(nodes))
+	if withPageInfo {
+		c.PageInfo.HasNextPage = before != nil
+		c.PageInfo.HasPreviousPage = after != nil
+		if first != nil && *first+1 == len(nodes) {
+			c.PageInfo.HasNextPage = true
+			nodes = nodes[:len(nodes)-1]
+		} else if last != nil && *last+1 == len(nodes) {
+			c.PageInfo.HasPreviousPage = true
+			nodes = nodes[:len(nodes)-1]
+		}
+		var nodeAt func(int) *Category
+		if last != nil {
+			n := len(nodes) - 1
+			nodeAt = func(i int) *Category {
+				return nodes[n-i]
+			}
+		} else {
+			nodeAt = func(i int) *Category {
+				return nodes[i]
+			}
+		}
+		for i := range nodes {
+			node := nodeAt(i)
+			c.Edges[i] = &CategoryEdge{
+				Node:   node,
+				Cursor: pager.toCursor(node),
+			}
+		}
+		if l := len(c.Edges); l > 0 {
+			c.PageInfo.StartCursor = &c.Edges[0].Cursor
+			c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
 		}
 	} else {
-		nodeAt = func(i int) *Category {
-			return nodes[i]
+		for i := range nodes {
+			node := nodes[i]
+			c.Edges[i] = &CategoryEdge{
+				Node:   node,
+				Cursor: pager.toCursor(node),
+			}
 		}
 	}
-	c.Edges = make([]*CategoryEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &CategoryEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	if l := len(c.Edges); l > 0 {
-		c.PageInfo.StartCursor = &c.Edges[0].Cursor
-		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
-	}
+
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -268,11 +298,63 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 	})
 }
 
+// Paginate executes the query and returns a limit/offset paginated connection to Category.
+func (c *CategoryQuery) PaginateLimitOffset(
+	ctx context.Context, limit *int, offset *int, opts ...CategoryPaginateOption,
+) (*CategoryList, error) {
+	if err := validateLimitOffset(limit, offset); err != nil {
+		return nil, err
+	}
+	pager, err := newCategoryPager(opts, false)
+	if err != nil {
+		return nil, err
+	}
+	if c, err = pager.applyFilter(c); err != nil {
+		return nil, err
+	}
+	conn := &CategoryList{Edges: []*CategoryEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
+	if hasCollectedField(ctx, totalCountField) {
+		hasPagination := limit != nil || offset != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = c.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if ignoredEdges || (limit != nil && *limit == 0) {
+		return conn, nil
+	}
+	if limit != nil {
+		c.Limit(*limit)
+	}
+	if offset != nil {
+		c.Offset(*offset)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+			return nil, err
+		}
+	}
+	c = pager.applyOrder(c)
+	nodes, err := c.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, nil, nil, nil, nil, false)
+	return conn, nil
+}
+
 // Paginate executes the query and returns a relay based cursor connection to Category.
 func (c *CategoryQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...CategoryPaginateOption,
-) (*CategoryConnection, error) {
+) (*CategoryList, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
@@ -283,7 +365,7 @@ func (c *CategoryQuery) Paginate(
 	if c, err = pager.applyFilter(c); err != nil {
 		return nil, err
 	}
-	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
+	conn := &CategoryList{Edges: []*CategoryEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -309,12 +391,17 @@ func (c *CategoryQuery) Paginate(
 			return nil, err
 		}
 	}
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+			return nil, err
+		}
+	}
 	c = pager.applyOrder(c)
 	nodes, err := c.All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	conn.build(nodes, pager, after, first, before, last)
+	conn.build(nodes, pager, after, first, before, last, true)
 	return conn, nil
 }
 
@@ -430,46 +517,59 @@ type TodoEdge struct {
 	Cursor Cursor `json:"cursor"`
 }
 
-// TodoConnection is the connection containing edges to Todo.
-type TodoConnection struct {
+// TodoList is the connection containing edges to Todo.
+type TodoList struct {
 	Edges      []*TodoEdge `json:"edges"`
+	Items      []*Todo     `json:"items"`
 	PageInfo   PageInfo    `json:"pageInfo"`
 	TotalCount int         `json:"totalCount"`
 }
 
-func (c *TodoConnection) build(nodes []*Todo, pager *todoPager, after *Cursor, first *int, before *Cursor, last *int) {
-	c.PageInfo.HasNextPage = before != nil
-	c.PageInfo.HasPreviousPage = after != nil
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *Todo
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *Todo {
-			return nodes[n-i]
+func (c *TodoList) build(nodes []*Todo, pager *todoPager, after *Cursor, first *int, before *Cursor, last *int, withPageInfo bool) {
+	c.Items = nodes
+	c.Edges = make([]*TodoEdge, len(nodes))
+	if withPageInfo {
+		c.PageInfo.HasNextPage = before != nil
+		c.PageInfo.HasPreviousPage = after != nil
+		if first != nil && *first+1 == len(nodes) {
+			c.PageInfo.HasNextPage = true
+			nodes = nodes[:len(nodes)-1]
+		} else if last != nil && *last+1 == len(nodes) {
+			c.PageInfo.HasPreviousPage = true
+			nodes = nodes[:len(nodes)-1]
+		}
+		var nodeAt func(int) *Todo
+		if last != nil {
+			n := len(nodes) - 1
+			nodeAt = func(i int) *Todo {
+				return nodes[n-i]
+			}
+		} else {
+			nodeAt = func(i int) *Todo {
+				return nodes[i]
+			}
+		}
+		for i := range nodes {
+			node := nodeAt(i)
+			c.Edges[i] = &TodoEdge{
+				Node:   node,
+				Cursor: pager.toCursor(node),
+			}
+		}
+		if l := len(c.Edges); l > 0 {
+			c.PageInfo.StartCursor = &c.Edges[0].Cursor
+			c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
 		}
 	} else {
-		nodeAt = func(i int) *Todo {
-			return nodes[i]
+		for i := range nodes {
+			node := nodes[i]
+			c.Edges[i] = &TodoEdge{
+				Node:   node,
+				Cursor: pager.toCursor(node),
+			}
 		}
 	}
-	c.Edges = make([]*TodoEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &TodoEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	if l := len(c.Edges); l > 0 {
-		c.PageInfo.StartCursor = &c.Edges[0].Cursor
-		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
-	}
+
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -579,11 +679,63 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	})
 }
 
+// Paginate executes the query and returns a limit/offset paginated connection to Todo.
+func (t *TodoQuery) PaginateLimitOffset(
+	ctx context.Context, limit *int, offset *int, opts ...TodoPaginateOption,
+) (*TodoList, error) {
+	if err := validateLimitOffset(limit, offset); err != nil {
+		return nil, err
+	}
+	pager, err := newTodoPager(opts, false)
+	if err != nil {
+		return nil, err
+	}
+	if t, err = pager.applyFilter(t); err != nil {
+		return nil, err
+	}
+	conn := &TodoList{Edges: []*TodoEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
+	if hasCollectedField(ctx, totalCountField) {
+		hasPagination := limit != nil || offset != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = t.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if ignoredEdges || (limit != nil && *limit == 0) {
+		return conn, nil
+	}
+	if limit != nil {
+		t.Limit(*limit)
+	}
+	if offset != nil {
+		t.Offset(*offset)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+			return nil, err
+		}
+	}
+	t = pager.applyOrder(t)
+	nodes, err := t.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, nil, nil, nil, nil, false)
+	return conn, nil
+}
+
 // Paginate executes the query and returns a relay based cursor connection to Todo.
 func (t *TodoQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...TodoPaginateOption,
-) (*TodoConnection, error) {
+) (*TodoList, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
@@ -594,7 +746,7 @@ func (t *TodoQuery) Paginate(
 	if t, err = pager.applyFilter(t); err != nil {
 		return nil, err
 	}
-	conn := &TodoConnection{Edges: []*TodoEdge{}}
+	conn := &TodoList{Edges: []*TodoEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -620,12 +772,17 @@ func (t *TodoQuery) Paginate(
 			return nil, err
 		}
 	}
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+			return nil, err
+		}
+	}
 	t = pager.applyOrder(t)
 	nodes, err := t.All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	conn.build(nodes, pager, after, first, before, last)
+	conn.build(nodes, pager, after, first, before, last, true)
 	return conn, nil
 }
 

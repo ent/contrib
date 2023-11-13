@@ -17,6 +17,7 @@
 package ent
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,9 +29,10 @@ import (
 
 // CategoryWhereInput represents a where input for filtering Category queries.
 type CategoryWhereInput struct {
-	Not *CategoryWhereInput   `json:"not,omitempty"`
-	Or  []*CategoryWhereInput `json:"or,omitempty"`
-	And []*CategoryWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Category  `json:"-"`
+	Not        *CategoryWhereInput   `json:"not,omitempty"`
+	Or         []*CategoryWhereInput `json:"or,omitempty"`
+	And        []*CategoryWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -104,6 +106,11 @@ type CategoryWhereInput struct {
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *CategoryWhereInput) AddPredicates(predicates ...predicate.Category) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the CategoryWhereInput filter on the CategoryQuery builder.
 func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	if i == nil {
@@ -111,10 +118,16 @@ func (i *CategoryWhereInput) Filter(q *CategoryQuery) (*CategoryQuery, error) {
 	}
 	p, err := i.P()
 	if err != nil {
+		if err == ErrEmptyCategoryWhereInput {
+			return q, nil
+		}
 		return nil, err
 	}
 	return q.Where(p), nil
 }
+
+// ErrEmptyCategoryWhereInput is returned in case the CategoryWhereInput is empty.
+var ErrEmptyCategoryWhereInput = errors.New("ent: empty predicate CategoryWhereInput")
 
 // P returns a predicate for filtering categories.
 // An error is returned if the input is empty or invalid.
@@ -123,7 +136,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'not'", err)
 		}
 		predicates = append(predicates, category.Not(p))
 	}
@@ -131,7 +144,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	case n == 1:
 		p, err := i.Or[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'or'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -139,7 +152,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'or'", err)
 			}
 			or = append(or, p)
 		}
@@ -149,7 +162,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	case n == 1:
 		p, err := i.And[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'and'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -157,12 +170,13 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'and'", err)
 			}
 			and = append(and, p)
 		}
 		predicates = append(predicates, category.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, category.IDEQ(*i.ID))
 	}
@@ -341,7 +355,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		for _, w := range i.HasTodosWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasTodosWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -349,7 +363,7 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todofed/ent: empty predicate CategoryWhereInput")
+		return nil, ErrEmptyCategoryWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -359,9 +373,10 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 
 // TodoWhereInput represents a where input for filtering Todo queries.
 type TodoWhereInput struct {
-	Not *TodoWhereInput   `json:"not,omitempty"`
-	Or  []*TodoWhereInput `json:"or,omitempty"`
-	And []*TodoWhereInput `json:"and,omitempty"`
+	Predicates []predicate.Todo  `json:"-"`
+	Not        *TodoWhereInput   `json:"not,omitempty"`
+	Or         []*TodoWhereInput `json:"or,omitempty"`
+	And        []*TodoWhereInput `json:"and,omitempty"`
 
 	// "id" field predicates.
 	ID      *int  `json:"id,omitempty"`
@@ -427,6 +442,11 @@ type TodoWhereInput struct {
 	HasCategoryWith []*CategoryWhereInput `json:"hasCategoryWith,omitempty"`
 }
 
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *TodoWhereInput) AddPredicates(predicates ...predicate.Todo) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
 // Filter applies the TodoWhereInput filter on the TodoQuery builder.
 func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 	if i == nil {
@@ -434,10 +454,16 @@ func (i *TodoWhereInput) Filter(q *TodoQuery) (*TodoQuery, error) {
 	}
 	p, err := i.P()
 	if err != nil {
+		if err == ErrEmptyTodoWhereInput {
+			return q, nil
+		}
 		return nil, err
 	}
 	return q.Where(p), nil
 }
+
+// ErrEmptyTodoWhereInput is returned in case the TodoWhereInput is empty.
+var ErrEmptyTodoWhereInput = errors.New("ent: empty predicate TodoWhereInput")
 
 // P returns a predicate for filtering todos.
 // An error is returned if the input is empty or invalid.
@@ -446,7 +472,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	if i.Not != nil {
 		p, err := i.Not.P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'not'", err)
 		}
 		predicates = append(predicates, todo.Not(p))
 	}
@@ -454,7 +480,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	case n == 1:
 		p, err := i.Or[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'or'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -462,7 +488,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.Or {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'or'", err)
 			}
 			or = append(or, p)
 		}
@@ -472,7 +498,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	case n == 1:
 		p, err := i.And[0].P()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: field 'and'", err)
 		}
 		predicates = append(predicates, p)
 	case n > 1:
@@ -480,12 +506,13 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.And {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'and'", err)
 			}
 			and = append(and, p)
 		}
 		predicates = append(predicates, todo.And(and...))
 	}
+	predicates = append(predicates, i.Predicates...)
 	if i.ID != nil {
 		predicates = append(predicates, todo.IDEQ(*i.ID))
 	}
@@ -622,7 +649,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.HasParentWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasParentWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -640,7 +667,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.HasChildrenWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasChildrenWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -658,7 +685,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		for _, w := range i.HasCategoryWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: field 'HasCategoryWith'", err)
 			}
 			with = append(with, p)
 		}
@@ -666,7 +693,7 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	switch len(predicates) {
 	case 0:
-		return nil, fmt.Errorf("entgo.io/contrib/entgql/internal/todofed/ent: empty predicate TodoWhereInput")
+		return nil, ErrEmptyTodoWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
