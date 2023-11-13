@@ -15,6 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Skipping these tests due to custom features like edge generation and pagination, which cause test failures.
+// We manage todo_custom_test.go instead.
+// However, we don't change this file because it might get conflicts later when we rebase the upstream master branch.
 package todofed_test
 
 import (
