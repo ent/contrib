@@ -343,3 +343,109 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		s.Zero(rsp.Todos.TotalCount)
 	})
 }
+
+func (s *todoTestSuite) TestNestedPagination() {
+	ec := enttest.Open(s.T(), dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", s.T().Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	s.Client = client.New(srv)
+
+	// Create a category.
+	var mutationRsp struct {
+		CreateCategory struct {
+			ID     string
+			Text   string
+			Status string
+			Todos  struct {
+				TotalCount int
+				Items      []struct {
+					ID string
+				}
+			}
+		}
+	}
+
+	err := s.Post(`
+	mutation createCategory {
+		createCategory(input: {
+			text: "cate1"
+			status: ENABLED
+			createTodos: [
+				{ status: IN_PROGRESS, text: "c1.t1" },
+				{ status: IN_PROGRESS, text: "c1.t2" }
+			]
+		}) {
+			id
+			text
+			status
+			todos {
+				totalCount
+				items {
+					id
+				}
+			}
+		}
+	}
+	`, &mutationRsp)
+	s.Require().NoError(err)
+
+	s.Require().Equal(2, mutationRsp.CreateCategory.Todos.TotalCount)
+
+	// Query a category.
+	var queryRsp struct {
+		Categories struct {
+			TotalCount int
+			Items      []struct {
+				ID    string
+				Todos struct {
+					TotalCount int
+					Items      []struct {
+						ID string
+					}
+				}
+			}
+		}
+	}
+	err = s.Post(`query {
+		categories {
+		    totalCount
+		    items {
+				id
+		      	todos {
+		        	items {
+		          		id
+		        	}
+		      	}
+			}
+		}
+	}`, &queryRsp)
+
+	s.Require().NoError(err)
+	s.Require().Equal(1, len(queryRsp.Categories.Items))
+	s.Require().Equal(2, len(queryRsp.Categories.Items[0].Todos.Items))
+
+	err = s.Post(`
+	query {
+		categories {
+		    totalCount
+		    items {
+				id
+		      	todos {
+					totalCount
+		        	items {
+		          		id
+		        	}
+		      	}
+			}
+		}
+	}
+	`, &queryRsp)
+
+	s.Require().NoError(err)
+	s.Require().Equal(1, len(queryRsp.Categories.Items))
+	s.Require().Equal(2, queryRsp.Categories.Items[0].Todos.TotalCount)
+	s.Require().Equal(2, len(queryRsp.Categories.Items[0].Todos.Items))
+}

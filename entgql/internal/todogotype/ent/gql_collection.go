@@ -83,8 +83,7 @@ func (bp *BillProductQuery) collectField(ctx context.Context, opCtx *graphql.Ope
 }
 
 type billproductPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []BillProductPaginateOption
 }
 
@@ -93,17 +92,11 @@ func newBillProductPaginateArgs(rv map[string]interface{}) *billproductPaginateA
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[whereField].(*BillProductWhereInput); ok {
 		args.opts = append(args.opts, WithBillProductFilter(v.Filter))
@@ -139,19 +132,19 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				query = (&TodoClient{config: c.config}).Query()
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
-			if err := validateFirstLast(args.first, args.last); err != nil {
-				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			if err := validateLimitOffset(args.limit, args.offset); err != nil {
+				return fmt.Errorf("validate limit and offset in path %q: %w", path, err)
 			}
-			pager, err := newTodoPager(args.opts, args.last != nil)
+			pager, err := newTodoPager(args.opts, false)
 			if err != nil {
 				return fmt.Errorf("create new pager in path %q: %w", path, err)
 			}
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
 			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
-				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				hasPagination := args.limit != nil || args.offset != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
@@ -195,11 +188,8 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 					})
 				}
 			}
-			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
-			}
-			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
-				return err
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
@@ -207,8 +197,8 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 					return err
 				}
 			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(category.TodosColumn, limit, pager.orderExpr(query))
+			if args.limit != nil && *args.limit > 0 {
+				modify := limitRows(category.TodosColumn, *args.limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
@@ -223,19 +213,19 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				query = (&CategoryClient{config: c.config}).Query()
 			)
 			args := newCategoryPaginateArgs(fieldArgs(ctx, new(CategoryWhereInput), path...))
-			if err := validateFirstLast(args.first, args.last); err != nil {
-				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			if err := validateLimitOffset(args.limit, args.offset); err != nil {
+				return fmt.Errorf("validate limit and offset in path %q: %w", path, err)
 			}
-			pager, err := newCategoryPager(args.opts, args.last != nil)
+			pager, err := newCategoryPager(args.opts, false)
 			if err != nil {
 				return fmt.Errorf("create new pager in path %q: %w", path, err)
 			}
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
 			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
-				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				hasPagination := args.limit != nil || args.offset != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
@@ -283,11 +273,8 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 					})
 				}
 			}
-			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
-			}
-			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
-				return err
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
@@ -295,8 +282,8 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 					return err
 				}
 			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(category.SubCategoriesPrimaryKey[0], limit, pager.orderExpr(query))
+			if args.limit != nil && *args.limit > 0 {
+				modify := limitRows(category.SubCategoriesPrimaryKey[0], *args.limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
@@ -347,8 +334,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 }
 
 type categoryPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []CategoryPaginateOption
 }
 
@@ -357,17 +343,11 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
@@ -480,8 +460,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 }
 
 type friendshipPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []FriendshipPaginateOption
 }
 
@@ -490,17 +469,11 @@ func newFriendshipPaginateArgs(rv map[string]interface{}) *friendshipPaginateArg
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[whereField].(*FriendshipWhereInput); ok {
 		args.opts = append(args.opts, WithFriendshipFilter(v.Filter))
@@ -536,19 +509,19 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				query = (&UserClient{config: gr.config}).Query()
 			)
 			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
-			if err := validateFirstLast(args.first, args.last); err != nil {
-				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			if err := validateLimitOffset(args.limit, args.offset); err != nil {
+				return fmt.Errorf("validate limit and offset in path %q: %w", path, err)
 			}
-			pager, err := newUserPager(args.opts, args.last != nil)
+			pager, err := newUserPager(args.opts, false)
 			if err != nil {
 				return fmt.Errorf("create new pager in path %q: %w", path, err)
 			}
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
 			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
-				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				hasPagination := args.limit != nil || args.offset != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					gr.loadTotal = append(gr.loadTotal, func(ctx context.Context, nodes []*Group) error {
@@ -596,11 +569,8 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 					})
 				}
 			}
-			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
-			}
-			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
-				return err
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
@@ -608,8 +578,8 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 					return err
 				}
 			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(group.UsersPrimaryKey[1], limit, pager.orderExpr(query))
+			if args.limit != nil && *args.limit > 0 {
+				modify := limitRows(group.UsersPrimaryKey[1], *args.limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
@@ -635,8 +605,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 }
 
 type groupPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []GroupPaginateOption
 }
 
@@ -645,17 +614,11 @@ func newGroupPaginateArgs(rv map[string]interface{}) *groupPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[whereField].(*GroupWhereInput); ok {
 		args.opts = append(args.opts, WithGroupFilter(v.Filter))
@@ -702,8 +665,7 @@ func (pe *PetQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 }
 
 type petPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []PetPaginateOption
 }
 
@@ -712,17 +674,11 @@ func newPetPaginateArgs(rv map[string]interface{}) *petPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[whereField].(*PetWhereInput); ok {
 		args.opts = append(args.opts, WithPetFilter(v.Filter))
@@ -768,19 +724,19 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				query = (&TodoClient{config: t.config}).Query()
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
-			if err := validateFirstLast(args.first, args.last); err != nil {
-				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			if err := validateLimitOffset(args.limit, args.offset); err != nil {
+				return fmt.Errorf("validate limit and offset in path %q: %w", path, err)
 			}
-			pager, err := newTodoPager(args.opts, args.last != nil)
+			pager, err := newTodoPager(args.opts, false)
 			if err != nil {
 				return fmt.Errorf("create new pager in path %q: %w", path, err)
 			}
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
 			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
-				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				hasPagination := args.limit != nil || args.offset != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
@@ -824,11 +780,8 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					})
 				}
 			}
-			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
-			}
-			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
-				return err
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
@@ -836,8 +789,8 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					return err
 				}
 			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(todo.ChildrenColumn, limit, pager.orderExpr(query))
+			if args.limit != nil && *args.limit > 0 {
+				modify := limitRows(todo.ChildrenColumn, *args.limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
@@ -912,8 +865,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 }
 
 type todoPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []TodoPaginateOption
 }
 
@@ -922,17 +874,11 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
@@ -990,19 +936,19 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				query = (&GroupClient{config: u.config}).Query()
 			)
 			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
-			if err := validateFirstLast(args.first, args.last); err != nil {
-				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			if err := validateLimitOffset(args.limit, args.offset); err != nil {
+				return fmt.Errorf("validate limit and offset in path %q: %w", path, err)
 			}
-			pager, err := newGroupPager(args.opts, args.last != nil)
+			pager, err := newGroupPager(args.opts, false)
 			if err != nil {
 				return fmt.Errorf("create new pager in path %q: %w", path, err)
 			}
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
 			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
-				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				hasPagination := args.limit != nil || args.offset != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					u.loadTotal = append(u.loadTotal, func(ctx context.Context, nodes []*User) error {
@@ -1050,11 +996,8 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					})
 				}
 			}
-			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
-			}
-			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
-				return err
 			}
 			path = append(path, edgesField, nodeField)
 			if field := collectedField(ctx, path...); field != nil {
@@ -1062,8 +1005,8 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 					return err
 				}
 			}
-			if limit := paginateLimit(args.first, args.last); limit > 0 {
-				modify := limitRows(user.GroupsPrimaryKey[0], limit, pager.orderExpr(query))
+			if args.limit != nil && *args.limit > 0 {
+				modify := limitRows(user.GroupsPrimaryKey[0], *args.limit, pager.orderExpr(query))
 				query.modifiers = append(query.modifiers, modify)
 			} else {
 				query = pager.applyOrder(query)
@@ -1113,8 +1056,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 }
 
 type userPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []UserPaginateOption
 }
 
@@ -1123,17 +1065,11 @@ func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
@@ -1164,10 +1100,8 @@ func newUserPaginateArgs(rv map[string]interface{}) *userPaginateArgs {
 }
 
 const (
-	afterField     = "after"
-	firstField     = "first"
-	beforeField    = "before"
-	lastField      = "last"
+	limitField     = "limit"
+	offsetField    = "offset"
 	orderByField   = "orderBy"
 	directionField = "direction"
 	fieldField     = "field"
@@ -1203,7 +1137,7 @@ func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
 func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
-	for _, k := range []string{firstField, lastField} {
+	for _, k := range []string{limitField, offsetField} {
 		v, ok := args[k]
 		if !ok {
 			continue
@@ -1211,16 +1145,6 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 		i, err := graphql.UnmarshalInt(v)
 		if err == nil {
 			args[k] = &i
-		}
-	}
-	for _, k := range []string{beforeField, afterField} {
-		v, ok := args[k]
-		if !ok {
-			continue
-		}
-		c := &Cursor{}
-		if c.UnmarshalGQL(v) == nil {
-			args[k] = c
 		}
 	}
 	if v, ok := args[whereField]; ok && whereInput != nil {
