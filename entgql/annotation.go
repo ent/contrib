@@ -221,7 +221,7 @@ func Type(name string) Annotation {
 //
 //	func (ProcessPlan) Annotations() []schema.Annotation {
 //	   return []schema.Annotation{
-//	      entgql.TypeDescription("ProcessPlan represents the planning phase of a processing pipeline."),
+//	      entgql.TypeDescription("ProcessPlan represents a generic process corresponding to assembly or disassembly of a product."),
 //	   }
 //	}
 func TypeDescription(description string) Annotation {

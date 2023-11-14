@@ -24,21 +24,11 @@ type OneToMany struct {
 func (OneToMany) IsNode() {}
 
 // A connection to a list of items.
-type OneToManyConnection struct {
-	// A list of edges.
-	Edges []*OneToManyEdge `json:"edges"`
-	// Information to aid in pagination.
-	PageInfo *entgql.PageInfo[pulid.ID] `json:"pageInfo"`
-	// Identifies the total count of items in the connection.
+type OneToManyList struct {
+	// Identifies the total count of data items.
 	TotalCount int `json:"totalCount"`
-}
-
-// An edge in a connection.
-type OneToManyEdge struct {
-	// The item at the end of the edge.
-	Node *OneToMany `json:"node"`
-	// A cursor for use in pagination.
-	Cursor entgql.Cursor[pulid.ID] `json:"cursor"`
+	// The list of data items.
+	Items []*OneToMany `json:"items"`
 }
 
 // Ordering options for OneToMany connections
@@ -102,8 +92,8 @@ type OneToManyWhereInput struct {
 }
 
 type Project struct {
-	ID    pulid.ID            `json:"id"`
-	Todos *ent.TodoConnection `json:"todos"`
+	ID    pulid.ID      `json:"id"`
+	Todos *ent.TodoList `json:"todos"`
 }
 
 func (Project) IsNode() {}
