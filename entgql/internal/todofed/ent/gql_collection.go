@@ -102,8 +102,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 }
 
 type categoryPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []CategoryPaginateOption
 }
 
@@ -112,17 +111,11 @@ func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
@@ -240,8 +233,7 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 }
 
 type todoPaginateArgs struct {
-	first, last   *int
-	after, before *Cursor
+	limit, offset *int
 	opts          []TodoPaginateOption
 }
 
@@ -250,17 +242,11 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 	if rv == nil {
 		return args
 	}
-	if v := rv[firstField]; v != nil {
-		args.first = v.(*int)
+	if v := rv[limitField]; v != nil {
+		args.limit = v.(*int)
 	}
-	if v := rv[lastField]; v != nil {
-		args.last = v.(*int)
-	}
-	if v := rv[afterField]; v != nil {
-		args.after = v.(*Cursor)
-	}
-	if v := rv[beforeField]; v != nil {
-		args.before = v.(*Cursor)
+	if v := rv[offsetField]; v != nil {
+		args.offset = v.(*int)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
@@ -288,10 +274,8 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 }
 
 const (
-	afterField     = "after"
-	firstField     = "first"
-	beforeField    = "before"
-	lastField      = "last"
+	limitField     = "limit"
+	offsetField    = "offset"
 	orderByField   = "orderBy"
 	directionField = "direction"
 	fieldField     = "field"
@@ -327,7 +311,7 @@ func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
 func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
-	for _, k := range []string{firstField, lastField} {
+	for _, k := range []string{limitField, offsetField} {
 		v, ok := args[k]
 		if !ok {
 			continue
@@ -335,16 +319,6 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 		i, err := graphql.UnmarshalInt(v)
 		if err == nil {
 			args[k] = &i
-		}
-	}
-	for _, k := range []string{beforeField, afterField} {
-		v, ok := args[k]
-		if !ok {
-			continue
-		}
-		c := &Cursor{}
-		if c.UnmarshalGQL(v) == nil {
-			args[k] = c
 		}
 	}
 	if v, ok := args[whereField]; ok && whereInput != nil {
