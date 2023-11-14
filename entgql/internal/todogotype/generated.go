@@ -1095,9 +1095,7 @@ type BillProduct implements Node {
   sku: String!
   quantity: Uint64!
 }
-"""
-BillProductWhereInput is used for filtering BillProduct objects.
-"""
+"""BillProductWhereInput is used for filtering BillProduct objects."""
 input BillProductWhereInput {
   not: BillProductWhereInput
   and: [BillProductWhereInput!]
@@ -1212,9 +1210,7 @@ enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/c
   ENABLED
   DISABLED
 }
-"""
-CategoryWhereInput is used for filtering Category objects.
-"""
+"""CategoryWhereInput is used for filtering Category objects."""
 input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
@@ -1287,9 +1283,7 @@ input CategoryWhereInput {
   hasSubCategories: Boolean
   hasSubCategoriesWith: [CategoryWhereInput!]
 }
-"""
-CreateCategoryInput is used for create Category object.
-"""
+"""CreateCategoryInput is used for create Category object."""
 input CreateCategoryInput {
   text: String!
   status: CategoryStatus!
@@ -1300,9 +1294,7 @@ input CreateCategoryInput {
   todoIDs: [ID!]
   subCategoryIDs: [ID!]
 }
-"""
-CreateTodoInput is used for create Todo object.
-"""
+"""CreateTodoInput is used for create Todo object."""
 input CreateTodoInput {
   status: TodoStatus!
   priority: Int
@@ -1313,9 +1305,7 @@ input CreateTodoInput {
   categoryID: ID
   secretID: ID
 }
-"""
-CreateUserInput is used for create User object.
-"""
+"""CreateUserInput is used for create User object."""
 input CreateUserInput {
   name: String
   username: UUID
@@ -1344,9 +1334,7 @@ type FriendshipList {
   """The list of data items."""
   items: [Friendship]!
 }
-"""
-FriendshipWhereInput is used for filtering Friendship objects.
-"""
+"""FriendshipWhereInput is used for filtering Friendship objects."""
 input FriendshipWhereInput {
   not: FriendshipWhereInput
   and: [FriendshipWhereInput!]
@@ -1394,9 +1382,7 @@ type GroupList {
   """The list of data items."""
   items: [Group]!
 }
-"""
-GroupWhereInput is used for filtering Group objects.
-"""
+"""GroupWhereInput is used for filtering Group objects."""
 input GroupWhereInput {
   not: GroupWhereInput
   and: [GroupWhereInput!]
@@ -1463,9 +1449,7 @@ input OneToManyOrder {
 enum OneToManyOrderField {
   NAME
 }
-"""
-OneToManyWhereInput is used for filtering OneToMany objects.
-"""
+"""OneToManyWhereInput is used for filtering OneToMany objects."""
 input OneToManyWhereInput {
   not: OneToManyWhereInput
   and: [OneToManyWhereInput!]
@@ -1553,9 +1537,7 @@ type Project implements Node {
     where: TodoWhereInput
   ): TodoList
 }
-"""
-ProjectWhereInput is used for filtering Project objects.
-"""
+"""ProjectWhereInput is used for filtering Project objects."""
 input ProjectWhereInput {
   not: ProjectWhereInput
   and: [ProjectWhereInput!]
@@ -1709,9 +1691,7 @@ enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.
   COMPLETED
   PENDING
 }
-"""
-TodoWhereInput is used for filtering Todo objects.
-"""
+"""TodoWhereInput is used for filtering Todo objects."""
 input TodoWhereInput {
   not: TodoWhereInput
   and: [TodoWhereInput!]
@@ -1781,9 +1761,7 @@ input TodoWhereInput {
 }
 """The builtin Uint64 type"""
 scalar Uint64
-"""
-UpdateCategoryInput is used for update Category object.
-"""
+"""UpdateCategoryInput is used for update Category object."""
 input UpdateCategoryInput {
   text: String
   status: CategoryStatus
@@ -1803,17 +1781,13 @@ input UpdateCategoryInput {
   removeSubCategoryIDs: [ID!]
   clearSubCategories: Boolean
 }
-"""
-UpdateFriendshipInput is used for update Friendship object.
-"""
+"""UpdateFriendshipInput is used for update Friendship object."""
 input UpdateFriendshipInput {
   createdAt: Time
   userID: ID
   friendID: ID
 }
-"""
-UpdateTodoInput is used for update Todo object.
-"""
+"""UpdateTodoInput is used for update Todo object."""
 input UpdateTodoInput {
   status: TodoStatus
   priority: Int
@@ -1828,9 +1802,7 @@ input UpdateTodoInput {
   secretID: ID
   clearSecret: Boolean
 }
-"""
-UpdateUserInput is used for update User object.
-"""
+"""UpdateUserInput is used for update User object."""
 input UpdateUserInput {
   name: String
   username: UUID
@@ -1902,9 +1874,7 @@ input UserOrder {
 enum UserOrderField {
   GROUPS_COUNT
 }
-"""
-UserWhereInput is used for filtering User objects.
-"""
+"""UserWhereInput is used for filtering User objects."""
 input UserWhereInput {
   not: UserWhereInput
   and: [UserWhereInput!]
