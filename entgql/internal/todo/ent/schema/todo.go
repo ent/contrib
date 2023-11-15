@@ -92,14 +92,14 @@ func (Todo) Fields() []ent.Field {
 // Edges returns todo edges.
 func (Todo) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("children", Todo.Type).
+		edge.To("children", Todo.Type).Comment("Todo children").
 			Annotations(
 				entgql.RelayConnection(),
 				// For non-unique edges, the order field can be only on edge count.
 				// The convention is "UPPER(<edge-name>)_COUNT".
 				entgql.OrderField("CHILDREN_COUNT"),
 			).
-			From("parent").
+			From("parent").Comment("Todo parent").
 			Annotations(
 				// For unique edges, the order field can be on the edge field that is defined
 				// as entgql.OrderField. The convention is "UPPER(<edge-name>)_<gql-order-field>".

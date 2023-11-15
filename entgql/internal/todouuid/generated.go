@@ -1653,7 +1653,9 @@ type Todo implements Node {
   init: Map
   custom: [Custom!]
   customp: [Custom]
+  """Todo parent"""
   parent: Todo
+  """Todo children"""
   children(
     """Pagination limit."""
     limit: Int = 100
@@ -1830,6 +1832,7 @@ type User implements Node {
   name: String!
   username: UUID!
   metadata: Map
+  """The groups of the user"""
   groups(
     """Pagination limit."""
     limit: Int = 100
