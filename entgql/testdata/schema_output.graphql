@@ -128,7 +128,9 @@ type Todo {
   init: Map
   custom: [Custom!]
   customp: [Custom]
+  """Todo parent"""
   parent: Todo
+  """Todo children"""
   children: [Todo!]
   category: Category
 }

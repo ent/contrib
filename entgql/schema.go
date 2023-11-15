@@ -455,6 +455,9 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 				ConnectionField(name, len(orderFields) > 0, ant.MultiOrder,
 					e.genWhereInput && !edgeAnt.Skip.Is(SkipWhereInput) && !ant.Skip.Is(SkipWhereInput),
 				)
+			// the ConnectionField above method creates a new FieldDefinition object internally without Description
+			// the description needs to be assigned here again
+			fieldDef.Description = edge.Comment()
 		default:
 			fieldDef.Type = listNamedType(gqlType, edge.Optional)
 		}
