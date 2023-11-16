@@ -712,7 +712,9 @@ type Todo implements Node {
   init: Map
   custom: [Custom!]
   customp: [Custom]
+  """The parent of the todo"""
   parent: Todo
+  """The children of the todo"""
   children(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
@@ -923,6 +925,7 @@ type User implements Node {
   username: UUID!
   requiredMetadata: Map!
   metadata: Map
+  """The groups of the user"""
   groups(
     """Returns the elements in the list that come after the specified cursor."""
     after: Cursor
