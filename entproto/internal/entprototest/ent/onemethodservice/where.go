@@ -54,32 +54,15 @@ func IDLTE(id int) predicate.OneMethodService {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.OneMethodService) predicate.OneMethodService {
-	return predicate.OneMethodService(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.OneMethodService(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.OneMethodService) predicate.OneMethodService {
-	return predicate.OneMethodService(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.OneMethodService(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.OneMethodService) predicate.OneMethodService {
-	return predicate.OneMethodService(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.OneMethodService(sql.NotPredicates(p))
 }

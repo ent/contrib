@@ -27,7 +27,7 @@ func (ewcvd *EnumWithConflictingValueDelete) Where(ps ...predicate.EnumWithConfl
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ewcvd *EnumWithConflictingValueDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, EnumWithConflictingValueMutation](ctx, ewcvd.sqlExec, ewcvd.mutation, ewcvd.hooks)
+	return withHooks(ctx, ewcvd.sqlExec, ewcvd.mutation, ewcvd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -33,9 +33,25 @@ func (uu *UserUpdate) SetName(s string) *UserUpdate {
 	return uu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableName(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetName(*s)
+	}
+	return uu
+}
+
 // SetEmailAddress sets the "email_address" field.
 func (uu *UserUpdate) SetEmailAddress(s string) *UserUpdate {
 	uu.mutation.SetEmailAddress(s)
+	return uu
+}
+
+// SetNillableEmailAddress sets the "email_address" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableEmailAddress(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetEmailAddress(*s)
+	}
 	return uu
 }
 
@@ -46,7 +62,7 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, UserMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -112,9 +128,25 @@ func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableName(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetName(*s)
+	}
+	return uuo
+}
+
 // SetEmailAddress sets the "email_address" field.
 func (uuo *UserUpdateOne) SetEmailAddress(s string) *UserUpdateOne {
 	uuo.mutation.SetEmailAddress(s)
+	return uuo
+}
+
+// SetNillableEmailAddress sets the "email_address" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableEmailAddress(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetEmailAddress(*s)
+	}
 	return uuo
 }
 
@@ -138,7 +170,7 @@ func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne 
 
 // Save executes the query and returns the updated User entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks[*User, UserMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

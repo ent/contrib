@@ -209,7 +209,7 @@ func (mwou *MessageWithOptionalsUpdate) Mutation() *MessageWithOptionalsMutation
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwou *MessageWithOptionalsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithOptionalsMutation](ctx, mwou.sqlSave, mwou.mutation, mwou.hooks)
+	return withHooks(ctx, mwou.sqlSave, mwou.mutation, mwou.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -513,7 +513,7 @@ func (mwouo *MessageWithOptionalsUpdateOne) Select(field string, fields ...strin
 
 // Save executes the query and returns the updated MessageWithOptionals entity.
 func (mwouo *MessageWithOptionalsUpdateOne) Save(ctx context.Context) (*MessageWithOptionals, error) {
-	return withHooks[*MessageWithOptionals, MessageWithOptionalsMutation](ctx, mwouo.sqlSave, mwouo.mutation, mwouo.hooks)
+	return withHooks(ctx, mwouo.sqlSave, mwouo.mutation, mwouo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -27,7 +27,7 @@ func (wnfd *WithNilFieldsDelete) Where(ps ...predicate.WithNilFields) *WithNilFi
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wnfd *WithNilFieldsDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, WithNilFieldsMutation](ctx, wnfd.sqlExec, wnfd.mutation, wnfd.hooks)
+	return withHooks(ctx, wnfd.sqlExec, wnfd.mutation, wnfd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

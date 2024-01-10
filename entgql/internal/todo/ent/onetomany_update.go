@@ -31,8 +31,9 @@ import (
 // OneToManyUpdate is the builder for updating OneToMany entities.
 type OneToManyUpdate struct {
 	config
-	hooks    []Hook
-	mutation *OneToManyMutation
+	hooks     []Hook
+	mutation  *OneToManyMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the OneToManyUpdate builder.
@@ -44,6 +45,14 @@ func (otmu *OneToManyUpdate) Where(ps ...predicate.OneToMany) *OneToManyUpdate {
 // SetName sets the "name" field.
 func (otmu *OneToManyUpdate) SetName(s string) *OneToManyUpdate {
 	otmu.mutation.SetName(s)
+	return otmu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (otmu *OneToManyUpdate) SetNillableName(s *string) *OneToManyUpdate {
+	if s != nil {
+		otmu.SetName(*s)
+	}
 	return otmu
 }
 
@@ -141,7 +150,7 @@ func (otmu *OneToManyUpdate) RemoveChildren(o ...*OneToMany) *OneToManyUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (otmu *OneToManyUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, OneToManyMutation](ctx, otmu.sqlSave, otmu.mutation, otmu.hooks)
+	return withHooks(ctx, otmu.sqlSave, otmu.mutation, otmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -174,6 +183,12 @@ func (otmu *OneToManyUpdate) check() error {
 		}
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (otmu *OneToManyUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *OneToManyUpdate {
+	otmu.modifiers = append(otmu.modifiers, modifiers...)
+	return otmu
 }
 
 func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -271,6 +286,7 @@ func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(otmu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, otmu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{onetomany.Label}
@@ -286,14 +302,23 @@ func (otmu *OneToManyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // OneToManyUpdateOne is the builder for updating a single OneToMany entity.
 type OneToManyUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *OneToManyMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *OneToManyMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
 func (otmuo *OneToManyUpdateOne) SetName(s string) *OneToManyUpdateOne {
 	otmuo.mutation.SetName(s)
+	return otmuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (otmuo *OneToManyUpdateOne) SetNillableName(s *string) *OneToManyUpdateOne {
+	if s != nil {
+		otmuo.SetName(*s)
+	}
 	return otmuo
 }
 
@@ -404,7 +429,7 @@ func (otmuo *OneToManyUpdateOne) Select(field string, fields ...string) *OneToMa
 
 // Save executes the query and returns the updated OneToMany entity.
 func (otmuo *OneToManyUpdateOne) Save(ctx context.Context) (*OneToMany, error) {
-	return withHooks[*OneToMany, OneToManyMutation](ctx, otmuo.sqlSave, otmuo.mutation, otmuo.hooks)
+	return withHooks(ctx, otmuo.sqlSave, otmuo.mutation, otmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -437,6 +462,12 @@ func (otmuo *OneToManyUpdateOne) check() error {
 		}
 	}
 	return nil
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (otmuo *OneToManyUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *OneToManyUpdateOne {
+	otmuo.modifiers = append(otmuo.modifiers, modifiers...)
+	return otmuo
 }
 
 func (otmuo *OneToManyUpdateOne) sqlSave(ctx context.Context) (_node *OneToMany, err error) {
@@ -551,6 +582,7 @@ func (otmuo *OneToManyUpdateOne) sqlSave(ctx context.Context) (_node *OneToMany,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(otmuo.modifiers...)
 	_node = &OneToMany{config: otmuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

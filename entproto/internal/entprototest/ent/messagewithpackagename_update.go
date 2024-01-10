@@ -33,6 +33,14 @@ func (mwpnu *MessageWithPackageNameUpdate) SetName(s string) *MessageWithPackage
 	return mwpnu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (mwpnu *MessageWithPackageNameUpdate) SetNillableName(s *string) *MessageWithPackageNameUpdate {
+	if s != nil {
+		mwpnu.SetName(*s)
+	}
+	return mwpnu
+}
+
 // Mutation returns the MessageWithPackageNameMutation object of the builder.
 func (mwpnu *MessageWithPackageNameUpdate) Mutation() *MessageWithPackageNameMutation {
 	return mwpnu.mutation
@@ -40,7 +48,7 @@ func (mwpnu *MessageWithPackageNameUpdate) Mutation() *MessageWithPackageNameMut
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwpnu *MessageWithPackageNameUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithPackageNameMutation](ctx, mwpnu.sqlSave, mwpnu.mutation, mwpnu.hooks)
+	return withHooks(ctx, mwpnu.sqlSave, mwpnu.mutation, mwpnu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -103,6 +111,14 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) SetName(s string) *MessageWithPac
 	return mwpnuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (mwpnuo *MessageWithPackageNameUpdateOne) SetNillableName(s *string) *MessageWithPackageNameUpdateOne {
+	if s != nil {
+		mwpnuo.SetName(*s)
+	}
+	return mwpnuo
+}
+
 // Mutation returns the MessageWithPackageNameMutation object of the builder.
 func (mwpnuo *MessageWithPackageNameUpdateOne) Mutation() *MessageWithPackageNameMutation {
 	return mwpnuo.mutation
@@ -123,7 +139,7 @@ func (mwpnuo *MessageWithPackageNameUpdateOne) Select(field string, fields ...st
 
 // Save executes the query and returns the updated MessageWithPackageName entity.
 func (mwpnuo *MessageWithPackageNameUpdateOne) Save(ctx context.Context) (*MessageWithPackageName, error) {
-	return withHooks[*MessageWithPackageName, MessageWithPackageNameMutation](ctx, mwpnuo.sqlSave, mwpnuo.mutation, mwpnuo.hooks)
+	return withHooks(ctx, mwpnuo.sqlSave, mwpnuo.mutation, mwpnuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

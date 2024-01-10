@@ -43,6 +43,9 @@ type (
 		// By enabling she SimpleModels configuration the generator simply adds the defined schemas with all fields and edges.
 		// Serialization groups have no effects in this mode.
 		SimpleModels bool
+		// When enabled, allows the built-in "id" field as part of the POST payload for entity creation, allowing the client to supply UUIDs as primary keys and for idempotency.
+		// Defaults to false.
+		AllowClientUUIDs bool
 		// Specify the minimum amount of itemsPerPage allowed in generated pagination.
 		// Defaults to 1.
 		MinItemsPerPage int64
@@ -130,6 +133,16 @@ func Mutations(ms ...MutateFunc) ExtensionOption {
 func SimpleModels() ExtensionOption {
 	return func(ex *Extension) error {
 		ex.config.SimpleModels = true
+		return nil
+	}
+}
+
+// AllowClientUUIDs enables the client supplied IDs feature.
+//
+// Further information can be found at Config.AllowClientUUIDs.
+func AllowClientUUIDs() ExtensionOption {
+	return func(ex *Extension) error {
+		ex.config.AllowClientUUIDs = true
 		return nil
 	}
 }

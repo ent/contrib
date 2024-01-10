@@ -31,7 +31,7 @@ func (mwic *MessageWithIDCreate) Mutation() *MessageWithIDMutation {
 
 // Save creates the MessageWithID in the database.
 func (mwic *MessageWithIDCreate) Save(ctx context.Context) (*MessageWithID, error) {
-	return withHooks[*MessageWithID, MessageWithIDMutation](ctx, mwic.sqlSave, mwic.mutation, mwic.hooks)
+	return withHooks(ctx, mwic.sqlSave, mwic.mutation, mwic.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -96,11 +96,15 @@ func (mwic *MessageWithIDCreate) createSpec() (*MessageWithID, *sqlgraph.CreateS
 // MessageWithIDCreateBulk is the builder for creating many MessageWithID entities in bulk.
 type MessageWithIDCreateBulk struct {
 	config
+	err      error
 	builders []*MessageWithIDCreate
 }
 
 // Save creates the MessageWithID entities in the database.
 func (mwicb *MessageWithIDCreateBulk) Save(ctx context.Context) ([]*MessageWithID, error) {
+	if mwicb.err != nil {
+		return nil, mwicb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwicb.builders))
 	nodes := make([]*MessageWithID, len(mwicb.builders))
 	mutators := make([]Mutator, len(mwicb.builders))

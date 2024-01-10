@@ -38,8 +38,8 @@ type OneToManyQuery struct {
 	predicates        []predicate.OneToMany
 	withParent        *OneToManyQuery
 	withChildren      *OneToManyQuery
-	modifiers         []func(*sql.Selector)
 	loadTotal         []func(context.Context, []*OneToMany) error
+	modifiers         []func(*sql.Selector)
 	withNamedChildren map[string]*OneToManyQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -605,6 +605,9 @@ func (otmq *OneToManyQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if otmq.ctx.Unique != nil && *otmq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range otmq.modifiers {
+		m(selector)
+	}
 	for _, p := range otmq.predicates {
 		p(selector)
 	}
@@ -620,6 +623,12 @@ func (otmq *OneToManyQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (otmq *OneToManyQuery) Modify(modifiers ...func(s *sql.Selector)) *OneToManySelect {
+	otmq.modifiers = append(otmq.modifiers, modifiers...)
+	return otmq.Select()
 }
 
 // WithNamedChildren tells the query-builder to eager-load the nodes that are connected to the "children"
@@ -724,4 +733,10 @@ func (otms *OneToManySelect) sqlScan(ctx context.Context, root *OneToManyQuery, 
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (otms *OneToManySelect) Modify(modifiers ...func(s *sql.Selector)) *OneToManySelect {
+	otms.modifiers = append(otms.modifiers, modifiers...)
+	return otms
 }

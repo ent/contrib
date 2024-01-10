@@ -1108,32 +1108,15 @@ func OptionalAndNillableNotNil() predicate.OASTypes {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.OASTypes) predicate.OASTypes {
-	return predicate.OASTypes(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.OASTypes(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.OASTypes) predicate.OASTypes {
-	return predicate.OASTypes(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.OASTypes(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.OASTypes) predicate.OASTypes {
-	return predicate.OASTypes(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.OASTypes(sql.NotPredicates(p))
 }

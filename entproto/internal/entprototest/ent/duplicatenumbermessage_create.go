@@ -38,7 +38,7 @@ func (dnmc *DuplicateNumberMessageCreate) Mutation() *DuplicateNumberMessageMuta
 
 // Save creates the DuplicateNumberMessage in the database.
 func (dnmc *DuplicateNumberMessageCreate) Save(ctx context.Context) (*DuplicateNumberMessage, error) {
-	return withHooks[*DuplicateNumberMessage, DuplicateNumberMessageMutation](ctx, dnmc.sqlSave, dnmc.mutation, dnmc.hooks)
+	return withHooks(ctx, dnmc.sqlSave, dnmc.mutation, dnmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -111,11 +111,15 @@ func (dnmc *DuplicateNumberMessageCreate) createSpec() (*DuplicateNumberMessage,
 // DuplicateNumberMessageCreateBulk is the builder for creating many DuplicateNumberMessage entities in bulk.
 type DuplicateNumberMessageCreateBulk struct {
 	config
+	err      error
 	builders []*DuplicateNumberMessageCreate
 }
 
 // Save creates the DuplicateNumberMessage entities in the database.
 func (dnmcb *DuplicateNumberMessageCreateBulk) Save(ctx context.Context) ([]*DuplicateNumberMessage, error) {
+	if dnmcb.err != nil {
+		return nil, dnmcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(dnmcb.builders))
 	nodes := make([]*DuplicateNumberMessage, len(dnmcb.builders))
 	mutators := make([]Mutator, len(dnmcb.builders))

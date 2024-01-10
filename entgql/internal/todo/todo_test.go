@@ -1322,7 +1322,7 @@ func TestNestedConnection(t *testing.T) {
 	t.Run("After Cursor", func(t *testing.T) {
 		var (
 			query = `query ($id: ID!, $after: Cursor) {
-				 user: node(id: $id) { 
+				 user: node(id: $id) {
 					... on User {
 						id
 						name
@@ -2117,7 +2117,7 @@ func TestMultiFieldsOrder(t *testing.T) {
 		      hasNextPage
 		      hasPreviousPage
 		      startCursor
-		      endCursor				
+		      endCursor
 		    }
 		  }
 		}`
@@ -2902,4 +2902,84 @@ func TestPaginate(t *testing.T) {
 		Select(todo.FieldPriority, todo.FieldStatus).
 		Paginate(ctx, nil, &first, nil, nil)
 	require.NoError(t, err)
+}
+
+func TestPrivateFieldSelectionForPagination(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t0.2").SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t0.4").SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t0.5").SetStatus(todo.StatusCompleted),
+	).SaveX(ctx)
+
+	var (
+		// language=GraphQL
+		query = `query {
+			todosWithJoins(first: 2, orderBy: [{direction: DESC, field: STATUS}]) {
+				edges {
+					cursor
+					node {
+						text
+					}
+				}
+			}
+		}`
+		rsp struct {
+			TodosWithJoins struct {
+				Edges []struct {
+					Cursor string
+					Node   struct {
+						Text string
+					}
+				}
+			}
+		}
+		gqlc = client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	)
+	rec.reset()
+	gqlc.MustPost(query, &rsp)
+	require.Equal(t, []string{
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
+	}, rec.queries)
+
+	t.Log(rsp.TodosWithJoins)
+
+	var (
+		// language=GraphQL
+		query2 = `query {
+			todosWithJoins(first: 2, after: "gqFp0wAAAAYAAAACoXaRq0lOX1BST0dSRVNT", orderBy: [{direction: DESC, field: STATUS}]) {
+				edges {
+					cursor
+					node {
+						text
+					}
+				}
+			}
+		}`
+		rsp2 struct {
+			TodosWithJoins struct {
+				Edges []struct {
+					Cursor string
+					Node   struct {
+						Text string
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	gqlc.MustPost(query2, &rsp2)
+	require.Equal(t, []string{
+		// BEFORE: "SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` WHERE `status` < ? OR (`status` = ? AND `id` > ?) GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` WHERE `todos`.`status` < ? OR (`todos`.`status` = ? AND `todos`.`id` > ?) GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
+	}, rec.queries)
 }

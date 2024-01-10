@@ -41,7 +41,7 @@ func (wd *WorkspaceDelete) Where(ps ...predicate.Workspace) *WorkspaceDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wd *WorkspaceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, WorkspaceMutation](ctx, wd.sqlExec, wd.mutation, wd.hooks)
+	return withHooks(ctx, wd.sqlExec, wd.mutation, wd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

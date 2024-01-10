@@ -27,7 +27,7 @@ func (mwpnd *MessageWithPackageNameDelete) Where(ps ...predicate.MessageWithPack
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwpnd *MessageWithPackageNameDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithPackageNameMutation](ctx, mwpnd.sqlExec, mwpnd.mutation, mwpnd.hooks)
+	return withHooks(ctx, mwpnd.sqlExec, mwpnd.mutation, mwpnd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -83,7 +83,7 @@ func (mwiu *MessageWithIntsUpdate) Mutation() *MessageWithIntsMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mwiu *MessageWithIntsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithIntsMutation](ctx, mwiu.sqlSave, mwiu.mutation, mwiu.hooks)
+	return withHooks(ctx, mwiu.sqlSave, mwiu.mutation, mwiu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -237,7 +237,7 @@ func (mwiuo *MessageWithIntsUpdateOne) Select(field string, fields ...string) *M
 
 // Save executes the query and returns the updated MessageWithInts entity.
 func (mwiuo *MessageWithIntsUpdateOne) Save(ctx context.Context) (*MessageWithInts, error) {
-	return withHooks[*MessageWithInts, MessageWithIntsMutation](ctx, mwiuo.sqlSave, mwiuo.mutation, mwiuo.hooks)
+	return withHooks(ctx, mwiuo.sqlSave, mwiuo.mutation, mwiuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

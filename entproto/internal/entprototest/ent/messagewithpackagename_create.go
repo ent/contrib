@@ -32,7 +32,7 @@ func (mwpnc *MessageWithPackageNameCreate) Mutation() *MessageWithPackageNameMut
 
 // Save creates the MessageWithPackageName in the database.
 func (mwpnc *MessageWithPackageNameCreate) Save(ctx context.Context) (*MessageWithPackageName, error) {
-	return withHooks[*MessageWithPackageName, MessageWithPackageNameMutation](ctx, mwpnc.sqlSave, mwpnc.mutation, mwpnc.hooks)
+	return withHooks(ctx, mwpnc.sqlSave, mwpnc.mutation, mwpnc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -98,11 +98,15 @@ func (mwpnc *MessageWithPackageNameCreate) createSpec() (*MessageWithPackageName
 // MessageWithPackageNameCreateBulk is the builder for creating many MessageWithPackageName entities in bulk.
 type MessageWithPackageNameCreateBulk struct {
 	config
+	err      error
 	builders []*MessageWithPackageNameCreate
 }
 
 // Save creates the MessageWithPackageName entities in the database.
 func (mwpncb *MessageWithPackageNameCreateBulk) Save(ctx context.Context) ([]*MessageWithPackageName, error) {
+	if mwpncb.err != nil {
+		return nil, mwpncb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwpncb.builders))
 	nodes := make([]*MessageWithPackageName, len(mwpncb.builders))
 	mutators := make([]Mutator, len(mwpncb.builders))

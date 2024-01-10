@@ -230,7 +230,7 @@ func (otc *OASTypesCreate) Mutation() *OASTypesMutation {
 // Save creates the OASTypes in the database.
 func (otc *OASTypesCreate) Save(ctx context.Context) (*OASTypes, error) {
 	otc.defaults()
-	return withHooks[*OASTypes, OASTypesMutation](ctx, otc.sqlSave, otc.mutation, otc.hooks)
+	return withHooks(ctx, otc.sqlSave, otc.mutation, otc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -503,11 +503,15 @@ func (otc *OASTypesCreate) createSpec() (*OASTypes, *sqlgraph.CreateSpec) {
 // OASTypesCreateBulk is the builder for creating many OASTypes entities in bulk.
 type OASTypesCreateBulk struct {
 	config
+	err      error
 	builders []*OASTypesCreate
 }
 
 // Save creates the OASTypes entities in the database.
 func (otcb *OASTypesCreateBulk) Save(ctx context.Context) ([]*OASTypes, error) {
+	if otcb.err != nil {
+		return nil, otcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(otcb.builders))
 	nodes := make([]*OASTypes, len(otcb.builders))
 	mutators := make([]Mutator, len(otcb.builders))

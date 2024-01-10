@@ -27,7 +27,7 @@ func (mwsd *MultiWordSchemaDelete) Where(ps ...predicate.MultiWordSchema) *Multi
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwsd *MultiWordSchemaDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, MultiWordSchemaMutation](ctx, mwsd.sqlExec, mwsd.mutation, mwsd.hooks)
+	return withHooks(ctx, mwsd.sqlExec, mwsd.mutation, mwsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

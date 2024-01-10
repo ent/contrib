@@ -35,8 +35,8 @@ type WorkspaceQuery struct {
 	order      []workspace.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Workspace
-	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*Workspace) error
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -445,6 +445,9 @@ func (wq *WorkspaceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if wq.ctx.Unique != nil && *wq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range wq.modifiers {
+		m(selector)
+	}
 	for _, p := range wq.predicates {
 		p(selector)
 	}
@@ -460,6 +463,12 @@ func (wq *WorkspaceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (wq *WorkspaceQuery) Modify(modifiers ...func(s *sql.Selector)) *WorkspaceSelect {
+	wq.modifiers = append(wq.modifiers, modifiers...)
+	return wq.Select()
 }
 
 // WorkspaceGroupBy is the group-by builder for Workspace entities.
@@ -550,4 +559,10 @@ func (ws *WorkspaceSelect) sqlScan(ctx context.Context, root *WorkspaceQuery, v 
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (ws *WorkspaceSelect) Modify(modifiers ...func(s *sql.Selector)) *WorkspaceSelect {
+	ws.modifiers = append(ws.modifiers, modifiers...)
+	return ws
 }

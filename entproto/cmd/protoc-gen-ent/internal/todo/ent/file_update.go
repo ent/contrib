@@ -33,6 +33,14 @@ func (fu *FileUpdate) SetContents(s string) *FileUpdate {
 	return fu
 }
 
+// SetNillableContents sets the "contents" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableContents(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetContents(*s)
+	}
+	return fu
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fu *FileUpdate) Mutation() *FileMutation {
 	return fu.mutation
@@ -40,7 +48,7 @@ func (fu *FileUpdate) Mutation() *FileMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FileUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, FileMutation](ctx, fu.sqlSave, fu.mutation, fu.hooks)
+	return withHooks(ctx, fu.sqlSave, fu.mutation, fu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -103,6 +111,14 @@ func (fuo *FileUpdateOne) SetContents(s string) *FileUpdateOne {
 	return fuo
 }
 
+// SetNillableContents sets the "contents" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableContents(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetContents(*s)
+	}
+	return fuo
+}
+
 // Mutation returns the FileMutation object of the builder.
 func (fuo *FileUpdateOne) Mutation() *FileMutation {
 	return fuo.mutation
@@ -123,7 +139,7 @@ func (fuo *FileUpdateOne) Select(field string, fields ...string) *FileUpdateOne 
 
 // Save executes the query and returns the updated File entity.
 func (fuo *FileUpdateOne) Save(ctx context.Context) (*File, error) {
-	return withHooks[*File, FileMutation](ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
+	return withHooks(ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -11,11 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package main
 
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"entgo.io/contrib/entgql"
 	todopulid "entgo.io/contrib/entgql/internal/todopulid"
@@ -78,7 +80,11 @@ func main() {
 	http.Handle("/query", srv)
 
 	log.Info("listening on", zap.String("address", cli.Addr))
-	if err := http.ListenAndServe(cli.Addr, nil); err != nil {
+	server := &http.Server{
+		Addr:              cli.Addr,
+		ReadHeaderTimeout: 30 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		log.Error("http server terminated", zap.Error(err))
 	}
 }

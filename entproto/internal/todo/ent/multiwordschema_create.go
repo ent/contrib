@@ -41,7 +41,7 @@ func (mwsc *MultiWordSchemaCreate) Mutation() *MultiWordSchemaMutation {
 // Save creates the MultiWordSchema in the database.
 func (mwsc *MultiWordSchemaCreate) Save(ctx context.Context) (*MultiWordSchema, error) {
 	mwsc.defaults()
-	return withHooks[*MultiWordSchema, MultiWordSchemaMutation](ctx, mwsc.sqlSave, mwsc.mutation, mwsc.hooks)
+	return withHooks(ctx, mwsc.sqlSave, mwsc.mutation, mwsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -120,11 +120,15 @@ func (mwsc *MultiWordSchemaCreate) createSpec() (*MultiWordSchema, *sqlgraph.Cre
 // MultiWordSchemaCreateBulk is the builder for creating many MultiWordSchema entities in bulk.
 type MultiWordSchemaCreateBulk struct {
 	config
+	err      error
 	builders []*MultiWordSchemaCreate
 }
 
 // Save creates the MultiWordSchema entities in the database.
 func (mwscb *MultiWordSchemaCreateBulk) Save(ctx context.Context) ([]*MultiWordSchema, error) {
+	if mwscb.err != nil {
+		return nil, mwscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwscb.builders))
 	nodes := make([]*MultiWordSchema, len(mwscb.builders))
 	mutators := make([]Mutator, len(mwscb.builders))

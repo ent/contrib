@@ -35,9 +35,25 @@ func (bpu *BlogPostUpdate) SetTitle(s string) *BlogPostUpdate {
 	return bpu
 }
 
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (bpu *BlogPostUpdate) SetNillableTitle(s *string) *BlogPostUpdate {
+	if s != nil {
+		bpu.SetTitle(*s)
+	}
+	return bpu
+}
+
 // SetBody sets the "body" field.
 func (bpu *BlogPostUpdate) SetBody(s string) *BlogPostUpdate {
 	bpu.mutation.SetBody(s)
+	return bpu
+}
+
+// SetNillableBody sets the "body" field if the given value is not nil.
+func (bpu *BlogPostUpdate) SetNillableBody(s *string) *BlogPostUpdate {
+	if s != nil {
+		bpu.SetBody(*s)
+	}
 	return bpu
 }
 
@@ -45,6 +61,14 @@ func (bpu *BlogPostUpdate) SetBody(s string) *BlogPostUpdate {
 func (bpu *BlogPostUpdate) SetExternalID(i int) *BlogPostUpdate {
 	bpu.mutation.ResetExternalID()
 	bpu.mutation.SetExternalID(i)
+	return bpu
+}
+
+// SetNillableExternalID sets the "external_id" field if the given value is not nil.
+func (bpu *BlogPostUpdate) SetNillableExternalID(i *int) *BlogPostUpdate {
+	if i != nil {
+		bpu.SetExternalID(*i)
+	}
 	return bpu
 }
 
@@ -122,7 +146,7 @@ func (bpu *BlogPostUpdate) RemoveCategories(c ...*Category) *BlogPostUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bpu *BlogPostUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, BlogPostMutation](ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
+	return withHooks(ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -268,9 +292,25 @@ func (bpuo *BlogPostUpdateOne) SetTitle(s string) *BlogPostUpdateOne {
 	return bpuo
 }
 
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (bpuo *BlogPostUpdateOne) SetNillableTitle(s *string) *BlogPostUpdateOne {
+	if s != nil {
+		bpuo.SetTitle(*s)
+	}
+	return bpuo
+}
+
 // SetBody sets the "body" field.
 func (bpuo *BlogPostUpdateOne) SetBody(s string) *BlogPostUpdateOne {
 	bpuo.mutation.SetBody(s)
+	return bpuo
+}
+
+// SetNillableBody sets the "body" field if the given value is not nil.
+func (bpuo *BlogPostUpdateOne) SetNillableBody(s *string) *BlogPostUpdateOne {
+	if s != nil {
+		bpuo.SetBody(*s)
+	}
 	return bpuo
 }
 
@@ -278,6 +318,14 @@ func (bpuo *BlogPostUpdateOne) SetBody(s string) *BlogPostUpdateOne {
 func (bpuo *BlogPostUpdateOne) SetExternalID(i int) *BlogPostUpdateOne {
 	bpuo.mutation.ResetExternalID()
 	bpuo.mutation.SetExternalID(i)
+	return bpuo
+}
+
+// SetNillableExternalID sets the "external_id" field if the given value is not nil.
+func (bpuo *BlogPostUpdateOne) SetNillableExternalID(i *int) *BlogPostUpdateOne {
+	if i != nil {
+		bpuo.SetExternalID(*i)
+	}
 	return bpuo
 }
 
@@ -368,7 +416,7 @@ func (bpuo *BlogPostUpdateOne) Select(field string, fields ...string) *BlogPostU
 
 // Save executes the query and returns the updated BlogPost entity.
 func (bpuo *BlogPostUpdateOne) Save(ctx context.Context) (*BlogPost, error) {
-	return withHooks[*BlogPost, BlogPostMutation](ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
+	return withHooks(ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

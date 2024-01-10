@@ -21,6 +21,8 @@ autobind:
   - entgo.io/contrib/entgql/internal/todofed/ent/todo
   - entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct
 
+# Disable the generated getters for all models and interfaces.
+omit_getters: true
 models:
   ID:
     model:

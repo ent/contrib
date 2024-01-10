@@ -34,15 +34,39 @@ func (cu *CategoryUpdate) SetName(s string) *CategoryUpdate {
 	return cu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableName(s *string) *CategoryUpdate {
+	if s != nil {
+		cu.SetName(*s)
+	}
+	return cu
+}
+
 // SetReadonly sets the "readonly" field.
 func (cu *CategoryUpdate) SetReadonly(s string) *CategoryUpdate {
 	cu.mutation.SetReadonly(s)
 	return cu
 }
 
+// SetNillableReadonly sets the "readonly" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableReadonly(s *string) *CategoryUpdate {
+	if s != nil {
+		cu.SetReadonly(*s)
+	}
+	return cu
+}
+
 // SetSkipInSpec sets the "skip_in_spec" field.
 func (cu *CategoryUpdate) SetSkipInSpec(s string) *CategoryUpdate {
 	cu.mutation.SetSkipInSpec(s)
+	return cu
+}
+
+// SetNillableSkipInSpec sets the "skip_in_spec" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableSkipInSpec(s *string) *CategoryUpdate {
+	if s != nil {
+		cu.SetSkipInSpec(*s)
+	}
 	return cu
 }
 
@@ -89,7 +113,7 @@ func (cu *CategoryUpdate) RemovePets(p ...*Pet) *CategoryUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *CategoryUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, CategoryMutation](ctx, cu.sqlSave, cu.mutation, cu.hooks)
+	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -203,15 +227,39 @@ func (cuo *CategoryUpdateOne) SetName(s string) *CategoryUpdateOne {
 	return cuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableName(s *string) *CategoryUpdateOne {
+	if s != nil {
+		cuo.SetName(*s)
+	}
+	return cuo
+}
+
 // SetReadonly sets the "readonly" field.
 func (cuo *CategoryUpdateOne) SetReadonly(s string) *CategoryUpdateOne {
 	cuo.mutation.SetReadonly(s)
 	return cuo
 }
 
+// SetNillableReadonly sets the "readonly" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableReadonly(s *string) *CategoryUpdateOne {
+	if s != nil {
+		cuo.SetReadonly(*s)
+	}
+	return cuo
+}
+
 // SetSkipInSpec sets the "skip_in_spec" field.
 func (cuo *CategoryUpdateOne) SetSkipInSpec(s string) *CategoryUpdateOne {
 	cuo.mutation.SetSkipInSpec(s)
+	return cuo
+}
+
+// SetNillableSkipInSpec sets the "skip_in_spec" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableSkipInSpec(s *string) *CategoryUpdateOne {
+	if s != nil {
+		cuo.SetSkipInSpec(*s)
+	}
 	return cuo
 }
 
@@ -271,7 +319,7 @@ func (cuo *CategoryUpdateOne) Select(field string, fields ...string) *CategoryUp
 
 // Save executes the query and returns the updated Category entity.
 func (cuo *CategoryUpdateOne) Save(ctx context.Context) (*Category, error) {
-	return withHooks[*Category, CategoryMutation](ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
