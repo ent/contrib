@@ -497,7 +497,35 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 		if ant.Skip.Is(SkipWhereInput) {
 			continue
 		}
-		for i, op := range f.Ops() {
+
+		ops := f.Ops()
+		if len(ant.AllowedOps) > 0 {
+			allowedOps := make([]gen.Op, 0, len(ant.AllowedOps))
+			isAllowed := false
+
+			for _, op := range ops {
+				isAllowed = false
+
+				// For small lists, a nested for loop performs well, so
+				// we don't need to swap to a map, or set, instead.
+				for _, allowed := range ant.AllowedOps {
+					if op.Name() == allowed.Name() {
+						isAllowed = true
+						break
+					}
+				}
+
+				if isAllowed {
+					allowedOps = append(allowedOps, op)
+				}
+			}
+
+			// It is possible this can go to zero, but we don't revert
+			// back to all ops because it would contradict the user input.
+			ops = allowedOps
+		}
+
+		for i, op := range ops {
 			fd := e.fieldDefinitionOp(nodeGQLType, f, ant, op)
 			if i == 0 {
 				fd.Description = f.Name + " field predicates"
