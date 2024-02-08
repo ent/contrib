@@ -33,6 +33,7 @@ import (
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 	return &executableSchema{
+		schema:     cfg.Schema,
 		resolvers:  cfg.Resolvers,
 		directives: cfg.Directives,
 		complexity: cfg.Complexity,
@@ -40,6 +41,7 @@ func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 }
 
 type Config struct {
+	Schema     *ast.Schema
 	Resolvers  ResolverRoot
 	Directives DirectiveRoot
 	Complexity ComplexityRoot
@@ -334,12 +336,16 @@ type UserWhereInputResolver interface {
 }
 
 type executableSchema struct {
+	schema     *ast.Schema
 	resolvers  ResolverRoot
 	directives DirectiveRoot
 	complexity ComplexityRoot
 }
 
 func (e *executableSchema) Schema() *ast.Schema {
+	if e.schema != nil {
+		return e.schema
+	}
 	return parsedSchema
 }
 
@@ -1306,14 +1312,14 @@ func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapSchema(parsedSchema), nil
+	return introspection.WrapSchema(ec.Schema()), nil
 }
 
 func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
+	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 var sources = []*ast.Source{
@@ -1416,7 +1422,9 @@ input BillProductWhereInput {
   not: BillProductWhereInput
   and: [BillProductWhereInput!]
   or: [BillProductWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1425,7 +1433,9 @@ input BillProductWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -1439,7 +1449,9 @@ input BillProductWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """sku field predicates"""
+  """
+  sku field predicates
+  """
   sku: String
   skuNEQ: String
   skuIn: [String!]
@@ -1453,7 +1465,9 @@ input BillProductWhereInput {
   skuHasSuffix: String
   skuEqualFold: String
   skuContainsFold: String
-  """quantity field predicates"""
+  """
+  quantity field predicates
+  """
   quantity: Uint64
   quantityNEQ: Uint64
   quantityIn: [Uint64!]
@@ -1473,68 +1487,114 @@ type Category implements Node {
   count: Uint64
   strings: [String!]
   todos(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Todos returned from the connection."""
+    """
+    Ordering options for Todos returned from the connection.
+    """
     orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoConnection!
   subCategories(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Categories returned from the connection."""
+    """
+    Ordering options for Categories returned from the connection.
+    """
     orderBy: [CategoryOrder!]
 
-    """Filtering options for Categories returned from the connection."""
+    """
+    Filtering options for Categories returned from the connection.
+    """
     where: CategoryWhereInput
   ): CategoryConnection!
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type CategoryConnection {
-  """A list of edges."""
+  """
+  A list of edges.
+  """
   edges: [CategoryEdge]
-  """Information to aid in pagination."""
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+  """
+  Identifies the total count of items in the connection.
+  """
   totalCount: Int!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type CategoryEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Category
-  """A cursor for use in pagination."""
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
-"""Ordering options for Category connections"""
+"""
+Ordering options for Category connections
+"""
 input CategoryOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Categories."""
+  """
+  The field by which to order Categories.
+  """
   field: CategoryOrderField!
 }
-"""Properties by which Category connections can be ordered."""
+"""
+Properties by which Category connections can be ordered.
+"""
 enum CategoryOrderField {
   ID
   TEXT
@@ -1543,7 +1603,9 @@ enum CategoryOrderField {
   COUNT
   TODOS_COUNT
 }
-"""CategoryStatus is enum for the field status"""
+"""
+CategoryStatus is enum for the field status
+"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
   ENABLED
   DISABLED
@@ -1556,7 +1618,9 @@ input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
   or: [CategoryWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1565,7 +1629,9 @@ input CategoryWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """text field predicates"""
+  """
+  text field predicates
+  """
   text: String
   textNEQ: String
   textIn: [String!]
@@ -1579,12 +1645,16 @@ input CategoryWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """status field predicates"""
+  """
+  status field predicates
+  """
   status: CategoryStatus
   statusNEQ: CategoryStatus
   statusIn: [CategoryStatus!]
   statusNotIn: [CategoryStatus!]
-  """config field predicates"""
+  """
+  config field predicates
+  """
   config: CategoryConfigInput
   configNEQ: CategoryConfigInput
   configIn: [CategoryConfigInput!]
@@ -1595,7 +1665,9 @@ input CategoryWhereInput {
   configLTE: CategoryConfigInput
   configIsNil: Boolean
   configNotNil: Boolean
-  """duration field predicates"""
+  """
+  duration field predicates
+  """
   duration: Duration
   durationNEQ: Duration
   durationIn: [Duration!]
@@ -1606,7 +1678,9 @@ input CategoryWhereInput {
   durationLTE: Duration
   durationIsNil: Boolean
   durationNotNil: Boolean
-  """count field predicates"""
+  """
+  count field predicates
+  """
   count: Uint64
   countNEQ: Uint64
   countIn: [Uint64!]
@@ -1617,10 +1691,14 @@ input CategoryWhereInput {
   countLTE: Uint64
   countIsNil: Boolean
   countNotNil: Boolean
-  """todos edge predicates"""
+  """
+  todos edge predicates
+  """
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
-  """sub_categories edge predicates"""
+  """
+  sub_categories edge predicates
+  """
   hasSubCategories: Boolean
   hasSubCategoriesWith: [CategoryWhereInput!]
 }
@@ -1679,20 +1757,34 @@ type Friendship implements Node {
   user: User!
   friend: User!
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type FriendshipConnection {
-  """A list of edges."""
+  """
+  A list of edges.
+  """
   edges: [FriendshipEdge]
-  """Information to aid in pagination."""
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+  """
+  Identifies the total count of items in the connection.
+  """
   totalCount: Int!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type FriendshipEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Friendship
-  """A cursor for use in pagination."""
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 """
@@ -1703,7 +1795,9 @@ input FriendshipWhereInput {
   not: FriendshipWhereInput
   and: [FriendshipWhereInput!]
   or: [FriendshipWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1712,7 +1806,9 @@ input FriendshipWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """created_at field predicates"""
+  """
+  created_at field predicates
+  """
   createdAt: Time
   createdAtNEQ: Time
   createdAtIn: [Time!]
@@ -1726,39 +1822,65 @@ type Group implements Node & NamedNode @hasPermissions(permissions: ["ADMIN","MO
   id: ID!
   name: String!
   users(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Users returned from the connection."""
+    """
+    Ordering options for Users returned from the connection.
+    """
     orderBy: UserOrder
 
-    """Filtering options for Users returned from the connection."""
+    """
+    Filtering options for Users returned from the connection.
+    """
     where: UserWhereInput
   ): UserConnection!
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type GroupConnection {
-  """A list of edges."""
+  """
+  A list of edges.
+  """
   edges: [GroupEdge]
-  """Information to aid in pagination."""
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+  """
+  Identifies the total count of items in the connection.
+  """
   totalCount: Int!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type GroupEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Group
-  """A cursor for use in pagination."""
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 """
@@ -1769,7 +1891,9 @@ input GroupWhereInput {
   not: GroupWhereInput
   and: [GroupWhereInput!]
   or: [GroupWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1778,7 +1902,9 @@ input GroupWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -1792,18 +1918,24 @@ input GroupWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """users edge predicates"""
+  """
+  users edge predicates
+  """
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
 }
-"""The builtin Map type"""
+"""
+The builtin Map type
+"""
 scalar Map
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
 interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Noder") {
-  """The id of the object."""
+  """
+  The id of the object.
+  """
   id: ID!
 }
 type OneToMany implements Node {
@@ -1813,30 +1945,52 @@ type OneToMany implements Node {
   parent: OneToMany
   children: [OneToMany!]
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type OneToManyConnection {
-  """A list of edges."""
+  """
+  A list of edges.
+  """
   edges: [OneToManyEdge]
-  """Information to aid in pagination."""
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+  """
+  Identifies the total count of items in the connection.
+  """
   totalCount: Int!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type OneToManyEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: OneToMany
-  """A cursor for use in pagination."""
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
-"""Ordering options for OneToMany connections"""
+"""
+Ordering options for OneToMany connections
+"""
 input OneToManyOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order OneToManies."""
+  """
+  The field by which to order OneToManies.
+  """
   field: OneToManyOrderField!
 }
-"""Properties by which OneToMany connections can be ordered."""
+"""
+Properties by which OneToMany connections can be ordered.
+"""
 enum OneToManyOrderField {
   NAME
 }
@@ -1848,7 +2002,9 @@ input OneToManyWhereInput {
   not: OneToManyWhereInput
   and: [OneToManyWhereInput!]
   or: [OneToManyWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1857,7 +2013,9 @@ input OneToManyWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -1871,7 +2029,9 @@ input OneToManyWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """field2 field predicates"""
+  """
+  field2 field predicates
+  """
   field2: String
   field2NEQ: String
   field2In: [String!]
@@ -1887,18 +2047,28 @@ input OneToManyWhereInput {
   field2NotNil: Boolean
   field2EqualFold: String
   field2ContainsFold: String
-  """parent edge predicates"""
+  """
+  parent edge predicates
+  """
   hasParent: Boolean
   hasParentWith: [OneToManyWhereInput!]
-  """children edge predicates"""
+  """
+  children edge predicates
+  """
   hasChildren: Boolean
   hasChildrenWith: [OneToManyWhereInput!]
 }
-"""Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument."""
+"""
+Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument.
+"""
 enum OrderDirection {
-  """Specifies an ascending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
+  """
+  Specifies an ascending order for a given ` + "`" + `orderBy` + "`" + ` argument.
+  """
   ASC
-  """Specifies a descending order for a given ` + "`" + `orderBy` + "`" + ` argument."""
+  """
+  Specifies a descending order for a given ` + "`" + `orderBy` + "`" + ` argument.
+  """
   DESC
 }
 type Organization implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
@@ -1913,7 +2083,9 @@ input OrganizationWhereInput {
   not: OrganizationWhereInput
   and: [OrganizationWhereInput!]
   or: [OrganizationWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1922,7 +2094,9 @@ input OrganizationWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -1942,34 +2116,54 @@ Information about pagination in a connection.
 https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
 """
 type PageInfo {
-  """When paginating forwards, are there more items?"""
+  """
+  When paginating forwards, are there more items?
+  """
   hasNextPage: Boolean!
-  """When paginating backwards, are there more items?"""
+  """
+  When paginating backwards, are there more items?
+  """
   hasPreviousPage: Boolean!
-  """When paginating backwards, the cursor to continue."""
+  """
+  When paginating backwards, the cursor to continue.
+  """
   startCursor: Cursor
-  """When paginating forwards, the cursor to continue."""
+  """
+  When paginating forwards, the cursor to continue.
+  """
   endCursor: Cursor
 }
 type Project implements Node {
   id: ID!
   todos(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Todos returned from the connection."""
+    """
+    Ordering options for Todos returned from the connection.
+    """
     orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoConnection!
 }
@@ -1981,7 +2175,9 @@ input ProjectWhereInput {
   not: ProjectWhereInput
   and: [ProjectWhereInput!]
   or: [ProjectWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -1990,117 +2186,189 @@ input ProjectWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """todos edge predicates"""
+  """
+  todos edge predicates
+  """
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
 }
 type Query {
-  """Fetches an object given its ID."""
+  """
+  Fetches an object given its ID.
+  """
   node(
-    """ID of the object."""
+    """
+    ID of the object.
+    """
     id: ID!
   ): Node
-  """Lookup nodes by a list of IDs."""
+  """
+  Lookup nodes by a list of IDs.
+  """
   nodes(
-    """The list of node IDs."""
+    """
+    The list of node IDs.
+    """
     ids: [ID!]!
   ): [Node]!
   billProducts: [BillProduct!]!
   categories(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Categories returned from the connection."""
+    """
+    Ordering options for Categories returned from the connection.
+    """
     orderBy: [CategoryOrder!]
 
-    """Filtering options for Categories returned from the connection."""
+    """
+    Filtering options for Categories returned from the connection.
+    """
     where: CategoryWhereInput
   ): CategoryConnection!
   groups(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Filtering options for Groups returned from the connection."""
+    """
+    Filtering options for Groups returned from the connection.
+    """
     where: GroupWhereInput
   ): GroupConnection!
   oneToMany(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for OneToManies returned from the connection."""
+    """
+    Ordering options for OneToManies returned from the connection.
+    """
     orderBy: OneToManyOrder
 
-    """Filtering options for OneToManies returned from the connection."""
+    """
+    Filtering options for OneToManies returned from the connection.
+    """
     where: OneToManyWhereInput
   ): OneToManyConnection!
-  """This is the todo item"""
+  """
+  This is the todo item
+  """
   todos(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Todos returned from the connection."""
+    """
+    Ordering options for Todos returned from the connection.
+    """
     orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoConnection!
   users(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Users returned from the connection."""
+    """
+    Ordering options for Users returned from the connection.
+    """
     orderBy: UserOrder
 
-    """Filtering options for Users returned from the connection."""
+    """
+    Filtering options for Users returned from the connection.
+    """
     where: UserWhereInput
   ): UserConnection!
 }
-"""The builtin Time type"""
+"""
+The builtin Time type
+"""
 scalar Time
 type Todo implements Node {
   id: ID!
@@ -2116,50 +2384,84 @@ type Todo implements Node {
   customp: [Custom]
   parent: Todo
   children(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Todos returned from the connection."""
+    """
+    Ordering options for Todos returned from the connection.
+    """
     orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoConnection!
   category: Category
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type TodoConnection {
-  """A list of edges."""
+  """
+  A list of edges.
+  """
   edges: [TodoEdge]
-  """Information to aid in pagination."""
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+  """
+  Identifies the total count of items in the connection.
+  """
   totalCount: Int!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type TodoEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Todo
-  """A cursor for use in pagination."""
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
-"""Ordering options for Todo connections"""
+"""
+Ordering options for Todo connections
+"""
 input TodoOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Todos."""
+  """
+  The field by which to order Todos.
+  """
   field: TodoOrderField!
 }
-"""Properties by which Todo connections can be ordered."""
+"""
+Properties by which Todo connections can be ordered.
+"""
 enum TodoOrderField {
   CREATED_AT
   STATUS
@@ -2169,7 +2471,9 @@ enum TodoOrderField {
   CHILDREN_COUNT
   CATEGORY_TEXT
 }
-"""TodoStatus is enum for the field status"""
+"""
+TodoStatus is enum for the field status
+"""
 enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
   IN_PROGRESS
   COMPLETED
@@ -2183,7 +2487,9 @@ input TodoWhereInput {
   not: TodoWhereInput
   and: [TodoWhereInput!]
   or: [TodoWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -2192,7 +2498,9 @@ input TodoWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """created_at field predicates"""
+  """
+  created_at field predicates
+  """
   createdAt: Time
   createdAtNEQ: Time
   createdAtIn: [Time!]
@@ -2201,12 +2509,16 @@ input TodoWhereInput {
   createdAtGTE: Time
   createdAtLT: Time
   createdAtLTE: Time
-  """status field predicates"""
+  """
+  status field predicates
+  """
   status: TodoStatus
   statusNEQ: TodoStatus
   statusIn: [TodoStatus!]
   statusNotIn: [TodoStatus!]
-  """priority field predicates"""
+  """
+  priority field predicates
+  """
   priority: Int
   priorityNEQ: Int
   priorityIn: [Int!]
@@ -2215,7 +2527,9 @@ input TodoWhereInput {
   priorityGTE: Int
   priorityLT: Int
   priorityLTE: Int
-  """text field predicates"""
+  """
+  text field predicates
+  """
   text: String
   textNEQ: String
   textIn: [String!]
@@ -2229,24 +2543,34 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """category_id field predicates"""
+  """
+  category_id field predicates
+  """
   categoryID: ID
   categoryIDNEQ: ID
   categoryIDIn: [ID!]
   categoryIDNotIn: [ID!]
   categoryIDIsNil: Boolean
   categoryIDNotNil: Boolean
-  """parent edge predicates"""
+  """
+  parent edge predicates
+  """
   hasParent: Boolean
   hasParentWith: [TodoWhereInput!]
-  """children edge predicates"""
+  """
+  children edge predicates
+  """
   hasChildren: Boolean
   hasChildrenWith: [TodoWhereInput!]
-  """category edge predicates"""
+  """
+  category edge predicates
+  """
   hasCategory: Boolean
   hasCategoryWith: [CategoryWhereInput!]
 }
-"""The builtin Uint64 type"""
+"""
+The builtin Uint64 type
+"""
 scalar Uint64
 """
 UpdateCategoryInput is used for update Category object.
@@ -2326,81 +2650,135 @@ type User implements Node {
   requiredMetadata: Map!
   metadata: Map
   groups(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Filtering options for Groups returned from the connection."""
+    """
+    Filtering options for Groups returned from the connection.
+    """
     where: GroupWhereInput
   ): GroupConnection!
   friends(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Ordering options for Users returned from the connection."""
+    """
+    Ordering options for Users returned from the connection.
+    """
     orderBy: UserOrder
 
-    """Filtering options for Users returned from the connection."""
+    """
+    Filtering options for Users returned from the connection.
+    """
     where: UserWhereInput
   ): UserConnection!
   friendships(
-    """Returns the elements in the list that come after the specified cursor."""
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
 
-    """Returns the first _n_ elements from the list."""
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int
 
-    """Returns the elements in the list that come before the specified cursor."""
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
 
-    """Returns the last _n_ elements from the list."""
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int
 
-    """Filtering options for Friendships returned from the connection."""
+    """
+    Filtering options for Friendships returned from the connection.
+    """
     where: FriendshipWhereInput
   ): FriendshipConnection!
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type UserConnection {
-  """A list of edges."""
+  """
+  A list of edges.
+  """
   edges: [UserEdge]
-  """Information to aid in pagination."""
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
-  """Identifies the total count of items in the connection."""
+  """
+  Identifies the total count of items in the connection.
+  """
   totalCount: Int!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type UserEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: User
-  """A cursor for use in pagination."""
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
-"""Ordering options for User connections"""
+"""
+Ordering options for User connections
+"""
 input UserOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Users."""
+  """
+  The field by which to order Users.
+  """
   field: UserOrderField!
 }
-"""Properties by which User connections can be ordered."""
+"""
+Properties by which User connections can be ordered.
+"""
 enum UserOrderField {
   GROUPS_COUNT
 }
@@ -2412,7 +2790,9 @@ input UserWhereInput {
   not: UserWhereInput
   and: [UserWhereInput!]
   or: [UserWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -2421,7 +2801,9 @@ input UserWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -2435,7 +2817,9 @@ input UserWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """username field predicates"""
+  """
+  username field predicates
+  """
   username: UUID
   usernameNEQ: UUID
   usernameIn: [UUID!]
@@ -2444,13 +2828,19 @@ input UserWhereInput {
   usernameGTE: UUID
   usernameLT: UUID
   usernameLTE: UUID
-  """groups edge predicates"""
+  """
+  groups edge predicates
+  """
   hasGroups: Boolean
   hasGroupsWith: [GroupWhereInput!]
-  """friends edge predicates"""
+  """
+  friends edge predicates
+  """
   hasFriends: Boolean
   hasFriendsWith: [UserWhereInput!]
-  """friendships edge predicates"""
+  """
+  friendships edge predicates
+  """
   hasFriendships: Boolean
   hasFriendshipsWith: [FriendshipWhereInput!]
 }
@@ -10816,8 +11206,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOBillProductWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐBillProductWhereInput(ctx, v)
 			if err != nil {
@@ -10825,8 +11213,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOBillProductWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐBillProductWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -10834,8 +11220,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOBillProductWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐBillProductWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -10843,8 +11227,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -10852,8 +11234,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -10861,8 +11241,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDNEQ = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -10870,8 +11248,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -10879,8 +11255,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -10888,8 +11262,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDGT = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -10897,8 +11269,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDGTE = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -10906,8 +11276,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDLT = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -10915,8 +11283,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.IDLTE = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10924,8 +11290,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.Name = data
 		case "nameNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10933,8 +11297,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameNEQ = data
 		case "nameIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -10942,8 +11304,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameIn = data
 		case "nameNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -10951,8 +11311,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameNotIn = data
 		case "nameGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10960,8 +11318,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameGT = data
 		case "nameGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10969,8 +11325,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameGTE = data
 		case "nameLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10978,8 +11332,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameLT = data
 		case "nameLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10987,8 +11339,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameLTE = data
 		case "nameContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -10996,8 +11346,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameContains = data
 		case "nameHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11005,8 +11353,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameHasPrefix = data
 		case "nameHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11014,8 +11360,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameHasSuffix = data
 		case "nameEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11023,8 +11367,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameEqualFold = data
 		case "nameContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11032,8 +11374,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.NameContainsFold = data
 		case "sku":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sku"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11041,8 +11381,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.Sku = data
 		case "skuNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11050,8 +11388,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuNEQ = data
 		case "skuIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -11059,8 +11395,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuIn = data
 		case "skuNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -11068,8 +11402,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuNotIn = data
 		case "skuGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11077,8 +11409,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuGT = data
 		case "skuGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11086,8 +11416,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuGTE = data
 		case "skuLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11095,8 +11423,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuLT = data
 		case "skuLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11104,8 +11430,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuLTE = data
 		case "skuContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11113,8 +11437,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuContains = data
 		case "skuHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11122,8 +11444,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuHasPrefix = data
 		case "skuHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11131,8 +11451,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuHasSuffix = data
 		case "skuEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11140,8 +11458,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuEqualFold = data
 		case "skuContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skuContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11149,8 +11465,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.SkuContainsFold = data
 		case "quantity":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantity"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11158,8 +11472,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.Quantity = data
 		case "quantityNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityNEQ"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11167,8 +11479,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.QuantityNEQ = data
 		case "quantityIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityIn"))
 			data, err := ec.unmarshalOUint642ᚕuint64ᚄ(ctx, v)
 			if err != nil {
@@ -11176,8 +11486,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.QuantityIn = data
 		case "quantityNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityNotIn"))
 			data, err := ec.unmarshalOUint642ᚕuint64ᚄ(ctx, v)
 			if err != nil {
@@ -11185,8 +11493,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.QuantityNotIn = data
 		case "quantityGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityGT"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11194,8 +11500,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.QuantityGT = data
 		case "quantityGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityGTE"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11203,8 +11507,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.QuantityGTE = data
 		case "quantityLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityLT"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11212,8 +11514,6 @@ func (ec *executionContext) unmarshalInputBillProductWhereInput(ctx context.Cont
 			}
 			it.QuantityLT = data
 		case "quantityLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantityLTE"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11241,8 +11541,6 @@ func (ec *executionContext) unmarshalInputCategoryConfigInput(ctx context.Contex
 		}
 		switch k {
 		case "maxMembers":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxMembers"))
 			data, err := ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
@@ -11274,8 +11572,6 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 		}
 		switch k {
 		case "direction":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
 			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
@@ -11283,8 +11579,6 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 			}
 			it.Direction = data
 		case "field":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			data, err := ec.unmarshalNCategoryOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryOrderField(ctx, v)
 			if err != nil {
@@ -11312,8 +11606,6 @@ func (ec *executionContext) unmarshalInputCategoryTypesInput(ctx context.Context
 		}
 		switch k {
 		case "public":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("public"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -11341,8 +11633,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOCategoryWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryWhereInput(ctx, v)
 			if err != nil {
@@ -11350,8 +11640,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -11359,8 +11647,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -11368,8 +11654,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -11377,8 +11661,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -11386,8 +11668,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDNEQ = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -11395,8 +11675,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -11404,8 +11682,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -11413,8 +11689,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDGT = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -11422,8 +11696,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDGTE = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -11431,8 +11703,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDLT = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -11440,8 +11710,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.IDLTE = data
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11449,8 +11717,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Text = data
 		case "textNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11458,8 +11724,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextNEQ = data
 		case "textIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -11467,8 +11731,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextIn = data
 		case "textNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -11476,8 +11738,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextNotIn = data
 		case "textGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11485,8 +11745,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextGT = data
 		case "textGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11494,8 +11752,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextGTE = data
 		case "textLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11503,8 +11759,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextLT = data
 		case "textLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11512,8 +11766,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextLTE = data
 		case "textContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11521,8 +11773,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextContains = data
 		case "textHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11530,8 +11780,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextHasPrefix = data
 		case "textHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11539,8 +11787,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextHasSuffix = data
 		case "textEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11548,8 +11794,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextEqualFold = data
 		case "textContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -11557,8 +11801,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.TextContainsFold = data
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatus(ctx, v)
 			if err != nil {
@@ -11566,8 +11808,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Status = data
 		case "statusNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
 			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatus(ctx, v)
 			if err != nil {
@@ -11575,8 +11815,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.StatusNEQ = data
 		case "statusIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
 			data, err := ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatusᚄ(ctx, v)
 			if err != nil {
@@ -11584,8 +11822,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.StatusIn = data
 		case "statusNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
 			data, err := ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatusᚄ(ctx, v)
 			if err != nil {
@@ -11593,8 +11829,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.StatusNotIn = data
 		case "config":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11602,8 +11836,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Config = data
 		case "configNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNEQ"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11611,8 +11843,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigNEQ = data
 		case "configIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configIn"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx, v)
 			if err != nil {
@@ -11620,8 +11850,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigIn = data
 		case "configNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNotIn"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx, v)
 			if err != nil {
@@ -11629,8 +11857,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigNotIn = data
 		case "configGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configGT"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11638,8 +11864,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigGT = data
 		case "configGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configGTE"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11647,8 +11871,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigGTE = data
 		case "configLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configLT"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11656,8 +11878,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigLT = data
 		case "configLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configLTE"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11665,8 +11885,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigLTE = data
 		case "configIsNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configIsNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -11674,8 +11892,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigIsNil = data
 		case "configNotNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNotNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -11683,8 +11899,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.ConfigNotNil = data
 		case "duration":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11692,8 +11906,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Duration = data
 		case "durationNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationNEQ"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11701,8 +11913,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationNEQ = data
 		case "durationIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationIn"))
 			data, err := ec.unmarshalODuration2ᚕtimeᚐDurationᚄ(ctx, v)
 			if err != nil {
@@ -11710,8 +11920,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationIn = data
 		case "durationNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationNotIn"))
 			data, err := ec.unmarshalODuration2ᚕtimeᚐDurationᚄ(ctx, v)
 			if err != nil {
@@ -11719,8 +11927,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationNotIn = data
 		case "durationGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationGT"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11728,8 +11934,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationGT = data
 		case "durationGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationGTE"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11737,8 +11941,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationGTE = data
 		case "durationLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationLT"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11746,8 +11948,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationLT = data
 		case "durationLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationLTE"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11755,8 +11955,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationLTE = data
 		case "durationIsNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationIsNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -11764,8 +11962,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationIsNil = data
 		case "durationNotNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("durationNotNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -11773,8 +11969,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.DurationNotNil = data
 		case "count":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11782,8 +11976,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.Count = data
 		case "countNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countNEQ"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11791,8 +11983,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountNEQ = data
 		case "countIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countIn"))
 			data, err := ec.unmarshalOUint642ᚕuint64ᚄ(ctx, v)
 			if err != nil {
@@ -11800,8 +11990,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountIn = data
 		case "countNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countNotIn"))
 			data, err := ec.unmarshalOUint642ᚕuint64ᚄ(ctx, v)
 			if err != nil {
@@ -11809,8 +11997,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountNotIn = data
 		case "countGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countGT"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11818,8 +12004,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountGT = data
 		case "countGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countGTE"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11827,8 +12011,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountGTE = data
 		case "countLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countLT"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11836,8 +12018,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountLT = data
 		case "countLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countLTE"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11845,8 +12025,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountLTE = data
 		case "countIsNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countIsNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -11854,8 +12032,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountIsNil = data
 		case "countNotNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countNotNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -11863,8 +12039,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.CountNotNil = data
 		case "hasTodos":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodos"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -11872,8 +12046,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.HasTodos = data
 		case "hasTodosWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodosWith"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -11881,8 +12053,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.HasTodosWith = data
 		case "hasSubCategories":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasSubCategories"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -11890,8 +12060,6 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			}
 			it.HasSubCategories = data
 		case "hasSubCategoriesWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasSubCategoriesWith"))
 			data, err := ec.unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -11919,8 +12087,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 		}
 		switch k {
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -11928,8 +12094,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.Text = data
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatus(ctx, v)
 			if err != nil {
@@ -11937,8 +12101,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.Status = data
 		case "config":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -11946,8 +12108,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.Config = data
 		case "types":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
 			data, err := ec.unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypesInput(ctx, v)
 			if err != nil {
@@ -11957,8 +12117,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 				return it, err
 			}
 		case "duration":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -11966,8 +12124,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.Duration = data
 		case "count":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -11975,8 +12131,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.Count = data
 		case "strings":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strings"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -11984,8 +12138,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.Strings = data
 		case "todoIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todoIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -11993,8 +12145,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.TodoIDs = data
 		case "subCategoryIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subCategoryIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12002,8 +12152,6 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			}
 			it.SubCategoryIDs = data
 		case "createTodos":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createTodos"))
 			data, err := ec.unmarshalOCreateTodoInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCreateTodoInputᚄ(ctx, v)
 			if err != nil {
@@ -12033,8 +12181,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 		}
 		switch k {
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
@@ -12044,8 +12190,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 				return it, err
 			}
 		case "priority":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -12053,8 +12197,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 			}
 			it.Priority = data
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -12062,8 +12204,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 			}
 			it.Text = data
 		case "init":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("init"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
@@ -12071,8 +12211,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 			}
 			it.Init = data
 		case "parentID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12080,8 +12218,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 			}
 			it.ParentID = data
 		case "childIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("childIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12089,8 +12225,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 			}
 			it.ChildIDs = data
 		case "categoryID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12098,8 +12232,6 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 			}
 			it.CategoryID = data
 		case "secretID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secretID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12127,8 +12259,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		}
 		switch k {
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12136,8 +12266,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			}
 			it.Name = data
 		case "username":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -12147,8 +12275,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 				return it, err
 			}
 		case "password":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12156,8 +12282,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			}
 			it.Password = data
 		case "requiredMetadata":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requiredMetadata"))
 			data, err := ec.unmarshalNMap2map(ctx, v)
 			if err != nil {
@@ -12165,8 +12289,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			}
 			it.RequiredMetadata = data
 		case "metadata":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
@@ -12174,8 +12296,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			}
 			it.Metadata = data
 		case "groupIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12183,8 +12303,6 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 			}
 			it.GroupIDs = data
 		case "friendIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("friendIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12212,8 +12330,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOFriendshipWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐFriendshipWhereInput(ctx, v)
 			if err != nil {
@@ -12221,8 +12337,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOFriendshipWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐFriendshipWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12230,8 +12344,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOFriendshipWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐFriendshipWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12239,8 +12351,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12248,8 +12358,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12257,8 +12365,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDNEQ = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12266,8 +12372,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12275,8 +12379,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12284,8 +12386,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDGT = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12293,8 +12393,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDGTE = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12302,8 +12400,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDLT = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12311,8 +12407,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.IDLTE = data
 		case "createdAt":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -12320,8 +12414,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAt = data
 		case "createdAtNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -12329,8 +12421,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAtNEQ = data
 		case "createdAtIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
 			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
@@ -12338,8 +12428,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAtIn = data
 		case "createdAtNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
 			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
@@ -12347,8 +12435,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAtNotIn = data
 		case "createdAtGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -12356,8 +12442,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAtGT = data
 		case "createdAtGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -12365,8 +12449,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAtGTE = data
 		case "createdAtLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -12374,8 +12456,6 @@ func (ec *executionContext) unmarshalInputFriendshipWhereInput(ctx context.Conte
 			}
 			it.CreatedAtLT = data
 		case "createdAtLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -12403,8 +12483,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOGroupWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐGroupWhereInput(ctx, v)
 			if err != nil {
@@ -12412,8 +12490,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12421,8 +12497,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12430,8 +12504,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12439,8 +12511,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12448,8 +12518,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDNEQ = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12457,8 +12525,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12466,8 +12532,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12475,8 +12539,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDGT = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12484,8 +12546,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDGTE = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12493,8 +12553,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDLT = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12502,8 +12560,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.IDLTE = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12511,8 +12567,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.Name = data
 		case "nameNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12520,8 +12574,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameNEQ = data
 		case "nameIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -12529,8 +12581,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameIn = data
 		case "nameNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -12538,8 +12588,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameNotIn = data
 		case "nameGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12547,8 +12595,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameGT = data
 		case "nameGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12556,8 +12602,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameGTE = data
 		case "nameLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12565,8 +12609,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameLT = data
 		case "nameLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12574,8 +12616,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameLTE = data
 		case "nameContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12583,8 +12623,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameContains = data
 		case "nameHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12592,8 +12630,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameHasPrefix = data
 		case "nameHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12601,8 +12637,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameHasSuffix = data
 		case "nameEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12610,8 +12644,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameEqualFold = data
 		case "nameContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12619,8 +12651,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.NameContainsFold = data
 		case "hasUsers":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUsers"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -12628,8 +12658,6 @@ func (ec *executionContext) unmarshalInputGroupWhereInput(ctx context.Context, o
 			}
 			it.HasUsers = data
 		case "hasUsersWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUsersWith"))
 			data, err := ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12661,8 +12689,6 @@ func (ec *executionContext) unmarshalInputOneToManyOrder(ctx context.Context, ob
 		}
 		switch k {
 		case "direction":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
 			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
@@ -12670,8 +12696,6 @@ func (ec *executionContext) unmarshalInputOneToManyOrder(ctx context.Context, ob
 			}
 			it.Direction = data
 		case "field":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			data, err := ec.unmarshalNOneToManyOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOneToManyOrderField(ctx, v)
 			if err != nil {
@@ -12699,8 +12723,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOOneToManyWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOneToManyWhereInput(ctx, v)
 			if err != nil {
@@ -12708,8 +12730,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOOneToManyWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOneToManyWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12717,8 +12737,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOOneToManyWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOneToManyWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -12726,8 +12744,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12735,8 +12751,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12744,8 +12758,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDNeq = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12753,8 +12765,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -12762,8 +12772,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12771,8 +12779,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDGt = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12780,8 +12786,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDGte = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12789,8 +12793,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDLt = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -12798,8 +12800,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.IDLte = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12807,8 +12807,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Name = data
 		case "nameNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12816,8 +12814,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameNeq = data
 		case "nameIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -12825,8 +12821,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameIn = data
 		case "nameNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -12834,8 +12828,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameNotIn = data
 		case "nameGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12843,8 +12835,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameGt = data
 		case "nameGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12852,8 +12842,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameGte = data
 		case "nameLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12861,8 +12849,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameLt = data
 		case "nameLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12870,8 +12856,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameLte = data
 		case "nameContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12879,8 +12863,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameContains = data
 		case "nameHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12888,8 +12870,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameHasPrefix = data
 		case "nameHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12897,8 +12877,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameHasSuffix = data
 		case "nameEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12906,8 +12884,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameEqualFold = data
 		case "nameContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12915,8 +12891,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.NameContainsFold = data
 		case "field2":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12924,8 +12898,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2 = data
 		case "field2NEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2NEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12933,8 +12905,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2neq = data
 		case "field2In":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2In"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -12942,8 +12912,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2In = data
 		case "field2NotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2NotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -12951,8 +12919,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2NotIn = data
 		case "field2GT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2GT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12960,8 +12926,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2gt = data
 		case "field2GTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2GTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12969,8 +12933,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2gte = data
 		case "field2LT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2LT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12978,8 +12940,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2lt = data
 		case "field2LTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2LTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12987,8 +12947,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2lte = data
 		case "field2Contains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2Contains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -12996,8 +12954,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2Contains = data
 		case "field2HasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2HasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13005,8 +12961,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2HasPrefix = data
 		case "field2HasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2HasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13014,8 +12968,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2HasSuffix = data
 		case "field2IsNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2IsNil"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -13023,8 +12975,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2IsNil = data
 		case "field2NotNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2NotNil"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -13032,8 +12982,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2NotNil = data
 		case "field2EqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2EqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13041,8 +12989,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2EqualFold = data
 		case "field2ContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field2ContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13050,8 +12996,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.Field2ContainsFold = data
 		case "hasParent":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParent"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -13059,8 +13003,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.HasParent = data
 		case "hasParentWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParentWith"))
 			data, err := ec.unmarshalOOneToManyWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOneToManyWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13068,8 +13010,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.HasParentWith = data
 		case "hasChildren":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasChildren"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -13077,8 +13017,6 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 			}
 			it.HasChildren = data
 		case "hasChildrenWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasChildrenWith"))
 			data, err := ec.unmarshalOOneToManyWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOneToManyWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13106,8 +13044,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOOrganizationWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOrganizationWhereInput(ctx, v)
 			if err != nil {
@@ -13115,8 +13051,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOOrganizationWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOrganizationWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13124,8 +13058,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOOrganizationWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐOrganizationWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13133,8 +13065,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13142,8 +13072,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13151,8 +13079,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDNeq = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13160,8 +13086,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13169,8 +13093,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13178,8 +13100,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDGt = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13187,8 +13107,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDGte = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13196,8 +13114,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDLt = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13205,8 +13121,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.IDLte = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13214,8 +13128,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.Name = data
 		case "nameNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13223,8 +13135,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameNeq = data
 		case "nameIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -13232,8 +13142,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameIn = data
 		case "nameNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -13241,8 +13149,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameNotIn = data
 		case "nameGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13250,8 +13156,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameGt = data
 		case "nameGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13259,8 +13163,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameGte = data
 		case "nameLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13268,8 +13170,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameLt = data
 		case "nameLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13277,8 +13177,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameLte = data
 		case "nameContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13286,8 +13184,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameContains = data
 		case "nameHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13295,8 +13191,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameHasPrefix = data
 		case "nameHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13304,8 +13198,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameHasSuffix = data
 		case "nameEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13313,8 +13205,6 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 			}
 			it.NameEqualFold = data
 		case "nameContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13342,8 +13232,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOProjectWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐProjectWhereInput(ctx, v)
 			if err != nil {
@@ -13351,8 +13239,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOProjectWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐProjectWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13360,8 +13246,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOProjectWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐProjectWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13369,8 +13253,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13378,8 +13260,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13387,8 +13267,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDNeq = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13396,8 +13274,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13405,8 +13281,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13414,8 +13288,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDGt = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13423,8 +13295,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDGte = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13432,8 +13302,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDLt = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13441,8 +13309,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.IDLte = data
 		case "hasTodos":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodos"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -13450,8 +13316,6 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 			}
 			it.HasTodos = data
 		case "hasTodosWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasTodosWith"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13483,8 +13347,6 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 		}
 		switch k {
 		case "direction":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
 			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
@@ -13492,8 +13354,6 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 			}
 			it.Direction = data
 		case "field":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			data, err := ec.unmarshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoOrderField(ctx, v)
 			if err != nil {
@@ -13521,8 +13381,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInput(ctx, v)
 			if err != nil {
@@ -13530,8 +13388,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13539,8 +13395,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13548,8 +13402,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13557,8 +13409,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13566,8 +13416,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDNEQ = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13575,8 +13423,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13584,8 +13430,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13593,8 +13437,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDGT = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13602,8 +13444,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDGTE = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13611,8 +13451,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDLT = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13620,8 +13458,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.IDLTE = data
 		case "createdAt":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -13629,8 +13465,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAt = data
 		case "createdAtNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -13638,8 +13472,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtNEQ = data
 		case "createdAtIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
 			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
@@ -13647,8 +13479,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtIn = data
 		case "createdAtNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
 			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
@@ -13656,8 +13486,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtNotIn = data
 		case "createdAtGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -13665,8 +13493,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtGT = data
 		case "createdAtGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -13674,8 +13500,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtGTE = data
 		case "createdAtLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -13683,8 +13507,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtLT = data
 		case "createdAtLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -13692,8 +13514,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CreatedAtLTE = data
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
@@ -13703,8 +13523,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "statusNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
 			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
@@ -13714,8 +13532,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "statusIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
 			data, err := ec.unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
 			if err != nil {
@@ -13725,8 +13541,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "statusNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
 			data, err := ec.unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
 			if err != nil {
@@ -13736,8 +13550,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "priority":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -13745,8 +13557,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.Priority = data
 		case "priorityNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityNEQ"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -13754,8 +13564,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityNEQ = data
 		case "priorityIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityIn"))
 			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
@@ -13763,8 +13571,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityIn = data
 		case "priorityNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityNotIn"))
 			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
@@ -13772,8 +13578,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityNotIn = data
 		case "priorityGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityGT"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -13781,8 +13585,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityGT = data
 		case "priorityGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityGTE"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -13790,8 +13592,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityGTE = data
 		case "priorityLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityLT"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -13799,8 +13599,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityLT = data
 		case "priorityLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priorityLTE"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -13808,8 +13606,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.PriorityLTE = data
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13817,8 +13613,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.Text = data
 		case "textNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13826,8 +13620,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextNEQ = data
 		case "textIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -13835,8 +13627,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextIn = data
 		case "textNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -13844,8 +13634,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextNotIn = data
 		case "textGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13853,8 +13641,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextGT = data
 		case "textGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13862,8 +13648,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextGTE = data
 		case "textLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13871,8 +13655,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextLT = data
 		case "textLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13880,8 +13662,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextLTE = data
 		case "textContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13889,8 +13669,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextContains = data
 		case "textHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13898,8 +13676,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextHasPrefix = data
 		case "textHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13907,8 +13683,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextHasSuffix = data
 		case "textEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13916,8 +13690,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextEqualFold = data
 		case "textContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("textContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -13925,8 +13697,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.TextContainsFold = data
 		case "categoryID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13934,8 +13704,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CategoryID = data
 		case "categoryIDNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -13943,8 +13711,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CategoryIDNEQ = data
 		case "categoryIDIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13952,8 +13718,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CategoryIDIn = data
 		case "categoryIDNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -13961,8 +13725,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CategoryIDNotIn = data
 		case "categoryIDIsNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDIsNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -13970,8 +13732,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CategoryIDIsNil = data
 		case "categoryIDNotNil":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryIDNotNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -13979,8 +13739,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.CategoryIDNotNil = data
 		case "hasParent":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParent"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -13988,8 +13746,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.HasParent = data
 		case "hasParentWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParentWith"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -13997,8 +13753,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.HasParentWith = data
 		case "hasChildren":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasChildren"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -14006,8 +13760,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.HasChildren = data
 		case "hasChildrenWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasChildrenWith"))
 			data, err := ec.unmarshalOTodoWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐTodoWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -14015,8 +13767,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.HasChildrenWith = data
 		case "hasCategory":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCategory"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -14024,8 +13774,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.HasCategory = data
 		case "hasCategoryWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasCategoryWith"))
 			data, err := ec.unmarshalOCategoryWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐCategoryWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -14033,8 +13781,6 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			}
 			it.HasCategoryWith = data
 		case "createdToday":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdToday"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -14064,8 +13810,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 		}
 		switch k {
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14073,8 +13817,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.Text = data
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚋcategoryᚐStatus(ctx, v)
 			if err != nil {
@@ -14082,8 +13824,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.Status = data
 		case "config":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
@@ -14091,8 +13831,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.Config = data
 		case "clearConfig":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearConfig"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14100,8 +13838,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.ClearConfig = data
 		case "types":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
 			data, err := ec.unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚐCategoryTypesInput(ctx, v)
 			if err != nil {
@@ -14111,8 +13847,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 				return it, err
 			}
 		case "clearTypes":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearTypes"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14120,8 +13854,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.ClearTypes = data
 		case "duration":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
 			if err != nil {
@@ -14129,8 +13861,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.Duration = data
 		case "clearDuration":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearDuration"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14138,8 +13868,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.ClearDuration = data
 		case "count":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
 			data, err := ec.unmarshalOUint642ᚖuint64(ctx, v)
 			if err != nil {
@@ -14147,8 +13875,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.Count = data
 		case "clearCount":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearCount"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14156,8 +13882,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.ClearCount = data
 		case "strings":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strings"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -14165,8 +13889,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.Strings = data
 		case "appendStrings":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appendStrings"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -14174,8 +13896,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.AppendStrings = data
 		case "clearStrings":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearStrings"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14183,8 +13903,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.ClearStrings = data
 		case "addTodoIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addTodoIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14192,8 +13910,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.AddTodoIDs = data
 		case "removeTodoIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeTodoIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14201,8 +13917,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.RemoveTodoIDs = data
 		case "clearTodos":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearTodos"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14210,8 +13924,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.ClearTodos = data
 		case "addSubCategoryIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addSubCategoryIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14219,8 +13931,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.AddSubCategoryIDs = data
 		case "removeSubCategoryIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeSubCategoryIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14228,8 +13938,6 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			}
 			it.RemoveSubCategoryIDs = data
 		case "clearSubCategories":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearSubCategories"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14257,8 +13965,6 @@ func (ec *executionContext) unmarshalInputUpdateFriendshipInput(ctx context.Cont
 		}
 		switch k {
 		case "createdAt":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
@@ -14266,8 +13972,6 @@ func (ec *executionContext) unmarshalInputUpdateFriendshipInput(ctx context.Cont
 			}
 			it.CreatedAt = data
 		case "userID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14275,8 +13979,6 @@ func (ec *executionContext) unmarshalInputUpdateFriendshipInput(ctx context.Cont
 			}
 			it.UserID = data
 		case "friendID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("friendID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14304,8 +14006,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 		}
 		switch k {
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
@@ -14315,8 +14015,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 				return it, err
 			}
 		case "priority":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -14324,8 +14022,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.Priority = data
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14333,8 +14029,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.Text = data
 		case "init":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("init"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
@@ -14342,8 +14036,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.Init = data
 		case "clearInit":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearInit"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14351,8 +14043,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.ClearInit = data
 		case "parentID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14360,8 +14050,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.ParentID = data
 		case "clearParent":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearParent"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14369,8 +14057,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.ClearParent = data
 		case "addChildIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addChildIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14378,8 +14064,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.AddChildIDs = data
 		case "removeChildIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeChildIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14387,8 +14071,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.RemoveChildIDs = data
 		case "clearChildren":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearChildren"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14396,8 +14078,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.ClearChildren = data
 		case "secretID":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secretID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14405,8 +14085,6 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			}
 			it.SecretID = data
 		case "clearSecret":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearSecret"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14434,8 +14112,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		}
 		switch k {
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14443,8 +14119,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.Name = data
 		case "username":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14454,8 +14128,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 				return it, err
 			}
 		case "password":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14463,8 +14135,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.Password = data
 		case "clearPassword":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearPassword"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14472,8 +14142,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.ClearPassword = data
 		case "requiredMetadata":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requiredMetadata"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
@@ -14481,8 +14149,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.RequiredMetadata = data
 		case "metadata":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
 			if err != nil {
@@ -14490,8 +14156,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.Metadata = data
 		case "clearMetadata":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearMetadata"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14499,8 +14163,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.ClearMetadata = data
 		case "addGroupIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addGroupIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14508,8 +14170,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.AddGroupIDs = data
 		case "removeGroupIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeGroupIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14517,8 +14177,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.RemoveGroupIDs = data
 		case "clearGroups":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearGroups"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14526,8 +14184,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.ClearGroups = data
 		case "addFriendIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addFriendIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14535,8 +14191,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.AddFriendIDs = data
 		case "removeFriendIDs":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeFriendIDs"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14544,8 +14198,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			}
 			it.RemoveFriendIDs = data
 		case "clearFriends":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearFriends"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
@@ -14577,8 +14229,6 @@ func (ec *executionContext) unmarshalInputUserOrder(ctx context.Context, obj int
 		}
 		switch k {
 		case "direction":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
 			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
@@ -14586,8 +14236,6 @@ func (ec *executionContext) unmarshalInputUserOrder(ctx context.Context, obj int
 			}
 			it.Direction = data
 		case "field":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			data, err := ec.unmarshalNUserOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserOrderField(ctx, v)
 			if err != nil {
@@ -14615,8 +14263,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 		}
 		switch k {
 		case "not":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
 			data, err := ec.unmarshalOUserWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserWhereInput(ctx, v)
 			if err != nil {
@@ -14624,8 +14270,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.Not = data
 		case "and":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
 			data, err := ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -14633,8 +14277,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.And = data
 		case "or":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
 			data, err := ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -14642,8 +14284,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.Or = data
 		case "id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14651,8 +14291,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.ID = data
 		case "idNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14660,8 +14298,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDNEQ = data
 		case "idIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14669,8 +14305,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDIn = data
 		case "idNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
 			data, err := ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
@@ -14678,8 +14312,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDNotIn = data
 		case "idGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14687,8 +14319,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDGT = data
 		case "idGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14696,8 +14326,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDGTE = data
 		case "idLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14705,8 +14333,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDLT = data
 		case "idLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
@@ -14714,8 +14340,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.IDLTE = data
 		case "name":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14723,8 +14347,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.Name = data
 		case "nameNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14732,8 +14354,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameNEQ = data
 		case "nameIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -14741,8 +14361,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameIn = data
 		case "nameNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -14750,8 +14368,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameNotIn = data
 		case "nameGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14759,8 +14375,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameGT = data
 		case "nameGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14768,8 +14382,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameGTE = data
 		case "nameLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14777,8 +14389,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameLT = data
 		case "nameLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14786,8 +14396,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameLTE = data
 		case "nameContains":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14795,8 +14403,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameContains = data
 		case "nameHasPrefix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14804,8 +14410,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameHasPrefix = data
 		case "nameHasSuffix":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14813,8 +14417,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameHasSuffix = data
 		case "nameEqualFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14822,8 +14424,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameEqualFold = data
 		case "nameContainsFold":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
@@ -14831,8 +14431,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.NameContainsFold = data
 		case "username":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14842,8 +14440,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameNEQ":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameNEQ"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14853,8 +14449,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameIn"))
 			data, err := ec.unmarshalOUUID2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -14864,8 +14458,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameNotIn":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameNotIn"))
 			data, err := ec.unmarshalOUUID2ᚕstringᚄ(ctx, v)
 			if err != nil {
@@ -14875,8 +14467,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameGT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameGT"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14886,8 +14476,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameGTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameGTE"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14897,8 +14485,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameLT":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameLT"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14908,8 +14494,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "usernameLTE":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usernameLTE"))
 			data, err := ec.unmarshalOUUID2ᚖstring(ctx, v)
 			if err != nil {
@@ -14919,8 +14503,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 		case "hasGroups":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasGroups"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -14928,8 +14510,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.HasGroups = data
 		case "hasGroupsWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasGroupsWith"))
 			data, err := ec.unmarshalOGroupWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐGroupWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -14937,8 +14517,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.HasGroupsWith = data
 		case "hasFriends":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasFriends"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -14946,8 +14524,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.HasFriends = data
 		case "hasFriendsWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasFriendsWith"))
 			data, err := ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐUserWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -14955,8 +14531,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.HasFriendsWith = data
 		case "hasFriendships":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasFriendships"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
@@ -14964,8 +14538,6 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 			}
 			it.HasFriendships = data
 		case "hasFriendshipsWith":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasFriendshipsWith"))
 			data, err := ec.unmarshalOFriendshipWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodouuidᚋentᚐFriendshipWhereInputᚄ(ctx, v)
 			if err != nil {
@@ -15000,6 +14572,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case *ent.Group:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Group(ctx, sel, obj)
 	case *ent.BillProduct:
 		if obj == nil {
 			return graphql.Null
@@ -15015,11 +14592,6 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Friendship(ctx, sel, obj)
-	case *ent.Group:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Group(ctx, sel, obj)
 	case OneToMany:
 		return ec._OneToMany(ctx, sel, &obj)
 	case *OneToMany:
