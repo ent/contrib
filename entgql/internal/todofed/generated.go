@@ -29,6 +29,7 @@ import (
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
 func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 	return &executableSchema{
+		schema:     cfg.Schema,
 		resolvers:  cfg.Resolvers,
 		directives: cfg.Directives,
 		complexity: cfg.Complexity,
@@ -36,6 +37,7 @@ func NewExecutableSchema(cfg Config) graphql.ExecutableSchema {
 }
 
 type Config struct {
+	Schema     *ast.Schema
 	Resolvers  ResolverRoot
 	Directives DirectiveRoot
 	Complexity ComplexityRoot
@@ -126,12 +128,16 @@ type QueryResolver interface {
 }
 
 type executableSchema struct {
+	schema     *ast.Schema
 	resolvers  ResolverRoot
 	directives DirectiveRoot
 	complexity ComplexityRoot
 }
 
 func (e *executableSchema) Schema() *ast.Schema {
+	if e.schema != nil {
+		return e.schema
+	}
 	return parsedSchema
 }
 
@@ -477,14 +483,14 @@ func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapSchema(parsedSchema), nil
+	return introspection.WrapSchema(ec.Schema()), nil
 }
 
 func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
 	if ec.DisableIntrospection {
 		return nil, errors.New("introspection disabled")
 	}
-	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
+	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
 //go:embed "todo.graphql"
@@ -4104,8 +4110,6 @@ func (ec *executionContext) unmarshalInputCategoryConfigInput(ctx context.Contex
 		}
 		switch k {
 		case "maxMembers":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxMembers"))
 			data, err := ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
@@ -4137,8 +4141,6 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 		}
 		switch k {
 		case "status":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalNStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodofedᚋentᚋtodoᚐStatus(ctx, v)
 			if err != nil {
@@ -4146,8 +4148,6 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 			}
 			it.Status = data
 		case "priority":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
@@ -4155,8 +4155,6 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 			}
 			it.Priority = data
 		case "text":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -4164,8 +4162,6 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 			}
 			it.Text = data
 		case "parent":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
 			data, err := ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
@@ -4173,8 +4169,6 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 			}
 			it.Parent = data
 		case "category_id":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category_id"))
 			data, err := ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
@@ -4202,8 +4196,6 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 		}
 		switch k {
 		case "direction":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
 			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
@@ -4211,8 +4203,6 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj int
 			}
 			it.Direction = data
 		case "field":
-			var err error
-
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			data, err := ec.unmarshalOTodoOrderField2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodofedᚋentᚐTodoOrderField(ctx, v)
 			if err != nil {
