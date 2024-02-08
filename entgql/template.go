@@ -445,42 +445,49 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 	}
 	for _, e := range n.Edges {
 		name := strings.ToUpper(e.Name)
-		switch ant, err := annotation(e.Annotations); {
-		case err != nil:
+		ant, err := annotation(e.Annotations)
+		if err != nil {
 			return nil, err
-		case ant.Skip.Is(SkipOrderField), ant.OrderField == "":
-		case ant.OrderField == fmt.Sprintf("%s_COUNT", name):
-			// Validate that the edge has a count ordering.
-			if _, err := e.OrderCountName(); err != nil {
-				return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
+		}
+		if ant.Skip.Is(SkipOrderField) || ant.OrderField == "" {
+			continue
+		}
+		OrderFields := strings.Split(ant.OrderField, ",")
+		for _, OrderField := range OrderFields {
+			switch {
+			case OrderField == fmt.Sprintf("%s_COUNT", name):
+				// Validate that the edge has a count ordering.
+				if _, err := e.OrderCountName(); err != nil {
+					return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", OrderField, n.Name, e.Name, err)
+				}
+				terms = append(terms, &OrderTerm{
+					GQL:   OrderField,
+					Type:  n,
+					Edge:  e,
+					Count: true,
+				})
+			case strings.HasPrefix(OrderField, name+"_"):
+				// Validate that the edge has a edge field ordering.
+				if _, err := e.OrderFieldName(); err != nil {
+					return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", OrderField, n.Name, e.Name, err)
+				}
+				ef := strings.TrimPrefix(OrderField, name+"_")
+				idx := slices.IndexFunc(e.Type.Fields, func(f *gen.Field) bool {
+					ant, err := annotation(f.Annotations)
+					return err == nil && ant.OrderField == ef
+				})
+				if idx == -1 {
+					return nil, fmt.Errorf("entgql: order field %s defined on edge %s.%s was not found on its reference", OrderField, n.Name, e.Name)
+				}
+				terms = append(terms, &OrderTerm{
+					GQL:   OrderField,
+					Edge:  e,
+					Type:  e.Type,
+					Field: e.Type.Fields[idx],
+				})
+			default:
+				return nil, fmt.Errorf("entgql: invalid order field defined on edge %s.%s", n.Name, e.Name)
 			}
-			terms = append(terms, &OrderTerm{
-				GQL:   ant.OrderField,
-				Type:  n,
-				Edge:  e,
-				Count: true,
-			})
-		case strings.HasPrefix(ant.OrderField, name+"_"):
-			// Validate that the edge has a edge field ordering.
-			if _, err := e.OrderFieldName(); err != nil {
-				return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
-			}
-			ef := strings.TrimPrefix(ant.OrderField, name+"_")
-			idx := slices.IndexFunc(e.Type.Fields, func(f *gen.Field) bool {
-				ant, err := annotation(f.Annotations)
-				return err == nil && ant.OrderField == ef
-			})
-			if idx == -1 {
-				return nil, fmt.Errorf("entgql: order field %s defined on edge %s.%s was not found on its reference", ant.OrderField, n.Name, e.Name)
-			}
-			terms = append(terms, &OrderTerm{
-				GQL:   ant.OrderField,
-				Edge:  e,
-				Type:  e.Type,
-				Field: e.Type.Fields[idx],
-			})
-		default:
-			return nil, fmt.Errorf("entgql: invalid order field defined on edge %s.%s", n.Name, e.Name)
 		}
 	}
 	return terms, nil
