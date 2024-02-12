@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -56,9 +57,34 @@ func (wu *WorkspaceUpdate) SetNillableName(s *string) *WorkspaceUpdate {
 	return wu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (wu *WorkspaceUpdate) SetUserID(id int) *WorkspaceUpdate {
+	wu.mutation.SetUserID(id)
+	return wu
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (wu *WorkspaceUpdate) SetNillableUserID(id *int) *WorkspaceUpdate {
+	if id != nil {
+		wu = wu.SetUserID(*id)
+	}
+	return wu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (wu *WorkspaceUpdate) SetUser(u *User) *WorkspaceUpdate {
+	return wu.SetUserID(u.ID)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (wu *WorkspaceUpdate) Mutation() *WorkspaceMutation {
 	return wu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (wu *WorkspaceUpdate) ClearUser() *WorkspaceUpdate {
+	wu.mutation.ClearUser()
+	return wu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -106,6 +132,35 @@ func (wu *WorkspaceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := wu.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
 	}
+	if wu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.UserTable,
+			Columns: []string{workspace.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.UserTable,
+			Columns: []string{workspace.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(wu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -142,9 +197,34 @@ func (wuo *WorkspaceUpdateOne) SetNillableName(s *string) *WorkspaceUpdateOne {
 	return wuo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (wuo *WorkspaceUpdateOne) SetUserID(id int) *WorkspaceUpdateOne {
+	wuo.mutation.SetUserID(id)
+	return wuo
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (wuo *WorkspaceUpdateOne) SetNillableUserID(id *int) *WorkspaceUpdateOne {
+	if id != nil {
+		wuo = wuo.SetUserID(*id)
+	}
+	return wuo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (wuo *WorkspaceUpdateOne) SetUser(u *User) *WorkspaceUpdateOne {
+	return wuo.SetUserID(u.ID)
+}
+
 // Mutation returns the WorkspaceMutation object of the builder.
 func (wuo *WorkspaceUpdateOne) Mutation() *WorkspaceMutation {
 	return wuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (wuo *WorkspaceUpdateOne) ClearUser() *WorkspaceUpdateOne {
+	wuo.mutation.ClearUser()
+	return wuo
 }
 
 // Where appends a list predicates to the WorkspaceUpdate builder.
@@ -221,6 +301,35 @@ func (wuo *WorkspaceUpdateOne) sqlSave(ctx context.Context) (_node *Workspace, e
 	}
 	if value, ok := wuo.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
+	}
+	if wuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.UserTable,
+			Columns: []string{workspace.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.UserTable,
+			Columns: []string{workspace.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(wuo.modifiers...)
 	_node = &Workspace{config: wuo.config}

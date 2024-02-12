@@ -39,6 +39,11 @@ func (r *organizationResolver) ID(ctx context.Context, obj *ent1.Workspace) (pul
 	panic(fmt.Errorf("not implemented"))
 }
 
+// User is the resolver for the user field.
+func (r *organizationResolver) User(ctx context.Context, obj *ent1.Workspace) (*ent.User, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
+}
+
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id pulid.ID) (ent.Noder, error) {
 	return r.client.Noder(ctx, id, ent.WithNodeType(ent.IDToType))

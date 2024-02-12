@@ -889,6 +889,16 @@ func (pr *ProjectQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			pr.WithNamedTodos(alias, func(wq *TodoQuery) {
 				*wq = *query
 			})
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: pr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			pr.withUser = query
 		}
 	}
 	return nil
@@ -916,6 +926,28 @@ func newProjectPaginateArgs(rv map[string]any) *projectPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &ProjectOrder{Field: &ProjectOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithProjectOrder(order))
+			}
+		case *ProjectOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithProjectOrder(v))
+			}
+		}
 	}
 	if v, ok := rv[whereField].(*ProjectWhereInput); ok {
 		args.opts = append(args.opts, WithProjectFilter(v.Filter))
@@ -1546,6 +1578,16 @@ func (w *WorkspaceQuery) collectField(ctx context.Context, opCtx *graphql.Operat
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: w.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			w.withUser = query
 		case "name":
 			if _, ok := fieldSeen[workspace.FieldName]; !ok {
 				selectedFields = append(selectedFields, workspace.FieldName)
@@ -1585,6 +1627,28 @@ func newOrganizationPaginateArgs(rv map[string]any) *organizationPaginateArgs {
 	}
 	if v := rv[beforeField]; v != nil {
 		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &OrganizationOrder{Field: &OrganizationOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithOrganizationOrder(order))
+			}
+		case *OrganizationOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithOrganizationOrder(v))
+			}
+		}
 	}
 	if v, ok := rv[whereField].(*OrganizationWhereInput); ok {
 		args.opts = append(args.opts, WithOrganizationFilter(v.Filter))

@@ -1409,6 +1409,10 @@ type ProjectWhereInput struct {
 	// "todos" edge predicates.
 	HasTodos     *bool             `json:"hasTodos,omitempty"`
 	HasTodosWith []*TodoWhereInput `json:"hasTodosWith,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1524,6 +1528,24 @@ func (i *ProjectWhereInput) P() (predicate.Project, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, project.HasTodosWith(with...))
+	}
+	if i.HasUser != nil {
+		p := project.HasUser()
+		if !*i.HasUser {
+			p = project.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, project.HasUserWith(with...))
 	}
 	switch len(predicates) {
 	case 0:
@@ -2262,6 +2284,10 @@ type OrganizationWhereInput struct {
 	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
+
+	// "user" edge predicates.
+	HasUser     *bool             `json:"hasUser,omitempty"`
+	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -2399,6 +2425,24 @@ func (i *OrganizationWhereInput) P() (predicate.Workspace, error) {
 		predicates = append(predicates, workspace.NameContainsFold(*i.NameContainsFold))
 	}
 
+	if i.HasUser != nil {
+		p := workspace.HasUser()
+		if !*i.HasUser {
+			p = workspace.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasUserWith) > 0 {
+		with := make([]predicate.User, 0, len(i.HasUserWith))
+		for _, w := range i.HasUserWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasUserWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, workspace.HasUserWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, ErrEmptyOrganizationWhereInput

@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -38,6 +39,8 @@ type ProjectQuery struct {
 	inters         []Interceptor
 	predicates     []predicate.Project
 	withTodos      *TodoQuery
+	withUser       *UserQuery
+	withFKs        bool
 	loadTotal      []func(context.Context, []*Project) error
 	modifiers      []func(*sql.Selector)
 	withNamedTodos map[string]*TodoQuery
@@ -92,6 +95,28 @@ func (pq *ProjectQuery) QueryTodos() *TodoQuery {
 			sqlgraph.From(project.Table, project.FieldID, selector),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, project.TodosTable, project.TodosColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (pq *ProjectQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, project.UserTable, project.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -292,6 +317,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Project{}, pq.predicates...),
 		withTodos:  pq.withTodos.Clone(),
+		withUser:   pq.withUser.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -306,6 +332,17 @@ func (pq *ProjectQuery) WithTodos(opts ...func(*TodoQuery)) *ProjectQuery {
 		opt(query)
 	}
 	pq.withTodos = query
+	return pq
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithUser(opts ...func(*UserQuery)) *ProjectQuery {
+	query := (&UserClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withUser = query
 	return pq
 }
 
@@ -364,11 +401,19 @@ func (pq *ProjectQuery) prepareQuery(ctx context.Context) error {
 func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Project, error) {
 	var (
 		nodes       = []*Project{}
+		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			pq.withTodos != nil,
+			pq.withUser != nil,
 		}
 	)
+	if pq.withUser != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, project.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Project).scanValues(nil, columns)
 	}
@@ -394,6 +439,12 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := pq.loadTodos(ctx, query, nodes,
 			func(n *Project) { n.Edges.Todos = []*Todo{} },
 			func(n *Project, e *Todo) { n.Edges.Todos = append(n.Edges.Todos, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withUser; query != nil {
+		if err := pq.loadUser(ctx, query, nodes, nil,
+			func(n *Project, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -440,6 +491,38 @@ func (pq *ProjectQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes [
 			return fmt.Errorf(`unexpected referenced foreign-key "project_todos" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProjectQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Project, init func(*Project), assign func(*Project, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Project)
+	for i := range nodes {
+		if nodes[i].project_user == nil {
+			continue
+		}
+		fk := *nodes[i].project_user
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "project_user" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

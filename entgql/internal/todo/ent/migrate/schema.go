@@ -121,12 +121,21 @@ var (
 	// ProjectsColumns holds the columns for the "projects" table.
 	ProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "project_user", Type: field.TypeInt, Nullable: true},
 	}
 	// ProjectsTable holds the schema information for the "projects" table.
 	ProjectsTable = &schema.Table{
 		Name:       "projects",
 		Columns:    ProjectsColumns,
 		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "projects_users_user",
+				Columns:    []*schema.Column{ProjectsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
@@ -206,12 +215,21 @@ var (
 	WorkspacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "workspace_user", Type: field.TypeInt, Nullable: true},
 	}
 	// WorkspacesTable holds the schema information for the "workspaces" table.
 	WorkspacesTable = &schema.Table{
 		Name:       "workspaces",
 		Columns:    WorkspacesColumns,
 		PrimaryKey: []*schema.Column{WorkspacesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workspaces_users_user",
+				Columns:    []*schema.Column{WorkspacesColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// CategorySubCategoriesColumns holds the columns for the "category_sub_categories" table.
 	CategorySubCategoriesColumns = []*schema.Column{
@@ -284,10 +302,12 @@ func init() {
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
 	OneToManiesTable.ForeignKeys[0].RefTable = OneToManiesTable
+	ProjectsTable.ForeignKeys[0].RefTable = UsersTable
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
 	TodosTable.ForeignKeys[2].RefTable = TodosTable
 	TodosTable.ForeignKeys[3].RefTable = VerySecretsTable
+	WorkspacesTable.ForeignKeys[0].RefTable = UsersTable
 	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable

@@ -142,6 +142,14 @@ func (pr *Project) Todos(
 	return pr.QueryTodos().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (pr *Project) User(ctx context.Context) (*User, error) {
+	result, err := pr.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryUser().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
 	result, err := t.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
@@ -238,4 +246,12 @@ func (u *User) Friendships(
 		return conn, nil
 	}
 	return u.QueryFriendships().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (w *Workspace) User(ctx context.Context) (*User, error) {
+	result, err := w.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = w.QueryUser().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }

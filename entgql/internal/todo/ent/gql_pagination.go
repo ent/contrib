@@ -1767,8 +1767,12 @@ func (p *projectPager) applyOrder(query *ProjectQuery) *ProjectQuery {
 	if p.order.Field != DefaultProjectOrder.Field {
 		query = query.Order(DefaultProjectOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+	switch p.order.Field.column {
+	case ProjectOrderFieldUserName.column:
+	default:
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return query
 }
@@ -1778,8 +1782,13 @@ func (p *projectPager) orderExpr(query *ProjectQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+	switch p.order.Field.column {
+	case ProjectOrderFieldUserName.column:
+		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	default:
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -1839,6 +1848,59 @@ func (pr *ProjectQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// ProjectOrderFieldUserName orders by USER_NAME.
+	ProjectOrderFieldUserName = &ProjectOrderField{
+		Value: func(pr *Project) (ent.Value, error) {
+			return pr.Value("user_name")
+		},
+		column: "user_name",
+		toTerm: func(opts ...sql.OrderTermOption) project.OrderOption {
+			return project.ByUserField(
+				user.FieldName,
+				append(opts, sql.OrderSelectAs("user_name"))...,
+			)
+		},
+		toCursor: func(pr *Project) Cursor {
+			cv, _ := pr.Value("user_name")
+			return Cursor{
+				ID:    pr.ID,
+				Value: cv,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f ProjectOrderField) String() string {
+	var str string
+	switch f.column {
+	case ProjectOrderFieldUserName.column:
+		str = "USER_NAME"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f ProjectOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *ProjectOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("ProjectOrderField %T must be a string", v)
+	}
+	switch str {
+	case "USER_NAME":
+		*f = *ProjectOrderFieldUserName
+	default:
+		return fmt.Errorf("%s is not a valid ProjectOrderField", str)
+	}
+	return nil
 }
 
 // ProjectOrderField defines the ordering field of Project.
@@ -2037,7 +2099,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 			defaultOrdered = true
 		}
 		switch o.Field.column {
-		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 		default:
 			if len(query.ctx.Fields) > 0 {
 				query.ctx.AppendFieldOnce(o.Field.column)
@@ -2057,7 +2119,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	for _, o := range p.order {
 		switch o.Field.column {
-		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 			direction := o.Direction
 			if p.reverse {
 				direction = direction.Reverse()
@@ -2234,8 +2296,8 @@ var (
 			}
 		},
 	}
-	// CategoryOrderFieldCategoryText orders by CATEGORY_TEXT.
-	CategoryOrderFieldCategoryText = &TodoOrderField{
+	// TodoOrderFieldCategoryText orders by CATEGORY_TEXT.
+	TodoOrderFieldCategoryText = &TodoOrderField{
 		Value: func(t *Todo) (ent.Value, error) {
 			return t.Value("category_text")
 		},
@@ -2272,7 +2334,7 @@ func (f TodoOrderField) String() string {
 		str = "PARENT_STATUS"
 	case TodoOrderFieldChildrenCount.column:
 		str = "CHILDREN_COUNT"
-	case CategoryOrderFieldCategoryText.column:
+	case TodoOrderFieldCategoryText.column:
 		str = "CATEGORY_TEXT"
 	}
 	return str
@@ -2303,7 +2365,7 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 	case "CHILDREN_COUNT":
 		*f = *TodoOrderFieldChildrenCount
 	case "CATEGORY_TEXT":
-		*f = *CategoryOrderFieldCategoryText
+		*f = *TodoOrderFieldCategoryText
 	default:
 		return fmt.Errorf("%s is not a valid TodoOrderField", str)
 	}
@@ -2568,6 +2630,20 @@ func (u *UserQuery) Paginate(
 }
 
 var (
+	// UserOrderFieldName orders User by name.
+	UserOrderFieldName = &UserOrderField{
+		Value: func(u *User) (ent.Value, error) {
+			return u.Name, nil
+		},
+		column: user.FieldName,
+		toTerm: user.ByName,
+		toCursor: func(u *User) Cursor {
+			return Cursor{
+				ID:    u.ID,
+				Value: u.Name,
+			}
+		},
+	}
 	// UserOrderFieldGroupsCount orders by GROUPS_COUNT.
 	UserOrderFieldGroupsCount = &UserOrderField{
 		Value: func(u *User) (ent.Value, error) {
@@ -2593,6 +2669,8 @@ var (
 func (f UserOrderField) String() string {
 	var str string
 	switch f.column {
+	case UserOrderFieldName.column:
+		str = "NAME"
 	case UserOrderFieldGroupsCount.column:
 		str = "GROUPS_COUNT"
 	}
@@ -2611,6 +2689,8 @@ func (f *UserOrderField) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("UserOrderField %T must be a string", v)
 	}
 	switch str {
+	case "NAME":
+		*f = *UserOrderFieldName
 	case "GROUPS_COUNT":
 		*f = *UserOrderFieldGroupsCount
 	default:
@@ -2796,8 +2876,12 @@ func (p *organizationPager) applyOrder(query *WorkspaceQuery) *WorkspaceQuery {
 	if p.order.Field != DefaultOrganizationOrder.Field {
 		query = query.Order(DefaultOrganizationOrder.Field.toTerm(direction.OrderTermOption()))
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+	switch p.order.Field.column {
+	case WorkspaceOrderFieldUserName.column:
+	default:
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return query
 }
@@ -2807,8 +2891,13 @@ func (p *organizationPager) orderExpr(query *WorkspaceQuery) sql.Querier {
 	if p.reverse {
 		direction = direction.Reverse()
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(p.order.Field.column)
+	switch p.order.Field.column {
+	case WorkspaceOrderFieldUserName.column:
+		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	default:
+		if len(query.ctx.Fields) > 0 {
+			query.ctx.AppendFieldOnce(p.order.Field.column)
+		}
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
@@ -2868,6 +2957,59 @@ func (w *WorkspaceQuery) Paginate(
 	}
 	conn.build(nodes, pager, after, first, before, last)
 	return conn, nil
+}
+
+var (
+	// WorkspaceOrderFieldUserName orders by USER_NAME.
+	WorkspaceOrderFieldUserName = &OrganizationOrderField{
+		Value: func(w *Organization) (ent.Value, error) {
+			return w.Value("user_name")
+		},
+		column: "user_name",
+		toTerm: func(opts ...sql.OrderTermOption) workspace.OrderOption {
+			return workspace.ByUserField(
+				user.FieldName,
+				append(opts, sql.OrderSelectAs("user_name"))...,
+			)
+		},
+		toCursor: func(w *Organization) Cursor {
+			cv, _ := w.Value("user_name")
+			return Cursor{
+				ID:    w.ID,
+				Value: cv,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f OrganizationOrderField) String() string {
+	var str string
+	switch f.column {
+	case WorkspaceOrderFieldUserName.column:
+		str = "USER_NAME"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f OrganizationOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *OrganizationOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("OrganizationOrderField %T must be a string", v)
+	}
+	switch str {
+	case "USER_NAME":
+		*f = *WorkspaceOrderFieldUserName
+	default:
+		return fmt.Errorf("%s is not a valid OrganizationOrderField", str)
+	}
+	return nil
 }
 
 // OrganizationOrderField defines the ordering field of Workspace.

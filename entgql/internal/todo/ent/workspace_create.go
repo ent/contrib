@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -37,6 +38,25 @@ type WorkspaceCreate struct {
 func (wc *WorkspaceCreate) SetName(s string) *WorkspaceCreate {
 	wc.mutation.SetName(s)
 	return wc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (wc *WorkspaceCreate) SetUserID(id int) *WorkspaceCreate {
+	wc.mutation.SetUserID(id)
+	return wc
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (wc *WorkspaceCreate) SetNillableUserID(id *int) *WorkspaceCreate {
+	if id != nil {
+		wc = wc.SetUserID(*id)
+	}
+	return wc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (wc *WorkspaceCreate) SetUser(u *User) *WorkspaceCreate {
+	return wc.SetUserID(u.ID)
 }
 
 // Mutation returns the WorkspaceMutation object of the builder.
@@ -105,6 +125,23 @@ func (wc *WorkspaceCreate) createSpec() (*Workspace, *sqlgraph.CreateSpec) {
 	if value, ok := wc.mutation.Name(); ok {
 		_spec.SetField(workspace.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if nodes := wc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workspace.UserTable,
+			Columns: []string{workspace.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.workspace_user = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

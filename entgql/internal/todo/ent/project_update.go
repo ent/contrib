@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -58,6 +59,25 @@ func (pu *ProjectUpdate) AddTodos(t ...*Todo) *ProjectUpdate {
 	return pu.AddTodoIDs(ids...)
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (pu *ProjectUpdate) SetUserID(id int) *ProjectUpdate {
+	pu.mutation.SetUserID(id)
+	return pu
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableUserID(id *int) *ProjectUpdate {
+	if id != nil {
+		pu = pu.SetUserID(*id)
+	}
+	return pu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (pu *ProjectUpdate) SetUser(u *User) *ProjectUpdate {
+	return pu.SetUserID(u.ID)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (pu *ProjectUpdate) Mutation() *ProjectMutation {
 	return pu.mutation
@@ -82,6 +102,12 @@ func (pu *ProjectUpdate) RemoveTodos(t ...*Todo) *ProjectUpdate {
 		ids[i] = t[i].ID
 	}
 	return pu.RemoveTodoIDs(ids...)
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (pu *ProjectUpdate) ClearUser() *ProjectUpdate {
+	pu.mutation.ClearUser()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -171,6 +197,35 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.UserTable,
+			Columns: []string{project.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.UserTable,
+			Columns: []string{project.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(pu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -208,6 +263,25 @@ func (puo *ProjectUpdateOne) AddTodos(t ...*Todo) *ProjectUpdateOne {
 	return puo.AddTodoIDs(ids...)
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (puo *ProjectUpdateOne) SetUserID(id int) *ProjectUpdateOne {
+	puo.mutation.SetUserID(id)
+	return puo
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableUserID(id *int) *ProjectUpdateOne {
+	if id != nil {
+		puo = puo.SetUserID(*id)
+	}
+	return puo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (puo *ProjectUpdateOne) SetUser(u *User) *ProjectUpdateOne {
+	return puo.SetUserID(u.ID)
+}
+
 // Mutation returns the ProjectMutation object of the builder.
 func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
 	return puo.mutation
@@ -232,6 +306,12 @@ func (puo *ProjectUpdateOne) RemoveTodos(t ...*Todo) *ProjectUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return puo.RemoveTodoIDs(ids...)
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (puo *ProjectUpdateOne) ClearUser() *ProjectUpdateOne {
+	puo.mutation.ClearUser()
+	return puo
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -344,6 +424,35 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.UserTable,
+			Columns: []string{project.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.UserTable,
+			Columns: []string{project.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -666,6 +666,26 @@ enum OrderDirection {
 type Organization implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
   id: ID!
   name: String!
+  user: User
+}
+"""
+Ordering options for Organization connections
+"""
+input OrganizationOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order Organizations.
+  """
+  field: OrganizationOrderField!
+}
+"""
+Properties by which Organization connections can be ordered.
+"""
+enum OrganizationOrderField {
+  USER_NAME
 }
 """
 OrganizationWhereInput is used for filtering Workspace objects.
@@ -702,6 +722,11 @@ input OrganizationWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
 }
 """
 Information about pagination in a connection.
@@ -758,6 +783,26 @@ type Project implements Node {
     """
     where: TodoWhereInput
   ): TodoConnection!
+  user: User
+}
+"""
+Ordering options for Project connections
+"""
+input ProjectOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order Projects.
+  """
+  field: ProjectOrderField!
+}
+"""
+Properties by which Project connections can be ordered.
+"""
+enum ProjectOrderField {
+  USER_NAME
 }
 """
 ProjectWhereInput is used for filtering Project objects.
@@ -783,6 +828,11 @@ input ProjectWhereInput {
   """
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
 }
 type Query {
   """
@@ -1372,6 +1422,7 @@ input UserOrder {
 Properties by which User connections can be ordered.
 """
 enum UserOrderField {
+  NAME
   GROUPS_COUNT
 }
 """

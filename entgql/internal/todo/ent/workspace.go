@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -31,8 +32,36 @@ type Workspace struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name         string `json:"name,omitempty"`
-	selectValues sql.SelectValues
+	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkspaceQuery when eager-loading is set.
+	Edges          WorkspaceEdges `json:"edges"`
+	workspace_user *int
+	selectValues   sql.SelectValues
+}
+
+// WorkspaceEdges holds the relations/edges for other nodes in the graph.
+type WorkspaceEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkspaceEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -44,6 +73,8 @@ func (*Workspace) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case workspace.FieldName:
 			values[i] = new(sql.NullString)
+		case workspace.ForeignKeys[0]: // workspace_user
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -71,6 +102,13 @@ func (w *Workspace) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.Name = value.String
 			}
+		case workspace.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field workspace_user", value)
+			} else if value.Valid {
+				w.workspace_user = new(int)
+				*w.workspace_user = int(value.Int64)
+			}
 		default:
 			w.selectValues.Set(columns[i], values[i])
 		}
@@ -82,6 +120,11 @@ func (w *Workspace) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (w *Workspace) Value(name string) (ent.Value, error) {
 	return w.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the Workspace entity.
+func (w *Workspace) QueryUser() *UserQuery {
+	return NewWorkspaceClient(w.config).QueryUser(w)
 }
 
 // Update returns a builder for updating this Workspace.

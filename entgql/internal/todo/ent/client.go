@@ -1196,6 +1196,22 @@ func (c *ProjectClient) QueryTodos(pr *Project) *TodoQuery {
 	return query
 }
 
+// QueryUser queries the user edge of a Project.
+func (c *ProjectClient) QueryUser(pr *Project) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, project.UserTable, project.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProjectClient) Hooks() []Hook {
 	return c.hooks.Project
@@ -1838,6 +1854,22 @@ func (c *WorkspaceClient) GetX(ctx context.Context, id int) *Workspace {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryUser queries the user edge of a Workspace.
+func (c *WorkspaceClient) QueryUser(w *Workspace) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspace.UserTable, workspace.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

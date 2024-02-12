@@ -22,6 +22,7 @@ import (
 	"math"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -35,6 +36,8 @@ type WorkspaceQuery struct {
 	order      []workspace.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Workspace
+	withUser   *UserQuery
+	withFKs    bool
 	loadTotal  []func(context.Context, []*Workspace) error
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -71,6 +74,28 @@ func (wq *WorkspaceQuery) Unique(unique bool) *WorkspaceQuery {
 func (wq *WorkspaceQuery) Order(o ...workspace.OrderOption) *WorkspaceQuery {
 	wq.order = append(wq.order, o...)
 	return wq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (wq *WorkspaceQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workspace.Table, workspace.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workspace.UserTable, workspace.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Workspace entity from the query.
@@ -265,10 +290,22 @@ func (wq *WorkspaceQuery) Clone() *WorkspaceQuery {
 		order:      append([]workspace.OrderOption{}, wq.order...),
 		inters:     append([]Interceptor{}, wq.inters...),
 		predicates: append([]predicate.Workspace{}, wq.predicates...),
+		withUser:   wq.withUser.Clone(),
 		// clone intermediate query.
 		sql:  wq.sql.Clone(),
 		path: wq.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WorkspaceQuery) WithUser(opts ...func(*UserQuery)) *WorkspaceQuery {
+	query := (&UserClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withUser = query
+	return wq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -347,15 +384,26 @@ func (wq *WorkspaceQuery) prepareQuery(ctx context.Context) error {
 
 func (wq *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Workspace, error) {
 	var (
-		nodes = []*Workspace{}
-		_spec = wq.querySpec()
+		nodes       = []*Workspace{}
+		withFKs     = wq.withFKs
+		_spec       = wq.querySpec()
+		loadedTypes = [1]bool{
+			wq.withUser != nil,
+		}
 	)
+	if wq.withUser != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, workspace.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Workspace).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Workspace{config: wq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(wq.modifiers) > 0 {
@@ -370,12 +418,51 @@ func (wq *WorkspaceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := wq.withUser; query != nil {
+		if err := wq.loadUser(ctx, query, nodes, nil,
+			func(n *Workspace, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range wq.loadTotal {
 		if err := wq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (wq *WorkspaceQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Workspace, init func(*Workspace), assign func(*Workspace, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Workspace)
+	for i := range nodes {
+		if nodes[i].workspace_user == nil {
+			continue
+		}
+		fk := *nodes[i].workspace_user
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "workspace_user" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (wq *WorkspaceQuery) sqlCount(ctx context.Context) (int, error) {

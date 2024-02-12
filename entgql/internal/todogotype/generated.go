@@ -177,6 +177,7 @@ type ComplexityRoot struct {
 	Organization struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
+		User func(childComplexity int) int
 	}
 
 	PageInfo struct {
@@ -189,6 +190,7 @@ type ComplexityRoot struct {
 	Project struct {
 		ID    func(childComplexity int) int
 		Todos func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
+		User  func(childComplexity int) int
 	}
 
 	Query struct {
@@ -268,6 +270,8 @@ type MutationResolver interface {
 }
 type OrganizationResolver interface {
 	ID(ctx context.Context, obj *ent1.Workspace) (string, error)
+
+	User(ctx context.Context, obj *ent1.Workspace) (*ent.User, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
@@ -795,6 +799,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organization.Name(childComplexity), true
 
+	case "Organization.user":
+		if e.complexity.Organization.User == nil {
+			break
+		}
+
+		return e.complexity.Organization.User(childComplexity), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -841,6 +852,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Todos(childComplexity, args["after"].(*entgql.Cursor[string]), args["first"].(*int), args["before"].(*entgql.Cursor[string]), args["last"].(*int), args["orderBy"].([]*ent.TodoOrder), args["where"].(*ent.TodoWhereInput)), true
+
+	case "Project.user":
+		if e.complexity.Project.User == nil {
+			break
+		}
+
+		return e.complexity.Project.User(childComplexity), true
 
 	case "Query.billProducts":
 		if e.complexity.Query.BillProducts == nil {
@@ -1209,7 +1227,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGroupWhereInput,
 		ec.unmarshalInputOneToManyOrder,
 		ec.unmarshalInputOneToManyWhereInput,
+		ec.unmarshalInputOrganizationOrder,
 		ec.unmarshalInputOrganizationWhereInput,
+		ec.unmarshalInputProjectOrder,
 		ec.unmarshalInputProjectWhereInput,
 		ec.unmarshalInputTodoOrder,
 		ec.unmarshalInputTodoWhereInput,
@@ -2067,6 +2087,26 @@ enum OrderDirection {
 type Organization implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
   id: ID!
   name: String!
+  user: User
+}
+"""
+Ordering options for Organization connections
+"""
+input OrganizationOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order Organizations.
+  """
+  field: OrganizationOrderField!
+}
+"""
+Properties by which Organization connections can be ordered.
+"""
+enum OrganizationOrderField {
+  USER_NAME
 }
 """
 OrganizationWhereInput is used for filtering Workspace objects.
@@ -2103,6 +2143,11 @@ input OrganizationWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
 }
 """
 Information about pagination in a connection.
@@ -2159,6 +2204,26 @@ type Project implements Node {
     """
     where: TodoWhereInput
   ): TodoConnection!
+  user: User
+}
+"""
+Ordering options for Project connections
+"""
+input ProjectOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order Projects.
+  """
+  field: ProjectOrderField!
+}
+"""
+Properties by which Project connections can be ordered.
+"""
+enum ProjectOrderField {
+  USER_NAME
 }
 """
 ProjectWhereInput is used for filtering Project objects.
@@ -2184,6 +2249,11 @@ input ProjectWhereInput {
   """
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
+  """
+  user edge predicates
+  """
+  hasUser: Boolean
+  hasUserWith: [UserWhereInput!]
 }
 type Query {
   """
@@ -2773,6 +2843,7 @@ input UserOrder {
 Properties by which User connections can be ordered.
 """
 enum UserOrderField {
+  NAME
   GROUPS_COUNT
 }
 """
@@ -6790,6 +6861,65 @@ func (ec *executionContext) fieldContext_Organization_name(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Organization_user(ctx context.Context, field graphql.CollectedField, obj *ent1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Organization_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Organization().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Organization_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "requiredMetadata":
+				return ec.fieldContext_User_requiredMetadata(ctx, field)
+			case "metadata":
+				return ec.fieldContext_User_metadata(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "friends":
+				return ec.fieldContext_User_friends(ctx, field)
+			case "friendships":
+				return ec.fieldContext_User_friendships(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *entgql.PageInfo[string]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -7063,6 +7193,65 @@ func (ec *executionContext) fieldContext_Project_todos(ctx context.Context, fiel
 	if fc.Args, err = ec.field_Project_todos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Project_user(ctx context.Context, field graphql.CollectedField, obj *Project) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Project_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Project_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "requiredMetadata":
+				return ec.fieldContext_User_requiredMetadata(ctx, field)
+			case "metadata":
+				return ec.fieldContext_User_metadata(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "friends":
+				return ec.fieldContext_User_friends(ctx, field)
+			case "friendships":
+				return ec.fieldContext_User_friendships(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -13020,6 +13209,44 @@ func (ec *executionContext) unmarshalInputOneToManyWhereInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOrganizationOrder(ctx context.Context, obj interface{}) (OrganizationOrder, error) {
+	var it OrganizationOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
+		case "field":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNOrganizationOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐOrganizationOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Context, obj interface{}) (OrganizationWhereInput, error) {
 	var it OrganizationWhereInput
 	asMap := map[string]interface{}{}
@@ -13027,7 +13254,7 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "hasUser", "hasUserWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13202,6 +13429,58 @@ func (ec *executionContext) unmarshalInputOrganizationWhereInput(ctx context.Con
 				return it, err
 			}
 			it.NameContainsFold = data
+		case "hasUser":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUser"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasUser = data
+		case "hasUserWith":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUserWith"))
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUserWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasUserWith = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputProjectOrder(ctx context.Context, obj interface{}) (ProjectOrder, error) {
+	var it ProjectOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["direction"]; !present {
+		asMap["direction"] = "ASC"
+	}
+
+	fieldsInOrder := [...]string{"direction", "field"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "direction":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Direction = data
+		case "field":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNProjectOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐProjectOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
 		}
 	}
 
@@ -13215,7 +13494,7 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "hasTodos", "hasTodosWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "hasTodos", "hasTodosWith", "hasUser", "hasUserWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13313,6 +13592,20 @@ func (ec *executionContext) unmarshalInputProjectWhereInput(ctx context.Context,
 				return it, err
 			}
 			it.HasTodosWith = data
+		case "hasUser":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUser"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasUser = data
+		case "hasUserWith":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUserWith"))
+			data, err := ec.unmarshalOUserWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUserWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasUserWith = data
 		}
 	}
 
@@ -15712,6 +16005,39 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "user":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Organization_user(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15804,6 +16130,8 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "user":
+			out.Values[i] = ec._Project_user(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17507,6 +17835,16 @@ func (ec *executionContext) marshalNOrderDirection2entgoᚗioᚋcontribᚋentgql
 	return v
 }
 
+func (ec *executionContext) unmarshalNOrganizationOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐOrganizationOrderField(ctx context.Context, v interface{}) (OrganizationOrderField, error) {
+	var res OrganizationOrderField
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOrganizationOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐOrganizationOrderField(ctx context.Context, sel ast.SelectionSet, v OrganizationOrderField) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNOrganizationWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐOrganizationWhereInput(ctx context.Context, v interface{}) (*OrganizationWhereInput, error) {
 	res, err := ec.unmarshalInputOrganizationWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -17524,6 +17862,16 @@ func (ec *executionContext) marshalNPageInfo2ᚖentgoᚗioᚋcontribᚋentgqlᚐ
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNProjectOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐProjectOrderField(ctx context.Context, v interface{}) (ProjectOrderField, error) {
+	var res ProjectOrderField
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProjectOrderField2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐProjectOrderField(ctx context.Context, sel ast.SelectionSet, v ProjectOrderField) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNProjectWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐProjectWhereInput(ctx context.Context, v interface{}) (*ProjectWhereInput, error) {

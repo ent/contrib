@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 )
@@ -33,6 +34,7 @@ type Project struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
 	Edges        ProjectEdges `json:"edges"`
+	project_user *int
 	selectValues sql.SelectValues
 }
 
@@ -40,11 +42,13 @@ type Project struct {
 type ProjectEdges struct {
 	// Todos holds the value of the todos edge.
 	Todos []*Todo `json:"todos,omitempty"`
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
 	namedTodos map[string][]*Todo
 }
@@ -58,12 +62,27 @@ func (e ProjectEdges) TodosOrErr() ([]*Todo, error) {
 	return nil, &NotLoadedError{edge: "todos"}
 }
 
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[1] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Project) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case project.FieldID:
+			values[i] = new(sql.NullInt64)
+		case project.ForeignKeys[0]: // project_user
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -86,6 +105,13 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pr.ID = int(value.Int64)
+		case project.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field project_user", value)
+			} else if value.Valid {
+				pr.project_user = new(int)
+				*pr.project_user = int(value.Int64)
+			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
 		}
@@ -102,6 +128,11 @@ func (pr *Project) Value(name string) (ent.Value, error) {
 // QueryTodos queries the "todos" edge of the Project entity.
 func (pr *Project) QueryTodos() *TodoQuery {
 	return NewProjectClient(pr.config).QueryTodos(pr)
+}
+
+// QueryUser queries the "user" edge of the Project entity.
+func (pr *Project) QueryUser() *UserQuery {
+	return NewProjectClient(pr.config).QueryUser(pr)
 }
 
 // Update returns a builder for updating this Project.

@@ -22,6 +22,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -46,6 +47,25 @@ func (pc *ProjectCreate) AddTodos(t ...*Todo) *ProjectCreate {
 		ids[i] = t[i].ID
 	}
 	return pc.AddTodoIDs(ids...)
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (pc *ProjectCreate) SetUserID(id int) *ProjectCreate {
+	pc.mutation.SetUserID(id)
+	return pc
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (pc *ProjectCreate) SetNillableUserID(id *int) *ProjectCreate {
+	if id != nil {
+		pc = pc.SetUserID(*id)
+	}
+	return pc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (pc *ProjectCreate) SetUser(u *User) *ProjectCreate {
+	return pc.SetUserID(u.ID)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -122,6 +142,23 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.UserTable,
+			Columns: []string{project.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.project_user = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
