@@ -32,5 +32,8 @@ func (Project) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("todos", Todo.Type).
 			Annotations(entgql.RelayConnection()),
+		edge.To("user", User.Type).
+			Unique().
+			Annotations(entgql.OrderField("USER_NAME")),
 	}
 }

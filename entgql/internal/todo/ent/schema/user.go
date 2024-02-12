@@ -32,7 +32,8 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
-			Default("Anonymous"),
+			Default("Anonymous").
+			Annotations(entgql.OrderField("NAME")),
 		field.UUID("username", uuid.UUID{}).
 			Default(uuid.New),
 		field.String("password").

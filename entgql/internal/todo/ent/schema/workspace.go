@@ -18,6 +18,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -30,6 +31,14 @@ type Workspace struct {
 func (Workspace) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
+	}
+}
+
+func (Workspace) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("user", User.Type).
+			Unique().
+			Annotations(entgql.OrderField("USER_NAME")),
 	}
 }
 
