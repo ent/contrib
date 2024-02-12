@@ -476,7 +476,7 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 			terms = append(terms, &OrderTerm{
 				GQL:   ant.OrderField,
 				Edge:  e,
-				Type:  e.Type,
+				Type:  n,
 				Field: e.Type.Fields[idx],
 			})
 		default:

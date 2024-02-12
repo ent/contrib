@@ -493,7 +493,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 					column: {{ $f.VarField }},
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
 						return {{ $node.Package}}.{{ $f.Edge.OrderFieldName }}(
-							{{ $f.Type.Package }}.{{ $f.Field.Constant }},
+							{{ $f.Edge.Type.Package }}.{{ $f.Field.Constant }},
 							append(opts, sql.OrderSelectAs({{ $f.VarField }}))...,
 						)
 					},
