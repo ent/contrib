@@ -487,7 +487,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 					{{- end }}
 				},
 				{{- if $f.IsFieldTerm }}
-					column: fmt.Sprintf("\"%s\".\"%s\"", {{ $node.Package }}.Table, {{ $node.Package }}.{{ $f.Field.Constant }}),
+					column: {{ $node.Package }}.{{ $f.Field.Constant }},
 					toTerm: {{ $node.Package }}.{{ $f.Field.OrderName }},
 				{{- else if $f.IsEdgeFieldTerm }}
 					column: fmt.Sprintf("\"t1\".\"%s\"", {{ $f.VarField }}),
