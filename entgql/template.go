@@ -371,11 +371,19 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 
 // OrderTerm is a struct that represents a single GraphQL order term.
 type OrderTerm struct {
-	GQL   string     // The GraphQL name of the field.
-	Type  *gen.Type  // The type that owns the field.
-	Field *gen.Field // Not nil if it is a type/edge field.
-	Edge  *gen.Edge  // Not nil if it is an edge field or count.
-	Count bool       // True if it is a count field.
+	// The type that owns the order field.
+	Owner *gen.Type
+	// The GraphQL name of the field.
+	GQL string
+	// The type that owns the field. For type fields, it equals to Owner.
+	// For edge fields, it equals to the underlying edge's type.
+	Type *gen.Type
+	// Not nil if it is a type/edge field.
+	Field *gen.Field
+	// Not nil if it is an edge field or count.
+	Edge *gen.Edge
+	// True if it is a count field.
+	Count bool
 }
 
 // IsFieldTerm returns true if the order term is a type field term.
@@ -395,7 +403,7 @@ func (o *OrderTerm) IsEdgeCountTerm() bool {
 
 // VarName returns the name of the variable holding the order term.
 func (o *OrderTerm) VarName() (string, error) {
-	switch prefix := paginationNames(o.Type.Name).OrderField; {
+	switch prefix := paginationNames(o.Owner.Name).OrderField; {
 	case o.IsFieldTerm():
 		return prefix + o.Field.StructField(), nil
 	case o.IsEdgeFieldTerm():
@@ -437,6 +445,7 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
 		default:
 			terms = append(terms, &OrderTerm{
+				Owner: n,
 				GQL:   ant.OrderField,
 				Type:  n,
 				Field: f,
@@ -455,6 +464,7 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 				return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
 			}
 			terms = append(terms, &OrderTerm{
+				Owner: n,
 				GQL:   ant.OrderField,
 				Type:  n,
 				Edge:  e,
@@ -474,6 +484,7 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 				return nil, fmt.Errorf("entgql: order field %s defined on edge %s.%s was not found on its reference", ant.OrderField, n.Name, e.Name)
 			}
 			terms = append(terms, &OrderTerm{
+				Owner: n,
 				GQL:   ant.OrderField,
 				Edge:  e,
 				Type:  e.Type,

@@ -1474,7 +1474,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 			defaultOrdered = true
 		}
 		switch o.Field.column {
-		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 		default:
 			if len(query.ctx.Fields) > 0 {
 				query.ctx.AppendFieldOnce(o.Field.column)
@@ -1494,7 +1494,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	for _, o := range p.order {
 		switch o.Field.column {
-		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 			direction := o.Direction
 			if p.reverse {
 				direction = direction.Reverse()
@@ -1671,8 +1671,8 @@ var (
 			}
 		},
 	}
-	// CategoryOrderFieldCategoryText orders by CATEGORY_TEXT.
-	CategoryOrderFieldCategoryText = &TodoOrderField{
+	// TodoOrderFieldCategoryText orders by CATEGORY_TEXT.
+	TodoOrderFieldCategoryText = &TodoOrderField{
 		Value: func(t *Todo) (ent.Value, error) {
 			return t.Value("category_text")
 		},
@@ -1709,7 +1709,7 @@ func (f TodoOrderField) String() string {
 		str = "PARENT_STATUS"
 	case TodoOrderFieldChildrenCount.column:
 		str = "CHILDREN_COUNT"
-	case CategoryOrderFieldCategoryText.column:
+	case TodoOrderFieldCategoryText.column:
 		str = "CATEGORY_TEXT"
 	}
 	return str
@@ -1740,7 +1740,7 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 	case "CHILDREN_COUNT":
 		*f = *TodoOrderFieldChildrenCount
 	case "CATEGORY_TEXT":
-		*f = *CategoryOrderFieldCategoryText
+		*f = *TodoOrderFieldCategoryText
 	default:
 		return fmt.Errorf("%s is not a valid TodoOrderField", str)
 	}
