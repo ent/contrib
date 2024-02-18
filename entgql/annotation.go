@@ -51,6 +51,10 @@ type (
 		QueryField *FieldConfig `json:"QueryField,omitempty"`
 		// MutationInputs defines the input types for the mutation.
 		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
+
+
+		CreateInputType string `json:"CreateInputType,omitempty"`
+		UpdateInputType string `json:"UpdateInputType,omitempty"`
 	}
 
 	// Directive to apply on the field/type.
@@ -460,6 +464,12 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.Type != "" {
 		a.Type = ant.Type
+	}
+	if ant.CreateInputType != "" {
+		a.CreateInputType = ant.CreateInputType
+	}
+	if ant.UpdateInputType != "" {
+		a.UpdateInputType = ant.UpdateInputType
 	}
 	if ant.Skip.Any() {
 		a.Skip |= ant.Skip
