@@ -60,6 +60,10 @@ var (
 					Name: "models",
 					Type: ast.ListType(ast.NonNullNamedType("String", nil), nil),
 				},
+				{
+					Name: "forceGenerate",
+					Type: ast.NamedType("Boolean", nil),
+				},
 			},
 			Locations: []ast.DirectiveLocation{
 				ast.LocationObject,
@@ -81,6 +85,10 @@ var (
 				{
 					Name: "name",
 					Type: ast.NamedType("String", nil),
+				},
+				{
+					Name: "omittable",
+					Type: ast.NamedType("Boolean", nil),
 				},
 			},
 			Locations: []ast.DirectiveLocation{
