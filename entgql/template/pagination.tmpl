@@ -490,7 +490,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 					column: {{ $node.Package }}.{{ $f.Field.Constant }},
 					toTerm: {{ $node.Package }}.{{ $f.Field.OrderName }},
 				{{- else if $f.IsEdgeFieldTerm }}
-					column: {{ $f.VarField }},
+					column: fmt.Sprintf("\"t1\".\"%s\"", {{ $f.VarField }}),
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
 						return {{ $node.Package}}.{{ $f.Edge.OrderFieldName }}(
 							{{ $f.Type.Package }}.{{ $f.Field.Constant }},
@@ -498,7 +498,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 						)
 					},
 				{{- else if $f.IsEdgeCountTerm }}
-					column: {{ $f.VarField }},
+					column: fmt.Sprintf("\"t1\".\"%s\"", {{ $f.VarField }}),
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
 						return {{ $node.Package}}.{{ $f.Edge.OrderCountName }}(
 							append(opts, sql.OrderSelectAs({{ $f.VarField }}))...,
