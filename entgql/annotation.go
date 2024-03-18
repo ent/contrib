@@ -51,6 +51,10 @@ type (
 		QueryField *FieldConfig `json:"QueryField,omitempty"`
 		// MutationInputs defines the input types for the mutation.
 		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
+		// AllowedOps limits the predicate operations that will be generated for this field.
+		// Ops will be generated using the field type. Then, if this is defined, they will
+		// be filtered by the allowed ops.
+		AllowedOps []gen.Op
 	}
 
 	// Directive to apply on the field/type.
@@ -427,6 +431,12 @@ func Mutations(inputs ...MutationOption) Annotation {
 	return Annotation{MutationInputs: a}
 }
 
+// AllowedOps returns an annotation that limits the predicate operations
+// that will be generated for this field.
+func AllowedOps(ops ...gen.Op) Annotation {
+	return Annotation{AllowedOps: ops}
+}
+
 // Merge implements the schema.Merger interface.
 func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	var ant Annotation
@@ -481,6 +491,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 			a.QueryField = &FieldConfig{}
 		}
 		a.QueryField.merge(ant.QueryField)
+	}
+	if len(ant.AllowedOps) > 0 {
+		a.AllowedOps = append(a.AllowedOps, ant.AllowedOps...)
 	}
 	return a
 }
