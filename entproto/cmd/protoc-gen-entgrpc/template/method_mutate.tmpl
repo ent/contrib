@@ -68,21 +68,24 @@
         {{- end }}
     {{- end }}
     {{- range .G.FieldMap.Edges }}
-        {{- if .EntEdge.Unique }}
-            {{- $varName := camel (printf "%s_%s" $reqVar .EntEdge.Name) -}}
-            {{- $id := printf "%s.Get%s().Get%s()" $reqVar .PbStructField .EdgeIDPbStructField  }}
-            {{- $other := printf "%s.Get%s()" $reqVar .PbStructField }}
-            if {{ $other }} != nil {
-                {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
-            }
-        {{- else }}
-            for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
-                {{- $varName  := camel .EntEdge.StructField }}
-                {{- $id := printf "item.Get%s()" .EdgeIDPbStructField }}
-                {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                m.{{ .EntEdge.MutationAdd }}({{ $varName }})
-            }
+        {{- $skipImmutable := and ( eq $methodName "Update" ) .EntEdge.Immutable -}}
+        {{- if not $skipImmutable }}
+            {{- if .EntEdge.Unique }}
+                {{- $varName := camel (printf "%s_%s" $reqVar .EntEdge.Name) -}}
+                {{- $id := printf "%s.Get%s().Get%s()" $reqVar .PbStructField .EdgeIDPbStructField  }}
+                {{- $other := printf "%s.Get%s()" $reqVar .PbStructField }}
+                if {{ $other }} != nil {
+                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                    m.Set{{ .EntEdge.StructField }}ID({{ $varName }})
+                }
+            {{- else }}
+                for _, item := range {{ $reqVar }}.Get{{ .PbStructField }}() {
+                    {{- $varName  := camel .EntEdge.StructField }}
+                    {{- $id := printf "item.Get%s()" .EdgeIDPbStructField }}
+                    {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+                    m.{{ .EntEdge.MutationAdd }}({{ $varName }})
+                }
+            {{- end }}
         {{- end }}
     {{- end }}
 {{ end }}
