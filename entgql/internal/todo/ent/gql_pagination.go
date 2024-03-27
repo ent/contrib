@@ -2485,7 +2485,7 @@ func (p *userPager) applyOrder(query *UserQuery) *UserQuery {
 		query = query.Order(DefaultUserOrder.Field.toTerm(direction.OrderTermOption()))
 	}
 	switch p.order.Field.column {
-	case UserOrderFieldGroupsCount.column:
+	case UserOrderFieldGroupsCount.column, UserOrderFieldFriendsCount.column:
 	default:
 		if len(query.ctx.Fields) > 0 {
 			query.ctx.AppendFieldOnce(p.order.Field.column)
@@ -2500,7 +2500,7 @@ func (p *userPager) orderExpr(query *UserQuery) sql.Querier {
 		direction = direction.Reverse()
 	}
 	switch p.order.Field.column {
-	case UserOrderFieldGroupsCount.column:
+	case UserOrderFieldGroupsCount.column, UserOrderFieldFriendsCount.column:
 		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
 	default:
 		if len(query.ctx.Fields) > 0 {
@@ -2587,6 +2587,25 @@ var (
 			}
 		},
 	}
+	// UserOrderFieldFriendsCount orders by FRIENDS_COUNT.
+	UserOrderFieldFriendsCount = &UserOrderField{
+		Value: func(u *User) (ent.Value, error) {
+			return u.Value("friends_count")
+		},
+		column: "friends_count",
+		toTerm: func(opts ...sql.OrderTermOption) user.OrderOption {
+			return user.ByFriendsCount(
+				append(opts, sql.OrderSelectAs("friends_count"))...,
+			)
+		},
+		toCursor: func(u *User) Cursor {
+			cv, _ := u.Value("friends_count")
+			return Cursor{
+				ID:    u.ID,
+				Value: cv,
+			}
+		},
+	}
 )
 
 // String implement fmt.Stringer interface.
@@ -2595,6 +2614,8 @@ func (f UserOrderField) String() string {
 	switch f.column {
 	case UserOrderFieldGroupsCount.column:
 		str = "GROUPS_COUNT"
+	case UserOrderFieldFriendsCount.column:
+		str = "FRIENDS_COUNT"
 	}
 	return str
 }
@@ -2613,6 +2634,8 @@ func (f *UserOrderField) UnmarshalGQL(v interface{}) error {
 	switch str {
 	case "GROUPS_COUNT":
 		*f = *UserOrderFieldGroupsCount
+	case "FRIENDS_COUNT":
+		*f = *UserOrderFieldFriendsCount
 	default:
 		return fmt.Errorf("%s is not a valid UserOrderField", str)
 	}
