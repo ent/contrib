@@ -40,6 +40,11 @@ func TestFromEdgeDescriptor(t *testing.T) {
 			expected: `edge.To("entity", Entity.Type)`,
 		},
 		{
+			name:     "through",
+			edge:     edge.To("entity", Entity.Type).Through("entity", Entity.Type),
+			expected: `edge.To("entity", Entity.Type).Through("entity", Entity.Type)`,
+		},
+		{
 			name:     "inverse",
 			edge:     edge.From("entity", Entity.Type).Ref("related"),
 			expected: `edge.From("entity", Entity.Type).Ref("related")`,
