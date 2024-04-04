@@ -141,16 +141,13 @@ func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Nod
 			query := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.ID({{ if $unmarshalID }}u{{ end }}id))
 			{{- if hasTemplate "gql_collection" }}
-				query, err := query.CollectFields(ctx, {{ nodeImplementorsVar $n }}...)
-				if err != nil {
-					return nil, err
+				if fc := graphql.GetFieldContext(ctx); fc != nil {
+					if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, {{ nodeImplementorsVar $n }}...); err != nil {
+						return nil, err
+					}
 				}
 			{{- end }}
-			n, err := query.Only(ctx)
-			if err != nil {
-				return nil, err
-			}
-			return n, nil
+			return query.Only(ctx)
 	{{- end }}
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
