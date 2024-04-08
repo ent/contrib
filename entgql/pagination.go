@@ -234,3 +234,29 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 		s.Where(sql.Or(or...))
 	}, nil
 }
+
+// LimitPerRow returns a query modifier that limits the number of (edges) rows returned
+// by the given partition. This helper function is used mainly by the paginated API to
+// override the default Limit behavior for limit returned per node and not limit for all query.
+func LimitPerRow(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sql.Selector) {
+	return func(s *sql.Selector) {
+		d := sql.Dialect(s.Dialect())
+		s.SetDistinct(false)
+		with := d.With("src_query").
+			As(s.Clone()).
+			With("limited_query").
+			As(
+				d.Select("*").
+					AppendSelectExprAs(
+						sql.RowNumber().PartitionBy(partitionBy).OrderExpr(orderBy...),
+						"row_number",
+					).
+					From(d.Table("src_query")),
+			)
+		t := d.Table("limited_query").As(s.TableName())
+		*s = *d.Select(s.UnqualifiedColumns()...).
+			From(t).
+			Where(sql.LTE(t.C("row_number"), limit)).
+			Prefix(with)
+	}
+}
