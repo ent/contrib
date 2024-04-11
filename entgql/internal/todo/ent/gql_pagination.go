@@ -476,11 +476,11 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 }
 
 func (p *categoryPager) toCursor(c *Category) Cursor {
-	cs := make([]any, 0, len(p.order))
-	for _, po := range p.order {
-		cs = append(cs, po.Field.toCursor(c).Value)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(c).Value)
 	}
-	return Cursor{ID: c.ID, Value: cs}
+	return Cursor{ID: c.ID, Value: cs_}
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) (*CategoryQuery, error) {
@@ -1165,11 +1165,11 @@ func (p *groupPager) applyFilter(query *GroupQuery) (*GroupQuery, error) {
 }
 
 func (p *groupPager) toCursor(gr *Group) Cursor {
-	cs := make([]any, 0, len(p.order))
-	for _, po := range p.order {
-		cs = append(cs, po.Field.toCursor(gr).Value)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(gr).Value)
 	}
-	return Cursor{ID: gr.ID, Value: cs}
+	return Cursor{ID: gr.ID, Value: cs_}
 }
 
 func (p *groupPager) applyCursors(query *GroupQuery, after, before *Cursor) (*GroupQuery, error) {
@@ -1995,11 +1995,11 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 }
 
 func (p *todoPager) toCursor(t *Todo) Cursor {
-	cs := make([]any, 0, len(p.order))
-	for _, po := range p.order {
-		cs = append(cs, po.Field.toCursor(t).Value)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(t).Value)
 	}
-	return Cursor{ID: t.ID, Value: cs}
+	return Cursor{ID: t.ID, Value: cs_}
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) (*TodoQuery, error) {
