@@ -190,9 +190,15 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
 			}
-			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "Todo")...); err != nil {
+			pathNodes := append(path, edgesField, nodeField)
+			if field := collectedField(ctx, pathNodes...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "Todo")...); err != nil {
+					return err
+				}
+			}
+			pathItems := append(path, itemsField)
+			if field := collectedField(ctx, pathItems...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "Todo")...); err != nil {
 					return err
 				}
 			}
@@ -275,9 +281,15 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
 			}
-			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "Category")...); err != nil {
+			pathNodes := append(path, edgesField, nodeField)
+			if field := collectedField(ctx, pathNodes...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "Category")...); err != nil {
+					return err
+				}
+			}
+			pathItems := append(path, itemsField)
+			if field := collectedField(ctx, pathItems...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "Category")...); err != nil {
 					return err
 				}
 			}
@@ -571,9 +583,15 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
 			}
-			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "User")...); err != nil {
+			pathNodes := append(path, edgesField, nodeField)
+			if field := collectedField(ctx, pathNodes...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "User")...); err != nil {
+					return err
+				}
+			}
+			pathItems := append(path, itemsField)
+			if field := collectedField(ctx, pathItems...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "User")...); err != nil {
 					return err
 				}
 			}
@@ -722,9 +740,15 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
 			}
-			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "Todo")...); err != nil {
+			pathNodes := append(path, edgesField, nodeField)
+			if field := collectedField(ctx, pathNodes...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "Todo")...); err != nil {
+					return err
+				}
+			}
+			pathItems := append(path, itemsField)
+			if field := collectedField(ctx, pathItems...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "Todo")...); err != nil {
 					return err
 				}
 			}
@@ -938,9 +962,15 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			if ignoredEdges || (args.limit != nil && *args.limit == 0) {
 				continue
 			}
-			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "Group")...); err != nil {
+			pathNodes := append(path, edgesField, nodeField)
+			if field := collectedField(ctx, pathNodes...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "Group")...); err != nil {
+					return err
+				}
+			}
+			pathItems := append(path, itemsField)
+			if field := collectedField(ctx, pathItems...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "Group")...); err != nil {
 					return err
 				}
 			}
