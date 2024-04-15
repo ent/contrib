@@ -107,9 +107,15 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 								{{- /* Skip querying edges if "edges" "node" was not required. */}}
 								continue
 							}
-							path = append(path, edgesField, nodeField)
-							if field := collectedField(ctx, path...); field != nil {
-								if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
+							pathNodes := append(path, edgesField, nodeField)
+							if field := collectedField(ctx, pathNodes...); field != nil {
+								if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
+									return err
+								}
+							}
+							pathItems := append(path, itemsField)
+							if field := collectedField(ctx, pathItems...); field != nil {
+								if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
 									return err
 								}
 							}
