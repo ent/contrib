@@ -693,7 +693,7 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := {{ $r }}.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -748,12 +748,12 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 		{{ $r }}.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := {{ $r }}.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := {{ $r }}.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}

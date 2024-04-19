@@ -1,11 +1,15 @@
-"""Represents BillProduct object"""
+"""
+Represents BillProduct object
+"""
 type BillProduct {
   id: ID!
   name: String!
   sku: String!
   quantity: Uint64!
 }
-"""Represents Category object"""
+"""
+Represents Category object
+"""
 type Category {
   id: ID!
   text: String!
@@ -49,7 +53,9 @@ enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/c
   ENABLED
   DISABLED
 }
-"""CreateCategoryInput is used for create Category object."""
+"""
+CreateCategoryInput is used for create Category object.
+"""
 input CreateCategoryInput {
   text: String!
   status: CategoryStatus!
@@ -61,7 +67,9 @@ input CreateCategoryInput {
   todoIDs: [ID!]
   subCategoryIDs: [ID!]
 }
-"""CreateTodoInput is used for create Todo object."""
+"""
+CreateTodoInput is used for create Todo object.
+"""
 input CreateTodoInput {
   status: TodoStatus!
   priority: Int
@@ -72,7 +80,9 @@ input CreateTodoInput {
   categoryID: ID
   secretID: ID
 }
-"""CreateUserInput is used for create User object."""
+"""
+CreateUserInput is used for create User object.
+"""
 input CreateUserInput {
   name: String
   username: UUID
@@ -160,9 +170,13 @@ type Todo {
   init: Map
   custom: [Custom!]
   customp: [Custom]
-  """Todo parent"""
+  """
+  Todo parent
+  """
   parent: Todo
-  """Todo children"""
+  """
+  Todo children
+  """
   children: [Todo!]
   category: Category
 }
@@ -203,7 +217,9 @@ enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.
 The builtin Uint64 type
 """
 scalar Uint64
-"""UpdateCategoryInput is used for update Category object."""
+"""
+UpdateCategoryInput is used for update Category object.
+"""
 input UpdateCategoryInput {
   text: String
   status: CategoryStatus
@@ -225,13 +241,17 @@ input UpdateCategoryInput {
   removeSubCategoryIDs: [ID!]
   clearSubCategories: Boolean
 }
-"""UpdateFriendshipInput is used for update Friendship object."""
+"""
+UpdateFriendshipInput is used for update Friendship object.
+"""
 input UpdateFriendshipInput {
   createdAt: Time
   userID: ID
   friendID: ID
 }
-"""UpdateTodoInput is used for update Todo object."""
+"""
+UpdateTodoInput is used for update Todo object.
+"""
 input UpdateTodoInput {
   status: TodoStatus
   priority: Int
@@ -246,7 +266,9 @@ input UpdateTodoInput {
   secretID: ID
   clearSecret: Boolean
 }
-"""UpdateUserInput is used for update User object."""
+"""
+UpdateUserInput is used for update User object.
+"""
 input UpdateUserInput {
   name: String
   username: UUID

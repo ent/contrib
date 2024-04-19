@@ -111,27 +111,27 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 							}
 							pathNodes := append(path, edgesField, nodeField)
 							if field := collectedField(ctx, pathNodes...); field != nil {
-								if err := query.collectField(ctx, opCtx, *field, pathNodes, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
+								if err := query.collectField(ctx, oneNode, opCtx, *field, pathNodes, mayAddCondition(satisfies, []string{"{{ $e.Type.Name }}"})...); err != nil {
 									return err
 								}
 							}
 							pathItems := append(path, itemsField)
 							if field := collectedField(ctx, pathItems...); field != nil {
-								if err := query.collectField(ctx, opCtx, *field, pathItems, mayAddCondition(satisfies, "{{ $e.Type.Name }}")...); err != nil {
+								if err := query.collectField(ctx, oneNode, opCtx, *field, pathItems, mayAddCondition(satisfies, []string{"{{ $e.Type.Name }}"})...); err != nil {
 									return err
 								}
 							}
 							if args.limit != nil && *args.limit > 0 {
 								{{- /* Limit per row is not required, as there is only node returned by the top query. */}}
 								if oneNode {
-									pager.applyOrder(query.Limit(limit))
+									pager.applyOrder(query.Limit(*args.limit))
 								} else {
 									{{- $fk := print $node.Package "." $fc.Edge.ColumnConstant }}
 									{{- if $e.M2M }}
 										{{- $i := 0 }}{{ if $e.IsInverse }}{{ $i = 1 }}{{ end }}
 										{{- $fk = print $node.Package "." $e.PKConstant "[" $i "]" }}
 									{{- end }}
-									modify := limitRows({{ $fk }}, *args.limit, pager.orderExpr(query))
+									modify := entgql.LimitPerRow({{ $fk }}, *args.limit, pager.orderExpr(query))
 									query.modifiers = append(query.modifiers, modify)
 								}
 							} else {

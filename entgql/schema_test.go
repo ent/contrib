@@ -61,7 +61,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
-	err = plugin.buildTypes(graph, schema, true)
+	err = plugin.buildTypes(graph, schema, false)
 	require.NoError(t, err)
 	schemaExpect, err := os.ReadFile("./testdata/schema_relay.graphql")
 	require.NoError(t, err)
@@ -89,20 +89,30 @@ func TestSchema_relayConnectionTypes(t *testing.T) {
 					Name: "Todo",
 				},
 			},
-			want: `"""An edge in a connection."""
+			want: `"""
+An edge in a connection.
+"""
 type TodoEdge {
   """
   The item at the end of the edge.
   """
   node: Todo
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type TodoList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [Todo]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [TodoEdge]
 }
 `,
@@ -119,20 +129,30 @@ type TodoList {
 					},
 				},
 			},
-			want: `"""An edge in a connection."""
+			want: `"""
+An edge in a connection.
+"""
 type SuperTodoEdge {
   """
   The item at the end of the edge.
   """
   node: SuperTodo
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type SuperTodoList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [SuperTodo]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [SuperTodoEdge]
 }
 `,

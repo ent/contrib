@@ -332,12 +332,12 @@ func (c *CategoryQuery) PaginateLimitOffset(
 		c.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := c.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := c.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -395,7 +395,7 @@ func (c *CategoryQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := c.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -716,12 +716,12 @@ func (t *TodoQuery) PaginateLimitOffset(
 		t.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := t.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := t.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -779,7 +779,7 @@ func (t *TodoQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := t.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}

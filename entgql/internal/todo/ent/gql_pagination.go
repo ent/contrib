@@ -339,12 +339,12 @@ func (bp *BillProductQuery) PaginateLimitOffset(
 		bp.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := bp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := bp.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := bp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := bp.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -402,7 +402,7 @@ func (bp *BillProductQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := bp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := bp.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -707,12 +707,12 @@ func (c *CategoryQuery) PaginateLimitOffset(
 		c.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := c.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := c.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -770,7 +770,7 @@ func (c *CategoryQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := c.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1168,12 +1168,12 @@ func (f *FriendshipQuery) PaginateLimitOffset(
 		f.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := f.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := f.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := f.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := f.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1231,7 +1231,7 @@ func (f *FriendshipQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := f.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := f.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1523,12 +1523,12 @@ func (gr *GroupQuery) PaginateLimitOffset(
 		gr.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := gr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := gr.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := gr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := gr.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1586,7 +1586,7 @@ func (gr *GroupQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := gr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := gr.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1842,12 +1842,12 @@ func (otm *OneToManyQuery) PaginateLimitOffset(
 		otm.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := otm.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := otm.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := otm.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := otm.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1905,7 +1905,7 @@ func (otm *OneToManyQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := otm.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := otm.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -2208,12 +2208,12 @@ func (pr *ProjectQuery) PaginateLimitOffset(
 		pr.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := pr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := pr.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := pr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := pr.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -2271,7 +2271,7 @@ func (pr *ProjectQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := pr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := pr.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -2576,12 +2576,12 @@ func (t *TodoQuery) PaginateLimitOffset(
 		t.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := t.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := t.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -2639,7 +2639,7 @@ func (t *TodoQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := t.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -3076,12 +3076,12 @@ func (u *UserQuery) PaginateLimitOffset(
 		u.Offset(*offset)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := u.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := u.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := u.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := u.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -3139,7 +3139,7 @@ func (u *UserQuery) Paginate(
 		}
 	}
 	if field := collectedField(ctx, itemsField); field != nil {
-		if err := u.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+		if err := u.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
 			return nil, err
 		}
 	}
@@ -3254,46 +3254,59 @@ type OrganizationEdge struct {
 	Cursor Cursor        `json:"cursor"`
 }
 
-// OrganizationConnection is the connection containing edges to Organization.
-type OrganizationConnection struct {
+// OrganizationList is the connection containing edges to Organization.
+type OrganizationList struct {
 	Edges      []*OrganizationEdge `json:"edges"`
+	Items      []*Organization     `json:"items"`
 	PageInfo   PageInfo            `json:"pageInfo"`
 	TotalCount int                 `json:"totalCount"`
 }
 
-func (c *OrganizationConnection) build(nodes []*Organization, pager *organizationPager, after *Cursor, first *int, before *Cursor, last *int) {
-	c.PageInfo.HasNextPage = before != nil
-	c.PageInfo.HasPreviousPage = after != nil
-	if first != nil && *first+1 == len(nodes) {
-		c.PageInfo.HasNextPage = true
-		nodes = nodes[:len(nodes)-1]
-	} else if last != nil && *last+1 == len(nodes) {
-		c.PageInfo.HasPreviousPage = true
-		nodes = nodes[:len(nodes)-1]
-	}
-	var nodeAt func(int) *Organization
-	if last != nil {
-		n := len(nodes) - 1
-		nodeAt = func(i int) *Organization {
-			return nodes[n-i]
+func (c *OrganizationList) build(nodes []*Organization, pager *organizationPager, after *Cursor, first *int, before *Cursor, last *int, withPageInfo bool) {
+	c.Items = nodes
+	c.Edges = make([]*OrganizationEdge, len(nodes))
+	if withPageInfo {
+		c.PageInfo.HasNextPage = before != nil
+		c.PageInfo.HasPreviousPage = after != nil
+		if first != nil && *first+1 == len(nodes) {
+			c.PageInfo.HasNextPage = true
+			nodes = nodes[:len(nodes)-1]
+		} else if last != nil && *last+1 == len(nodes) {
+			c.PageInfo.HasPreviousPage = true
+			nodes = nodes[:len(nodes)-1]
+		}
+		var nodeAt func(int) *Organization
+		if last != nil {
+			n := len(nodes) - 1
+			nodeAt = func(i int) *Organization {
+				return nodes[n-i]
+			}
+		} else {
+			nodeAt = func(i int) *Organization {
+				return nodes[i]
+			}
+		}
+		for i := range nodes {
+			node := nodeAt(i)
+			c.Edges[i] = &OrganizationEdge{
+				Node:   node,
+				Cursor: pager.toCursor(node),
+			}
+		}
+		if l := len(c.Edges); l > 0 {
+			c.PageInfo.StartCursor = &c.Edges[0].Cursor
+			c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
 		}
 	} else {
-		nodeAt = func(i int) *Organization {
-			return nodes[i]
+		for i := range nodes {
+			node := nodes[i]
+			c.Edges[i] = &OrganizationEdge{
+				Node:   node,
+				Cursor: pager.toCursor(node),
+			}
 		}
 	}
-	c.Edges = make([]*OrganizationEdge, len(nodes))
-	for i := range nodes {
-		node := nodeAt(i)
-		c.Edges[i] = &OrganizationEdge{
-			Node:   node,
-			Cursor: pager.toCursor(node),
-		}
-	}
-	if l := len(c.Edges); l > 0 {
-		c.PageInfo.StartCursor = &c.Edges[0].Cursor
-		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
-	}
+
 	if c.TotalCount == 0 {
 		c.TotalCount = len(nodes)
 	}
@@ -3403,11 +3416,63 @@ func (p *organizationPager) orderExpr(query *WorkspaceQuery) sql.Querier {
 	})
 }
 
+// Paginate executes the query and returns a limit/offset paginated connection to Organization.
+func (w *WorkspaceQuery) PaginateLimitOffset(
+	ctx context.Context, limit *int, offset *int, opts ...OrganizationPaginateOption,
+) (*OrganizationList, error) {
+	if err := validateLimitOffset(limit, offset); err != nil {
+		return nil, err
+	}
+	pager, err := newOrganizationPager(opts, false)
+	if err != nil {
+		return nil, err
+	}
+	if w, err = pager.applyFilter(w); err != nil {
+		return nil, err
+	}
+	conn := &OrganizationList{Edges: []*OrganizationEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, itemsField)
+	if hasCollectedField(ctx, totalCountField) {
+		hasPagination := limit != nil || offset != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = w.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if ignoredEdges || (limit != nil && *limit == 0) {
+		return conn, nil
+	}
+	if limit != nil {
+		w.Limit(*limit)
+	}
+	if offset != nil {
+		w.Offset(*offset)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := w.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := w.collectField(ctx, (limit != nil && *limit == 1), graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+			return nil, err
+		}
+	}
+	w = pager.applyOrder(w)
+	nodes, err := w.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, nil, nil, nil, nil, false)
+	return conn, nil
+}
+
 // Paginate executes the query and returns a relay based cursor connection to Organization.
 func (w *WorkspaceQuery) Paginate(
 	ctx context.Context, after *Cursor, first *int,
 	before *Cursor, last *int, opts ...OrganizationPaginateOption,
-) (*OrganizationConnection, error) {
+) (*OrganizationList, error) {
 	if err := validateFirstLast(first, last); err != nil {
 		return nil, err
 	}
@@ -3418,7 +3483,7 @@ func (w *WorkspaceQuery) Paginate(
 	if w, err = pager.applyFilter(w); err != nil {
 		return nil, err
 	}
-	conn := &OrganizationConnection{Edges: []*OrganizationEdge{}}
+	conn := &OrganizationList{Edges: []*OrganizationEdge{}}
 	ignoredEdges := !hasCollectedField(ctx, edgesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
@@ -3447,12 +3512,17 @@ func (w *WorkspaceQuery) Paginate(
 			return nil, err
 		}
 	}
+	if field := collectedField(ctx, itemsField); field != nil {
+		if err := w.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{itemsField}); err != nil {
+			return nil, err
+		}
+	}
 	w = pager.applyOrder(w)
 	nodes, err := w.All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	conn.build(nodes, pager, after, first, before, last)
+	conn.build(nodes, pager, after, first, before, last, true)
 	return conn, nil
 }
 

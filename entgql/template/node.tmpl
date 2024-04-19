@@ -48,7 +48,7 @@ type Noder interface {
 
 {{/* loop over all types and add implement the Node interface. */}}
 {{ range $n := $gqlNodes }}
-	{{ $names := nodePaginationNames $n -}}
+	{{ $names := nodePaginationNames $n false -}}
 	var {{ nodeImplementorsVar $n }} = []string{"{{ $names.Node }}" {{ range $iface := nodeImplementors $n }},"{{ $iface }}"{{ end }} }
 	{{- range $iface := nodeImplementors $n }}
 		{{- $method := print "Is" $iface }}

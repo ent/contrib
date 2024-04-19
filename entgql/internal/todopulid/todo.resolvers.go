@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todopulid/ent"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
@@ -71,7 +70,7 @@ func (r *queryResolver) Ping(ctx context.Context) (string, error) {
 }
 
 // TodosWithJoins is the resolver for the todosWithJoins field.
-func (r *queryResolver) TodosWithJoins(ctx context.Context, after *entgql.Cursor[pulid.ID], first *int, before *entgql.Cursor[pulid.ID], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+func (r *queryResolver) TodosWithJoins(ctx context.Context, limit *int, offset *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoList, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

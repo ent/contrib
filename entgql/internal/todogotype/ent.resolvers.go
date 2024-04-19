@@ -68,7 +68,7 @@ func (r *queryResolver) OneToMany(ctx context.Context, limit *int, offset *int, 
 }
 
 // Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context, limit *int, offset *int, orderBy *ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoList, error) {
+func (r *queryResolver) Todos(ctx context.Context, limit *int, offset *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoList, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
