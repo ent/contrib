@@ -44,6 +44,8 @@ type Tx struct {
 	User *UserClient
 	// VerySecret is the client for interacting with the VerySecret builders.
 	VerySecret *VerySecretClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
 
 	// lazily loaded.
 	client     *Client
@@ -184,6 +186,7 @@ func (tx *Tx) init() {
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.VerySecret = NewVerySecretClient(tx.config)
+	tx.Workspace = NewWorkspaceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

@@ -34,7 +34,7 @@ func (wnfu *WithNilFieldsUpdate) Mutation() *WithNilFieldsMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wnfu *WithNilFieldsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, WithNilFieldsMutation](ctx, wnfu.sqlSave, wnfu.mutation, wnfu.hooks)
+	return withHooks(ctx, wnfu.sqlSave, wnfu.mutation, wnfu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (wnfuo *WithNilFieldsUpdateOne) Select(field string, fields ...string) *Wit
 
 // Save executes the query and returns the updated WithNilFields entity.
 func (wnfuo *WithNilFieldsUpdateOne) Save(ctx context.Context) (*WithNilFields, error) {
-	return withHooks[*WithNilFields, WithNilFieldsMutation](ctx, wnfuo.sqlSave, wnfuo.mutation, wnfuo.hooks)
+	return withHooks(ctx, wnfuo.sqlSave, wnfuo.mutation, wnfuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

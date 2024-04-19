@@ -30,6 +30,7 @@ type CreateCategoryInput struct {
 	Text           string
 	Status         category.Status
 	Config         *schematype.CategoryConfig
+	Types          *schematype.CategoryTypes
 	Duration       *time.Duration
 	Count          *uint64
 	Strings        []string
@@ -43,6 +44,9 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetStatus(i.Status)
 	if v := i.Config; v != nil {
 		m.SetConfig(v)
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
 	}
 	if v := i.Duration; v != nil {
 		m.SetDuration(*v)
@@ -73,6 +77,8 @@ type UpdateCategoryInput struct {
 	Status               *category.Status
 	ClearConfig          bool
 	Config               *schematype.CategoryConfig
+	ClearTypes           bool
+	Types                *schematype.CategoryTypes
 	ClearDuration        bool
 	Duration             *time.Duration
 	ClearCount           bool
@@ -101,6 +107,12 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.Config; v != nil {
 		m.SetConfig(v)
+	}
+	if i.ClearTypes {
+		m.ClearTypes()
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
 	}
 	if i.ClearDuration {
 		m.ClearDuration()
@@ -299,12 +311,13 @@ func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
-	Name      *string
-	Username  *uuid.UUID
-	Password  *string
-	Metadata  map[string]interface{}
-	GroupIDs  []int
-	FriendIDs []int
+	Name             *string
+	Username         *uuid.UUID
+	Password         *string
+	RequiredMetadata map[string]interface{}
+	Metadata         map[string]interface{}
+	GroupIDs         []int
+	FriendIDs        []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -317,6 +330,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if v := i.RequiredMetadata; v != nil {
+		m.SetRequiredMetadata(v)
 	}
 	if v := i.Metadata; v != nil {
 		m.SetMetadata(v)
@@ -337,18 +353,19 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
-	Name            *string
-	Username        *uuid.UUID
-	ClearPassword   bool
-	Password        *string
-	ClearMetadata   bool
-	Metadata        map[string]interface{}
-	ClearGroups     bool
-	AddGroupIDs     []int
-	RemoveGroupIDs  []int
-	ClearFriends    bool
-	AddFriendIDs    []int
-	RemoveFriendIDs []int
+	Name             *string
+	Username         *uuid.UUID
+	ClearPassword    bool
+	Password         *string
+	RequiredMetadata map[string]interface{}
+	ClearMetadata    bool
+	Metadata         map[string]interface{}
+	ClearGroups      bool
+	AddGroupIDs      []int
+	RemoveGroupIDs   []int
+	ClearFriends     bool
+	AddFriendIDs     []int
+	RemoveFriendIDs  []int
 }
 
 // Mutate applies the UpdateUserInput on the UserMutation builder.
@@ -364,6 +381,9 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
+	}
+	if v := i.RequiredMetadata; v != nil {
+		m.SetRequiredMetadata(v)
 	}
 	if i.ClearMetadata {
 		m.ClearMetadata()

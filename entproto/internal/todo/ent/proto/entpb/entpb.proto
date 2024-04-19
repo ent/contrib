@@ -354,9 +354,19 @@ message User {
 
   repeated string labels = 24;
 
+  repeated int32 int32s = 25;
+
+  repeated int64 int64s = 26;
+
+  repeated uint32 uint32s = 27;
+
+  repeated uint64 uint64s = 28;
+
   DeviceType device_type = 100;
 
   OmitPrefix omit_prefix = 103;
+
+  MimeType mime_type = 104;
 
   Group group = 7;
 
@@ -386,6 +396,14 @@ message User {
     FOO = 1;
 
     BAR = 2;
+  }
+
+  enum MimeType {
+    MIME_TYPE_UNSPECIFIED = 0;
+
+    MIME_TYPE_IMAGE_PNG = 1;
+
+    MIME_TYPE_IMAGE_XML_SVG = 2;
   }
 }
 

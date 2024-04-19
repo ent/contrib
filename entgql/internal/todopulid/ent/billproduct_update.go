@@ -47,9 +47,25 @@ func (bpu *BillProductUpdate) SetName(s string) *BillProductUpdate {
 	return bpu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (bpu *BillProductUpdate) SetNillableName(s *string) *BillProductUpdate {
+	if s != nil {
+		bpu.SetName(*s)
+	}
+	return bpu
+}
+
 // SetSku sets the "sku" field.
 func (bpu *BillProductUpdate) SetSku(s string) *BillProductUpdate {
 	bpu.mutation.SetSku(s)
+	return bpu
+}
+
+// SetNillableSku sets the "sku" field if the given value is not nil.
+func (bpu *BillProductUpdate) SetNillableSku(s *string) *BillProductUpdate {
+	if s != nil {
+		bpu.SetSku(*s)
+	}
 	return bpu
 }
 
@@ -57,6 +73,14 @@ func (bpu *BillProductUpdate) SetSku(s string) *BillProductUpdate {
 func (bpu *BillProductUpdate) SetQuantity(u uint64) *BillProductUpdate {
 	bpu.mutation.ResetQuantity()
 	bpu.mutation.SetQuantity(u)
+	return bpu
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (bpu *BillProductUpdate) SetNillableQuantity(u *uint64) *BillProductUpdate {
+	if u != nil {
+		bpu.SetQuantity(*u)
+	}
 	return bpu
 }
 
@@ -73,7 +97,7 @@ func (bpu *BillProductUpdate) Mutation() *BillProductMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bpu *BillProductUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, BillProductMutation](ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
+	return withHooks(ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -145,9 +169,25 @@ func (bpuo *BillProductUpdateOne) SetName(s string) *BillProductUpdateOne {
 	return bpuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (bpuo *BillProductUpdateOne) SetNillableName(s *string) *BillProductUpdateOne {
+	if s != nil {
+		bpuo.SetName(*s)
+	}
+	return bpuo
+}
+
 // SetSku sets the "sku" field.
 func (bpuo *BillProductUpdateOne) SetSku(s string) *BillProductUpdateOne {
 	bpuo.mutation.SetSku(s)
+	return bpuo
+}
+
+// SetNillableSku sets the "sku" field if the given value is not nil.
+func (bpuo *BillProductUpdateOne) SetNillableSku(s *string) *BillProductUpdateOne {
+	if s != nil {
+		bpuo.SetSku(*s)
+	}
 	return bpuo
 }
 
@@ -155,6 +195,14 @@ func (bpuo *BillProductUpdateOne) SetSku(s string) *BillProductUpdateOne {
 func (bpuo *BillProductUpdateOne) SetQuantity(u uint64) *BillProductUpdateOne {
 	bpuo.mutation.ResetQuantity()
 	bpuo.mutation.SetQuantity(u)
+	return bpuo
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (bpuo *BillProductUpdateOne) SetNillableQuantity(u *uint64) *BillProductUpdateOne {
+	if u != nil {
+		bpuo.SetQuantity(*u)
+	}
 	return bpuo
 }
 
@@ -184,7 +232,7 @@ func (bpuo *BillProductUpdateOne) Select(field string, fields ...string) *BillPr
 
 // Save executes the query and returns the updated BillProduct entity.
 func (bpuo *BillProductUpdateOne) Save(ctx context.Context) (*BillProduct, error) {
-	return withHooks[*BillProduct, BillProductMutation](ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
+	return withHooks(ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -40,11 +40,15 @@ type Noder interface {
 	IsNode()
 }
 
-// IsNode implements the Node interface check for GQLGen.
-func (n *BillProduct) IsNode() {}
+var billproductImplementors = []string{"BillProduct", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Category) IsNode() {}
+func (*BillProduct) IsNode() {}
+
+var categoryImplementors = []string{"Category", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Category) IsNode() {}
 
 func (c Category) marshalID() string {
 	var buf bytes.Buffer
@@ -52,14 +56,23 @@ func (c Category) marshalID() string {
 	return buf.String()
 }
 
-// IsNode implements the Node interface check for GQLGen.
-func (n *Friendship) IsNode() {}
+var friendshipImplementors = []string{"Friendship", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Group) IsNode() {}
+func (*Friendship) IsNode() {}
+
+var groupImplementors = []string{"Group", "Node", "NamedNode"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Pet) IsNode() {}
+func (*Group) IsNode() {}
+
+// IsNamedNode implements the NamedNode interface check for GQLGen.
+func (*Group) IsNamedNode() {}
+
+var petImplementors = []string{"Pet", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Pet) IsNode() {}
 
 func (pe Pet) marshalID() string {
 	var buf bytes.Buffer
@@ -67,11 +80,15 @@ func (pe Pet) marshalID() string {
 	return buf.String()
 }
 
-// IsNode implements the Node interface check for GQLGen.
-func (n *Todo) IsNode() {}
+var todoImplementors = []string{"Todo", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *User) IsNode() {}
+func (*Todo) IsNode() {}
+
+var userImplementors = []string{"User", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*User) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -134,15 +151,12 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 	case billproduct.Table:
 		query := c.BillProduct.Query().
 			Where(billproduct.ID(id))
-		query, err := query.CollectFields(ctx, "BillProduct")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, billproductImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case category.Table:
 		var uid bigintgql.BigInt
 		if err := uid.UnmarshalGQL(id); err != nil {
@@ -150,39 +164,30 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 		}
 		query := c.Category.Query().
 			Where(category.ID(uid))
-		query, err := query.CollectFields(ctx, "Category")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, categoryImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case friendship.Table:
 		query := c.Friendship.Query().
 			Where(friendship.ID(id))
-		query, err := query.CollectFields(ctx, "Friendship")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, friendshipImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.ID(id))
-		query, err := query.CollectFields(ctx, "Group")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, groupImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case pet.Table:
 		var uid uintgql.Uint64
 		if err := uid.UnmarshalGQL(id); err != nil {
@@ -190,39 +195,30 @@ func (c *Client) noder(ctx context.Context, table string, id string) (Noder, err
 		}
 		query := c.Pet.Query().
 			Where(pet.ID(uid))
-		query, err := query.CollectFields(ctx, "Pet")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, petImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case todo.Table:
 		query := c.Todo.Query().
 			Where(todo.ID(id))
-		query, err := query.CollectFields(ctx, "Todo")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, todoImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case user.Table:
 		query := c.User.Query().
 			Where(user.ID(id))
-		query, err := query.CollectFields(ctx, "User")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, userImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
 	}
@@ -299,7 +295,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 	case billproduct.Table:
 		query := c.BillProduct.Query().
 			Where(billproduct.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "BillProduct")
+		query, err := query.CollectFields(ctx, billproductImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -321,7 +317,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		}
 		query := c.Category.Query().
 			Where(category.IDIn(uids...))
-		query, err := query.CollectFields(ctx, "Category")
+		query, err := query.CollectFields(ctx, categoryImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -337,7 +333,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 	case friendship.Table:
 		query := c.Friendship.Query().
 			Where(friendship.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Friendship")
+		query, err := query.CollectFields(ctx, friendshipImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -353,7 +349,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Group")
+		query, err := query.CollectFields(ctx, groupImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -375,7 +371,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 		}
 		query := c.Pet.Query().
 			Where(pet.IDIn(uids...))
-		query, err := query.CollectFields(ctx, "Pet")
+		query, err := query.CollectFields(ctx, petImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -391,7 +387,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 	case todo.Table:
 		query := c.Todo.Query().
 			Where(todo.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Todo")
+		query, err := query.CollectFields(ctx, todoImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -407,7 +403,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []string) ([]Node
 	case user.Table:
 		query := c.User.Query().
 			Where(user.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "User")
+		query, err := query.CollectFields(ctx, userImplementors...)
 		if err != nil {
 			return nil, err
 		}

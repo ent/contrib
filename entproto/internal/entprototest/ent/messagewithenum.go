@@ -20,7 +20,9 @@ type MessageWithEnum struct {
 	EnumType messagewithenum.EnumType `json:"enum_type,omitempty"`
 	// EnumWithoutDefault holds the value of the "enum_without_default" field.
 	EnumWithoutDefault messagewithenum.EnumWithoutDefault `json:"enum_without_default,omitempty"`
-	selectValues       sql.SelectValues
+	// EnumWithSpecialCharacters holds the value of the "enum_with_special_characters" field.
+	EnumWithSpecialCharacters messagewithenum.EnumWithSpecialCharacters `json:"enum_with_special_characters,omitempty"`
+	selectValues              sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -30,7 +32,7 @@ func (*MessageWithEnum) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case messagewithenum.FieldID:
 			values[i] = new(sql.NullInt64)
-		case messagewithenum.FieldEnumType, messagewithenum.FieldEnumWithoutDefault:
+		case messagewithenum.FieldEnumType, messagewithenum.FieldEnumWithoutDefault, messagewithenum.FieldEnumWithSpecialCharacters:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -64,6 +66,12 @@ func (mwe *MessageWithEnum) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field enum_without_default", values[i])
 			} else if value.Valid {
 				mwe.EnumWithoutDefault = messagewithenum.EnumWithoutDefault(value.String)
+			}
+		case messagewithenum.FieldEnumWithSpecialCharacters:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field enum_with_special_characters", values[i])
+			} else if value.Valid {
+				mwe.EnumWithSpecialCharacters = messagewithenum.EnumWithSpecialCharacters(value.String)
 			}
 		default:
 			mwe.selectValues.Set(columns[i], values[i])
@@ -106,6 +114,9 @@ func (mwe *MessageWithEnum) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enum_without_default=")
 	builder.WriteString(fmt.Sprintf("%v", mwe.EnumWithoutDefault))
+	builder.WriteString(", ")
+	builder.WriteString("enum_with_special_characters=")
+	builder.WriteString(fmt.Sprintf("%v", mwe.EnumWithSpecialCharacters))
 	builder.WriteByte(')')
 	return builder.String()
 }

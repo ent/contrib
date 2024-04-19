@@ -62,10 +62,20 @@ type User struct {
 	Type string `json:"type,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels []string `json:"labels,omitempty"`
+	// Int32s holds the value of the "int32s" field.
+	Int32s []int32 `json:"int32s,omitempty"`
+	// Int64s holds the value of the "int64s" field.
+	Int64s []int64 `json:"int64s,omitempty"`
+	// Uint32s holds the value of the "uint32s" field.
+	Uint32s []uint32 `json:"uint32s,omitempty"`
+	// Uint64s holds the value of the "uint64s" field.
+	Uint64s []uint64 `json:"uint64s,omitempty"`
 	// DeviceType holds the value of the "device_type" field.
 	DeviceType user.DeviceType `json:"device_type,omitempty"`
 	// OmitPrefix holds the value of the "omit_prefix" field.
 	OmitPrefix user.OmitPrefix `json:"omit_prefix,omitempty"`
+	// MimeType holds the value of the "mime_type" field.
+	MimeType user.MimeType `json:"mime_type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -156,7 +166,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldLabels:
+		case user.FieldLabels, user.FieldInt32s, user.FieldInt64s, user.FieldUint32s, user.FieldUint64s:
 			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
@@ -166,7 +176,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldID, user.FieldPoints, user.FieldExp, user.FieldExternalID, user.FieldCustomPb, user.FieldOptNum, user.FieldBUser1:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType, user.FieldOmitPrefix:
+		case user.FieldUserName, user.FieldStatus, user.FieldOptStr, user.FieldUnnecessary, user.FieldType, user.FieldDeviceType, user.FieldOmitPrefix, user.FieldMimeType:
 			values[i] = new(sql.NullString)
 		case user.FieldJoined:
 			values[i] = new(sql.NullTime)
@@ -311,6 +321,38 @@ func (u *User) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
 			}
+		case user.FieldInt32s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field int32s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Int32s); err != nil {
+					return fmt.Errorf("unmarshal field int32s: %w", err)
+				}
+			}
+		case user.FieldInt64s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field int64s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Int64s); err != nil {
+					return fmt.Errorf("unmarshal field int64s: %w", err)
+				}
+			}
+		case user.FieldUint32s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field uint32s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Uint32s); err != nil {
+					return fmt.Errorf("unmarshal field uint32s: %w", err)
+				}
+			}
+		case user.FieldUint64s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field uint64s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Uint64s); err != nil {
+					return fmt.Errorf("unmarshal field uint64s: %w", err)
+				}
+			}
 		case user.FieldDeviceType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field device_type", values[i])
@@ -322,6 +364,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field omit_prefix", values[i])
 			} else if value.Valid {
 				u.OmitPrefix = user.OmitPrefix(value.String)
+			}
+		case user.FieldMimeType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field mime_type", values[i])
+			} else if value.Valid {
+				u.MimeType = user.MimeType(value.String)
 			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -448,11 +496,26 @@ func (u *User) String() string {
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", u.Labels))
 	builder.WriteString(", ")
+	builder.WriteString("int32s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Int32s))
+	builder.WriteString(", ")
+	builder.WriteString("int64s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Int64s))
+	builder.WriteString(", ")
+	builder.WriteString("uint32s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Uint32s))
+	builder.WriteString(", ")
+	builder.WriteString("uint64s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Uint64s))
+	builder.WriteString(", ")
 	builder.WriteString("device_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceType))
 	builder.WriteString(", ")
 	builder.WriteString("omit_prefix=")
 	builder.WriteString(fmt.Sprintf("%v", u.OmitPrefix))
+	builder.WriteString(", ")
+	builder.WriteString("mime_type=")
+	builder.WriteString(fmt.Sprintf("%v", u.MimeType))
 	builder.WriteByte(')')
 	return builder.String()
 }

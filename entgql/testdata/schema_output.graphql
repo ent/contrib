@@ -1,54 +1,75 @@
-"""Represents BillProduct object"""
+"""
+Represents BillProduct object
+"""
 type BillProduct {
   id: ID!
   name: String!
   sku: String!
   quantity: Uint64!
 }
-"""Represents Category object"""
+"""
+Represents Category object
+"""
 type Category {
   id: ID!
   text: String!
   status: CategoryStatus!
   config: CategoryConfig
+  types: CategoryTypes
   duration: Duration
   count: Uint64
   strings: [String!]
   todos: [Todo!]
   subCategories: [Category!]
 }
-"""Ordering options for Category connections"""
+"""
+Ordering options for Category connections
+"""
 input CategoryOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Categories."""
+  """
+  The field by which to order Categories.
+  """
   field: CategoryOrderField!
 }
-"""Properties by which Category connections can be ordered."""
+"""
+Properties by which Category connections can be ordered.
+"""
 enum CategoryOrderField {
   ID
   TEXT
+  STATUS
   DURATION
   COUNT
   TODOS_COUNT
 }
-"""CategoryStatus is enum for the field status"""
+"""
+CategoryStatus is enum for the field status
+"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
   ENABLED
   DISABLED
 }
-"""CreateCategoryInput is used for create Category object."""
+"""
+CreateCategoryInput is used for create Category object.
+"""
 input CreateCategoryInput {
   text: String!
   status: CategoryStatus!
   config: CategoryConfig
+  types: CategoryTypes
   duration: Duration
   count: Uint64
   strings: [String!]
   todoIDs: [ID!]
   subCategoryIDs: [ID!]
 }
-"""CreateTodoInput is used for create Todo object."""
+"""
+CreateTodoInput is used for create Todo object.
+"""
 input CreateTodoInput {
   status: TodoStatus!
   priority: Int
@@ -59,11 +80,14 @@ input CreateTodoInput {
   categoryID: ID
   secretID: ID
 }
-"""CreateUserInput is used for create User object."""
+"""
+CreateUserInput is used for create User object.
+"""
 input CreateUserInput {
   name: String
   username: UUID
   password: String
+  requiredMetadata: Map!
   metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
@@ -76,12 +100,14 @@ type Friendship {
   user: User!
   friend: User!
 }
-type Group @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
+type Group implements NamedNode @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users: [User!]
 }
-"""The builtin Map type"""
+"""
+The builtin Map type
+"""
 scalar Map
 type OneToMany {
   id: ID!
@@ -90,16 +116,28 @@ type OneToMany {
   parent: OneToMany
   children: [OneToMany!]
 }
-"""Ordering options for OneToMany connections"""
+"""
+Ordering options for OneToMany connections
+"""
 input OneToManyOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order OneToManies."""
+  """
+  The field by which to order OneToManies.
+  """
   field: OneToManyOrderField!
 }
-"""Properties by which OneToMany connections can be ordered."""
+"""
+Properties by which OneToMany connections can be ordered.
+"""
 enum OneToManyOrderField {
   NAME
+}
+type Organization @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
+  id: ID!
+  name: String!
 }
 type Project {
   id: ID!
@@ -110,11 +148,15 @@ type Query {
   categories: [Category!]!
   groups: [Group!]!
   oneToMany: [OneToMany!]!
-  """This is the todo item"""
+  """
+  This is the todo item
+  """
   todos: [Todo!]!
   users: [User!]!
 }
-"""The builtin Time type"""
+"""
+The builtin Time type
+"""
 scalar Time
 type Todo {
   id: ID!
@@ -128,20 +170,32 @@ type Todo {
   init: Map
   custom: [Custom!]
   customp: [Custom]
-  """Todo parent"""
+  """
+  Todo parent
+  """
   parent: Todo
-  """Todo children"""
+  """
+  Todo children
+  """
   children: [Todo!]
   category: Category
 }
-"""Ordering options for Todo connections"""
+"""
+Ordering options for Todo connections
+"""
 input TodoOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Todos."""
+  """
+  The field by which to order Todos.
+  """
   field: TodoOrderField!
 }
-"""Properties by which Todo connections can be ordered."""
+"""
+Properties by which Todo connections can be ordered.
+"""
 enum TodoOrderField {
   CREATED_AT
   STATUS
@@ -151,20 +205,28 @@ enum TodoOrderField {
   CHILDREN_COUNT
   CATEGORY_TEXT
 }
-"""TodoStatus is enum for the field status"""
+"""
+TodoStatus is enum for the field status
+"""
 enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
   IN_PROGRESS
   COMPLETED
   PENDING
 }
-"""The builtin Uint64 type"""
+"""
+The builtin Uint64 type
+"""
 scalar Uint64
-"""UpdateCategoryInput is used for update Category object."""
+"""
+UpdateCategoryInput is used for update Category object.
+"""
 input UpdateCategoryInput {
   text: String
   status: CategoryStatus
   config: CategoryConfig
   clearConfig: Boolean
+  types: CategoryTypes
+  clearTypes: Boolean
   duration: Duration
   clearDuration: Boolean
   count: Uint64
@@ -179,13 +241,17 @@ input UpdateCategoryInput {
   removeSubCategoryIDs: [ID!]
   clearSubCategories: Boolean
 }
-"""UpdateFriendshipInput is used for update Friendship object."""
+"""
+UpdateFriendshipInput is used for update Friendship object.
+"""
 input UpdateFriendshipInput {
   createdAt: Time
   userID: ID
   friendID: ID
 }
-"""UpdateTodoInput is used for update Todo object."""
+"""
+UpdateTodoInput is used for update Todo object.
+"""
 input UpdateTodoInput {
   status: TodoStatus
   priority: Int
@@ -200,12 +266,15 @@ input UpdateTodoInput {
   secretID: ID
   clearSecret: Boolean
 }
-"""UpdateUserInput is used for update User object."""
+"""
+UpdateUserInput is used for update User object.
+"""
 input UpdateUserInput {
   name: String
   username: UUID
   password: String
   clearPassword: Boolean
+  requiredMetadata: Map
   metadata: Map
   clearMetadata: Boolean
   addGroupIDs: [ID!]
@@ -219,20 +288,31 @@ type User {
   id: ID!
   name: String!
   username: UUID!
+  requiredMetadata: Map!
   metadata: Map
-  """The groups of the user"""
+  """
+  The groups of the user
+  """
   groups: [Group!]
   friends: [User!]
   friendships: [Friendship!]
 }
-"""Ordering options for User connections"""
+"""
+Ordering options for User connections
+"""
 input UserOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Users."""
+  """
+  The field by which to order Users.
+  """
   field: UserOrderField!
 }
-"""Properties by which User connections can be ordered."""
+"""
+Properties by which User connections can be ordered.
+"""
 enum UserOrderField {
   GROUPS_COUNT
 }

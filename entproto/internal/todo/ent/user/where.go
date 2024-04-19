@@ -962,6 +962,46 @@ func LabelsNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldLabels))
 }
 
+// Int32sIsNil applies the IsNil predicate on the "int32s" field.
+func Int32sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInt32s))
+}
+
+// Int32sNotNil applies the NotNil predicate on the "int32s" field.
+func Int32sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInt32s))
+}
+
+// Int64sIsNil applies the IsNil predicate on the "int64s" field.
+func Int64sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldInt64s))
+}
+
+// Int64sNotNil applies the NotNil predicate on the "int64s" field.
+func Int64sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldInt64s))
+}
+
+// Uint32sIsNil applies the IsNil predicate on the "uint32s" field.
+func Uint32sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUint32s))
+}
+
+// Uint32sNotNil applies the NotNil predicate on the "uint32s" field.
+func Uint32sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUint32s))
+}
+
+// Uint64sIsNil applies the IsNil predicate on the "uint64s" field.
+func Uint64sIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUint64s))
+}
+
+// Uint64sNotNil applies the NotNil predicate on the "uint64s" field.
+func Uint64sNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUint64s))
+}
+
 // DeviceTypeEQ applies the EQ predicate on the "device_type" field.
 func DeviceTypeEQ(v DeviceType) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDeviceType, v))
@@ -1000,6 +1040,26 @@ func OmitPrefixIn(vs ...OmitPrefix) predicate.User {
 // OmitPrefixNotIn applies the NotIn predicate on the "omit_prefix" field.
 func OmitPrefixNotIn(vs ...OmitPrefix) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldOmitPrefix, vs...))
+}
+
+// MimeTypeEQ applies the EQ predicate on the "mime_type" field.
+func MimeTypeEQ(v MimeType) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldMimeType, v))
+}
+
+// MimeTypeNEQ applies the NEQ predicate on the "mime_type" field.
+func MimeTypeNEQ(v MimeType) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldMimeType, v))
+}
+
+// MimeTypeIn applies the In predicate on the "mime_type" field.
+func MimeTypeIn(vs ...MimeType) predicate.User {
+	return predicate.User(sql.FieldIn(FieldMimeType, vs...))
+}
+
+// MimeTypeNotIn applies the NotIn predicate on the "mime_type" field.
+func MimeTypeNotIn(vs ...MimeType) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldMimeType, vs...))
 }
 
 // HasGroup applies the HasEdge predicate on the "group" edge.
@@ -1119,32 +1179,15 @@ func HasSkipEdgeWith(preds ...predicate.SkipEdgeExample) predicate.User {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.User(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.User) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.User(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.User) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.User(sql.NotPredicates(p))
 }

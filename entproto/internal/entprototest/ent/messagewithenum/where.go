@@ -92,34 +92,37 @@ func EnumWithoutDefaultNotIn(vs ...EnumWithoutDefault) predicate.MessageWithEnum
 	return predicate.MessageWithEnum(sql.FieldNotIn(FieldEnumWithoutDefault, vs...))
 }
 
+// EnumWithSpecialCharactersEQ applies the EQ predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersEQ(v EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldEQ(FieldEnumWithSpecialCharacters, v))
+}
+
+// EnumWithSpecialCharactersNEQ applies the NEQ predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersNEQ(v EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldNEQ(FieldEnumWithSpecialCharacters, v))
+}
+
+// EnumWithSpecialCharactersIn applies the In predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersIn(vs ...EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldIn(FieldEnumWithSpecialCharacters, vs...))
+}
+
+// EnumWithSpecialCharactersNotIn applies the NotIn predicate on the "enum_with_special_characters" field.
+func EnumWithSpecialCharactersNotIn(vs ...EnumWithSpecialCharacters) predicate.MessageWithEnum {
+	return predicate.MessageWithEnum(sql.FieldNotIn(FieldEnumWithSpecialCharacters, vs...))
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.MessageWithEnum) predicate.MessageWithEnum {
-	return predicate.MessageWithEnum(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.MessageWithEnum(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.MessageWithEnum) predicate.MessageWithEnum {
-	return predicate.MessageWithEnum(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.MessageWithEnum(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.MessageWithEnum) predicate.MessageWithEnum {
-	return predicate.MessageWithEnum(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.MessageWithEnum(sql.NotPredicates(p))
 }

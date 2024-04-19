@@ -27,7 +27,7 @@ func (ifmd *InvalidFieldMessageDelete) Where(ps ...predicate.InvalidFieldMessage
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ifmd *InvalidFieldMessageDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, InvalidFieldMessageMutation](ctx, ifmd.sqlExec, ifmd.mutation, ifmd.hooks)
+	return withHooks(ctx, ifmd.sqlExec, ifmd.mutation, ifmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

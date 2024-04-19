@@ -25,7 +25,7 @@ func (wnfc *WithNilFieldsCreate) Mutation() *WithNilFieldsMutation {
 
 // Save creates the WithNilFields in the database.
 func (wnfc *WithNilFieldsCreate) Save(ctx context.Context) (*WithNilFields, error) {
-	return withHooks[*WithNilFields, WithNilFieldsMutation](ctx, wnfc.sqlSave, wnfc.mutation, wnfc.hooks)
+	return withHooks(ctx, wnfc.sqlSave, wnfc.mutation, wnfc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -84,11 +84,15 @@ func (wnfc *WithNilFieldsCreate) createSpec() (*WithNilFields, *sqlgraph.CreateS
 // WithNilFieldsCreateBulk is the builder for creating many WithNilFields entities in bulk.
 type WithNilFieldsCreateBulk struct {
 	config
+	err      error
 	builders []*WithNilFieldsCreate
 }
 
 // Save creates the WithNilFields entities in the database.
 func (wnfcb *WithNilFieldsCreateBulk) Save(ctx context.Context) ([]*WithNilFields, error) {
+	if wnfcb.err != nil {
+		return nil, wnfcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wnfcb.builders))
 	nodes := make([]*WithNilFields, len(wnfcb.builders))
 	mutators := make([]Mutator, len(wnfcb.builders))

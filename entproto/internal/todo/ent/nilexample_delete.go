@@ -27,7 +27,7 @@ func (ned *NilExampleDelete) Where(ps ...predicate.NilExample) *NilExampleDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ned *NilExampleDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, NilExampleMutation](ctx, ned.sqlExec, ned.mutation, ned.hooks)
+	return withHooks(ctx, ned.sqlExec, ned.mutation, ned.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

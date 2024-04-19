@@ -1,16 +1,22 @@
-"""Represents BillProduct object"""
+"""
+Represents BillProduct object
+"""
 type BillProduct implements Node {
   id: ID!
   name: String!
   sku: String!
   quantity: Uint64!
 }
-"""BillProductWhereInput is used for filtering BillProduct objects."""
+"""
+BillProductWhereInput is used for filtering BillProduct objects.
+"""
 input BillProductWhereInput {
   not: BillProductWhereInput
   and: [BillProductWhereInput!]
   or: [BillProductWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -19,7 +25,9 @@ input BillProductWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -33,7 +41,9 @@ input BillProductWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """sku field predicates"""
+  """
+  sku field predicates
+  """
   sku: String
   skuNEQ: String
   skuIn: [String!]
@@ -47,7 +57,9 @@ input BillProductWhereInput {
   skuHasSuffix: String
   skuEqualFold: String
   skuContainsFold: String
-  """quantity field predicates"""
+  """
+  quantity field predicates
+  """
   quantity: Uint64
   quantityNEQ: Uint64
   quantityIn: [Uint64!]
@@ -57,82 +69,128 @@ input BillProductWhereInput {
   quantityLT: Uint64
   quantityLTE: Uint64
 }
-"""Represents Category object"""
+"""
+Represents Category object
+"""
 type Category implements Node {
   id: ID!
   text: String!
   status: CategoryStatus!
   config: CategoryConfig
+  types: CategoryTypes
   duration: Duration
   count: Uint64
   strings: [String!]
   todos(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
+    """
+    Ordering options for Todos returned from the connection.
+    """
+    orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoList
   subCategories(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Categories returned from the connection."""
+    """
+    Ordering options for Categories returned from the connection.
+    """
     orderBy: [CategoryOrder!]
 
-    """Filtering options for Categories returned from the connection."""
+    """
+    Filtering options for Categories returned from the connection.
+    """
     where: CategoryWhereInput
   ): CategoryList
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type CategoryEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Category
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type CategoryList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [Category]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [CategoryEdge]
 }
-"""Ordering options for Category connections"""
+"""
+Ordering options for Category connections
+"""
 input CategoryOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Categories."""
+  """
+  The field by which to order Categories.
+  """
   field: CategoryOrderField!
 }
-"""Properties by which Category connections can be ordered."""
+"""
+Properties by which Category connections can be ordered.
+"""
 enum CategoryOrderField {
   ID
   TEXT
+  STATUS
   DURATION
   COUNT
   TODOS_COUNT
 }
-"""CategoryStatus is enum for the field status"""
+"""
+CategoryStatus is enum for the field status
+"""
 enum CategoryStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/category.Status") {
   ENABLED
   DISABLED
 }
-"""CategoryWhereInput is used for filtering Category objects."""
+"""
+CategoryWhereInput is used for filtering Category objects.
+"""
 input CategoryWhereInput {
   not: CategoryWhereInput
   and: [CategoryWhereInput!]
   or: [CategoryWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -141,7 +199,9 @@ input CategoryWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """text field predicates"""
+  """
+  text field predicates
+  """
   text: String
   textNEQ: String
   textIn: [String!]
@@ -155,12 +215,16 @@ input CategoryWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """status field predicates"""
+  """
+  status field predicates
+  """
   status: CategoryStatus
   statusNEQ: CategoryStatus
   statusIn: [CategoryStatus!]
   statusNotIn: [CategoryStatus!]
-  """config field predicates"""
+  """
+  config field predicates
+  """
   config: CategoryConfig
   configNEQ: CategoryConfig
   configIn: [CategoryConfig!]
@@ -171,7 +235,9 @@ input CategoryWhereInput {
   configLTE: CategoryConfig
   configIsNil: Boolean
   configNotNil: Boolean
-  """duration field predicates"""
+  """
+  duration field predicates
+  """
   duration: Duration
   durationNEQ: Duration
   durationIn: [Duration!]
@@ -182,7 +248,9 @@ input CategoryWhereInput {
   durationLTE: Duration
   durationIsNil: Boolean
   durationNotNil: Boolean
-  """count field predicates"""
+  """
+  count field predicates
+  """
   count: Uint64
   countNEQ: Uint64
   countIn: [Uint64!]
@@ -193,25 +261,34 @@ input CategoryWhereInput {
   countLTE: Uint64
   countIsNil: Boolean
   countNotNil: Boolean
-  """todos edge predicates"""
+  """
+  todos edge predicates
+  """
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
-  """sub_categories edge predicates"""
+  """
+  sub_categories edge predicates
+  """
   hasSubCategories: Boolean
   hasSubCategoriesWith: [CategoryWhereInput!]
 }
-"""CreateCategoryInput is used for create Category object."""
+"""
+CreateCategoryInput is used for create Category object.
+"""
 input CreateCategoryInput {
   text: String!
   status: CategoryStatus!
   config: CategoryConfig
+  types: CategoryTypes
   duration: Duration
   count: Uint64
   strings: [String!]
   todoIDs: [ID!]
   subCategoryIDs: [ID!]
 }
-"""CreateTodoInput is used for create Todo object."""
+"""
+CreateTodoInput is used for create Todo object.
+"""
 input CreateTodoInput {
   status: TodoStatus!
   priority: Int
@@ -222,11 +299,14 @@ input CreateTodoInput {
   categoryID: ID
   secretID: ID
 }
-"""CreateUserInput is used for create User object."""
+"""
+CreateUserInput is used for create User object.
+"""
 input CreateUserInput {
   name: String
   username: UUID
   password: String
+  requiredMetadata: Map!
   metadata: Map
   groupIDs: [ID!]
   friendIDs: [ID!]
@@ -239,26 +319,42 @@ type Friendship implements Node {
   user: User!
   friend: User!
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type FriendshipEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Friendship
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type FriendshipList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [Friendship]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [FriendshipEdge]
 }
-"""FriendshipWhereInput is used for filtering Friendship objects."""
+"""
+FriendshipWhereInput is used for filtering Friendship objects.
+"""
 input FriendshipWhereInput {
   not: FriendshipWhereInput
   and: [FriendshipWhereInput!]
   or: [FriendshipWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -267,7 +363,9 @@ input FriendshipWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """created_at field predicates"""
+  """
+  created_at field predicates
+  """
   createdAt: Time
   createdAtNEQ: Time
   createdAtIn: [Time!]
@@ -277,43 +375,67 @@ input FriendshipWhereInput {
   createdAtLT: Time
   createdAtLTE: Time
 }
-type Group implements Node @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
+type Group implements Node & NamedNode @hasPermissions(permissions: ["ADMIN","MODERATOR"]) {
   id: ID!
   name: String!
   users(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Users returned from the connection."""
+    """
+    Ordering options for Users returned from the connection.
+    """
     orderBy: UserOrder
 
-    """Filtering options for Users returned from the connection."""
+    """
+    Filtering options for Users returned from the connection.
+    """
     where: UserWhereInput
   ): UserList
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type GroupEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Group
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type GroupList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [Group]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [GroupEdge]
 }
-"""GroupWhereInput is used for filtering Group objects."""
+"""
+GroupWhereInput is used for filtering Group objects.
+"""
 input GroupWhereInput {
   not: GroupWhereInput
   and: [GroupWhereInput!]
   or: [GroupWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -322,7 +444,9 @@ input GroupWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -336,11 +460,15 @@ input GroupWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """users edge predicates"""
+  """
+  users edge predicates
+  """
   hasUsers: Boolean
   hasUsersWith: [UserWhereInput!]
 }
-"""The builtin Map type"""
+"""
+The builtin Map type
+"""
 scalar Map
 type OneToMany implements Node {
   id: ID!
@@ -349,37 +477,61 @@ type OneToMany implements Node {
   parent: OneToMany
   children: [OneToMany!]
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type OneToManyEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: OneToMany
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type OneToManyList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [OneToMany]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [OneToManyEdge]
 }
-"""Ordering options for OneToMany connections"""
+"""
+Ordering options for OneToMany connections
+"""
 input OneToManyOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order OneToManies."""
+  """
+  The field by which to order OneToManies.
+  """
   field: OneToManyOrderField!
 }
-"""Properties by which OneToMany connections can be ordered."""
+"""
+Properties by which OneToMany connections can be ordered.
+"""
 enum OneToManyOrderField {
   NAME
 }
-"""OneToManyWhereInput is used for filtering OneToMany objects."""
+"""
+OneToManyWhereInput is used for filtering OneToMany objects.
+"""
 input OneToManyWhereInput {
   not: OneToManyWhereInput
   and: [OneToManyWhereInput!]
   or: [OneToManyWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -388,7 +540,9 @@ input OneToManyWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -402,7 +556,9 @@ input OneToManyWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """field2 field predicates"""
+  """
+  field2 field predicates
+  """
   field2: String
   field2NEQ: String
   field2In: [String!]
@@ -418,35 +574,31 @@ input OneToManyWhereInput {
   field2NotNil: Boolean
   field2EqualFold: String
   field2ContainsFold: String
-  """parent edge predicates"""
+  """
+  parent edge predicates
+  """
   hasParent: Boolean
   hasParentWith: [OneToManyWhereInput!]
-  """children edge predicates"""
+  """
+  children edge predicates
+  """
   hasChildren: Boolean
   hasChildrenWith: [OneToManyWhereInput!]
 }
-type Project implements Node {
+type Organization implements Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Workspace") {
   id: ID!
-  todos(
-    """Pagination limit."""
-    limit: Int = 100
-
-    """Pagination offset."""
-    offset: Int = 0
-
-    """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
-
-    """Filtering options for Todos returned from the connection."""
-    where: TodoWhereInput
-  ): TodoList
+  name: String!
 }
-"""ProjectWhereInput is used for filtering Project objects."""
-input ProjectWhereInput {
-  not: ProjectWhereInput
-  and: [ProjectWhereInput!]
-  or: [ProjectWhereInput!]
-  """id field predicates"""
+"""
+OrganizationWhereInput is used for filtering Workspace objects.
+"""
+input OrganizationWhereInput {
+  not: OrganizationWhereInput
+  and: [OrganizationWhereInput!]
+  or: [OrganizationWhereInput!]
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -455,87 +607,198 @@ input ProjectWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """todos edge predicates"""
+  """
+  name field predicates
+  """
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameEqualFold: String
+  nameContainsFold: String
+}
+type Project implements Node {
+  id: ID!
+  todos(
+    """
+    Pagination limit.
+    """
+    limit: Int = 100
+
+    """
+    Pagination offset.
+    """
+    offset: Int = 0
+
+    """
+    Ordering options for Todos returned from the connection.
+    """
+    orderBy: [TodoOrder!]
+
+    """
+    Filtering options for Todos returned from the connection.
+    """
+    where: TodoWhereInput
+  ): TodoList
+}
+"""
+ProjectWhereInput is used for filtering Project objects.
+"""
+input ProjectWhereInput {
+  not: ProjectWhereInput
+  and: [ProjectWhereInput!]
+  or: [ProjectWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  todos edge predicates
+  """
   hasTodos: Boolean
   hasTodosWith: [TodoWhereInput!]
 }
 type Query {
-  """Fetches an object given its ID."""
+  """
+  Fetches an object given its ID.
+  """
   node(
-    """ID of the object."""
+    """
+    ID of the object.
+    """
     id: ID!
   ): Node
-  """Lookup nodes by a list of IDs."""
+  """
+  Lookup nodes by a list of IDs.
+  """
   nodes(
-    """The list of node IDs."""
+    """
+    The list of node IDs.
+    """
     ids: [ID!]!
   ): [Node]!
   billProducts: [BillProduct!]!
   categories(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Categories returned from the connection."""
+    """
+    Ordering options for Categories returned from the connection.
+    """
     orderBy: [CategoryOrder!]
 
-    """Filtering options for Categories returned from the connection."""
+    """
+    Filtering options for Categories returned from the connection.
+    """
     where: CategoryWhereInput
   ): CategoryList
   groups(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Filtering options for Groups returned from the connection."""
+    """
+    Filtering options for Groups returned from the connection.
+    """
     where: GroupWhereInput
   ): GroupList
   oneToMany(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for OneToManies returned from the connection."""
+    """
+    Ordering options for OneToManies returned from the connection.
+    """
     orderBy: OneToManyOrder
 
-    """Filtering options for OneToManies returned from the connection."""
+    """
+    Filtering options for OneToManies returned from the connection.
+    """
     where: OneToManyWhereInput
   ): OneToManyList
-  """This is the todo item"""
+  """
+  This is the todo item
+  """
   todos(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
+    """
+    Ordering options for Todos returned from the connection.
+    """
+    orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoList
   users(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Users returned from the connection."""
+    """
+    Ordering options for Users returned from the connection.
+    """
     orderBy: UserOrder
 
-    """Filtering options for Users returned from the connection."""
+    """
+    Filtering options for Users returned from the connection.
+    """
     where: UserWhereInput
   ): UserList
 }
-"""The builtin Time type"""
+"""
+The builtin Time type
+"""
 scalar Time
 type Todo implements Node {
   id: ID!
@@ -549,46 +812,78 @@ type Todo implements Node {
   init: Map
   custom: [Custom!]
   customp: [Custom]
-  """Todo parent"""
+  """
+  Todo parent
+  """
   parent: Todo
-  """Todo children"""
+  """
+  Todo children
+  """
   children(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Todos returned from the connection."""
-    orderBy: TodoOrder
+    """
+    Ordering options for Todos returned from the connection.
+    """
+    orderBy: [TodoOrder!]
 
-    """Filtering options for Todos returned from the connection."""
+    """
+    Filtering options for Todos returned from the connection.
+    """
     where: TodoWhereInput
   ): TodoList
   category: Category
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type TodoEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Todo
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type TodoList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [Todo]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [TodoEdge]
 }
-"""Ordering options for Todo connections"""
+"""
+Ordering options for Todo connections
+"""
 input TodoOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Todos."""
+  """
+  The field by which to order Todos.
+  """
   field: TodoOrderField!
 }
-"""Properties by which Todo connections can be ordered."""
+"""
+Properties by which Todo connections can be ordered.
+"""
 enum TodoOrderField {
   CREATED_AT
   STATUS
@@ -598,18 +893,24 @@ enum TodoOrderField {
   CHILDREN_COUNT
   CATEGORY_TEXT
 }
-"""TodoStatus is enum for the field status"""
+"""
+TodoStatus is enum for the field status
+"""
 enum TodoStatus @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent/todo.Status") {
   IN_PROGRESS
   COMPLETED
   PENDING
 }
-"""TodoWhereInput is used for filtering Todo objects."""
+"""
+TodoWhereInput is used for filtering Todo objects.
+"""
 input TodoWhereInput {
   not: TodoWhereInput
   and: [TodoWhereInput!]
   or: [TodoWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -618,7 +919,9 @@ input TodoWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """created_at field predicates"""
+  """
+  created_at field predicates
+  """
   createdAt: Time
   createdAtNEQ: Time
   createdAtIn: [Time!]
@@ -627,12 +930,16 @@ input TodoWhereInput {
   createdAtGTE: Time
   createdAtLT: Time
   createdAtLTE: Time
-  """status field predicates"""
+  """
+  status field predicates
+  """
   status: TodoStatus
   statusNEQ: TodoStatus
   statusIn: [TodoStatus!]
   statusNotIn: [TodoStatus!]
-  """priority field predicates"""
+  """
+  priority field predicates
+  """
   priority: Int
   priorityNEQ: Int
   priorityIn: [Int!]
@@ -641,7 +948,9 @@ input TodoWhereInput {
   priorityGTE: Int
   priorityLT: Int
   priorityLTE: Int
-  """text field predicates"""
+  """
+  text field predicates
+  """
   text: String
   textNEQ: String
   textIn: [String!]
@@ -655,31 +964,45 @@ input TodoWhereInput {
   textHasSuffix: String
   textEqualFold: String
   textContainsFold: String
-  """category_id field predicates"""
+  """
+  category_id field predicates
+  """
   categoryID: ID
   categoryIDNEQ: ID
   categoryIDIn: [ID!]
   categoryIDNotIn: [ID!]
   categoryIDIsNil: Boolean
   categoryIDNotNil: Boolean
-  """parent edge predicates"""
+  """
+  parent edge predicates
+  """
   hasParent: Boolean
   hasParentWith: [TodoWhereInput!]
-  """children edge predicates"""
+  """
+  children edge predicates
+  """
   hasChildren: Boolean
   hasChildrenWith: [TodoWhereInput!]
-  """category edge predicates"""
+  """
+  category edge predicates
+  """
   hasCategory: Boolean
   hasCategoryWith: [CategoryWhereInput!]
 }
-"""The builtin Uint64 type"""
+"""
+The builtin Uint64 type
+"""
 scalar Uint64
-"""UpdateCategoryInput is used for update Category object."""
+"""
+UpdateCategoryInput is used for update Category object.
+"""
 input UpdateCategoryInput {
   text: String
   status: CategoryStatus
   config: CategoryConfig
   clearConfig: Boolean
+  types: CategoryTypes
+  clearTypes: Boolean
   duration: Duration
   clearDuration: Boolean
   count: Uint64
@@ -694,13 +1017,17 @@ input UpdateCategoryInput {
   removeSubCategoryIDs: [ID!]
   clearSubCategories: Boolean
 }
-"""UpdateFriendshipInput is used for update Friendship object."""
+"""
+UpdateFriendshipInput is used for update Friendship object.
+"""
 input UpdateFriendshipInput {
   createdAt: Time
   userID: ID
   friendID: ID
 }
-"""UpdateTodoInput is used for update Todo object."""
+"""
+UpdateTodoInput is used for update Todo object.
+"""
 input UpdateTodoInput {
   status: TodoStatus
   priority: Int
@@ -715,12 +1042,15 @@ input UpdateTodoInput {
   secretID: ID
   clearSecret: Boolean
 }
-"""UpdateUserInput is used for update User object."""
+"""
+UpdateUserInput is used for update User object.
+"""
 input UpdateUserInput {
   name: String
   username: UUID
   password: String
   clearPassword: Boolean
+  requiredMetadata: Map
   metadata: Map
   clearMetadata: Boolean
   addGroupIDs: [ID!]
@@ -734,73 +1064,120 @@ type User implements Node {
   id: ID!
   name: String!
   username: UUID!
+  requiredMetadata: Map!
   metadata: Map
-  """The groups of the user"""
+  """
+  The groups of the user
+  """
   groups(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Filtering options for Groups returned from the connection."""
+    """
+    Filtering options for Groups returned from the connection.
+    """
     where: GroupWhereInput
   ): GroupList
   friends(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Ordering options for Users returned from the connection."""
+    """
+    Ordering options for Users returned from the connection.
+    """
     orderBy: UserOrder
 
-    """Filtering options for Users returned from the connection."""
+    """
+    Filtering options for Users returned from the connection.
+    """
     where: UserWhereInput
   ): UserList
   friendships(
-    """Pagination limit."""
+    """
+    Pagination limit.
+    """
     limit: Int = 100
 
-    """Pagination offset."""
+    """
+    Pagination offset.
+    """
     offset: Int = 0
 
-    """Filtering options for Friendships returned from the connection."""
+    """
+    Filtering options for Friendships returned from the connection.
+    """
     where: FriendshipWhereInput
   ): FriendshipList
 }
-"""An edge in a connection."""
+"""
+An edge in a connection.
+"""
 type UserEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: User
 }
-"""A connection to a list of items."""
+"""
+A connection to a list of items.
+"""
 type UserList {
-  """Identifies the total count of data items."""
+  """
+  Identifies the total count of data items.
+  """
   totalCount: Int!
-  """The list of data items."""
+  """
+  The list of data items.
+  """
   items: [User]!
-  """The list of edges where each edge holds a data node and possibly metadata."""
+  """
+  The list of edges where each edge holds a data node and possibly metadata.
+  """
   edges: [UserEdge]
 }
-"""Ordering options for User connections"""
+"""
+Ordering options for User connections
+"""
 input UserOrder {
-  """The ordering direction."""
+  """
+  The ordering direction.
+  """
   direction: OrderDirection! = ASC
-  """The field by which to order Users."""
+  """
+  The field by which to order Users.
+  """
   field: UserOrderField!
 }
-"""Properties by which User connections can be ordered."""
+"""
+Properties by which User connections can be ordered.
+"""
 enum UserOrderField {
   GROUPS_COUNT
 }
-"""UserWhereInput is used for filtering User objects."""
+"""
+UserWhereInput is used for filtering User objects.
+"""
 input UserWhereInput {
   not: UserWhereInput
   and: [UserWhereInput!]
   or: [UserWhereInput!]
-  """id field predicates"""
+  """
+  id field predicates
+  """
   id: ID
   idNEQ: ID
   idIn: [ID!]
@@ -809,7 +1186,9 @@ input UserWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
-  """name field predicates"""
+  """
+  name field predicates
+  """
   name: String
   nameNEQ: String
   nameIn: [String!]
@@ -823,7 +1202,9 @@ input UserWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
-  """username field predicates"""
+  """
+  username field predicates
+  """
   username: UUID
   usernameNEQ: UUID
   usernameIn: [UUID!]
@@ -832,13 +1213,19 @@ input UserWhereInput {
   usernameGTE: UUID
   usernameLT: UUID
   usernameLTE: UUID
-  """groups edge predicates"""
+  """
+  groups edge predicates
+  """
   hasGroups: Boolean
   hasGroupsWith: [GroupWhereInput!]
-  """friends edge predicates"""
+  """
+  friends edge predicates
+  """
   hasFriends: Boolean
   hasFriendsWith: [UserWhereInput!]
-  """friendships edge predicates"""
+  """
+  friendships edge predicates
+  """
   hasFriendships: Boolean
   hasFriendshipsWith: [FriendshipWhereInput!]
 }

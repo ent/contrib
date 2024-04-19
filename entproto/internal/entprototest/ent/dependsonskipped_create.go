@@ -48,7 +48,7 @@ func (dosc *DependsOnSkippedCreate) Mutation() *DependsOnSkippedMutation {
 
 // Save creates the DependsOnSkipped in the database.
 func (dosc *DependsOnSkippedCreate) Save(ctx context.Context) (*DependsOnSkipped, error) {
-	return withHooks[*DependsOnSkipped, DependsOnSkippedMutation](ctx, dosc.sqlSave, dosc.mutation, dosc.hooks)
+	return withHooks(ctx, dosc.sqlSave, dosc.mutation, dosc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -130,11 +130,15 @@ func (dosc *DependsOnSkippedCreate) createSpec() (*DependsOnSkipped, *sqlgraph.C
 // DependsOnSkippedCreateBulk is the builder for creating many DependsOnSkipped entities in bulk.
 type DependsOnSkippedCreateBulk struct {
 	config
+	err      error
 	builders []*DependsOnSkippedCreate
 }
 
 // Save creates the DependsOnSkipped entities in the database.
 func (doscb *DependsOnSkippedCreateBulk) Save(ctx context.Context) ([]*DependsOnSkipped, error) {
+	if doscb.err != nil {
+		return nil, doscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(doscb.builders))
 	nodes := make([]*DependsOnSkipped, len(doscb.builders))
 	mutators := make([]Mutator, len(doscb.builders))

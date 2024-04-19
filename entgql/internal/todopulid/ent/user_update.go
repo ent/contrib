@@ -93,6 +93,12 @@ func (uu *UserUpdate) ClearPassword() *UserUpdate {
 	return uu
 }
 
+// SetRequiredMetadata sets the "required_metadata" field.
+func (uu *UserUpdate) SetRequiredMetadata(m map[string]interface{}) *UserUpdate {
+	uu.mutation.SetRequiredMetadata(m)
+	return uu
+}
+
 // SetMetadata sets the "metadata" field.
 func (uu *UserUpdate) SetMetadata(m map[string]interface{}) *UserUpdate {
 	uu.mutation.SetMetadata(m)
@@ -220,7 +226,7 @@ func (uu *UserUpdate) RemoveFriendships(f ...*Friendship) *UserUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, UserMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -265,6 +271,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := uu.mutation.RequiredMetadata(); ok {
+		_spec.SetField(user.FieldRequiredMetadata, field.TypeJSON, value)
 	}
 	if value, ok := uu.mutation.Metadata(); ok {
 		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)
@@ -496,6 +505,12 @@ func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
 	return uuo
 }
 
+// SetRequiredMetadata sets the "required_metadata" field.
+func (uuo *UserUpdateOne) SetRequiredMetadata(m map[string]interface{}) *UserUpdateOne {
+	uuo.mutation.SetRequiredMetadata(m)
+	return uuo
+}
+
 // SetMetadata sets the "metadata" field.
 func (uuo *UserUpdateOne) SetMetadata(m map[string]interface{}) *UserUpdateOne {
 	uuo.mutation.SetMetadata(m)
@@ -636,7 +651,7 @@ func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne 
 
 // Save executes the query and returns the updated User entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks[*User, UserMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -698,6 +713,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := uuo.mutation.RequiredMetadata(); ok {
+		_spec.SetField(user.FieldRequiredMetadata, field.TypeJSON, value)
 	}
 	if value, ok := uuo.mutation.Metadata(); ok {
 		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)

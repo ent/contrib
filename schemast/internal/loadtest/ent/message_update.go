@@ -34,7 +34,7 @@ func (mu *MessageUpdate) Mutation() *MessageMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mu *MessageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, MessageMutation](ctx, mu.sqlSave, mu.mutation, mu.hooks)
+	return withHooks(ctx, mu.sqlSave, mu.mutation, mu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (muo *MessageUpdateOne) Select(field string, fields ...string) *MessageUpda
 
 // Save executes the query and returns the updated Message entity.
 func (muo *MessageUpdateOne) Save(ctx context.Context) (*Message, error) {
-	return withHooks[*Message, MessageMutation](ctx, muo.sqlSave, muo.mutation, muo.hooks)
+	return withHooks(ctx, muo.sqlSave, muo.mutation, muo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

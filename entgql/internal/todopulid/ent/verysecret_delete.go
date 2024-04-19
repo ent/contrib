@@ -41,7 +41,7 @@ func (vsd *VerySecretDelete) Where(ps ...predicate.VerySecret) *VerySecretDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (vsd *VerySecretDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, VerySecretMutation](ctx, vsd.sqlExec, vsd.mutation, vsd.hooks)
+	return withHooks(ctx, vsd.sqlExec, vsd.mutation, vsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -36,6 +36,14 @@ func (pu *PetUpdate) SetName(s string) *PetUpdate {
 	return pu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pu *PetUpdate) SetNillableName(s *string) *PetUpdate {
+	if s != nil {
+		pu.SetName(*s)
+	}
+	return pu
+}
+
 // SetNicknames sets the "nicknames" field.
 func (pu *PetUpdate) SetNicknames(s []string) *PetUpdate {
 	pu.mutation.SetNicknames(s)
@@ -185,7 +193,7 @@ func (pu *PetUpdate) RemoveFriends(p ...*Pet) *PetUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *PetUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, PetMutation](ctx, pu.sqlSave, pu.mutation, pu.hooks)
+	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -387,6 +395,14 @@ func (puo *PetUpdateOne) SetName(s string) *PetUpdateOne {
 	return puo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (puo *PetUpdateOne) SetNillableName(s *string) *PetUpdateOne {
+	if s != nil {
+		puo.SetName(*s)
+	}
+	return puo
+}
+
 // SetNicknames sets the "nicknames" field.
 func (puo *PetUpdateOne) SetNicknames(s []string) *PetUpdateOne {
 	puo.mutation.SetNicknames(s)
@@ -549,7 +565,7 @@ func (puo *PetUpdateOne) Select(field string, fields ...string) *PetUpdateOne {
 
 // Save executes the query and returns the updated Pet entity.
 func (puo *PetUpdateOne) Save(ctx context.Context) (*Pet, error) {
-	return withHooks[*Pet, PetMutation](ctx, puo.sqlSave, puo.mutation, puo.hooks)
+	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

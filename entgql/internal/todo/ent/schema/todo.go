@@ -125,5 +125,6 @@ func (Todo) Annotations() []schema.Annotation {
 		entgql.RelayConnection(),
 		entgql.QueryField().Description("This is the todo item"),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+		entgql.MultiOrder(),
 	}
 }

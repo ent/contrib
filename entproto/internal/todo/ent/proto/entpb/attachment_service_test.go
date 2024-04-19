@@ -71,6 +71,7 @@ func TestAttachmentService_MultiEdge(t *testing.T) {
 			SetCustomPb(1).
 			SetLabels(nil).
 			SetOmitPrefix(user.OmitPrefixFoo).
+			SetMimeType(user.MimeTypeSvg).
 			SaveX(ctx))
 	}
 	att, err := svc.Create(ctx, &CreateAttachmentRequest{Attachment: &Attachment{

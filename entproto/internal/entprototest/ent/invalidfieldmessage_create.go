@@ -33,7 +33,7 @@ func (ifmc *InvalidFieldMessageCreate) Mutation() *InvalidFieldMessageMutation {
 
 // Save creates the InvalidFieldMessage in the database.
 func (ifmc *InvalidFieldMessageCreate) Save(ctx context.Context) (*InvalidFieldMessage, error) {
-	return withHooks[*InvalidFieldMessage, InvalidFieldMessageMutation](ctx, ifmc.sqlSave, ifmc.mutation, ifmc.hooks)
+	return withHooks(ctx, ifmc.sqlSave, ifmc.mutation, ifmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -99,11 +99,15 @@ func (ifmc *InvalidFieldMessageCreate) createSpec() (*InvalidFieldMessage, *sqlg
 // InvalidFieldMessageCreateBulk is the builder for creating many InvalidFieldMessage entities in bulk.
 type InvalidFieldMessageCreateBulk struct {
 	config
+	err      error
 	builders []*InvalidFieldMessageCreate
 }
 
 // Save creates the InvalidFieldMessage entities in the database.
 func (ifmcb *InvalidFieldMessageCreateBulk) Save(ctx context.Context) ([]*InvalidFieldMessage, error) {
+	if ifmcb.err != nil {
+		return nil, ifmcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ifmcb.builders))
 	nodes := make([]*InvalidFieldMessage, len(ifmcb.builders))
 	mutators := make([]Mutator, len(ifmcb.builders))

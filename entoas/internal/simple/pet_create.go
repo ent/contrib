@@ -109,7 +109,7 @@ func (pc *PetCreate) Mutation() *PetMutation {
 
 // Save creates the Pet in the database.
 func (pc *PetCreate) Save(ctx context.Context) (*Pet, error) {
-	return withHooks[*Pet, PetMutation](ctx, pc.sqlSave, pc.mutation, pc.hooks)
+	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -238,11 +238,15 @@ func (pc *PetCreate) createSpec() (*Pet, *sqlgraph.CreateSpec) {
 // PetCreateBulk is the builder for creating many Pet entities in bulk.
 type PetCreateBulk struct {
 	config
+	err      error
 	builders []*PetCreate
 }
 
 // Save creates the Pet entities in the database.
 func (pcb *PetCreateBulk) Save(ctx context.Context) ([]*Pet, error) {
+	if pcb.err != nil {
+		return nil, pcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
 	nodes := make([]*Pet, len(pcb.builders))
 	mutators := make([]Mutator, len(pcb.builders))

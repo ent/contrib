@@ -34,6 +34,14 @@ func (iu *ImageUpdate) SetURLPath(s string) *ImageUpdate {
 	return iu
 }
 
+// SetNillableURLPath sets the "url_path" field if the given value is not nil.
+func (iu *ImageUpdate) SetNillableURLPath(s *string) *ImageUpdate {
+	if s != nil {
+		iu.SetURLPath(*s)
+	}
+	return iu
+}
+
 // AddUserProfilePicIDs adds the "user_profile_pic" edge to the User entity by IDs.
 func (iu *ImageUpdate) AddUserProfilePicIDs(ids ...int) *ImageUpdate {
 	iu.mutation.AddUserProfilePicIDs(ids...)
@@ -77,7 +85,7 @@ func (iu *ImageUpdate) RemoveUserProfilePic(u ...*User) *ImageUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (iu *ImageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ImageMutation](ctx, iu.sqlSave, iu.mutation, iu.hooks)
+	return withHooks(ctx, iu.sqlSave, iu.mutation, iu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -185,6 +193,14 @@ func (iuo *ImageUpdateOne) SetURLPath(s string) *ImageUpdateOne {
 	return iuo
 }
 
+// SetNillableURLPath sets the "url_path" field if the given value is not nil.
+func (iuo *ImageUpdateOne) SetNillableURLPath(s *string) *ImageUpdateOne {
+	if s != nil {
+		iuo.SetURLPath(*s)
+	}
+	return iuo
+}
+
 // AddUserProfilePicIDs adds the "user_profile_pic" edge to the User entity by IDs.
 func (iuo *ImageUpdateOne) AddUserProfilePicIDs(ids ...int) *ImageUpdateOne {
 	iuo.mutation.AddUserProfilePicIDs(ids...)
@@ -241,7 +257,7 @@ func (iuo *ImageUpdateOne) Select(field string, fields ...string) *ImageUpdateOn
 
 // Save executes the query and returns the updated Image entity.
 func (iuo *ImageUpdateOne) Save(ctx context.Context) (*Image, error) {
-	return withHooks[*Image, ImageMutation](ctx, iuo.sqlSave, iuo.mutation, iuo.hooks)
+	return withHooks(ctx, iuo.sqlSave, iuo.mutation, iuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

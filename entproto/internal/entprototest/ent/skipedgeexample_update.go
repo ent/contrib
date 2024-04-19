@@ -60,7 +60,7 @@ func (seeu *SkipEdgeExampleUpdate) ClearUser() *SkipEdgeExampleUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (seeu *SkipEdgeExampleUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, SkipEdgeExampleMutation](ctx, seeu.sqlSave, seeu.mutation, seeu.hooks)
+	return withHooks(ctx, seeu.sqlSave, seeu.mutation, seeu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -188,7 +188,7 @@ func (seeuo *SkipEdgeExampleUpdateOne) Select(field string, fields ...string) *S
 
 // Save executes the query and returns the updated SkipEdgeExample entity.
 func (seeuo *SkipEdgeExampleUpdateOne) Save(ctx context.Context) (*SkipEdgeExample, error) {
-	return withHooks[*SkipEdgeExample, SkipEdgeExampleMutation](ctx, seeuo.sqlSave, seeuo.mutation, seeuo.hooks)
+	return withHooks(ctx, seeuo.sqlSave, seeuo.mutation, seeuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

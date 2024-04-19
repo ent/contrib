@@ -52,10 +52,20 @@ const (
 	FieldType = "type"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldInt32s holds the string denoting the int32s field in the database.
+	FieldInt32s = "int32s"
+	// FieldInt64s holds the string denoting the int64s field in the database.
+	FieldInt64s = "int64s"
+	// FieldUint32s holds the string denoting the uint32s field in the database.
+	FieldUint32s = "uint32s"
+	// FieldUint64s holds the string denoting the uint64s field in the database.
+	FieldUint64s = "uint64s"
 	// FieldDeviceType holds the string denoting the device_type field in the database.
 	FieldDeviceType = "device_type"
 	// FieldOmitPrefix holds the string denoting the omit_prefix field in the database.
 	FieldOmitPrefix = "omit_prefix"
+	// FieldMimeType holds the string denoting the mime_type field in the database.
+	FieldMimeType = "mime_type"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
@@ -133,8 +143,13 @@ var Columns = []string{
 	FieldUnnecessary,
 	FieldType,
 	FieldLabels,
+	FieldInt32s,
+	FieldInt64s,
+	FieldUint32s,
+	FieldUint64s,
 	FieldDeviceType,
 	FieldOmitPrefix,
+	FieldMimeType,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -245,6 +260,29 @@ func OmitPrefixValidator(op OmitPrefix) error {
 	}
 }
 
+// MimeType defines the type for the "mime_type" enum field.
+type MimeType string
+
+// MimeType values.
+const (
+	MimeTypePng MimeType = "image/png"
+	MimeTypeSvg MimeType = "image/xml+svg"
+)
+
+func (mt MimeType) String() string {
+	return string(mt)
+}
+
+// MimeTypeValidator is a validator for the "mime_type" field enum values. It is called by the builders before save.
+func MimeTypeValidator(mt MimeType) error {
+	switch mt {
+	case MimeTypePng, MimeTypeSvg:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for mime_type field: %q", mt)
+	}
+}
+
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
 
@@ -351,6 +389,11 @@ func ByDeviceType(opts ...sql.OrderTermOption) OrderOption {
 // ByOmitPrefix orders the results by the omit_prefix field.
 func ByOmitPrefix(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOmitPrefix, opts...).ToFunc()
+}
+
+// ByMimeType orders the results by the mime_type field.
+func ByMimeType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMimeType, opts...).ToFunc()
 }
 
 // ByGroupField orders the results by group field.

@@ -34,9 +34,25 @@ func (cu *CategoryUpdate) SetName(s string) *CategoryUpdate {
 	return cu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableName(s *string) *CategoryUpdate {
+	if s != nil {
+		cu.SetName(*s)
+	}
+	return cu
+}
+
 // SetDescription sets the "description" field.
 func (cu *CategoryUpdate) SetDescription(s string) *CategoryUpdate {
 	cu.mutation.SetDescription(s)
+	return cu
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableDescription(s *string) *CategoryUpdate {
+	if s != nil {
+		cu.SetDescription(*s)
+	}
 	return cu
 }
 
@@ -83,7 +99,7 @@ func (cu *CategoryUpdate) RemoveBlogPosts(b ...*BlogPost) *CategoryUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *CategoryUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, CategoryMutation](ctx, cu.sqlSave, cu.mutation, cu.hooks)
+	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -194,9 +210,25 @@ func (cuo *CategoryUpdateOne) SetName(s string) *CategoryUpdateOne {
 	return cuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableName(s *string) *CategoryUpdateOne {
+	if s != nil {
+		cuo.SetName(*s)
+	}
+	return cuo
+}
+
 // SetDescription sets the "description" field.
 func (cuo *CategoryUpdateOne) SetDescription(s string) *CategoryUpdateOne {
 	cuo.mutation.SetDescription(s)
+	return cuo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableDescription(s *string) *CategoryUpdateOne {
+	if s != nil {
+		cuo.SetDescription(*s)
+	}
 	return cuo
 }
 
@@ -256,7 +288,7 @@ func (cuo *CategoryUpdateOne) Select(field string, fields ...string) *CategoryUp
 
 // Save executes the query and returns the updated Category entity.
 func (cuo *CategoryUpdateOne) Save(ctx context.Context) (*Category, error) {
-	return withHooks[*Category, CategoryMutation](ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -31,6 +31,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
+	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
@@ -45,29 +46,53 @@ type Noder interface {
 	IsNode()
 }
 
-// IsNode implements the Node interface check for GQLGen.
-func (n *BillProduct) IsNode() {}
+var billproductImplementors = []string{"BillProduct", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Category) IsNode() {}
+func (*BillProduct) IsNode() {}
+
+var categoryImplementors = []string{"Category", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Friendship) IsNode() {}
+func (*Category) IsNode() {}
+
+var friendshipImplementors = []string{"Friendship", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Group) IsNode() {}
+func (*Friendship) IsNode() {}
+
+var groupImplementors = []string{"Group", "Node", "NamedNode"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *OneToMany) IsNode() {}
+func (*Group) IsNode() {}
+
+// IsNamedNode implements the NamedNode interface check for GQLGen.
+func (*Group) IsNamedNode() {}
+
+var onetomanyImplementors = []string{"OneToMany", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Project) IsNode() {}
+func (*OneToMany) IsNode() {}
+
+var projectImplementors = []string{"Project", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *Todo) IsNode() {}
+func (*Project) IsNode() {}
+
+var todoImplementors = []string{"Todo", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
-func (n *User) IsNode() {}
+func (*Todo) IsNode() {}
+
+var userImplementors = []string{"User", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*User) IsNode() {}
+
+var workspaceImplementors = []string{"Organization", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Workspace) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -130,99 +155,84 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 	case billproduct.Table:
 		query := c.BillProduct.Query().
 			Where(billproduct.ID(id))
-		query, err := query.CollectFields(ctx, "BillProduct")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, billproductImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case category.Table:
 		query := c.Category.Query().
 			Where(category.ID(id))
-		query, err := query.CollectFields(ctx, "Category")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, categoryImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case friendship.Table:
 		query := c.Friendship.Query().
 			Where(friendship.ID(id))
-		query, err := query.CollectFields(ctx, "Friendship")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, friendshipImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.ID(id))
-		query, err := query.CollectFields(ctx, "Group")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, groupImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case onetomany.Table:
 		query := c.OneToMany.Query().
 			Where(onetomany.ID(id))
-		query, err := query.CollectFields(ctx, "OneToMany")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, onetomanyImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case project.Table:
 		query := c.Project.Query().
 			Where(project.ID(id))
-		query, err := query.CollectFields(ctx, "Project")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, projectImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case todo.Table:
 		query := c.Todo.Query().
 			Where(todo.ID(id))
-		query, err := query.CollectFields(ctx, "Todo")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, todoImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return n, nil
+		return query.Only(ctx)
 	case user.Table:
 		query := c.User.Query().
 			Where(user.ID(id))
-		query, err := query.CollectFields(ctx, "User")
-		if err != nil {
-			return nil, err
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, userImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		n, err := query.Only(ctx)
-		if err != nil {
-			return nil, err
+		return query.Only(ctx)
+	case workspace.Table:
+		query := c.Workspace.Query().
+			Where(workspace.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, workspaceImplementors...); err != nil {
+				return nil, err
+			}
 		}
-		return n, nil
+		return query.Only(ctx)
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
 	}
@@ -299,7 +309,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case billproduct.Table:
 		query := c.BillProduct.Query().
 			Where(billproduct.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "BillProduct")
+		query, err := query.CollectFields(ctx, billproductImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -315,7 +325,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case category.Table:
 		query := c.Category.Query().
 			Where(category.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Category")
+		query, err := query.CollectFields(ctx, categoryImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -331,7 +341,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case friendship.Table:
 		query := c.Friendship.Query().
 			Where(friendship.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Friendship")
+		query, err := query.CollectFields(ctx, friendshipImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -347,7 +357,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case group.Table:
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Group")
+		query, err := query.CollectFields(ctx, groupImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -363,7 +373,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case onetomany.Table:
 		query := c.OneToMany.Query().
 			Where(onetomany.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "OneToMany")
+		query, err := query.CollectFields(ctx, onetomanyImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -379,7 +389,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case project.Table:
 		query := c.Project.Query().
 			Where(project.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Project")
+		query, err := query.CollectFields(ctx, projectImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -395,7 +405,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case todo.Table:
 		query := c.Todo.Query().
 			Where(todo.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "Todo")
+		query, err := query.CollectFields(ctx, todoImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -411,7 +421,23 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	case user.Table:
 		query := c.User.Query().
 			Where(user.IDIn(ids...))
-		query, err := query.CollectFields(ctx, "User")
+		query, err := query.CollectFields(ctx, userImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case workspace.Table:
+		query := c.Workspace.Query().
+			Where(workspace.IDIn(ids...))
+		query, err := query.CollectFields(ctx, workspaceImplementors...)
 		if err != nil {
 			return nil, err
 		}

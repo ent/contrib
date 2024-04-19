@@ -22,7 +22,6 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todofed/ent/category"
 	"entgo.io/contrib/entgql/internal/todofed/ent/todo"
-	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
 
@@ -32,13 +31,13 @@ func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) 
 	if fc == nil {
 		return c, nil
 	}
-	if err := c.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := c.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -47,13 +46,14 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+
 		case "todos":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
 				query = (&TodoClient{config: c.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
 			c.WithNamedTodos(alias, func(wq *TodoQuery) {
@@ -102,24 +102,31 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 }
 
 type categoryPaginateArgs struct {
-	limit, offset *int
+	first, last   *int
+	after, before *Cursor
 	opts          []CategoryPaginateOption
 }
 
-func newCategoryPaginateArgs(rv map[string]interface{}) *categoryPaginateArgs {
+func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 	args := &categoryPaginateArgs{}
 	if rv == nil {
 		return args
 	}
-	if v := rv[limitField]; v != nil {
-		args.limit = v.(*int)
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
 	}
-	if v := rv[offsetField]; v != nil {
-		args.offset = v.(*int)
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &CategoryOrder{Field: &CategoryOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -148,13 +155,13 @@ func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*To
 	if fc == nil {
 		return t, nil
 	}
-	if err := t.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := t.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return t, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -163,35 +170,38 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+
 		case "parent":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
 				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
 			t.withParent = query
+
 		case "children":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
 				query = (&TodoClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
 			t.WithNamedChildren(alias, func(wq *TodoQuery) {
 				*wq = *query
 			})
+
 		case "category":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
 				query = (&CategoryClient{config: t.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, categoryImplementors)...); err != nil {
 				return err
 			}
 			t.withCategory = query
@@ -233,24 +243,31 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 }
 
 type todoPaginateArgs struct {
-	limit, offset *int
+	first, last   *int
+	after, before *Cursor
 	opts          []TodoPaginateOption
 }
 
-func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
+func newTodoPaginateArgs(rv map[string]any) *todoPaginateArgs {
 	args := &todoPaginateArgs{}
 	if rv == nil {
 		return args
 	}
-	if v := rv[limitField]; v != nil {
-		args.limit = v.(*int)
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
 	}
-	if v := rv[offsetField]; v != nil {
-		args.offset = v.(*int)
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &TodoOrder{Field: &TodoOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -274,44 +291,29 @@ func newTodoPaginateArgs(rv map[string]interface{}) *todoPaginateArgs {
 }
 
 const (
-	limitField     = "limit"
-	offsetField    = "offset"
+	afterField     = "after"
+	firstField     = "first"
+	beforeField    = "before"
+	lastField      = "last"
 	orderByField   = "orderBy"
 	directionField = "direction"
 	fieldField     = "field"
 	whereField     = "where"
 )
 
-func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[string]interface{} {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]any {
+	field := collectedField(ctx, path...)
+	if field == nil || field.Arguments == nil {
 		return nil
 	}
 	oc := graphql.GetOperationContext(ctx)
-	for _, name := range path {
-		var field *graphql.CollectedField
-		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Alias == name {
-				field = &f
-				break
-			}
-		}
-		if field == nil {
-			return nil
-		}
-		cf, err := fc.Child(ctx, *field)
-		if err != nil {
-			args := field.ArgumentMap(oc.Variables)
-			return unmarshalArgs(ctx, whereInput, args)
-		}
-		fc = cf
-	}
-	return fc.Args
+	args := field.ArgumentMap(oc.Variables)
+	return unmarshalArgs(ctx, whereInput, args)
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
-func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
-	for _, k := range []string{limitField, offsetField} {
+func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
+	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
 		if !ok {
 			continue
@@ -319,6 +321,16 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 		i, err := graphql.UnmarshalInt(v)
 		if err == nil {
 			args[k] = &i
+		}
+	}
+	for _, k := range []string{beforeField, afterField} {
+		v, ok := args[k]
+		if !ok {
+			continue
+		}
+		c := &Cursor{}
+		if c.UnmarshalGQL(v) == nil {
+			args[k] = c
 		}
 	}
 	if v, ok := args[whereField]; ok && whereInput != nil {
@@ -330,39 +342,17 @@ func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]
 	return args
 }
 
-func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sql.Selector) {
-	return func(s *sql.Selector) {
-		d := sql.Dialect(s.Dialect())
-		s.SetDistinct(false)
-		with := d.With("src_query").
-			As(s.Clone()).
-			With("limited_query").
-			As(
-				d.Select("*").
-					AppendSelectExprAs(
-						sql.RowNumber().PartitionBy(partitionBy).OrderExpr(orderBy...),
-						"row_number",
-					).
-					From(d.Table("src_query")),
-			)
-		t := d.Table("limited_query").As(s.TableName())
-		*s = *d.Select(s.UnqualifiedColumns()...).
-			From(t).
-			Where(sql.LTE(t.C("row_number"), limit)).
-			Prefix(with)
-	}
-}
-
 // mayAddCondition appends another type condition to the satisfies list
-// if condition is enabled (Node/Nodes) and it does not exist in the list.
-func mayAddCondition(satisfies []string, typeCond string) []string {
-	if len(satisfies) == 0 {
-		return satisfies
-	}
-	for _, s := range satisfies {
-		if typeCond == s {
-			return satisfies
+// if it does not exist in the list.
+func mayAddCondition(satisfies []string, typeCond []string) []string {
+Cond:
+	for _, c := range typeCond {
+		for _, s := range satisfies {
+			if c == s {
+				continue Cond
+			}
 		}
+		satisfies = append(satisfies, c)
 	}
-	return append(satisfies, typeCond)
+	return satisfies
 }

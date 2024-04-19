@@ -12,11 +12,15 @@ resolver:
   dir: .
 
 autobind:
+  # Fix binding for the `Field` interface.
+  - github.com/99designs/gqlgen/graphql/introspection
   - entgo.io/contrib/entgql/internal/todo/ent
   # Auto-bind the generated `Status` enum to GraphQL.
   - entgo.io/contrib/entgql/internal/todo/ent/todo
   - entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct
 
+# Disable the generated getters for all models and interfaces.
+omit_getters: true
 models:
   ID:
     model:
@@ -41,6 +45,12 @@ models:
   CategoryConfigInput:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryConfig
+  CategoryTypes:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryTypes
+  CategoryTypesInput:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent/schema/schematype.CategoryTypes
   UUID:
     model:
       - entgo.io/contrib/entgql/internal/todouuid/ent/schema/uuidgql.UUID

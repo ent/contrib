@@ -124,32 +124,15 @@ func ExistingContainsFold(v string) predicate.WithFields {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.WithFields) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.WithFields(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.WithFields) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.WithFields(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.WithFields) predicate.WithFields {
-	return predicate.WithFields(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.WithFields(sql.NotPredicates(p))
 }

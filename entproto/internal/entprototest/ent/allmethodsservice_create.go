@@ -25,7 +25,7 @@ func (amsc *AllMethodsServiceCreate) Mutation() *AllMethodsServiceMutation {
 
 // Save creates the AllMethodsService in the database.
 func (amsc *AllMethodsServiceCreate) Save(ctx context.Context) (*AllMethodsService, error) {
-	return withHooks[*AllMethodsService, AllMethodsServiceMutation](ctx, amsc.sqlSave, amsc.mutation, amsc.hooks)
+	return withHooks(ctx, amsc.sqlSave, amsc.mutation, amsc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -84,11 +84,15 @@ func (amsc *AllMethodsServiceCreate) createSpec() (*AllMethodsService, *sqlgraph
 // AllMethodsServiceCreateBulk is the builder for creating many AllMethodsService entities in bulk.
 type AllMethodsServiceCreateBulk struct {
 	config
+	err      error
 	builders []*AllMethodsServiceCreate
 }
 
 // Save creates the AllMethodsService entities in the database.
 func (amscb *AllMethodsServiceCreateBulk) Save(ctx context.Context) ([]*AllMethodsService, error) {
+	if amscb.err != nil {
+		return nil, amscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(amscb.builders))
 	nodes := make([]*AllMethodsService, len(amscb.builders))
 	mutators := make([]Mutator, len(amscb.builders))

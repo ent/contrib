@@ -220,6 +220,30 @@ func (uc *UserCreate) SetLabels(s []string) *UserCreate {
 	return uc
 }
 
+// SetInt32s sets the "int32s" field.
+func (uc *UserCreate) SetInt32s(i []int32) *UserCreate {
+	uc.mutation.SetInt32s(i)
+	return uc
+}
+
+// SetInt64s sets the "int64s" field.
+func (uc *UserCreate) SetInt64s(i []int64) *UserCreate {
+	uc.mutation.SetInt64s(i)
+	return uc
+}
+
+// SetUint32s sets the "uint32s" field.
+func (uc *UserCreate) SetUint32s(u []uint32) *UserCreate {
+	uc.mutation.SetUint32s(u)
+	return uc
+}
+
+// SetUint64s sets the "uint64s" field.
+func (uc *UserCreate) SetUint64s(u []uint64) *UserCreate {
+	uc.mutation.SetUint64s(u)
+	return uc
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uc *UserCreate) SetDeviceType(ut user.DeviceType) *UserCreate {
 	uc.mutation.SetDeviceType(ut)
@@ -237,6 +261,12 @@ func (uc *UserCreate) SetNillableDeviceType(ut *user.DeviceType) *UserCreate {
 // SetOmitPrefix sets the "omit_prefix" field.
 func (uc *UserCreate) SetOmitPrefix(up user.OmitPrefix) *UserCreate {
 	uc.mutation.SetOmitPrefix(up)
+	return uc
+}
+
+// SetMimeType sets the "mime_type" field.
+func (uc *UserCreate) SetMimeType(ut user.MimeType) *UserCreate {
+	uc.mutation.SetMimeType(ut)
 	return uc
 }
 
@@ -345,7 +375,7 @@ func (uc *UserCreate) Mutation() *UserMutation {
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	uc.defaults()
-	return withHooks[*User, UserMutation](ctx, uc.sqlSave, uc.mutation, uc.hooks)
+	return withHooks(ctx, uc.sqlSave, uc.mutation, uc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -444,6 +474,14 @@ func (uc *UserCreate) check() error {
 	if v, ok := uc.mutation.OmitPrefix(); ok {
 		if err := user.OmitPrefixValidator(v); err != nil {
 			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
+	if _, ok := uc.mutation.MimeType(); !ok {
+		return &ValidationError{Name: "mime_type", err: errors.New(`ent: missing required field "User.mime_type"`)}
+	}
+	if v, ok := uc.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
 		}
 	}
 	return nil
@@ -554,6 +592,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldLabels, field.TypeJSON, value)
 		_node.Labels = value
 	}
+	if value, ok := uc.mutation.Int32s(); ok {
+		_spec.SetField(user.FieldInt32s, field.TypeJSON, value)
+		_node.Int32s = value
+	}
+	if value, ok := uc.mutation.Int64s(); ok {
+		_spec.SetField(user.FieldInt64s, field.TypeJSON, value)
+		_node.Int64s = value
+	}
+	if value, ok := uc.mutation.Uint32s(); ok {
+		_spec.SetField(user.FieldUint32s, field.TypeJSON, value)
+		_node.Uint32s = value
+	}
+	if value, ok := uc.mutation.Uint64s(); ok {
+		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
+		_node.Uint64s = value
+	}
 	if value, ok := uc.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 		_node.DeviceType = value
@@ -561,6 +615,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.OmitPrefix(); ok {
 		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
 		_node.OmitPrefix = value
+	}
+	if value, ok := uc.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
+		_node.MimeType = value
 	}
 	if nodes := uc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -649,11 +707,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 // UserCreateBulk is the builder for creating many User entities in bulk.
 type UserCreateBulk struct {
 	config
+	err      error
 	builders []*UserCreate
 }
 
 // Save creates the User entities in the database.
 func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
+	if ucb.err != nil {
+		return nil, ucb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ucb.builders))
 	nodes := make([]*User, len(ucb.builders))
 	mutators := make([]Mutator, len(ucb.builders))

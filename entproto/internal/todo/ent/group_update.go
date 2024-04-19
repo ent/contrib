@@ -34,6 +34,14 @@ func (gu *GroupUpdate) SetName(s string) *GroupUpdate {
 	return gu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (gu *GroupUpdate) SetNillableName(s *string) *GroupUpdate {
+	if s != nil {
+		gu.SetName(*s)
+	}
+	return gu
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (gu *GroupUpdate) AddUserIDs(ids ...uint32) *GroupUpdate {
 	gu.mutation.AddUserIDs(ids...)
@@ -77,7 +85,7 @@ func (gu *GroupUpdate) RemoveUsers(u ...*User) *GroupUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (gu *GroupUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, GroupMutation](ctx, gu.sqlSave, gu.mutation, gu.hooks)
+	return withHooks(ctx, gu.sqlSave, gu.mutation, gu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -185,6 +193,14 @@ func (guo *GroupUpdateOne) SetName(s string) *GroupUpdateOne {
 	return guo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (guo *GroupUpdateOne) SetNillableName(s *string) *GroupUpdateOne {
+	if s != nil {
+		guo.SetName(*s)
+	}
+	return guo
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (guo *GroupUpdateOne) AddUserIDs(ids ...uint32) *GroupUpdateOne {
 	guo.mutation.AddUserIDs(ids...)
@@ -241,7 +257,7 @@ func (guo *GroupUpdateOne) Select(field string, fields ...string) *GroupUpdateOn
 
 // Save executes the query and returns the updated Group entity.
 func (guo *GroupUpdateOne) Save(ctx context.Context) (*Group, error) {
-	return withHooks[*Group, GroupMutation](ctx, guo.sqlSave, guo.mutation, guo.hooks)
+	return withHooks(ctx, guo.sqlSave, guo.mutation, guo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

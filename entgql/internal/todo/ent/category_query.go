@@ -39,8 +39,8 @@ type CategoryQuery struct {
 	predicates             []predicate.Category
 	withTodos              *TodoQuery
 	withSubCategories      *CategoryQuery
-	modifiers              []func(*sql.Selector)
 	loadTotal              []func(context.Context, []*Category) error
+	modifiers              []func(*sql.Selector)
 	withNamedTodos         map[string]*TodoQuery
 	withNamedSubCategories map[string]*CategoryQuery
 	// intermediate query (i.e. traversal path).
@@ -645,6 +645,9 @@ func (cq *CategoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if cq.ctx.Unique != nil && *cq.ctx.Unique {
 		selector.Distinct()
 	}
+	for _, m := range cq.modifiers {
+		m(selector)
+	}
 	for _, p := range cq.predicates {
 		p(selector)
 	}
@@ -660,6 +663,12 @@ func (cq *CategoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (cq *CategoryQuery) Modify(modifiers ...func(s *sql.Selector)) *CategorySelect {
+	cq.modifiers = append(cq.modifiers, modifiers...)
+	return cq.Select()
 }
 
 // WithNamedTodos tells the query-builder to eager-load the nodes that are connected to the "todos"
@@ -778,4 +787,10 @@ func (cs *CategorySelect) sqlScan(ctx context.Context, root *CategoryQuery, v an
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
+}
+
+// Modify adds a query modifier for attaching custom logic to queries.
+func (cs *CategorySelect) Modify(modifiers ...func(s *sql.Selector)) *CategorySelect {
+	cs.modifiers = append(cs.modifiers, modifiers...)
+	return cs
 }

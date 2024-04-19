@@ -36,6 +36,8 @@ const (
 	FieldStatus = "status"
 	// FieldConfig holds the string denoting the config field in the database.
 	FieldConfig = "config"
+	// FieldTypes holds the string denoting the types field in the database.
+	FieldTypes = "types"
 	// FieldDuration holds the string denoting the duration field in the database.
 	FieldDuration = "duration"
 	// FieldCount holds the string denoting the count field in the database.
@@ -65,6 +67,7 @@ var Columns = []string{
 	FieldText,
 	FieldStatus,
 	FieldConfig,
+	FieldTypes,
 	FieldDuration,
 	FieldCount,
 	FieldStrings,

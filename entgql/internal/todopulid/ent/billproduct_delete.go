@@ -41,7 +41,7 @@ func (bpd *BillProductDelete) Where(ps ...predicate.BillProduct) *BillProductDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (bpd *BillProductDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, BillProductMutation](ctx, bpd.sqlExec, bpd.mutation, bpd.hooks)
+	return withHooks(ctx, bpd.sqlExec, bpd.mutation, bpd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

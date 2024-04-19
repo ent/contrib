@@ -21,6 +21,7 @@ import (
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+	regexp "regexp"
 	strconv "strconv"
 	strings "strings"
 )
@@ -38,8 +39,14 @@ func NewUserService(client *ent.Client) *UserService {
 	}
 }
 
+var protoIdentNormalizeRegexpUser_DeviceType = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+
+func protoIdentNormalizeUser_DeviceType(e string) string {
+	return protoIdentNormalizeRegexpUser_DeviceType.ReplaceAllString(e, "_")
+}
+
 func toProtoUser_DeviceType(e user.DeviceType) User_DeviceType {
-	if v, ok := User_DeviceType_value[strings.ToUpper("DEVICE_TYPE_"+string(e))]; ok {
+	if v, ok := User_DeviceType_value[strings.ToUpper("DEVICE_TYPE_"+protoIdentNormalizeUser_DeviceType(string(e)))]; ok {
 		return User_DeviceType(v)
 	}
 	return User_DeviceType(0)
@@ -56,8 +63,38 @@ func toEntUser_DeviceType(e User_DeviceType) user.DeviceType {
 	return ""
 }
 
+var protoIdentNormalizeRegexpUser_MimeType = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+
+func protoIdentNormalizeUser_MimeType(e string) string {
+	return protoIdentNormalizeRegexpUser_MimeType.ReplaceAllString(e, "_")
+}
+
+func toProtoUser_MimeType(e user.MimeType) User_MimeType {
+	if v, ok := User_MimeType_value[strings.ToUpper("MIME_TYPE_"+protoIdentNormalizeUser_MimeType(string(e)))]; ok {
+		return User_MimeType(v)
+	}
+	return User_MimeType(0)
+}
+
+func toEntUser_MimeType(e User_MimeType) user.MimeType {
+	if v, ok := User_MimeType_name[int32(e)]; ok {
+		entVal := map[string]string{
+			"MIME_TYPE_IMAGE_PNG":     "image/png",
+			"MIME_TYPE_IMAGE_XML_SVG": "image/xml+svg",
+		}[v]
+		return user.MimeType(entVal)
+	}
+	return ""
+}
+
+var protoIdentNormalizeRegexpUser_OmitPrefix = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+
+func protoIdentNormalizeUser_OmitPrefix(e string) string {
+	return protoIdentNormalizeRegexpUser_OmitPrefix.ReplaceAllString(e, "_")
+}
+
 func toProtoUser_OmitPrefix(e user.OmitPrefix) User_OmitPrefix {
-	if v, ok := User_OmitPrefix_value[strings.ToUpper(string(e))]; ok {
+	if v, ok := User_OmitPrefix_value[strings.ToUpper(protoIdentNormalizeUser_OmitPrefix(string(e)))]; ok {
 		return User_OmitPrefix(v)
 	}
 	return User_OmitPrefix(0)
@@ -74,8 +111,14 @@ func toEntUser_OmitPrefix(e User_OmitPrefix) user.OmitPrefix {
 	return ""
 }
 
+var protoIdentNormalizeRegexpUser_Status = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+
+func protoIdentNormalizeUser_Status(e string) string {
+	return protoIdentNormalizeRegexpUser_Status.ReplaceAllString(e, "_")
+}
+
 func toProtoUser_Status(e user.Status) User_Status {
-	if v, ok := User_Status_value[strings.ToUpper("STATUS_"+string(e))]; ok {
+	if v, ok := User_Status_value[strings.ToUpper("STATUS_"+protoIdentNormalizeUser_Status(string(e)))]; ok {
 		return User_Status(v)
 	}
 	return User_Status(0)
@@ -128,10 +171,16 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.HeightInCm = height_in_cm
 	id := e.ID
 	v.Id = id
+	int32s := e.Int32s
+	v.Int32S = int32s
+	int64s := e.Int64s
+	v.Int64S = int64s
 	joined := timestamppb.New(e.Joined)
 	v.Joined = joined
 	labels := e.Labels
 	v.Labels = labels
+	mime_type := toProtoUser_MimeType(e.MimeType)
+	v.MimeType = mime_type
 	omit_prefix := toProtoUser_OmitPrefix(e.OmitPrefix)
 	v.OmitPrefix = omit_prefix
 	opt_bool := wrapperspb.Bool(e.OptBool)
@@ -146,6 +195,10 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Status = status
 	_type := wrapperspb.String(e.Type)
 	v.Type = _type
+	uint32s := e.Uint32s
+	v.Uint32S = uint32s
+	uint64s := e.Uint64s
+	v.Uint64S = uint64s
 	user_name := e.UserName
 	v.UserName = user_name
 	if edg := e.Edges.Attachment; edg != nil {
@@ -294,10 +347,20 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetExternalID(userExternalID)
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
+	if user.GetInt32S() != nil {
+		userInt32s := user.GetInt32S()
+		m.SetInt32s(userInt32s)
+	}
+	if user.GetInt64S() != nil {
+		userInt64s := user.GetInt64S()
+		m.SetInt64s(userInt64s)
+	}
 	if user.GetLabels() != nil {
 		userLabels := user.GetLabels()
 		m.SetLabels(userLabels)
 	}
+	userMimeType := toEntUser_MimeType(user.GetMimeType())
+	m.SetMimeType(userMimeType)
 	userOmitPrefix := toEntUser_OmitPrefix(user.GetOmitPrefix())
 	m.SetOmitPrefix(userOmitPrefix)
 	if user.GetOptBool() != nil {
@@ -319,6 +382,14 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	if user.GetType() != nil {
 		userType := user.GetType().GetValue()
 		m.SetType(userType)
+	}
+	if user.GetUint32S() != nil {
+		userUint32s := user.GetUint32S()
+		m.SetUint32s(userUint32s)
+	}
+	if user.GetUint64S() != nil {
+		userUint64s := user.GetUint64S()
+		m.SetUint64s(userUint64s)
 	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)
@@ -517,12 +588,22 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	m.SetExternalID(userExternalID)
 	userHeightInCm := float32(user.GetHeightInCm())
 	m.SetHeightInCm(userHeightInCm)
+	if user.GetInt32S() != nil {
+		userInt32s := user.GetInt32S()
+		m.SetInt32s(userInt32s)
+	}
+	if user.GetInt64S() != nil {
+		userInt64s := user.GetInt64S()
+		m.SetInt64s(userInt64s)
+	}
 	userJoined := runtime.ExtractTime(user.GetJoined())
 	m.SetJoined(userJoined)
 	if user.GetLabels() != nil {
 		userLabels := user.GetLabels()
 		m.SetLabels(userLabels)
 	}
+	userMimeType := toEntUser_MimeType(user.GetMimeType())
+	m.SetMimeType(userMimeType)
 	userOmitPrefix := toEntUser_OmitPrefix(user.GetOmitPrefix())
 	m.SetOmitPrefix(userOmitPrefix)
 	if user.GetOptBool() != nil {
@@ -544,6 +625,14 @@ func (svc *UserService) createBuilder(user *User) (*ent.UserCreate, error) {
 	if user.GetType() != nil {
 		userType := user.GetType().GetValue()
 		m.SetType(userType)
+	}
+	if user.GetUint32S() != nil {
+		userUint32s := user.GetUint32S()
+		m.SetUint32s(userUint32s)
+	}
+	if user.GetUint64S() != nil {
+		userUint64s := user.GetUint64S()
+		m.SetUint64s(userUint64s)
 	}
 	userUserName := user.GetUserName()
 	m.SetUserName(userUserName)

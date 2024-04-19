@@ -34,6 +34,8 @@ const (
 	FieldUsername = "username"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
+	// FieldRequiredMetadata holds the string denoting the required_metadata field in the database.
+	FieldRequiredMetadata = "required_metadata"
 	// FieldMetadata holds the string denoting the metadata field in the database.
 	FieldMetadata = "metadata"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldName,
 	FieldUsername,
 	FieldPassword,
+	FieldRequiredMetadata,
 	FieldMetadata,
 }
 

@@ -52,7 +52,7 @@ func (wmfc *WithModifiedFieldCreate) Mutation() *WithModifiedFieldMutation {
 
 // Save creates the WithModifiedField in the database.
 func (wmfc *WithModifiedFieldCreate) Save(ctx context.Context) (*WithModifiedField, error) {
-	return withHooks[*WithModifiedField, WithModifiedFieldMutation](ctx, wmfc.sqlSave, wmfc.mutation, wmfc.hooks)
+	return withHooks(ctx, wmfc.sqlSave, wmfc.mutation, wmfc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -140,11 +140,15 @@ func (wmfc *WithModifiedFieldCreate) createSpec() (*WithModifiedField, *sqlgraph
 // WithModifiedFieldCreateBulk is the builder for creating many WithModifiedField entities in bulk.
 type WithModifiedFieldCreateBulk struct {
 	config
+	err      error
 	builders []*WithModifiedFieldCreate
 }
 
 // Save creates the WithModifiedField entities in the database.
 func (wmfcb *WithModifiedFieldCreateBulk) Save(ctx context.Context) ([]*WithModifiedField, error) {
+	if wmfcb.err != nil {
+		return nil, wmfcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wmfcb.builders))
 	nodes := make([]*WithModifiedField, len(wmfcb.builders))
 	mutators := make([]Mutator, len(wmfcb.builders))

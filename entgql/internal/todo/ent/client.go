@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
 	"entgo.io/ent"
@@ -34,6 +35,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/contrib/entgql/internal/todo/ent/verysecret"
+	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -62,15 +64,15 @@ type Client struct {
 	User *UserClient
 	// VerySecret is the client for interacting with the VerySecret builders.
 	VerySecret *VerySecretClient
+	// Workspace is the client for interacting with the Workspace builders.
+	Workspace *WorkspaceClient
 	// additional fields for node api
 	tables tables
 }
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
-	cfg.options(opts...)
-	client := &Client{config: cfg}
+	client := &Client{config: newConfig(opts...)}
 	client.init()
 	return client
 }
@@ -86,6 +88,7 @@ func (c *Client) init() {
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.VerySecret = NewVerySecretClient(c.config)
+	c.Workspace = NewWorkspaceClient(c.config)
 }
 
 type (
@@ -105,6 +108,13 @@ type (
 	// Option function to configure the client.
 	Option func(*config)
 )
+
+// newConfig creates a new config for the client.
+func newConfig(opts ...Option) config {
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
+	cfg.options(opts...)
+	return cfg
+}
 
 // options applies the options on the config object.
 func (c *config) options(opts ...Option) {
@@ -153,11 +163,14 @@ func Open(driverName, dataSourceName string, options ...Option) (*Client, error)
 	}
 }
 
+// ErrTxStarted is returned when trying to start a new transaction from a transactional client.
+var ErrTxStarted = errors.New("ent: cannot start a transaction within a transaction")
+
 // Tx returns a new transactional client. The provided context
 // is used until the transaction is committed or rolled back.
 func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	if _, ok := c.driver.(*txDriver); ok {
-		return nil, errors.New("ent: cannot start a transaction within a transaction")
+		return nil, ErrTxStarted
 	}
 	tx, err := newTx(ctx, c.driver)
 	if err != nil {
@@ -177,6 +190,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Todo:        NewTodoClient(cfg),
 		User:        NewUserClient(cfg),
 		VerySecret:  NewVerySecretClient(cfg),
+		Workspace:   NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -205,6 +219,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Todo:        NewTodoClient(cfg),
 		User:        NewUserClient(cfg),
 		VerySecret:  NewVerySecretClient(cfg),
+		Workspace:   NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -235,7 +250,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret,
+		c.Todo, c.User, c.VerySecret, c.Workspace,
 	} {
 		n.Use(hooks...)
 	}
@@ -246,7 +261,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret,
+		c.Todo, c.User, c.VerySecret, c.Workspace,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -273,6 +288,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *VerySecretMutation:
 		return c.VerySecret.mutate(ctx, m)
+	case *WorkspaceMutation:
+		return c.Workspace.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -308,6 +325,21 @@ func (c *BillProductClient) Create() *BillProductCreate {
 
 // CreateBulk returns a builder for creating a bulk of BillProduct entities.
 func (c *BillProductClient) CreateBulk(builders ...*BillProductCreate) *BillProductCreateBulk {
+	return &BillProductCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BillProductClient) MapCreateBulk(slice any, setFunc func(*BillProductCreate, int)) *BillProductCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BillProductCreateBulk{err: fmt.Errorf("calling to BillProductClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BillProductCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &BillProductCreateBulk{config: c.config, builders: builders}
 }
 
@@ -426,6 +458,21 @@ func (c *CategoryClient) Create() *CategoryCreate {
 
 // CreateBulk returns a builder for creating a bulk of Category entities.
 func (c *CategoryClient) CreateBulk(builders ...*CategoryCreate) *CategoryCreateBulk {
+	return &CategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CategoryClient) MapCreateBulk(slice any, setFunc func(*CategoryCreate, int)) *CategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CategoryCreateBulk{err: fmt.Errorf("calling to CategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &CategoryCreateBulk{config: c.config, builders: builders}
 }
 
@@ -579,6 +626,21 @@ func (c *FriendshipClient) CreateBulk(builders ...*FriendshipCreate) *Friendship
 	return &FriendshipCreateBulk{config: c.config, builders: builders}
 }
 
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FriendshipClient) MapCreateBulk(slice any, setFunc func(*FriendshipCreate, int)) *FriendshipCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FriendshipCreateBulk{err: fmt.Errorf("calling to FriendshipClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FriendshipCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FriendshipCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for Friendship.
 func (c *FriendshipClient) Update() *FriendshipUpdate {
 	mutation := newFriendshipMutation(c.config, OpUpdate)
@@ -729,6 +791,21 @@ func (c *GroupClient) CreateBulk(builders ...*GroupCreate) *GroupCreateBulk {
 	return &GroupCreateBulk{config: c.config, builders: builders}
 }
 
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GroupClient) MapCreateBulk(slice any, setFunc func(*GroupCreate, int)) *GroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GroupCreateBulk{err: fmt.Errorf("calling to GroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GroupCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for Group.
 func (c *GroupClient) Update() *GroupUpdate {
 	mutation := newGroupMutation(c.config, OpUpdate)
@@ -860,6 +937,21 @@ func (c *OneToManyClient) Create() *OneToManyCreate {
 
 // CreateBulk returns a builder for creating a bulk of OneToMany entities.
 func (c *OneToManyClient) CreateBulk(builders ...*OneToManyCreate) *OneToManyCreateBulk {
+	return &OneToManyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OneToManyClient) MapCreateBulk(slice any, setFunc func(*OneToManyCreate, int)) *OneToManyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OneToManyCreateBulk{err: fmt.Errorf("calling to OneToManyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OneToManyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &OneToManyCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1013,6 +1105,21 @@ func (c *ProjectClient) CreateBulk(builders ...*ProjectCreate) *ProjectCreateBul
 	return &ProjectCreateBulk{config: c.config, builders: builders}
 }
 
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProjectClient) MapCreateBulk(slice any, setFunc func(*ProjectCreate, int)) *ProjectCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProjectCreateBulk{err: fmt.Errorf("calling to ProjectClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProjectCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProjectCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for Project.
 func (c *ProjectClient) Update() *ProjectUpdate {
 	mutation := newProjectMutation(c.config, OpUpdate)
@@ -1144,6 +1251,21 @@ func (c *TodoClient) Create() *TodoCreate {
 
 // CreateBulk returns a builder for creating a bulk of Todo entities.
 func (c *TodoClient) CreateBulk(builders ...*TodoCreate) *TodoCreateBulk {
+	return &TodoCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TodoClient) MapCreateBulk(slice any, setFunc func(*TodoCreate, int)) *TodoCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TodoCreateBulk{err: fmt.Errorf("calling to TodoClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TodoCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &TodoCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1329,6 +1451,21 @@ func (c *UserClient) CreateBulk(builders ...*UserCreate) *UserCreateBulk {
 	return &UserCreateBulk{config: c.config, builders: builders}
 }
 
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserClient) MapCreateBulk(slice any, setFunc func(*UserCreate, int)) *UserCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserCreateBulk{err: fmt.Errorf("calling to UserClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for User.
 func (c *UserClient) Update() *UserUpdate {
 	mutation := newUserMutation(c.config, OpUpdate)
@@ -1495,6 +1632,21 @@ func (c *VerySecretClient) CreateBulk(builders ...*VerySecretCreate) *VerySecret
 	return &VerySecretCreateBulk{config: c.config, builders: builders}
 }
 
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *VerySecretClient) MapCreateBulk(slice any, setFunc func(*VerySecretCreate, int)) *VerySecretCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &VerySecretCreateBulk{err: fmt.Errorf("calling to VerySecretClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*VerySecretCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &VerySecretCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for VerySecret.
 func (c *VerySecretClient) Update() *VerySecretUpdate {
 	mutation := newVerySecretMutation(c.config, OpUpdate)
@@ -1580,14 +1732,147 @@ func (c *VerySecretClient) mutate(ctx context.Context, m *VerySecretMutation) (V
 	}
 }
 
+// WorkspaceClient is a client for the Workspace schema.
+type WorkspaceClient struct {
+	config
+}
+
+// NewWorkspaceClient returns a client for the Workspace from the given config.
+func NewWorkspaceClient(c config) *WorkspaceClient {
+	return &WorkspaceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workspace.Hooks(f(g(h())))`.
+func (c *WorkspaceClient) Use(hooks ...Hook) {
+	c.hooks.Workspace = append(c.hooks.Workspace, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workspace.Intercept(f(g(h())))`.
+func (c *WorkspaceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Workspace = append(c.inters.Workspace, interceptors...)
+}
+
+// Create returns a builder for creating a Workspace entity.
+func (c *WorkspaceClient) Create() *WorkspaceCreate {
+	mutation := newWorkspaceMutation(c.config, OpCreate)
+	return &WorkspaceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Workspace entities.
+func (c *WorkspaceClient) CreateBulk(builders ...*WorkspaceCreate) *WorkspaceCreateBulk {
+	return &WorkspaceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkspaceClient) MapCreateBulk(slice any, setFunc func(*WorkspaceCreate, int)) *WorkspaceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkspaceCreateBulk{err: fmt.Errorf("calling to WorkspaceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkspaceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkspaceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Workspace.
+func (c *WorkspaceClient) Update() *WorkspaceUpdate {
+	mutation := newWorkspaceMutation(c.config, OpUpdate)
+	return &WorkspaceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkspaceClient) UpdateOne(w *Workspace) *WorkspaceUpdateOne {
+	mutation := newWorkspaceMutation(c.config, OpUpdateOne, withWorkspace(w))
+	return &WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkspaceClient) UpdateOneID(id int) *WorkspaceUpdateOne {
+	mutation := newWorkspaceMutation(c.config, OpUpdateOne, withWorkspaceID(id))
+	return &WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Workspace.
+func (c *WorkspaceClient) Delete() *WorkspaceDelete {
+	mutation := newWorkspaceMutation(c.config, OpDelete)
+	return &WorkspaceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkspaceClient) DeleteOne(w *Workspace) *WorkspaceDeleteOne {
+	return c.DeleteOneID(w.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkspaceClient) DeleteOneID(id int) *WorkspaceDeleteOne {
+	builder := c.Delete().Where(workspace.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkspaceDeleteOne{builder}
+}
+
+// Query returns a query builder for Workspace.
+func (c *WorkspaceClient) Query() *WorkspaceQuery {
+	return &WorkspaceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkspace},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Workspace entity by its id.
+func (c *WorkspaceClient) Get(ctx context.Context, id int) (*Workspace, error) {
+	return c.Query().Where(workspace.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkspaceClient) GetX(ctx context.Context, id int) *Workspace {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *WorkspaceClient) Hooks() []Hook {
+	return c.hooks.Workspace
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkspaceClient) Interceptors() []Interceptor {
+	return c.inters.Workspace
+}
+
+func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkspaceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkspaceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkspaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkspaceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Workspace mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret []ent.Hook
+		VerySecret, Workspace []ent.Hook
 	}
 	inters struct {
 		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret []ent.Interceptor
+		VerySecret, Workspace []ent.Interceptor
 	}
 )

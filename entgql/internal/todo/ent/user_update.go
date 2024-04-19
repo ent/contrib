@@ -34,8 +34,9 @@ import (
 // UserUpdate is the builder for updating User entities.
 type UserUpdate struct {
 	config
-	hooks    []Hook
-	mutation *UserMutation
+	hooks     []Hook
+	mutation  *UserMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -89,6 +90,12 @@ func (uu *UserUpdate) SetNillablePassword(s *string) *UserUpdate {
 // ClearPassword clears the value of the "password" field.
 func (uu *UserUpdate) ClearPassword() *UserUpdate {
 	uu.mutation.ClearPassword()
+	return uu
+}
+
+// SetRequiredMetadata sets the "required_metadata" field.
+func (uu *UserUpdate) SetRequiredMetadata(m map[string]interface{}) *UserUpdate {
+	uu.mutation.SetRequiredMetadata(m)
 	return uu
 }
 
@@ -219,7 +226,7 @@ func (uu *UserUpdate) RemoveFriendships(f ...*Friendship) *UserUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, UserMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -244,6 +251,12 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uu *UserUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserUpdate {
+	uu.modifiers = append(uu.modifiers, modifiers...)
+	return uu
+}
+
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
@@ -264,6 +277,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := uu.mutation.RequiredMetadata(); ok {
+		_spec.SetField(user.FieldRequiredMetadata, field.TypeJSON, value)
 	}
 	if value, ok := uu.mutation.Metadata(); ok {
 		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)
@@ -418,6 +434,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(uu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -433,9 +450,10 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserUpdateOne is the builder for updating a single User entity.
 type UserUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *UserMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *UserMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
@@ -483,6 +501,12 @@ func (uuo *UserUpdateOne) SetNillablePassword(s *string) *UserUpdateOne {
 // ClearPassword clears the value of the "password" field.
 func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
 	uuo.mutation.ClearPassword()
+	return uuo
+}
+
+// SetRequiredMetadata sets the "required_metadata" field.
+func (uuo *UserUpdateOne) SetRequiredMetadata(m map[string]interface{}) *UserUpdateOne {
+	uuo.mutation.SetRequiredMetadata(m)
 	return uuo
 }
 
@@ -626,7 +650,7 @@ func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne 
 
 // Save executes the query and returns the updated User entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks[*User, UserMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -649,6 +673,12 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 	if err := uuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (uuo *UserUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *UserUpdateOne {
+	uuo.modifiers = append(uuo.modifiers, modifiers...)
+	return uuo
 }
 
 func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
@@ -688,6 +718,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
+	if value, ok := uuo.mutation.RequiredMetadata(); ok {
+		_spec.SetField(user.FieldRequiredMetadata, field.TypeJSON, value)
 	}
 	if value, ok := uuo.mutation.Metadata(); ok {
 		_spec.SetField(user.FieldMetadata, field.TypeJSON, value)
@@ -842,6 +875,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	_spec.AddModifiers(uuo.modifiers...)
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

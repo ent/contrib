@@ -33,6 +33,14 @@ func (pu *PonyUpdate) SetName(s string) *PonyUpdate {
 	return pu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pu *PonyUpdate) SetNillableName(s *string) *PonyUpdate {
+	if s != nil {
+		pu.SetName(*s)
+	}
+	return pu
+}
+
 // Mutation returns the PonyMutation object of the builder.
 func (pu *PonyUpdate) Mutation() *PonyMutation {
 	return pu.mutation
@@ -40,7 +48,7 @@ func (pu *PonyUpdate) Mutation() *PonyMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *PonyUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, PonyMutation](ctx, pu.sqlSave, pu.mutation, pu.hooks)
+	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -103,6 +111,14 @@ func (puo *PonyUpdateOne) SetName(s string) *PonyUpdateOne {
 	return puo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (puo *PonyUpdateOne) SetNillableName(s *string) *PonyUpdateOne {
+	if s != nil {
+		puo.SetName(*s)
+	}
+	return puo
+}
+
 // Mutation returns the PonyMutation object of the builder.
 func (puo *PonyUpdateOne) Mutation() *PonyMutation {
 	return puo.mutation
@@ -123,7 +139,7 @@ func (puo *PonyUpdateOne) Select(field string, fields ...string) *PonyUpdateOne 
 
 // Save executes the query and returns the updated Pony entity.
 func (puo *PonyUpdateOne) Save(ctx context.Context) (*Pony, error) {
-	return withHooks[*Pony, PonyMutation](ctx, puo.sqlSave, puo.mutation, puo.hooks)
+	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -56,13 +56,21 @@ func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 //	}
 type Extension struct {
 	entc.DefaultExtension
-	protoDir string
+	protoDir    string
+	skipGenFile bool
 }
 
 // WithProtoDir sets the directory where the generated .proto files will be written.
 func WithProtoDir(dir string) ExtensionOption {
 	return func(e *Extension) {
 		e.protoDir = dir
+	}
+}
+
+// SkipGenFile skips the generation of a generate.go file next to each .proto file.
+func SkipGenFile() ExtensionOption {
+	return func(e *Extension) {
+		e.skipGenFile = true
 	}
 }
 
@@ -101,9 +109,11 @@ func Hook() gen.Hook {
 	return x.hook()
 }
 
-// Generate takes a *gen.Graph and creates .proto files. Next to each .proto file, Generate creates a generate.go
+// Generate takes a *gen.Graph and creates .proto files.
+// Next to each .proto file, Generate creates a generate.go
 // file containing a //go:generate directive to invoke protoc and compile Go code from the protobuf definitions.
 // If generate.go already exists next to the .proto file, this step is skipped.
+// To disable the generation of the generate.go file, use the `entproto.SkipGenFile()` option.
 func Generate(g *gen.Graph) error {
 	x := &Extension{}
 	return x.generate(g)
@@ -138,24 +148,27 @@ func (e *Extension) generate(g *gen.Graph) error {
 	if err = printer.PrintProtosToFileSystem(allDescriptors, entProtoDir); err != nil {
 		return fmt.Errorf("entproto: failed writing .proto files: %w", err)
 	}
-	// Print a generate.go file with protoc command for go file generation
-	for _, fd := range allDescriptors {
-		protoFilePath := filepath.Join(entProtoDir, fd.GetName())
-		dir := filepath.Dir(protoFilePath)
-		genGoPath := filepath.Join(dir, "generate.go")
-		if !fileExists(genGoPath) {
-			abs, err := filepath.Abs(dir)
-			if err != nil {
-				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
-			}
-			toBase, err := filepath.Rel(abs, g.Config.Target)
-			if err != nil {
-				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
-			}
-			toSchema := filepath.Join(toBase, "schema")
-			contents := protocGenerateGo(fd, toSchema)
-			if err := os.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
-				return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
+
+	if !e.skipGenFile {
+		// Print a generate.go file with protoc command for go file generation
+		for _, fd := range allDescriptors {
+			protoFilePath := filepath.Join(entProtoDir, fd.GetName())
+			dir := filepath.Dir(protoFilePath)
+			genGoPath := filepath.Join(dir, "generate.go")
+			if !fileExists(genGoPath) {
+				abs, err := filepath.Abs(dir)
+				if err != nil {
+					return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
+				}
+				toBase, err := filepath.Rel(abs, g.Config.Target)
+				if err != nil {
+					return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
+				}
+				toSchema := filepath.Join(toBase, "schema")
+				contents := protocGenerateGo(fd, toSchema)
+				if err := os.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
+					return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
+				}
 			}
 		}
 	}

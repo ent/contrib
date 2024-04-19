@@ -31,8 +31,9 @@ import (
 // BillProductUpdate is the builder for updating BillProduct entities.
 type BillProductUpdate struct {
 	config
-	hooks    []Hook
-	mutation *BillProductMutation
+	hooks     []Hook
+	mutation  *BillProductMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // Where appends a list predicates to the BillProductUpdate builder.
@@ -47,9 +48,25 @@ func (bpu *BillProductUpdate) SetName(s string) *BillProductUpdate {
 	return bpu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (bpu *BillProductUpdate) SetNillableName(s *string) *BillProductUpdate {
+	if s != nil {
+		bpu.SetName(*s)
+	}
+	return bpu
+}
+
 // SetSku sets the "sku" field.
 func (bpu *BillProductUpdate) SetSku(s string) *BillProductUpdate {
 	bpu.mutation.SetSku(s)
+	return bpu
+}
+
+// SetNillableSku sets the "sku" field if the given value is not nil.
+func (bpu *BillProductUpdate) SetNillableSku(s *string) *BillProductUpdate {
+	if s != nil {
+		bpu.SetSku(*s)
+	}
 	return bpu
 }
 
@@ -57,6 +74,14 @@ func (bpu *BillProductUpdate) SetSku(s string) *BillProductUpdate {
 func (bpu *BillProductUpdate) SetQuantity(u uint64) *BillProductUpdate {
 	bpu.mutation.ResetQuantity()
 	bpu.mutation.SetQuantity(u)
+	return bpu
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (bpu *BillProductUpdate) SetNillableQuantity(u *uint64) *BillProductUpdate {
+	if u != nil {
+		bpu.SetQuantity(*u)
+	}
 	return bpu
 }
 
@@ -73,7 +98,7 @@ func (bpu *BillProductUpdate) Mutation() *BillProductMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bpu *BillProductUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, BillProductMutation](ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
+	return withHooks(ctx, bpu.sqlSave, bpu.mutation, bpu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -98,6 +123,12 @@ func (bpu *BillProductUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (bpu *BillProductUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *BillProductUpdate {
+	bpu.modifiers = append(bpu.modifiers, modifiers...)
+	return bpu
+}
+
 func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(billproduct.Table, billproduct.Columns, sqlgraph.NewFieldSpec(billproduct.FieldID, field.TypeInt))
 	if ps := bpu.mutation.predicates; len(ps) > 0 {
@@ -119,6 +150,7 @@ func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := bpu.mutation.AddedQuantity(); ok {
 		_spec.AddField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
+	_spec.AddModifiers(bpu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, bpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{billproduct.Label}
@@ -134,14 +166,23 @@ func (bpu *BillProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // BillProductUpdateOne is the builder for updating a single BillProduct entity.
 type BillProductUpdateOne struct {
 	config
-	fields   []string
-	hooks    []Hook
-	mutation *BillProductMutation
+	fields    []string
+	hooks     []Hook
+	mutation  *BillProductMutation
+	modifiers []func(*sql.UpdateBuilder)
 }
 
 // SetName sets the "name" field.
 func (bpuo *BillProductUpdateOne) SetName(s string) *BillProductUpdateOne {
 	bpuo.mutation.SetName(s)
+	return bpuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (bpuo *BillProductUpdateOne) SetNillableName(s *string) *BillProductUpdateOne {
+	if s != nil {
+		bpuo.SetName(*s)
+	}
 	return bpuo
 }
 
@@ -151,10 +192,26 @@ func (bpuo *BillProductUpdateOne) SetSku(s string) *BillProductUpdateOne {
 	return bpuo
 }
 
+// SetNillableSku sets the "sku" field if the given value is not nil.
+func (bpuo *BillProductUpdateOne) SetNillableSku(s *string) *BillProductUpdateOne {
+	if s != nil {
+		bpuo.SetSku(*s)
+	}
+	return bpuo
+}
+
 // SetQuantity sets the "quantity" field.
 func (bpuo *BillProductUpdateOne) SetQuantity(u uint64) *BillProductUpdateOne {
 	bpuo.mutation.ResetQuantity()
 	bpuo.mutation.SetQuantity(u)
+	return bpuo
+}
+
+// SetNillableQuantity sets the "quantity" field if the given value is not nil.
+func (bpuo *BillProductUpdateOne) SetNillableQuantity(u *uint64) *BillProductUpdateOne {
+	if u != nil {
+		bpuo.SetQuantity(*u)
+	}
 	return bpuo
 }
 
@@ -184,7 +241,7 @@ func (bpuo *BillProductUpdateOne) Select(field string, fields ...string) *BillPr
 
 // Save executes the query and returns the updated BillProduct entity.
 func (bpuo *BillProductUpdateOne) Save(ctx context.Context) (*BillProduct, error) {
-	return withHooks[*BillProduct, BillProductMutation](ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
+	return withHooks(ctx, bpuo.sqlSave, bpuo.mutation, bpuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -207,6 +264,12 @@ func (bpuo *BillProductUpdateOne) ExecX(ctx context.Context) {
 	if err := bpuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
+func (bpuo *BillProductUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *BillProductUpdateOne {
+	bpuo.modifiers = append(bpuo.modifiers, modifiers...)
+	return bpuo
 }
 
 func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProduct, err error) {
@@ -247,6 +310,7 @@ func (bpuo *BillProductUpdateOne) sqlSave(ctx context.Context) (_node *BillProdu
 	if value, ok := bpuo.mutation.AddedQuantity(); ok {
 		_spec.AddField(billproduct.FieldQuantity, field.TypeUint64, value)
 	}
+	_spec.AddModifiers(bpuo.modifiers...)
 	_node = &BillProduct{config: bpuo.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues

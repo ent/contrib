@@ -33,6 +33,14 @@ func (uu *UserUpdate) SetName(s string) *UserUpdate {
 	return uu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableName(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetName(*s)
+	}
+	return uu
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -40,7 +48,7 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, UserMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -103,6 +111,14 @@ func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableName(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetName(*s)
+	}
+	return uuo
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -123,7 +139,7 @@ func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne 
 
 // Save executes the query and returns the updated User entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks[*User, UserMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

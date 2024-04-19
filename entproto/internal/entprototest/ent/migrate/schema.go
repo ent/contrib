@@ -75,6 +75,17 @@ var (
 		Columns:    DuplicateNumberMessagesColumns,
 		PrimaryKey: []*schema.Column{DuplicateNumberMessagesColumns[0]},
 	}
+	// EnumWithConflictingValuesColumns holds the columns for the "enum_with_conflicting_values" table.
+	EnumWithConflictingValuesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "enum", Type: field.TypeEnum, Enums: []string{"image/jpeg", "IMAGE_JPEG"}},
+	}
+	// EnumWithConflictingValuesTable holds the schema information for the "enum_with_conflicting_values" table.
+	EnumWithConflictingValuesTable = &schema.Table{
+		Name:       "enum_with_conflicting_values",
+		Columns:    EnumWithConflictingValuesColumns,
+		PrimaryKey: []*schema.Column{EnumWithConflictingValuesColumns[0]},
+	}
 	// ExplicitSkippedMessagesColumns holds the columns for the "explicit_skipped_messages" table.
 	ExplicitSkippedMessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -140,6 +151,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "enum_type", Type: field.TypeEnum, Enums: []string{"pending", "active", "suspended", "deleted"}, Default: "pending"},
 		{Name: "enum_without_default", Type: field.TypeEnum, Enums: []string{"first", "second"}},
+		{Name: "enum_with_special_characters", Type: field.TypeEnum, Enums: []string{"image/jpeg", "image/png"}},
 	}
 	// MessageWithEnumsTable holds the schema information for the "message_with_enums" table.
 	MessageWithEnumsTable = &schema.Table{
@@ -167,6 +179,20 @@ var (
 		Name:       "message_with_ids",
 		Columns:    MessageWithIdsColumns,
 		PrimaryKey: []*schema.Column{MessageWithIdsColumns[0]},
+	}
+	// MessageWithIntsColumns holds the columns for the "message_with_ints" table.
+	MessageWithIntsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "int32s", Type: field.TypeJSON},
+		{Name: "int64s", Type: field.TypeJSON},
+		{Name: "uint32s", Type: field.TypeJSON},
+		{Name: "uint64s", Type: field.TypeJSON},
+	}
+	// MessageWithIntsTable holds the schema information for the "message_with_ints" table.
+	MessageWithIntsTable = &schema.Table{
+		Name:       "message_with_ints",
+		Columns:    MessageWithIntsColumns,
+		PrimaryKey: []*schema.Column{MessageWithIntsColumns[0]},
 	}
 	// MessageWithOptionalsColumns holds the columns for the "message_with_optionals" table.
 	MessageWithOptionalsColumns = []*schema.Column{
@@ -347,6 +373,7 @@ var (
 		CategoriesTable,
 		DependsOnSkippedsTable,
 		DuplicateNumberMessagesTable,
+		EnumWithConflictingValuesTable,
 		ExplicitSkippedMessagesTable,
 		ImagesTable,
 		ImplicitSkippedMessagesTable,
@@ -354,6 +381,7 @@ var (
 		MessageWithEnumsTable,
 		MessageWithFieldOnesTable,
 		MessageWithIdsTable,
+		MessageWithIntsTable,
 		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
 		MessageWithStringsTable,

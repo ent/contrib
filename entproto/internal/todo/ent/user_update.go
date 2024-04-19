@@ -40,10 +40,26 @@ func (uu *UserUpdate) SetUserName(s string) *UserUpdate {
 	return uu
 }
 
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserName(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetUserName(*s)
+	}
+	return uu
+}
+
 // SetPoints sets the "points" field.
 func (uu *UserUpdate) SetPoints(u uint) *UserUpdate {
 	uu.mutation.ResetPoints()
 	uu.mutation.SetPoints(u)
+	return uu
+}
+
+// SetNillablePoints sets the "points" field if the given value is not nil.
+func (uu *UserUpdate) SetNillablePoints(u *uint) *UserUpdate {
+	if u != nil {
+		uu.SetPoints(*u)
+	}
 	return uu
 }
 
@@ -60,6 +76,14 @@ func (uu *UserUpdate) SetExp(u uint64) *UserUpdate {
 	return uu
 }
 
+// SetNillableExp sets the "exp" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableExp(u *uint64) *UserUpdate {
+	if u != nil {
+		uu.SetExp(*u)
+	}
+	return uu
+}
+
 // AddExp adds u to the "exp" field.
 func (uu *UserUpdate) AddExp(u int64) *UserUpdate {
 	uu.mutation.AddExp(u)
@@ -72,10 +96,26 @@ func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
 	return uu
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStatus(u *user.Status) *UserUpdate {
+	if u != nil {
+		uu.SetStatus(*u)
+	}
+	return uu
+}
+
 // SetExternalID sets the "external_id" field.
 func (uu *UserUpdate) SetExternalID(i int) *UserUpdate {
 	uu.mutation.ResetExternalID()
 	uu.mutation.SetExternalID(i)
+	return uu
+}
+
+// SetNillableExternalID sets the "external_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableExternalID(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetExternalID(*i)
+	}
 	return uu
 }
 
@@ -88,6 +128,14 @@ func (uu *UserUpdate) AddExternalID(i int) *UserUpdate {
 // SetCrmID sets the "crm_id" field.
 func (uu *UserUpdate) SetCrmID(u uuid.UUID) *UserUpdate {
 	uu.mutation.SetCrmID(u)
+	return uu
+}
+
+// SetNillableCrmID sets the "crm_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCrmID(u *uuid.UUID) *UserUpdate {
+	if u != nil {
+		uu.SetCrmID(*u)
+	}
 	return uu
 }
 
@@ -109,6 +157,14 @@ func (uu *UserUpdate) SetNillableBanned(b *bool) *UserUpdate {
 func (uu *UserUpdate) SetCustomPb(u uint8) *UserUpdate {
 	uu.mutation.ResetCustomPb()
 	uu.mutation.SetCustomPb(u)
+	return uu
+}
+
+// SetNillableCustomPb sets the "custom_pb" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomPb(u *uint8) *UserUpdate {
+	if u != nil {
+		uu.SetCustomPb(*u)
+	}
 	return uu
 }
 
@@ -332,6 +388,78 @@ func (uu *UserUpdate) ClearLabels() *UserUpdate {
 	return uu
 }
 
+// SetInt32s sets the "int32s" field.
+func (uu *UserUpdate) SetInt32s(i []int32) *UserUpdate {
+	uu.mutation.SetInt32s(i)
+	return uu
+}
+
+// AppendInt32s appends i to the "int32s" field.
+func (uu *UserUpdate) AppendInt32s(i []int32) *UserUpdate {
+	uu.mutation.AppendInt32s(i)
+	return uu
+}
+
+// ClearInt32s clears the value of the "int32s" field.
+func (uu *UserUpdate) ClearInt32s() *UserUpdate {
+	uu.mutation.ClearInt32s()
+	return uu
+}
+
+// SetInt64s sets the "int64s" field.
+func (uu *UserUpdate) SetInt64s(i []int64) *UserUpdate {
+	uu.mutation.SetInt64s(i)
+	return uu
+}
+
+// AppendInt64s appends i to the "int64s" field.
+func (uu *UserUpdate) AppendInt64s(i []int64) *UserUpdate {
+	uu.mutation.AppendInt64s(i)
+	return uu
+}
+
+// ClearInt64s clears the value of the "int64s" field.
+func (uu *UserUpdate) ClearInt64s() *UserUpdate {
+	uu.mutation.ClearInt64s()
+	return uu
+}
+
+// SetUint32s sets the "uint32s" field.
+func (uu *UserUpdate) SetUint32s(u []uint32) *UserUpdate {
+	uu.mutation.SetUint32s(u)
+	return uu
+}
+
+// AppendUint32s appends u to the "uint32s" field.
+func (uu *UserUpdate) AppendUint32s(u []uint32) *UserUpdate {
+	uu.mutation.AppendUint32s(u)
+	return uu
+}
+
+// ClearUint32s clears the value of the "uint32s" field.
+func (uu *UserUpdate) ClearUint32s() *UserUpdate {
+	uu.mutation.ClearUint32s()
+	return uu
+}
+
+// SetUint64s sets the "uint64s" field.
+func (uu *UserUpdate) SetUint64s(u []uint64) *UserUpdate {
+	uu.mutation.SetUint64s(u)
+	return uu
+}
+
+// AppendUint64s appends u to the "uint64s" field.
+func (uu *UserUpdate) AppendUint64s(u []uint64) *UserUpdate {
+	uu.mutation.AppendUint64s(u)
+	return uu
+}
+
+// ClearUint64s clears the value of the "uint64s" field.
+func (uu *UserUpdate) ClearUint64s() *UserUpdate {
+	uu.mutation.ClearUint64s()
+	return uu
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uu *UserUpdate) SetDeviceType(ut user.DeviceType) *UserUpdate {
 	uu.mutation.SetDeviceType(ut)
@@ -349,6 +477,28 @@ func (uu *UserUpdate) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate {
 // SetOmitPrefix sets the "omit_prefix" field.
 func (uu *UserUpdate) SetOmitPrefix(up user.OmitPrefix) *UserUpdate {
 	uu.mutation.SetOmitPrefix(up)
+	return uu
+}
+
+// SetNillableOmitPrefix sets the "omit_prefix" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableOmitPrefix(up *user.OmitPrefix) *UserUpdate {
+	if up != nil {
+		uu.SetOmitPrefix(*up)
+	}
+	return uu
+}
+
+// SetMimeType sets the "mime_type" field.
+func (uu *UserUpdate) SetMimeType(ut user.MimeType) *UserUpdate {
+	uu.mutation.SetMimeType(ut)
+	return uu
+}
+
+// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableMimeType(ut *user.MimeType) *UserUpdate {
+	if ut != nil {
+		uu.SetMimeType(*ut)
+	}
 	return uu
 }
 
@@ -495,7 +645,7 @@ func (uu *UserUpdate) ClearSkipEdge() *UserUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, UserMutation](ctx, uu.sqlSave, uu.mutation, uu.hooks)
+	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -535,6 +685,11 @@ func (uu *UserUpdate) check() error {
 	if v, ok := uu.mutation.OmitPrefix(); ok {
 		if err := user.OmitPrefixValidator(v); err != nil {
 			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
 		}
 	}
 	return nil
@@ -659,11 +814,58 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.LabelsCleared() {
 		_spec.ClearField(user.FieldLabels, field.TypeJSON)
 	}
+	if value, ok := uu.mutation.Int32s(); ok {
+		_spec.SetField(user.FieldInt32s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedInt32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt32s, value)
+		})
+	}
+	if uu.mutation.Int32sCleared() {
+		_spec.ClearField(user.FieldInt32s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.Int64s(); ok {
+		_spec.SetField(user.FieldInt64s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedInt64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt64s, value)
+		})
+	}
+	if uu.mutation.Int64sCleared() {
+		_spec.ClearField(user.FieldInt64s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.Uint32s(); ok {
+		_spec.SetField(user.FieldUint32s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedUint32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint32s, value)
+		})
+	}
+	if uu.mutation.Uint32sCleared() {
+		_spec.ClearField(user.FieldUint32s, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.Uint64s(); ok {
+		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedUint64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint64s, value)
+		})
+	}
+	if uu.mutation.Uint64sCleared() {
+		_spec.ClearField(user.FieldUint64s, field.TypeJSON)
+	}
 	if value, ok := uu.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.OmitPrefix(); ok {
 		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
+	}
+	if value, ok := uu.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
 	}
 	if uu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -852,10 +1054,26 @@ func (uuo *UserUpdateOne) SetUserName(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableUserName sets the "user_name" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserName(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetUserName(*s)
+	}
+	return uuo
+}
+
 // SetPoints sets the "points" field.
 func (uuo *UserUpdateOne) SetPoints(u uint) *UserUpdateOne {
 	uuo.mutation.ResetPoints()
 	uuo.mutation.SetPoints(u)
+	return uuo
+}
+
+// SetNillablePoints sets the "points" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePoints(u *uint) *UserUpdateOne {
+	if u != nil {
+		uuo.SetPoints(*u)
+	}
 	return uuo
 }
 
@@ -872,6 +1090,14 @@ func (uuo *UserUpdateOne) SetExp(u uint64) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableExp sets the "exp" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableExp(u *uint64) *UserUpdateOne {
+	if u != nil {
+		uuo.SetExp(*u)
+	}
+	return uuo
+}
+
 // AddExp adds u to the "exp" field.
 func (uuo *UserUpdateOne) AddExp(u int64) *UserUpdateOne {
 	uuo.mutation.AddExp(u)
@@ -884,10 +1110,26 @@ func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
 	return uuo
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStatus(u *user.Status) *UserUpdateOne {
+	if u != nil {
+		uuo.SetStatus(*u)
+	}
+	return uuo
+}
+
 // SetExternalID sets the "external_id" field.
 func (uuo *UserUpdateOne) SetExternalID(i int) *UserUpdateOne {
 	uuo.mutation.ResetExternalID()
 	uuo.mutation.SetExternalID(i)
+	return uuo
+}
+
+// SetNillableExternalID sets the "external_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableExternalID(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetExternalID(*i)
+	}
 	return uuo
 }
 
@@ -900,6 +1142,14 @@ func (uuo *UserUpdateOne) AddExternalID(i int) *UserUpdateOne {
 // SetCrmID sets the "crm_id" field.
 func (uuo *UserUpdateOne) SetCrmID(u uuid.UUID) *UserUpdateOne {
 	uuo.mutation.SetCrmID(u)
+	return uuo
+}
+
+// SetNillableCrmID sets the "crm_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCrmID(u *uuid.UUID) *UserUpdateOne {
+	if u != nil {
+		uuo.SetCrmID(*u)
+	}
 	return uuo
 }
 
@@ -921,6 +1171,14 @@ func (uuo *UserUpdateOne) SetNillableBanned(b *bool) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetCustomPb(u uint8) *UserUpdateOne {
 	uuo.mutation.ResetCustomPb()
 	uuo.mutation.SetCustomPb(u)
+	return uuo
+}
+
+// SetNillableCustomPb sets the "custom_pb" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomPb(u *uint8) *UserUpdateOne {
+	if u != nil {
+		uuo.SetCustomPb(*u)
+	}
 	return uuo
 }
 
@@ -1144,6 +1402,78 @@ func (uuo *UserUpdateOne) ClearLabels() *UserUpdateOne {
 	return uuo
 }
 
+// SetInt32s sets the "int32s" field.
+func (uuo *UserUpdateOne) SetInt32s(i []int32) *UserUpdateOne {
+	uuo.mutation.SetInt32s(i)
+	return uuo
+}
+
+// AppendInt32s appends i to the "int32s" field.
+func (uuo *UserUpdateOne) AppendInt32s(i []int32) *UserUpdateOne {
+	uuo.mutation.AppendInt32s(i)
+	return uuo
+}
+
+// ClearInt32s clears the value of the "int32s" field.
+func (uuo *UserUpdateOne) ClearInt32s() *UserUpdateOne {
+	uuo.mutation.ClearInt32s()
+	return uuo
+}
+
+// SetInt64s sets the "int64s" field.
+func (uuo *UserUpdateOne) SetInt64s(i []int64) *UserUpdateOne {
+	uuo.mutation.SetInt64s(i)
+	return uuo
+}
+
+// AppendInt64s appends i to the "int64s" field.
+func (uuo *UserUpdateOne) AppendInt64s(i []int64) *UserUpdateOne {
+	uuo.mutation.AppendInt64s(i)
+	return uuo
+}
+
+// ClearInt64s clears the value of the "int64s" field.
+func (uuo *UserUpdateOne) ClearInt64s() *UserUpdateOne {
+	uuo.mutation.ClearInt64s()
+	return uuo
+}
+
+// SetUint32s sets the "uint32s" field.
+func (uuo *UserUpdateOne) SetUint32s(u []uint32) *UserUpdateOne {
+	uuo.mutation.SetUint32s(u)
+	return uuo
+}
+
+// AppendUint32s appends u to the "uint32s" field.
+func (uuo *UserUpdateOne) AppendUint32s(u []uint32) *UserUpdateOne {
+	uuo.mutation.AppendUint32s(u)
+	return uuo
+}
+
+// ClearUint32s clears the value of the "uint32s" field.
+func (uuo *UserUpdateOne) ClearUint32s() *UserUpdateOne {
+	uuo.mutation.ClearUint32s()
+	return uuo
+}
+
+// SetUint64s sets the "uint64s" field.
+func (uuo *UserUpdateOne) SetUint64s(u []uint64) *UserUpdateOne {
+	uuo.mutation.SetUint64s(u)
+	return uuo
+}
+
+// AppendUint64s appends u to the "uint64s" field.
+func (uuo *UserUpdateOne) AppendUint64s(u []uint64) *UserUpdateOne {
+	uuo.mutation.AppendUint64s(u)
+	return uuo
+}
+
+// ClearUint64s clears the value of the "uint64s" field.
+func (uuo *UserUpdateOne) ClearUint64s() *UserUpdateOne {
+	uuo.mutation.ClearUint64s()
+	return uuo
+}
+
 // SetDeviceType sets the "device_type" field.
 func (uuo *UserUpdateOne) SetDeviceType(ut user.DeviceType) *UserUpdateOne {
 	uuo.mutation.SetDeviceType(ut)
@@ -1161,6 +1491,28 @@ func (uuo *UserUpdateOne) SetNillableDeviceType(ut *user.DeviceType) *UserUpdate
 // SetOmitPrefix sets the "omit_prefix" field.
 func (uuo *UserUpdateOne) SetOmitPrefix(up user.OmitPrefix) *UserUpdateOne {
 	uuo.mutation.SetOmitPrefix(up)
+	return uuo
+}
+
+// SetNillableOmitPrefix sets the "omit_prefix" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableOmitPrefix(up *user.OmitPrefix) *UserUpdateOne {
+	if up != nil {
+		uuo.SetOmitPrefix(*up)
+	}
+	return uuo
+}
+
+// SetMimeType sets the "mime_type" field.
+func (uuo *UserUpdateOne) SetMimeType(ut user.MimeType) *UserUpdateOne {
+	uuo.mutation.SetMimeType(ut)
+	return uuo
+}
+
+// SetNillableMimeType sets the "mime_type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableMimeType(ut *user.MimeType) *UserUpdateOne {
+	if ut != nil {
+		uuo.SetMimeType(*ut)
+	}
 	return uuo
 }
 
@@ -1320,7 +1672,7 @@ func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne 
 
 // Save executes the query and returns the updated User entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks[*User, UserMutation](ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1360,6 +1712,11 @@ func (uuo *UserUpdateOne) check() error {
 	if v, ok := uuo.mutation.OmitPrefix(); ok {
 		if err := user.OmitPrefixValidator(v); err != nil {
 			return &ValidationError{Name: "omit_prefix", err: fmt.Errorf(`ent: validator failed for field "User.omit_prefix": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.MimeType(); ok {
+		if err := user.MimeTypeValidator(v); err != nil {
+			return &ValidationError{Name: "mime_type", err: fmt.Errorf(`ent: validator failed for field "User.mime_type": %w`, err)}
 		}
 	}
 	return nil
@@ -1501,11 +1858,58 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if uuo.mutation.LabelsCleared() {
 		_spec.ClearField(user.FieldLabels, field.TypeJSON)
 	}
+	if value, ok := uuo.mutation.Int32s(); ok {
+		_spec.SetField(user.FieldInt32s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedInt32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt32s, value)
+		})
+	}
+	if uuo.mutation.Int32sCleared() {
+		_spec.ClearField(user.FieldInt32s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.Int64s(); ok {
+		_spec.SetField(user.FieldInt64s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedInt64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldInt64s, value)
+		})
+	}
+	if uuo.mutation.Int64sCleared() {
+		_spec.ClearField(user.FieldInt64s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.Uint32s(); ok {
+		_spec.SetField(user.FieldUint32s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedUint32s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint32s, value)
+		})
+	}
+	if uuo.mutation.Uint32sCleared() {
+		_spec.ClearField(user.FieldUint32s, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.Uint64s(); ok {
+		_spec.SetField(user.FieldUint64s, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedUint64s(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldUint64s, value)
+		})
+	}
+	if uuo.mutation.Uint64sCleared() {
+		_spec.ClearField(user.FieldUint64s, field.TypeJSON)
+	}
 	if value, ok := uuo.mutation.DeviceType(); ok {
 		_spec.SetField(user.FieldDeviceType, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.OmitPrefix(); ok {
 		_spec.SetField(user.FieldOmitPrefix, field.TypeEnum, value)
+	}
+	if value, ok := uuo.mutation.MimeType(); ok {
+		_spec.SetField(user.FieldMimeType, field.TypeEnum, value)
 	}
 	if uuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{

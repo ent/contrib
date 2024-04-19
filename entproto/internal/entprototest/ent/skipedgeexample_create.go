@@ -45,7 +45,7 @@ func (seec *SkipEdgeExampleCreate) Mutation() *SkipEdgeExampleMutation {
 
 // Save creates the SkipEdgeExample in the database.
 func (seec *SkipEdgeExampleCreate) Save(ctx context.Context) (*SkipEdgeExample, error) {
-	return withHooks[*SkipEdgeExample, SkipEdgeExampleMutation](ctx, seec.sqlSave, seec.mutation, seec.hooks)
+	return withHooks(ctx, seec.sqlSave, seec.mutation, seec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -121,11 +121,15 @@ func (seec *SkipEdgeExampleCreate) createSpec() (*SkipEdgeExample, *sqlgraph.Cre
 // SkipEdgeExampleCreateBulk is the builder for creating many SkipEdgeExample entities in bulk.
 type SkipEdgeExampleCreateBulk struct {
 	config
+	err      error
 	builders []*SkipEdgeExampleCreate
 }
 
 // Save creates the SkipEdgeExample entities in the database.
 func (seecb *SkipEdgeExampleCreateBulk) Save(ctx context.Context) ([]*SkipEdgeExample, error) {
+	if seecb.err != nil {
+		return nil, seecb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(seecb.builders))
 	nodes := make([]*SkipEdgeExample, len(seecb.builders))
 	mutators := make([]Mutator, len(seecb.builders))

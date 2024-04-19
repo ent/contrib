@@ -60,6 +60,10 @@ var (
 					Name: "models",
 					Type: ast.ListType(ast.NonNullNamedType("String", nil), nil),
 				},
+				{
+					Name: "forceGenerate",
+					Type: ast.NamedType("Boolean", nil),
+				},
 			},
 			Locations: []ast.DirectiveLocation{
 				ast.LocationObject,
@@ -82,6 +86,10 @@ var (
 					Name: "name",
 					Type: ast.NamedType("String", nil),
 				},
+				{
+					Name: "omittable",
+					Type: ast.NamedType("Boolean", nil),
+				},
 			},
 			Locations: []ast.DirectiveLocation{
 				ast.LocationFieldDefinition,
@@ -89,7 +97,6 @@ var (
 			},
 		},
 	}
-
 	inputObjectFilter    = func(t string) bool { return strings.HasSuffix(t, "Input") }
 	nonInputObjectFilter = func(t string) bool { return !inputObjectFilter(t) }
 )
@@ -776,9 +783,6 @@ func (e *schemaGenerator) mapScalar(gqlType string, f *gen.Field, ant *Annotatio
 			case reflect.Map:
 				if f.Type.RType.Ident == "map[string]interface {}" {
 					scalar = "Map"
-					if !f.Optional {
-						scalar += "!"
-					}
 				}
 			}
 		}

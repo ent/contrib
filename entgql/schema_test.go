@@ -91,7 +91,9 @@ func TestSchema_relayConnectionTypes(t *testing.T) {
 			},
 			want: `"""An edge in a connection."""
 type TodoEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: Todo
 }
 """A connection to a list of items."""
@@ -119,7 +121,9 @@ type TodoList {
 			},
 			want: `"""An edge in a connection."""
 type SuperTodoEdge {
-  """The item at the end of the edge."""
+  """
+  The item at the end of the edge.
+  """
   node: SuperTodo
 }
 """A connection to a list of items."""
@@ -170,7 +174,9 @@ An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
 """
 interface Node @goModel(model: "todo/ent.Noder") {
-  """The id of the object."""
+  """
+  The id of the object.
+  """
   id: ID!
 }
 """
@@ -178,13 +184,21 @@ Information about pagination in a connection.
 https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
 """
 type PageInfo {
-  """When paginating forwards, are there more items?"""
+  """
+  When paginating forwards, are there more items?
+  """
   hasNextPage: Boolean!
-  """When paginating backwards, are there more items?"""
+  """
+  When paginating backwards, are there more items?
+  """
   hasPreviousPage: Boolean!
-  """When paginating backwards, the cursor to continue."""
+  """
+  When paginating backwards, the cursor to continue.
+  """
   startCursor: Cursor
-  """When paginating forwards, the cursor to continue."""
+  """
+  When paginating forwards, the cursor to continue.
+  """
   endCursor: Cursor
 }
 `,
