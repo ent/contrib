@@ -213,7 +213,7 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			_, err = ex.out.Write(b)
 			return err
 		}
-		return os.WriteFile(filepath.Join(g.Target, "openapi.json"), b, 0644)
+		return os.WriteFile(filepath.Join(g.Target, "openapi.json"), b, 0o644)
 	})
 }
 
