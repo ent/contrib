@@ -28,8 +28,8 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name"),
-		field.Int("age"),
+		field.String("name").Comment("The users full name."),
+		field.Int("age").Comment("The age of the user."),
 	}
 }
 

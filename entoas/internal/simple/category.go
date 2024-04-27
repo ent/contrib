@@ -16,11 +16,11 @@ type Category struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
+	// Name of the category.
 	Name string `json:"name,omitempty"`
-	// Readonly holds the value of the "readonly" field.
+	// If the category is read-only and cannot be modified.
 	Readonly string `json:"readonly,omitempty"`
-	// SkipInSpec holds the value of the "skip_in_spec" field.
+	// This field should be skipped in the spec.
 	SkipInSpec string `json:"skip_in_spec,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.

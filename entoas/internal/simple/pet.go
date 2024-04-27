@@ -18,11 +18,11 @@ type Pet struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
+	// Name of the pet.
 	Name string `json:"name,omitempty"`
-	// Nicknames holds the value of the "nicknames" field.
+	// Various nicknames of the pet.
 	Nicknames []string `json:"nicknames,omitempty"`
-	// Age holds the value of the "age" field.
+	// Age of the pet.
 	Age int `json:"age,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PetQuery when eager-loading is set.

@@ -36,16 +36,19 @@ func (Pet) Fields() []ent.Field {
 			Annotations(
 				entoas.Groups("pet"),
 				entoas.Example("Kuro"),
-			),
+			).
+			Comment("Name of the pet."),
 		field.JSON("nicknames", []string{}).
 			Optional().
-			Annotations(entoas.Groups("pet")),
+			Annotations(entoas.Groups("pet")).
+			Comment("Various nicknames of the pet."),
 		field.Int("age").
 			Optional().
 			Annotations(
 				entoas.Groups("pet"),
 				entoas.Example(1),
-			),
+			).
+			Comment("Age of the pet."),
 	}
 }
 

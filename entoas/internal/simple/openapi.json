@@ -78,6 +78,7 @@
                 "type": "object",
                 "properties": {
                   "name": {
+                    "description": "Name of the category.",
                     "type": "string"
                   },
                   "pets": {
@@ -224,6 +225,7 @@
                 "type": "object",
                 "properties": {
                   "name": {
+                    "description": "Name of the category.",
                     "type": "string"
                   },
                   "pets": {
@@ -400,16 +402,21 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "description": "Name of the pet.",
+                    "type": "string",
+                    "example": "Kuro"
                   },
                   "nicknames": {
+                    "description": "Various nicknames of the pet.",
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
                   },
                   "age": {
-                    "type": "integer"
+                    "description": "Age of the pet.",
+                    "type": "integer",
+                    "example": 1
                   },
                   "categories": {
                     "type": "array",
@@ -564,16 +571,21 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "description": "Name of the pet.",
+                    "type": "string",
+                    "example": "Kuro"
                   },
                   "nicknames": {
+                    "description": "Various nicknames of the pet.",
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
                   },
                   "age": {
-                    "type": "integer"
+                    "description": "Age of the pet.",
+                    "type": "integer",
+                    "example": 1
                   },
                   "categories": {
                     "type": "array",
@@ -867,9 +879,11 @@
                 "type": "object",
                 "properties": {
                   "name": {
+                    "description": "The users full name.",
                     "type": "string"
                   },
                   "age": {
+                    "description": "The age of the user.",
                     "type": "integer"
                   },
                   "pets": {
@@ -1017,9 +1031,11 @@
                 "type": "object",
                 "properties": {
                   "name": {
+                    "description": "The users full name.",
                     "type": "string"
                   },
                   "age": {
+                    "description": "The age of the user.",
                     "type": "integer"
                   },
                   "pets": {
@@ -1134,9 +1150,11 @@
             "type": "integer"
           },
           "name": {
+            "description": "Name of the category.",
             "type": "string"
           },
           "readonly": {
+            "description": "If the category is read-only and cannot be modified.",
             "type": "string"
           },
           "pets": {
@@ -1159,16 +1177,21 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "description": "Name of the pet.",
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
+            "description": "Various nicknames of the pet.",
             "type": "array",
             "items": {
               "type": "string"
             }
           },
           "age": {
-            "type": "integer"
+            "description": "Age of the pet.",
+            "type": "integer",
+            "example": 1
           },
           "categories": {
             "type": "array",
@@ -1198,9 +1221,11 @@
             "type": "integer"
           },
           "name": {
+            "description": "The users full name.",
             "type": "string"
           },
           "age": {
+            "description": "The age of the user.",
             "type": "integer"
           },
           "pets": {
