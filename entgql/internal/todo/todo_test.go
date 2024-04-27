@@ -1895,6 +1895,59 @@ func TestEdgesFiltering(t *testing.T) {
 	})
 }
 
+func TestPaginateQueryCount(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	count := &queryCount{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(count)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	gqlc := client.New(srv)
+
+	query := `{
+		users(first: 1) {
+		  totalCount
+		  edges {
+			node {
+			  name
+			}
+		  }
+		}
+	  }`
+	var rsp struct {
+		Users struct {
+			TotalCount int
+			Edges      []struct {
+				Node struct {
+					Name string
+				}
+			}
+		}
+	}
+
+	t.Run("NoUsers", func(t *testing.T) {
+		count.reset()
+
+		err := gqlc.Post(query, &rsp)
+		require.NoError(t, err)
+		require.Empty(t, rsp.Users.TotalCount)
+		require.EqualValues(t, 1, count.value(), "one query to count 0 users")
+	})
+
+	t.Run("OneUser", func(t *testing.T) {
+		ec.User.Create().SetName("elad").SetRequiredMetadata(map[string]any{}).SaveX(ctx)
+
+		count.reset()
+		err := gqlc.Post(query, &rsp)
+		require.NoError(t, err)
+		require.Equal(t, 1, rsp.Users.TotalCount)
+		require.EqualValues(t, 2, count.value(), "2 queries: one to count users and one to fetch the user")
+	})
+}
+
 func TestMutation_CreateCategory(t *testing.T) {
 	ec := enttest.Open(t, dialect.SQLite,
 		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
