@@ -154,9 +154,38 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
-						ids := make([]driver.Value, len(nodes))
+						nodesToQuery := nodes
+						if _, withNamedTodosLoaded := c.withNamedTodos[alias]; withNamedTodosLoaded {
+							nodesToQuery = make([]*Category, 0, len(nodes))
+							for _, n := range nodes {
+								if nodeTodos, err := n.NamedTodos(alias); err == nil && len(nodeTodos) > 0 {
+									nodesToQuery = append(nodesToQuery, n)
+								}
+							}
+						}
+						m := make(map[pulid.ID]int, len(nodes))
 						for i := range nodes {
-							ids[i] = nodes[i].ID
+							m[nodes[i].ID] = 0
+						}
+
+						fillTotalCount := func(nodes []*Category, m map[pulid.ID]int) {
+							for i := range nodes {
+								n := m[nodes[i].ID]
+								if nodes[i].Edges.totalCount[0] == nil {
+									nodes[i].Edges.totalCount[0] = make(map[string]int)
+								}
+								nodes[i].Edges.totalCount[0][alias] = n
+							}
+						}
+
+						if len(nodesToQuery) == 0 {
+							fillTotalCount(nodes, m)
+							return nil
+						}
+
+						ids := make([]driver.Value, len(nodesToQuery))
+						for i := range nodesToQuery {
+							ids[i] = nodesToQuery[i].ID
 						}
 						var v []struct {
 							NodeID pulid.ID `sql:"category_id"`
@@ -168,17 +197,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 						if err := query.GroupBy(category.TodosColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
 							return err
 						}
-						m := make(map[pulid.ID]int, len(v))
 						for i := range v {
 							m[v[i].NodeID] = v[i].Count
 						}
-						for i := range nodes {
-							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[0] == nil {
-								nodes[i].Edges.totalCount[0] = make(map[string]int)
-							}
-							nodes[i].Edges.totalCount[0][alias] = n
-						}
+						fillTotalCount(nodes, m)
 						return nil
 					})
 				} else {
@@ -238,9 +260,38 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
-						ids := make([]driver.Value, len(nodes))
+						nodesToQuery := nodes
+						if _, withNamedSubCategoriesLoaded := c.withNamedSubCategories[alias]; withNamedSubCategoriesLoaded {
+							nodesToQuery = make([]*Category, 0, len(nodes))
+							for _, n := range nodes {
+								if nodeSubCategories, err := n.NamedSubCategories(alias); err == nil && len(nodeSubCategories) > 0 {
+									nodesToQuery = append(nodesToQuery, n)
+								}
+							}
+						}
+						m := make(map[pulid.ID]int, len(nodes))
 						for i := range nodes {
-							ids[i] = nodes[i].ID
+							m[nodes[i].ID] = 0
+						}
+
+						fillTotalCount := func(nodes []*Category, m map[pulid.ID]int) {
+							for i := range nodes {
+								n := m[nodes[i].ID]
+								if nodes[i].Edges.totalCount[1] == nil {
+									nodes[i].Edges.totalCount[1] = make(map[string]int)
+								}
+								nodes[i].Edges.totalCount[1][alias] = n
+							}
+						}
+
+						if len(nodesToQuery) == 0 {
+							fillTotalCount(nodes, m)
+							return nil
+						}
+
+						ids := make([]driver.Value, len(nodesToQuery))
+						for i := range nodesToQuery {
+							ids[i] = nodesToQuery[i].ID
 						}
 						var v []struct {
 							NodeID pulid.ID `sql:"category_id"`
@@ -256,17 +307,10 @@ func (c *CategoryQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 						if err := query.Select().Scan(ctx, &v); err != nil {
 							return err
 						}
-						m := make(map[pulid.ID]int, len(v))
 						for i := range v {
 							m[v[i].NodeID] = v[i].Count
 						}
-						for i := range nodes {
-							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[1] == nil {
-								nodes[i].Edges.totalCount[1] = make(map[string]int)
-							}
-							nodes[i].Edges.totalCount[1][alias] = n
-						}
+						fillTotalCount(nodes, m)
 						return nil
 					})
 				} else {
@@ -551,9 +595,38 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					gr.loadTotal = append(gr.loadTotal, func(ctx context.Context, nodes []*Group) error {
-						ids := make([]driver.Value, len(nodes))
+						nodesToQuery := nodes
+						if _, withNamedUsersLoaded := gr.withNamedUsers[alias]; withNamedUsersLoaded {
+							nodesToQuery = make([]*Group, 0, len(nodes))
+							for _, n := range nodes {
+								if nodeUsers, err := n.NamedUsers(alias); err == nil && len(nodeUsers) > 0 {
+									nodesToQuery = append(nodesToQuery, n)
+								}
+							}
+						}
+						m := make(map[pulid.ID]int, len(nodes))
 						for i := range nodes {
-							ids[i] = nodes[i].ID
+							m[nodes[i].ID] = 0
+						}
+
+						fillTotalCount := func(nodes []*Group, m map[pulid.ID]int) {
+							for i := range nodes {
+								n := m[nodes[i].ID]
+								if nodes[i].Edges.totalCount[0] == nil {
+									nodes[i].Edges.totalCount[0] = make(map[string]int)
+								}
+								nodes[i].Edges.totalCount[0][alias] = n
+							}
+						}
+
+						if len(nodesToQuery) == 0 {
+							fillTotalCount(nodes, m)
+							return nil
+						}
+
+						ids := make([]driver.Value, len(nodesToQuery))
+						for i := range nodesToQuery {
+							ids[i] = nodesToQuery[i].ID
 						}
 						var v []struct {
 							NodeID pulid.ID `sql:"group_id"`
@@ -569,17 +642,10 @@ func (gr *GroupQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 						if err := query.Select().Scan(ctx, &v); err != nil {
 							return err
 						}
-						m := make(map[pulid.ID]int, len(v))
 						for i := range v {
 							m[v[i].NodeID] = v[i].Count
 						}
-						for i := range nodes {
-							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[0] == nil {
-								nodes[i].Edges.totalCount[0] = make(map[string]int)
-							}
-							nodes[i].Edges.totalCount[0][alias] = n
-						}
+						fillTotalCount(nodes, m)
 						return nil
 					})
 				} else {
@@ -716,9 +782,38 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
-						ids := make([]driver.Value, len(nodes))
+						nodesToQuery := nodes
+						if _, withNamedChildrenLoaded := t.withNamedChildren[alias]; withNamedChildrenLoaded {
+							nodesToQuery = make([]*Todo, 0, len(nodes))
+							for _, n := range nodes {
+								if nodeChildren, err := n.NamedChildren(alias); err == nil && len(nodeChildren) > 0 {
+									nodesToQuery = append(nodesToQuery, n)
+								}
+							}
+						}
+						m := make(map[pulid.ID]int, len(nodes))
 						for i := range nodes {
-							ids[i] = nodes[i].ID
+							m[nodes[i].ID] = 0
+						}
+
+						fillTotalCount := func(nodes []*Todo, m map[pulid.ID]int) {
+							for i := range nodes {
+								n := m[nodes[i].ID]
+								if nodes[i].Edges.totalCount[1] == nil {
+									nodes[i].Edges.totalCount[1] = make(map[string]int)
+								}
+								nodes[i].Edges.totalCount[1][alias] = n
+							}
+						}
+
+						if len(nodesToQuery) == 0 {
+							fillTotalCount(nodes, m)
+							return nil
+						}
+
+						ids := make([]driver.Value, len(nodesToQuery))
+						for i := range nodesToQuery {
+							ids[i] = nodesToQuery[i].ID
 						}
 						var v []struct {
 							NodeID pulid.ID `sql:"todo_children"`
@@ -730,17 +825,10 @@ func (t *TodoQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 						if err := query.GroupBy(todo.ChildrenColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
 							return err
 						}
-						m := make(map[pulid.ID]int, len(v))
 						for i := range v {
 							m[v[i].NodeID] = v[i].Count
 						}
-						for i := range nodes {
-							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[1] == nil {
-								nodes[i].Edges.totalCount[1] = make(map[string]int)
-							}
-							nodes[i].Edges.totalCount[1][alias] = n
-						}
+						fillTotalCount(nodes, m)
 						return nil
 					})
 				} else {
@@ -938,9 +1026,38 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
 					u.loadTotal = append(u.loadTotal, func(ctx context.Context, nodes []*User) error {
-						ids := make([]driver.Value, len(nodes))
+						nodesToQuery := nodes
+						if _, withNamedGroupsLoaded := u.withNamedGroups[alias]; withNamedGroupsLoaded {
+							nodesToQuery = make([]*User, 0, len(nodes))
+							for _, n := range nodes {
+								if nodeGroups, err := n.NamedGroups(alias); err == nil && len(nodeGroups) > 0 {
+									nodesToQuery = append(nodesToQuery, n)
+								}
+							}
+						}
+						m := make(map[pulid.ID]int, len(nodes))
 						for i := range nodes {
-							ids[i] = nodes[i].ID
+							m[nodes[i].ID] = 0
+						}
+
+						fillTotalCount := func(nodes []*User, m map[pulid.ID]int) {
+							for i := range nodes {
+								n := m[nodes[i].ID]
+								if nodes[i].Edges.totalCount[0] == nil {
+									nodes[i].Edges.totalCount[0] = make(map[string]int)
+								}
+								nodes[i].Edges.totalCount[0][alias] = n
+							}
+						}
+
+						if len(nodesToQuery) == 0 {
+							fillTotalCount(nodes, m)
+							return nil
+						}
+
+						ids := make([]driver.Value, len(nodesToQuery))
+						for i := range nodesToQuery {
+							ids[i] = nodesToQuery[i].ID
 						}
 						var v []struct {
 							NodeID pulid.ID `sql:"user_id"`
@@ -956,17 +1073,10 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 						if err := query.Select().Scan(ctx, &v); err != nil {
 							return err
 						}
-						m := make(map[pulid.ID]int, len(v))
 						for i := range v {
 							m[v[i].NodeID] = v[i].Count
 						}
-						for i := range nodes {
-							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[0] == nil {
-								nodes[i].Edges.totalCount[0] = make(map[string]int)
-							}
-							nodes[i].Edges.totalCount[0][alias] = n
-						}
+						fillTotalCount(nodes, m)
 						return nil
 					})
 				} else {

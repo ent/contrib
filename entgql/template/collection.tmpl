@@ -365,9 +365,40 @@ Cond:
 	query := query.Clone()
 	{{- /* totalCount may be greater than len(nodes). */}}
 	{{ $receiver }}.loadTotal = append({{ $receiver }}.loadTotal, func(ctx context.Context, nodes []*{{ $node.Name }}) error {
-		ids := make([]driver.Value, len(nodes))
+		nodesToQuery := nodes
+		if _, withNamed{{ $e.StructField }}Loaded := {{ $receiver }}.withNamed{{ $e.StructField }}[alias]; withNamed{{ $e.StructField }}Loaded {
+			nodesToQuery = make([]*{{ $node.Name }}, 0, len(nodes))
+			for _, n := range nodes {
+				if node{{ $e.StructField }}, err := n.Named{{ $e.StructField }}(alias); err == nil && len(node{{ $e.StructField }}) > 0 {
+					nodesToQuery = append(nodesToQuery, n)
+				}
+			}
+		}
+
+		{{- /* Add support for scanning into maps in dialect/sqlscan. */}}
+		m := make(map[{{ $node.ID.Type }}]int, len(nodes))
 		for i := range nodes {
-			ids[i] = nodes[i].{{ $node.ID.StructField }}
+			m[nodes[i].ID] = 0
+		}
+
+		fillTotalCount := func(nodes []*{{ $node.Name }}, m map[{{ $node.ID.Type }}]int) {
+			for i := range nodes {
+				n := m[nodes[i].ID]
+				if nodes[i].Edges.totalCount[{{ $i }}] == nil {
+					nodes[i].Edges.totalCount[{{ $i }}] = make(map[string]int)
+				}
+				nodes[i].Edges.totalCount[{{ $i }}][alias] = n
+			}
+		}
+
+		if len(nodesToQuery) == 0 {
+			fillTotalCount(nodes, m)
+			return nil
+		}
+
+		ids := make([]driver.Value, len(nodesToQuery))
+		for i := range nodesToQuery {
+			ids[i] = nodesToQuery[i].{{ $node.ID.StructField }}
 		}
 		{{- if $e.M2M }}
 			{{- $fk1idx := 1 }}{{- $fk2idx := 0 }}{{ if $e.IsInverse }}{{ $fk1idx = 0 }}{{ $fk2idx = 1 }}{{ end }}
@@ -400,18 +431,10 @@ Cond:
 				return err
 			}
 		{{- end }}
-			{{- /* Add support for scanning into maps in dialect/sqlscan. */}}
-			m := make(map[{{ $node.ID.Type }}]int, len(v))
 			for i := range v {
 				m[v[i].NodeID] = v[i].Count
 			}
-			for i := range nodes {
-				n := m[nodes[i].{{ $node.ID.StructField }}]
-				if nodes[i].Edges.totalCount[{{ $i }}] == nil {
-					nodes[i].Edges.totalCount[{{ $i }}] = make(map[string]int)
-				}
-				nodes[i].Edges.totalCount[{{ $i }}][alias] = n
-			}
+			fillTotalCount(nodes, m)
 		return nil
 	})
 {{ end }}
