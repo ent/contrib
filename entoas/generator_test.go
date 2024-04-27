@@ -122,7 +122,7 @@ func DefaultLink() *Link {
 }
 
 // Scan implements the Scanner interface.
-func (l *Link) Scan(value interface{}) (err error) {
+func (l *Link) Scan(value any) (err error) {
 	switch v := value.(type) {
 	case nil:
 	case []byte:

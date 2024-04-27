@@ -224,7 +224,7 @@ func (c Config) Name() string {
 }
 
 // Decode from ent.
-func (c *Config) Decode(o interface{}) error {
+func (c *Config) Decode(o any) error {
 	buf, err := json.Marshal(o)
 	if err != nil {
 		return err

@@ -626,6 +626,13 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 		schema.Description = f.Comment()
 	}
 
+	if ant.Example != nil {
+		schema.Example, err = json.Marshal(ant.Example)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal example for field %s: %w", f.StructField(), err)
+		}
+	}
+
 	return schema, nil
 }
 
