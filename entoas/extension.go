@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -71,8 +72,8 @@ type (
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 	ex := &Extension{config: &Config{
 		DefaultPolicy:   PolicyExpose,
-		MinItemsPerPage: one,
-		MaxItemsPerPage: maxu8,
+		MinItemsPerPage: 1,
+		MaxItemsPerPage: math.MaxUint8,
 	}}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {

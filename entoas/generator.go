@@ -444,7 +444,7 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 				InQuery().
 				SetName("page").
 				SetDescription("what page to render").
-				SetSchema(ogen.Int().SetMinimum(&one)),
+				SetSchema(ogen.Int().SetMinimum(ptr(int64(1)))),
 			ogen.NewParameter().
 				InQuery().
 				SetName("itemsPerPage").
@@ -524,40 +524,57 @@ func property(f *gen.Field) (*ogen.Property, error) {
 	return ogen.NewProperty().SetName(f.Name).SetSchema(s), nil
 }
 
-var (
-	zero   int64
-	one    int64 = 1
-	min8   int64 = math.MinInt8
-	max8   int64 = math.MaxInt8
-	maxu8  int64 = math.MaxUint8
-	min16  int64 = math.MinInt16
-	max16  int64 = math.MaxInt16
-	maxu16 int64 = math.MaxUint16
-	maxu32 int64 = math.MaxUint32
-	types        = map[string]*ogen.Schema{
-		"bool":      ogen.Bool(),
-		"time.Time": ogen.DateTime(),
-		"string":    ogen.String(),
-		"[]byte":    ogen.Bytes(),
-		"uuid.UUID": ogen.UUID(),
-		"int":       ogen.Int(),
-		"int8":      ogen.Int32().SetMinimum(&min8).SetMaximum(&max8),
-		"int16":     ogen.Int32().SetMinimum(&min16).SetMaximum(&max16),
-		"int32":     ogen.Int32(),
-		"uint":      ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
-		"uint8":     ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu8),
-		"uint16":    ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu16),
-		"uint32":    ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
-		"int64":     ogen.Int64(),
-		"uint64":    ogen.Int64().SetMinimum(&zero),
-		"float32":   ogen.Float(),
-		"float64":   ogen.Double(),
+// ptr returns a pointer to v, for the purposes of base types (int, string, etc).
+func ptr[T any](v T) *T {
+	return &v
+}
+
+// mapTypeToSchema returns an ogen.Schema for the given gen.Field, if it exists.
+// returns nil if the type is not supported.
+func mapTypeToSchema(baseType string) *ogen.Schema {
+	switch baseType {
+	case "bool":
+		return ogen.Bool()
+	case "time.Time":
+		return ogen.DateTime()
+	case "string":
+		return ogen.String()
+	case "[]byte":
+		return ogen.Bytes()
+	case "uuid.UUID":
+		return ogen.UUID()
+	case "int":
+		return ogen.Int()
+	case "int8":
+		return ogen.Int32().SetMinimum(ptr(int64(math.MinInt8))).SetMaximum(ptr(int64(math.MaxInt8)))
+	case "int16":
+		return ogen.Int32().SetMinimum(ptr(int64(math.MinInt16))).SetMaximum(ptr(int64(math.MaxInt16)))
+	case "int32":
+		return ogen.Int32().SetMinimum(ptr(int64(math.MinInt32))).SetMaximum(ptr(int64(math.MaxInt32)))
+	case "int64":
+		return ogen.Int64().SetMinimum(ptr(int64(math.MinInt64))).SetMaximum(ptr(int64(math.MaxInt64)))
+	case "uint":
+		return ogen.Int64().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint32)))
+	case "uint8":
+		return ogen.Int32().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint8)))
+	case "uint16":
+		return ogen.Int32().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint16)))
+	case "uint32":
+		return ogen.Int64().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint32)))
+	case "uint64":
+		return ogen.Int64().SetMinimum(ptr(int64(0)))
+	case "float32":
+		return ogen.Float()
+	case "float64":
+		return ogen.Double()
+	default:
+		return nil
 	}
-)
+}
 
 // OgenSchema returns the ogen.Schema to use for the given gen.Field.
 func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
-	// If there is a custom property given on the field use it.
+	// If there is a custom property/schema given on the field, use it.
 	ant, err := FieldAnnotation(f)
 	if err != nil {
 		return nil, err
@@ -565,6 +582,10 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if ant.Schema != nil {
 		return ant.Schema, nil
 	}
+
+	var schema *ogen.Schema
+	baseType := f.Type.String()
+
 	// Enum values need special case.
 	if f.IsEnum() {
 		var d json.RawMessage
@@ -581,20 +602,31 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 				return nil, err
 			}
 		}
-		return ogen.String().AsEnum(d, vs...), nil
+		schema = ogen.String().AsEnum(d, vs...)
 	}
-	s := f.Type.String()
-	// Handle slice types.
-	if strings.HasPrefix(s, "[]") {
-		if t, ok := types[s[2:]]; ok {
-			return t.AsArray(), nil
+
+	if schema == nil {
+		if strings.HasPrefix(baseType, "[]") { // Handle slice types.
+			schema = mapTypeToSchema(baseType[2:])
+			if schema != nil {
+				schema = schema.AsArray()
+			}
+		}
+
+		if schema == nil {
+			schema = mapTypeToSchema(baseType)
 		}
 	}
-	t, ok := types[s]
-	if !ok {
-		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
+
+	if schema == nil {
+		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", baseType, f.StructField())
 	}
-	return t, nil
+
+	if schema.Description == "" {
+		schema.Description = f.Comment()
+	}
+
+	return schema, nil
 }
 
 // NodeOperations returns the list of operations to expose for this node.
@@ -732,21 +764,6 @@ func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBod
 	req.SetJSONContent(c)
 	return req, nil
 }
-
-// // exampleValue returns the user defined example value for the ent schema field.
-// func exampleValue(f *gen.Field) (interface{}, error) {
-// 	a, err := FieldAnnotation(f)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if a != nil && a.Example != nil {
-// 		return a.Example, err
-// 	}
-// 	if f.IsEnum() {
-// 		return f.EnumValues()[0], nil
-// 	}
-// 	return nil, nil
-// }
 
 // contains checks if a string slice contains the given value.
 func contains(xs []Operation, s Operation) bool {
