@@ -755,10 +755,14 @@ func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBod
 			if err != nil {
 				return nil, err
 			}
-			addProperty(c, p, op == OpCreate && !f.Optional)
+			addProperty(c, p, op == OpCreate && !f.Optional && !f.Default)
 		}
 	}
 	for _, e := range n.Edges {
+		if op == OpUpdate && (e.Immutable || (e.Field() != nil && e.Field().Immutable)) {
+			continue
+		}
+
 		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err
@@ -766,7 +770,29 @@ func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBod
 		if !e.Unique {
 			s = s.AsArray()
 		}
-		addProperty(c, s.ToProperty(e.Name), op == OpCreate && !e.Optional)
+
+		if e.Field() != nil {
+			f := e.Field()
+			a, err := FieldAnnotation(f)
+			if err != nil {
+				return nil, err
+			}
+
+			if a.ReadOnly {
+				continue
+			}
+
+			if !a.Skip {
+				// If the edge has a field, and the field isn't skipped, then there is no
+				// point in having two fields that can be used during create (especially
+				// if both are required).
+				continue
+			}
+
+			addProperty(c, s.ToProperty(e.Name), (op == OpCreate && !e.Optional && !f.Default) || (op == OpUpdate && !f.UpdateDefault))
+		} else {
+			addProperty(c, s.ToProperty(e.Name), (op == OpCreate && !e.Optional))
+		}
 	}
 	req.SetJSONContent(c)
 	return req, nil
