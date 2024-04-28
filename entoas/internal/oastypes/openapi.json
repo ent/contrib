@@ -231,7 +231,6 @@
                   "float64",
                   "string_field",
                   "bool",
-                  "uuid",
                   "time",
                   "text",
                   "state",
@@ -242,7 +241,6 @@
                   "nicknames",
                   "json_slice",
                   "json_obj",
-                  "other",
                   "nillable"
                 ]
               }
