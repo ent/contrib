@@ -359,6 +359,17 @@ func readEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	// If edge has a comment, override summary/description.
+	if e.Comment() != "" {
+		op = op.SetSummary(e.Comment()).SetDescription(e.Comment())
+	}
+
+	// If the edge is a different type than the node, add the edge type as a tag.
+	if n.Name != e.Type.Name {
+		op = op.AddTags(e.Type.Name)
+	}
+
 	return op, nil
 }
 
@@ -512,6 +523,17 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	// If edge has a comment, override summary/description.
+	if e.Comment() != "" {
+		op = op.SetSummary(e.Comment()).SetDescription(e.Comment())
+	}
+
+	// If the edge is a different type than the node, add the edge type as a tag.
+	if n.Name != e.Type.Name {
+		op = op.AddTags(e.Type.Name)
+	}
+
 	return op, nil
 }
 
