@@ -269,10 +269,11 @@
     "/categories/{id}/pets": {
       "get": {
         "tags": [
-          "Category"
+          "Category",
+          "Pet"
         ],
-        "summary": "List attached Pets",
-        "description": "List attached Pets.",
+        "summary": "Pets that belong in this category.",
+        "description": "Pets that belong in this category.",
         "operationId": "listCategoryPets",
         "parameters": [
           {
@@ -637,10 +638,11 @@
     "/pets/{id}/categories": {
       "get": {
         "tags": [
-          "Pet"
+          "Pet",
+          "Category"
         ],
-        "summary": "List attached Categories",
-        "description": "List attached Categories.",
+        "summary": "Categories for which the pet belongs to.",
+        "description": "Categories for which the pet belongs to.",
         "operationId": "listPetCategories",
         "parameters": [
           {
@@ -703,8 +705,8 @@
         "tags": [
           "Pet"
         ],
-        "summary": "List attached Friends",
-        "description": "List attached Friends.",
+        "summary": "Friends of the pet.",
+        "description": "Friends of the pet.",
         "operationId": "listPetFriends",
         "parameters": [
           {
@@ -765,10 +767,11 @@
     "/pets/{id}/owner": {
       "get": {
         "tags": [
-          "Pet"
+          "Pet",
+          "User"
         ],
-        "summary": "Find the attached User",
-        "description": "Find the attached User of the Pet with the given ID",
+        "summary": "Owner of the pet.",
+        "description": "Owner of the pet.",
         "operationId": "readPetOwner",
         "parameters": [
           {
@@ -1079,10 +1082,11 @@
     "/users/{id}/pets": {
       "get": {
         "tags": [
-          "User"
+          "User",
+          "Pet"
         ],
-        "summary": "List attached Pets",
-        "description": "List attached Pets.",
+        "summary": "The pets that the user owns.",
+        "description": "The pets that the user owns.",
         "operationId": "listUserPets",
         "parameters": [
           {

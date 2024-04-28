@@ -30,7 +30,7 @@ type Category struct {
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
 type CategoryEdges struct {
-	// Pets holds the value of the pets edge.
+	// Pets that belong in this category.
 	Pets []*Pet `json:"pets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

@@ -267,7 +267,8 @@
     "/categories/{id}/pets": {
       "get": {
         "tags": [
-          "Category"
+          "Category",
+          "Pet"
         ],
         "summary": "List attached Pets",
         "description": "List attached Pets.",
@@ -629,7 +630,8 @@
     "/pets/{id}/categories": {
       "get": {
         "tags": [
-          "Pet"
+          "Pet",
+          "Category"
         ],
         "summary": "List attached Categories",
         "description": "List attached Categories.",
@@ -757,7 +759,8 @@
     "/pets/{id}/owner": {
       "get": {
         "tags": [
-          "Pet"
+          "Pet",
+          "User"
         ],
         "summary": "Find the attached User",
         "description": "Find the attached User of the Pet with the given ID",
@@ -1067,7 +1070,8 @@
     "/users/{id}/pets": {
       "get": {
         "tags": [
-          "User"
+          "User",
+          "Pet"
         ],
         "summary": "List attached Pets",
         "description": "List attached Pets.",

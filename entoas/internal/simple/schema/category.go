@@ -42,6 +42,6 @@ func (Category) Fields() []ent.Field {
 // Edges of the Category.
 func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("pets", Pet.Type),
+		edge.To("pets", Pet.Type).Comment("Pets that belong in this category."),
 	}
 }
