@@ -41,6 +41,17 @@ func TestBasic(t *testing.T) {
 	require.True(t, strings.HasPrefix(contents, "// File updated by protoc-gen-ent."))
 }
 
+func TestTimestamp(t *testing.T) {
+	tt, err := newGenTest(t, "testdata/timestamp.proto")
+	require.NoError(t, err)
+	contents, err := tt.fileContents("timestamp.go")
+	require.NoError(t, err)
+	require.Contains(t, contents, "type Timestamp struct")
+	require.Contains(t, contents, `field.String("name")`)
+	require.Contains(t, contents, `field.Time("created_at")`)
+	require.True(t, strings.HasPrefix(contents, "// File updated by protoc-gen-ent."))
+}
+
 func TestCustomName(t *testing.T) {
 	tt, err := newGenTest(t, "testdata/custom_name.proto")
 	require.NoError(t, err)
@@ -106,7 +117,7 @@ func newGenTest(t *testing.T, files ...string) (*genTest, error) {
 	})
 	var parser protoparse.Parser
 	var descs []*descriptorpb.FileDescriptorProto
-	tgts := []string{"google/protobuf/descriptor.proto", "options/ent/opts.proto"}
+	tgts := []string{"google/protobuf/descriptor.proto", "options/ent/opts.proto", "google/protobuf/timestamp.proto"}
 	tgts = append(tgts, files...)
 	parsed, err := parser.ParseFiles(tgts...)
 	require.NoError(t, err)

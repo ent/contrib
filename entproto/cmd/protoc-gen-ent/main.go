@@ -18,8 +18,6 @@ import (
 	"flag"
 	"fmt"
 
-	entopts "entgo.io/contrib/entproto/cmd/protoc-gen-ent/options/ent"
-	"entgo.io/contrib/schemast"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -27,6 +25,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+
+	entopts "entgo.io/contrib/entproto/cmd/protoc-gen-ent/options/ent"
+	"entgo.io/contrib/schemast"
 )
 
 var schemaDir *string
@@ -130,7 +131,7 @@ func toSchema(m *protogen.Message, opts *entopts.Schema) (*schemast.UpsertSchema
 }
 
 func isEdge(f *protogen.Field) bool {
-	return f.Desc.Kind() == protoreflect.MessageKind
+	return f.Desc.Kind() == protoreflect.MessageKind && f.Desc.Message().FullName() != "google.protobuf.Timestamp"
 }
 
 func toEdge(f *protogen.Field) (ent.Edge, error) {
@@ -195,7 +196,12 @@ func toField(f *protogen.Field) (ent.Field, error) {
 		}
 		fld = field.Enum(name).Values(values...)
 	default:
-		return nil, fmt.Errorf("protoc-gen-ent: unsupported kind %q", f.Desc.Kind())
+		switch f.Desc.Message().FullName() {
+		case "google.protobuf.Timestamp":
+			fld = field.Time(name)
+		default:
+			return nil, fmt.Errorf("protoc-gen-ent: unsupported kind %q", f.Desc.Kind())
+		}
 	}
 	if opts, ok := fieldOpts(f); ok {
 		applyFieldOpts(fld, opts)
