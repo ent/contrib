@@ -27,6 +27,9 @@ import (
 // to construct it.
 func Edge(desc *edge.Descriptor) (*ast.CallExpr, error) {
 	builder := newEdgeCall(desc)
+	if desc.Through != nil {
+		builder.method("Through", strLit(desc.Through.N), selectorLit(desc.Through.T, "Type"))
+	}
 	if desc.RefName != "" {
 		builder.method("Ref", strLit(desc.RefName))
 	}
