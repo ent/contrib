@@ -35,11 +35,11 @@ import (
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (bp *BillProductQuery) CollectFields(ctx context.Context, satisfies ...string) (*BillProductQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return bp, nil
 	}
-	if err := bp.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := bp.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return bp, nil
@@ -112,11 +112,11 @@ func newBillProductPaginateArgs(rv map[string]any) *billproductPaginateArgs {
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return c, nil
 	}
-	if err := c.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := c.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -419,11 +419,11 @@ func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string) (*FriendshipQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return f, nil
 	}
-	if err := f.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := f.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return f, nil
@@ -526,11 +526,11 @@ func newFriendshipPaginateArgs(rv map[string]any) *friendshipPaginateArgs {
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*GroupQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return gr, nil
 	}
-	if err := gr.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := gr.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return gr, nil
@@ -686,11 +686,11 @@ func newGroupPaginateArgs(rv map[string]any) *groupPaginateArgs {
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return t, nil
 	}
-	if err := t.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := t.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return t, nil
@@ -931,11 +931,11 @@ func newTodoPaginateArgs(rv map[string]any) *todoPaginateArgs {
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return u, nil
 	}
-	if err := u.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := u.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return u, nil

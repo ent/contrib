@@ -27,11 +27,11 @@ import (
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return c, nil
 	}
-	if err := c.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := c.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -151,11 +151,11 @@ func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+	fieldContext := graphql.GetFieldContext(ctx)
+	if fieldContext == nil {
 		return t, nil
 	}
-	if err := t.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := t.collectField(ctx, false, graphql.GetOperationContext(ctx), fieldContext.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return t, nil
