@@ -1,4 +1,4 @@
-module entgo.io/contrib
+module github.com/JamesHovious/contrib
 
 go 1.21.0
 
