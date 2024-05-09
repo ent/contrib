@@ -364,10 +364,14 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 		if p.reverse {
 			direction = direction.Reverse()
 		}
-		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
-		{{- /* We need to ensure the ID field is included in ORDER BY since the other terms might not be unique. */}}
-		if p.order.Field != {{ $defaultOrder }}.Field {
-			query = query.Order({{ $defaultOrder }}.Field.toTerm(direction.OrderTermOption()))
+		if p.order.OrderOption != nil {
+			query = query.Order(p.order.OrderOption)
+		} else {
+			query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+			{{- /* We need to ensure the ID field is included in ORDER BY since the other terms might not be unique. */}}
+			if p.order.Field != {{ $defaultOrder }}.Field {
+				query = query.Order({{ $defaultOrder }}.Field.toTerm(direction.OrderTermOption()))
+			}
 		}
 		{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
 		{{- with $byEdges }}
@@ -575,6 +579,7 @@ type {{ $orderField }} struct {
 type {{ $order }} struct {
 	Direction OrderDirection `json:"direction"`
 	Field *{{ $orderField }} `json:"field"`
+	OrderOption {{ $node.Package }}.OrderOption
 }
 
 // {{ $defaultOrder }} is the default ordering of {{ $node.Name }}.
@@ -656,11 +661,12 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if limit != nil && *limit != 0 {
 		{{ $r }}.Limit(*limit)
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
-		{{ $r }}.Limit(limit)
+	*limit = paginateLimit(first, last)
+	if *limit != 0 {
+		{{ $r }}.Limit(*limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := {{ $r }}.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := {{ $r }}.collectField(ctx, *limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
