@@ -1,5 +1,6 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_list" }}
+    {{ $importPath := .G.File.GoImportPath }}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
     var (
         err error
@@ -40,9 +41,11 @@
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken))
     }
     switch req.GetView() {
-    case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
+    case {{ $importPath.Ident ( print $inputName "_VIEW_UNSPECIFIED" ) | ident }}:
+        fallthrough
+    case {{ $importPath.Ident ( print $inputName "_BASIC" ) | ident }}:
         entList, err = listQuery.All(ctx)
-    case {{ $inputName }}_WITH_EDGE_IDS:
+    case {{ $importPath.Ident ( print $inputName "_WITH_EDGE_IDS" ) | ident }}:
         entList, err = listQuery.
             {{ range .G.FieldMap.Edges }}
                 {{- $et := .EntEdge.Type -}}
@@ -64,7 +67,7 @@
         if err != nil {
             return nil, {{ statusErrf "Internal" "internal error: %s" "err" }}
         }
-        return &List{{ .G.EntType.Name }}Response{
+        return &{{ $importPath.Ident ( print "List" .G.EntType.Name "Response" ) | ident }}{
             {{ .G.EntType.Name }}List: protoList,
             NextPageToken: nextPageToken,
         }, nil
