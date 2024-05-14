@@ -332,9 +332,13 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 			if p.reverse {
 				direction = direction.Reverse()
 			}
-			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
-			if o.Field.column == {{ $defaultOrder }}.Field.column {
-				defaultOrdered = true
+			if o.OrderOption != nil {
+				query = query.Order(o.OrderOption)
+			} else {
+				query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+				if o.Field.column == {{ $defaultOrder }}.Field.column {
+					defaultOrdered = true
+				}
 			}
 			{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
 			{{- with $byEdges }}
