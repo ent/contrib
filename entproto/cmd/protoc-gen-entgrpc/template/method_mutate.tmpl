@@ -81,7 +81,7 @@
                 {{- $varName  := camel .EntEdge.StructField }}
                 {{- $id := printf "item.Get%s()" .EdgeIDPbStructField }}
                 {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
-                m.Add{{ singular .EntEdge.StructField }}IDs({{ $varName }})
+                m.Add{{ singular .EntEdge.Name | pascal }}IDs({{ $varName }})
             }
         {{- end }}
     {{- end }}
