@@ -54,6 +54,7 @@
     {{- range .G.FieldMap.Fields }}
         {{- $skipImmutable := and ( eq $methodName "Update" ) .EntField.Immutable -}}
         {{- $skip := or .IsIDField $skipImmutable -}}
+        {{- $checkZero := and ( eq $methodName "Create" ) .EntField.Default -}}
         {{- if not $skip }}
             {{- $varName := camel (print $reqVar  "_"  .EntField.Name) -}}
             {{- $id := print $reqVar ".Get" .PbStructField "() " -}}
@@ -61,8 +62,11 @@
                 if {{ $id }} != nil {
             {{- end }}
             {{- template "field_to_ent" dict "Field" . "VarName" $varName "Ident" $id }}
+            {{- if and (not .EntField.Optional) $checkZero }}
+                if !{{ qualify "reflect" "ValueOf" }}({{ $id }}).IsZero() {
+            {{- end }}
             m.Set{{ .EntField.StructField }}({{ $varName }})
-            {{- if .EntField.Optional }}
+            {{- if or .EntField.Optional $checkZero }}
                 }
             {{- end }}
         {{- end }}
