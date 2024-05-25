@@ -15,13 +15,13 @@
 package schema
 
 import (
-	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
-	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+
+	"entgo.io/contrib/entgql"
 )
 
 // User holds the schema definition for the User entity.
@@ -35,7 +35,7 @@ func (User) Fields() []ent.Field {
 		field.String("name").
 			Default("Anonymous"),
 		field.UUID("username", uuid.UUID{}).
-			Annotations(entgql.AllowedOps(gen.EQ, gen.In)).
+			Annotations(entgql.WhereOps(entgql.OpsEQ | entgql.OpsIn)).
 			Default(uuid.New),
 		field.String("password").
 			Sensitive().

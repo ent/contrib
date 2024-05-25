@@ -51,10 +51,26 @@ type (
 		QueryField *FieldConfig `json:"QueryField,omitempty"`
 		// MutationInputs defines the input types for the mutation.
 		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
-		// AllowedOps limits the predicate operations that will be generated for this field.
-		// Ops will be generated using the field type. Then, if this is defined, they will
-		// be filtered by the allowed ops.
-		AllowedOps []gen.Op
+		// AllowedOps
+		/*
+			Limits the predicate operations that will be generated for this field.
+			Ops will initially be based on the field type. Then, if this has a value,
+			the predicates will be filtered to the allowed operations.
+
+			Default value is equivalent to OpsALL.
+
+			Examples:
+			1) Limit to only specific operations:
+			OpsEQ | OpsNEQ
+			2) Limit to all operations except one or more:
+			OpsALL &^ OpsContains &^ OpsContainsFold
+
+			Note, if the AllowedOps and field operations do not
+			overlap, then this will limit your generated predicates to none.
+			e.g. AllowedOps = OpsHasPrefix, field type = int,
+			will produce no allowed predicates.
+		*/
+		AllowedOps Ops
 	}
 
 	// Directive to apply on the field/type.
@@ -431,9 +447,18 @@ func Mutations(inputs ...MutationOption) Annotation {
 	return Annotation{MutationInputs: a}
 }
 
-// AllowedOps returns an annotation that limits the predicate operations
-// that will be generated for this field.
-func AllowedOps(ops ...gen.Op) Annotation {
+// WhereOps
+/*
+Returns an annotation that limits the predicate operations
+that will be generated for this field.
+
+Examples:
+1) Limit to only specific operations:
+WhereOps(OpsEQ | OpsNEQ)
+2) 2) Limit to all operations except one or more:
+WhereOps(OpsALL &^ OpsContains &^ OpsContainsFold)
+*/
+func WhereOps(ops Ops) Annotation {
 	return Annotation{AllowedOps: ops}
 }
 
@@ -492,9 +517,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 		}
 		a.QueryField.merge(ant.QueryField)
 	}
-	if len(ant.AllowedOps) > 0 {
-		a.AllowedOps = append(a.AllowedOps, ant.AllowedOps...)
-	}
+
+	a.AllowedOps = a.AllowedOps | ant.AllowedOps
+
 	return a
 }
 
