@@ -29,7 +29,7 @@ var (
 	/*
 		OpsALL is assumed when the Ops value is 0.
 
-		It is also provided an explicit value here to make it easier to allow all operations except one or more.
+		It is also provided as an explicit value here to make it easier to allow all operations except one or more.
 
 		Example:
 		OpsALL &^ OpsEQ removes the EQ operation.

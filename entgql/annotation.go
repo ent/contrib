@@ -455,7 +455,7 @@ that will be generated for this field.
 Examples:
 1) Limit to only specific operations:
 WhereOps(OpsEQ | OpsNEQ)
-2) 2) Limit to all operations except one or more:
+2) Limit to all operations except one or more:
 WhereOps(OpsALL &^ OpsContains &^ OpsContainsFold)
 */
 func WhereOps(ops Ops) Annotation {
