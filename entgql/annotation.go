@@ -518,7 +518,7 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 		a.QueryField.merge(ant.QueryField)
 	}
 
-	a.AllowedOps = a.AllowedOps | ant.AllowedOps
+	a.AllowedOps |= ant.AllowedOps
 
 	return a
 }
