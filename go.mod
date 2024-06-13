@@ -27,7 +27,7 @@ require (
 	golang.org/x/sync v0.7.0
 	golang.org/x/tools v0.21.0
 	google.golang.org/grpc v1.52.3
-	google.golang.org/protobuf v1.34.1
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-faster/jx v0.40.0 // indirect
 	github.com/go-faster/yamlx v0.4.1 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
