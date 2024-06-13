@@ -628,7 +628,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	s.Run("EmptyFilter", func() {
 		var (
 			rsp   response
-			query = `query() {
+			query = `query {
 				todos(where:{}) {
 					totalCount
 				}
@@ -642,7 +642,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	s.Run("Zero first", func() {
 		var (
 			rsp   response
-			query = `query() {
+			query = `query {
 				todos(first: 0) {
 					totalCount
 				}
@@ -656,7 +656,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	s.Run("Zero last", func() {
 		var (
 			rsp   response
-			query = `query() {
+			query = `query {
 				todos(last: 0) {
 					totalCount
 				}
