@@ -24,7 +24,7 @@ import (
 	"sync/atomic"
 
 	{{- range $n := $.Nodes }}
-		"{{ $.Config.Package }}/{{ $n.Package }}"
+		{{ $n.PackageAlias }} "{{ $n.Config.Package }}/{{ $n.PackageDir }}"
 	{{- end }}
 	{{- with $package := $idType.PkgPath }}
 		"{{ $package }}"

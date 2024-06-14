@@ -28,7 +28,7 @@ import (
 	"encoding/base64"
 
 	{{- range $n := $gqlNodes }}
-		"{{ $.Config.Package }}/{{ $n.Package }}"
+		{{ $n.PackageAlias }} "{{ $n.Config.Package }}/{{ $n.PackageDir }}"
 	{{- end }}
 
 	"entgo.io/ent/dialect/sql"
